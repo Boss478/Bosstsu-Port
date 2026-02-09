@@ -1,4 +1,63 @@
+/* Flaticon Uicons - Regular Rounded */
+@import "@flaticon/flaticon-uicons/css/all/all.css";
+
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Custom ultra-small backdrop blur utilities */
+@utility backdrop-blur-2xs {
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+}
+@utility backdrop-blur-3xs {
+  backdrop-filter: blur(0.75px);
+  -webkit-backdrop-filter: blur(0.75px);
+}
+@utility backdrop-blur-4xs {
+  backdrop-filter: blur(0.5px);
+  -webkit-backdrop-filter: blur(0.5px);
+}
+@utility backdrop-blur-5xs {
+  backdrop-filter: blur(0.25px);
+  -webkit-backdrop-filter: blur(0.25px);
+}
+@utility backdrop-blur-6xs {
+  backdrop-filter: blur(0.1px);
+  -webkit-backdrop-filter: blur(0.1px);
+}
+
+/* Slide down animation */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-slide-down {
+  animation: slideDown 0.8s ease-out forwards;
+}
+
+/* Slide up animation */
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@utility animate-slide-up {
+  animation: slideUp 0.8s ease-out forwards;
+}
 
 :root {
   --background: #ffffff;
@@ -22,5 +81,71 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:
+    var(--font-mali), var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Smooth theme transition */
+*,
+*::before,
+*::after {
+  transition:
+    background-color 500ms ease,
+    border-color 500ms ease,
+    color 500ms ease;
+}
+
+/* Custom animations */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 5s ease infinite;
+}
+
+/* Glassmorphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(0.25px);
+  -webkit-backdrop-filter: blur(0.25px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Card hover effect */
+.card-hover {
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
