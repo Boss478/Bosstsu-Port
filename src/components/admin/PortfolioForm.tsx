@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import TagPicker from './TagPicker';
 import RichTextEditor from './RichTextEditor';
+import SaveProgress from './SaveProgress';
+import { useAdminSession } from './AdminSessionProvider';
 
 interface PortfolioFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,40 +25,163 @@ export default function PortfolioForm({
   availableTools = [],
 }: PortfolioFormProps) {
   const router = useRouter();
-  const [pending, setPending] = useState(false);
+  const { setIsUploading } = useAdminSession();
+  
+  // Basic states
   const [error, setError] = useState<string | null>(null);
-  const [coverPreview, setCoverPreview] = useState<string | null>(
-    initialData?.cover || null
-  );
+  
+  // Progress States
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [statusText, setStatusText] = useState('');
+
+  // Form Field States
+  const [coverPreview, setCoverPreview] = useState<string | null>(initialData?.cover || null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  
   const [autoSlug, setAutoSlug] = useState(initialData?.slug || '');
   const [photos, setPhotos] = useState<string[]>(initialData?.gallery || []);
+  
+  // Gallery files
+  const [newPhotoFiles, setNewPhotoFiles] = useState<File[]>([]);
   const [newPhotoPreviews, setNewPhotoPreviews] = useState<string[]>([]);
+
+  // ---- Upload Logic ----
+  const uploadFileWithProgress = (file: File, folder: string, onProgress: (loaded: number) => void): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('folder', folder);
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          onProgress(e.loaded);
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            resolve(response.url);
+          } catch {
+            reject(new Error('Invalid response from server'));
+          }
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}`));
+        }
+      });
+
+      xhr.addEventListener('error', () => reject(new Error('Network error during upload')));
+      xhr.addEventListener('abort', () => reject(new Error('Upload aborted')));
+
+      xhr.open('POST', '/api/upload');
+      xhr.send(fd);
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setPending(true);
-    setError(null);
+    if (isSubmitting) return;
 
-    const formData = new FormData(e.currentTarget);
-    formData.append('existingPhotos', JSON.stringify(photos));
+    setError(null);
+    setIsSubmitting(true);
+    setProgress(0);
+    setIsUploading(true);
 
     try {
-      const result = await action(formData);
-      if (result && result.error) {
-        setError(result.error);
-      } else {
-        router.push('/admin/portfolio');
+      const formElement = e.currentTarget;
+      
+      // Calculate total bytes to upload out of 90% progress slice
+      const totalBytes = 
+        (coverFile ? coverFile.size : 0) + 
+        newPhotoFiles.reduce((acc, f) => acc + f.size, 0);
+      
+      let uploadedBytes = 0;
+      const updateProgress = (chunkLoaded: number) => {
+        if (totalBytes === 0) return;
+        const currentTotalLoaded = uploadedBytes + chunkLoaded;
+        const uploadPercent = (currentTotalLoaded / totalBytes) * 90; // Upload takes up to 90%
+        setProgress(uploadPercent);
+      };
+
+      // 1. Upload Cover
+      let finalCoverUrl = initialData?.cover || '';
+      if (coverFile) {
+        setStatusText('กำลังอัปโหลดหน้าปก...');
+        finalCoverUrl = await uploadFileWithProgress(coverFile, 'portfolio', (loaded) => updateProgress(loaded));
+        uploadedBytes += coverFile.size;
+        setProgress((uploadedBytes / totalBytes) * 90);
+      } else if (!isEdit) {
+        throw new Error('กรุณาเลือกรูปปก');
       }
-    } catch {
-      setError('An unexpected error occurred');
+
+      // 2. Upload Gallery (Sequential to avoid network flooding)
+      const finalGalleryUrls = [...photos];
+      for (let i = 0; i < newPhotoFiles.length; i++) {
+        const file = newPhotoFiles[i];
+        setStatusText(`กำลังอัปโหลดรูปภาพที่ ${i + 1}/${newPhotoFiles.length}...`);
+        
+        // Wait for retry logic if needed (simplified retry wrapper)
+        const uploadWithRetry = async (retries = 3): Promise<string> => {
+          for (let attempt = 1; attempt <= retries; attempt++) {
+            try {
+              return await uploadFileWithProgress(file, 'portfolio/gallery', (loaded) => updateProgress(loaded));
+            } catch (err) {
+              if (attempt === retries) throw err;
+              await new Promise(res => setTimeout(res, attempt * 1000)); // Exponential-ish backoff
+            }
+          }
+          throw new Error('Failed to upload after max retries');
+        };
+
+        const url = await uploadWithRetry();
+        finalGalleryUrls.push(url);
+        uploadedBytes += file.size;
+        setProgress((uploadedBytes / totalBytes) * 90);
+      }
+
+      // 3. Save Data via Server Action
+      setStatusText('กำลังบันทึกข้อมูลเข้าฐานข้อมูล...');
+      setProgress(95);
+
+      const finalFormData = new FormData(formElement);
+      finalFormData.set('coverUrl', finalCoverUrl);
+      finalFormData.set('galleryUrls', JSON.stringify(finalGalleryUrls));
+      // Remove File objects so we don't send huge payloads to the action
+      finalFormData.delete('cover');
+      finalFormData.delete('photos');
+
+      const result = await action(finalFormData);
+
+      if (result && result.error) {
+        throw new Error(result.error);
+      }
+
+      setProgress(100);
+      setStatusText('บันทึกข้อมูลสำเร็จ!');
+      
+      setTimeout(() => {
+        router.push('/admin/portfolio');
+      }, 500);
+
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('เกิดข้อผิดพลาดที่ไม่คาดคิด');
+      }
+      setIsSubmitting(false);
     } finally {
-      setPending(false);
+      setIsUploading(false);
     }
   };
 
   const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setCoverFile(file);
       setCoverPreview(URL.createObjectURL(file));
     }
   };
@@ -64,7 +189,9 @@ export default function PortfolioForm({
   const handlePhotosChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      const previews = Array.from(files).map(file => URL.createObjectURL(file));
+      const newFiles = Array.from(files);
+      setNewPhotoFiles(prev => [...prev, ...newFiles]);
+      const previews = newFiles.map(file => URL.createObjectURL(file));
       setNewPhotoPreviews(prev => [...prev, ...previews]);
     }
   };
@@ -313,16 +440,23 @@ export default function PortfolioForm({
 
         <button
           type="submit"
-          disabled={pending}
+          disabled={isSubmitting}
           className="w-full py-3 px-4 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {pending
+          {isSubmitting
             ? 'กำลังบันทึก...'
             : isEdit
               ? 'อัปเดตข้อมูล'
               : 'สร้างผลงาน'}
         </button>
       </div>
+
+      {/* Progress Modal */}
+      <SaveProgress
+        isOpen={isSubmitting}
+        progress={progress}
+        statusText={statusText}
+      />
     </form>
   );
 }

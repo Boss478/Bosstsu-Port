@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache';
 import dbConnect from '@/lib/db';
 import Portfolio from '@/models/Portfolio';
 import { verifyAuth } from '@/lib/auth';
-import { saveFile } from '@/lib/upload';
 import { z } from 'zod';
 
 const portfolioSchema = z.object({
@@ -37,27 +36,20 @@ export async function createPortfolioItem(formData: FormData) {
 
   const { title, slug, description, content, dateStr, tagsStr, toolsStr } = parsed.data;
   const published = formData.get('published') === 'on';
-  const coverFile = formData.get('cover') as File;
+  
+  const coverUrl = formData.get('coverUrl') as string;
+  const galleryUrlsStr = formData.get('galleryUrls') as string;
+  const galleryUrls = galleryUrlsStr ? JSON.parse(galleryUrlsStr) : [];
 
-  if (!coverFile || coverFile.size === 0) {
+  if (!coverUrl) {
     return { error: 'Cover image is required' };
   }
 
   await dbConnect();
 
   try {
-    const coverPath = await saveFile(coverFile, 'portfolio', true);
     const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
     const tools = toolsStr ? toolsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
-
-    // Process gallery photos
-    const photoFiles = formData.getAll('photos') as File[];
-    const gallery: string[] = [];
-    for (const file of photoFiles) {
-      if (file && file.size > 0) {
-        gallery.push(await saveFile(file, 'portfolio/gallery', false));
-      }
-    }
 
     await Portfolio.create({
       title,
@@ -67,8 +59,8 @@ export async function createPortfolioItem(formData: FormData) {
       date: new Date(dateStr),
       tags,
       tools,
-      cover: coverPath,
-      gallery,
+      cover: coverUrl,
+      gallery: galleryUrls,
       published,
     });
   } catch (error: unknown) {
@@ -101,7 +93,10 @@ export async function updatePortfolioItem(id: string, formData: FormData) {
 
   const { title, slug, description, content, dateStr, tagsStr, toolsStr } = parsed.data;
   const published = formData.get('published') === 'on';
-  const coverFile = formData.get('cover') as File;
+  
+  const coverUrl = formData.get('coverUrl') as string;
+  const galleryUrlsStr = formData.get('galleryUrls') as string;
+  const galleryUrls = galleryUrlsStr ? JSON.parse(galleryUrlsStr) : undefined;
 
   await dbConnect();
 
@@ -117,20 +112,13 @@ export async function updatePortfolioItem(id: string, formData: FormData) {
       published,
     };
 
-    if (coverFile && coverFile.size > 0) {
-      updateData.cover = await saveFile(coverFile, 'portfolio', true);
+    if (coverUrl) {
+      updateData.cover = coverUrl;
     }
 
-    // Process gallery photos
-    const existingPhotos: string[] = JSON.parse((formData.get('existingPhotos') as string) || '[]');
-    const photoFiles = formData.getAll('photos') as File[];
-    const newPhotoPaths: string[] = [];
-    for (const file of photoFiles) {
-      if (file && file.size > 0) {
-        newPhotoPaths.push(await saveFile(file, 'portfolio/gallery', false));
-      }
+    if (galleryUrls !== undefined) {
+      updateData.gallery = galleryUrls;
     }
-    updateData.gallery = [...existingPhotos, ...newPhotoPaths];
 
     await Portfolio.findByIdAndUpdate(id, updateData);
   } catch (error: unknown) {

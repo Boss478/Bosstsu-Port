@@ -9,6 +9,7 @@ import { deletePortfolioItem } from './actions';
 export const dynamic = 'force-dynamic';
 
 import SearchFilter from '@/components/admin/SearchFilter';
+import { CONFIG } from '@/lib/config';
 
 export default async function PortfolioListPage({
   searchParams,
@@ -19,7 +20,7 @@ export default async function PortfolioListPage({
 
   const resolvedSearchParams = await searchParams;
   const page = typeof resolvedSearchParams.page === 'string' ? parseInt(resolvedSearchParams.page) : 1;
-  const limit = 10;
+  const limit = CONFIG.PAGINATION.DEFAULT_LIMIT;
   const skip = (page - 1) * limit;
   
   const search = typeof resolvedSearchParams.q === 'string' ? resolvedSearchParams.q : '';

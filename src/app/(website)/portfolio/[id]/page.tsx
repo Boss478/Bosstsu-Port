@@ -6,6 +6,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import PortfolioGallery from "@/components/PortfolioGallery";
 import { type PortfolioItem, formatDate } from "../data";
 import DOMPurify from 'isomorphic-dompurify';
+import { CONFIG } from "@/lib/config";
 
 export const revalidate = 60;
 
@@ -46,12 +47,12 @@ export default async function PortfolioDetailPage({
 
   // Fetch related data in parallel to avoid JS waterfall effect
   const [recentDocs, relatedDocs, newerDocAny, olderDocAny] = await Promise.all([
-    Portfolio.find({ slug: { $ne: id }, published: { $ne: false } }).sort({ date: -1 }).limit(5).lean(),
+    Portfolio.find({ slug: { $ne: id }, published: { $ne: false } }).sort({ date: -1 }).limit(CONFIG.PAGINATION.PORTFOLIO_RECENT).lean(),
     item.tags.length > 0 ? Portfolio.aggregate([
       { $match: { slug: { $ne: id }, tags: { $in: item.tags }, published: { $ne: false } } },
       { $addFields: { score: { $size: { $setIntersection: ["$tags", item.tags] } } } },
       { $sort: { score: -1, date: -1 } },
-      { $limit: 3 },
+      { $limit: CONFIG.PAGINATION.PORTFOLIO_RELATED },
     ]) : Promise.resolve([]),
     Portfolio.findOne({ date: { $gt: doc.date } }).sort({ date: 1 }).lean(),
     Portfolio.findOne({ date: { $lt: doc.date } }).sort({ date: -1 }).lean(),

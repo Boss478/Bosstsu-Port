@@ -4,6 +4,7 @@ import "@flaticon/flaticon-uicons/css/solid/rounded.css";
 import "@flaticon/flaticon-uicons/css/brands/all.css";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { CONFIG } from "@/lib/config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,8 +23,8 @@ const mali = Mali({
 });
 
 export const metadata: Metadata = {
-  title: "Boss478 | Portfolio",
-  description: "เว็บไซต์ส่วนตัวสำหรับเก็บผลงาน กิจกรรม รูปภาพ สื่อการเรียนรู้ และเกมการศึกษา",
+  title: CONFIG.SITE.TITLE,
+  description: CONFIG.SITE.DESCRIPTION,
   icons: {
     icon: [
       { url: "/icon/favicon.ico", sizes: "any" },

@@ -3,6 +3,7 @@
 import dbConnect from '@/lib/db';
 import Portfolio from '@/models/Portfolio';
 import Gallery from '@/models/Gallery';
+import { CONFIG } from '@/lib/config';
 
 export interface DbStats {
   connected: boolean;
@@ -75,11 +76,11 @@ export async function getDbStats(): Promise<DbStats> {
   }
 }
 
-export async function getRecentItems() {
+export async function getDashboardStats() {
   await dbConnect();
   const [portfolioItems, galleryAlbums] = await Promise.all([
-    Portfolio.find({}).sort({ updatedAt: -1 }).limit(5).lean(),
-    Gallery.find({}).sort({ updatedAt: -1 }).limit(5).lean(),
+    Portfolio.find({}).sort({ updatedAt: -1 }).limit(CONFIG.PAGINATION.DASHBOARD_RECENT).lean(),
+    Gallery.find({}).sort({ updatedAt: -1 }).limit(CONFIG.PAGINATION.DASHBOARD_RECENT).lean(),
   ]);
   return {
     portfolio: JSON.parse(JSON.stringify(portfolioItems)),

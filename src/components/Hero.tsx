@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { CONFIG } from '@/lib/config';
 
 export default function HeroSection() {
     return (
@@ -24,7 +25,7 @@ export default function HeroSection() {
                     <div className="relative inline-flex items-center justify-center w-32 h-32 rounded-3xl overflow-hidden shadow-2xl shadow-sky-500/30 dark:shadow-sky-600/30">
                         <Image 
                             src="/icon/icon.png" 
-                            alt="Boss478 Logo" 
+                            alt={`${CONFIG.SITE.NAME} Logo`}
                             fill
                             sizes="128px"
                             className="object-cover" 

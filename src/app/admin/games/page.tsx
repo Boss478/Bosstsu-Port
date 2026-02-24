@@ -5,6 +5,7 @@ import Breadcrumb from '@/components/Breadcrumb';
 import DeleteButton from '@/components/admin/DeleteButton';
 import { deleteGame } from './actions';
 import SearchFilter from '@/components/admin/SearchFilter';
+import { CONFIG } from '@/lib/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +18,7 @@ export default async function GamesListPage({
 
   const resolvedSearchParams = await searchParams;
   const page = typeof resolvedSearchParams.page === 'string' ? parseInt(resolvedSearchParams.page) : 1;
-  const limit = 10;
+  const limit = CONFIG.PAGINATION.DEFAULT_LIMIT;
   const skip = (page - 1) * limit;
 
   const search = typeof resolvedSearchParams.q === 'string' ? resolvedSearchParams.q : '';

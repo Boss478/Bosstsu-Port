@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
 import { logoutAdmin } from '@/app/admin/login/actions';
+import { CONFIG } from '@/lib/config';
 
 interface AdminSessionContextType {
   isUploading: boolean;
@@ -28,8 +29,8 @@ export default function AdminSessionProvider({ children }: { children: ReactNode
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Constants
-  const IDLE_TIMEOUT = 30 * 1000; // 30 seconds
-  const COUNTDOWN_DURATION = 10; // 10 seconds
+  const IDLE_TIMEOUT = CONFIG.AUTH.IDLE_TIMEOUT;
+  const COUNTDOWN_DURATION = CONFIG.AUTH.COUNTDOWN_DURATION;
 
   const startIdleTimer = () => {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);

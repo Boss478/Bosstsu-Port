@@ -18,7 +18,9 @@ export async function getPortfolioItemBySlug(slug: string) {
   return JSON.parse(JSON.stringify(item));
 }
 
-export async function getRecentPortfolioItems(excludeSlug: string, limit = 5) {
+import { CONFIG } from '@/lib/config';
+
+export async function getRecentPortfolioItems(excludeSlug: string, limit = CONFIG.PAGINATION.PORTFOLIO_RECENT) {
   if (typeof excludeSlug !== 'string') return [];
   await dbConnect();
   const items = await Portfolio.find({ slug: { $ne: excludeSlug } })
@@ -28,7 +30,7 @@ export async function getRecentPortfolioItems(excludeSlug: string, limit = 5) {
   return JSON.parse(JSON.stringify(items));
 }
 
-export async function getRelatedByTags(currentSlug: string, tags: string[], limit = 3) {
+export async function getRelatedByTags(currentSlug: string, tags: string[], limit = CONFIG.PAGINATION.PORTFOLIO_RELATED) {
   if (typeof currentSlug !== 'string' || !Array.isArray(tags)) return [];
   const safeTags = tags.filter(t => typeof t === 'string');
   await dbConnect();
