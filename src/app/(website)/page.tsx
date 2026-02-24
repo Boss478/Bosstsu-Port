@@ -6,39 +6,38 @@ const sections = [
     title: "ผลงาน",
     description: "รวบรวมโปรเจกต์และผลงานต่างๆ",
     href: "/portfolio",
-    icon: "fi fi-rr-palette",
-    color: "bg-gray-200/80",
+    icon: "fi fi-sr-palette",
+    color: "bg-sky-500",
   },
   {
     title: "แกลเลอรี่",
     description: "คลังรูปภาพต่าง ๆ ของบอสสึ",
     href: "/gallery",
-    icon: "fi fi-rr-picture",
-    color: "bg-gray-200/80",
+    icon: "fi fi-sr-picture",
+    color: "bg-sky-500",
   },
   {
     title: "สื่อการเรียนรู้",
     description: "แผนการสอน สื่อ และใบงานต่าง ๆ",
     href: "/learning",
-    icon: "fi fi-rr-book-open-cover",
-    color: "bg-gray-200/80",
+    icon: "fi fi-sr-book-open-cover",
+    color: "bg-sky-500",
   },
   {
     title: "เกมการศึกษา",
     description: "เกมสำหรับการเรียนรู้ต่าง ๆ",
     href: "/games",
-    icon: "fi fi-rr-gamepad",
-    color: "bg-gray-200/80",
+    icon: "fi fi-sr-gamepad",
+    color: "bg-sky-500",
   },
 ];
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-sky-50 dark:bg-zinc-950">
+    <div id="home-page" className="min-h-screen bg-sky-50 dark:bg-zinc-950">
       <Hero />
 
-      {/* Sections Grid */}
-      <section className="py-20 px-4 bg-sky-50 dark:bg-blue-800">
+      <section id="home-categories" className="py-20 px-4 bg-sky-50 dark:bg-slate-900">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-start mb-6">
             <span className="text-sky-600 dark:text-sky-400">

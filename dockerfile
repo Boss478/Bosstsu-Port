@@ -1,4 +1,4 @@
-# Use Node.js 20 (Next.js requirement)
+# Use Node.js 20-alpine
 FROM node:20-alpine
 
 # Set working directory
@@ -16,5 +16,10 @@ COPY . .
 # Expose port 3000
 EXPOSE 3000
 
-# Start development server (NO build needed for dev)
+# Set environment variables
+ENV NODE_ENV=development
+ENV HOSTNAME="0.0.0.0"
+ENV PORT=3000
+
+# Start development server
 CMD ["npm", "run", "dev"]

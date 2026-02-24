@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Mali } from "next/font/google";
+import "@flaticon/flaticon-uicons/css/solid/rounded.css";
+import "@flaticon/flaticon-uicons/css/brands/all.css";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,6 +24,15 @@ const mali = Mali({
 export const metadata: Metadata = {
   title: "Boss478 | Portfolio",
   description: "เว็บไซต์ส่วนตัวสำหรับเก็บผลงาน กิจกรรม รูปภาพ สื่อการเรียนรู้ และเกมการศึกษา",
+  icons: {
+    icon: [
+      { url: "/icon/favicon.ico", sizes: "any" },
+      { url: "/icon/icon.png", type: "image/png" }
+    ],
+    apple: [
+      { url: "/icon/apple-icon.png", type: "image/png", sizes: "180x180" }
+    ]
+  }
 };
 
 export default function RootLayout({
@@ -37,11 +46,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${mali.variable} antialiased`}
       >
         <ThemeProvider>
-          <Header />
-          <main className="min-h-screen bg-sky-50 dark:bg-blue-950">
-            {children}
-          </main>
-          <Footer />
+          {children}
         </ThemeProvider>
       </body>
     </html>

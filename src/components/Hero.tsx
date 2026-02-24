@@ -1,12 +1,13 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function HeroSection() {
     return (
-        <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-sky-50 dark:bg-blue-950">
-            {/* Background */}
-            <div className="absolute inset-0 bg-sky-100/50 dark:bg-blue-950" />
+        <section id="hero-banner" className="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-sky-50 dark:bg-slate-950">
 
-            {/* Floating Shapes */}
+            <div className="absolute inset-0 bg-sky-100/50 dark:bg-slate-950" />
+
+
             <div className="absolute top-20 left-10 w-32 h-32 bg-sky-400 rounded-full opacity-20 blur-3xl animate-float" />
             <div
                 className="absolute bottom-20 right-10 w-40 h-40 bg-blue-400 rounded-full opacity-20 blur-3xl animate-float"
@@ -17,11 +18,17 @@ export default function HeroSection() {
                 style={{ animationDelay: "2s" }}
             />
 
-            {/* Content */}
+
             <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
                 <div className="mb-8 animate-float">
-                    <div className="inline-flex items-center justify-center w-32 h-32 rounded-3xl bg-sky-500 dark:bg-blue-600 text-white text-6xl font-bold shadow-2xl shadow-sky-500/30 dark:shadow-blue-600/30">
-                        B
+                    <div className="relative inline-flex items-center justify-center w-32 h-32 rounded-3xl overflow-hidden shadow-2xl shadow-sky-500/30 dark:shadow-sky-600/30">
+                        <Image 
+                            src="/icon/icon.png" 
+                            alt="Boss478 Logo" 
+                            fill
+                            sizes="128px"
+                            className="object-cover" 
+                        />
                     </div>
                 </div>
 
@@ -39,16 +46,16 @@ export default function HeroSection() {
                     </span>
                 </p>
 
-                <div className="flex flex-wrap gap-4 justify-center">
+                <div id="hero-cta" className="flex flex-wrap gap-4 justify-center">
                     <Link
                         href="/portfolio"
-                        className="px-8 py-4 rounded-2xl bg-sky-500 dark:bg-blue-600 text-white font-semibold text-lg hover:bg-sky-600 dark:hover:bg-blue-700 hover:shadow-xl hover:shadow-sky-500/30 transition-all duration-300 hover:-translate-y-1"
+                        className="px-8 py-4 rounded-2xl bg-sky-500 dark:bg-sky-600 text-white font-semibold text-lg hover:bg-sky-600 dark:hover:bg-sky-700 hover:shadow-xl hover:shadow-sky-500/30 transition-all duration-300 hover:-translate-y-1"
                     >
                         ผลงาน
                     </Link>
                     <Link
                         href="/gallery"
-                        className="px-8 py-4 rounded-2xl bg-white dark:bg-blue-900 text-zinc-900 dark:text-white font-semibold text-lg border border-sky-200 dark:border-blue-700 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                        className="px-8 py-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xs text-zinc-900 dark:text-zinc-100 font-semibold text-lg border border-sky-200 dark:border-slate-700/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                     >
                         สื่อการเรียนรู้
                     </Link>

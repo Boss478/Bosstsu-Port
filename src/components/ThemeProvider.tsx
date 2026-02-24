@@ -16,22 +16,13 @@ const ThemeContext = createContext<ThemeContextType>({
   mounted: false,
 });
 
-function getSystemTheme(): Theme {
-  if (typeof window !== 'undefined') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
-  return 'light';
-}
-
 function getInitialTheme(): Theme {
   if (typeof window !== 'undefined') {
-    // Check localStorage first
     const savedTheme = localStorage.getItem('theme') as Theme | null;
     if (savedTheme === 'light' || savedTheme === 'dark') {
       return savedTheme;
     }
-    // Fall back to system preference
-    return getSystemTheme();
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
   return 'light';
 }
@@ -43,6 +34,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Initialize theme on mount
   useEffect(() => {
     const initialTheme = getInitialTheme();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional theme init from localStorage
     setTheme(initialTheme);
     document.documentElement.classList.toggle('dark', initialTheme === 'dark');
     setMounted(true);

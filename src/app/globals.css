@@ -1,33 +1,15 @@
-/* Flaticon Uicons - Regular Rounded */
-@import "@flaticon/flaticon-uicons/css/all/all.css";
-
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Custom ultra-small backdrop blur utilities */
-@utility backdrop-blur-2xs {
-  backdrop-filter: blur(1px);
-  -webkit-backdrop-filter: blur(1px);
-}
-@utility backdrop-blur-3xs {
-  backdrop-filter: blur(0.75px);
-  -webkit-backdrop-filter: blur(0.75px);
-}
-@utility backdrop-blur-4xs {
-  backdrop-filter: blur(0.5px);
-  -webkit-backdrop-filter: blur(0.5px);
-}
-@utility backdrop-blur-5xs {
-  backdrop-filter: blur(0.25px);
-  -webkit-backdrop-filter: blur(0.25px);
-}
-@utility backdrop-blur-6xs {
-  backdrop-filter: blur(0.1px);
-  -webkit-backdrop-filter: blur(0.1px);
+@theme inline {
+  --backdrop-blur-2xs: 2px;
+  --backdrop-blur-3xs: 1.5px;
+  --backdrop-blur-4xs: 1px;
+  --backdrop-blur-5xs: 0.5px;
+  --backdrop-blur-6xs: 0.25px;
 }
 
-/* Slide down animation */
 @keyframes slideDown {
   from {
     opacity: 0;
@@ -43,7 +25,6 @@
   animation: slideDown 0.8s ease-out forwards;
 }
 
-/* Slide up animation */
 @keyframes slideUp {
   from {
     opacity: 1;
@@ -57,6 +38,21 @@
 
 @utility animate-slide-up {
   animation: slideUp 0.8s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
 }
 
 :root {
@@ -85,17 +81,21 @@ body {
     var(--font-mali), var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
-/* Smooth theme transition */
-*,
-*::before,
-*::after {
-  transition:
-    background-color 500ms ease,
-    border-color 500ms ease,
-    color 500ms ease;
+@layer base {
+  *,
+  *::before,
+  *::after {
+    transition:
+      background-color 500ms ease,
+      border-color 500ms ease,
+      color 500ms ease,
+      translate 300ms ease,
+      transform 300ms ease,
+      box-shadow 300ms ease,
+      opacity 300ms ease;
+  }
 }
 
-/* Custom animations */
 @keyframes float {
   0%,
   100% {
@@ -130,15 +130,13 @@ body {
   animation: gradient 5s ease infinite;
 }
 
-/* Glassmorphism effect */
 .glass {
   background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(0.25px);
-  -webkit-backdrop-filter: blur(0.25px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* Card hover effect */
 .card-hover {
   transition:
     transform 0.3s ease,

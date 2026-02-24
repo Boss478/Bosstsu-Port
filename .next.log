@@ -1,0 +1,173 @@
+
+> boss478@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.63:3000
+- Environments: .env.local
+- Experiments (use with caution):
+  · proxyClientMaxBodySize: "200mb"
+  · serverActions
+
+✓ Starting...
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+Unhandled Rejection: Error: Both middleware file "./src/middleware.ts" and proxy file "./src/proxy.ts" are detected. Please use "./src/proxy.ts" only. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+    at ignore-listed frames
+✓ Ready in 313.5s
+✓ Compiled in 21ms
+○ Compiling / ...
+ HEAD / 200 in 4.0s (compile: 3.5s, render: 481ms)
+ GET / 200 in 4.1s (compile: 3.9s, render: 176ms)
+ GET / 200 in 4.1s (compile: 3.6s, render: 551ms)
+(node:83487) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Couldn't load fs
+Couldn't load zlib
+ GET /portfolio/web-kru-thai-2026 200 in 10.7s (compile: 7.8s, generate-params: 4.0s, render: 2.9s)
+ GET / 200 in 373ms (compile: 26ms, render: 347ms)
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+ GET /gallery 200 in 1504ms (compile: 1112ms, render: 392ms)
+✓ Compiled in 1876ms
+ GET /portfolio 200 in 611ms (compile: 542ms, render: 69ms)
+ GET /portfolio/web-kru-thai-2026 200 in 330ms (compile: 95ms, generate-params: 33ms, render: 235ms)
+(node:83543) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ GET /portfolio 200 in 55ms (compile: 11ms, render: 44ms)
+ HEAD / 200 in 70ms (compile: 7ms, render: 63ms)
+ GET / 200 in 82ms (compile: 39ms, render: 44ms)
+ GET /portfolio 200 in 77ms (compile: 11ms, render: 66ms)
+ GET / 200 in 155ms (compile: 30ms, render: 124ms)
+ GET /portfolio 200 in 53ms (compile: 8ms, render: 45ms)
+ GET /portfolio 200 in 92ms (compile: 8ms, render: 83ms)
+ GET /portfolio 200 in 123ms (compile: 24ms, render: 99ms)
+ GET /gallery 200 in 100ms (compile: 33ms, render: 67ms)
+ GET /gallery 200 in 141ms (compile: 59ms, render: 82ms)
+ GET /portfolio 200 in 68ms (compile: 11ms, render: 57ms)
+ GET / 200 in 290ms (compile: 197ms, render: 93ms)
+ GET /portfolio 200 in 112ms (compile: 34ms, render: 78ms)
+ GET /gallery 200 in 61ms (compile: 14ms, render: 47ms)
+(node:85301) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ GET /gallery/test 200 in 1862ms (compile: 1775ms, generate-params: 950ms, render: 87ms)
+ GET /portfolio 200 in 119ms (compile: 50ms, render: 69ms)
+✓ Compiled in 1152ms
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+ GET /portfolio 200 in 772ms (compile: 365ms, render: 407ms)
+ GET /portfolio 200 in 144ms (compile: 45ms, render: 99ms)
+ GET /portfolio 200 in 239ms (compile: 52ms, render: 187ms)
+ GET /games 200 in 801ms (compile: 700ms, render: 102ms)
+✓ Compiled in 1163ms
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+ GET /gallery 200 in 1305ms (compile: 289ms, render: 1016ms)
+ GET /portfolio 200 in 1325ms (compile: 719ms, render: 606ms)
+ GET /gallery 200 in 506ms (compile: 9ms, render: 497ms)
+ GET /portfolio 200 in 515ms (compile: 85ms, render: 430ms)
+ GET /gallery 200 in 426ms (compile: 8ms, render: 417ms)
+ GET /portfolio 200 in 425ms (compile: 78ms, render: 348ms)
+ GET /gallery 200 in 298ms (compile: 15ms, render: 283ms)
+ GET /portfolio 200 in 291ms (compile: 55ms, render: 236ms)
+ GET /gallery 200 in 150ms (compile: 5ms, render: 145ms)
+ GET /portfolio 200 in 106ms (compile: 9ms, render: 97ms)
+✓ Compiled in 262ms
+ GET /portfolio 200 in 117ms (compile: 8ms, render: 109ms)
+ GET /gallery 200 in 116ms (compile: 78ms, render: 38ms)
+ GET /portfolio 200 in 235ms (compile: 49ms, render: 186ms)
+ GET / 200 in 117ms (compile: 83ms, render: 34ms)
+✓ Compiled in 849ms
+⚠ Fast Refresh had to perform a full reload when ./src/components/ThemeProvider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/ThemeProvider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/ThemeProvider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/ThemeProvider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+ GET /gallery 200 in 2.1s (compile: 779ms, render: 1334ms)
+ GET /portfolio 200 in 2.1s (compile: 1809ms, render: 326ms)
+✓ Compiled in 396ms
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+ GET /gallery 200 in 900ms (compile: 221ms, render: 679ms)
+ GET /portfolio 200 in 819ms (compile: 754ms, render: 65ms)
+⚠ Fast Refresh had to perform a full reload when ./src/components/ThemeProvider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/ThemeProvider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+✓ Compiled in 192ms
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+⨯ Error: Module [project]/src/app/(website)/portfolio/PortfolioClient.tsx [app-ssr] (ecmascript) was instantiated because it was required from module [project]/node_modules/next/dist/esm/build/templates/app-page.js?page=/(website)/gallery/page { GLOBAL_ERROR_MODULE => "[project]/node_modules/next/dist/client/components/builtin/global-error.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_0 => "[project]/src/app/layout.tsx [app-rsc] (ecmascript, Next.js Server Component)", MODULE_1 => "[project]/node_modules/next/dist/client/components/builtin/not-found.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_2 => "[project]/node_modules/next/dist/client/components/builtin/forbidden.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_3 => "[project]/node_modules/next/dist/client/components/builtin/unauthorized.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_4 => "[project]/node_modules/next/dist/client/components/builtin/global-error.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_5 => "[project]/src/app/(website)/layout.tsx [app-rsc] (ecmascript, Next.js Server Component)", MODULE_6 => "[project]/node_modules/next/dist/client/components/builtin/not-found.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_7 => "[project]/node_modules/next/dist/client/components/builtin/forbidden.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_8 => "[project]/node_modules/next/dist/client/components/builtin/unauthorized.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_9 => "[project]/src/app/(website)/gallery/page.tsx [app-rsc] (ecmascript, Next.js Server Component)" } [app-rsc] (ecmascript) <locals>, but the module factory is not available.
+    at ignore-listed frames {
+  digest: '2297903932'
+}
+ GET /portfolio 500 in 1468ms (compile: 278ms, render: 1190ms)
+ GET /gallery 200 in 875ms (compile: 140ms, render: 735ms)
+✓ Compiled in 450ms
+⚠ Fast Refresh had to perform a full reload when ./src/components/ThemeProvider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/ThemeProvider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+ GET /portfolio 200 in 1009ms (compile: 338ms, render: 670ms)
+ GET /gallery 200 in 1041ms (compile: 623ms, render: 418ms)
+✓ Compiled in 454ms
+ GET /portfolio 200 in 494ms (compile: 155ms, render: 339ms)
+ GET /gallery 200 in 114ms (compile: 11ms, render: 104ms)
+✓ Compiled in 129ms
+ GET /portfolio 200 in 100ms (compile: 20ms, render: 81ms)
+ GET /gallery 200 in 89ms (compile: 49ms, render: 40ms)
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+ GET /gallery 200 in 734ms (compile: 8ms, render: 725ms)
+ GET /portfolio 200 in 749ms (compile: 505ms, render: 244ms)
+✓ Compiled in 132ms
+⚠ Fast Refresh had to perform a full reload when ./src/components/ThemeProvider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/ThemeProvider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+ GET /portfolio 200 in 1278ms (compile: 257ms, render: 1021ms)
+ GET /gallery 200 in 1233ms (compile: 500ms, render: 734ms)
+✓ Compiled in 192ms
+ GET /portfolio 200 in 355ms (compile: 20ms, render: 335ms)
+ GET /gallery 200 in 233ms (compile: 7ms, render: 226ms)
+✓ Compiled in 66ms
+ GET /portfolio 200 in 111ms (compile: 21ms, render: 90ms)
+ GET /gallery 200 in 110ms (compile: 78ms, render: 32ms)
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+ GET /portfolio 200 in 508ms (compile: 7ms, render: 501ms)
+ GET /gallery 200 in 520ms (compile: 444ms, render: 75ms)
+✓ Compiled in 85ms
+ GET /portfolio 200 in 159ms (compile: 12ms, render: 148ms)
+ GET /gallery 200 in 159ms (compile: 67ms, render: 92ms)
+✓ Compiled in 1489ms
+✓ Compiled in 370ms
+⚠ Fast Refresh had to perform a full reload when ./src/components/ThemeProvider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/ThemeProvider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+ GET /portfolio 200 in 864ms (compile: 515ms, render: 349ms)
+ GET /gallery 200 in 865ms (compile: 292ms, render: 573ms)
+✓ Compiled in 1442ms
+✓ Compiled in 172ms
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+ GET /gallery 200 in 532ms (compile: 443ms, render: 89ms)
+ GET /portfolio 200 in 914ms (compile: 67ms, render: 847ms)
+ GET /portfolio 200 in 206ms (compile: 69ms, render: 137ms)
+ GET /portfolio 200 in 566ms (compile: 128ms, render: 438ms)
+✓ Compiled in 2.4s
+✓ Compiled in 1020ms
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+ GET /portfolio 200 in 1606ms (compile: 859ms, render: 746ms)
+ GET /portfolio 200 in 415ms (compile: 126ms, render: 289ms)
+ GET /portfolio 200 in 320ms (compile: 47ms, render: 273ms)
+ GET /portfolio 200 in 265ms (compile: 26ms, render: 239ms)
+ GET /portfolio 200 in 170ms (compile: 25ms, render: 146ms)
+✓ Compiled in 1071ms
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+ GET /portfolio 200 in 1772ms (compile: 1204ms, render: 569ms)
+ GET /portfolio 200 in 262ms (compile: 109ms, render: 153ms)
+ GET /portfolio 200 in 170ms (compile: 43ms, render: 127ms)
+✓ Compiled in 1403ms
+✓ Compiled in 683ms
+(node:83247) [MONGOOSE] Warning: Duplicate schema index on {"slug":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+✓ Compiled in 55ms
+ GET /portfolio 200 in 2.6s (compile: 1336ms, render: 1303ms)
+ GET /portfolio 200 in 201ms (compile: 55ms, render: 146ms)
+[?25h
