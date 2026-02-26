@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { getDbStats, getRecentItems } from "@/app/actions/admin";
+import { getDbStats, getDashboardStats } from "@/app/actions/admin";
 import Breadcrumb from "@/components/Breadcrumb";
 import LogoutButton from "./LogoutButton";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const [stats, recent] = await Promise.all([getDbStats(), getRecentItems()]);
+  const [stats, recent] = await Promise.all([getDbStats(), getDashboardStats()]);
 
   return (
     <div className="min-h-screen bg-sky-50 dark:bg-slate-950">
