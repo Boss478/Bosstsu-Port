@@ -20,7 +20,7 @@ export type VocabularyData = {
 export default async function FlashcardGamePage() {
   const getVocab = async (filename: string): Promise<VocabularyWord[]> => {
     try {
-      const filePath = path.join(process.cwd(), 'public', 'files', filename);
+      const filePath = path.join(process.cwd(), 'src', 'data', 'games', 'spelling', filename);
       const fileData = await fs.readFile(filePath, 'utf-8');
       
       const lines = fileData.split('\n');
@@ -45,7 +45,7 @@ export default async function FlashcardGamePage() {
     }
   };
 
-  const thaiVocab = await getVocab('word.csv');
+  const thaiVocab = await getVocab('thai_word.csv');
   const englishVocab = await getVocab('english_word.csv');
 
   return (
