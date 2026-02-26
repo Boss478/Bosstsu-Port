@@ -103,7 +103,7 @@ export default function GalleryClient({ initialAlbums }: { initialAlbums: Galler
               <Link
                 key={album.id}
                 href={`/gallery/${album.id}`}
-                className="group block relative rounded-2xl shadow-md shadow-sky-100/40 dark:shadow-black/20 hover:shadow-lg hover:shadow-sky-200/50 dark:hover:shadow-black/40 hover:-translate-y-1.5 transition-all duration-300 ease-in-out overflow-hidden"
+                className="group block relative rounded-2xl bg-zinc-200/50 shadow-md shadow-sky-100/40 dark:shadow-black/20 hover:shadow-lg hover:shadow-sky-200/50 dark:hover:shadow-black/40 hover:-translate-y-1.5 transition-all duration-300 ease-in-out overflow-hidden"
                 style={{ aspectRatio: '16/10' }}
               >
                 {/* Full-size cover image */}
@@ -115,7 +115,7 @@ export default function GalleryClient({ initialAlbums }: { initialAlbums: Galler
                 />
 
                 {/* Photo count badge (top-left) — glassmorphism */}
-                <div className="absolute top-3 left-3 mt-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/15 dark:bg-black/30 text-white text-[10px] font-semibold backdrop-blur-md border border-white/25 dark:border-white/15 shadow-lg shadow-black/10 dark:shadow-black/30">
+                <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/15 dark:bg-black/30 text-white text-[10px] font-semibold backdrop-blur-md border border-white/25 dark:border-white/15 shadow-lg shadow-black/10 dark:shadow-black/30">
                   <i className="fi fi-sr-picture text-[10px]" />
                   {album.photos.length}
                 </div>

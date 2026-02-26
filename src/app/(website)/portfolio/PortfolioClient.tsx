@@ -97,16 +97,17 @@ export default function PortfolioClient({ initialItems }: { initialItems: Portfo
       </section>
 
 
-      <section id="portfolio-grid" className="pb-20 px-4 bg-white dark:bg-slate-950">
+      <section id="portfolio-grid" className="pb-20 px-4 bg-white/70 dark:bg-slate-900">
         <div className="max-w-7xl mx-auto pt-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {pagedItems.map((item) => (
               <Link
                 key={item.id}
                 href={`/portfolio/${item.id}`}
-                className="group flex flex-col bg-white dark:bg-slate-900/60 dark:backdrop-blur-xs rounded-2xl border border-transparent dark:border-slate-700/50 overflow-hidden shadow-md shadow-sky-100/40 dark:shadow-black/20 hover:shadow-xl hover:shadow-sky-200/50 dark:hover:shadow-black/40 hover:-translate-y-1.5 transition-all duration-300"
+                className="group flex flex-col bg-slate-200/80 dark:bg-slate-800/60 dark:backdrop-blur-xs rounded-2xl border border-white/70 dark:border-slate-700/50 overflow-hidden shadow-md shadow-sky-100/40 dark:shadow-black/20 hover:shadow-xl hover:shadow-sky-200/50 dark:hover:shadow-black/40 hover:-translate-y-1.5 transition-all duration-300"
+                suppressHydrationWarning
               >
-                <div className="relative w-full shrink-0 overflow-hidden bg-sky-50 dark:bg-slate-800 flex items-center justify-center" style={{ height: '14rem' }}>
+                <div className="relative w-full shrink-0 overflow-hidden bg-sky-100 dark:bg-slate-800 flex items-center justify-center" style={{ height: '14rem' }}>
                   {item.cover ? (
                     <>
                       {/* eslint-disable-next-line @next/next/no-img-element */}

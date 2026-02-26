@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactCompiler: true,
   poweredByHeader: false,
-  allowedDevOrigins: ["localhost", "100.97.15.5", "*.ts.net", ".ts.net"],
+  allowedDevOrigins: ["localhost", "100.97.15.5", "0.0.0.0"],
   experimental: {
     serverActions: {
       bodySizeLimit: "200mb",

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from './ThemeProvider';
 
 interface NavItem {
@@ -39,7 +39,22 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
+  const [desktopExpanded, setDesktopExpanded] = useState<string | null>(null);
   const { theme, toggleTheme, mounted } = useTheme();
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const nav = document.getElementById('desktop-nav');
+      if (nav && !nav.contains(event.target as Node)) {
+        setDesktopExpanded(null);
+      }
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
 
   const closeMenuWithAnimation = () => {
     setIsClosing(true);
@@ -95,19 +110,24 @@ export default function Header() {
                 ) : (
                   <>
                     <button
-                      className="px-4 py-2 rounded-full text-sm text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-300/70 dark:hover:bg-slate-400/80 transition-all duration-200 font-medium flex items-center gap-2 cursor-default"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setDesktopExpanded(desktopExpanded === link.label ? null : link.label);
+                      }}
+                      className="px-4 py-2 rounded-full text-sm text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-300/70 dark:hover:bg-slate-400/80 transition-all duration-200 font-medium flex items-center gap-2 cursor-pointer"
                     >
                       <i className={link.icon}></i>
                       {link.label}
-                      <i className="fi fi-sr-angle-small-down text-xs mt-0.5 transition-transform group-hover:rotate-180"></i>
+                      <i className={`fi fi-sr-angle-small-down text-xs mt-0.5 transition-transform ${desktopExpanded === link.label ? 'rotate-180' : 'group-hover:rotate-180'}`}></i>
                     </button>
 
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 invisible opacity-0 translate-y-2 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 ease-out z-50 min-w-[160px]">
+                    <div className={`absolute top-full left-1/2 -translate-x-1/2 pt-2 transition-all duration-200 ease-out z-50 min-w-[160px] ${desktopExpanded === link.label ? 'visible opacity-100 translate-y-0' : 'invisible opacity-0 translate-y-2 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0'}`}>
                       <div className="p-1 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl shadow-sky-100/40 dark:shadow-black/20 flex flex-col gap-1 overflow-hidden">
                         {link.subItems.map((subItem) => (
                           <Link
                             key={subItem.href}
                             href={subItem.href}
+                            onClick={() => setDesktopExpanded(null)}
                             className="px-4 py-2.5 rounded-xl text-sm text-zinc-600 dark:text-zinc-300 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-200 font-medium flex items-center gap-2 whitespace-nowrap"
                           >
                             <i className={subItem.icon}></i>

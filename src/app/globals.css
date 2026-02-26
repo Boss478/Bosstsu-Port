@@ -2,7 +2,7 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme inline {
+@theme {
   --backdrop-blur-2xs: 2px;
   --backdrop-blur-3xs: 1.5px;
   --backdrop-blur-4xs: 1px;
@@ -53,6 +53,32 @@
 
 @utility animate-fade-in-up {
   animation: fadeInUp 0.5s ease-out forwards;
+}
+
+@keyframes floatUpFade {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 20px) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -20px) scale(1.1);
+  }
+  40% {
+    transform: translate(-50%, -30px) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -80px) scale(0.9);
+  }
+}
+
+@utility animate-float-up-fade {
+  animation: floatUpFade 0.8s ease-out forwards;
 }
 
 :root {

@@ -371,7 +371,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
 
       {previewModalSrc && (
         <div 
-          className="fixed inset-0 z-[150] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-fade-in-up"
+          className="fixed inset-0 z-150 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-fade-in-up"
           onClick={() => setPreviewModalSrc(null)}
         >
           <button 
