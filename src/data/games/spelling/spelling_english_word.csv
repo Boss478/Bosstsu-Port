@@ -161,7 +161,6 @@ alocate,false,verb,c1
 allowance,true,noun,c1
 allowence,false,noun,c1
 ally,true,noun,c1
-aly,false,noun,c1
 alongside,true,preposition,b2
 alongsite,false,preposition,b2
 aluminium,true,noun,c1
@@ -437,7 +436,6 @@ badg,false,noun,b2
 bail,true,noun,c1
 bali,false,noun,c1
 bake,true,verb,b1
-bak,false,verb,b1
 balance,true,noun,b1
 balence,false,noun,b1
 balanced,true,adjective,b2
@@ -473,7 +471,6 @@ bassis,false,noun,b1
 basket,true,noun,b2
 basekt,false,noun,b2
 bass,true,noun,c1
-bas,false,noun,c1
 battery,true,noun,b1
 battary,false,noun,b1
 battle,true,noun,b1
@@ -497,7 +494,6 @@ bieng,false,noun,b2
 belief,true,noun,b1
 beleif,false,noun,b1
 bell,true,noun,b1
-bel,false,noun,b1
 beloved,true,adjective,c1
 belloved,false,adjective,c1
 bench,true,noun,c1
@@ -529,7 +525,6 @@ beynod,false,adverb,b2
 bias,true,noun,b2
 bisa,false,noun,b2
 bill,true,verb,b2
-bil,false,verb,b2
 bind,true,verb,c1
 bidn,false,verb,c1
 biography,true,noun,c1
@@ -745,7 +740,6 @@ causion,false,noun,c1
 cautious,true,adjective,c1
 cautioas,false,adjective,c1
 cave,true,noun,b2
-cav,false,noun,b2
 cease,true,verb,c1
 ceese,false,verb,c1
 ceiling,true,noun,b1
@@ -753,7 +747,6 @@ cieling,false,noun,b1
 celebration,true,noun,b1
 celebrasion,false,noun,b1
 cell,true,noun,b2
-cel,false,noun,b2
 cemetery,true,noun,c1
 cemetary,false,noun,c1
 central,true,adjective,b1
@@ -1807,7 +1800,6 @@ disutrb,false,verb,b2
 disturbing,true,adjective,c1
 distubring,false,adjective,c1
 dive,true,noun,b2
-div,false,noun,b2
 diverse,true,adjective,b2
 divers,false,adjective,b2
 diversity,true,noun,b2
@@ -1887,7 +1879,6 @@ drnuk,false,adjective,b1
 dual,true,adjective,c1
 dula,false,adjective,c1
 dull,true,adjective,b2
-dul,false,adjective,b2
 dumb,true,adjective,c1
 dubm,false,adjective,c1
 dump,true,verb,b2
@@ -1923,7 +1914,6 @@ econommist,false,noun,b2
 economy,true,noun,b1
 econommy,false,noun,b1
 edge,true,noun,b1
-edg,false,noun,b1
 edit,true,verb,b2
 edti,false,verb,b2
 edition,true,noun,b2
@@ -2619,7 +2609,6 @@ gatehr,false,verb,b1
 gathering,true,noun,c1
 gatherring,false,noun,c1
 gaze,true,noun,c1
-gaz,false,noun,c1
 gear,true,noun,c1
 geer,false,noun,c1
 gender,true,noun,b2
@@ -2825,7 +2814,6 @@ hieghten,false,verb,c1
 helicopter,true,noun,b1
 hellicopter,false,noun,b1
 hell,true,noun,b2
-hel,false,noun,b2
 helmet,true,noun,b2
 helemt,false,noun,b2
 hence,true,adverb,b2
@@ -3347,7 +3335,6 @@ kidn,false,adjective,b1
 kingdom,true,noun,c1
 kindgom,false,noun,c1
 kiss,true,noun,b1
-kis,false,noun,b1
 knock,true,noun,b1
 kncok,false,noun,b1
 label,true,noun,b1
@@ -3465,7 +3452,6 @@ liphetime,false,noun,b2
 lighting,true,noun,b2
 lighitng,false,noun,b2
 like,true,noun,b1
-lik,false,noun,b1
 likelihood,true,noun,c1
 likellihood,false,noun,c1
 likewise,true,adverb,b2
@@ -3503,7 +3489,6 @@ litr,false,noun,b2
 litter,true,noun,b2
 liter,false,noun,b2
 live,true,adjective,b1
-liv,false,adjective,b1
 lively,true,adjective,b2
 livelly,false,adjective,b2
 liver,true,noun,c1
@@ -3547,7 +3532,6 @@ loosse,false,adjective,b2
 lord,true,noun,b2
 lodr,false,noun,b2
 loss,true,noun,b1
-los,false,noun,b1
 lottery,true,noun,b2
 lottary,false,noun,b2
 lower,true,verb,b2
@@ -3591,13 +3575,11 @@ maojr,false,noun,
 majority,true,noun,b2
 majoritty,false,noun,b2
 make,true,noun,b2
-mak,false,noun,b2
 make-up,true,noun,b2
 mak-eup,false,noun,b2
 making,true,noun,b2
 maknig,false,noun,b2
 mall,true,noun,b1
-mal,false,noun,b1
 management,true,noun,b1
 managemment,false,noun,b1
 mandate,true,noun,c1
@@ -3641,7 +3623,6 @@ marital,false,adjective,b2
 mask,true,noun,c1
 maks,false,noun,c1
 mass,true,adjective,b2
-mas,false,adjective,b2
 massacre,true,noun,c1
 masacre,false,noun,c1
 massive,true,adjective,b2
@@ -3727,7 +3708,6 @@ meregr,false,noun,c1
 merit,true,noun,c1
 merrit,false,noun,c1
 mess,true,noun,b1
-mes,false,noun,b1
 metaphor,true,noun,b2
 metafor,false,noun,b2
 methodology,true,noun,c1
@@ -3745,7 +3725,6 @@ militery,false,adjective,b2
 militia,true,noun,c1
 millitia,false,noun,c1
 mill,true,noun,c1
-mil,false,noun,c1
 mine,true,noun,b1
 minne,false,noun,b1
 miner,true,noun,b2
@@ -3793,7 +3772,6 @@ mobillity,false,noun,c1
 mobilize,true,verb,c1
 mobillize,false,verb,c1
 mode,true,noun,b2
-mod,false,noun,b2
 model,true,verb,b2
 moedl,false,verb,b2
 moderate,true,adjective,c1
@@ -3845,7 +3823,6 @@ mottorist,false,noun,c1
 mount,true,verb,b2
 moant,false,verb,b2
 move,true,noun,b1
-mov,false,noun,b1
 moving,true,adjective,b2
 movnig,false,adjective,b2
 multiple,true,adjective,b2
@@ -4055,7 +4032,6 @@ ophfspring,false,noun,c1
 old-fashioned,true,adjective,b1
 old-phashioned,false,adjective,b1
 once,true,conjunction,b1
-onc,false,conjunction,b1
 ongoing,true,adjective,b2
 ongiong,false,adjective,b2
 opening,true,noun,b2
@@ -4169,7 +4145,6 @@ ownesrhip,false,noun,b2
 oxygen,true,noun,b2
 oxyegn,false,noun,b2
 pace,true,noun,b2
-pac,false,noun,b2
 pack,true,noun,b1
 pakc,false,noun,b1
 package,true,noun,b1
@@ -4219,7 +4194,6 @@ parlty,false,adverb,b2
 partnership,true,noun,b2
 partnreship,false,noun,b2
 pass,true,noun,b1
-pas,false,noun,b1
 passage,true,noun,b2
 pasage,false,noun,b2
 passing,true,noun,c1
@@ -4321,7 +4295,6 @@ picturre,false,verb,b2
 pile,true,noun,b2
 pille,false,noun,b2
 pill,true,noun,b2
-pil,false,noun,b2
 pioneer,true,noun,c1
 pionear,false,noun,c1
 pipe,true,noun,b1
@@ -4387,7 +4360,6 @@ pollitician,false,noun,b1
 politics,true,noun,b1
 pollitics,false,noun,b1
 poll,true,noun,c1
-pol,false,noun,c1
 pond,true,noun,c1
 podn,false,noun,c1
 popularity,true,noun,b2
@@ -4695,7 +4667,6 @@ publicitty,false,noun,b2
 publishing,true,noun,b2
 publihsing,false,noun,b2
 pull,true,noun,b1
-pul,false,noun,b1
 pulse,true,noun,c1
 puls,false,noun,c1
 pump,true,noun,c1
@@ -4761,7 +4732,6 @@ radiasion,false,noun,b2
 radical,true,adjective,c1
 radcial,false,adjective,c1
 rage,true,noun,c1
-rag,false,noun,c1
 raid,true,noun,c1
 radi,false,noun,c1
 rail,true,noun,b2
@@ -5137,7 +5107,6 @@ rokc,false,verb,c1
 rocket,true,noun,b2
 rocekt,false,noun,b2
 roll,true,noun,b1
-rol,false,noun,b1
 romance,true,noun,b2
 romence,false,noun,b2
 romantic,true,adjective,b1
@@ -5193,7 +5162,6 @@ saillor,false,noun,b1
 saint,true,noun,c1
 sanit,false,noun,c1
 sake,true,noun,c1
-sak,false,noun,c1
 sample,true,noun,b1
 sampl,false,noun,b1
 sanction,true,noun,c1
@@ -6075,13 +6043,11 @@ thmub,false,noun,b2
 thus,true,adverb,b2
 thsu,false,adverb,b2
 tide,true,noun,c1
-tid,false,noun,c1
 tight,true,adjective,b1
 tihgt,false,adjective,b1
 tighten,true,verb,c1
 tigthen,false,verb,c1
 till,true,conjunction,b1
-til,false,conjunction,b1
 timber,true,noun,c1
 timebr,false,noun,c1
 time,true,verb,b2
@@ -6103,7 +6069,6 @@ tolerence,false,noun,c1
 tolerate,true,verb,c1
 tollerate,false,verb,c1
 toll,true,noun,c1
-tol,false,noun,c1
 tone,true,noun,b2
 tonne,false,noun,b2
 tongue,true,noun,b1
@@ -6113,7 +6078,6 @@ tone,false,noun,b2
 torture,true,noun,c1
 torturre,false,noun,c1
 toss,true,verb,c1
-tos,false,verb,c1
 total,true,adjective,b1
 tottal,false,adjective,b1
 totally,true,adverb,b1
@@ -6237,7 +6201,6 @@ trtuh,false,noun,b1
 tsunami,true,noun,b2
 tsunammi,false,noun,b2
 tube,true,noun,b1
-tub,false,noun,b1
 tuition,true,noun,c1
 tuision,false,noun,c1
 tune,true,noun,b2
@@ -6251,11 +6214,9 @@ turnvoer,false,noun,c1
 twist,true,noun,c1
 twsit,false,noun,c1
 type,true,verb,b1
-typ,false,verb,b1
 typically,true,adverb,b1
 typicaly,false,adverb,b1
 tyre,true,noun,b1
-tyr,false,noun,b1
 ugly,true,adjective,b1
 ugyl,false,adjective,b1
 ultimate,true,adjective,b2
@@ -6347,7 +6308,6 @@ upwrads,false,adverb,b2
 urban,true,adjective,b2
 urabn,false,adjective,b2
 urge,true,verb,b2
-urg,false,verb,b2
 urgent,true,adjective,b2
 urgnet,false,adjective,b2
 usage,true,noun,b2
@@ -6419,7 +6379,6 @@ viible,false,adjective,c1
 vibrant,true,adjective,c1
 vibarnt,false,adjective,c1
 vice,true,noun,c1
-vic,false,noun,c1
 vicious,true,adjective,c1
 vicioas,false,adjective,c1
 victim,true,noun,b1

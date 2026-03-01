@@ -23,3 +23,40 @@ I have completed the manual codebase audit as requested. Here are the findings:
 
 ---
 **Audit Complete! Please review these findings. I can start implementing the fixes for these vulnerabilities when you are ready.**
+
+# Adding Thai Word Definitions
+
+- [x] Investigate the Royal Society Dictionary website's search mechanism.
+- [x] Create a Node.js script `scripts/scrape_thai_words.js` to parse `thai_word.csv` and filter words where `ถูกต้อง` == `true`.
+- [x] Implement a scraping function using `axios` and `cheerio` (or `puppeteer`) to retrieve definitions for each word.
+- [x] Generate the output CSV `thai_word_with_def.csv` with columns `คำ,ความหมาย`.
+- [x] Verify the results manually.
+
+# SpellCheck Game Enhancements
+
+## 1. Feature Additions (Gameplay & Learning)
+- [x] Practice Mode: Show definitions on incorrect guesses.
+- [x] Result Screen: Add definitions to the "All Word Analysis" table.
+- [ ] Optional: Add a "Flip" button to peek at definitions.
+- [ ] Optional: Add audio/visual polish for correct/wrong guesses.
+
+## 2. Data Processing & Centralization
+- [x] **Use Deeper Data Sources:** Update `page.tsx` to read from `src/data/games/spelling/spelling_thai_word.csv` and `src/data/games/spelling/spelling_english_word.csv`.
+- [x] **Merge Thai Dictionary Data:** Combine `spelling_thai_word.csv` with `thai_word_with_def.csv` into a new centralized file: `src/data/games/spelling/thai_word_spelling_game.csv`.
+- [x] **Refine English Dictionary Data:** Filter out small 3-character words from `spelling_english_word.csv`.
+- [x] **Cleanup:** Remove unused older CSV files like `thai_word_with_def.csv` after the successful merge.
+
+## 3. Performance Improvements
+- [x] **Concurrent Data Loading:** Use `Promise.all` in `page.tsx` for faster TTI.
+- [x] **Optimize React State:** Ensure `useCallback` and `useMemo` are utilized in `FlashcardClient.tsx` to prevent unnecessary re-renders.
+
+## 4. Code Improvements (Refactoring & Centralization)
+- [x] **Extract Types:** Move `VocabularyWord` to a dedicated `types.ts` file.
+- [x] **Modularize Flashcard Client:** Extract `ResultScreen.tsx`, `PlayingScreen.tsx` and `MenuScreen.tsx` from `FlashcardClient.tsx`.
+- [ ] **Centralize Game Constants:** Move magic numbers to `constants.ts`.
+
+## 5. Network Improvements
+- [x] **Server Payload Optimization:** Ensure only the necessary array properties are passed to the client component.
+
+## 6. Security Improvements
+- [x] **Dataset Hiding:** Verify that the CSV files are not publicly accessible via the `public` directory or API endpoints.
