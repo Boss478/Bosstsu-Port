@@ -181,19 +181,23 @@ export default function FlashcardClient({ vocabData }: FlashcardClientProps) {
       setCurrentStreak(0);
     }
 
-    // Visual feedback ONLY in PRACTICE mode
-    if (mode === "PRACTICE") {
-      if (isActuallyCorrect) {
-        setFeedback("CORRECT");
-        if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
-        feedbackTimeoutRef.current = setTimeout(() => setFeedback(null), 800);
-      } else {
-        setFeedback("WRONG");
+    // Visual feedback for ALL modes
+    if (isActuallyCorrect) {
+      setFeedback("CORRECT");
+      if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+      feedbackTimeoutRef.current = setTimeout(() => setFeedback(null), 800);
+    } else {
+      setFeedback("WRONG");
+      if (mode === "PRACTICE") {
         // Show the hint, block next word until they acknowledge
         const correctForm = currentWord.isCorrect ? "Correct spelling" : "Incorrect spelling";
         setFeedbackHint(`The answer was: ${correctForm}`);
         setSwipeOffset(userGuessedCorrect ? -50 : 50); // slight nudge
         return; // Don't proceed to next word yet
+      } else {
+        // Clear floating text after a delay for non-practice modes
+        if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+        feedbackTimeoutRef.current = setTimeout(() => setFeedback(null), 800);
       }
     }
 
@@ -309,7 +313,7 @@ export default function FlashcardClient({ vocabData }: FlashcardClientProps) {
           <div className="mb-6 pt-4">
             <i className="fi fi-sr-graduation-cap text-6xl text-sky-500 mb-4 inline-block"></i>
             <h1 className="text-4xl font-bold text-sky-600 dark:text-sky-400 mb-2">
-              Is it spelled correctly?
+              SpellCheck
             </h1>
             <h2 className="text-2xl font-bold text-zinc-800 dark:text-zinc-100 mb-4">
               เขียนถูกหรือผิด?
@@ -331,11 +335,12 @@ export default function FlashcardClient({ vocabData }: FlashcardClientProps) {
             </button>
             <button
               onClick={() => setLanguage("ENGLISH")}
-              className="card-hover bg-amber-500 hover:bg-amber-600 text-white rounded-2xl p-6 font-bold text-xl flex flex-col items-center gap-2 transition-colors relative overflow-hidden group"
+              className="card-hover bg-gray-500 hover:bg-gray-600 text-white rounded-2xl p-6 font-bold text-xl flex flex-col items-center gap-2 transition-colors relative overflow-hidden group"
             >
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform"></div>
               <i className="fi fi-sr-world text-3xl z-10"></i>
               <span className="z-10">English (US)</span>
+              <span className="text-xs">(In Progress)</span>
             </button>
           </div>
 
@@ -523,11 +528,17 @@ export default function FlashcardClient({ vocabData }: FlashcardClientProps) {
         {/* Flashcard */}
         <div className="relative w-full max-w-sm aspect-4/3 perspective-1000 mb-12 select-none touch-none group">
           {feedback && !feedbackHint && (
-            <div className={`absolute top-0 left-1/2 z-50 text-xl sm:text-2xl font-normal pointer-events-none animate-float-up-fade drop-shadow-lg ${feedback === "CORRECT" ? "text-emerald-500" : "text-rose-500"}`}>
+            <div className={`absolute top-0 left-1/2 z-50 text-2xl sm:text-3xl font-bold font-sans tracking-wide pointer-events-none animate-float-up-fade drop-shadow-lg flex items-center gap-2 whitespace-nowrap ${feedback === "CORRECT" ? "text-emerald-500" : "text-rose-500"}`}>
               {feedback === "CORRECT" ? (
-                <span className="flex items-center gap-3"><i className="fi fi-sr-check-circle drop-shadow-sm"></i></span>
+                <>
+                  <i className="fi fi-sr-check-circle drop-shadow-sm"></i>
+                  <span>Correct</span>
+                </>
               ) : (
-                <span className="flex items-center gap-3"><i className="fi fi-sr-cross-circle drop-shadow-sm"></i></span>
+                <>
+                  <i className="fi fi-sr-cross-circle drop-shadow-sm"></i>
+                  <span>Wrong</span>
+                </>
               )}
             </div>
           )}
@@ -558,6 +569,22 @@ export default function FlashcardClient({ vocabData }: FlashcardClientProps) {
             <h2 className={`text-4xl sm:text-5xl font-bold tracking-wide text-zinc-800 dark:text-zinc-100 text-center pointer-events-none ${feedbackHint ? 'opacity-30' : ''}`}>
               {currentWord.word}
             </h2>
+
+            {/* Word metadata */}
+            {(currentWord.wordClass || currentWord.level) && (
+              <div className={`flex items-center gap-2 mt-4 pointer-events-none transition-opacity ${feedbackHint ? 'opacity-30' : 'opacity-100'}`}>
+                {currentWord.wordClass && (
+                  <span className="px-3 py-1 bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 font-bold text-xs rounded-full uppercase tracking-wider">
+                    {currentWord.wordClass}
+                  </span>
+                )}
+                {currentWord.level && (
+                  <span className="px-3 py-1 bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400 font-bold text-xs rounded-full uppercase tracking-wider">
+                    CEFR {currentWord.level.toUpperCase()}
+                  </span>
+                )}
+              </div>
+            )}
             
             {/* Visual feedback overlays during drag */}
             <div className="absolute top-4 left-4 text-emerald-500 font-bold text-2xl pointer-events-none" style={{ opacity: swipeOffset < -50 ? (-swipeOffset - 50)/100 : 0 }}>

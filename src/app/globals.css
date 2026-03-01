@@ -77,7 +77,7 @@
   }
 }
 
-@utility animate-float-up-fade {
+.animate-float-up-fade {
   animation: floatUpFade 0.8s ease-out forwards;
 }
 

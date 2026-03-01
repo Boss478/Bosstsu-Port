@@ -3,13 +3,15 @@ import path from 'path';
 import FlashcardClient from './FlashcardClient';
 
 export const metadata = {
-  title: 'Is it spelled correctly? | Boss478 Games',
+  title: 'SpellCheck? | Boss478 Games',
   description: 'Test your spelling skills in Thai and English (US). / ฝึกทักษะการสะกดคำภาษาไทยและภาษาอังกฤษ',
 };
 
 export type VocabularyWord = {
   word: string;
   isCorrect: boolean;
+  wordClass?: string;
+  level?: string;
 };
 
 export type VocabularyData = {
@@ -30,11 +32,13 @@ export default async function FlashcardGamePage() {
         const line = lines[i].trim();
         if (!line) continue;
         
-        const [word, isCorrectStr] = line.split(',');
+        const [word, isCorrectStr, wordClass, level] = line.split(',');
         if (word && isCorrectStr) {
           vocab.push({
             word: word.trim(),
             isCorrect: isCorrectStr.trim().toLowerCase() === 'true',
+            wordClass: wordClass ? wordClass.trim() : undefined,
+            level: level ? level.trim() : undefined,
           });
         }
       }
