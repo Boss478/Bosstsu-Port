@@ -24,14 +24,21 @@ export default async function FlashcardGamePage() {
         let word, isCorrectStr, definition, wordClass, level;
         
         if (hasDefinition) {
-           // Basic CSV parsing to handle quoted commas for definitions
            const parts = line.split(',');
            word = parts[0]?.trim();
            isCorrectStr = parts[1]?.trim();
-           // Attempt to grab definition - this works for our simple format where rightmost is def
-           const defMatch = line.match(/,"?([^"]*)"?$/);
-           if (defMatch) {
-              definition = defMatch[1].trim();
+           
+           // Find the second comma to safely extract everything after it as definition
+           const firstCommaIdx = line.indexOf(',');
+           const secondCommaIdx = line.indexOf(',', firstCommaIdx + 1);
+           if (secondCommaIdx !== -1) {
+             let defRaw = line.substring(secondCommaIdx + 1).trim();
+             if (defRaw.startsWith('"') && defRaw.endsWith('"')) {
+               defRaw = defRaw.substring(1, defRaw.length - 1); // remove surrounding quotes
+             }
+             definition = defRaw && defRaw !== "" ? defRaw : undefined;
+           } else {
+             definition = undefined;
            }
         } else {
            const parts = line.split(',');
