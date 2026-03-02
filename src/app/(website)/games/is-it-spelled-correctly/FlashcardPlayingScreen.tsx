@@ -1,7 +1,7 @@
 "use client";
 
 import type { VocabularyWord } from "./types";
-import { RefObject, MutableRefObject } from "react";
+import { RefObject, MutableRefObject, useState, useEffect } from "react";
 
 type GameMode = "PRACTICE" | "ENDLESS" | "TEST" | "TIMER" | "LIFE" | "HARDCORE" | null;
 
@@ -9,6 +9,7 @@ interface FlashcardPlayingScreenProps {
   endGame: () => void;
   mode: GameMode;
   timeLeft: number;
+  sessionStartTime: number;
   lives: number;
   showStreakToast: number | null;
   feedback: "CORRECT" | "WRONG" | null;
@@ -30,6 +31,7 @@ export default function FlashcardPlayingScreen({
   endGame,
   mode,
   timeLeft,
+  sessionStartTime,
   lives,
   showStreakToast,
   feedback,
@@ -46,6 +48,22 @@ export default function FlashcardPlayingScreen({
   proceedAfterAnswer,
   handleAnswer,
 }: FlashcardPlayingScreenProps) {
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  useEffect(() => {
+    if (!sessionStartTime) return;
+    const interval = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - sessionStartTime) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [sessionStartTime]);
+
+  const formatTime = (totalSeconds: number) => {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
   return (
     <div className="fixed inset-0 z-100 bg-sky-50 dark:bg-slate-950 py-8 sm:py-12 px-4 flex flex-col items-center overflow-hidden overscroll-none touch-none">
       <div className="w-full max-w-2xl h-full flex flex-col items-center justify-between relative">
@@ -60,6 +78,11 @@ export default function FlashcardPlayingScreen({
             {mode === "TIMER" && (
               <div className={`flex items-center gap-2 ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-zinc-800 dark:text-zinc-200'}`}>
                 <i className="fi fi-sr-clock"></i> {timeLeft}s
+              </div>
+            )}
+            {mode !== "TIMER" && (
+              <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
+                <i className="fi fi-sr-stopwatch"></i> {formatTime(elapsedSeconds)}
               </div>
             )}
             {mode === "LIFE" && (

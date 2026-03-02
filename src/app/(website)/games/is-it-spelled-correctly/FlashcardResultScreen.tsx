@@ -1,12 +1,11 @@
-import type { VocabularyWord } from "./types";
+import type { VocabularyWord, WordStat } from "./types";
 
 type GameMode = "PRACTICE" | "ENDLESS" | "TEST" | "TIMER" | "LIFE" | "HARDCORE" | null;
 
 interface FlashcardResultScreenProps {
   mode: GameMode;
   timeLimit: number;
-  wordStats: Record<string, { appearances: number; correct: number; wrong: number }>;
-  activeVocab: VocabularyWord[];
+  wordStats: Record<string, WordStat>;
   maxStreak: number;
   sessionStartTime: number;
   sessionEndTime: number;
@@ -19,7 +18,6 @@ export default function FlashcardResultScreen({
   mode,
   timeLimit,
   wordStats,
-  activeVocab,
   maxStreak,
   sessionStartTime,
   sessionEndTime,
@@ -103,15 +101,13 @@ export default function FlashcardResultScreen({
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {wordList.map((item, i) => {
                   const wordAcc = Math.round((item.correct / item.appearances) * 100);
-                  // Find the original word object to get its definition
-                  const originalWord = activeVocab.find(v => v.word === item.word);
                   return (
                     <tr key={i} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
                       <td className="px-6 py-3">
                          <div className="font-bold text-zinc-800 dark:text-zinc-200">{item.word}</div>
-                         {originalWord?.definition && originalWord.isCorrect && (
-                            <div className="text-xs text-sky-600 dark:text-sky-400 mt-1 line-clamp-1" title={originalWord.definition}>
-                              {originalWord.definition}
+                         {item.definition && item.isCorrectSpelling && (
+                            <div className="text-xs text-sky-600 dark:text-sky-400 mt-1 line-clamp-1" title={item.definition}>
+                              {item.definition}
                             </div>
                          )}
                       </td>

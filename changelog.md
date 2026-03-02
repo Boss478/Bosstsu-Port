@@ -1,5 +1,8 @@
 # Website Update Log
 
+- **v1.1.6**:
+  - `*` Fixed a critical client-side memory leak in the "Is it spelled correctly?" Endless mode by implementing a rolling window array (capping at 150 items) combined with a highly efficient "Data Decoupling" strategy that preserves complete Result Screen word history without bloating the browser's RAM.
+  - `+` Added a live HUD Stopwatch counter to all non-Timer game modes (Endless, Practice, Life, Hardcore) so players can track their session elapsed time.
 - **v1.1.5**:
   - `*` Completely overhauled the "Is it spelled correctly?" game engine by moving a massive 6,800-word dataset off the initial page load into a Server Action. Implemented a scalable in-memory server caching system and dynamic background client fetching, drastically improving time-to-first-byte (TTFB), client-side animation latency ($O(V) \to O(1)$), and data security.
 - **v1.1.4**:

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import type { VocabularyWord } from "./types";
+import type { VocabularyWord, WordStat } from "./types";
 import FlashcardMenuScreen from "./FlashcardMenuScreen";
 import FlashcardResultScreen from "./FlashcardResultScreen";
 import FlashcardPlayingScreen from "./FlashcardPlayingScreen";
@@ -27,7 +27,7 @@ export default function FlashcardClient() {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   
   // Analytics & Streaks
-  const [wordStats, setWordStats] = useState<Record<string, { appearances: number; correct: number; wrong: number }>>({});
+  const [wordStats, setWordStats] = useState<Record<string, WordStat>>({});
   const [currentStreak, setCurrentStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
   const [showStreakToast, setShowStreakToast] = useState<number | null>(null);
@@ -102,7 +102,15 @@ export default function FlashcardClient() {
           // Prevent duplicates in the pool
           const existingWords = new Set(prev.map(w => w.word));
           const uniqueNew = newWords.filter(w => !existingWords.has(w.word));
-          return [...prev, ...uniqueNew];
+          let nextState = [...prev, ...uniqueNew];
+
+          // Rolling window: cap activeVocab at ~150 items for non-stat modes
+          // Practice/Test modes need the full pool for weighted selection
+          if ((mode === "ENDLESS" || mode === "TIMER" || mode === "LIFE" || mode === "HARDCORE") && nextState.length > 200) {
+            nextState = nextState.slice(nextState.length - 150);
+          }
+
+          return nextState;
         });
         isFetchingRef.current = false;
       }).catch(err => {
@@ -110,7 +118,7 @@ export default function FlashcardClient() {
         isFetchingRef.current = false;
       });
     }
-  }, [wordStats, activeVocab.length, gameState, language]);
+  }, [wordStats, activeVocab.length, gameState, language, mode]);
 
   const startGame = async (selectedMode: GameMode, selectedTime?: number) => {
     if (!language) return;
@@ -153,7 +161,7 @@ export default function FlashcardClient() {
 
   const pickNextWord = (
     vocab: VocabularyWord[],
-    currentStats: Record<string, { appearances: number; correct: number; wrong: number }>,
+    currentStats: Record<string, WordStat>,
     currentMode: GameMode,
     currentTestCounts: Record<string, number>
   ) => {
@@ -263,6 +271,9 @@ export default function FlashcardClient() {
             appearances: stats.appearances + 1,
             correct: stats.correct + (isActuallyCorrect ? 1 : 0),
             wrong: stats.wrong + (isActuallyCorrect ? 0 : 1),
+            // Data Decoupling: cache metadata at first encounter for Result Screen
+            definition: stats.definition ?? currentWord!.definition,
+            isCorrectSpelling: stats.isCorrectSpelling ?? currentWord!.isCorrect,
           }
         };
 
@@ -345,6 +356,7 @@ export default function FlashcardClient() {
         endGame={endGame}
         mode={mode}
         timeLeft={timeLeft}
+        sessionStartTime={sessionStartTime}
         lives={lives}
         showStreakToast={showStreakToast}
         feedback={feedback}
@@ -371,7 +383,6 @@ export default function FlashcardClient() {
         mode={mode}
         timeLimit={timeLimit}
         wordStats={wordStats}
-        activeVocab={activeVocab}
         maxStreak={maxStreak}
         sessionStartTime={sessionStartTime}
         sessionEndTime={sessionEndTime}
