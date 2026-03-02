@@ -8,9 +8,10 @@ interface FlashcardMenuScreenProps {
   language: Language;
   setLanguage: (lang: Language) => void;
   startGame: (selectedMode: GameMode, selectedTime?: number) => void;
+  isLoading?: boolean;
 }
 
-export default function FlashcardMenuScreen({ language, setLanguage, startGame }: FlashcardMenuScreenProps) {
+export default function FlashcardMenuScreen({ language, setLanguage, startGame, isLoading }: FlashcardMenuScreenProps) {
   const [showHelp, setShowHelp] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
 
@@ -130,7 +131,14 @@ export default function FlashcardMenuScreen({ language, setLanguage, startGame }
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl shadow-sky-100/50 dark:shadow-black/40 text-center animate-float relative">
+    <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl shadow-sky-100/50 dark:shadow-black/40 text-center animate-float relative overflow-hidden">
+      {isLoading && (
+        <div className="absolute inset-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in">
+          <i className="fi fi-sr-spinner animate-spin text-5xl text-sky-500 mb-4"></i>
+          <p className="text-zinc-800 dark:text-zinc-200 font-bold text-lg animate-pulse">Loading Vocabulary...</p>
+        </div>
+      )}
+
       <button onClick={() => setLanguage(null)} className="absolute top-6 left-6 text-zinc-400 hover:text-sky-500 transition-colors">
         <i className="fi fi-sr-arrow-left text-2xl"></i>
       </button>

@@ -1,27 +1,24 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import type { VocabularyData, VocabularyWord } from "./types";
+import type { VocabularyWord } from "./types";
 import FlashcardMenuScreen from "./FlashcardMenuScreen";
 import FlashcardResultScreen from "./FlashcardResultScreen";
 import FlashcardPlayingScreen from "./FlashcardPlayingScreen";
+import { fetchVocabBatch } from "./actions";
 
 type Language = "THAI" | "ENGLISH" | null;
 type GameMode = "PRACTICE" | "ENDLESS" | "TEST" | "TIMER" | "LIFE" | "HARDCORE" | null;
 type GameState = "MENU" | "PLAYING" | "RESULT";
 
-interface FlashcardClientProps {
-  vocabData: VocabularyData;
-}
-
-export default function FlashcardClient({ vocabData }: FlashcardClientProps) {
+export default function FlashcardClient() {
   // Config state
   const [language, setLanguage] = useState<Language>(null);
   const [mode, setMode] = useState<GameMode>(null);
   const [timeLimit, setTimeLimit] = useState<number>(0);
   const [gameState, setGameState] = useState<GameState>("MENU");
-
-
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const isFetchingRef = useRef<boolean>(false);
 
   // Game state
   const [activeVocab, setActiveVocab] = useState<VocabularyWord[]>([]);
@@ -89,14 +86,45 @@ export default function FlashcardClient({ vocabData }: FlashcardClientProps) {
     }
   }, [gameState, mode, timeLeft, endGame]);
 
-  const startGame = (selectedMode: GameMode, selectedTime?: number) => {
-    const vocab = language === "THAI" ? vocabData.thai : vocabData.english;
-    if (!vocab || vocab.length === 0) {
+  // Background Queue Logic
+  useEffect(() => {
+    if (gameState !== "PLAYING" || !language) return;
+    
+    // Check how many unique words the player has encountered
+    const uniqueWordsPlayed = Object.keys(wordStats).length;
+    
+    // If they have less than 15 fresh words left in the pool, fetch the next batch!
+    // This happens completely silently in the background.
+    if (uniqueWordsPlayed >= activeVocab.length - 15 && !isFetchingRef.current) {
+      isFetchingRef.current = true;
+      fetchVocabBatch(language, 50).then(newWords => {
+        setActiveVocab(prev => {
+          // Prevent duplicates in the pool
+          const existingWords = new Set(prev.map(w => w.word));
+          const uniqueNew = newWords.filter(w => !existingWords.has(w.word));
+          return [...prev, ...uniqueNew];
+        });
+        isFetchingRef.current = false;
+      }).catch(err => {
+        console.error("Background fetch failed", err);
+        isFetchingRef.current = false;
+      });
+    }
+  }, [wordStats, activeVocab.length, gameState, language]);
+
+  const startGame = async (selectedMode: GameMode, selectedTime?: number) => {
+    if (!language) return;
+    
+    setIsLoading(true);
+    const initialBatch = await fetchVocabBatch(language, 50);
+    setIsLoading(false);
+
+    if (!initialBatch || initialBatch.length === 0) {
       alert("No vocabulary words available!");
       return;
     }
 
-    setActiveVocab(vocab);
+    setActiveVocab(initialBatch);
     setMode(selectedMode);
     setGameState("PLAYING");
     setLives(selectedMode === "LIFE" ? 3 : selectedMode === "HARDCORE" ? 1 : 0);
@@ -110,6 +138,7 @@ export default function FlashcardClient({ vocabData }: FlashcardClientProps) {
     setFeedbackHint(null);
     setFailedHardcoreWord(null);
     setTestWordCounts({});
+    isFetchingRef.current = false;
     
     if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
 
@@ -119,7 +148,7 @@ export default function FlashcardClient({ vocabData }: FlashcardClientProps) {
     }
     
     // Pick the first word using the shared logic
-    pickNextWord(vocab, {}, selectedMode, {});
+    pickNextWord(initialBatch, {}, selectedMode, {});
   };
 
   const pickNextWord = (
@@ -305,6 +334,7 @@ export default function FlashcardClient({ vocabData }: FlashcardClientProps) {
         language={language}
         setLanguage={setLanguage}
         startGame={startGame}
+        isLoading={isLoading}
       />
     );
   }
