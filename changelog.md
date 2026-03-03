@@ -1,5 +1,7 @@
 # Website Update Log
 
+- **v1.1.12**:
+  - `*` Fixed timer drift in SpellChecker by replacing chained `setTimeout` with a `Date.now()` synchronized interval, guaranteeing absolute accuracy over long play sessions.
 - **v1.1.11**:
   - `*` Fixed duplicate words in SpellChecker for small datasets (Thai) by implementing a client-side 20-word History Buffer and improved CSV parsing with regex.
 - **v1.1.10**:

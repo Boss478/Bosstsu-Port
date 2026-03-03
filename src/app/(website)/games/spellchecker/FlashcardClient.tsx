@@ -79,15 +79,33 @@ export default function FlashcardClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState, isAnimating, currentWord, feedbackHint]);
 
-  // Timer logic
+  // Timer logic (Issue #2 Fix - Eliminate drift)
   useEffect(() => {
-    if (gameState === "PLAYING" && mode === "TIMER" && timeLeft > 0) {
-      const timerId = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
-      return () => clearTimeout(timerId);
-    } else if (gameState === "PLAYING" && mode === "TIMER" && timeLeft <= 0) {
-      endGame();
+    if (gameState === "PLAYING" && mode === "TIMER") {
+      // Establish the true end time once when the timer mode begins
+      const endTime = Date.now() + (timeLeft * 1000);
+      
+      const interval = setInterval(() => {
+        // Always calculate remaining time against the absolute wall-clock
+        const remainingSeconds = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+        
+        // Only trigger state update if the second actually changed
+        setTimeLeft((prev) => {
+          if (prev !== remainingSeconds) return remainingSeconds;
+          return prev;
+        });
+        
+        if (remainingSeconds <= 0) {
+          clearInterval(interval);
+          endGame();
+        }
+      }, 100); // Poll every 100ms for high responsiveness
+      
+      return () => clearInterval(interval);
     }
-  }, [gameState, mode, timeLeft, endGame]);
+    // We intentionally omit timeLeft from deps so endTime doesn't reset every second
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState, mode, endGame]);
 
   // Background Queue Logic
   useEffect(() => {
