@@ -53,6 +53,15 @@ const nextConfig: NextConfig = {
       }
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/games/is-it-spelled-correctly",
+        destination: "/games/spellchecker",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -1,5 +1,8 @@
 # Website Update Log
 
+- **v1.1.7**:
+  - `*` Renamed SpellChecker game URL from `/games/is-it-spelled-correctly` to `/games/spellchecker` with permanent 308 redirect for existing bookmarks.
+  - `*` Updated MongoDB migration scripts (`update-game-url.ts`, `check-game-url.ts`) to reference the new URL path.
 - **v1.1.6**:
   - `*` Fixed a critical client-side memory leak in the "Is it spelled correctly?" Endless mode by implementing a rolling window array (capping at 150 items) combined with a highly efficient "Data Decoupling" strategy that preserves complete Result Screen word history without bloating the browser's RAM.
   - `+` Added a live HUD Stopwatch counter to all non-Timer game modes (Endless, Practice, Life, Hardcore) so players can track their session elapsed time.

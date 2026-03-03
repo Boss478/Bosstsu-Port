@@ -10,8 +10,8 @@ async function main() {
     console.log("Connected to MongoDB.");
 
     const result = await Game.updateOne(
-      { playUrl: "/games/flashcard" },
-      { $set: { playUrl: "/games/is-it-spelled-correctly" } }
+      { playUrl: "/games/is-it-spelled-correctly" },
+      { $set: { playUrl: "/games/spellchecker" } }
     );
     
     console.log("Update result:", result);

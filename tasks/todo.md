@@ -60,3 +60,14 @@ I have completed the manual codebase audit as requested. Here are the findings:
 
 ## 6. Security Improvements
 - [x] **Dataset Hiding:** Verify that the CSV files are not publicly accessible via the `public` directory or API endpoints.
+
+## 7. Post-Review Improvements (Implementation Plan)
+- [ ] **Fix Duplicate Words:** Update server-side randomizer in `actions.ts`.
+- [x] **Fix Memory Leak:** Implement "Data Decoupling" to safely truncate `activeVocab` while preserving history.
+- [ ] **Fix Timer Drift:** Use absolute `Date.now()` logic in `FlashcardClient.tsx` to prevent drift.
+- [ ] **Refactor Prop Drilling:** Extract game logic to a custom hook (`useFlashcardGame.ts`).
+- [ ] **Optimize Swipe Stutter:** Use direct DOM mutation via `cardRef` during drags for 60fps performance.
+- [x] **Improve Practice UX:** (Partially done with Stopwatch) Allow dismissing hints with keyboard/overlay.
+- [x] **New Feature - Stopwatch:** Show elapsed time in the HUD for all non-timer modes.
+- [x] **Hygiene:** Update `.gitignore`, version bump (1.1.6), and record in `changelog.md`.
+- [x] **Rename Game:** Changed folder structure, URL, metadata, and internal files from \"is-it-spelled-correctly\" to \"spellchecker\". Added 308 redirect. (v1.1.7)
