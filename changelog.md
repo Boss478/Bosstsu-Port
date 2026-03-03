@@ -1,5 +1,8 @@
 # Website Update Log
 
+- **v1.1.13**:
+  - `*` Fixed stale closures in the Spellchecker keyboard handler via refs to ensure accurate gameplay tracking.
+  - `*` Fixed critical wipe swipe rendering lag (Issue #5) by removing rapid React state updates and replacing them with hardware-accelerated direct DOM `transform` manipulations, allowing 60fps tracking on mobile devices.
 - **v1.1.12**:
   - `*` Fixed timer drift in SpellChecker by replacing chained `setTimeout` with a `Date.now()` synchronized interval, guaranteeing absolute accuracy over long play sessions.
 - **v1.1.11**:

@@ -67,9 +67,15 @@ export default function FlashcardClient() {
     if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
   }, []);
 
-  // Keyboard navigation
+  // Keyboard navigation (Issue #3 Fix - Stale Closure)
+  const stateRef = useRef({ gameState, isAnimating, feedbackHint });
+  useEffect(() => {
+    stateRef.current = { gameState, isAnimating, feedbackHint };
+  }, [gameState, isAnimating, feedbackHint]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const { gameState, isAnimating, feedbackHint } = stateRef.current;
       if (gameState !== "PLAYING" || isAnimating || feedbackHint) return;
       if (e.key === "ArrowLeft") handleAnswer(true);
       if (e.key === "ArrowRight") handleAnswer(false);
@@ -77,7 +83,7 @@ export default function FlashcardClient() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState, isAnimating, currentWord, feedbackHint]);
+  }, []); // Bind once, reads from ref
 
   // Timer logic (Issue #2 Fix - Eliminate drift)
   useEffect(() => {
@@ -344,29 +350,54 @@ export default function FlashcardClient() {
     }, 300);
   };
 
-  // Touch Handlers for Swipe
+  // Touch Handlers for Swipe (Issue #5 Fix - Swipe Jank)
   const handleTouchStart = (e: React.TouchEvent) => {
     if (isAnimating || feedbackHint) return;
     dragStartXRef.current = e.touches[0].clientX;
+    // Ensure transition is removed during drag so it tracks finger instantly
+    if (cardRef.current) {
+        cardRef.current.style.transition = 'none';
+        cardRef.current.style.transform = `translateX(0px) rotate(0deg)`;
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (isAnimating || dragStartXRef.current === null || feedbackHint) return;
     const currentX = e.touches[0].clientX;
     const diffX = currentX - dragStartXRef.current;
-    setSwipeOffset(diffX);
+    
+    // Direct DOM manipulation guarantees 60fps/120fps tracking without React rendering lag
+    if (cardRef.current) {
+      cardRef.current.style.transform = `translateX(${diffX}px) rotate(${diffX * 0.05}deg)`;
+    }
   };
 
   const handleTouchEnd = () => {
     if (isAnimating || dragStartXRef.current === null || feedbackHint) return;
+    
+    // Calculate final position
+    let finalOffset = 0;
+    if (cardRef.current) {
+      const transformValue = cardRef.current.style.transform;
+      const match = transformValue.match(/translateX\(([-.0-9]+)px\)/);
+      if (match) {
+        finalOffset = parseFloat(match[1]);
+      }
+    }
+
     dragStartXRef.current = null;
     
-    if (swipeOffset < -100) {
-      handleAnswer(true); // Swiped left -> Guessed Correct spelling
-    } else if (swipeOffset > 100) {
-      handleAnswer(false); // Swiped right -> Guessed Incorrect spelling
+    if (finalOffset < -100) {
+      handleAnswer(true); // Swiped left
+    } else if (finalOffset > 100) {
+      handleAnswer(false); // Swiped right
     } else {
-      setSwipeOffset(0); // Snap back
+      // Snap back if threshold not met
+      setSwipeOffset(0); 
+      if (cardRef.current) {
+        cardRef.current.style.transition = 'transform 0.3s ease';
+        cardRef.current.style.transform = `translateX(0px) rotate(0deg)`;
+      }
     }
   };
 
