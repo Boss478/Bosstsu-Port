@@ -1,5 +1,7 @@
 # Website Update Log
 
+- **v1.1.11**:
+  - `*` Fixed duplicate words in SpellChecker for small datasets (Thai) by implementing a client-side 20-word History Buffer and improved CSV parsing with regex.
 - **v1.1.10**:
   - `*` Updated `CLAUDE.md` with resource and scaling constraints, always considering 50-100 concurrent users and Hostinger VPS specs.
 - **v1.1.9**:

@@ -8,6 +8,9 @@ import type { VocabularyWord } from './types';
 let cachedThaiVocab: VocabularyWord[] | null = null;
 let cachedEnglishVocab: VocabularyWord[] | null = null;
 
+// Helper to sanitize raw CSV strings (Issue #14)
+const sanitize = (str: string): string => str.replace(/<[^>]*>/g, '').trim();
+
 // The same parsing logic extracted from the original page
 const readVocabFile = async (filename: string, hasDefinition: boolean = false): Promise<VocabularyWord[]> => {
   try {
@@ -21,26 +24,22 @@ const readVocabFile = async (filename: string, hasDefinition: boolean = false): 
       const line = lines[i].trim();
       if (!line) continue;
       
+      // Split by comma, but ignore commas inside double quotes
+      const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+      
       let word, isCorrectStr, definition, wordClass, level;
       
       if (hasDefinition) {
-         const parts = line.split(',');
-         word = parts[0]?.trim();
-         isCorrectStr = parts[1]?.trim();
+         word = parts[0];
+         isCorrectStr = parts[1];
+         let defRaw = parts[2] || "";
          
-         const firstCommaIdx = line.indexOf(',');
-         const secondCommaIdx = line.indexOf(',', firstCommaIdx + 1);
-         if (secondCommaIdx !== -1) {
-           let defRaw = line.substring(secondCommaIdx + 1).trim();
-           if (defRaw.startsWith('"') && defRaw.endsWith('"')) {
-             defRaw = defRaw.substring(1, defRaw.length - 1); 
-           }
-           definition = defRaw && defRaw !== "" ? defRaw : undefined;
-         } else {
-           definition = undefined;
+         // Remove surrounding quotes if they exist
+         if (defRaw.startsWith('"') && defRaw.endsWith('"')) {
+           defRaw = defRaw.substring(1, defRaw.length - 1);
          }
+         definition = defRaw && defRaw.trim() !== "" ? defRaw : undefined;
       } else {
-         const parts = line.split(',');
          word = parts[0];
          isCorrectStr = parts[1];
          wordClass = parts[2];
@@ -49,11 +48,11 @@ const readVocabFile = async (filename: string, hasDefinition: boolean = false): 
       
       if (word && isCorrectStr) {
         vocab.push({
-          word: word.trim(),
+          word: sanitize(word),
           isCorrect: isCorrectStr.trim().toLowerCase() === 'true',
-          definition: definition || undefined,
-          wordClass: wordClass ? wordClass.trim() : undefined,
-          level: level ? level.trim() : undefined,
+          definition: definition ? sanitize(definition) : undefined,
+          wordClass: wordClass ? sanitize(wordClass) : undefined,
+          level: level ? sanitize(level) : undefined,
         });
       }
     }

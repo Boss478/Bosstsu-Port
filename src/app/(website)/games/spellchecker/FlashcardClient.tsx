@@ -43,6 +43,9 @@ export default function FlashcardClient() {
   const cardRef = useRef<HTMLDivElement>(null);
   const dragStartXRef = useRef<number | null>(null);
 
+  // History Buffer (Issue #1 Fix)
+  const [recentWordHistory, setRecentWordHistory] = useState<string[]>([]);
+
   // Feedback State
   const [feedback, setFeedback] = useState<"CORRECT" | "WRONG" | null>(null);
   const [feedbackHint, setFeedbackHint] = useState<string | null>(null);
@@ -146,6 +149,7 @@ export default function FlashcardClient() {
     setFeedbackHint(null);
     setFailedHardcoreWord(null);
     setTestWordCounts({});
+    setRecentWordHistory([]); // Reset history on new game
     isFetchingRef.current = false;
     
     if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
@@ -165,18 +169,23 @@ export default function FlashcardClient() {
     currentMode: GameMode,
     currentTestCounts: Record<string, number>
   ) => {
+    // Filter out words in the history buffer to prevent duplicates
+    const candidatePool = vocab.filter(w => !recentWordHistory.includes(w.word));
+    // Fallback exactly to vocab if the pool is somehow fully exhausted (e.g. extremely small vocab)
+    const safeVocab = candidatePool.length > 0 ? candidatePool : vocab;
+
     if (currentMode === "PRACTICE" || currentMode === "TEST") {
-      let candidateWords = vocab;
+      let candidateWords = safeVocab;
       
       if (currentMode === "TEST") {
         // Only consider words that haven't been answered 2 times yet
-        candidateWords = vocab.filter(w => (currentTestCounts[w.word] || 0) < 2);
+        candidateWords = safeVocab.filter(w => (currentTestCounts[w.word] || 0) < 2);
         if (candidateWords.length === 0) {
           endGame();
           return;
         }
       } else {
-        // PRACTICE mode end condition
+        // PRACTICE mode end condition - check against FULL vocab, not safeVocab
         const allAppeared = vocab.every((w) => (currentStats[w.word]?.appearances || 0) >= 3);
         let totalCorrect = 0;
         let totalApps = 0;
@@ -205,6 +214,8 @@ export default function FlashcardClient() {
       for (const w of weightedWords) {
         if (rand < w.weight) {
           setCurrentWord(w.word);
+          // Push to history buffer (max 20)
+          setRecentWordHistory(prev => [w.word.word, ...prev].slice(0, 20));
           return;
         }
         rand -= w.weight;
@@ -212,8 +223,10 @@ export default function FlashcardClient() {
     }
 
     // Default uniform random for ENDLESS, TIMER, LIFE, HARDCORE
-    const randomIndex = Math.floor(Math.random() * vocab.length);
-    setCurrentWord(vocab[randomIndex]);
+    const randomIndex = Math.floor(Math.random() * safeVocab.length);
+    const nextUniformWord = safeVocab[randomIndex];
+    setCurrentWord(nextUniformWord);
+    setRecentWordHistory(prev => [nextUniformWord.word, ...prev].slice(0, 20));
   };
 
   const handleAnswer = (userGuessedCorrect: boolean) => {
