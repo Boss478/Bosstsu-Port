@@ -1,5 +1,10 @@
 # Website Update Log
 
+- **v1.1.15**:
+  - `*` Eliminated CPU layout thrashing by removing the global `* { transition }` wildcard from `globals.css` and removed non-compliant background gradient animations, significantly improving idle battery usage for mobile users.
+- **v1.1.14**:
+  - `*` Fixed blank screen flicker in Spellchecker when exiting games by delaying the data context destruction until after the out-animation completes.
+  - `+` Appended dynamic website version tracking to the global site footer.
 - **v1.1.13**:
   - `*` Fixed stale closures in the Spellchecker keyboard handler via refs to ensure accurate gameplay tracking.
   - `*` Fixed critical wipe swipe rendering lag (Issue #5) by removing rapid React state updates and replacing them with hardware-accelerated direct DOM `transform` manipulations, allowing 60fps tracking on mobile devices.

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import pkg from '../../package.json';
 
 export default function Footer() {
     return (
@@ -46,11 +47,13 @@ export default function Footer() {
                     <p className="text-zinc-500 dark:text-zinc-500 text-sm">
                         © {new Date().getFullYear()} Boss478. All rights reserved.
                     </p>
-                    <p className="text-zinc-400 dark:text-zinc-600 text-xs">
-                        Icons by <a href="https://www.flaticon.com/uicons" target="_blank" rel="noopener noreferrer" className="text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 transition-colors">Flaticon Uicons</a>
-                        <span className="mx-2">·</span>
+                    <p className="text-zinc-400 dark:text-zinc-600 text-xs flex items-center justify-center gap-2">
+                        <span>Icons by <a href="https://www.flaticon.com/uicons" target="_blank" rel="noopener noreferrer" className="text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 transition-colors">Flaticon Uicons</a></span>
+                        <span>·</span>
+                        <span>v{pkg.version}</span>
+                        <span>·</span>
                         <Link href="/admin" className="text-zinc-400 dark:text-zinc-600 hover:text-sky-500 dark:hover:text-sky-400 transition-colors" aria-label="Admin">
-                            <i className="fi fi-sr-settings text-xs" />
+                            <i className="fi fi-sr-settings text-xs mt-1" />
                         </Link>
                     </p>
                 </div>

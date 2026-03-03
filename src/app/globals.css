@@ -108,17 +108,10 @@ body {
 }
 
 @layer base {
-  *,
-  *::before,
-  *::after {
+  body {
     transition:
       background-color 500ms ease,
-      border-color 500ms ease,
-      color 500ms ease,
-      translate 300ms ease,
-      transform 300ms ease,
-      box-shadow 300ms ease,
-      opacity 300ms ease;
+      color 500ms ease;
   }
 }
 
@@ -133,27 +126,15 @@ body {
   }
 }
 
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
 .animate-float {
+  /* Hardware accelerated Y translation */
+  /* NO margins or layout-triggering properties */
   animation: float 3s ease-in-out infinite;
 }
 
+/* Gradients are prohibited by CLAUDE.md guidelines. Removing heavy animation. */
 .animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient 5s ease infinite;
+  background-size: 100%;
 }
 
 .glass {

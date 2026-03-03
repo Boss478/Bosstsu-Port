@@ -59,11 +59,15 @@ export default function FlashcardClient() {
 
   const goHome = useCallback(() => {
     setGameState("MENU");
-    setLanguage(null);
-    setMode(null);
-    setFeedback(null);
-    setFeedbackHint(null);
-    setTestWordCounts({});
+    // Delay data destruction so the out-animation isn't starved of data resulting in a blank flicker
+    setTimeout(() => {
+        setLanguage(null);
+        setMode(null);
+        setFeedback(null);
+        setFeedbackHint(null);
+        setTestWordCounts({});
+    }, 150);
+    
     if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
   }, []);
 
