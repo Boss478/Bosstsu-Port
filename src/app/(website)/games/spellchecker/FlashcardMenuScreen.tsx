@@ -1,17 +1,8 @@
 import { useState } from "react";
+import { useFlashcardContext } from "./FlashcardContext";
 
-
-type Language = "THAI" | "ENGLISH" | null;
-type GameMode = "PRACTICE" | "ENDLESS" | "TEST" | "TIMER" | "LIFE" | "HARDCORE" | null;
-
-interface FlashcardMenuScreenProps {
-  language: Language;
-  setLanguage: (lang: Language) => void;
-  startGame: (selectedMode: GameMode, selectedTime?: number) => void;
-  isLoading?: boolean;
-}
-
-export default function FlashcardMenuScreen({ language, setLanguage, startGame, isLoading }: FlashcardMenuScreenProps) {
+export default function FlashcardMenuScreen() {
+  const { language, setLanguage, startGame, isLoading } = useFlashcardContext();
   const [showHelp, setShowHelp] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
 

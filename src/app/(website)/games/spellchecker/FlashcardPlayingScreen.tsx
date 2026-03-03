@@ -1,53 +1,31 @@
 "use client";
 
-import type { VocabularyWord } from "./types";
-import { RefObject, MutableRefObject, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useFlashcardContext } from "./FlashcardContext";
 
-type GameMode = "PRACTICE" | "ENDLESS" | "TEST" | "TIMER" | "LIFE" | "HARDCORE" | null;
+export default function FlashcardPlayingScreen() {
+  const {
+    endGame,
+    mode,
+    timeLeft,
+    sessionStartTime,
+    lives,
+    showStreakToast,
+    feedback,
+    feedbackHint,
+    currentWord,
+    cardRef,
+    swipeOffset,
+    isAnimating,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+    dragStartXRef,
+    setSwipeOffset,
+    proceedAfterAnswer,
+    handleAnswer,
+  } = useFlashcardContext();
 
-interface FlashcardPlayingScreenProps {
-  endGame: () => void;
-  mode: GameMode;
-  timeLeft: number;
-  sessionStartTime: number;
-  lives: number;
-  showStreakToast: number | null;
-  feedback: "CORRECT" | "WRONG" | null;
-  feedbackHint: string | null;
-  currentWord: VocabularyWord;
-  cardRef: RefObject<HTMLDivElement | null>;
-  swipeOffset: number;
-  isAnimating: boolean;
-  handleTouchStart: (e: React.TouchEvent) => void;
-  handleTouchMove: (e: React.TouchEvent) => void;
-  handleTouchEnd: () => void;
-  dragStartXRef: MutableRefObject<number | null>;
-  setSwipeOffset: (offset: number) => void;
-  proceedAfterAnswer: (isActuallyCorrect: boolean, userGuessedCorrect: boolean) => void;
-  handleAnswer: (userGuessedCorrect: boolean) => void;
-}
-
-export default function FlashcardPlayingScreen({
-  endGame,
-  mode,
-  timeLeft,
-  sessionStartTime,
-  lives,
-  showStreakToast,
-  feedback,
-  feedbackHint,
-  currentWord,
-  cardRef,
-  swipeOffset,
-  isAnimating,
-  handleTouchStart,
-  handleTouchMove,
-  handleTouchEnd,
-  dragStartXRef,
-  setSwipeOffset,
-  proceedAfterAnswer,
-  handleAnswer,
-}: FlashcardPlayingScreenProps) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   useEffect(() => {
@@ -63,6 +41,8 @@ export default function FlashcardPlayingScreen({
     const s = totalSeconds % 60;
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
+
+  if (!currentWord) return null;
 
   return (
     <div className="fixed inset-0 z-100 bg-sky-50 dark:bg-slate-950 py-8 sm:py-12 px-4 flex flex-col items-center overflow-hidden overscroll-none touch-none">
@@ -157,7 +137,7 @@ export default function FlashcardPlayingScreen({
               </h2>
 
               {/* Word metadata */}
-              {(currentWord.wordClass || currentWord.level) && currentWord.isCorrect && (
+              {currentWord && (currentWord.wordClass || currentWord.level) && currentWord.isCorrect && (
                 <div className={`flex items-center gap-2 mt-4 pointer-events-none transition-opacity ${feedbackHint ? 'opacity-30' : 'opacity-100'}`}>
                   {currentWord.wordClass && (
                     <span className="px-3 py-1 bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 font-bold text-xs rounded-full uppercase tracking-wider">
@@ -189,7 +169,7 @@ export default function FlashcardPlayingScreen({
                     <p className="text-2xl font-bold text-zinc-800 dark:text-zinc-100 bg-zinc-100 dark:bg-zinc-800 px-4 py-2 rounded-lg">
                       {feedbackHint.replace('The answer was: ', '')}
                     </p>
-                    {currentWord.definition && currentWord.isCorrect && (
+                    {currentWord && currentWord.definition && currentWord.isCorrect && (
                        <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2 px-4 text-center max-w-sm">
                           <span className="font-bold text-sky-500">Def: </span>{currentWord.definition}
                        </p>
@@ -199,7 +179,9 @@ export default function FlashcardPlayingScreen({
                     onClick={(e: React.MouseEvent) => {
                        e.stopPropagation();
                        // Actually process the wrong answer now
-                       proceedAfterAnswer(false, !currentWord.isCorrect);
+                       if (currentWord) {
+                         proceedAfterAnswer(false, !currentWord.isCorrect);
+                       }
                     }}
                     className="mt-6 bg-rose-500 hover:bg-rose-600 text-white px-6 py-2 rounded-xl font-bold transition-colors pointer-events-auto"
                   >

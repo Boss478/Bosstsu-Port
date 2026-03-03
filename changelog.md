@@ -1,5 +1,7 @@
 # Website Update Log
 
+- **v1.1.16**:
+  - `*` Completely eliminated prop drilling in the Spellchecker game by migrating 18+ pieces of state and logic into a global `FlashcardContext`, significantly cleaning up the `Menu`, `Playing`, and `Result` component signatures for easier maintainability (Issues #8-#11).
 - **v1.1.15**:
   - `*` Eliminated CPU layout thrashing by removing the global `* { transition }` wildcard from `globals.css` and removed non-compliant background gradient animations, significantly improving idle battery usage for mobile users.
 - **v1.1.14**:

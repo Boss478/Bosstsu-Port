@@ -1,30 +1,12 @@
-import type { VocabularyWord, WordStat } from "./types";
+import type { WordStat } from "./types";
+import { useFlashcardContext, type GameMode } from "./FlashcardContext";
 
-type GameMode = "PRACTICE" | "ENDLESS" | "TEST" | "TIMER" | "LIFE" | "HARDCORE" | null;
-
-interface FlashcardResultScreenProps {
-  mode: GameMode;
-  timeLimit: number;
-  wordStats: Record<string, WordStat>;
-  maxStreak: number;
-  sessionStartTime: number;
-  sessionEndTime: number;
-  failedHardcoreWord: VocabularyWord | null;
-  startGame: (selectedMode: GameMode, selectedTime?: number) => void;
-  goHome: () => void;
-}
-
-export default function FlashcardResultScreen({
-  mode,
-  timeLimit,
-  wordStats,
-  maxStreak,
-  sessionStartTime,
-  sessionEndTime,
-  failedHardcoreWord,
-  startGame,
-  goHome,
-}: FlashcardResultScreenProps) {
+export default function FlashcardResultScreen() {
+  const { 
+    mode, timeLimit, wordStats, maxStreak, 
+    sessionStartTime, sessionEndTime, failedHardcoreWord, 
+    startGame, goHome 
+  } = useFlashcardContext();
   let totalApps = 0;
   let totalCorrects = 0;
   
