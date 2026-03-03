@@ -30,7 +30,7 @@ export default function FlashcardMenuScreen({ language, setLanguage, startGame, 
         <div className="mb-6 pt-4">
           <i className="fi fi-sr-graduation-cap text-6xl text-sky-500 mb-4 inline-block"></i>
           <h1 className="text-4xl font-bold text-sky-600 dark:text-sky-400 mb-2">
-            SpellCheck
+            SpellChecker
           </h1>
           <h2 className="text-2xl font-bold text-zinc-800 dark:text-zinc-100 mb-4">
             เขียนถูกหรือผิด?

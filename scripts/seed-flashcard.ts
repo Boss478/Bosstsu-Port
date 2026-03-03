@@ -16,10 +16,10 @@ async function main() {
       console.log("Game already exists!");
     } else {
       await Game.create({
-        title: "Is it spelled correctly? / เขียนถูกหรือผิด?",
+        title: "SpellChecker",
         description: "Test your spelling skills in Thai and English (US). / ฝึกทักษะการสะกดคำภาษาไทยและภาษาอังกฤษ",
         genre: "Native",
-        playUrl: "/games/flashcard",
+        playUrl: "/games/spellchecker",
         thumbnail: "https://cdn-icons-png.flaticon.com/512/3592/3592837.png", // Example flaticon placeholder for flashcards
         tags: ["Vocabulary", "Flashcard", "Spelling"],
         published: true,

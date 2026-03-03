@@ -1,7 +1,7 @@
 import FlashcardClient from './FlashcardClient';
 
 export const metadata = {
-  title: 'SpellCheck? | Boss478 Games',
+  title: 'SpellChecker | Boss478 Games',
   description: 'Test your spelling skills in Thai and English (US). / ฝึกทักษะการสะกดคำภาษาไทยและภาษาอังกฤษ',
 };
 

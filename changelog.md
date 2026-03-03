@@ -1,5 +1,9 @@
 # Website Update Log
 
+- **v1.1.10**:
+  - `*` Updated `CLAUDE.md` with resource and scaling constraints, always considering 50-100 concurrent users and Hostinger VPS specs.
+- **v1.1.9**:
+  - `*` Consistent game renaming from "Is it spelled correctly?" to "SpellChecker" across database, metadata, and UI.
 - **v1.1.8**:
   - `*` Fixed duplicate words in SpellChecker, by implementing a Fisher-Yates partial shuffle for 100% unique batch fetches without performance penalties.
 - **v1.1.7**:

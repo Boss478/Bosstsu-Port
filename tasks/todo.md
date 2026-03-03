@@ -70,4 +70,5 @@ I have completed the manual codebase audit as requested. Here are the findings:
 - [x] **Improve Practice UX:** (Partially done with Stopwatch) Allow dismissing hints with keyboard/overlay.
 - [x] **New Feature - Stopwatch:** Show elapsed time in the HUD for all non-timer modes.
 - [x] **Hygiene:** Update `.gitignore`, version bump (1.1.6), and record in `changelog.md`.
-- [x] **Rename Game:** Changed folder structure, URL, metadata, and internal files from \"is-it-spelled-correctly\" to \"spellchecker\". Added 308 redirect. (v1.1.7)
+- [x] **Rename Game:** Changed folder structure, URL, metadata, and internal files from "is-it-spelled-correctly" to "spellchecker". Added 308 redirect. (v1.1.7)
+- [x] **Documentation Style:** Updated `changelog.md` and `CLAUDE.md` to adopt a short but detailed changelog format and added an `UPDATE NOTE`.
