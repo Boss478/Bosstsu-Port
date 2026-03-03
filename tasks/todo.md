@@ -62,7 +62,7 @@ I have completed the manual codebase audit as requested. Here are the findings:
 - [x] **Dataset Hiding:** Verify that the CSV files are not publicly accessible via the `public` directory or API endpoints.
 
 ## 7. Post-Review Improvements (Implementation Plan)
-- [ ] **Fix Duplicate Words:** Update server-side randomizer in `actions.ts`.
+- [x] **Fix Duplicate Words:** Updated server-side randomizer in `actions.ts` to use Fisher-Yates partial shuffle. (v1.1.8)
 - [x] **Fix Memory Leak:** Implement "Data Decoupling" to safely truncate `activeVocab` while preserving history.
 - [ ] **Fix Timer Drift:** Use absolute `Date.now()` logic in `FlashcardClient.tsx` to prevent drift.
 - [ ] **Refactor Prop Drilling:** Extract game logic to a custom hook (`useFlashcardGame.ts`).

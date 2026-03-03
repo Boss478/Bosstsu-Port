@@ -94,10 +94,18 @@ export async function fetchVocabBatch(language: 'THAI' | 'ENGLISH', amount: numb
   
   const selectedBatch: VocabularyWord[] = [];
   const maxIdx = sourceVocab.length;
-  // Use a localized random picker to guarantee O(amount) performance instead of O(N log N) sorting
-  for (let i = 0; i < amount && i < maxIdx; i++) {
-    const randomIdx = Math.floor(Math.random() * maxIdx);
-    selectedBatch.push(sourceVocab[randomIdx]);
+  const pickedCount = Math.min(amount, maxIdx);
+  
+  // Use Fisher-Yates partial shuffle to guarantee unique indices in O(amount)
+  const indices = Array.from({ length: maxIdx }, (_, i) => i);
+  for (let i = 0; i < pickedCount; i++) {
+    const randomOffset = Math.floor(Math.random() * (maxIdx - i));
+    const swapIdx = i + randomOffset;
+    
+    // Swap chosen index to the front of the available pool
+    [indices[i], indices[swapIdx]] = [indices[swapIdx], indices[i]];
+    
+    selectedBatch.push(sourceVocab[indices[i]]);
   }
 
   return selectedBatch;
