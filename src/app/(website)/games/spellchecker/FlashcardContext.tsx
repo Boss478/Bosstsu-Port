@@ -107,16 +107,20 @@ export function FlashcardProvider({ children }: { children: ReactNode }) {
     stateRef.current = { gameState, isAnimating, feedbackHint };
   }, [gameState, isAnimating, feedbackHint]);
 
+  const handleAnswerRef = useRef((_userGuessedCorrect: boolean) => {});
+  useEffect(() => {
+    handleAnswerRef.current = handleAnswerInternal;
+  });
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const { gameState, isAnimating, feedbackHint } = stateRef.current;
       if (gameState !== "PLAYING" || isAnimating || feedbackHint) return;
-      if (e.key === "ArrowLeft") handleAnswerInternal(true);
-      if (e.key === "ArrowRight") handleAnswerInternal(false);
+      if (e.key === "ArrowLeft") handleAnswerRef.current(true);
+      if (e.key === "ArrowRight") handleAnswerRef.current(false);
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

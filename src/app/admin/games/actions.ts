@@ -11,7 +11,7 @@ const gameSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100),
   description: z.string().min(1, 'Description is required').max(500),
   genre: z.string().min(1, 'Genre is required'),
-  playUrl: z.string().url('Invalid URL format'),
+  playUrl: z.string().min(1, 'Play URL is required').refine((url) => url.startsWith('/') || url.startsWith('http://') || url.startsWith('https://'), 'Must be a valid URL or relative path'),
   instructions: z.string().optional(),
   tagsStr: z.string().optional(),
 });

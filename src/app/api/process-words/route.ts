@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
+import { promises as fs } from 'fs';
 import path from 'path';
 
 export async function GET() {
@@ -8,7 +8,7 @@ export async function GET() {
     const dataOutputPath = path.join(process.cwd(), 'src', 'data', 'games', 'spelling', 'english_word.csv');
     const publicOutputPath = path.join(process.cwd(), 'public', 'files', 'english_word.csv');
 
-    let fileData = fs.readFileSync(inputPath, 'utf-8');
+    let fileData = await fs.readFile(inputPath, 'utf-8');
     fileData = fileData.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     let lines = fileData.split('\n');
     
@@ -188,11 +188,12 @@ export async function GET() {
     }
     
     const finalCsv = outRows.join('\n');
-    fs.writeFileSync(dataOutputPath, finalCsv);
-    fs.writeFileSync(publicOutputPath, finalCsv);
+    await fs.writeFile(dataOutputPath, finalCsv);
+    await fs.writeFile(publicOutputPath, finalCsv);
 
     return NextResponse.json({ success: true, count: outRows.length - 1 });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ success: false, error: message });
   }
 }

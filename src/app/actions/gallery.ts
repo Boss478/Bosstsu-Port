@@ -5,7 +5,7 @@ import Gallery from '@/models/Gallery';
 
 export async function getGalleryAlbums() {
   await dbConnect();
-  const albums = await Gallery.find({}).sort({ date: -1 }).lean();
+  const albums = await Gallery.find({ published: true }).sort({ date: -1 }).lean();
   return JSON.parse(JSON.stringify(albums));
 }
 

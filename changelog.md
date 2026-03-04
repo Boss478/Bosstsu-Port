@@ -1,5 +1,18 @@
 # Website Update Log
 
+- **v1.2.0**:
+  - `*` Deduplicated auth token validation — single `isValidToken` in `lib/auth.ts`, imported by both `middleware.ts` and `verifyAuth`.
+  - `*` Consolidated duplicate security headers — removed from `middleware.ts` (kept in `next.config.ts` only), fixing conflicting `X-Frame-Options` and `frame-ancestors` values.
+  - `-` Removed 11 unused files: default Next.js SVGs, empty `public/covers/`, orphaned CSVs, `GalleryGrid.tsx`, `src/data/venv/`, `Boss478 Head.png`.
+  - `*` Moved `cheerio`, `csv-parse`, `csv-stringify` from dependencies to devDependencies (script-only, not runtime).
+  - `*` Added `{ published: true }` filter to `getGalleryAlbums()` and `getPortfolioItems()` public queries.
+  - `*` Added MongoDB connection pool limits (maxPoolSize: 5, minPoolSize: 1) and timeouts in `db.ts` for VPS resource constraints.
+  - `*` Replaced sync `fs.readFileSync`/`fs.writeFileSync` with async `fs.promises` in `process-words/route.ts`.
+  - `*` Reduced `next.config.ts` body size limit from 200MB to 60MB and added `output: 'standalone'`.
+  - `*` Multi-stage production Dockerfile (node:20-alpine, ~200MB vs ~1.5GB) with Docker memory limits.
+  - `*` Fixed mid-file import in `actions/portfolio.ts`.
+  - `*` Fixed Mongoose duplicate slug index warnings in Gallery and Portfolio models.
+  - `+` Added `/refactor` workflow at `.agents/workflows/refactor.md`.
 - **v1.1.16**:
   - `*` Completely eliminated prop drilling in the Spellchecker game by migrating 18+ pieces of state and logic into a global `FlashcardContext`, significantly cleaning up the `Menu`, `Playing`, and `Result` component signatures for easier maintainability (Issues #8-#11).
 - **v1.1.15**:

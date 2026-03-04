@@ -1,25 +1,27 @@
-# Use Node.js 20-alpine
-FROM node:20-alpine
-
-# Set working directory
+# Stage 1: Install dependencies
+FROM node:20-alpine AS deps
 WORKDIR /app
-
-# Copy package files first (for caching)
 COPY package*.json ./
+RUN npm ci --omit=dev
 
-# Install dependencies
-RUN npm install
-
-# Copy source code
+# Stage 2: Build
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
 COPY . .
+RUN npm run build
 
-# Expose port 3000
-EXPOSE 3000
-
-# Set environment variables
-ENV NODE_ENV=development
+# Stage 3: Production
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
 ENV HOSTNAME="0.0.0.0"
 ENV PORT=3000
 
-# Start development server
-CMD ["npm", "run", "dev"]
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+
+EXPOSE 3000
+CMD ["node", "server.js"]

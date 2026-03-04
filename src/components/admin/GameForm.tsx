@@ -127,7 +127,7 @@ export default function GameForm({
                 ลิงก์เล่นเกม (Play URL) <span className="text-red-500">*</span>
               </label>
               <input
-                type="url"
+                type="text"
                 name="playUrl"
                 defaultValue={initialData?.playUrl}
                 required
@@ -177,7 +177,7 @@ export default function GameForm({
             <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               รูปปก (Thumbnail) <span className="text-red-500">*</span>
             </label>
-            <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-100 dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-sky-500 transition-colors group">
+            <div className="relative aspect-4/3 rounded-xl overflow-hidden bg-zinc-100 dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-sky-500 transition-colors group">
               {thumbnailPreview ? (
                 <Image
                   src={thumbnailPreview}

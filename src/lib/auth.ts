@@ -1,12 +1,7 @@
 import { cookies } from 'next/headers';
 import { CONFIG } from '@/lib/config';
 
-export async function verifyAuth(): Promise<boolean> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(CONFIG.AUTH.COOKIE_NAME)?.value;
-
-  if (!token) return false;
-
+export async function isValidToken(token: string): Promise<boolean> {
   const secret = process.env.ADMIN_TOKEN_SECRET || 'fallback-secret';
   const parts = token.split('.');
   if (parts.length !== 2) return false;
@@ -29,13 +24,18 @@ export async function verifyAuth(): Promise<boolean> {
 
     if (hash !== expectedHash) return false;
 
-    // Token expires based on config
     const tokenAge = Date.now() - parseInt(timestamp, 10);
-    const maxAge = CONFIG.AUTH.SESSION_DURATION; 
-    
+    const maxAge = CONFIG.AUTH.SESSION_DURATION;
     return tokenAge < maxAge;
   } catch (error) {
     console.error('Auth verification failed:', error);
     return false;
   }
+}
+
+export async function verifyAuth(): Promise<boolean> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(CONFIG.AUTH.COOKIE_NAME)?.value;
+  if (!token) return false;
+  return isValidToken(token);
 }

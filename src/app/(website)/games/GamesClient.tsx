@@ -52,15 +52,23 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
       {/* Search Bar */}
       <section className="px-4 pb-8">
         <div className="max-w-7xl mx-auto">
-          <div className="relative max-w-md">
-            <i className="fi fi-sr-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"></i>
+          <div className="relative max-w-lg">
+            <i className="fi fi-sr-search absolute left-5 top-1/2 -translate-y-1/2 text-sky-400 dark:text-sky-500 text-lg"></i>
             <input
               type="text"
               placeholder="ค้นหาเกม..."
               value={activeSearch}
               onChange={(e) => setActiveSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-zinc-200 dark:border-slate-800 focus:ring-2 focus:ring-sky-400 focus:outline-hidden transition-all shadow-sm"
+              className="w-full pl-14 pr-12 py-4 rounded-2xl bg-white dark:bg-slate-900 border border-zinc-200/80 dark:border-slate-700/80 focus:ring-2 focus:ring-sky-400 focus:border-sky-400 focus:outline-hidden transition-all shadow-md shadow-sky-100/30 dark:shadow-black/20 text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
             />
+            {activeSearch && (
+              <button
+                onClick={() => setActiveSearch("")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-zinc-200 dark:bg-slate-700 hover:bg-zinc-300 dark:hover:bg-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <i className="fi fi-sr-cross-small text-zinc-500 dark:text-zinc-400 text-xs"></i>
+              </button>
+            )}
           </div>
         </div>
       </section>
@@ -84,7 +92,7 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
                   className="group relative block bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-lg shadow-sky-100/50 dark:shadow-black/40 hover:shadow-2xl hover:shadow-sky-300/40 dark:hover:shadow-sky-900/20 hover:-translate-y-2 transition-all duration-300"
                 >
                   {/* Cover Image */}
-                  <div className="relative aspect-4/3 overflow-hidden">
+                  <div className="relative aspect-video overflow-hidden">
                     <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent z-10 opacity-60 group-hover:opacity-40 transition-opacity"></div>
                     {item.cover ? (
                       // eslint-disable-next-line @next/next/no-img-element

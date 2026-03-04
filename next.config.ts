@@ -1,18 +1,29 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   reactCompiler: true,
   poweredByHeader: false,
   allowedDevOrigins: ["localhost", "100.97.15.5", "0.0.0.0"],
   experimental: {
     serverActions: {
-      bodySizeLimit: "200mb",
+      bodySizeLimit: "60mb",
     },
-    proxyClientMaxBodySize: "200mb",
+    proxyClientMaxBodySize: "60mb",
   },
   serverExternalPackages: ["sharp"],
   images: {
     formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cdn-icons-png.flaticon.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.flaticon.com',
+      }
+    ],
   },
   async headers() {
     return [

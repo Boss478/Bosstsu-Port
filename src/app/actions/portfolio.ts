@@ -3,10 +3,11 @@
 import dbConnect from '@/lib/db';
 import Portfolio from '@/models/Portfolio';
 import { revalidatePath } from 'next/cache';
+import { CONFIG } from '@/lib/config';
 
 export async function getPortfolioItems() {
   await dbConnect();
-  const items = await Portfolio.find({}).sort({ date: -1 }).lean();
+  const items = await Portfolio.find({ published: true }).sort({ date: -1 }).lean();
   return JSON.parse(JSON.stringify(items));
 }
 
@@ -17,8 +18,6 @@ export async function getPortfolioItemBySlug(slug: string) {
   if (!item) return null;
   return JSON.parse(JSON.stringify(item));
 }
-
-import { CONFIG } from '@/lib/config';
 
 export async function getRecentPortfolioItems(excludeSlug: string, limit = CONFIG.PAGINATION.PORTFOLIO_RECENT) {
   if (typeof excludeSlug !== 'string') return [];
