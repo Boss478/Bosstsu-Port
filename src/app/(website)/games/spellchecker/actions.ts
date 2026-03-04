@@ -3,6 +3,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { VocabularyWord } from './types';
+import { z } from 'zod';
 
 // In-memory cache variables for global Next.js process
 let cachedThaiVocab: VocabularyWord[] | null = null;
@@ -67,10 +68,18 @@ const readVocabFile = async (filename: string, hasDefinition: boolean = false): 
  * Server Action to fetch a batch of randomized vocabulary.
  * Uses global in-memory caching to prevent massive disk I/O on high concurrency.
  */
-export async function fetchVocabBatch(language: 'THAI' | 'ENGLISH', amount: number = 50): Promise<VocabularyWord[]> {
-  let sourceVocab: VocabularyWord[] = [];
+const fetchVocabSchema = z.object({
+  language: z.enum(['THAI', 'ENGLISH']),
+  amount: z.number().int().min(1).max(200).default(50)
+});
 
-  if (language === 'THAI') {
+export async function fetchVocabBatch(rawLanguage: 'THAI' | 'ENGLISH', rawAmount: number = 50): Promise<VocabularyWord[]> {
+  try {
+    const { language, amount } = fetchVocabSchema.parse({ language: rawLanguage, amount: rawAmount });
+    
+    let sourceVocab: VocabularyWord[] = [];
+
+    if (language === 'THAI') {
     if (!cachedThaiVocab) {
       console.log('Cache miss: Reading Thai vocab from disk...');
       cachedThaiVocab = await readVocabFile('thai_word_spelling_game.csv', true);
@@ -108,4 +117,8 @@ export async function fetchVocabBatch(language: 'THAI' | 'ENGLISH', amount: numb
   }
 
   return selectedBatch;
+  } catch (error) {
+    console.error("fetchVocabBatch Error:", error);
+    return [];
+  }
 }

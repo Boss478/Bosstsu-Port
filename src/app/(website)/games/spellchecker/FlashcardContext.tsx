@@ -144,6 +144,10 @@ export function FlashcardProvider({ children }: { children: ReactNode }) {
     if (uniqueWordsPlayed >= activeVocab.length - 15 && !isFetchingRef.current) {
       isFetchingRef.current = true;
       fetchVocabBatch(language, 50).then(newWords => {
+        if (!newWords || newWords.length === 0) {
+          isFetchingRef.current = false;
+          return;
+        }
         setActiveVocab(prev => {
           const existingWords = new Set(prev.map(w => w.word));
           const uniqueNew = newWords.filter(w => !existingWords.has(w.word));
@@ -164,15 +168,16 @@ export function FlashcardProvider({ children }: { children: ReactNode }) {
   const startGame = async (selectedMode: GameMode, selectedTime?: number) => {
     if (!language) return;
     setIsLoading(true);
-    const initialBatch = await fetchVocabBatch(language, 50);
-    setIsLoading(false);
+    try {
+      const initialBatch = await fetchVocabBatch(language, 50);
+      setIsLoading(false);
 
-    if (!initialBatch || initialBatch.length === 0) {
-      alert("No vocabulary words available!");
-      return;
-    }
+      if (!initialBatch || initialBatch.length === 0) {
+        alert("Failed to connect to the game server or load vocabulary. Please check your network and try again.");
+        return;
+      }
 
-    setActiveVocab(initialBatch);
+      setActiveVocab(initialBatch);
     setMode(selectedMode);
     setGameState("PLAYING");
     setLives(selectedMode === "LIFE" ? 3 : selectedMode === "HARDCORE" ? 1 : 0);
@@ -196,7 +201,13 @@ export function FlashcardProvider({ children }: { children: ReactNode }) {
       setTimeLeft(selectedTime || 60);
     }
     
+    
     pickNextWord(initialBatch, {}, selectedMode, {});
+    } catch (e) {
+      console.error(e);
+      setIsLoading(false);
+      alert("Failed to connect to the game server or load vocabulary. Please check your network and try again.");
+    }
   };
 
   const pickNextWord = (

@@ -33,23 +33,50 @@ async function isValidToken(token: string): Promise<boolean> {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  let response = NextResponse.next();
+
   // Only protect /admin routes (excluding /admin/login)
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
     const token = request.cookies.get(CONFIG.AUTH.COOKIE_NAME)?.value;
 
     if (!token || !(await isValidToken(token))) {
       const loginUrl = new URL('/admin/login', request.url);
-      const response = NextResponse.redirect(loginUrl);
+      response = NextResponse.redirect(loginUrl);
       if (token) {
         response.cookies.delete(CONFIG.AUTH.COOKIE_NAME);
       }
-      return response;
     }
   }
 
-  return NextResponse.next();
+  // Apply Security Headers to every response
+  const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    img-src 'self' blob: data: https://cdn.flaticon.com;
+    font-src 'self' https://fonts.gstatic.com;
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    upgrade-insecure-requests;
+  `;
+  
+  const contentSecurityPolicyHeaderValue = cspHeader
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+  response.headers.set('Content-Security-Policy', contentSecurityPolicyHeaderValue);
+  response.headers.set('X-Frame-Options', 'DENY'); // Clickjacking protection
+  response.headers.set('X-Content-Type-Options', 'nosniff'); // MIME sniffing protection
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin'); 
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+
+  return response;
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
 };
