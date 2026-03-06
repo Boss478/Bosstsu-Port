@@ -9,7 +9,7 @@ export const CONFIG = {
 
   // File Uploads
   UPLOAD: {
-    MAX_SIZE: 50 * 1024 * 1024, // 50MB to allow large original files before compression
+    MAX_SIZE: 30 * 1024 * 1024, // 30MB — covers all consumer-grade originals before compression
     ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'],
     ROOT_DIR: 'public/uploads',
   },

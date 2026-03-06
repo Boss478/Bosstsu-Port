@@ -2,14 +2,15 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  compress: true,
   reactCompiler: true,
   poweredByHeader: false,
   allowedDevOrigins: ["localhost", "100.97.15.5", "0.0.0.0"],
   experimental: {
     serverActions: {
-      bodySizeLimit: "60mb",
+      bodySizeLimit: "30mb",
     },
-    proxyClientMaxBodySize: "60mb",
+    proxyClientMaxBodySize: "30mb",
   },
   serverExternalPackages: ["sharp"],
   images: {

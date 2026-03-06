@@ -49,3 +49,4 @@ yarn-error.log*
 # Project specific
 CLAUDE.md
 tasks/
+public/uploads/

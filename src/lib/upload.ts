@@ -5,6 +5,8 @@ import { CONFIG } from '@/lib/config';
 import sharp from 'sharp';
 import convert from 'heic-convert';
 
+sharp.concurrency(1);
+
 export async function saveFile(file: File, folder: string = 'misc', asWebP: boolean = false): Promise<string> {
   const allowedTypes = CONFIG.UPLOAD.ALLOWED_TYPES as readonly string[];
   const maxSize = CONFIG.UPLOAD.MAX_SIZE;

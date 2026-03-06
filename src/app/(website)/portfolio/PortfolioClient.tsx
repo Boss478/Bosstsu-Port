@@ -104,7 +104,7 @@ export default function PortfolioClient({ initialItems }: { initialItems: Portfo
               <Link
                 key={item.id}
                 href={`/portfolio/${item.id}`}
-                className="group flex flex-col bg-slate-200/80 dark:bg-slate-800/60 dark:backdrop-blur-xs rounded-2xl border border-white/70 dark:border-slate-700/50 overflow-hidden shadow-md shadow-sky-100/40 dark:shadow-black/20 hover:shadow-xl hover:shadow-sky-200/50 dark:hover:shadow-black/40 hover:-translate-y-1.5 transition-all duration-300"
+                className="group flex flex-col bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/10 overflow-hidden shadow-xl shadow-sky-900/5 dark:shadow-black/20 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-sky-900/10 dark:hover:shadow-black/40 hover:bg-white/60 dark:hover:bg-slate-800/60"
                 suppressHydrationWarning
               >
                 <div className="relative w-full shrink-0 overflow-hidden bg-sky-100 dark:bg-slate-800 flex items-center justify-center" style={{ height: '14rem' }}>

@@ -18,7 +18,7 @@ export default function Card({
     return (
         <Link
             href={href}
-            className="group relative p-8 rounded-3xl bg-zinc-100/80 dark:bg-slate-900/60 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 card-hover overflow-hidden"
+            className="group relative p-8 rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/60 dark:border-white/10 shadow-xl shadow-sky-900/5 dark:shadow-black/20 overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-sky-900/10 dark:hover:shadow-black/40 hover:bg-white/60 dark:hover:bg-slate-800/60"
         >
 
             <div

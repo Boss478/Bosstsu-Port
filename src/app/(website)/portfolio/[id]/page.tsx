@@ -119,7 +119,7 @@ export default async function PortfolioDetailPage({
                     </span>
                   ))}
                 </div>
-                <h1 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+                <h1 className="text-3xl md:text-4xl font-bold leading-snug text-zinc-900 dark:text-zinc-100 mb-4">
                   {item.title}
                 </h1>
                 <div className="flex flex-wrap items-center gap-6 text-zinc-500 dark:text-zinc-400 text-sm">
@@ -129,6 +129,18 @@ export default async function PortfolioDetailPage({
                   </span>
                 </div>
               </header>
+
+              {item.description && (
+                <div className="mb-8 p-6 bg-sky-50 dark:bg-slate-800/50 rounded-2xl border border-sky-100 dark:border-slate-700/50">
+                  <h3 className="text-sm font-bold text-sky-800 dark:text-sky-300 mb-2 uppercase tracking-wider flex items-center gap-2">
+                    <i className="fi fi-sr-info" />
+                    TL;DR
+                  </h3>
+                  <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              )}
 
               {/* sanitize with DOMPurify to prevent XSS */}
               <div

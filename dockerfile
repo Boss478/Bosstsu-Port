@@ -1,27 +1,10 @@
-# Stage 1: Install dependencies
-FROM node:20-alpine AS deps
+# Development Server
+FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev
-
-# Stage 2: Build
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
+# Install all dependencies including devDependencies
 RUN npm ci
 COPY . .
-RUN npm run build
-
-# Stage 3: Production
-FROM node:20-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-ENV HOSTNAME="0.0.0.0"
-ENV PORT=3000
-
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
-
+ENV NODE_ENV=development
 EXPOSE 3000
-CMD ["node", "server.js"]
+CMD ["npm", "run", "dev"]

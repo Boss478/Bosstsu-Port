@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
+import { verifyAuth } from '@/lib/auth';
 import { promises as fs } from 'fs';
 import path from 'path';
 
 export async function GET() {
+  const isAuth = await verifyAuth();
+  if (!isAuth) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const inputPath = path.join(process.cwd(), 'src', 'data', 'oxford-5000.csv');
     const dataOutputPath = path.join(process.cwd(), 'src', 'data', 'games', 'spelling', 'english_word.csv');
@@ -10,7 +16,7 @@ export async function GET() {
 
     let fileData = await fs.readFile(inputPath, 'utf-8');
     fileData = fileData.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    let lines = fileData.split('\n');
+    const lines = fileData.split('\n');
     
     // misspellings dictionary
     const misspellings: Record<string, string> = {

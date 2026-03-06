@@ -1,5 +1,19 @@
 # Website Update Log
 
+- **v1.2.4**:
+  - `*` Increased the line height (`leading-snug`) on the detailed Portfolio page title for better readability.
+- **v1.2.3**:
+  - `+` Added Short Description as a TL;DR on the Portfolio detail page.
+- **v1.2.2**:
+  - `*` Added MongoDB health check to `docker-compose.yml` so the app waits for Mongo before starting; added `restart: unless-stopped` on all services; capped `mongo-express` at 128M RAM.
+  - `+` Added `compress: true` to `next.config.ts` for gzip SSR responses.
+  - `*` Narrowed middleware matcher from all pages to `/admin/:path*` only, eliminating no-op middleware overhead on public routes.
+  - `*` Added `verifyAuth` guard to `/api/process-words` route to prevent unauthenticated CPU-intensive requests.
+  - `*` Set `sharp.concurrency(1)` in `upload.ts` to prevent CPU starvation on concurrent image uploads.
+  - `*` Reduced upload `MAX_SIZE` from 50MB to 30MB and Next.js body size limit from 60MB to 30MB.
+  - `*` Reduced MongoDB `maxPoolSize` from 5 to 3 and added `connectTimeoutMS: 5000` in `db.ts`.
+- **v1.2.1**:
+  - `*` Redesigned cards on Main page and Portfolio page to feature a consistent glassmorphism aesthetic in both light and dark modes.
 - **v1.2.0**:
   - `*` Deduplicated auth token validation — single `isValidToken` in `lib/auth.ts`, imported by both `middleware.ts` and `verifyAuth`.
   - `*` Consolidated duplicate security headers — removed from `middleware.ts` (kept in `next.config.ts` only), fixing conflicting `X-Frame-Options` and `frame-ancestors` values.

@@ -5,13 +5,19 @@ services:
     build: .
     ports:
       - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
     environment:
       - NODE_ENV=development
       - MONGODB_URI=mongodb://admin:password123@mongo:27017/boss478?authSource=admin
       - ADMIN_PASSWORD=boss478admin
       - ADMIN_TOKEN_SECRET=b0ss478-s3cr3t-k3y-ch4ng3-th1s
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -26,6 +32,13 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=password123
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     deploy:
       resources:
         limits:
@@ -41,7 +54,13 @@ services:
       - ME_CONFIG_MONGODB_URL=mongodb://admin:password123@mongo:27017/
       - ME_CONFIG_BASICAUTH=false
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
 
 volumes:
   mongo_data:
