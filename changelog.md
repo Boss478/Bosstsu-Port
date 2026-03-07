@@ -1,5 +1,9 @@
 # Website Update Log
 
+- **v1.2.5**:
+  - `*` Removed implicit fallback pseudo-secrets from `auth.ts`, strictly requiring `.env` presence for security.
+  - `*` Secured mutating server actions (`createPortfolioItem`, etc.) with strict `verifyAuth` gateways and explicit Zod `.strict()` validation parsing to prevent NoSQL injection.
+  - `*` Optimized public read pipelines (`getPortfolioItems`, `getGalleryAlbums`) with Next.js `unstable_cache` avoiding native DB hits to protect the VPS limits.
 - **v1.2.4**:
   - `*` Increased the line height (`leading-snug`) on the detailed Portfolio page title for better readability.
 - **v1.2.3**:

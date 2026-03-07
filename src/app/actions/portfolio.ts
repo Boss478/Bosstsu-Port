@@ -2,14 +2,34 @@
 
 import dbConnect from '@/lib/db';
 import Portfolio from '@/models/Portfolio';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache';
 import { CONFIG } from '@/lib/config';
+import { verifyAuth } from '@/lib/auth';
+import { z } from 'zod';
 
-export async function getPortfolioItems() {
-  await dbConnect();
-  const items = await Portfolio.find({ published: true }).sort({ date: -1 }).lean();
-  return JSON.parse(JSON.stringify(items));
-}
+const PortfolioInput = z.object({
+  slug: z.string().min(1),
+  title: z.string().min(1),
+  description: z.string(),
+  content: z.string().optional(),
+  gallery: z.array(z.string()).optional(),
+  tools: z.array(z.string()).optional(),
+  cover: z.string().url(),
+  tags: z.array(z.string()).optional(),
+  date: z.coerce.date(),
+  published: z.boolean().default(true),
+  relatedGalleryId: z.string().optional()
+}).strict();
+
+export const getPortfolioItems = unstable_cache(
+  async () => {
+    await dbConnect();
+    const items = await Portfolio.find({ published: true }).sort({ date: -1 }).lean();
+    return JSON.parse(JSON.stringify(items));
+  },
+  ['portfolio-public-list'],
+  { tags: ['portfolio'], revalidate: 3600 }
+);
 
 export async function getPortfolioItemBySlug(slug: string) {
   if (typeof slug !== 'string') return null;
@@ -71,7 +91,9 @@ export async function getOlderAndNewerItem(currentSlug: string) {
   };
 }
 
-export async function createPortfolioItem(data: Record<string, unknown>) {
+export async function createPortfolioItem(rawData: unknown) {
+  if (!(await verifyAuth())) throw new Error("Unauthorized");
+  const data = PortfolioInput.parse(rawData);
   await dbConnect();
   const newItem = await Portfolio.create(data);
   revalidatePath('/portfolio');

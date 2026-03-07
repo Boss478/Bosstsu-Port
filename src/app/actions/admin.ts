@@ -4,6 +4,7 @@ import dbConnect from '@/lib/db';
 import Portfolio from '@/models/Portfolio';
 import Gallery from '@/models/Gallery';
 import { CONFIG } from '@/lib/config';
+import { verifyAuth } from '@/lib/auth';
 
 export interface DbStats {
   connected: boolean;
@@ -22,6 +23,9 @@ export interface DbStats {
 }
 
 export async function getDbStats(): Promise<DbStats> {
+  const isAuth = await verifyAuth();
+  if (!isAuth) throw new Error('Unauthorized');
+  
   try {
     const conn = await dbConnect();
     const db = conn.connection.db;
@@ -77,6 +81,9 @@ export async function getDbStats(): Promise<DbStats> {
 }
 
 export async function getDashboardStats() {
+  const isAuth = await verifyAuth();
+  if (!isAuth) throw new Error('Unauthorized');
+
   await dbConnect();
   const [portfolioItems, galleryAlbums] = await Promise.all([
     Portfolio.find({}).sort({ updatedAt: -1 }).limit(CONFIG.PAGINATION.DASHBOARD_RECENT).lean(),
