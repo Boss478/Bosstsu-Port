@@ -1,5 +1,13 @@
+
 # Website Update Log
 
+- **v1.3.0**:
+  - `+` Added Online Python Compiler:
+    - Pyodide WebAssembly for 100% client-side Python execution (0 server load).
+    - Pre-built Python examples with Thai descriptions for students.
+    - Interactive code editor with syntax indentation and line numbers.
+    - Easy Mode for syntax highlighting and auto-indent algorithms.
+    - Keyboard shortcuts (`Ctrl+Enter` to run).
 - **v1.2.5**:
   - `*` Removed implicit fallback pseudo-secrets from `auth.ts`, strictly requiring `.env` presence for security.
   - `*` Secured mutating server actions (`createPortfolioItem`, etc.) with strict `verifyAuth` gateways and explicit Zod `.strict()` validation parsing to prevent NoSQL injection.

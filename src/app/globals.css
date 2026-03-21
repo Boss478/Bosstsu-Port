@@ -154,3 +154,15 @@ body {
   transform: translateY(-5px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
+
+/* Custom Code Editor Utilities */
+.code-editor {
+  font-family: var(--font-geist-mono), 'Courier New', Courier, monospace;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

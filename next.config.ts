@@ -41,11 +41,11 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn-uicons.flaticon.com",
               "font-src 'self' https://fonts.gstatic.com https://cdn-uicons.flaticon.com",
               "img-src 'self' data: blob: https: http:",
-              "connect-src 'self'",
+              "connect-src 'self' https://cdn.jsdelivr.net",
               "frame-ancestors 'self'",
             ].join("; "),
           },
