@@ -1,5 +1,13 @@
-
 # Website Update Log
+
+- **v1.3.2**:
+  - `*` Rewrote Python Compiler for true interactive inline console input (type directly in the console, like a real terminal).
+  - `+` Added API route (`/api/pyodide-input`) for Web Worker input synchronization via sync XHR.
+  - `-` Removed STDIN textarea and `window.prompt()` popup.
+  - `*` Cleaned up all unnecessary code comments for self-documenting code.
+
+- **v1.3.1**:
+  - `*` Added Infinite Loop protection to the Python Compiler via a background `sys.settrace()` timeout analyzer, preventing browser crashes. The protection intelligently pauses while waiting for `input()`.
 
 - **v1.3.0**:
   - `+` Added Online Python Compiler:
