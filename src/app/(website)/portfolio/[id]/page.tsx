@@ -4,7 +4,8 @@ import dbConnect from "@/lib/db";
 import Portfolio from "@/models/Portfolio";
 import Breadcrumb from "@/components/Breadcrumb";
 import PortfolioGallery from "@/components/PortfolioGallery";
-import { type PortfolioItem, formatDate } from "../data";
+import { type PortfolioItem } from "../data";
+import { formatDate } from "@/lib/format";
 import DOMPurify from 'isomorphic-dompurify';
 import { CONFIG } from "@/lib/config";
 
@@ -45,7 +46,6 @@ export default async function PortfolioDetailPage({
     relatedGalleryId: doc.relatedGalleryId || undefined,
   };
 
-  // Fetch related data in parallel to avoid JS waterfall effect
   const [recentDocs, relatedDocs, newerDocAny, olderDocAny] = await Promise.all([
     Portfolio.find({ slug: { $ne: id }, published: { $ne: false } }).sort({ date: -1 }).limit(CONFIG.PAGINATION.PORTFOLIO_RECENT).lean(),
     item.tags.length > 0 ? Portfolio.aggregate([
@@ -142,7 +142,6 @@ export default async function PortfolioDetailPage({
                 </div>
               )}
 
-              {/* sanitize with DOMPurify to prevent XSS */}
               <div
                 className="prose prose-lg prose-sky dark:prose-invert max-w-none text-zinc-700 dark:text-zinc-300"
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.content) }}
@@ -167,7 +166,6 @@ export default async function PortfolioDetailPage({
               )}
             </div>
 
-            {/* Gallery Section - Show if inline gallery exists OR if there's a related gallery link */}
             {( (item.gallery && item.gallery.length > 0) || item.relatedGalleryId ) && (
               <section id="portfolio-gallery" className="space-y-4">
                 <div className="flex items-center justify-between">

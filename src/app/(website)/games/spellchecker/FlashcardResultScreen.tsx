@@ -1,4 +1,3 @@
-import type { WordStat } from "./types";
 import { useFlashcardContext, type GameMode } from "./FlashcardContext";
 
 export default function FlashcardResultScreen() {

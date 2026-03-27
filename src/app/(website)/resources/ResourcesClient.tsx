@@ -3,13 +3,8 @@
 import { useState, useMemo } from "react";
 import Breadcrumb from "@/components/Breadcrumb";
 
-const MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+import { formatDate } from "@/lib/format";
 
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${day} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
-}
 
 interface ResourceItem {
   id: string;
@@ -49,8 +44,6 @@ export default function ResourcesClient({ initialItems }: { initialItems: Resour
 
   return (
     <div className="min-h-screen bg-sky-50 dark:bg-slate-950">
-      
-      {/* Header Section */}
       <section className="pt-28 pb-12 px-4">
         <div className="max-w-7xl mx-auto">
           <Breadcrumb items={[{ label: "สื่อการเรียนรู้" }]} />
@@ -64,7 +57,6 @@ export default function ResourcesClient({ initialItems }: { initialItems: Resour
         </div>
       </section>
 
-      {/* Filter Bar */}
       <section className="px-4 pb-8">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-4">
           
@@ -97,7 +89,6 @@ export default function ResourcesClient({ initialItems }: { initialItems: Resour
         </div>
       </section>
 
-      {/* Grid Section */}
       <section className="pb-20 px-4">
         <div className="max-w-7xl mx-auto">
           {filteredItems.length === 0 ? (
@@ -115,7 +106,6 @@ export default function ResourcesClient({ initialItems }: { initialItems: Resour
                   rel="noopener noreferrer"
                   className="group flex flex-col bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-zinc-100 dark:border-slate-800 shadow-xs hover:shadow-xl hover:shadow-sky-100/50 dark:hover:shadow-black/30 hover:-translate-y-1 transition-all duration-300"
                 >
-                  {/* Cover Image */}
                   <div className="relative aspect-video overflow-hidden bg-zinc-100 dark:bg-slate-800">
                     {item.cover ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -142,7 +132,6 @@ export default function ResourcesClient({ initialItems }: { initialItems: Resour
                     </div>
                   </div>
 
-                  {/* Content */}
                   <div className="p-4 flex flex-col flex-1">
                     <h3 className="font-bold text-zinc-800 dark:text-zinc-200 line-clamp-1 mb-1 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
                       {item.title}

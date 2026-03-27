@@ -1,15 +1,15 @@
 export const CONFIG = {
   // Authentication
   AUTH: {
-    SESSION_DURATION: 3 * 60 * 60 * 1000, // in milliseconds
-    IDLE_TIMEOUT: 30 * 60 * 1000, // AFK timeout in milliseconds
-    COUNTDOWN_DURATION: 60, // seconds warning before logout
+    SESSION_DURATION: 3 * 60 * 60 * 1000,
+    IDLE_TIMEOUT: 30 * 60 * 1000,
+    COUNTDOWN_DURATION: 60,
     COOKIE_NAME: 'admin-token',
   },
 
   // File Uploads
   UPLOAD: {
-    MAX_SIZE: 30 * 1024 * 1024, // 30MB — covers all consumer-grade originals before compression
+    MAX_SIZE: 30 * 1024 * 1024,
     ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'],
     ROOT_DIR: 'public/uploads',
   },

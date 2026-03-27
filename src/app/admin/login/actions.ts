@@ -20,7 +20,10 @@ async function hmacSign(secret: string, message: string): Promise<string> {
 }
 
 async function generateToken(): Promise<string> {
-  const secret = process.env.ADMIN_TOKEN_SECRET || 'fallback-secret';
+  const secret = process.env.ADMIN_TOKEN_SECRET;
+  if (!secret) {
+    throw new Error('ADMIN_TOKEN_SECRET is missing');
+  }
   const timestamp = Date.now().toString();
   const hash = await hmacSign(secret, timestamp);
   return `${timestamp}.${hash}`;

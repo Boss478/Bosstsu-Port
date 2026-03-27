@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState, useMemo } from "react";
-import { type PortfolioItem, formatDate } from "./data";
+import { type PortfolioItem } from "./data";
+import { formatDate } from "@/lib/format";
 import Breadcrumb from "@/components/Breadcrumb";
 
 const ITEMS_PER_PAGE = 15;
@@ -119,7 +120,6 @@ export default function PortfolioClient({ initialItems }: { initialItems: Portfo
                            e.currentTarget.style.display = 'none';
                         }}
                       />
-                      {/* Fallback icon shown if image fails to load or while loading */}
                       <div className="absolute inset-0 flex items-center justify-center bg-sky-50 dark:bg-slate-800 z-0">
                          <i className="fi fi-sr-briefcase text-4xl text-sky-200 dark:text-slate-600 group-hover:scale-110 transition-transform duration-500" />
                       </div>
@@ -128,7 +128,6 @@ export default function PortfolioClient({ initialItems }: { initialItems: Portfo
                     <i className="fi fi-sr-briefcase text-4xl text-sky-200 dark:text-slate-600 group-hover:scale-110 transition-transform duration-500" />
                   )}
 
-                  {/* Gallery photo count badge (top-left) */}
                   {item.gallery && item.gallery.length > 0 && (
                     <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/50 dark:bg-black/60 text-zinc-900 dark:text-zinc-100 text-[10px] font-semibold backdrop-blur-3xs shadow-sm">
                       <i className="fi fi-sr-picture text-sky-500 text-[10px]" />
@@ -136,7 +135,6 @@ export default function PortfolioClient({ initialItems }: { initialItems: Portfo
                     </div>
                   )}
 
-                  {/* Tools badge (top-right) */}
                   {item.tools && item.tools.length > 0 && (
                     <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/50 dark:bg-black/60 text-zinc-900 dark:text-zinc-100 text-[10px] font-semibold backdrop-blur-xs shadow-sm">
                       <i className="fi fi-sr-tools text-sky-500 text-[10px]" />
@@ -166,7 +164,6 @@ export default function PortfolioClient({ initialItems }: { initialItems: Portfo
                     {item.description}
                   </p>
 
-                  {/* Bottom section: Date & Action */}
                   <div className="mt-auto pt-6 border-t border-zinc-200 dark:border-slate-800/80 flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-xs font-medium text-zinc-400 dark:text-zinc-500">
                       <i className="fi fi-sr-calendar-lines" />

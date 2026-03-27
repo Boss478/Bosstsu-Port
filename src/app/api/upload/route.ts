@@ -3,11 +3,10 @@ import { verifyAuth } from '@/lib/auth';
 import { saveFile } from '@/lib/upload';
 import { CONFIG } from '@/lib/config';
 
-// Allowed folders to prevent path traversal
+
 const ALLOWED_FOLDERS = ['portfolio', 'gallery', 'portfolio/gallery', 'misc'];
 
 export async function POST(req: NextRequest) {
-  // 1. Authenticate user
   const isAuth = await verifyAuth();
   if (!isAuth) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -18,7 +17,6 @@ export async function POST(req: NextRequest) {
     const file = formData.get('file') as File;
     const folderInput = (formData.get('folder') as string) || 'misc';
 
-    // 2. Validate input
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
@@ -27,7 +25,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid folder specified' }, { status: 400 });
     }
 
-    // 3. Security Check: File Size
     const maxSize = CONFIG.UPLOAD.MAX_SIZE;
     if (file.size > maxSize) {
       return NextResponse.json(
@@ -36,7 +33,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. Security Check: MIME Type
     const allowedTypes = CONFIG.UPLOAD.ALLOWED_TYPES as unknown as string[];
     const nameLC = file.name?.toLowerCase() || '';
     const isHeicByName = nameLC.endsWith('.heic') || nameLC.endsWith('.heif');
@@ -48,9 +44,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 5. Save File
-    // If uploading to 'portfolio', convert to WebP (true), otherwise keep JPEG (false)
-    // Adjust based on the original logic inside actions.ts
     const convertToWebP = folderInput === 'portfolio';
     const filePath = await saveFile(file, folderInput, convertToWebP);
 

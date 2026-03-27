@@ -127,12 +127,9 @@ body {
 }
 
 .animate-float {
-  /* Hardware accelerated Y translation */
-  /* NO margins or layout-triggering properties */
   animation: float 3s ease-in-out infinite;
 }
 
-/* Gradients are prohibited by CLAUDE.md guidelines. Removing heavy animation. */
 .animate-gradient {
   background-size: 100%;
 }
@@ -155,7 +152,6 @@ body {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
-/* Custom Code Editor Utilities */
 .code-editor {
   font-family: var(--font-geist-mono), 'Courier New', Courier, monospace;
 }

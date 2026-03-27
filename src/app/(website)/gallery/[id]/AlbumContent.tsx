@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { formatDate, type GalleryAlbum } from "../data";
+import { type GalleryAlbum } from "../data";
+import { formatDate } from "@/lib/format";
 import PhotoLightbox from "@/components/PhotoLightbox";
 import Breadcrumb from "@/components/Breadcrumb";
 

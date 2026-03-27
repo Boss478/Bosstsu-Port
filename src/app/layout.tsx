@@ -1,25 +1,30 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Mali } from "next/font/google";
+import localFont from "next/font/local";
 import "@flaticon/flaticon-uicons/css/solid/rounded.css";
 import "@flaticon/flaticon-uicons/css/brands/all.css";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CONFIG } from "@/lib/config";
 
-const geistSans = Geist({
+const geistSans = localFont({
+  src: "../fonts/Geist-Variable.woff2",
   variable: "--font-geist-sans",
-  subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
+const geistMono = localFont({
+  src: "../fonts/GeistMono-Variable.woff2",
   variable: "--font-geist-mono",
-  subsets: ["latin"],
 });
 
-const mali = Mali({
+const mali = localFont({
+  src: [
+    { path: "../fonts/Mali-Light.ttf", weight: "300", style: "normal" },
+    { path: "../fonts/Mali-Regular.ttf", weight: "400", style: "normal" },
+    { path: "../fonts/Mali-Medium.ttf", weight: "500", style: "normal" },
+    { path: "../fonts/Mali-SemiBold.ttf", weight: "600", style: "normal" },
+    { path: "../fonts/Mali-Bold.ttf", weight: "700", style: "normal" },
+  ],
   variable: "--font-mali",
-  subsets: ["latin", "thai"],
-  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {

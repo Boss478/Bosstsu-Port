@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState, useMemo } from "react";
-import { type GalleryAlbum, formatDate } from "./data";
+import { type GalleryAlbum } from "./data";
+import { formatDate } from "@/lib/format";
 import Breadcrumb from "@/components/Breadcrumb";
 
 const ITEMS_PER_PAGE = 15;
@@ -106,7 +107,6 @@ export default function GalleryClient({ initialAlbums }: { initialAlbums: Galler
                 className="group block relative rounded-2xl bg-zinc-200/50 shadow-md shadow-sky-100/40 dark:shadow-black/20 hover:shadow-lg hover:shadow-sky-200/50 dark:hover:shadow-black/40 hover:-translate-y-1.5 transition-all duration-300 ease-in-out overflow-hidden"
                 style={{ aspectRatio: '16/10' }}
               >
-                {/* Full-size cover image */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={album.cover}
@@ -114,13 +114,11 @@ export default function GalleryClient({ initialAlbums }: { initialAlbums: Galler
                   className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
 
-                {/* Photo count badge (top-left) — glassmorphism */}
                 <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/15 dark:bg-black/30 text-white text-[10px] font-semibold backdrop-blur-md border border-white/25 dark:border-white/15 shadow-lg shadow-black/10 dark:shadow-black/30">
                   <i className="fi fi-sr-picture text-[10px]" />
                   {album.photos.length}
                 </div>
 
-                {/* Bottom blur overlay — full width */}
                 <div className="absolute left-0 right-0 bottom-0 w-full z-20 bg-black/40 backdrop-blur-3xs px-4 py-3 border-t border-white/10">
                   <h3 className="text-sm font-bold text-white mb-1.5 line-clamp-1 group-hover:text-sky-300 transition-colors duration-300">
                     {album.title}

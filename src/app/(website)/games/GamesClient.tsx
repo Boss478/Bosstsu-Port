@@ -3,14 +3,7 @@
 import { useState, useMemo } from "react";
 import Breadcrumb from "@/components/Breadcrumb";
 
-const MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${day} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
-}
-
+import { formatDate } from "@/lib/format";
 interface GameItem {
   id: string;
   title: string;
@@ -34,8 +27,6 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
 
   return (
     <div className="min-h-screen bg-sky-50 dark:bg-slate-950">
-      
-      {/* Header Section */}
       <section className="pt-28 pb-12 px-4">
         <div className="max-w-7xl mx-auto">
           <Breadcrumb items={[{ label: "เกมการศึกษา" }]} />
@@ -49,7 +40,6 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
         </div>
       </section>
 
-      {/* Search Bar */}
       <section className="px-4 pb-8">
         <div className="max-w-7xl mx-auto">
           <div className="relative max-w-lg">
@@ -73,7 +63,6 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
         </div>
       </section>
 
-      {/* Grid Section */}
       <section className="pb-20 px-4">
         <div className="max-w-7xl mx-auto">
           {filteredItems.length === 0 ? (
@@ -91,7 +80,6 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
                   rel="noopener noreferrer"
                   className="group relative block bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-lg shadow-sky-100/50 dark:shadow-black/40 hover:shadow-2xl hover:shadow-sky-300/40 dark:hover:shadow-sky-900/20 hover:-translate-y-2 transition-all duration-300"
                 >
-                  {/* Cover Image */}
                   <div className="relative aspect-video overflow-hidden">
                     <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent z-10 opacity-60 group-hover:opacity-40 transition-opacity"></div>
                     {item.cover ? (
@@ -112,7 +100,6 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
                     </span>
                   </div>
 
-                  {/* Content */}
                   <div className="p-6 relative">
                     <div className="absolute -top-8 right-6 w-14 h-14 rounded-2xl bg-sky-500 text-white flex items-center justify-center text-2xl shadow-lg rotate-3 group-hover:rotate-12 transition-transform duration-300 z-20">
                       <i className="fi fi-sr-play"></i>

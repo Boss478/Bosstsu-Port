@@ -1,5 +1,8 @@
 # Website Update Log
 
+- **v1.3.3**:
+  - `*` Migrated from `next/font/google` to `next/font/local` by downloading raw `.ttf` and `.woff2` font files (Mali, Geist, Geist Mono) into `src/fonts/`, enabling fully offline development without first-boot internet dependencies.
+
 - **v1.3.2**:
   - `*` Rewrote Python Compiler for true interactive inline console input (type directly in the console, like a real terminal).
   - `+` Added API route (`/api/pyodide-input`) for Web Worker input synchronization via sync XHR.

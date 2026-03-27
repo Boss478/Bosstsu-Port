@@ -81,13 +81,11 @@ export async function fetchVocabBatch(rawLanguage: 'THAI' | 'ENGLISH', rawAmount
 
     if (language === 'THAI') {
     if (!cachedThaiVocab) {
-      console.log('Cache miss: Reading Thai vocab from disk...');
       cachedThaiVocab = await readVocabFile('thai_word_spelling_game.csv', true);
     }
     sourceVocab = cachedThaiVocab;
   } else if (language === 'ENGLISH') {
     if (!cachedEnglishVocab) {
-      console.log('Cache miss: Reading English vocab from disk...');
       cachedEnglishVocab = await readVocabFile('spelling_english_word.csv', false);
     }
     sourceVocab = cachedEnglishVocab;

@@ -2,7 +2,7 @@
 
 import dbConnect from '@/lib/db';
 import Portfolio from '@/models/Portfolio';
-import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache';
+import { revalidatePath, unstable_cache } from 'next/cache';
 import { CONFIG } from '@/lib/config';
 import { verifyAuth } from '@/lib/auth';
 import { z } from 'zod';
