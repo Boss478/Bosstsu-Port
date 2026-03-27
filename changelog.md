@@ -1,6 +1,35 @@
 # Website Update Log
 
+## v1.4.6 (2026-03-27)
+
++ **Contextual Autocomplete**: Suggestion menu now follows the typing cursor in real-time.
++ **Advanced Function Hints**: Metadata expanded to show educational vs. standard parameters based on the mode.
++ **Multi-Signature Logic**: Functions with complex usage like `range()`, `int()`, `pow()`, and `round()` now show distinct signatures on separate lines for better clarity.
++ **Contextual Logic Swap**: Adjusted parameter behavior (Full technical docs for Default/Easy, simplified for Study).
++ **Usage Examples**: Added inline code examples for built-in functions.
+* **Refactor**: Moved "Learning" section to `/resources` for routing consistency.
+* **Study Mode Refinement**: Fixed aggressive syntax highlights and false positive errors for user-defined symbols.
+* **Localization**: Refined Thai descriptions for Study Mode parameters (e.g., `print(ข้อความ)`).
+
+## v1.4.4 (2026-03-27)
+
+* **Study Mode Adjustment**: Removed aggressive red variable error highlights (only unused-var and syntax/colon warnings remain).
+- **Removed Execution History** section as part of UX simplification.
+* **Fullscreen Upgrade**: Now hides site navbar and footer for a pure coding experience.
+
+## v1.4.1 (2026-03-27)
+* **Cleanup**: Removed redundant comments and simplified state in PythonCompilerClient.
+
+  - `*` Upgraded Python Compiler to a professional educational tool with a 3-mode system:
+    - **Default Mode**: Clean coding environment with basic syntax highlighting.
+    - **Easy Mode**: Adds real-time Auto-complete suggestions (keywords/built-ins) and smart indentation.
+    - **Study Mode**: Educational "Guardian" mode with auto-pairing, syntax detection (e.g., missing colons), unused variable warnings, and clickable console errors that jump to the editor line.
+  - `+` Added Bilingual (Eng/Thai) Interactive Hover Tips and Parameter Hints for Python built-ins across all modes.
+  - `+` Added Global Productivity Features: Execution History (last 10), Fullscreen Toggle, Shareable Base64 URLs, and File Download (.py/.txt).
+  - `*` Optimized performance with 150ms debounced validation and 60fps typing experience.
+
 - **v1.3.3**:
+
   - `*` Migrated from `next/font/google` to `next/font/local` by downloading raw `.ttf` and `.woff2` font files (Mali, Geist, Geist Mono) into `src/fonts/`, enabling fully offline development without first-boot internet dependencies.
 
 - **v1.3.2**:

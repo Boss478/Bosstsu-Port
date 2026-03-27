@@ -19,7 +19,7 @@ const sections = [
   {
     title: "สื่อการเรียนรู้",
     description: "แผนการสอน สื่อ และใบงานต่าง ๆ",
-    href: "/learning",
+    href: "/resources",
     icon: "fi fi-sr-book-open-cover",
     color: "bg-sky-500",
   },

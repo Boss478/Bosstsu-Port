@@ -121,7 +121,7 @@ export default function Header() {
                       <i className={`fi fi-sr-angle-small-down text-xs mt-0.5 transition-transform ${desktopExpanded === link.label ? 'rotate-180' : 'group-hover:rotate-180'}`}></i>
                     </button>
 
-                    <div className={`absolute top-full left-1/2 -translate-x-1/2 pt-2 transition-all duration-200 ease-out z-50 min-w-[160px] ${desktopExpanded === link.label ? 'visible opacity-100 translate-y-0' : 'invisible opacity-0 translate-y-2 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0'}`}>
+                    <div className={`absolute top-full left-1/2 -translate-x-1/2 pt-2 transition-all duration-200 ease-out z-50 min-w-40 ${desktopExpanded === link.label ? 'visible opacity-100 translate-y-0' : 'invisible opacity-0 translate-y-2 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0'}`}>
                       <div className="p-1 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl shadow-sky-100/40 dark:shadow-black/20 flex flex-col gap-1 overflow-hidden">
                         {link.subItems.map((subItem) => (
                           <Link
@@ -209,7 +209,7 @@ export default function Header() {
 
         {isOpen && (
           <div id="mobile-nav" className={`md:hidden py-4 flex justify-end ${isClosing ? 'animate-slide-up' : 'animate-slide-down'}`}>
-            <div className="flex flex-col gap-1 p-2 rounded-3xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 shadow-lg shadow-sky-100/40 dark:shadow-black/20 w-fit min-w-[200px]">
+            <div className="flex flex-col gap-1 p-2 rounded-3xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 shadow-lg shadow-sky-100/40 dark:shadow-black/20 w-fit min-w-50">
               {navLinks.map((link) => (
                 <div key={link.label} className="w-full">
                   {!link.subItems ? (

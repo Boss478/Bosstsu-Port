@@ -162,3 +162,9 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+body.python-fullscreen #site-header,
+body.python-fullscreen footer {
+  display: none;
+}
+
