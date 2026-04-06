@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useFlashcardContext } from "./FlashcardContext";
 
 export default function FlashcardMenuScreen() {
+  const router = useRouter();
   const { language, setLanguage, startGame, isLoading } = useFlashcardContext();
   const [showHelp, setShowHelp] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
@@ -10,6 +12,9 @@ export default function FlashcardMenuScreen() {
     return (
       <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl shadow-sky-100/50 dark:shadow-black/40 text-center space-y-8 animate-float relative overflow-hidden">
         <div className="absolute top-4 right-4 flex gap-2">
+          <button onClick={() => router.push('/games')} className="p-2 text-zinc-400 hover:text-zinc-500 transition-colors" title="Back to Games">
+            <i className="fi fi-sr-home text-xl"></i>
+          </button>
           <button onClick={() => setShowChangelog(true)} className="p-2 text-zinc-400 hover:text-sky-500 transition-colors" title="Changelog">
             <i className="fi fi-sr-time-past text-xl"></i>
           </button>
@@ -132,6 +137,9 @@ export default function FlashcardMenuScreen() {
 
       <button onClick={() => setLanguage(null)} className="absolute top-6 left-6 text-zinc-400 hover:text-sky-500 transition-colors">
         <i className="fi fi-sr-arrow-left text-2xl"></i>
+      </button>
+      <button onClick={() => router.push('/games')} className="absolute top-6 right-6 text-zinc-400 hover:text-zinc-500 transition-colors" title="Back to Games">
+        <i className="fi fi-sr-home text-2xl"></i>
       </button>
       <h2 className="text-3xl font-bold text-zinc-800 dark:text-zinc-100 mb-8">Select Game Mode</h2>
       

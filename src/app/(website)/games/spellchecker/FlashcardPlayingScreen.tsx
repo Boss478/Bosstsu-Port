@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useFlashcardContext } from "./FlashcardContext";
 
 export default function FlashcardPlayingScreen() {
+  const router = useRouter();
   const {
     endGame,
     mode,
@@ -52,6 +54,9 @@ export default function FlashcardPlayingScreen() {
           <div className="flex items-center gap-4 text-zinc-500 dark:text-zinc-400 font-bold">
             <button onClick={endGame} className="text-zinc-400 hover:text-red-500 transition-colors">
               <i className="fi fi-sr-cross-circle text-2xl"></i>
+            </button>
+            <button onClick={() => router.push('/games')} className="text-zinc-400 hover:text-zinc-500 transition-colors" title="Back to Games">
+              <i className="fi fi-sr-home text-2xl"></i>
             </button>
           </div>
           <div className="flex items-center gap-4 font-bold">

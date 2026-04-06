@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { getNumberData, NumberData } from "@/lib/numbers";
 
 // --- Constants ---
@@ -103,6 +104,7 @@ export default function NumberGameClient() {
   const [feedback, setFeedback] = useState<{ text: string; type: 'correct' | 'wrong' | '' }>({ text: '', type: '' });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const { playSound } = useAudio();
 
   useEffect(() => {
@@ -286,7 +288,14 @@ export default function NumberGameClient() {
 
         {/* --- SCREENS --- */}
         {screen === 'menu' && (
-          <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 relative">
+            <button
+              onClick={() => router.push('/games')}
+              className="absolute top-6 right-6 p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/30 text-zinc-500 hover:text-fuchsia-500 transition-colors"
+              title="Back to Games"
+            >
+              <i className="fi fi-sr-home text-lg"></i>
+            </button>
              <div className="space-y-2">
               <h1 className="text-4xl md:text-6xl font-black text-fuchsia-600 dark:text-fuchsia-400 tracking-tight">
                 Number Game
@@ -350,6 +359,13 @@ export default function NumberGameClient() {
                   >
                     <i className="fi fi-sr-angle-left text-xs"></i>
                     <span className="text-xs font-black uppercase tracking-widest">เมนู</span>
+                  </button>
+                  <button
+                    onClick={() => router.push('/games')}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/30 text-zinc-500 hover:text-fuchsia-500 transition-colors"
+                    title="Back to Games"
+                  >
+                    <i className="fi fi-sr-home text-xs"></i>
                   </button>
                   <div className="w-12 h-12 rounded-2xl bg-fuchsia-100 dark:bg-fuchsia-900/30 flex items-center justify-center text-fuchsia-600 dark:text-fuchsia-400 text-xl font-black">
                     {gameState.isEndless ? "∞" : gameState.stage}
