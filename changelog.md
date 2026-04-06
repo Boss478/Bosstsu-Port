@@ -1,5 +1,9 @@
 # Website Update Log
 
+## v1.4.9 (2026-04-06)
+
++ **Game Immersion**: Both Alphabet Adventure and Number Game now automatically hide the site navbar and footer when entering the game screen, giving a fullscreen-like experience that fills the browser viewport. Nav/footer are restored on menu/victory screens and on page exit.
+
 ## v1.4.8 (2026-04-06)
 
 * **Number Game UI Fix**: Moved fullscreen toggle from floating corner into the HUD bar next to score, matching Alphabet Adventure's layout.

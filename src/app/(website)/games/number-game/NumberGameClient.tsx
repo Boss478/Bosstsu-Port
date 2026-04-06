@@ -105,6 +105,22 @@ export default function NumberGameClient() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { playSound } = useAudio();
 
+  useEffect(() => {
+    const header = document.getElementById('site-header');
+    const footer = document.getElementById('site-footer');
+    if (screen === 'game') {
+      header?.classList.add('hidden');
+      footer?.classList.add('hidden');
+    } else {
+      header?.classList.remove('hidden');
+      footer?.classList.remove('hidden');
+    }
+    return () => {
+      header?.classList.remove('hidden');
+      footer?.classList.remove('hidden');
+    };
+  }, [screen]);
+
   // --- Handlers ---
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -258,8 +274,10 @@ export default function NumberGameClient() {
   return (
     <div 
       ref={containerRef}
-      className={`min-h-screen flex flex-col items-center justify-center p-4 transition-all duration-500 ${
-        isFullscreen ? 'bg-zinc-950' : 'bg-fuchsia-50 dark:bg-zinc-950 pt-24'
+      className={`flex flex-col items-center justify-center p-4 transition-all duration-500 ${
+        screen === 'game'
+          ? 'h-screen overflow-hidden bg-fuchsia-50 dark:bg-zinc-950'
+          : 'min-h-screen bg-fuchsia-50 dark:bg-zinc-950 pt-24'
       }`}
       style={{ fontFamily: "'Mali', sans-serif" }}
     >
@@ -330,7 +348,7 @@ export default function NumberGameClient() {
                     onClick={() => setScreen('menu')}
                     className="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/30 text-zinc-500 hover:text-fuchsia-500 transition-colors"
                   >
-                    <i className="fi fi-sr-house text-sm"></i>
+                    <i className="fi fi-sr-angle-left text-xs"></i>
                     <span className="text-xs font-black uppercase tracking-widest">เมนู</span>
                   </button>
                   <div className="w-12 h-12 rounded-2xl bg-fuchsia-100 dark:bg-fuchsia-900/30 flex items-center justify-center text-fuchsia-600 dark:text-fuchsia-400 text-xl font-black">

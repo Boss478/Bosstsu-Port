@@ -127,6 +127,22 @@ export default function AlphabetAdventureClient() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { playSound } = useAudio();
 
+  useEffect(() => {
+    const header = document.getElementById('site-header');
+    const footer = document.getElementById('site-footer');
+    if (screen === 'game') {
+      header?.classList.add('hidden');
+      footer?.classList.add('hidden');
+    } else {
+      header?.classList.remove('hidden');
+      footer?.classList.remove('hidden');
+    }
+    return () => {
+      header?.classList.remove('hidden');
+      footer?.classList.remove('hidden');
+    };
+  }, [screen]);
+
   // --- Handlers ---
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -381,8 +397,10 @@ export default function AlphabetAdventureClient() {
   return (
     <div 
       ref={containerRef}
-      className={`min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-500 ${
-        isFullscreen ? 'bg-zinc-950' : 'bg-violet-50 dark:bg-zinc-950 pt-24'
+      className={`flex flex-col items-center justify-center p-4 transition-colors duration-500 ${
+        screen === 'game'
+          ? 'h-screen overflow-hidden bg-violet-50 dark:bg-zinc-950'
+          : 'min-h-screen bg-violet-50 dark:bg-zinc-950 pt-24'
       }`}
       style={{ fontFamily: "'Mali', sans-serif" }}
     >
@@ -437,7 +455,7 @@ export default function AlphabetAdventureClient() {
                     onClick={() => setScreen('menu')}
                     className="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-500 hover:text-violet-500 transition-colors"
                   >
-                    <i className="fi fi-sr-house text-sm"></i>
+                    <i className="fi fi-sr-angle-left text-xs"></i>
                     <span className="text-xs font-black uppercase tracking-widest">เมนู</span>
                   </button>
                   <div className="w-12 h-12 rounded-2xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-violet-600 dark:text-violet-400 text-xl font-black">
