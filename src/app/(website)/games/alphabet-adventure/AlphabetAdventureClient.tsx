@@ -386,15 +386,8 @@ export default function AlphabetAdventureClient() {
       }`}
       style={{ fontFamily: "'Mali', sans-serif" }}
     >
-      <div className="w-full max-w-3xl relative">
-        {/* Fullscreen Toggle */}
-        <button 
-          onClick={toggleFullscreen}
-          className="absolute -top-12 right-0 p-3 rounded-xl bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm shadow-sm hover:scale-110 transition-transform z-50 group"
-          title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-        >
-          <i className={`fi ${isFullscreen ? 'fi-sr-exit' : 'fi-sr-expand'} text-violet-600 dark:text-violet-400 text-xl`}></i>
-        </button>
+      <div className="w-full max-w-3xl mx-auto relative">
+
 
         {/* --- SCREENS --- */}
         {screen === 'menu' && (
@@ -455,9 +448,18 @@ export default function AlphabetAdventureClient() {
                     <p className="text-lg font-black text-zinc-800 dark:text-zinc-100">{currentConfig.name}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">SCORE</p>
-                  <p className="text-3xl font-black text-fuchsia-500 tracking-tighter">{gameState.score}</p>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">SCORE</p>
+                    <p className="text-3xl font-black text-fuchsia-500 tracking-tighter">{gameState.score}</p>
+                  </div>
+                  <button
+                    onClick={toggleFullscreen}
+                    className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 hover:scale-110 transition-all"
+                    title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                  >
+                    <i className={`fi ${isFullscreen ? 'fi-sr-exit' : 'fi-sr-expand'} text-violet-600 dark:text-violet-400 text-lg`}></i>
+                  </button>
                 </div>
               </div>
               
@@ -485,8 +487,8 @@ export default function AlphabetAdventureClient() {
 
                {/* Game Content Switcher */}
                {currentConfig.type === "match" ? (
-                 <div className="text-center animate-in zoom-in duration-300">
-                   <div className="w-48 h-48 md:w-56 md:h-56 rounded-[3rem] bg-violet-50 dark:bg-violet-900/10 border-8 border-violet-100 dark:border-violet-900/30 flex items-center justify-center text-9xl font-black text-violet-600 dark:text-violet-400 shadow-2xl mb-12 transform hover:rotate-2 transition-transform">
+                 <div className="flex flex-col items-center animate-in zoom-in duration-300">
+                   <div className="w-48 h-48 md:w-56 md:h-56 rounded-[3rem] bg-violet-50 dark:bg-violet-900/10 border-8 border-violet-100 dark:border-violet-900/30 flex items-center justify-center text-9xl font-black leading-none text-violet-600 dark:text-violet-400 shadow-2xl mb-12 transform hover:rotate-2 transition-transform">
                      {roundData.targetLetter}
                    </div>
                    <div className="flex flex-wrap justify-center gap-6">

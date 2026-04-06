@@ -263,7 +263,7 @@ export default function NumberGameClient() {
       }`}
       style={{ fontFamily: "'Mali', sans-serif" }}
     >
-      <div className="w-full max-w-3xl relative">
+      <div className="w-full max-w-3xl mx-auto relative">
         {/* Fullscreen Toggle */}
         <button 
           onClick={toggleFullscreen}

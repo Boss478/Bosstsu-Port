@@ -1,5 +1,10 @@
 # Website Update Log
 
+## v1.4.7 (2026-04-06)
+
+* **Alphabet Adventure UI Fix**: Centered the capital letter card by switching wrapper from `text-center` to `flex flex-col items-center`.
+* **Alphabet Adventure UI Fix**: Moved fullscreen toggle button from floating absolute position into the HUD bar (next to score) for proper layout integration.
+
 ## v1.4.6 (2026-03-27)
 
 + **Contextual Autocomplete**: Suggestion menu now follows the typing cursor in real-time.
