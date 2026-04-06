@@ -7,12 +7,12 @@ import { getNumberData, NumberData } from "@/lib/numbers";
 const EMOJIS = ["🍎", "🐶", "🚗", "🌟", "🎈", "⚽", "🐸", "🐻", "🍓", "🍉", "🚁", "🤖"];
 
 const INSTRUCTIONS = {
-  1: { th: "เลือกคำศัพท์ให้ตรงกับตัวเลขนะจ๊ะ", en: "Choose the correct English word for the number." },
-  2: { th: "ตัวเลขนี้อ่านว่าอะไรเอ่ย?", en: "Choose the correct Thai pronunciation." },
+  1: { th: "เลือกคำศัพท์ให้ตรงกับตัวเลข", en: "Choose the correct English word for the number." },
+  2: { th: "ตัวเลขนี้อ่านว่า...", en: "Choose the correct Thai pronunciation." },
   3: { th: "เติมตัวอักษรที่หายไปให้ถูกต้อง", en: "Fill in the missing letter." },
   4: { th: "ช่วยกันนับจำนวน แล้วเลือกตัวเลขให้ตรงกันนะ", en: "Count the objects and choose the right number." },
-  5: { th: "บวกเลขแล้วเลือกคำตอบเลยคนเก่ง!", en: "Add the objects and choose the correct total." },
-  6: { th: "โหมดสุ่ม: ตอบคำถามทุกรูปแบบ ลุยเลย!", en: "Endless Mode: Answer all types of questions!" }
+  5: { th: "บวกเลขแล้วเลือกคำตอบเลย", en: "Add the objects and choose the correct total." },
+  6: { th: "โหมดสุ่ม: ตอบคำถามทุกรูปแบบ", en: "Endless Mode: Answer all types of questions!" }
 };
 
 const RANGES = [
@@ -264,13 +264,7 @@ export default function NumberGameClient() {
       style={{ fontFamily: "'Mali', sans-serif" }}
     >
       <div className="w-full max-w-3xl mx-auto relative">
-        {/* Fullscreen Toggle */}
-        <button 
-          onClick={toggleFullscreen}
-          className="absolute -top-12 right-0 p-3 rounded-xl bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm shadow-sm hover:scale-110 transition-transform z-50 group"
-        >
-          <i className={`fi ${isFullscreen ? 'fi-sr-exit' : 'fi-sr-expand'} text-fuchsia-600 dark:text-fuchsia-400 text-xl`}></i>
-        </button>
+
 
         {/* --- SCREENS --- */}
         {screen === 'menu' && (
@@ -346,9 +340,18 @@ export default function NumberGameClient() {
                     {gameState.isEndless ? "ENDLESS MODE" : `STAGE ${gameState.stage}`}
                   </div>
                 </div>
-                <div className="text-right">
-                   <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none">SCORE</p>
-                   <p className="text-4xl font-black text-fuchsia-500 tracking-tighter leading-none">{gameState.score}</p>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none">SCORE</p>
+                    <p className="text-4xl font-black text-fuchsia-500 tracking-tighter leading-none">{gameState.score}</p>
+                  </div>
+                  <button
+                    onClick={toggleFullscreen}
+                    className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/30 hover:scale-110 transition-all"
+                    title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                  >
+                    <i className={`fi ${isFullscreen ? 'fi-sr-exit' : 'fi-sr-expand'} text-fuchsia-600 dark:text-fuchsia-400 text-lg`}></i>
+                  </button>
                 </div>
              </div>
 

@@ -1,5 +1,9 @@
 # Website Update Log
 
+## v1.4.8 (2026-04-06)
+
+* **Number Game UI Fix**: Moved fullscreen toggle from floating corner into the HUD bar next to score, matching Alphabet Adventure's layout.
+
 ## v1.4.7 (2026-04-06)
 
 * **Alphabet Adventure UI Fix**: Centered the capital letter card by switching wrapper from `text-center` to `flex flex-col items-center`.
