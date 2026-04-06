@@ -14,9 +14,10 @@ export default async function GamesPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const items = docs.map((doc: any) => ({
     id: doc._id.toString(),
+    slug: doc.slug,
     title: doc.title,
     description: doc.description || "",
-    genre: doc.genre || "",
+    category: doc.category || "",
     cover: doc.thumbnail || "",
     link: doc.playUrl || "#",
     date: doc.createdAt instanceof Date
