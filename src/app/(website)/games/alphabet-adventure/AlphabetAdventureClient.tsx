@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { formatDate } from "@/lib/format";
 
 // --- Constants ---
 const ALPHABET_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
