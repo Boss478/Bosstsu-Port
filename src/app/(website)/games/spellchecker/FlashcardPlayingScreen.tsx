@@ -97,9 +97,9 @@ export default function FlashcardPlayingScreen() {
 
         {/* Flashcard Wrapper (Takes remaining space) */}
         <div className="flex-1 w-full flex items-center justify-center min-h-0 relative z-10 sm:mb-6">
-          <div className="relative w-full max-w-sm aspect-4/3 perspective-1000 select-none group focus:outline-none">
-            {feedback && !feedbackHint && (
-              <div className={`absolute -top-12 left-1/2 -translate-x-1/2 z-50 text-2xl sm:text-3xl font-bold font-sans tracking-wide pointer-events-none animate-float-up-fade drop-shadow-lg flex items-center gap-2 whitespace-nowrap ${feedback === "CORRECT" ? "text-emerald-500" : "text-rose-500"}`}>
+          {feedback && !feedbackHint && (
+            <div className="fixed inset-x-0 top-1/2 -translate-y-1/2 z-200 flex justify-center pointer-events-none">
+              <div className={`text-3xl sm:text-4xl font-bold font-sans tracking-wide animate-float-up-fade drop-shadow-lg flex items-center gap-2 whitespace-nowrap ${feedback === "CORRECT" ? "text-emerald-500" : "text-rose-500"}`}>
                 {feedback === "CORRECT" ? (
                   <>
                     <i className="fi fi-sr-check-circle drop-shadow-sm"></i>
@@ -112,7 +112,9 @@ export default function FlashcardPlayingScreen() {
                   </>
                 )}
               </div>
-            )}
+            </div>
+          )}
+          <div className="relative w-full max-w-sm aspect-4/3 perspective-1000 select-none group focus:outline-none">
 
             <div 
               ref={cardRef}

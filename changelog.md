@@ -17,6 +17,7 @@
 * **Fixed**: `GameItem` type mismatch between `data.ts` and `GamesClient.tsx` — unified interface imported from single source.
 + **Victory Screen**: Added "Back to Games" button on both Alphabet Adventure and Number Game victory screens.
 * **Fixed**: Alphabet Adventure typing input had no focus indicator — added visible violet outline on focus.
+* **Fixed**: SpellChecker Correct/Wrong popup — was anchored to the narrow card div so `left-1/2` was off-center; moved to the full-width flex container so it centers correctly over the game screen.
 
 ## v1.4.9 (2026-04-06)
 
