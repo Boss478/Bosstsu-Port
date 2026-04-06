@@ -30,8 +30,8 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
 
   return (
     <div className="min-h-screen bg-sky-50 dark:bg-slate-950 px-4 pt-28 pb-20">
-      <section className="pb-12 text-center">
-        <div className="max-w-4xl mx-auto">
+      <section className="pb-12">
+        <div className="max-w-7xl mx-auto">
           <Breadcrumb items={[{ label: "เกมการศึกษา" }]} />
           <h1 className="text-4xl md:text-6xl font-black text-sky-600 dark:text-sky-400 mt-6 tracking-tight">
             เกมการศึกษา

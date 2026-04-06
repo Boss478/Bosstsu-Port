@@ -23,6 +23,19 @@ const RANGES = [
   { id: '1-100', label: '1 - 100', min: 1, max: 100 },
 ];
 
+// --- Helpers ---
+const shuffleArray = <T,>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
+
+const buildOptions = (correct: string, min: number, max: number): string[] => {
+  const opts = [correct];
+  while (opts.length < 3) {
+    const rand = Math.floor(Math.random() * (max - min + 1)) + min;
+    const d = getNumberData(rand).eng;
+    if (!opts.includes(d)) opts.push(d);
+  }
+  return opts.sort(() => Math.random() - 0.5);
+};
+
 // --- Sound Hook ---
 const useAudio = () => {
   const ctxRef = useRef<AudioContext | null>(null);
@@ -91,6 +104,12 @@ export default function NumberGameClient() {
     stage: 1,
     isEndless: false,
     questionsDone: 0,
+    seqTotal: 0,
+    sequentialMode: false,
+    sequentialIndex: 0,
+    reviewRoundActive: false,
+    reviewNumbers: [] as number[],
+    reviewIndex: 0,
   });
 
   const [currentQuestion, setCurrentQuestion] = useState<{
@@ -144,6 +163,36 @@ export default function NumberGameClient() {
     let activeStage = game.stage;
     if (game.isEndless) activeStage = Math.floor(Math.random() * 5) + 1;
 
+    // === SEQUENTIAL MODE: Show numbers in order first ===
+    if (game.sequentialMode && !game.isEndless && activeStage === 1) {
+      if (game.sequentialIndex < game.seqTotal) {
+        const targetNum = r.min + game.sequentialIndex;
+        const numData = getNumberData(targetNum);
+        setCurrentQuestion({
+          text: numData.num.toString(),
+          correct: numData.eng,
+          options: buildOptions(numData.eng, r.min, r.max),
+          stageType: 1,
+        });
+        return;
+      }
+    }
+
+    // === REVIEW ROUND: 5 random numbers from the same range ===
+    if (game.reviewRoundActive && !game.isEndless && activeStage === 1) {
+      if (game.reviewIndex < game.reviewNumbers.length) {
+        const targetNum = game.reviewNumbers[game.reviewIndex];
+        const numData = getNumberData(targetNum);
+        setCurrentQuestion({
+          text: numData.num.toString(),
+          correct: numData.eng,
+          options: buildOptions(numData.eng, r.min, r.max),
+          stageType: 1,
+        });
+        return;
+      }
+    }
+
     // Get Target Number from Range
     const targetNum = Math.floor(Math.random() * (r.max - r.min + 1)) + r.min;
     const numData = getNumberData(targetNum);
@@ -156,13 +205,8 @@ export default function NumberGameClient() {
     if (activeStage === 1) {
       qText = numData.num.toString();
       correctAns = numData.eng;
-      options = [correctAns];
-      while (options.length < 3) {
-        const rand = Math.floor(Math.random() * (r.max - r.min + 1)) + r.min;
-        const d = getNumberData(rand).eng;
-        if (!options.includes(d)) options.push(d);
-      }
-    } 
+      options = buildOptions(correctAns, r.min, r.max);
+    }
     else if (activeStage === 2) {
       qText = `${numData.num} ${numData.eng}`;
       correctAns = numData.thai;
@@ -217,11 +261,19 @@ export default function NumberGameClient() {
   }, []);
 
   const startGame = (selectedRange = range) => {
+    const seqTotal = selectedRange.max - selectedRange.min + 1;
+    const shouldSequence = seqTotal <= 20;
     const initialState = {
       score: 0,
       stage: 1,
       isEndless: false,
       questionsDone: 0,
+      seqTotal,
+      sequentialMode: shouldSequence,
+      sequentialIndex: 0,
+      reviewRoundActive: false,
+      reviewNumbers: [] as number[],
+      reviewIndex: 0,
     };
     setGameState(initialState);
     setScreen('game');
@@ -237,7 +289,66 @@ export default function NumberGameClient() {
       setFeedback({ text: 'เก่งมาก! +3', type: 'correct' });
       const newScore = gameState.score + 3;
       const nextDone = gameState.questionsDone + 1;
-      
+
+      // Sequential mode: advance index, check if pass is done
+      if (gameState.sequentialMode && !gameState.isEndless) {
+        const nextIndex = gameState.sequentialIndex + 1;
+        if (nextIndex >= gameState.seqTotal) {
+          const reviewNums = shuffleArray(
+            Array.from({ length: gameState.seqTotal }, (_, i) => i + range.min)
+          ).slice(0, 5);
+          const nextState = {
+            ...gameState,
+            score: newScore,
+            sequentialMode: false,
+            reviewRoundActive: true,
+            reviewNumbers: reviewNums,
+            reviewIndex: 0,
+            questionsDone: nextDone,
+          };
+          setGameState(nextState);
+          setTimeout(() => {
+            setFeedback({ text: '', type: '' });
+            generateQuestion(nextState, range);
+          }, 1000);
+        } else {
+          setGameState({ ...gameState, score: newScore, sequentialIndex: nextIndex, questionsDone: nextDone });
+          setTimeout(() => {
+            setFeedback({ text: '', type: '' });
+            generateQuestion(stateRef.current, range);
+          }, 1000);
+        }
+        return;
+      }
+
+      // Review round: advance index, check if done
+      if (gameState.reviewRoundActive && !gameState.isEndless) {
+        const nextReviewIndex = gameState.reviewIndex + 1;
+        if (nextReviewIndex >= gameState.reviewNumbers.length) {
+          const nextState = {
+            ...gameState,
+            score: newScore,
+            stage: 2,
+            sequentialMode: false,
+            reviewRoundActive: false,
+            questionsDone: nextDone,
+          };
+          setGameState(nextState);
+          setTimeout(() => {
+            setFeedback({ text: '', type: '' });
+            generateQuestion(nextState, range);
+          }, 1000);
+        } else {
+          setGameState({ ...gameState, score: newScore, reviewIndex: nextReviewIndex, questionsDone: nextDone });
+          setTimeout(() => {
+            setFeedback({ text: '', type: '' });
+            generateQuestion(stateRef.current, range);
+          }, 1000);
+        }
+        return;
+      }
+
+      // Normal stage progression (post-sequential stages or 1-100 range)
       let nextStage = gameState.stage;
       if (!gameState.isEndless) {
         if (gameState.stage === 1 && nextDone >= 5) nextStage = 2;
@@ -253,7 +364,6 @@ export default function NumberGameClient() {
       setGameState({ ...gameState, score: newScore, stage: nextStage, questionsDone: nextDone });
       setTimeout(() => {
         setFeedback({ text: '', type: '' });
-        // Read from ref to avoid stale closure
         const st = stateRef.current;
         generateQuestion({ ...st, score: newScore, stage: nextStage, questionsDone: nextDone }, range);
       }, 1000);

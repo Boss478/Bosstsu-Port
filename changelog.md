@@ -3,6 +3,10 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.1 (2026-04-06)
+
+* **Number Game Stage 1**: Added sequential first-pass mode — for ranges ≤ 20 (1-10, 11-20, 1-20), numbers are now shown in order first to build familiarity, followed by a 5-number random review round before advancing to Stage 2.
+
 ## v1.5.0 (2026-04-06)
 
 + **Games Page Improvements**: Enhanced search to filter by title, description, and tags.
