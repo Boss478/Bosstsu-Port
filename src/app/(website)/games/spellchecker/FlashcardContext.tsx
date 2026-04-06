@@ -84,6 +84,11 @@ export function FlashcardProvider({ children }: { children: ReactNode }) {
   const [feedbackHint, setFeedbackHint] = useState<string | null>(null);
   const feedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [failedHardcoreWord, setFailedHardcoreWord] = useState<VocabularyWord | null>(null);
+  const recentWordHistoryRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    recentWordHistoryRef.current = recentWordHistory;
+  }, [recentWordHistory]);
 
   const endGame = useCallback(() => {
     setSessionEndTime(Date.now());
@@ -136,7 +141,7 @@ export function FlashcardProvider({ children }: { children: ReactNode }) {
           clearInterval(interval);
           endGame();
         }
-      }, 100);
+      }, 1000);
       return () => clearInterval(interval);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -220,7 +225,7 @@ export function FlashcardProvider({ children }: { children: ReactNode }) {
     currentMode: GameMode,
     currentTestCounts: Record<string, number>
   ) => {
-    const candidatePool = vocab.filter(w => !recentWordHistory.includes(w.word));
+    const candidatePool = vocab.filter(w => !recentWordHistoryRef.current.includes(w.word));
     const safeVocab = candidatePool.length > 0 ? candidatePool : vocab;
 
     if (currentMode === "PRACTICE" || currentMode === "TEST") {

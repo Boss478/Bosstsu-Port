@@ -167,9 +167,9 @@ export default function AlphabetAdventureClient() {
     setTimeout(() => setFeedback({ text: '', type: '' }), 1000);
   };
 
-  const loadRound = useCallback((state = gameState) => {
+  const loadRound = useCallback((state: typeof gameState, baseRoundData?: typeof roundData) => {
     const config = LEVELS[state.level as keyof typeof LEVELS];
-    let newRoundData: typeof roundData = { ...roundData, choices: [], grid: [], missingIndices: [], activeIndex: -1 };
+    let newRoundData: typeof roundData = { ...(baseRoundData || { choices: [], grid: [], missingIndices: [], activeIndex: -1 }), choices: [], grid: [], missingIndices: [], activeIndex: -1 };
 
     if (config.type === "match") {
       let targetIndex = state.round <= 26 ? state.round - 1 : Math.floor(Math.random() * 26);
@@ -245,7 +245,7 @@ export default function AlphabetAdventureClient() {
     }
 
     setRoundData(newRoundData);
-  }, [gameState, roundData]);
+  }, []);
 
   const startGame = () => {
     const initialState = {
@@ -258,7 +258,7 @@ export default function AlphabetAdventureClient() {
     };
     setGameState(initialState);
     setScreen('game');
-    loadRound(initialState);
+    loadRound(initialState, { choices: [], grid: [], missingIndices: [], activeIndex: -1 });
   };
 
   const handleChoice = (selected: string) => {
@@ -276,7 +276,7 @@ export default function AlphabetAdventureClient() {
         } else {
           const nextState = { ...gameState, score: newScore, round: nextRound };
           setGameState(nextState);
-          loadRound(nextState);
+          loadRound(nextState, { choices: [], grid: [], missingIndices: [], activeIndex: -1 });
         }
       } else {
         // Update grid
@@ -292,7 +292,7 @@ export default function AlphabetAdventureClient() {
           } else {
             const nextState = { ...gameState, score: newScore, winsInLevel: newWins };
             setGameState(nextState);
-            setTimeout(() => loadRound(nextState), 1000);
+            setTimeout(() => loadRound(nextState, { choices: [], grid: [], missingIndices: [], activeIndex: -1 }), 1000);
           }
         } else {
           // Next Slot
@@ -556,7 +556,7 @@ export default function AlphabetAdventureClient() {
                            currentConfig.type === "typing" ? (
                              <input 
                                autoFocus={index === roundData.missingIndices[0]}
-                               className="w-full h-full bg-transparent text-center focus:outline-hidden"
+                               className="w-full h-full bg-transparent text-center focus:outline-2 focus:outline-violet-500 rounded"
                                value={item.value}
                                onChange={(e) => {
                                  const val = e.target.value.slice(-1);
@@ -627,16 +627,22 @@ export default function AlphabetAdventureClient() {
               <p className="text-7xl font-black text-violet-600 dark:text-violet-400 tracking-tighter">{gameState.score}</p>
             </div>
 
-            <div className="pt-8">
-              <button 
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4 pt-8">
+              <button
                 onClick={startGame}
                 className="px-12 py-5 bg-emerald-600 text-white text-2xl font-black rounded-3xl shadow-[0_12px_0_0_#065f46] active:shadow-none active:translate-y-3 transition-all"
               >
                 เล่นอีกครั้ง!
               </button>
-              <button 
+              <button
+                onClick={() => router.push('/games')}
+                className="px-10 py-5 bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-100 text-xl font-black rounded-3xl shadow-[0_12px_0_0_#d4d4d8] dark:shadow-none active:shadow-none active:translate-y-3 transition-all"
+              >
+                <i className="fi fi-sr-gamepad mr-2"></i>เกมอื่นๆ
+              </button>
+              <button
                 onClick={() => setScreen('menu')}
-                className="block mx-auto mt-6 text-zinc-400 hover:text-violet-500 font-bold transition-colors"
+                className="text-zinc-400 hover:text-violet-500 font-bold transition-colors"
               >
                 กลับหน้าหลัก
               </button>

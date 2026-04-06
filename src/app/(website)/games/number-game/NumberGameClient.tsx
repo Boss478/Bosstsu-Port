@@ -106,6 +106,8 @@ export default function NumberGameClient() {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { playSound } = useAudio();
+  const stateRef = useRef(gameState);
+  stateRef.current = gameState;
 
   useEffect(() => {
     const header = document.getElementById('site-header');
@@ -138,7 +140,7 @@ export default function NumberGameClient() {
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
-  const generateQuestion = useCallback((game = gameState, r = range) => {
+  const generateQuestion = useCallback((game: typeof gameState, r: typeof range) => {
     let activeStage = game.stage;
     if (game.isEndless) activeStage = Math.floor(Math.random() * 5) + 1;
 
@@ -212,7 +214,7 @@ export default function NumberGameClient() {
       stageType: activeStage,
       visualData
     });
-  }, [range, gameState]);
+  }, []);
 
   const startGame = (selectedRange = range) => {
     const initialState = {
@@ -251,7 +253,9 @@ export default function NumberGameClient() {
       setGameState({ ...gameState, score: newScore, stage: nextStage, questionsDone: nextDone });
       setTimeout(() => {
         setFeedback({ text: '', type: '' });
-        generateQuestion({ ...gameState, score: newScore, stage: nextStage, questionsDone: nextDone });
+        // Read from ref to avoid stale closure
+        const st = stateRef.current;
+        generateQuestion({ ...st, score: newScore, stage: nextStage, questionsDone: nextDone }, range);
       }, 1000);
     } else {
       playSound('wrong');
@@ -268,9 +272,10 @@ export default function NumberGameClient() {
   };
 
   const startEndless = () => {
-    setGameState({ ...gameState, isEndless: true, questionsDone: 0 });
+    const newState = { ...gameState, isEndless: true, stage: 1, questionsDone: 0 };
+    setGameState(newState);
     setScreen('game');
-    generateQuestion({ ...gameState, isEndless: true, questionsDone: 0 });
+    generateQuestion(newState, range);
   };
 
   return (
@@ -470,6 +475,12 @@ export default function NumberGameClient() {
                 className="px-10 py-5 bg-fuchsia-600 text-white text-xl font-black rounded-3xl shadow-[0_12px_0_0_#9d174d] active:shadow-none active:translate-y-3 transition-all"
               >
                 เล่นโหมดท้าทาย (∞)
+              </button>
+              <button
+                onClick={() => router.push('/games')}
+                className="px-10 py-5 bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 text-xl font-black rounded-3xl hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-fuchsia-500 transition-colors"
+              >
+                <i className="fi fi-sr-gamepad mr-2"></i>เกมอื่นๆ
               </button>
               <button
                 onClick={() => setScreen('range')}

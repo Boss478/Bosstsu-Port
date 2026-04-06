@@ -1,10 +1,12 @@
 export interface GameItem {
   id: string;
+  slug: string;
   title: string;
   description: string;
-  genre: string;
+  category: string;
   cover: string;
   link: string;
   date: string;
-  players: string; // e.g., "1 Player", "2 Players"
+  tags: string[];
+  instructions: string;
 }

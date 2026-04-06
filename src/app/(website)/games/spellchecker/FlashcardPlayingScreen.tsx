@@ -47,7 +47,7 @@ export default function FlashcardPlayingScreen() {
   if (!currentWord) return null;
 
   return (
-    <div className="fixed inset-0 z-100 bg-sky-50 dark:bg-slate-950 py-8 sm:py-12 px-4 flex flex-col items-center overflow-hidden overscroll-none touch-none">
+    <div className="fixed inset-0 z-50 bg-sky-50 dark:bg-slate-950 py-8 sm:py-12 px-4 flex flex-col items-center overflow-hidden overscroll-none touch-none">
       <div className="w-full max-w-2xl h-full flex flex-col items-center justify-between relative">
         {/* Header HUD */}
         <div className="w-full flex justify-between items-center mb-4 px-4 h-10 shrink-0">

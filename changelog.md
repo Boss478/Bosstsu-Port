@@ -1,5 +1,23 @@
 # Website Update Log
 
+> [!UPDATE NOTE]
+> **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
+
+## v1.5.0 (2026-04-06)
+
++ **Games Page Improvements**: Enhanced search to filter by title, description, and tags.
+* **Fixed**: Games page MongoDB query now uses compound index (`published: { $eq: true }` instead of `$ne: false`), and ISR revalidate increased from 60s to 300s.
+* **Fixed**: Number Game `startEndless()` — stage not reset to 1 when entering endless mode causing wrong progression.
+* **Fixed**: Number Game stale `gameState` closures in `setTimeout` callbacks — added `useRef` for latest state reads.
+* **Fixed**: SpellChecker infinite z-index — changed `z-100` to `z-50`.
+* **Fixed**: SpellChecker `pickNextWord` reads stale `recentWordHistory` when called from inside `setWordStats` callback — added ref for latest values.
+* **Fixed**: SpellChecker timer interval from 100ms to 1000ms (only displays whole seconds).
+* **Fixed**: Alphabet & Number game `useCallback` dependencies were too broad (`[gameState]`, `[range, gameState]`), causing unnecessary re-creations — narrowed to `[]` with explicit param passing.
+* **Fixed**: GamesClient violated "NO GRADIENTS" rule — replaced `bg-linear-to-t from-black/80 via-black/20 to-transparent` with `bg-black/60`, and `bg-linear-to-br from-sky-400 to-indigo-500` with `bg-sky-500`.
+* **Fixed**: `GameItem` type mismatch between `data.ts` and `GamesClient.tsx` — unified interface imported from single source.
++ **Victory Screen**: Added "Back to Games" button on both Alphabet Adventure and Number Game victory screens.
+* **Fixed**: Alphabet Adventure typing input had no focus indicator — added visible violet outline on focus.
+
 ## v1.4.9 (2026-04-06)
 
 + **Game Immersion**: Both Alphabet Adventure and Number Game now automatically hide the site navbar and footer when entering the game screen, giving a fullscreen-like experience that fills the browser viewport. Nav/footer are restored on menu/victory screens and on page exit.

@@ -2,28 +2,19 @@
 
 import { useState, useMemo } from "react";
 import Breadcrumb from "@/components/Breadcrumb";
-
 import { formatDate } from "@/lib/format";
-interface GameItem {
-  id: string;
-  slug: string;
-  title: string;
-  description: string;
-  category: string;
-  cover: string;
-  link: string;
-  date: string;
-  tags: string[];
-  instructions: string;
-}
+import type { GameItem } from "./data";
 
 export default function GamesClient({ initialItems }: { initialItems: GameItem[] }) {
   const [activeSearch, setActiveSearch] = useState("");
 
   const filteredItems = useMemo(() => {
     const lower = activeSearch.toLowerCase();
-    return initialItems.filter((item) =>
-      item.title.toLowerCase().includes(lower)
+    return initialItems.filter(
+      (item) =>
+        item.title.toLowerCase().includes(lower) ||
+        item.description.toLowerCase().includes(lower) ||
+        item.tags.some((t) => t.toLowerCase().includes(lower))
     );
   }, [activeSearch, initialItems]);
 
@@ -102,7 +93,7 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
                     className="group relative block bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-sky-100/30 dark:shadow-black/40 border border-transparent hover:border-sky-400/50 transition-all duration-500 hover:-translate-y-3"
                   >
                     <div className="relative aspect-video overflow-hidden">
-                      <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent z-10 opacity-60 group-hover:opacity-40 transition-opacity"></div>
+                      <div className="absolute inset-0 bg-black/60 z-10 group-hover:bg-black/40 transition-colors"></div>
                       {item.cover ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -111,7 +102,7 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />
                       ) : (
-                        <div className="w-full h-full bg-linear-to-br from-sky-400 to-indigo-500 flex items-center justify-center">
+                        <div className="w-full h-full bg-sky-500 flex items-center justify-center">
                           <i className="fi fi-sr-gamepad text-6xl text-white/50" />
                         </div>
                       )}

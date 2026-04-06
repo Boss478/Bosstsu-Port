@@ -2,12 +2,12 @@ import dbConnect from "@/lib/db";
 import Game from "@/models/Game";
 import GamesClient from "./GamesClient";
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 export default async function GamesPage() {
   await dbConnect();
 
-  const docs = await Game.find({ published: { $ne: false } })
+  const docs = await Game.find({ published: true })
     .sort({ createdAt: -1 })
     .lean();
 
