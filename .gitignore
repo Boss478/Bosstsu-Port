@@ -48,6 +48,15 @@ yarn-error.log*
 
 # Project specific
 CLAUDE.md
+Tasks/
+.claude/
+.claude/plans/
+.claude/report/
+
+# Session memory (Remember plugin)
+.remember/
+
+# Legacy paths (kept for safety)
 tasks/
 public/uploads/
 report/
