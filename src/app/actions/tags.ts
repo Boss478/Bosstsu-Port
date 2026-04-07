@@ -20,8 +20,12 @@ export async function addCustomTag(name: string, category: string) {
 
   try {
     const existing = await Tag.findOne({
-      name: { $regex: new RegExp(`^${formattedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
-      category,
+      $expr: {
+        $and: [
+          { $eq: ['$category', category] },
+          { $eq: [{ $toLower: '$name' }, formattedName.toLowerCase()] },
+        ],
+      },
     });
 
     if (!existing) {

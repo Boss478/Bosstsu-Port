@@ -15,7 +15,7 @@
     "heic-convert": "^2.1.0",
     "isomorphic-dompurify": "^3.0.0",
     "mongoose": "^9.1.6",
-    "next": "16.1.6",
+    "next": "^16.2.2",
     "postcss": "^8.5.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -35,7 +35,7 @@
     "csv-parse": "^6.1.0",
     "csv-stringify": "^6.6.0",
     "eslint": "^9",
-    "eslint-config-next": "16.1.6",
+    "eslint-config-next": "^16.2.2",
     "tailwindcss": "^4.2.1",
     "typescript": "^5"
   }

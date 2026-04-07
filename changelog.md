@@ -3,10 +3,23 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.9 (2026-04-07)
+
+* **Vulnerable Dependencies**: Updated Next.js (16.1.6 → 16.2.2+), isomorphic-dompurify, flatted, picomatch, undici, brace-expansion via `npm update` — resolved CSRF bypass, HTTP smuggling, prototype pollution, and ReDoS vulnerabilities. `npm audit` now shows 0 vulnerabilities.
+* **CSP Documentation**: Added inline comment documenting why `unsafe-inline` and `unsafe-eval` are required in Content-Security-Policy (needed by `babel-plugin-react-compiler` dev builds).
+* **Tag Query Simplified**: Replaced error-prone `RegExp` construction in `addCustomTag` with MongoDB `$expr` + `$toLower` for case-insensitive match — no regex escape logic needed, cleaner and safer.
+
 ## v1.5.8 (2026-04-07)
 
+* **CSP Documentation**: Added inline comment documenting why `unsafe-inline` and `unsafe-eval` are required in Content-Security-Policy (needed by `babel-plugin-react-compiler` dev builds).
+* **Tag Query Simplified**: Replaced error-prone `RegExp` construction in `addCustomTag` with MongoDB `$expr` + `$toLower` for case-insensitive match — no regex escape logic needed, cleaner and safer.
 * **Mongo-Express Auth**: Enabled `ME_CONFIG_BASICAUTH=true` in `docker-compose.yml`, added `ME_CONFIG_BASICAUTH_USERNAME` and `ME_CONFIG_BASICAUTH_PASSWORD` environment variables. Mongo Express now requires credentials, preventing unauthenticated access.
 * **Secure `.env.example`**: Replaced weak placeholder passwords (`password123`, `boss478admin`, `b0ss478-s3cr3t-k3y-ch4ng3-th1s`) with explicit `YOUR_*_HERE` placeholders to prevent accidental copy-paste of weak credentials.
+
+## v1.5.6 (2026-04-07)
+
+* **Portfolio Metadata**: Added metadata generation for portfolio pages and refactored pagination query handling.
+* **Git Hygiene**: Updated `.gitignore` to include new project-specific and session memory paths (`.claude/`, `tasks/`, `.claude-servers.json`).
 
 ## v1.5.7 (2026-04-07)
 
