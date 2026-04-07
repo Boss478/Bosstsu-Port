@@ -4,9 +4,19 @@ export interface ResourceItem {
   id: string;
   title: string;
   description: string;
-  type: ResourceType;
+  type: string;
   cover: string;
   link: string;
   date: string;
   author?: string;
+}
+
+export interface PaginatedResources {
+  items: ResourceItem[];
+  uniqueTypes: string[];
+  currentPage: number;
+  totalPages: number;
+  activeType: string;
+  sort: "Newest" | "Oldest";
+  totalItems: number;
 }

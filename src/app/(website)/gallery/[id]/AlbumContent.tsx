@@ -84,6 +84,7 @@ export default function AlbumContent({ album }: AlbumContentProps) {
                 <img
                   src={photo}
                   alt={`${album.title} ${idx + 1}`}
+                  loading="lazy"
                   className="absolute inset-0 w-full h-full object-cover group-hover:brightness-90 transition-all duration-300"
                 />
               </button>

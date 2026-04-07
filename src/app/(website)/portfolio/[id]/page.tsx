@@ -6,7 +6,6 @@ import Breadcrumb from "@/components/Breadcrumb";
 import PortfolioGallery from "@/components/PortfolioGallery";
 import { type PortfolioItem } from "../data";
 import { formatDate } from "@/lib/format";
-import DOMPurify from 'isomorphic-dompurify';
 import { CONFIG } from "@/lib/config";
 
 export const revalidate = 60;
@@ -46,16 +45,31 @@ export default async function PortfolioDetailPage({
     relatedGalleryId: doc.relatedGalleryId || undefined,
   };
 
-  const [recentDocs, relatedDocs, newerDocAny, olderDocAny] = await Promise.all([
-    Portfolio.find({ slug: { $ne: id }, published: { $ne: false } }).sort({ date: -1 }).limit(CONFIG.PAGINATION.PORTFOLIO_RECENT).lean(),
-    item.tags.length > 0 ? Portfolio.aggregate([
-      { $match: { slug: { $ne: id }, tags: { $in: item.tags }, published: { $ne: false } } },
-      { $addFields: { score: { $size: { $setIntersection: ["$tags", item.tags] } } } },
-      { $sort: { score: -1, date: -1 } },
-      { $limit: CONFIG.PAGINATION.PORTFOLIO_RELATED },
-    ]) : Promise.resolve([]),
-    Portfolio.findOne({ date: { $gt: doc.date } }).sort({ date: 1 }).lean(),
-    Portfolio.findOne({ date: { $lt: doc.date } }).sort({ date: -1 }).lean(),
+  const projection = "_id slug title cover date";
+
+  const [recentDocs, relatedDocs, navDocs] = await Promise.all([
+    Portfolio.find({ slug: { $ne: id }, published: { $ne: false } })
+      .select(projection)
+      .sort({ date: -1 })
+      .limit(CONFIG.PAGINATION.PORTFOLIO_RECENT)
+      .lean(),
+    item.tags.length > 0
+      ? Portfolio.find({ tags: { $in: item.tags }, published: { $ne: false } })
+          .select(projection)
+          .sort({ date: -1 })
+          .limit(CONFIG.PAGINATION.PORTFOLIO_RELATED * 2)
+          .lean()
+      : [],
+    Portfolio.find({
+      $or: [
+        { date: { $gt: doc.date } },
+        { $and: [{ date: { $lte: doc.date } }, { slug: { $ne: id } }] },
+      ],
+      published: { $ne: false },
+    })
+      .select("_id slug title date")
+      .sort({ date: 1 })
+      .lean(),
   ]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -67,20 +81,40 @@ export default async function PortfolioDetailPage({
   }));
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const relatedItems = relatedDocs.map((d: any) => ({
-    id: d.slug,
-    title: d.title,
-    cover: d.cover,
-    date: d.date instanceof Date ? d.date.toISOString() : new Date(d.date || defaultFallbackDate).toISOString(),
-  }));
+  const relatedItems = relatedDocs.length > 0
+    ? (() => {
+        const itemTags = new Set(item.tags);
+        const scores = relatedDocs.map((d: any) => {
+          const tagList = d.tags || [];
+          let score = 0;
+          for (const tag of tagList) {
+            if (itemTags.has(tag)) score++;
+          }
+          return { item: d, score, date: d.date instanceof Date ? d.date.getTime() : 0 };
+        });
+        scores.sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          return b.date - a.date;
+        });
+        return scores
+          .slice(0, CONFIG.PAGINATION.PORTFOLIO_RELATED)
+          .filter((s) => s.item.slug !== id)
+          .map((s: any) => ({
+            id: s.item.slug,
+            title: s.item.title,
+            cover: s.item.cover,
+            date: s.item.date instanceof Date ? s.item.date.toISOString() : new Date(s.item.date || defaultFallbackDate).toISOString(),
+          }));
+      })()
+    : [];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const newerDoc: any = newerDocAny;
+  const newerItems = navDocs.filter((d: any) => d.slug !== id && d.date && doc.date && d.date.getTime() > doc.date.getTime());
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const olderDoc: any = olderDocAny;
+  const olderItems = navDocs.filter((d: any) => d.slug !== id && d.date && doc.date && d.date.getTime() < doc.date.getTime());
 
-  const newerItem = newerDoc ? { id: newerDoc.slug, title: newerDoc.title } : null;
-  const olderItem = olderDoc ? { id: olderDoc.slug, title: olderDoc.title } : null;
+  const newerItem = newerItems.length > 0 ? { id: newerItems[0].slug, title: newerItems[0].title } : null;
+  const olderItem = olderItems.length > 0 ? { id: olderItems[olderItems.length - 1].slug, title: olderItems[olderItems.length - 1].title } : null;
 
   return (
     <div className="min-h-screen bg-sky-50 dark:bg-slate-950">
@@ -144,7 +178,7 @@ export default async function PortfolioDetailPage({
 
               <div
                 className="prose prose-lg prose-sky dark:prose-invert max-w-none text-zinc-700 dark:text-zinc-300"
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.content) }}
+                dangerouslySetInnerHTML={{ __html: item.content }}
               />
 
               {item.tools && item.tools.length > 0 && (

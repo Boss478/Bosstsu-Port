@@ -1,54 +1,64 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { type GalleryAlbum } from "./data";
 import { formatDate } from "@/lib/format";
 import Breadcrumb from "@/components/Breadcrumb";
 
-const ITEMS_PER_PAGE = 15;
+interface GalleryClientProps {
+  items: GalleryAlbum[];
+  uniqueTags: string[];
+  currentPage: number;
+  totalPages: number;
+  activeTag: string;
+  sort: "desc" | "asc";
+}
 
-export default function GalleryClient({ initialAlbums }: { initialAlbums: GalleryAlbum[] }) {
-  const [activeTag, setActiveTag] = useState<string>("ทั้งหมด");
-  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
-  const [currentPage, setCurrentPage] = useState(1);
+export default function GalleryClient({
+  items,
+  uniqueTags,
+  currentPage,
+  totalPages,
+  activeTag,
+  sort,
+}: GalleryClientProps) {
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
-  const uniqueTags = useMemo(() => {
-    const set = new Set<string>();
-    initialAlbums.forEach((album) => album.tags.forEach((t) => set.add(t)));
-    return ["ทั้งหมด", ...Array.from(set)];
-  }, [initialAlbums]);
-
-  const filteredAndSortedAlbums = useMemo(() => {
-    const albums =
-      activeTag === "ทั้งหมด"
-        ? [...initialAlbums]
-        : initialAlbums.filter((album) => album.tags.includes(activeTag));
-
-    albums.sort((a, b) => {
-      const diff = new Date(a.date).getTime() - new Date(b.date).getTime();
-      return sortOrder === "desc" ? -diff : diff;
+  function navigateToPage(page: number) {
+    startTransition(() => {
+      const params = new URLSearchParams();
+      params.set("page", String(page));
+      if (activeTag && activeTag !== "ทั้งหมด") params.set("tag", activeTag);
+      params.set("sort", sort);
+      router.push(`/gallery?${params.toString()}`);
     });
-
-    return albums;
-  }, [activeTag, sortOrder, initialAlbums]);
-
-  const totalPages = Math.ceil(filteredAndSortedAlbums.length / ITEMS_PER_PAGE);
-  const pagedAlbums = filteredAndSortedAlbums.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  }
 
   function filterByTag(tag: string) {
-    setActiveTag(tag);
-    setCurrentPage(1);
+    startTransition(() => {
+      const params = new URLSearchParams();
+      params.set("page", "1");
+      if (tag !== "ทั้งหมด") params.set("tag", tag);
+      params.set("sort", sort);
+      router.push(`/gallery?${params.toString()}`);
+    });
   }
 
   function toggleSortOrder() {
-    setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
-    setCurrentPage(1);
+    const newSort = sort === "desc" ? "asc" : "desc";
+    startTransition(() => {
+      const params = new URLSearchParams();
+      params.set("page", "1");
+      if (activeTag && activeTag !== "ทั้งหมด") params.set("tag", activeTag);
+      params.set("sort", newSort);
+      router.push(`/gallery?${params.toString()}`);
+    });
   }
 
+  const allTags = ["ทั้งหมด", ...uniqueTags];
 
   return (
     <div className="min-h-screen bg-sky-50 dark:bg-slate-950">
@@ -72,11 +82,12 @@ export default function GalleryClient({ initialAlbums }: { initialAlbums: Galler
         <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-3">
 
           <select
-            value={activeTag}
+            value={activeTag || "ทั้งหมด"}
             onChange={(e) => filterByTag(e.target.value)}
-            className="px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:bg-sky-100 dark:hover:bg-slate-700 hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-200 cursor-pointer"
+            disabled={isPending}
+            className="px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:bg-sky-100 dark:hover:bg-slate-700 hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-200 cursor-pointer disabled:opacity-60"
           >
-            {uniqueTags.map((tag) => (
+            {allTags.map((tag) => (
               <option key={tag} value={tag}>
                 {tag}
               </option>
@@ -85,12 +96,13 @@ export default function GalleryClient({ initialAlbums }: { initialAlbums: Galler
 
           <button
             onClick={toggleSortOrder}
-            className="ml-auto flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:bg-sky-100 dark:hover:bg-slate-700 hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-200 cursor-pointer"
+            disabled={isPending}
+            className="ml-auto flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:bg-sky-100 dark:hover:bg-slate-700 hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-200 cursor-pointer disabled:opacity-60"
           >
             <i className="fi fi-sr-calendar text-xs" />
-            {sortOrder === "desc" ? "ใหม่สุด" : "เก่าสุด"}
+            {sort === "desc" ? "ใหม่สุด" : "เก่าสุด"}
             <i
-              className={`fi fi-sr-arrow-${sortOrder === "desc" ? "down" : "up"} text-xs transition-transform duration-200`}
+              className={`fi fi-sr-arrow-${sort === "desc" ? "down" : "up"} text-xs transition-transform duration-200`}
             />
           </button>
         </div>
@@ -100,7 +112,7 @@ export default function GalleryClient({ initialAlbums }: { initialAlbums: Galler
       <section id="gallery-grid" className="pb-20 px-4 bg-white dark:bg-slate-950">
         <div className="max-w-7xl mx-auto pt-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {pagedAlbums.map((album) => (
+            {items.map((album) => (
               <Link
                 key={album.id}
                 href={`/gallery/${album.id}`}
@@ -148,8 +160,8 @@ export default function GalleryClient({ initialAlbums }: { initialAlbums: Galler
             <div id="gallery-pagination" className="flex justify-center items-center gap-2 mt-12">
 
               <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
+                onClick={() => navigateToPage(currentPage - 1)}
+                disabled={currentPage === 1 || isPending}
                 className="p-2 rounded-xl text-sm text-zinc-500 dark:text-zinc-400 hover:bg-sky-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
               >
                 <i className="fi fi-sr-angle-left" />
@@ -159,8 +171,9 @@ export default function GalleryClient({ initialAlbums }: { initialAlbums: Galler
                 (page) => (
                   <button
                     key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-10 h-10 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                    onClick={() => navigateToPage(page)}
+                    disabled={isPending}
+                    className={`w-10 h-10 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer disabled:opacity-60 ${
                       currentPage === page
                         ? "bg-sky-500 text-white shadow-md shadow-sky-500/25"
                         : "text-zinc-500 dark:text-zinc-400 hover:bg-sky-100 dark:hover:bg-slate-800"
@@ -172,10 +185,8 @@ export default function GalleryClient({ initialAlbums }: { initialAlbums: Galler
               )}
 
               <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-                disabled={currentPage === totalPages}
+                onClick={() => navigateToPage(currentPage + 1)}
+                disabled={currentPage === totalPages || isPending}
                 className="p-2 rounded-xl text-sm text-zinc-500 dark:text-zinc-400 hover:bg-sky-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
               >
                 <i className="fi fi-sr-angle-right" />

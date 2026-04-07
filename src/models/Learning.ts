@@ -22,12 +22,14 @@ const LearningSchema: Schema = new Schema(
     link: { type: String, required: true },
     thumbnail: { type: String },
     tags: { type: [String], default: [] },
-    published: { type: Boolean, default: true, index: true },
+    published: { type: Boolean, default: true },
   },
   {
     timestamps: true,
   }
 );
+
+LearningSchema.index({ published: 1, createdAt: -1 });
 
 const Learning: Model<ILearningResource> =
   mongoose.models.Learning || mongoose.model<ILearningResource>('Learning', LearningSchema);

@@ -39,6 +39,9 @@ const PortfolioSchema: Schema = new Schema(
 PortfolioSchema.index({ date: -1 });
 PortfolioSchema.index({ title: 'text', description: 'text', tags: 'text' });
 PortfolioSchema.index({ relatedGalleryId: 1 });
+PortfolioSchema.index({ published: 1, date: -1 });
+PortfolioSchema.index({ slug: 1, published: 1 });
+PortfolioSchema.index({ tags: 1 });
 
 const Portfolio: Model<IPortfolioItem> =
   mongoose.models.Portfolio || mongoose.model<IPortfolioItem>('Portfolio', PortfolioSchema);

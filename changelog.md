@@ -3,6 +3,23 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.4 (2026-04-06)
+
+* **Portfolio Detail Queries**: Reduced from 6 MongoDB queries to 3 — replaced `$aggregate` for related items with `find` + JS scoring, combined newer/older navigation into single `$or` query with projections.
+* **Write-Time Content Sanitization**: Admin portfolio actions now run `DOMPurify.sanitize()` on `content` before saving to DB instead of sanitizing on every page view. Read path renders `dangerouslySetInnerHTML` directly without sanitization.
+
+## v1.5.3 (2026-04-06)
+
++ **Server-Side Pagination**: Portfolio, Gallery, and Resources list pages now paginate on the server — `skip/limit` with MongoDB indexes instead of loading all data into the client.
+* **Resources Page**: Added pagination controls (prev/next, page numbers) — previously had no pagination at all.
+* **URL-Driven State**: All filter/sort/page state is now in URL search params, making pages shareable and bookmarkable. Client uses `useTransition` + `router.push` for navigation.
+* **Field Projection**: DB queries now exclude heavy fields (`content`, `gallery` arrays, etc.) from list views to reduce payload size.
+
+## v1.5.2 (2026-04-06)
+
+* **MongoDB Indexes**: Added compound indexes on Gallery (`{ published: 1, date: -1 }` + `{ slug: 1, published: 1 }`) and Learning (`{ published: 1, createdAt: -1 }`) schemas for faster list and detail queries.
+* **Lazy Loading**: Added `loading="lazy"` to all photo `<img>` elements in album detail page for faster initial render and reduced bandwidth.
+
 ## v1.5.1 (2026-04-06)
 
 * **Number Game Stage 1**: Added sequential first-pass mode — for ranges ≤ 20 (1-10, 11-20, 1-20), numbers are now shown in order first to build familiarity, followed by a 5-number random review round before advancing to Stage 2.

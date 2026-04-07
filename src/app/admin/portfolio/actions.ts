@@ -5,6 +5,7 @@ import dbConnect from '@/lib/db';
 import Portfolio from '@/models/Portfolio';
 import { verifyAuth } from '@/lib/auth';
 import { z } from 'zod';
+import DOMPurify from 'isomorphic-dompurify';
 
 const portfolioSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100),
@@ -55,7 +56,7 @@ export async function createPortfolioItem(formData: FormData) {
       title,
       slug,
       description,
-      content,
+      content: content ? DOMPurify.sanitize(content) : '',
       date: new Date(dateStr),
       tags,
       tools,
@@ -105,7 +106,7 @@ export async function updatePortfolioItem(id: string, formData: FormData) {
       title,
       slug,
       description,
-      content,
+      content: content ? DOMPurify.sanitize(content) : '',
       date: new Date(dateStr),
       tags: tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [],
       tools: toolsStr ? toolsStr.split(',').map(t => t.trim()).filter(Boolean) : [],
