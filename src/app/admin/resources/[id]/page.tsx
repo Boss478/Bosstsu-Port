@@ -31,7 +31,7 @@ export default async function EditLearningPage({
         <Breadcrumb
           items={[
             { label: 'Backend', href: '/admin' },
-            { label: 'Learning', href: '/admin/learning' },
+            { label: 'Learning', href: '/admin/resources' },
             { label: 'Edit Resource' },
           ]}
         />

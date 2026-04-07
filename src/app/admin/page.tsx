@@ -327,7 +327,7 @@ export default async function AdminPage() {
               <i className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
             <Link
-              href="/admin/learning"
+              href="/admin/resources"
               className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
             >
               <i className="fi fi-sr-book-alt text-sky-500" />

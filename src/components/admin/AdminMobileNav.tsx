@@ -7,7 +7,7 @@ const navItems = [
   { label: 'ภาพรวม', href: '/admin', icon: 'fi-sr-apps' },
   { label: 'ผลงาน', href: '/admin/portfolio', icon: 'fi-sr-briefcase' },
   { label: 'แกลเลอรี', href: '/admin/gallery', icon: 'fi-sr-picture' },
-  { label: 'สื่อฯ', href: '/admin/learning', icon: 'fi-sr-map-marker' },
+  { label: 'สื่อฯ', href: '/admin/resources', icon: 'fi-sr-book-alt' },
   { label: 'เกม', href: '/admin/games', icon: 'fi-sr-gamepad' },
 ];
 

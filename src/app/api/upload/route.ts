@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth';
-import { saveFile } from '@/lib/upload';
+import { saveFile, isHeicFile } from '@/lib/upload';
 import { CONFIG } from '@/lib/config';
 
-
-const ALLOWED_FOLDERS = ['portfolio', 'gallery', 'portfolio/gallery', 'misc'];
+const ALLOWED_FOLDERS = [...CONFIG.UPLOAD.ALLOWED_FOLDERS];
+const FOLDERS_CONVERT_TO_WEBP = [...CONFIG.UPLOAD.FOLDERS_CONVERT_TO_WEBP];
 
 export async function POST(req: NextRequest) {
   const isAuth = await verifyAuth();
@@ -34,17 +34,15 @@ export async function POST(req: NextRequest) {
     }
 
     const allowedTypes = CONFIG.UPLOAD.ALLOWED_TYPES as unknown as string[];
-    const nameLC = file.name?.toLowerCase() || '';
-    const isHeicByName = nameLC.endsWith('.heic') || nameLC.endsWith('.heif');
-    
-    if (!isHeicByName && !allowedTypes.includes(file.type)) {
+
+    if (!isHeicFile(file) && !allowedTypes.includes(file.type)) {
       return NextResponse.json(
         { error: `Invalid file type. Allowed: ${allowedTypes.join(', ')}` },
         { status: 400 }
       );
     }
 
-    const convertToWebP = folderInput === 'portfolio';
+    const convertToWebP = FOLDERS_CONVERT_TO_WEBP.includes(folderInput);
     const filePath = await saveFile(file, folderInput, convertToWebP);
 
     return NextResponse.json({ url: filePath }, { status: 200 });

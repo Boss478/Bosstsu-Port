@@ -62,8 +62,8 @@ export async function createLearningResource(formData: FormData) {
     return { error: (error as Error).message || 'Failed to create resource' };
   }
 
-  revalidatePath('/admin/learning');
-  revalidatePath('/learning');
+  revalidatePath('/admin/resources');
+  revalidatePath('/resources');
   return { error: undefined };
 }
 
@@ -110,8 +110,8 @@ export async function updateLearningResource(id: string, formData: FormData) {
     return { error: (error as Error).message || 'Failed to update resource' };
   }
 
-  revalidatePath('/admin/learning');
-  revalidatePath('/learning');
+  revalidatePath('/admin/resources');
+  revalidatePath('/resources');
   return { error: undefined };
 }
 
@@ -126,7 +126,7 @@ export async function deleteLearningResource(id: string) {
     return { error: (error as Error).message || 'Failed to delete resource' };
   }
 
-  revalidatePath('/admin/learning');
-  revalidatePath('/learning');
+  revalidatePath('/admin/resources');
+  revalidatePath('/resources');
   return { error: undefined };
 }

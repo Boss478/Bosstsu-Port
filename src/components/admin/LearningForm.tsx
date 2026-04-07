@@ -45,7 +45,7 @@ export default function LearningForm({
       if (result && result.error) {
         setError(result.error);
       } else {
-        router.push('/admin/learning');
+        router.push('/admin/resources');
       }
     } catch {
       setError('An unexpected error occurred');

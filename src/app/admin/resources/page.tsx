@@ -50,7 +50,7 @@ export default async function LearningListPage({
             จัดการสื่อการเรียนรู้ (Learning)
           </h1>
           <Link
-            href="/admin/learning/new"
+            href="/admin/resources/new"
             className="flex items-center gap-2 px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20 transition-all hover:-translate-y-0.5"
           >
             <i className="fi fi-sr-plus text-sm" />
@@ -115,7 +115,7 @@ export default async function LearningListPage({
                     <td className="p-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Link
-                          href={`/admin/learning/${item._id}`}
+                          href={`/admin/resources/${item._id}`}
                           className="p-2 text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-900/20 rounded-lg transition-colors"
                           title="Edit"
                         >
