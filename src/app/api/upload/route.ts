@@ -3,8 +3,8 @@ import { verifyAuth } from '@/lib/auth';
 import { saveFile, isHeicFile } from '@/lib/upload';
 import { CONFIG } from '@/lib/config';
 
-const ALLOWED_FOLDERS = [...CONFIG.UPLOAD.ALLOWED_FOLDERS];
-const FOLDERS_CONVERT_TO_WEBP = [...CONFIG.UPLOAD.FOLDERS_CONVERT_TO_WEBP];
+const ALLOWED_FOLDERS = [...CONFIG.UPLOAD.ALLOWED_FOLDERS] as string[];
+const FOLDERS_CONVERT_TO_WEBP = [...CONFIG.UPLOAD.FOLDERS_CONVERT_TO_WEBP] as string[];
 
 export async function POST(req: NextRequest) {
   const isAuth = await verifyAuth();

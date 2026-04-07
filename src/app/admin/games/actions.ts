@@ -10,7 +10,7 @@ import { z } from 'zod';
 const gameSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100),
   description: z.string().min(1, 'Description is required').max(500),
-  genre: z.string().min(1, 'Genre is required'),
+  category: z.string().min(1, 'Category is required'),
   playUrl: z.string().min(1, 'Play URL is required').refine((url) => url.startsWith('/') || url.startsWith('http://') || url.startsWith('https://'), 'Must be a valid URL or relative path'),
   instructions: z.string().optional(),
   tagsStr: z.string().optional(),
@@ -23,7 +23,7 @@ export async function createGame(formData: FormData) {
   const parsed = gameSchema.safeParse({
     title: formData.get('title'),
     description: formData.get('description'),
-    genre: formData.get('genre'),
+    category: formData.get('category'),
     playUrl: formData.get('playUrl'),
     instructions: formData.get('instructions') || '',
     tagsStr: formData.get('tags') || '',
@@ -33,7 +33,7 @@ export async function createGame(formData: FormData) {
     return { error: parsed.error.issues[0].message };
   }
 
-  const { title, description, genre, playUrl, instructions, tagsStr } = parsed.data;
+  const { title, description, category, playUrl, instructions, tagsStr } = parsed.data;
   const published = formData.get('published') === 'on';
   const thumbnailFile = formData.get('thumbnail') as File;
 
@@ -54,7 +54,7 @@ export async function createGame(formData: FormData) {
     await Game.create({
       title,
       description,
-      genre,
+      category,
       playUrl,
       instructions: instructions || undefined,
       tags,
@@ -78,7 +78,7 @@ export async function updateGame(id: string, formData: FormData) {
   const parsed = gameSchema.safeParse({
     title: formData.get('title'),
     description: formData.get('description'),
-    genre: formData.get('genre'),
+    category: formData.get('category'),
     playUrl: formData.get('playUrl'),
     instructions: formData.get('instructions') || '',
     tagsStr: formData.get('tags') || '',
@@ -88,7 +88,7 @@ export async function updateGame(id: string, formData: FormData) {
     return { error: parsed.error.issues[0].message };
   }
 
-  const { title, description, genre, playUrl, instructions, tagsStr } = parsed.data;
+  const { title, description, category, playUrl, instructions, tagsStr } = parsed.data;
   const published = formData.get('published') === 'on';
   const thumbnailFile = formData.get('thumbnail') as File;
 
@@ -98,7 +98,7 @@ export async function updateGame(id: string, formData: FormData) {
     const updateData: Record<string, unknown> = {
       title,
       description,
-      genre,
+      category,
       playUrl,
       instructions: instructions || undefined,
       tags: tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [],

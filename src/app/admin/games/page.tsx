@@ -94,7 +94,7 @@ export default async function GamesListPage({
                     </td>
                     <td className="p-4 hidden md:table-cell">
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-slate-700 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-600">
-                        {item.genre}
+                        {item.category}
                       </span>
                     </td>
                     <td className="p-4 hidden sm:table-cell">

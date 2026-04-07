@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import dbConnect from "@/lib/db";
 import Portfolio from "@/models/Portfolio";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -9,6 +10,30 @@ import { formatDate } from "@/lib/format";
 import { CONFIG } from "@/lib/config";
 
 export const revalidate = 60;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  await dbConnect();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const doc: any = await Portfolio.findOne({ slug: id, published: { $ne: false } }).lean();
+
+  if (!doc) return { title: "Not Found" };
+
+  return {
+    title: `${doc.title} | Boss478`,
+    description: doc.description || undefined,
+    openGraph: {
+      title: doc.title,
+      description: doc.description || undefined,
+      images: doc.cover ? [{ url: doc.cover }] : [],
+      type: "article",
+    },
+  };
+}
 
 export async function generateStaticParams() {
   await dbConnect();
