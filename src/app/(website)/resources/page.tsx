@@ -2,10 +2,9 @@ import dbConnect from "@/lib/db";
 import Learning from "@/models/Learning";
 import ResourcesClient from "./ResourcesClient";
 import { type ResourceItem } from "./data";
+import { CONFIG } from "@/lib/config";
 
 export const revalidate = 60;
-
-const ITEMS_PER_PAGE = 15;
 
 export default async function ResourcesPage({
   searchParams,
@@ -19,7 +18,7 @@ export default async function ResourcesPage({
   const type = params.type || "All";
   const sort = params.sort === "Oldest" ? "Oldest" : "Newest";
 
-  const skip = (page - 1) * ITEMS_PER_PAGE;
+  const skip = (page - 1) * CONFIG.PAGINATION.LEARNING_PUBLIC;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const match: Record<string, any> = { published: { $ne: false } };
@@ -32,14 +31,14 @@ export default async function ResourcesPage({
       .select("title description type thumbnail link createdAt")
       .sort({ createdAt: sort === "Newest" ? -1 : 1 })
       .skip(skip)
-      .limit(ITEMS_PER_PAGE)
+      .limit(CONFIG.PAGINATION.LEARNING_PUBLIC)
       .lean(),
     Learning.countDocuments(match),
     Learning.distinct("type", { published: { $ne: false } }),
     Learning.distinct("tags", { published: { $ne: false } }),
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(total / CONFIG.PAGINATION.LEARNING_PUBLIC));
 
   const defaultFallbackDate = new Date("2024-01-01T00:00:00.000Z");
 

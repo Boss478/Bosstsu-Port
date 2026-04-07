@@ -2,10 +2,9 @@ import dbConnect from "@/lib/db";
 import Gallery from "@/models/Gallery";
 import GalleryClient from "./GalleryClient";
 import { type GalleryAlbum } from "./data";
+import { CONFIG } from "@/lib/config";
 
 export const revalidate = 60;
-
-const ITEMS_PER_PAGE = 15;
 
 export default async function GalleryPage({
   searchParams,
@@ -19,7 +18,7 @@ export default async function GalleryPage({
   const tag = params.tag || "";
   const sort = params.sort === "asc" ? "asc" : "desc";
 
-  const skip = (page - 1) * ITEMS_PER_PAGE;
+  const skip = (page - 1) * CONFIG.PAGINATION.GALLERY_PUBLIC;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const match: Record<string, any> = { published: { $ne: false } };
@@ -32,13 +31,13 @@ export default async function GalleryPage({
       .select("slug title cover tags date photos")
       .sort({ date: sort === "desc" ? -1 : 1 })
       .skip(skip)
-      .limit(ITEMS_PER_PAGE)
+      .limit(CONFIG.PAGINATION.GALLERY_PUBLIC)
       .lean(),
     Gallery.countDocuments(match),
     Gallery.distinct("tags", { published: { $ne: false } }),
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(total / CONFIG.PAGINATION.GALLERY_PUBLIC));
 
   const defaultFallbackDate = new Date("2024-01-01T00:00:00.000Z");
 

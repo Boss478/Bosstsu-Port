@@ -6,6 +6,8 @@
 ## v1.5.5 (2026-04-07)
 
 * **Centralized Upload/Image Settings**: Extracted all hardcoded upload and image processing values (`max_file_size`, `allowed_file_types`, `allowed_folders`, image quality, HEIC settings) into `lib/config.ts` for single-source management. Removed duplicated HEIC detection logic between `upload.ts` and `api/upload/route.ts` — consolidated into exported `isHeicFile()` helper.
+* **Public Pages Pagination**: Replaced hardcoded `ITEMS_PER_PAGE = 15` in portfolio, gallery, and resources public pages with `CONFIG.PAGINATION.PORTFOLIO_PUBLIC`, `GALLERY_PUBLIC`, and `LEARNING_PUBLIC` for centralized control.
+* **Config Comments**: Added inline comments explaining each setting's purpose and how to adjust for flexibility.
 
 ## v1.5.4 (2026-04-06)
 
