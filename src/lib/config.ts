@@ -52,6 +52,14 @@ export const CONFIG = {
     LEARNING_PUBLIC: 15,                    // items per page — public resources list
   },
 
+  // ─── Rate Limiting ────────────────────────────────────────────────────
+  RATE_LIMIT: {
+    MAX_ATTEMPTS: 5,                    // failed attempts before lockout
+    WINDOW_MS: 15 * 60 * 1000,          // 15-minute sliding window
+    LOCKOUT_MS: 15 * 60 * 1000,         // 15-minute lockout duration
+    MAX_IPS: 20,                         // max tracked IPs (evict oldest when full)
+  },
+
   // ─── Site Metadata ────────────────────────────────────────────────────
   SITE: {
     NAME: 'Boss478',

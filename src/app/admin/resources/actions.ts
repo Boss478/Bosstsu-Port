@@ -59,7 +59,7 @@ export async function createLearningResource(formData: FormData) {
     });
   } catch (error: unknown) {
     console.error('Create learning error:', error);
-    return { error: (error as Error).message || 'Failed to create resource' };
+    return { error: 'ไม่สามารถสร้างสื่อการเรียนรู้ได้' };
   }
 
   revalidatePath('/admin/resources');
@@ -107,7 +107,8 @@ export async function updateLearningResource(id: string, formData: FormData) {
 
     await Learning.findByIdAndUpdate(id, updateData);
   } catch (error: unknown) {
-    return { error: (error as Error).message || 'Failed to update resource' };
+    console.error('Update learning error:', error);
+    return { error: 'ไม่สามารถอัปเดตสื่อการเรียนรู้ได้' };
   }
 
   revalidatePath('/admin/resources');
@@ -123,7 +124,8 @@ export async function deleteLearningResource(id: string) {
   try {
     await Learning.findByIdAndDelete(id);
   } catch (error: unknown) {
-    return { error: (error as Error).message || 'Failed to delete resource' };
+    console.error('Delete learning error:', error);
+    return { error: 'ไม่สามารถลบสื่อการเรียนรู้ได้' };
   }
 
   revalidatePath('/admin/resources');

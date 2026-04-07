@@ -3,6 +3,12 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.7 (2026-04-07)
+
++ **Login Rate Limiting**: Added Map-based brute force protection to admin login — 5 attempts per 15 minutes, then 15-minute lockout. Zero dependencies, < 3KB memory, lazy cleanup (no background threads).
++ **Pyodide API Hardening**: Added `verifyAuth()` guard to both GET and POST endpoints, capped `pendingInputs` Map at 50 entries with oldest eviction, added input validation (id ≤ 36 chars, value ≤ 1000 chars), reduced GET timeout from 30s to 15s.
+* **Error Message Leakage**: Replaced raw `(error as Error).message` returns with generic Thai error messages across upload route, process-words route, and all admin CRUD action files (portfolio, gallery, games, resources). Full details logged server-side only.
+
 ## v1.5.5 (2026-04-07)
 
 * **Centralized Upload/Image Settings**: Extracted all hardcoded upload and image processing values (`max_file_size`, `allowed_file_types`, `allowed_folders`, image quality, HEIC settings) into `lib/config.ts` for single-source management. Removed duplicated HEIC detection logic between `upload.ts` and `api/upload/route.ts` — consolidated into exported `isHeicFile()` helper.

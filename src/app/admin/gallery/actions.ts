@@ -70,7 +70,7 @@ export async function createGalleryAlbum(formData: FormData) {
     });
   } catch (error: unknown) {
     console.error('CreateGallery Error:', error);
-    return { error: (error as Error).message || 'Failed to create album' };
+    return { error: 'ไม่สามารถสร้างอัลบั้มได้' };
   }
 
   revalidatePath('/admin/gallery');
@@ -136,7 +136,8 @@ export async function updateGalleryAlbum(id: string, formData: FormData) {
 
     await Gallery.findByIdAndUpdate(id, updateData);
   } catch (error: unknown) {
-    return { error: (error as Error).message || 'Failed to update album' };
+    console.error('UpdateGallery Error:', error);
+    return { error: 'ไม่สามารถอัปเดตอัลบั้มได้' };
   }
 
   revalidatePath('/admin/gallery');
@@ -152,7 +153,8 @@ export async function deleteGalleryAlbum(id: string) {
   try {
     await Gallery.findByIdAndDelete(id);
   } catch (error: unknown) {
-    return { error: (error as Error).message || 'Failed to delete album' };
+    console.error('DeleteGallery Error:', error);
+    return { error: 'ไม่สามารถลบอัลบั้มได้' };
   }
 
   revalidatePath('/admin/gallery');

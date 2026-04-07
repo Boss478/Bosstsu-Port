@@ -1,8 +1,9 @@
 'use server';
 
-import { cookies } from 'next/headers';
+import { headers, cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { CONFIG } from '@/lib/config';
+import { checkRateLimit, recordFailedAttempt, resetAttempts } from '@/lib/rate-limit';
 
 async function hmacSign(secret: string, message: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -29,20 +30,37 @@ async function generateToken(): Promise<string> {
   return `${timestamp}.${hash}`;
 }
 
+async function getClientIp(): Promise<string> {
+  const headerStore = await headers();
+  const xForwardedFor = headerStore.get('x-forwarded-for');
+  if (xForwardedFor) return xForwardedFor.split(',')[0].trim();
+  return 'unknown';
+}
+
 export async function loginAdmin(
   _prevState: { error?: string },
   formData: FormData
 ): Promise<{ error?: string }> {
+  const ip = await getClientIp();
+
+  const rateLimit = checkRateLimit(ip);
+  if (rateLimit === 'locked') {
+    return { error: 'ระบบถูกล็อกชั่วคราว โปรดลองอีกครั้งใน 15 นาที' };
+  }
+
   const password = formData.get('password') as string;
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!adminPassword) {
-    return { error: 'ADMIN_PASSWORD not configured' };
+    return { error: 'เกิดข้อผิดพลาดของระบบ' };
   }
 
   if (password !== adminPassword) {
+    recordFailedAttempt(ip);
     return { error: 'รหัสผ่านไม่ถูกต้อง' };
   }
+
+  resetAttempts(ip);
 
   const token = await generateToken();
   const cookieStore = await cookies();
@@ -50,7 +68,7 @@ export async function loginAdmin(
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    maxAge: CONFIG.AUTH.SESSION_DURATION / 1000, // Convert ms to seconds
+    maxAge: CONFIG.AUTH.SESSION_DURATION / 1000,
     path: '/',
   });
 

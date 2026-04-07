@@ -63,7 +63,7 @@ export async function createGame(formData: FormData) {
     });
   } catch (error: unknown) {
     console.error('Create game error:', error);
-    return { error: (error as Error).message || 'Failed to create game' };
+    return { error: 'ไม่สามารถสร้างเกมได้' };
   }
 
   revalidatePath('/admin/games');
@@ -111,7 +111,8 @@ export async function updateGame(id: string, formData: FormData) {
 
     await Game.findByIdAndUpdate(id, updateData);
   } catch (error: unknown) {
-    return { error: (error as Error).message || 'Failed to update game' };
+    console.error('Update game error:', error);
+    return { error: 'ไม่สามารถอัปเดตเกมได้' };
   }
 
   revalidatePath('/admin/games');
@@ -127,7 +128,8 @@ export async function deleteGame(id: string) {
   try {
     await Game.findByIdAndDelete(id);
   } catch (error: unknown) {
-    return { error: (error as Error).message || 'Failed to delete game' };
+    console.error('Delete game error:', error);
+    return { error: 'ไม่สามารถลบเกมได้' };
   }
 
   revalidatePath('/admin/games');

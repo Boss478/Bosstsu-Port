@@ -66,7 +66,7 @@ export async function createPortfolioItem(formData: FormData) {
     });
   } catch (error: unknown) {
     console.error('Create error:', error);
-    return { error: (error as Error).message || 'Failed to create item' };
+    return { error: 'ไม่สามารถสร้างรายการได้' };
   }
 
   revalidatePath('/admin/portfolio');
@@ -123,7 +123,8 @@ export async function updatePortfolioItem(id: string, formData: FormData) {
 
     await Portfolio.findByIdAndUpdate(id, updateData);
   } catch (error: unknown) {
-    return { error: (error as Error).message || 'Failed to update item' };
+    console.error('Update error:', error);
+    return { error: 'ไม่สามารถอัปเดตรายการได้' };
   }
 
   revalidatePath('/admin/portfolio');
@@ -139,7 +140,8 @@ export async function deletePortfolioItem(id: string) {
   try {
     await Portfolio.findByIdAndDelete(id);
   } catch (error: unknown) {
-    return { error: (error as Error).message || 'Failed to delete item' };
+    console.error('Delete error:', error);
+    return { error: 'ไม่สามารถลบรายการได้' };
   }
 
   revalidatePath('/admin/portfolio');

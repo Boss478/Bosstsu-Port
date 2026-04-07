@@ -198,8 +198,8 @@ export async function GET() {
     await fs.writeFile(publicOutputPath, finalCsv);
 
     return NextResponse.json({ success: true, count: outRows.length - 1 });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ success: false, error: message });
+  } catch {
+    console.error('Process Words Error');
+    return NextResponse.json({ success: false, error: 'เกิดข้อผิดพลาดในการประมวลผล' });
   }
 }

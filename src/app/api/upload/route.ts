@@ -48,7 +48,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: filePath }, { status: 200 });
   } catch (error: Error | unknown) {
     console.error('API Upload Error:', error);
-    const message = error instanceof Error ? error.message : 'Internal Server Error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: 'เกิดข้อผิดพลาดในการอัปโหลด' }, { status: 500 });
   }
 }
