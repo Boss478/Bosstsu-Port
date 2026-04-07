@@ -3,6 +3,10 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.5 (2026-04-07)
+
+* **Centralized Upload/Image Settings**: Extracted all hardcoded upload and image processing values (`max_file_size`, `allowed_file_types`, `allowed_folders`, image quality, HEIC settings) into `lib/config.ts` for single-source management. Removed duplicated HEIC detection logic between `upload.ts` and `api/upload/route.ts` — consolidated into exported `isHeicFile()` helper.
+
 ## v1.5.4 (2026-04-06)
 
 * **Portfolio Detail Queries**: Reduced from 6 MongoDB queries to 3 — replaced `$aggregate` for related items with `find` + JS scoring, combined newer/older navigation into single `$or` query with projections.

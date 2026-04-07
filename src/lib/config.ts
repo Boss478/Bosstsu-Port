@@ -45,8 +45,8 @@ export const CONFIG = {
   SITE: {
     NAME: 'Boss478',
     TITLE: 'Boss478 | Portfolio',
-    DESCRIPTION: 'เว็บไซต์ส่วนตั่วสำหรับเก็บผลงงาน กิจกรรม รูปภาพ สื่อการเรียนรู้ และเกมการศึกษา',
-    EMAIL: 'boss478@example.com',
+    DESCRIPTION: 'เว็บไซต์ส่วนตั่วสำหรับเก็บผลงาน กิจกรรม รูปภาพ สื่อการเรียนรู้ และเกมการศึกษา',
+    EMAIL: 'bossnt45@gmail.com',
     GITHUB: 'https://github.com/Boss478',
   },
 } as const;

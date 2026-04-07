@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
+import { CONFIG } from '@/lib/config';
 
 interface ImageCropperProps {
   imageSrc: string;
@@ -53,7 +54,7 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel, aspec
       // Extract Blob
       canvas.toBlob((blob) => {
         if (blob) onCropComplete(blob);
-      }, 'image/jpeg', 0.9);
+      }, 'image/jpeg', CONFIG.IMAGE_PROCESSING.JPEG_QUALITY_FRACTION);
     } else {
        onCancel(); // if error
     }
