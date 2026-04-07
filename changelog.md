@@ -3,6 +3,11 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.8 (2026-04-07)
+
+* **Mongo-Express Auth**: Enabled `ME_CONFIG_BASICAUTH=true` in `docker-compose.yml`, added `ME_CONFIG_BASICAUTH_USERNAME` and `ME_CONFIG_BASICAUTH_PASSWORD` environment variables. Mongo Express now requires credentials, preventing unauthenticated access.
+* **Secure `.env.example`**: Replaced weak placeholder passwords (`password123`, `boss478admin`, `b0ss478-s3cr3t-k3y-ch4ng3-th1s`) with explicit `YOUR_*_HERE` placeholders to prevent accidental copy-paste of weak credentials.
+
 ## v1.5.7 (2026-04-07)
 
 + **Login Rate Limiting**: Added Map-based brute force protection to admin login — 5 attempts per 15 minutes, then 15-minute lockout. Zero dependencies, < 3KB memory, lazy cleanup (no background threads).
