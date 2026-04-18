@@ -24,7 +24,7 @@ export default function ResourcesClient({
   totalPages,
   activeType,
   sort,
-  totalItems,
+  totalItems: _totalItems,
 }: ResourcesClientProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();

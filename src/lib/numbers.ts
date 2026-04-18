@@ -42,7 +42,7 @@ export function getNumberData(n: number): NumberData {
   // Create a version with one missing letter
   let spell = eng;
   let missing = "";
-  let wrongLetters: string[] = [];
+  const wrongLetters: string[] = [];
 
   // Find a suitable index to hide (alphabetic char)
   const availableIndices = [];

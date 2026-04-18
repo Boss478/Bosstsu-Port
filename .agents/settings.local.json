@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /Applications/MAMP/htdocs/bosstsu-port/boss478/public -name alphabet* -o -name number_*)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}

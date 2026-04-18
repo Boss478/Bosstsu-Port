@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { getNumberData, NumberData } from "@/lib/numbers";
+import { getNumberData } from "@/lib/numbers";
 
 // --- Constants ---
 const EMOJIS = ["🍎", "🐶", "🚗", "🌟", "🎈", "⚽", "🐸", "🐻", "🍓", "🍉", "🚁", "🤖"];
@@ -41,10 +41,10 @@ const useAudio = () => {
   const ctxRef = useRef<AudioContext | null>(null);
 
   const getCtx = useCallback(() => {
-    const AudioContext = (window.AudioContext || (window as any).webkitAudioContext);
-    if (!AudioContext) return null;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
     if (!ctxRef.current) {
-      ctxRef.current = new AudioContext();
+      ctxRef.current = new AudioContextClass();
     }
     if (ctxRef.current.state === 'suspended') {
       ctxRef.current.resume();
@@ -126,7 +126,10 @@ export default function NumberGameClient() {
   const router = useRouter();
   const { playSound } = useAudio();
   const stateRef = useRef(gameState);
-  stateRef.current = gameState;
+
+  useEffect(() => {
+    stateRef.current = gameState;
+  }, [gameState]);
 
   useEffect(() => {
     const header = document.getElementById('site-header');
@@ -200,7 +203,7 @@ export default function NumberGameClient() {
     let qText = "";
     let correctAns = "";
     let options: string[] = [];
-    let visualData: any = null;
+    let visualData: { emoji: string; count: number; countA?: number; countB?: number } | undefined = undefined;
 
     if (activeStage === 1) {
       qText = numData.num.toString();

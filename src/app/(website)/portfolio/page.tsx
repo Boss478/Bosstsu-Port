@@ -3,6 +3,7 @@ import Portfolio from "@/models/Portfolio";
 import PortfolioClient from "./PortfolioClient";
 import { type PortfolioItem } from "./data";
 import { CONFIG } from "@/lib/config";
+import type { IPortfolioItem } from "@/models/Portfolio";
 
 export const revalidate = 60;
 
@@ -20,8 +21,7 @@ export default async function PortfolioPage({
 
   const skip = (page - 1) * CONFIG.PAGINATION.PORTFOLIO_PUBLIC;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const match: Record<string, any> = { published: { $ne: false } };
+  const match: { published: { $ne: boolean }; tags?: string } = { published: { $ne: false } };
   if (tag && tag !== "ทั้งหมด") {
     match.tags = tag;
   }
@@ -41,7 +41,7 @@ export default async function PortfolioPage({
 
   const defaultFallbackDate = new Date("2024-01-01T00:00:00.000Z");
 
-  const items: PortfolioItem[] = docs.map((doc: any) => ({
+  const items: PortfolioItem[] = docs.map((doc: IPortfolioItem) => ({
     id: doc.slug,
     title: doc.title,
     description: doc.description || "",

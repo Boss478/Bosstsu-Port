@@ -8,6 +8,7 @@ import PortfolioGallery from "@/components/PortfolioGallery";
 import { type PortfolioItem } from "../data";
 import { formatDate } from "@/lib/format";
 import { CONFIG } from "@/lib/config";
+import type { IPortfolioItem } from "@/models/Portfolio";
 
 export const revalidate = 60;
 
@@ -18,8 +19,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   await dbConnect();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const doc: any = await Portfolio.findOne({ slug: id, published: { $ne: false } }).lean();
+  const doc = await Portfolio.findOne({ slug: id, published: { $ne: false } }).lean() as IPortfolioItem | null;
 
   if (!doc) return { title: "Not Found" };
 
@@ -37,9 +37,8 @@ export async function generateMetadata({
 
 export async function generateStaticParams() {
   await dbConnect();
-  const docs = await Portfolio.find({ published: { $ne: false } }, "slug").lean();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return docs.map((doc: any) => ({
+  const docs = await Portfolio.find({ published: { $ne: false } }, "slug").lean() as IPortfolioItem[];
+  return docs.map((doc) => ({
     id: doc.slug,
   }));
 }
@@ -51,8 +50,7 @@ export default async function PortfolioDetailPage({
 }) {
   const { id } = await params;
   await dbConnect();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const doc: any = await Portfolio.findOne({ slug: id, published: { $ne: false } }).lean();
+  const doc = await Portfolio.findOne({ slug: id, published: { $ne: false } }).lean() as IPortfolioItem | null;
   if (!doc) notFound();
 
   const defaultFallbackDate = new Date("2024-01-01T00:00:00.000Z");
@@ -80,7 +78,7 @@ export default async function PortfolioDetailPage({
       .lean(),
     item.tags.length > 0
       ? Portfolio.find({ tags: { $in: item.tags }, published: { $ne: false } })
-          .select(projection)
+          .select(projection + " tags")
           .sort({ date: -1 })
           .limit(CONFIG.PAGINATION.PORTFOLIO_RELATED * 2)
           .lean()
@@ -97,19 +95,18 @@ export default async function PortfolioDetailPage({
       .lean(),
   ]);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const recentItems = recentDocs.map((d: any) => ({
+  type LeanDoc = { slug: string; title: string; cover?: string; date?: Date; tags?: string[] };
+  const recentItems = recentDocs.map((d: LeanDoc) => ({
     id: d.slug,
     title: d.title,
     cover: d.cover,
     date: d.date instanceof Date ? d.date.toISOString() : new Date(d.date || defaultFallbackDate).toISOString(),
   }));
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const relatedItems = relatedDocs.length > 0
     ? (() => {
         const itemTags = new Set(item.tags);
-        const scores = relatedDocs.map((d: any) => {
+        const scores = relatedDocs.map((d: LeanDoc) => {
           const tagList = d.tags || [];
           let score = 0;
           for (const tag of tagList) {
@@ -124,7 +121,7 @@ export default async function PortfolioDetailPage({
         return scores
           .slice(0, CONFIG.PAGINATION.PORTFOLIO_RELATED)
           .filter((s) => s.item.slug !== id)
-          .map((s: any) => ({
+          .map((s) => ({
             id: s.item.slug,
             title: s.item.title,
             cover: s.item.cover,
@@ -133,10 +130,8 @@ export default async function PortfolioDetailPage({
       })()
     : [];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const newerItems = navDocs.filter((d: any) => d.slug !== id && d.date && doc.date && d.date.getTime() > doc.date.getTime());
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const olderItems = navDocs.filter((d: any) => d.slug !== id && d.date && doc.date && d.date.getTime() < doc.date.getTime());
+  const newerItems = navDocs.filter((d: LeanDoc) => d.slug !== id && d.date && doc.date && d.date.getTime() > doc.date.getTime());
+  const olderItems = navDocs.filter((d: LeanDoc) => d.slug !== id && d.date && doc.date && d.date.getTime() < doc.date.getTime());
 
   const newerItem = newerItems.length > 0 ? { id: newerItems[0].slug, title: newerItems[0].title } : null;
   const olderItem = olderItems.length > 0 ? { id: olderItems[olderItems.length - 1].slug, title: olderItems[olderItems.length - 1].title } : null;

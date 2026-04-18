@@ -3,6 +3,7 @@ import Learning from "@/models/Learning";
 import ResourcesClient from "./ResourcesClient";
 import { type ResourceItem } from "./data";
 import { CONFIG } from "@/lib/config";
+import type { ILearningResource } from "@/models/Learning";
 
 export const revalidate = 60;
 
@@ -20,8 +21,7 @@ export default async function ResourcesPage({
 
   const skip = (page - 1) * CONFIG.PAGINATION.LEARNING_PUBLIC;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const match: Record<string, any> = { published: { $ne: false } };
+  const match: { published: { $ne: boolean }; type?: string } = { published: { $ne: false } };
   if (type && type !== "All") {
     match.type = type;
   }
@@ -42,7 +42,7 @@ export default async function ResourcesPage({
 
   const defaultFallbackDate = new Date("2024-01-01T00:00:00.000Z");
 
-  const items: ResourceItem[] = docs.map((doc: any) => ({
+  const items: ResourceItem[] = docs.map((doc: ILearningResource) => ({
     id: doc._id.toString(),
     title: doc.title,
     description: doc.description || "",

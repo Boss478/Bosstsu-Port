@@ -24,6 +24,7 @@ export default function PythonCompilerClient() {
   const [activeHint, setActiveHint] = useState<string | null>(null);
   const [cursorPos, setCursorPos] = useState({ top: 0, left: 0 });
   const [validationState, setValidationState] = useState<{ errors: number[]; unused: string[] }>({ errors: [], unused: [] });
+  const [textareaWidth, setTextareaWidth] = useState(0);
 
 
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -111,6 +112,17 @@ export default function PythonCompilerClient() {
       setTimeout(() => outputEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
     }
   }, [output]);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (textareaRef.current) {
+        setTextareaWidth(textareaRef.current.offsetWidth);
+      }
+    };
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
 
   useEffect(() => {
     if (mode !== "study") {
@@ -592,7 +604,7 @@ export default function PythonCompilerClient() {
                     className="absolute bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-zinc-100 dark:border-slate-700 overflow-hidden z-20 w-48 animate-slide-down"
                     style={{ 
                       top: cursorPos.top + 24, 
-                      left: Math.min(cursorPos.left + 48, (textareaRef.current?.offsetWidth || 0) - 180) 
+                      left: Math.min(cursorPos.left + 48, textareaWidth - 180) 
                     }}
                   >
                     <div className="p-1">

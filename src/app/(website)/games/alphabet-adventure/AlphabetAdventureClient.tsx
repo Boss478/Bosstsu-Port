@@ -7,7 +7,14 @@ import { useRouter } from "next/navigation";
 const ALPHABET_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
 const ALPHABET_LOWER = "abcdefghijklmnopqrstuvwxyz".split('');
 
-const LEVELS = {
+interface LevelConfig {
+  name: string;
+  target: number;
+  type: string;
+  hideCount?: number;
+}
+
+const LEVELS: Record<number, LevelConfig> = {
   1: { 
     name: "จับคู่ตัวอักษร", 
     target: 35, 
@@ -37,10 +44,10 @@ const useAudio = () => {
   const ctxRef = useRef<AudioContext | null>(null);
 
   const getCtx = useCallback(() => {
-    const AudioContext = (window.AudioContext || (window as any).webkitAudioContext);
-    if (!AudioContext) return null;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
     if (!ctxRef.current) {
-      ctxRef.current = new AudioContext();
+      ctxRef.current = new AudioContextClass();
     }
     if (ctxRef.current.state === 'suspended') {
       ctxRef.current.resume();
@@ -172,13 +179,13 @@ export default function AlphabetAdventureClient() {
     let newRoundData: typeof roundData = { ...(baseRoundData || { choices: [], grid: [], missingIndices: [], activeIndex: -1 }), choices: [], grid: [], missingIndices: [], activeIndex: -1 };
 
     if (config.type === "match") {
-      let targetIndex = state.round <= 26 ? state.round - 1 : Math.floor(Math.random() * 26);
+      const targetIndex = state.round <= 26 ? state.round - 1 : Math.floor(Math.random() * 26);
       const upper = ALPHABET_UPPER[targetIndex];
       const correctLower = ALPHABET_LOWER[targetIndex];
       
-      let choices = [correctLower];
+      const choices = [correctLower];
       while (choices.length < 3) {
-        let r = ALPHABET_LOWER[Math.floor(Math.random() * 26)];
+        const r = ALPHABET_LOWER[Math.floor(Math.random() * 26)];
         if (!choices.includes(r)) choices.push(r);
       }
       newRoundData = {
@@ -192,8 +199,8 @@ export default function AlphabetAdventureClient() {
       const isUpper = config.type === "fill-upper";
       const alphabet = isUpper ? ALPHABET_UPPER : ALPHABET_LOWER;
       
-      let missing: number[] = [];
-      while (missing.length < (config as any).hideCount) {
+      const missing: number[] = [];
+      while (missing.length < (config.hideCount || 2)) {
         const r = Math.floor(Math.random() * 26);
         if (!missing.includes(r)) missing.push(r);
       }
@@ -213,9 +220,9 @@ export default function AlphabetAdventureClient() {
       
       // Load choices for the first active slot
       const correct = alphabet[missing[0]];
-      let choices = [correct];
+      const choices = [correct];
       while (choices.length < 4) {
-        let r = alphabet[Math.floor(Math.random() * 26)];
+        const r = alphabet[Math.floor(Math.random() * 26)];
         if (!choices.includes(r)) choices.push(r);
       }
       newRoundData.choices = choices.sort(() => Math.random() - 0.5);
@@ -224,7 +231,7 @@ export default function AlphabetAdventureClient() {
       const isUpper = Math.random() > 0.5;
       const alphabet = isUpper ? ALPHABET_UPPER : ALPHABET_LOWER;
       
-      let missing: number[] = [];
+      const missing: number[] = [];
       while (missing.length < state.difficulty) {
         const r = Math.floor(Math.random() * 26);
         if (!missing.includes(r)) missing.push(r);
@@ -300,9 +307,9 @@ export default function AlphabetAdventureClient() {
           const alphabet = isUpper ? ALPHABET_UPPER : ALPHABET_LOWER;
           const nextActive = nextMissing[0];
           const nextCorrect = alphabet[nextActive];
-          let nextChoices = [nextCorrect];
+          const nextChoices = [nextCorrect];
           while (nextChoices.length < 4) {
-            let r = alphabet[Math.floor(Math.random() * 26)];
+            const r = alphabet[Math.floor(Math.random() * 26)];
             if (!nextChoices.includes(r)) nextChoices.push(r);
           }
           setRoundData({

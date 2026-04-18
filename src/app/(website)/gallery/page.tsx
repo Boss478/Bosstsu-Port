@@ -3,6 +3,7 @@ import Gallery from "@/models/Gallery";
 import GalleryClient from "./GalleryClient";
 import { type GalleryAlbum } from "./data";
 import { CONFIG } from "@/lib/config";
+import type { IGalleryAlbum } from "@/models/Gallery";
 
 export const revalidate = 60;
 
@@ -20,8 +21,7 @@ export default async function GalleryPage({
 
   const skip = (page - 1) * CONFIG.PAGINATION.GALLERY_PUBLIC;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const match: Record<string, any> = { published: { $ne: false } };
+  const match: { published: { $ne: boolean }; tags?: string } = { published: { $ne: false } };
   if (tag && tag !== "ทั้งหมด") {
     match.tags = tag;
   }
@@ -41,7 +41,7 @@ export default async function GalleryPage({
 
   const defaultFallbackDate = new Date("2024-01-01T00:00:00.000Z");
 
-  const albums: GalleryAlbum[] = docs.map((doc: any) => ({
+  const albums: GalleryAlbum[] = docs.map((doc: IGalleryAlbum) => ({
     id: doc.slug,
     title: doc.title,
     cover: doc.cover,

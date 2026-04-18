@@ -3,6 +3,14 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.10 (2026-04-18)
+
+* **ESLint Cleanup**: Fixed 26+ ESLint errors across the codebase. Replaced `any` type casts with proper TypeScript interfaces (`IPortfolioItem`, `IGalleryAlbum`, `ILearningResource`). Added `src/types/global.d.ts` with `window.webkitAudioContext` declaration to eliminate `(window as any)` casts.
+* **Ref During Render Fixed**: Moved `stateRef.current = gameState` assignment inside `useEffect` in `NumberGameClient.tsx` to fix React's "Cannot access refs during render" error.
+* **Textarea Ref Fix**: Added `textareaWidth` state and `useEffect` to capture textarea dimensions in `PythonCompilerClient.tsx`, replacing direct ref access during render with reactive state.
+* **Type Safety**: Added proper `LevelConfig` interface in `AlphabetAdventureClient.tsx` and typed `visualData` in `NumberGameClient.tsx`, eliminating `any` type usage.
+* **Unused Variables**: Removed unused `useMemo` and `NumberData` imports in `NumberGameClient.tsx`, renamed `totalItems` to `_totalItems` in `ResourcesClient.tsx` to acknowledge received prop.
+
 ## v1.5.9 (2026-04-07)
 
 * **Vulnerable Dependencies**: Updated Next.js (16.1.6 → 16.2.2+), isomorphic-dompurify, flatted, picomatch, undici, brace-expansion via `npm update` — resolved CSRF bypass, HTTP smuggling, prototype pollution, and ReDoS vulnerabilities. `npm audit` now shows 0 vulnerabilities.
