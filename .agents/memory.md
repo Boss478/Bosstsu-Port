@@ -13,6 +13,10 @@ Store important bugs, errors, mistakes, and project context from previous sessio
 - Local fonts in `src/fonts/` loaded via `next/font/local` — **never Google Fonts**
 - Flaticon icons (`fi fi-sr-*`) — **no emoji as icons**
 - Class-based dark mode via `ThemeProvider` (`.dark` class on `<html>`)
+- Centralized configs in `src/lib/`:
+  - `config.ts` — main CONFIG (auth, upload, image, pagination, rate limit)
+  - `error-code.ts` — unified HTTP + app error codes (flat structure)
+  - `constants.ts` — DB timeouts, animation, routes
 
 ### Critical Gotchas
 
@@ -47,8 +51,28 @@ Store important bugs, errors, mistakes, and project context from previous sessio
 ## Session: 2026-04-18
 
 ### Current State
-- Latest changelog: `v1.5.10` (2026-04-18)
-- All versions synced: `package.json`, `package-lock.json`, `changelog.md` all at `1.5.10`
+- Latest changelog: `v1.5.11` (2026-04-18)
+- All versions synced: `package.json`, `package-lock.json`, `changelog.md` all at `1.5.11`
+
+### New Centralized Files (v1.5.11)
+
+| File | Purpose |
+|------|---------|
+| `src/lib/error-code.ts` | Unified HTTP + app error codes (flat structure) |
+| `src/lib/constants.ts` | DB timeouts, pool, animation durations, routes |
+
+### Error Code System
+
+- Single file `src/lib/error-code.ts` — HTTP (400, 401, 404...) + App codes (U01-U05, A01-A02, DB01-DB03, T01-T03, P01-P02)
+- Usage: `getError('404')` or `getError('U01')` — single key lookup
+- Format: `ERROR_404 [404]: message (translation)` or `ERROR_U01 [413]: message (translation)`
+- Returns: `{ code, httpStatus, message, translation }`
+
+### Refactoring Notes
+
+- DB settings now in `src/lib/constants.ts` — `DB.TIMEOUTS`, `DB.POOL`
+- Mongo Express URL uses `process.env.MONGO_EXPRESS_URL`
+- Animation timings via CSS vars: `--animate-slide`, `--animate-fade`, `--animate-float`
 
 ### Notes
 

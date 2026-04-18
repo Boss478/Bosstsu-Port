@@ -5,6 +5,7 @@ import dbConnect from '@/lib/db';
 import Learning from '@/models/Learning';
 import { verifyAuth } from '@/lib/auth';
 import { saveFile } from '@/lib/upload';
+import { createErrorResponse } from '@/lib/error-code';
 import { z } from 'zod';
 
 const learningSchema = z.object({
@@ -16,9 +17,13 @@ const learningSchema = z.object({
   tagsStr: z.string().optional(),
 });
 
+function formatError(err: ReturnType<typeof createErrorResponse>): string {
+  return `${err.code}: ${err.message} (${err.translation})`;
+}
+
 export async function createLearningResource(formData: FormData) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: 'Unauthorized' };
+  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
 
   const parsed = learningSchema.safeParse({
     title: formData.get('title'),
@@ -59,7 +64,7 @@ export async function createLearningResource(formData: FormData) {
     });
   } catch (error: unknown) {
     console.error('Create learning error:', error);
-    return { error: 'ไม่สามารถสร้างสื่อการเรียนรู้ได้' };
+    return { error: formatError(createErrorResponse('DB01')) };
   }
 
   revalidatePath('/admin/resources');
@@ -69,7 +74,7 @@ export async function createLearningResource(formData: FormData) {
 
 export async function updateLearningResource(id: string, formData: FormData) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: 'Unauthorized' };
+  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
 
   const parsed = learningSchema.safeParse({
     title: formData.get('title'),
@@ -108,7 +113,7 @@ export async function updateLearningResource(id: string, formData: FormData) {
     await Learning.findByIdAndUpdate(id, updateData);
   } catch (error: unknown) {
     console.error('Update learning error:', error);
-    return { error: 'ไม่สามารถอัปเดตสื่อการเรียนรู้ได้' };
+    return { error: formatError(createErrorResponse('DB02')) };
   }
 
   revalidatePath('/admin/resources');
@@ -118,14 +123,14 @@ export async function updateLearningResource(id: string, formData: FormData) {
 
 export async function deleteLearningResource(id: string) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: 'Unauthorized' };
+  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
 
   await dbConnect();
   try {
     await Learning.findByIdAndDelete(id);
   } catch (error: unknown) {
     console.error('Delete learning error:', error);
-    return { error: 'ไม่สามารถลบสื่อการเรียนรู้ได้' };
+    return { error: formatError(createErrorResponse('DB03')) };
   }
 
   revalidatePath('/admin/resources');

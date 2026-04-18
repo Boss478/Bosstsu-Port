@@ -2,6 +2,13 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+:root {
+  --animate-slide: 0.8s;
+  --animate-fade: 0.5s;
+  --animate-float: 3s;
+  --animate-ease: ease-out;
+}
+
 @theme {
   --backdrop-blur-2xs: 2px;
   --backdrop-blur-3xs: 1.5px;

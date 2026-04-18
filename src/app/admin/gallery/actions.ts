@@ -5,6 +5,7 @@ import dbConnect from '@/lib/db';
 import Gallery from '@/models/Gallery';
 import { verifyAuth } from '@/lib/auth';
 import { saveFile } from '@/lib/upload';
+import { createErrorResponse } from '@/lib/error-code';
 import { z } from 'zod';
 
 const gallerySchema = z.object({
@@ -16,9 +17,13 @@ const gallerySchema = z.object({
   relatedPortfolioId: z.string().optional(),
 });
 
+function formatError(err: ReturnType<typeof createErrorResponse>): string {
+  return `${err.code}: ${err.message} (${err.translation})`;
+}
+
 export async function createGalleryAlbum(formData: FormData) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: 'Unauthorized' };
+  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
 
   const parsed = gallerySchema.safeParse({
     title: formData.get('title'),
@@ -39,7 +44,7 @@ export async function createGalleryAlbum(formData: FormData) {
   const photoFiles = formData.getAll('photos') as File[];
 
   if (!coverFile || coverFile.size === 0) {
-    return { error: 'Cover image is required' };
+    return { error: formatError(createErrorResponse('U03')) };
   }
 
   await dbConnect();
@@ -48,7 +53,6 @@ export async function createGalleryAlbum(formData: FormData) {
     const coverPath = await saveFile(coverFile, 'gallery/covers', true);
     const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
     
-    // Upload photos
     const photos: string[] = [];
     for (const file of photoFiles) {
       if (file.size > 0) {
@@ -70,7 +74,7 @@ export async function createGalleryAlbum(formData: FormData) {
     });
   } catch (error: unknown) {
     console.error('CreateGallery Error:', error);
-    return { error: 'ไม่สามารถสร้างอัลบั้มได้' };
+    return { error: formatError(createErrorResponse('DB01')) };
   }
 
   revalidatePath('/admin/gallery');
@@ -80,7 +84,7 @@ export async function createGalleryAlbum(formData: FormData) {
 
 export async function updateGalleryAlbum(id: string, formData: FormData) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: 'Unauthorized' };
+  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
 
   const parsed = gallerySchema.safeParse({
     title: formData.get('title'),
@@ -123,7 +127,6 @@ export async function updateGalleryAlbum(id: string, formData: FormData) {
       updateData.cover = await saveFile(coverFile, 'gallery/covers', true);
     }
 
-    // Handle photos: Keep existing + Add new
     const photos = existingPhotosStr ? JSON.parse(existingPhotosStr) : [];
     
     for (const file of photoFiles) {
@@ -137,7 +140,7 @@ export async function updateGalleryAlbum(id: string, formData: FormData) {
     await Gallery.findByIdAndUpdate(id, updateData);
   } catch (error: unknown) {
     console.error('UpdateGallery Error:', error);
-    return { error: 'ไม่สามารถอัปเดตอัลบั้มได้' };
+    return { error: formatError(createErrorResponse('DB02')) };
   }
 
   revalidatePath('/admin/gallery');
@@ -147,14 +150,14 @@ export async function updateGalleryAlbum(id: string, formData: FormData) {
 
 export async function deleteGalleryAlbum(id: string) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: 'Unauthorized' };
+  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
 
   await dbConnect();
   try {
     await Gallery.findByIdAndDelete(id);
   } catch (error: unknown) {
     console.error('DeleteGallery Error:', error);
-    return { error: 'ไม่สามารถลบอัลบั้มได้' };
+    return { error: formatError(createErrorResponse('DB03')) };
   }
 
   revalidatePath('/admin/gallery');

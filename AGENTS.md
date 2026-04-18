@@ -78,7 +78,9 @@ boss478/
 │   │   ├── db.ts                   # MongoDB connection (cached, pool: 3)
 │   │   ├── auth.ts                 # JWT token validation
 │   │   ├── config.ts               # App configuration constants
-│   │   └── upload.ts               # Upload handling utilities
+│   │   ├── upload.ts               # Upload handling utilities
+│   │   ├── error-code.ts           # Unified HTTP + app error codes
+│   │   └── constants.ts             # DB timeouts, animation, routes
 │   ├── models/                     # Mongoose schemas
 │   ├── middleware.ts               # Admin route protection (JWT cookie)
 │   └── types/
@@ -115,6 +117,7 @@ npm run seed     # Seed MongoDB via scripts/seed.ts (tsx)
 3. **`package.json` version and latest `changelog.md` entry must match exactly**
 4. **Save a post-task report** to `.agents/report/report-{Mon}_{Day}_{YYYY}-{HH}_{mm}.md`
 5. **Output a completion summary** — what changed, current version, changelog updated?
+6. **Update memory** — If there's something important to remember (bugs, errors, patterns, new configs), add to `.agents/memory.md`
 
 ---
 
@@ -170,6 +173,38 @@ Every changelog must keep an `UPDATE NOTE` block at the top explaining the symbo
 | Uploads | Server actions body limit `30mb`; `sharp` in `serverExternalPackages` — never move to edge |
 | CSP | `unsafe-inline`/`unsafe-eval` in `next.config.ts` is **intentional** (React Compiler requirement) |
 | Middleware | Scoped to `/admin/:path*` only — zero overhead on public routes |
+
+---
+
+## Error Code System
+
+All error codes centralized in `src/lib/error-code.ts` (single flat structure).
+
+- **HTTP Codes**: 400, 401, 403, 404, 413, 415, 422, 429, 500, 502, 503
+- **App Codes**:
+  - `U01`-`U05`: Upload errors (file size, type, folder, cover)
+  - `A01`-`A02`: Auth errors (invalid password, rate limited)
+  - `DB01`-`DB03`: Database errors (create, update, delete)
+  - `T01`-`T03`: Tag errors (empty, add failed, not found)
+  - `P01`-`P02`: Pyodide errors (invalid request, invalid input)
+
+**Usage:**
+```typescript
+import { getError, createErrorResponse } from '@/lib/error-code';
+
+getError('404')    // HTTP error → { code: "ERROR_404 [404]", httpStatus: 404, ... }
+getError('U01')    // App error → { code: "ERROR_U01 [413]", httpStatus: 413, ... }
+```
+
+**Response format:**
+```json
+{
+  "code": "ERROR_404 [404]",
+  "httpStatus": 404,
+  "message": "ไม่พบข้อมูล",
+  "translation": "Not Found"
+}
+```
 
 ---
 
@@ -273,7 +308,7 @@ Every changelog must keep an `UPDATE NOTE` block at the top explaining the symbo
 3. Mark items complete as you go
 4. Bump version + update changelog before marking done
 5. Save post-task report to `.agents/report/`
-6. **Update memory** after any user correction: add bugs, errors, mistakes, important context to `.agents/memory.md`
+6. **Update memory** — Add important context (bugs, errors, patterns, new configs) to `.agents/memory.md` after every task
 7. After completing a plan, update its status inside the plan file as `Done` with Date & Time
 
 ---

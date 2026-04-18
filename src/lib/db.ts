@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { DB } from './constants';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -32,11 +33,11 @@ async function dbConnect() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      maxPoolSize: 3,
-      minPoolSize: 1,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 30000,
-      connectTimeoutMS: 5000,
+      maxPoolSize: DB.POOL.MAX,
+      minPoolSize: DB.POOL.MIN,
+      serverSelectionTimeoutMS: DB.TIMEOUTS.SERVER_SELECTION,
+      socketTimeoutMS: DB.TIMEOUTS.SOCKET,
+      connectTimeoutMS: DB.TIMEOUTS.CONNECT,
     };
 
     cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {

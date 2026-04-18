@@ -4,6 +4,7 @@ import { headers, cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { CONFIG } from '@/lib/config';
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from '@/lib/rate-limit';
+import { createErrorResponse } from '@/lib/error-code';
 
 async function hmacSign(secret: string, message: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -45,19 +46,22 @@ export async function loginAdmin(
 
   const rateLimit = checkRateLimit(ip);
   if (rateLimit === 'locked') {
-    return { error: 'ระบบถูกล็อกชั่วคราว โปรดลองอีกครั้งใน 15 นาที' };
+    const err = createErrorResponse('A02');
+    return { error: `${err.code}: ${err.message} (${err.translation})` };
   }
 
   const password = formData.get('password') as string;
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!adminPassword) {
-    return { error: 'เกิดข้อผิดพลาดของระบบ' };
+    const err = createErrorResponse('500');
+    return { error: `${err.code}: ${err.message} (${err.translation})` };
   }
 
   if (password !== adminPassword) {
     recordFailedAttempt(ip);
-    return { error: 'รหัสผ่านไม่ถูกต้อง' };
+    const err = createErrorResponse('A01');
+    return { error: `${err.code}: ${err.message} (${err.translation})` };
   }
 
   resetAttempts(ip);

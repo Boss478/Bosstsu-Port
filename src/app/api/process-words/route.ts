@@ -2,11 +2,13 @@ import { NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { createErrorResponse } from '@/lib/error-code';
 
 export async function GET() {
   const isAuth = await verifyAuth();
   if (!isAuth) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const err = createErrorResponse('401');
+    return NextResponse.json({ error: err }, { status: err.httpStatus });
   }
 
   try {
@@ -18,7 +20,6 @@ export async function GET() {
     fileData = fileData.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     const lines = fileData.split('\n');
     
-    // misspellings dictionary
     const misspellings: Record<string, string> = {
         'accommodate': 'acommodate',
         'achieve': 'acheive',
@@ -32,7 +33,7 @@ export async function GET() {
         'necessary': 'neccessary',
         'occurrence': 'occurence',
         'perseverance': 'perseverence',
-        'privilege': 'privelege',
+        'privilee': 'privelege',
         'publicly': 'publically',
         'receive': 'recieve',
         'recommend': 'recomend',
@@ -154,8 +155,7 @@ export async function GET() {
         return word.slice(0, -1);
     }
     
-    // Parse
-    lines.shift(); // header
+    lines.shift();
     
     const validWords: {word: string, wclass: string, level: string}[] = [];
     const seen = new Set<string>();
@@ -177,14 +177,11 @@ export async function GET() {
        }
     }
     
-    // Sort correctly according to true variations only
     validWords.sort((a, b) => a.word.toLowerCase().localeCompare(b.word.toLowerCase()));
     
     const outRows = ['word,isCorrect,class,level'];
     for (const item of validWords) {
-        // True variant
         outRows.push(`${item.word},true,${item.wclass},${item.level}`);
-        // False variant
         let wrong = misspellings[item.word];
         if (!wrong) {
             wrong = generateMisspelling(item.word);
@@ -200,6 +197,7 @@ export async function GET() {
     return NextResponse.json({ success: true, count: outRows.length - 1 });
   } catch {
     console.error('Process Words Error');
-    return NextResponse.json({ success: false, error: 'เกิดข้อผิดพลาดในการประมวลผล' });
+    const err = createErrorResponse('500');
+    return NextResponse.json({ success: false, error: err });
   }
 }

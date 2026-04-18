@@ -5,6 +5,7 @@ import dbConnect from '@/lib/db';
 import Game from '@/models/Game';
 import { verifyAuth } from '@/lib/auth';
 import { saveFile } from '@/lib/upload';
+import { createErrorResponse } from '@/lib/error-code';
 import { z } from 'zod';
 
 const gameSchema = z.object({
@@ -16,9 +17,13 @@ const gameSchema = z.object({
   tagsStr: z.string().optional(),
 });
 
+function formatError(err: ReturnType<typeof createErrorResponse>): string {
+  return `${err.code}: ${err.message} (${err.translation})`;
+}
+
 export async function createGame(formData: FormData) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: 'Unauthorized' };
+  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
 
   const parsed = gameSchema.safeParse({
     title: formData.get('title'),
@@ -48,7 +53,7 @@ export async function createGame(formData: FormData) {
     }
 
     if (!thumbnail) {
-      return { error: 'Thumbnail image is required' };
+      return { error: formatError(createErrorResponse('U03')) };
     }
 
     await Game.create({
@@ -63,7 +68,7 @@ export async function createGame(formData: FormData) {
     });
   } catch (error: unknown) {
     console.error('Create game error:', error);
-    return { error: 'ไม่สามารถสร้างเกมได้' };
+    return { error: formatError(createErrorResponse('DB01')) };
   }
 
   revalidatePath('/admin/games');
@@ -73,7 +78,7 @@ export async function createGame(formData: FormData) {
 
 export async function updateGame(id: string, formData: FormData) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: 'Unauthorized' };
+  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
 
   const parsed = gameSchema.safeParse({
     title: formData.get('title'),
@@ -91,7 +96,7 @@ export async function updateGame(id: string, formData: FormData) {
   const { title, description, category, playUrl, instructions, tagsStr } = parsed.data;
   const published = formData.get('published') === 'on';
   const thumbnailFile = formData.get('thumbnail') as File;
-
+  
   await dbConnect();
 
   try {
@@ -112,7 +117,7 @@ export async function updateGame(id: string, formData: FormData) {
     await Game.findByIdAndUpdate(id, updateData);
   } catch (error: unknown) {
     console.error('Update game error:', error);
-    return { error: 'ไม่สามารถอัปเดตเกมได้' };
+    return { error: formatError(createErrorResponse('DB02')) };
   }
 
   revalidatePath('/admin/games');
@@ -122,14 +127,14 @@ export async function updateGame(id: string, formData: FormData) {
 
 export async function deleteGame(id: string) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: 'Unauthorized' };
+  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
 
   await dbConnect();
   try {
     await Game.findByIdAndDelete(id);
   } catch (error: unknown) {
     console.error('Delete game error:', error);
-    return { error: 'ไม่สามารถลบเกมได้' };
+    return { error: formatError(createErrorResponse('DB03')) };
   }
 
   revalidatePath('/admin/games');

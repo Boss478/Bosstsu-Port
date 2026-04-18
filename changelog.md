@@ -3,6 +3,18 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.11 (2026-04-18)
+
++ **Centralized Config Files**: Created 2 new centralized files for easy configuration management:
+  - `src/lib/constants.ts` — DB timeouts, pool settings, animation durations, route paths, Mongo Express URL config
++ **Centralized Error Codes**: Created single `src/lib/error-code.ts` — unified HTTP (400, 401, 404, etc.) and app-specific error codes in one flat structure.
+  - Format: `ERROR_404 [404]: ไม่พบข้อมูล (NOT FOUND)` for HTTP, `ERROR_U01 [413]: ไฟล์มีขนาดใหญ่เกินไป (File is too large)` for app codes
+  - Returns structured JSON: `{ code, httpStatus, message, translation }`
+  - Usage: `getError('404')` or `getError('U01')` — single key lookup
++ **DB Settings Centralized**: Moved hardcoded `serverSelectionTimeoutMS`, `socketTimeoutMS`, `connectTimeoutMS`, and pool settings from `src/lib/db.ts` to use centralized constants from `src/lib/constants.ts`
++ **Mongo Express URL**: Replaced hardcoded `http://localhost:8081` in admin dashboard with `process.env.MONGO_EXPRESS_URL` env var — configurable per environment
++ **CSS Animation Variables**: Added CSS custom properties (`--animate-slide`, `--animate-fade`, `--animate-float`, `--animate-ease`) to `globals.css` for consistent timing across animations
+
 ## v1.5.10 (2026-04-18)
 
 * **ESLint Cleanup**: Fixed 26+ ESLint errors across the codebase. Replaced `any` type casts with proper TypeScript interfaces (`IPortfolioItem`, `IGalleryAlbum`, `ILearningResource`). Added `src/types/global.d.ts` with `window.webkitAudioContext` declaration to eliminate `(window as any)` casts.

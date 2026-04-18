@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import dbConnect from '@/lib/db';
 import Portfolio from '@/models/Portfolio';
 import { verifyAuth } from '@/lib/auth';
+import { createErrorResponse } from '@/lib/error-code';
 import { z } from 'zod';
 import DOMPurify from 'isomorphic-dompurify';
 
@@ -17,9 +18,13 @@ const portfolioSchema = z.object({
   toolsStr: z.string().optional(),
 });
 
+function formatError(err: ReturnType<typeof createErrorResponse>): string {
+  return `${err.code}: ${err.message} (${err.translation})`;
+}
+
 export async function createPortfolioItem(formData: FormData) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: 'Unauthorized' };
+  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
 
   const parsed = portfolioSchema.safeParse({
     title: formData.get('title'),
@@ -43,7 +48,7 @@ export async function createPortfolioItem(formData: FormData) {
   const galleryUrls = galleryUrlsStr ? JSON.parse(galleryUrlsStr) : [];
 
   if (!coverUrl) {
-    return { error: 'Cover image is required' };
+    return { error: formatError(createErrorResponse('U03')) };
   }
 
   await dbConnect();
@@ -66,7 +71,7 @@ export async function createPortfolioItem(formData: FormData) {
     });
   } catch (error: unknown) {
     console.error('Create error:', error);
-    return { error: 'ไม่สามารถสร้างรายการได้' };
+    return { error: formatError(createErrorResponse('DB01')) };
   }
 
   revalidatePath('/admin/portfolio');
@@ -76,7 +81,7 @@ export async function createPortfolioItem(formData: FormData) {
 
 export async function updatePortfolioItem(id: string, formData: FormData) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: 'Unauthorized' };
+  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
 
   const parsed = portfolioSchema.safeParse({
     title: formData.get('title'),
@@ -124,7 +129,7 @@ export async function updatePortfolioItem(id: string, formData: FormData) {
     await Portfolio.findByIdAndUpdate(id, updateData);
   } catch (error: unknown) {
     console.error('Update error:', error);
-    return { error: 'ไม่สามารถอัปเดตรายการได้' };
+    return { error: formatError(createErrorResponse('DB02')) };
   }
 
   revalidatePath('/admin/portfolio');
@@ -134,14 +139,14 @@ export async function updatePortfolioItem(id: string, formData: FormData) {
 
 export async function deletePortfolioItem(id: string) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: 'Unauthorized' };
+  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
 
   await dbConnect();
   try {
     await Portfolio.findByIdAndDelete(id);
   } catch (error: unknown) {
     console.error('Delete error:', error);
-    return { error: 'ไม่สามารถลบรายการได้' };
+    return { error: formatError(createErrorResponse('DB03')) };
   }
 
   revalidatePath('/admin/portfolio');

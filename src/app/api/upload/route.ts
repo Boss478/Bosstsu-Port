@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth';
 import { saveFile, isHeicFile } from '@/lib/upload';
 import { CONFIG } from '@/lib/config';
+import { createErrorResponse } from '@/lib/error-code';
 
 const ALLOWED_FOLDERS = [...CONFIG.UPLOAD.ALLOWED_FOLDERS] as string[];
 const FOLDERS_CONVERT_TO_WEBP = [...CONFIG.UPLOAD.FOLDERS_CONVERT_TO_WEBP] as string[];
@@ -9,7 +10,8 @@ const FOLDERS_CONVERT_TO_WEBP = [...CONFIG.UPLOAD.FOLDERS_CONVERT_TO_WEBP] as st
 export async function POST(req: NextRequest) {
   const isAuth = await verifyAuth();
   if (!isAuth) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const err = createErrorResponse('401');
+    return NextResponse.json({ error: err }, { status: err.httpStatus });
   }
 
   try {
@@ -18,28 +20,26 @@ export async function POST(req: NextRequest) {
     const folderInput = (formData.get('folder') as string) || 'misc';
 
     if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      const err = createErrorResponse('400');
+      return NextResponse.json({ error: err }, { status: err.httpStatus });
     }
 
     if (!ALLOWED_FOLDERS.includes(folderInput)) {
-      return NextResponse.json({ error: 'Invalid folder specified' }, { status: 400 });
+      const err = createErrorResponse('U04');
+      return NextResponse.json({ error: err }, { status: err.httpStatus });
     }
 
     const maxSize = CONFIG.UPLOAD.MAX_SIZE;
     if (file.size > maxSize) {
-      return NextResponse.json(
-        { error: `File too large. Maximum size is ${Math.round(maxSize / 1024 / 1024)}MB.` },
-        { status: 400 }
-      );
+      const err = createErrorResponse('U01');
+      return NextResponse.json({ error: err }, { status: err.httpStatus });
     }
 
     const allowedTypes = CONFIG.UPLOAD.ALLOWED_TYPES as unknown as string[];
 
     if (!isHeicFile(file) && !allowedTypes.includes(file.type)) {
-      return NextResponse.json(
-        { error: `Invalid file type. Allowed: ${allowedTypes.join(', ')}` },
-        { status: 400 }
-      );
+      const err = createErrorResponse('U02');
+      return NextResponse.json({ error: err }, { status: err.httpStatus });
     }
 
     const convertToWebP = FOLDERS_CONVERT_TO_WEBP.includes(folderInput);
@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: filePath }, { status: 200 });
   } catch (error: Error | unknown) {
     console.error('API Upload Error:', error);
-    return NextResponse.json({ error: 'เกิดข้อผิดพลาดในการอัปโหลด' }, { status: 500 });
+    const err = createErrorResponse('500');
+    return NextResponse.json({ error: err }, { status: err.httpStatus });
   }
 }
