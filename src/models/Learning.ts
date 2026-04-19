@@ -9,6 +9,11 @@ export interface ILearningResource extends Document {
   thumbnail?: string;
   tags: string[];
   published: boolean;
+  content?: string;
+  embedCode?: string;
+  fileUrl?: string;
+  youtubeId?: string;
+  canvaEmbed?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,10 +24,15 @@ const LearningSchema: Schema = new Schema(
     description: { type: String, required: true },
     subject: { type: String, required: true },
     type: { type: String, required: true },
-    link: { type: String, required: true },
+    link: { type: String },
     thumbnail: { type: String },
     tags: { type: [String], default: [] },
     published: { type: Boolean, default: true },
+    content: { type: String },
+    embedCode: { type: String },
+    fileUrl: { type: String },
+    youtubeId: { type: String },
+    canvaEmbed: { type: String },
   },
   {
     timestamps: true,

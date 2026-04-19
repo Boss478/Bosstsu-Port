@@ -3,6 +3,56 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.18 (2026-04-19)
+
++ **Public Resource Detail Page** (`/resources/[id]`): Added new Server Component page for individual learning resources
+  - Renders content differently per type: Article → `.article-content` HTML, Video → YouTube iframe, Presentation → Canva embed or PDF iframe, Lesson Plan → PDF/image preview + download button, Sheet/Worksheet → PDF or image, Scratch/Interactive → raw embed code, fallback → external link button
+  - ObjectId validation with `mongoose.isValidObjectId` before any DB query
+  - Prev/Older & Next/Newer navigation by `createdAt`, sidebar with 5 most recent resources
+  - `generateMetadata` with full OG tags (title, description, thumbnail image)
+  - `revalidate = 60` (ISR, no `generateStaticParams`)
+* **ResourcesClient**: Changed resource cards from external `<a href>` to internal `<Link href="/resources/[id]">` so users navigate to the detail page instead of leaving the site
++ **`.article-content` CSS**: Added comprehensive rich-text typography class to `globals.css` covering h1–h6, p, ul/ol/li, a, strong/em/u/s, img, hr, blockquote, code, pre — with full dark mode variants — replacing `@tailwindcss/typography` (not installed)
+
+
+
++ **RichTextEditor — HTML Source Toggle**: Added WYSIWYG ↔ HTML Code view switch button
+  - Toggle button always visible at far-right of Row 1 toolbar (`ml-auto`)
+  - WYSIWYG → HTML: copies current innerHTML into a monospace `<textarea>` for direct editing
+  - HTML → Editor: applies textarea content back to `contentEditable` div and syncs hidden input
+  - Toolbar Row 1 formatting buttons, Row 2, and inline dialogs are hidden in HTML mode
+  - Both views share the same hidden `<input>` — form submission works identically in either mode
+  - `spellCheck={false}` on the textarea to suppress spell-check noise in raw HTML
+
+## v1.5.16 (2026-04-19)
+
+* **Upgraded RichTextEditor**: Rewrote toolbar from scratch with full word-processor features:
+  - Row 1: Block Format dropdown (P / H1–H6), Font Size dropdown (10–48px), Bold, Italic, Underline, Strikethrough, Text Color (16-color palette), Alignment (Left / Center / Right / Justify)
+  - Row 2: Bullet List, Ordered List, Indent, Outdent, Insert Link (inline dialog + save/restore selection), Unlink, Insert Image by URL (inline dialog), Horizontal Rule, Remove Formatting
+  - Active state tracking via `onKeyUp`/`onMouseUp` for B/I/U/S, lists, and alignment buttons
+  - All toolbar buttons use `onMouseDown + e.preventDefault()` to preserve editor focus
+  - Inline link/image dialogs with Enter to confirm and Escape to dismiss — no browser `prompt()`
+  - Font size applied via `fontSize`/`<font>` trick → converted to inline `<span style>` for clean output
+  - `OpenPanel` discriminated union replaces multiple boolean flags
+
+## v1.5.15 (2026-04-19)
+
++ **Enhanced Admin: New Resource Page**: Added comprehensive type-specific content management:
+  - Subject options changed to Thai (English) format (e.g., คณิตศาสตร์ (Mathematics))
+  - Added 8 new resource types: Article, Presentation, Video, Lesson Plan, Sheet, Worksheet, Scratch, Interactive
+  - Type-specific UI per type:
+    - Article: HTML Editor (React Quill) + Image Upload + Video URL + Link Management + PDF Support
+    - Presentation: Canva Embed / PDF Embed + File Upload (PDF)
+    - Video: YouTube URL only
+    - Lesson Plan: File Upload (PDF only)
+    - Sheet: File Upload (JPG, PNG, PDF)
+    - Worksheet: File Upload (JPG, PNG, PDF)
+    - Scratch / Interactive: Embed Code (<code>&lt;iframe&gt;</code>)
+* **Added Learning Schema Fields**: Added content, embedCode, fileUrl, youtubeId, canvaEmbed fields to ILearningResource
+* **Added Type Validation**: Server-side validation per resource type (file type, required fields)
+* **Added DOMPurify Sanitization**: HTML content sanitized at write-time for XSS protection
+* **Added react-quill + react-pdf dependencies**: For HTML editor and PDF viewing
+
 ## v1.5.14 (2026-04-19)
 
 * **Fixed Filter Layout Alignment**: Wrapped filter buttons and sort dropdown in `max-w-7xl mx-auto` container so they align with the card grid below

@@ -16,7 +16,7 @@ export const CONFIG = {
     ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'] as const,
 
     // Folders the upload API accepts — add/remove here to control allowed destinations
-    ALLOWED_FOLDERS: ['portfolio', 'gallery', 'portfolio/gallery', 'misc'] as const,
+    ALLOWED_FOLDERS: ['portfolio', 'gallery', 'portfolio/gallery', 'misc', 'learning'] as const,
 
     // Folders that get converted to WebP for better compression — others save as JPEG
     FOLDERS_CONVERT_TO_WEBP: ['portfolio'] as const,

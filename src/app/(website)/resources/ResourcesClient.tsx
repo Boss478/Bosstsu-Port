@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Breadcrumb from "@/components/Breadcrumb";
 import { formatDate } from "@/lib/format";
 import { type ResourceItem } from "./data";
@@ -117,11 +118,9 @@ export default function ResourcesClient({
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {items.map((item) => (
-                <a
+                <Link
                   key={item.id}
-                  href={item.link}
-                  target={item.link !== "#" ? "_blank" : "_self"}
-                  rel="noopener noreferrer"
+                  href={`/resources/${item.id}`}
                   className="group flex flex-col bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-zinc-100 dark:border-slate-800 shadow-xs hover:shadow-xl hover:shadow-sky-100/50 dark:hover:shadow-black/30 hover:-translate-y-1 transition-all duration-300"
                 >
                   <div className="relative aspect-video overflow-hidden bg-zinc-100 dark:bg-slate-800">
@@ -168,10 +167,10 @@ export default function ResourcesClient({
                         <i className="fi fi-sr-arrow-up-right text-xs"></i>
                       </div>
                     </div>
-                  </div>
-                </a>
-              ))}
-            </div>
+                 </div>
+                 </Link>
+               ))}
+             </div>
           )}
 
           {totalPages > 1 && (

@@ -94,3 +94,54 @@ Store important bugs, errors, mistakes, and project context from previous sessio
 
 - Review this file at every session start
 - Add entries after any user correction or discovered issue
+
+---
+
+## Session: 2026-04-19
+
+### Admin: New Resource Page Enhancement (v1.5.15)
+
+**Added 8 resource types:**
+- Article (HTML Editor + image/video/link/PDF support)
+- Presentation (Canva Embed / PDF embed + file upload)
+- Video (YouTube URL)
+- Lesson Plan (PDF upload only)
+- Sheet (JPG/PNG/PDF upload)
+- Worksheet (JPG/PNG/PDF upload)
+- Scratch (embed code)
+- Interactive (embed code)
+
+**Subject options now Thai (English):**
+- คณิตศาสตร์ (Mathematics), วิทยาศาสตร์ (Science), ภาษาไทย (Thai), ประวัติศาสตร์ (History), เทคโนโลยี (Technology), ศิลปะ (Art), สังคมศึกษา (Social Studies), อื่น ๆ (Other)
+
+**New Learning schema fields:**
+- content (HTML for Article)
+- embedCode (iframe for Scratch/Interactive)
+- fileUrl (uploaded file)
+- youtubeId (Video)
+- canvaEmbed (Presentation)
+
+**Validation:**
+- Type-specific file validation (strict MIME types)
+- DOMPurify sanitization at write-time
+- Extended Zod schemas with per-type validation
+
+**Dependencies:**
+- react-quill removed (not React 19 compatible) → replaced with custom `RichTextEditor` using `contentEditable` + `document.execCommand`
+- react-pdf + pdfjs-dist added (in deps, not yet used in UI)
+
+### RichTextEditor Pattern (v1.5.16)
+
+- Font size: use `execCommand('fontSize', false, '7')` then immediately query `font[size="7"]` and replace with `<span style="font-size: Npx">` — always use value "7" as the marker
+- Save/restore selection for link/image dialogs: `window.getSelection()`, `getRangeAt(0).cloneRange()`, `sel.removeAllRanges()`, `sel.addRange(savedRange)`
+- Active format tracking: call `document.queryCommandState(cmd)` on `onKeyUp` + `onMouseUp` of the editor div
+- `OpenPanel` discriminated union pattern (not multiple boolean flags) for toolbar dropdowns
+- `ToolbarDivider` must be defined OUTSIDE the parent component to avoid remount on every render
+
+### Resource Detail Page Pattern (v1.5.18)
+
+- Learning resources use MongoDB `_id.toString()` as URL param — no slug — validate with `mongoose.isValidObjectId(id)` before any DB query
+- `.lean()` returns POJO — define local lean types (`LeanLearningDoc`, `LeanNavDoc`, `LeanRecentDoc`) instead of casting to the Mongoose Document interface
+- Prev/Next navigation by `createdAt`: older = `{ createdAt: { $lt: docDate } }` sort desc limit 1, newer = `{ createdAt: { $gt: docDate } }` sort asc limit 1
+- `hasPrimaryContent()` helper function keeps the fallback external-link logic clean — checks if any type-specific content field is populated
+- **`@tailwindcss/typography` is NOT installed** — use `.article-content` class in `globals.css` for rich-text HTML rendering (covers h1–h6, p, ul/ol, a, blockquote, code/pre, dark mode)
