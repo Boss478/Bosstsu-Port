@@ -76,17 +76,18 @@ export default function ResourcesClient({
         </div>
       </section>
 
-      <section className="px-4 pb-8 flex flex-wrap items-center justify-between">
+      <section className="px-4 pb-8">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-y-3">
         <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
           {allTypes.map((type) => (
             <button
               key={type}
               onClick={() => filterByType(type)}
               disabled={isPending}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 disabled:opacity-60 ${
+              className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 disabled:opacity-60 border ${
                 activeType === type
                   ? "bg-sky-500 text-white shadow-md shadow-sky-500/25"
-                  : "bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs text-zinc-600 dark:text-zinc-300 hover:bg-sky-100 dark:hover:bg-slate-700"
+                  : "bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-300 hover:bg-sky-100 dark:hover:bg-slate-700"
               }`}
             >
               {type === "All" ? "ทั้งหมด" : type}
@@ -103,6 +104,7 @@ export default function ResourcesClient({
           <option value="Newest">ใหม่สุด</option>
           <option value="Oldest">เก่าสุด</option>
         </select>
+        </div>
       </section>
 
       <section className="pb-20 px-4">
@@ -136,16 +138,16 @@ export default function ResourcesClient({
                       </div>
                     )}
 
-                    <div className="absolute top-2 right-2">
-                       <span className={`px-2 py-1 rounded-md text-xs font-bold text-white shadow-xs ${
-                         item.type === "Worksheet" ? "bg-green-500" :
-                         item.type === "Article" ? "bg-orange-500" :
-                         item.type === "Video" ? "bg-red-500" :
-                         item.type === "Interactive" ? "bg-purple-500" : "bg-sky-500"
-                       }`}>
-                         {item.type}
-                       </span>
-                    </div>
+<div className="absolute top-2 right-2">
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm border border-white/40 shadow-sm ${
+                          item.type === "Worksheet" ? "bg-green-500/50 text-white" :
+                          item.type === "Article" ? "bg-orange-500/50 text-white" :
+                          item.type === "Video" ? "bg-red-500/50 text-white" :
+                          item.type === "Interactive" ? "bg-purple-500/50 text-white" : "bg-sky-500/50 text-white"
+                        }`}>
+                          {item.type}
+                        </span>
+                     </div>
                   </div>
 
                   <div className="p-4 flex flex-col flex-1">
@@ -162,10 +164,9 @@ export default function ResourcesClient({
                         {formatDate(item.date)}
                       </span>
 
-                      <span className="text-xs font-medium text-sky-600 dark:text-sky-400 flex items-center gap-1 group-hover:underline">
-                        เข้าชม
-                        <i className="fi fi-sr-arrow-up-right text-[10px]"></i>
-                      </span>
+                      <div className="w-8 h-8 rounded-full bg-sky-50 dark:bg-slate-800 flex items-center justify-center text-sky-500 group-hover:bg-sky-500 group-hover:text-white transition-all duration-300 shrink-0">
+                        <i className="fi fi-sr-arrow-up-right text-xs"></i>
+                      </div>
                     </div>
                   </div>
                 </a>

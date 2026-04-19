@@ -93,7 +93,6 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
                     className="group relative block bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-sky-100/30 dark:shadow-black/40 border border-transparent hover:border-sky-400/50 transition-all duration-500 hover:-translate-y-3"
                   >
                     <div className="relative aspect-video overflow-hidden">
-                      <div className="absolute inset-0 bg-black/60 z-10 group-hover:bg-black/40 transition-colors"></div>
                       {item.cover ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -110,8 +109,8 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
                       <div className="absolute bottom-4 left-6 z-20">
                          <div className="flex gap-2">
                            {item.tags.map(tag => (
-                             <span key={tag} className="px-3 py-1 rounded-xl bg-sky-500 text-white text-[10px] font-black uppercase tracking-tighter shadow-lg">
-                               {tag}
+<span key={tag} className="px-3 py-1 rounded-xl bg-white/60 backdrop-blur-sm border border-white/70 text-sky-700 shadow-sm text-[10px] font-black uppercase tracking-tighter">
+                                {tag}
                              </span>
                            ))}
                          </div>
@@ -119,7 +118,7 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
                     </div>
 
                     <div className="p-8 relative">
-                      <div className="absolute -top-10 right-8 w-16 h-16 rounded-[1.5rem] bg-sky-500 text-white flex items-center justify-center text-3xl shadow-2xl shadow-sky-500/50 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 z-30">
+                      <div className="absolute -top-10 right-8 w-16 h-16 rounded-3xl bg-sky-500 text-white flex items-center justify-center text-3xl shadow-2xl shadow-sky-500/50 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 z-30">
                         <i className="fi fi-sr-play"></i>
                       </div>
 

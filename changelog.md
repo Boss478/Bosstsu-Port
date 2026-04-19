@@ -3,6 +3,20 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.14 (2026-04-19)
+
+* **Fixed Filter Layout Alignment**: Wrapped filter buttons and sort dropdown in `max-w-7xl mx-auto` container so they align with the card grid below
+* **Strengthened Badge Glassmorphism**: Type badges in Resources now use stronger tint (50% opacity) + white text + rounded-full for better contrast against cover images
+* **Removed Game Card Dark Overlay**: Removed the dark `bg-black/60` overlay on game cards to show game cover at 100% brightness
+* **Updated Game Tags**: Changed to white glass (`bg-white/60 backdrop-blur-sm border`) with dark sky text for readability on any cover image
+
+## v1.5.13 (2026-04-19)
+
+* **Updated Filter Buttons + Badges**: Made filter buttons and type badges fully glassmorphic per design system:
+  - Filter buttons (Resources): Added `border` class (was missing)
+  - Type badges: Changed from solid colors to glassmorphic (40% opacity + backdrop-blur-xs + border) — all types (Worksheet/Article/Video/Interactive)
+  - Game tags: Changed from solid sky to glassmorphic sky-tinted (40% opacity + blur + border)
+
 ## v1.5.12 (2026-04-19)
 
 * **Glassmorphism Design System**: Added comprehensive glassmorphism documentation to AGENTS.md and memory.md — all transparent UI elements must now include both opacity AND backdrop-blur:
