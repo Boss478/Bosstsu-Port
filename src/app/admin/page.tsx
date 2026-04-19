@@ -26,7 +26,7 @@ export default async function AdminPage() {
           </p>
 
           {/* Connection Status Card */}
-          <div className="mb-8 p-6 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 shadow-sm">
+          <div className="mb-8 p-6 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
             <div className="flex items-center gap-3 mb-4">
               <span
                 className={`w-3 h-3 rounded-full ${
@@ -129,7 +129,7 @@ export default async function AdminPage() {
             {stats.collections.map((col) => (
               <div
                 key={col.name}
-                className="p-5 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 shadow-sm hover:shadow-md transition-shadow"
+                className="p-5 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center justify-between mb-3">
                   <i className={`${col.icon} text-sky-500 text-xl`} />
@@ -152,7 +152,7 @@ export default async function AdminPage() {
             <i className="fi fi-sr-time-past text-sky-500 mr-2" />
             รายการล่าสุด — Portfolio
           </h2>
-          <div className="mb-10 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 shadow-sm overflow-hidden">
+          <div className="mb-10 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm overflow-hidden">
             {recent.portfolio.length === 0 ? (
               <p className="p-6 text-zinc-400 text-sm">ไม่มีข้อมูล</p>
             ) : (
@@ -207,7 +207,7 @@ export default async function AdminPage() {
             <i className="fi fi-sr-picture text-sky-500 mr-2" />
             รายการล่าสุด — Gallery
           </h2>
-          <div className="mb-10 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 shadow-sm overflow-hidden">
+          <div className="mb-10 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm overflow-hidden">
             {recent.gallery.length === 0 ? (
               <p className="p-6 text-zinc-400 text-sm">ไม่มีข้อมูล</p>
             ) : (
@@ -249,7 +249,7 @@ export default async function AdminPage() {
           </div>
 
           {/* System Info & Tools */}
-          <div className="mb-8 p-6 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 shadow-sm">
+          <div className="mb-8 p-6 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
             <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
               <i className="fi fi-sr-info text-sky-500" />
               ข้อมูลระบบ (System Info)
@@ -308,7 +308,7 @@ export default async function AdminPage() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Link
               href="/admin/portfolio"
-              className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
+              className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
             >
               <i className="fi fi-sr-briefcase text-sky-500" />
               <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
@@ -318,7 +318,7 @@ export default async function AdminPage() {
             </Link>
             <Link
               href="/admin/gallery"
-              className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
+              className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
             >
               <i className="fi fi-sr-picture text-sky-500" />
               <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
@@ -328,7 +328,7 @@ export default async function AdminPage() {
             </Link>
             <Link
               href="/admin/resources"
-              className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
+              className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
             >
               <i className="fi fi-sr-book-alt text-sky-500" />
               <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
@@ -338,7 +338,7 @@ export default async function AdminPage() {
             </Link>
             <Link
               href="/admin/games"
-              className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
+              className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
             >
               <i className="fi fi-sr-gamepad text-sky-500" />
               <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">

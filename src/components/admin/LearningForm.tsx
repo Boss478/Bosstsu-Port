@@ -70,7 +70,7 @@ export default function LearningForm({
           </div>
         )}
 
-        <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 border border-white/60 dark:border-slate-700/50 shadow-sm space-y-4">
+        <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-4">
           <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 mb-4">
             ข้อมูลสื่อ (Resource Details)
           </h3>
@@ -162,7 +162,7 @@ export default function LearningForm({
       </div>
 
       <div className="space-y-6">
-        <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 border border-white/60 dark:border-slate-700/50 shadow-sm space-y-4">
+        <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-4">
           <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 mb-4">
             หน้าปก
           </h3>

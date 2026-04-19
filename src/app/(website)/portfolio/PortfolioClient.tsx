@@ -85,7 +85,7 @@ export default function PortfolioClient({
             value={activeTag || "ทั้งหมด"}
             onChange={(e) => filterByTag(e.target.value)}
             disabled={isPending}
-            className="px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:bg-sky-100 dark:hover:bg-slate-700 hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-200 cursor-pointer disabled:opacity-60"
+            className="px-4 py-1.5 rounded-full text-sm font-medium bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:bg-sky-100 dark:hover:bg-slate-700 hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-200 cursor-pointer disabled:opacity-60"
           >
             {allTags.map((tag) => (
               <option key={tag} value={tag}>

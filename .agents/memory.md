@@ -13,6 +13,10 @@ Store important bugs, errors, mistakes, and project context from previous sessio
 - Local fonts in `src/fonts/` loaded via `next/font/local` — **never Google Fonts**
 - Flaticon icons (`fi fi-sr-*`) — **no emoji as icons**
 - Class-based dark mode via `ThemeProvider` (`.dark` class on `<html>`)
+- **Glassmorphism** — all transparent elements MUST have backdrop-blur:
+  - Filter buttons: `bg-white/40 backdrop-blur-xs`
+  - Cards/forms: `bg-white/60 backdrop-blur-sm`
+  - Navbar: `bg-white/40 backdrop-blur-3xs`
 - Centralized configs in `src/lib/`:
   - `config.ts` — main CONFIG (auth, upload, image, pagination, rate limit)
   - `error-code.ts` — unified HTTP + app error codes (flat structure)
@@ -26,6 +30,18 @@ Store important bugs, errors, mistakes, and project context from previous sessio
 | `suppressHydrationWarning` required on `<html>` | ThemeProvider sets `.dark` on first render, causes mismatch |
 | `bufferCommands: false` in Mongoose | Queries hard-fail if DB unready — don't catch/ignore the error |
 | `sharp` in `serverExternalPackages` | Cannot run in edge runtime |
+
+### Glassmorphism Patterns
+
+| Opacity | Light | Dark | Blur | Usage |
+|--------|-------|------|------|-------|
+| 40% | `bg-white/40` | `bg-slate-800/40` | `backdrop-blur-xs` | Filter buttons |
+| 40% | `bg-white/40` | `bg-slate-900/40` | `backdrop-blur-3xs` | Navbar |
+| 60% | `bg-white/60` | `bg-slate-800/60` | `backdrop-blur-sm` | Cards, forms |
+| Borders: `border-white/60` / `border-slate-700/50` |
+| Shadows: `shadow-lg shadow-sky-100/40` / `shadow-black/20` |
+| Always use both opacity + blur together |
+| See AGENTS.md "Glassmorphism Design" for full docs |
 
 ### React Patterns (from changelog)
 

@@ -86,7 +86,7 @@ export default function ResourcesClient({
               className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 disabled:opacity-60 ${
                 activeType === type
                   ? "bg-sky-500 text-white shadow-md shadow-sky-500/25"
-                  : "bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 hover:bg-sky-100 dark:hover:bg-slate-700"
+                  : "bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs text-zinc-600 dark:text-zinc-300 hover:bg-sky-100 dark:hover:bg-slate-700"
               }`}
             >
               {type === "All" ? "ทั้งหมด" : type}

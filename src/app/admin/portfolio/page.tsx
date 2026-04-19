@@ -69,7 +69,7 @@ export default async function PortfolioListPage({
 
         <SearchFilter />
 
-        <div className="bg-white/60 dark:bg-slate-800/60 rounded-2xl border border-white/60 dark:border-slate-700/50 shadow-sm overflow-hidden">
+        <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-white/60 dark:border-slate-700/50 shadow-sm overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-zinc-200/60 dark:border-slate-700/50 text-zinc-500 dark:text-zinc-400 text-sm">

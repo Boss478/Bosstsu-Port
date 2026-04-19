@@ -10,7 +10,7 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen bg-sky-50 dark:bg-slate-950 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <div className="p-8 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 shadow-lg">
+        <div className="p-8 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-lg">
 
           <div className="text-center mb-8">
             <div className="w-16 h-16 rounded-2xl bg-sky-500 dark:bg-sky-600 flex items-center justify-center text-white mx-auto mb-4">

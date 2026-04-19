@@ -3,6 +3,17 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.12 (2026-04-19)
+
+* **Glassmorphism Design System**: Added comprehensive glassmorphism documentation to AGENTS.md and memory.md — all transparent UI elements must now include both opacity AND backdrop-blur:
+  - Filter buttons: `bg-white/40 backdrop-blur-xs`
+  - Cards/forms: `bg-white/60 backdrop-blur-sm`
+  - Navbar: `bg-white/40 backdrop-blur-3xs`
+* **Applied Glassmorphism to Components**: Added `backdrop-blur-*` to all glassmorphism elements:
+  - Filter buttons in Gallery, Portfolio, Resources (reduced opacity from 70% → 40%)
+  - Admin pages (games, gallery, portfolio, resources, login)
+  - Admin forms (PortfolioForm, GameForm, GalleryForm, LearningForm)
+
 ## v1.5.11 (2026-04-18)
 
 + **Centralized Config Files**: Created 2 new centralized files for easy configuration management:
