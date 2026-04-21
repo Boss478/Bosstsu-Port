@@ -7,6 +7,13 @@
   --animate-fade: 0.5s;
   --animate-float: 3s;
   --animate-ease: ease-out;
+  --sk-base: #e2e8f0;
+  --sk-shine: rgba(255, 255, 255, 0.65);
+}
+
+.dark {
+  --sk-base: #334155;
+  --sk-shine: rgba(255, 255, 255, 0.10);
 }
 
 @theme {
@@ -168,6 +175,24 @@ body {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+@keyframes skeleton-shimmer {
+  0%   { transform: translateY(-200%); }
+  100% { transform: translateY(200%);  }
+}
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--sk-base);
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 20%, var(--sk-shine) 50%, transparent 80%);
+  transform: translateY(-200%);
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
 }
 
 /* ─── Article Content (rich text rendered HTML) ─────────────────────────── */

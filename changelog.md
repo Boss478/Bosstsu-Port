@@ -3,6 +3,16 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.19 (2026-04-21)
+
++ **Skeleton Loading Screens**: Added GPU-composited shimmer skeleton loaders to all 7 public DB-backed routes via co-located `loading.tsx` files
+  - Routes covered: `/portfolio`, `/gallery`, `/resources`, `/games`, `/portfolio/[id]`, `/gallery/[id]`, `/resources/[id]`
+  - Each `loading.tsx` is a pure static Server Component — zero client JS overhead
+  - CSS technique: `transform: translateY()` vertical shimmer on `::after` pseudo-element (GPU-composited, no CPU paint per frame) — band sweeps top→bottom
+  - Added `.skeleton` plain CSS class to `globals.css` with `--sk-base` / `--sk-shine` CSS variables for light/dark mode
+  - Shimmer gradient is an approved exception to the "no gradients" rule — it is an animation technique, not a UI design element
+  - Applied `relative aspect-video overflow-hidden shrink-0 skeleton` pattern to fix known `aspect-video w-full` collapse inside `flex flex-col`
+
 ## v1.5.18 (2026-04-19)
 
 + **Public Resource Detail Page** (`/resources/[id]`): Added new Server Component page for individual learning resources

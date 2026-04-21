@@ -26,7 +26,7 @@ Store important bugs, errors, mistakes, and project context from previous sessio
 
 | Issue | Fix |
 |-------|-----|
-| `aspect-video w-full` inside flex column collapses to 0 height | Use explicit heights (`h-48 sm:h-56 shrink-0`) or `min-h-[Npx]` |
+| `aspect-video w-full` inside flex column collapses to 0 height | Use `relative aspect-video overflow-hidden shrink-0 skeleton` on wrapper (no child needed) |
 | `suppressHydrationWarning` required on `<html>` | ThemeProvider sets `.dark` on first render, causes mismatch |
 | `bufferCommands: false` in Mongoose | Queries hard-fail if DB unready — don't catch/ignore the error |
 | `sharp` in `serverExternalPackages` | Cannot run in edge runtime |
@@ -145,3 +145,16 @@ Store important bugs, errors, mistakes, and project context from previous sessio
 - Prev/Next navigation by `createdAt`: older = `{ createdAt: { $lt: docDate } }` sort desc limit 1, newer = `{ createdAt: { $gt: docDate } }` sort asc limit 1
 - `hasPrimaryContent()` helper function keeps the fallback external-link logic clean — checks if any type-specific content field is populated
 - **`@tailwindcss/typography` is NOT installed** — use `.article-content` class in `globals.css` for rich-text HTML rendering (covers h1–h6, p, ul/ol, a, blockquote, code/pre, dark mode)
+
+---
+
+## Session: 2026-04-21
+
+### Skeleton Loading Screens (v1.5.19)
+
+- Added GPU-composited shimmer `.skeleton` CSS class to `globals.css` — uses `transform: translateY()` vertical sweep on `::after` pseudo-element (NOT `background-position` which triggers CPU paint); gradient is `180deg` (top→bottom); changed from `translateX`/`90deg` in same v1.5.19
+- `::after` pseudo-elements cannot be defined inside TailwindCSS 4 `@utility` blocks — must use a plain CSS class
+- Shimmer `linear-gradient` is an approved exception to the "no gradients" rule — it is an animation technique on a pseudo-element, not a UI design element
+- CSS variables for skeleton: `--sk-base` (background color) and `--sk-shine` (shimmer color) defined in `:root` with `.dark` override
+- All 7 `loading.tsx` files are pure static Server Components — zero JS overhead
+- **Gotcha fix confirmed**: `relative aspect-video overflow-hidden shrink-0 skeleton` pattern prevents height collapse in `flex flex-col` containers
