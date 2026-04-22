@@ -3,6 +3,10 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.20 (2026-04-22)
+
+* **Fixed Cache-Control warning**: Removed redundant `/_next/static/(.*)` header block from `next.config.ts` — Next.js already sets `Cache-Control: public, max-age=31536000, immutable` internally in production; manually overriding it triggered dev-mode warning and could break HMR
+
 ## v1.5.19 (2026-04-21)
 
 + **Skeleton Loading Screens**: Added GPU-composited shimmer skeleton loaders to all 7 public DB-backed routes via co-located `loading.tsx` files
