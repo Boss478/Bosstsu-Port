@@ -48,10 +48,13 @@ yarn-error.log*
 
 # Project specific
 CLAUDE.md
+requirements.md
 Tasks/
 .claude/
 .claude/plans/
 .claude/report/
+.agents/
+.codesight/
 
 # Session memory (Remember plugin)
 .remember/
