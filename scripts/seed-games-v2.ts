@@ -14,7 +14,7 @@ const gamesData = [
     playUrl: "/games/alphabet-adventure",
     thumbnail: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2022&auto=format&fit=crop",
     instructions: "คลิกเลือกตัวอักษรที่ถูกต้องเพื่อสะสมคะแนน ผ่านด่านไปให้ถึงระดับท้าทาย!",
-    tags: ["Letters", "G.1"],
+    tags: ["Native", "Letters", "G.1"],
     published: true,
   },
   {
@@ -25,7 +25,18 @@ const gamesData = [
     playUrl: "/games/number-game",
     thumbnail: "https://images.unsplash.com/photo-1509228468518-180dd482195e?q=80&w=2070&auto=format&fit=crop",
     instructions: "เลือกช่วงตัวเลขที่ต้องการฝึกฝน ตอบคำถามให้ถูกต้องเพื่อเลื่อนระดับสู่โหมดท้าทาย",
-    tags: ["Numbers", "G.1"],
+    tags: ["Native", "Numbers", "G.1"],
+    published: true,
+  },
+  {
+    slug: "spellchecker",
+    title: "SpellChecker",
+    description: "ฝึกสะกดคำภาษาอังกฤษและภาษาไทย ทดสอบทักษะการสะกดคำของคุณ",
+    category: "English",
+    playUrl: "/games/spellchecker",
+    thumbnail: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=2026&auto=format&fit=crop",
+    instructions: "เลือกภาษา จากนั้นเลือกโหมดเล่น ตอบว่าคำที่เห็นสะกดถูกหรือผิด",
+    tags: ["Native", "Spelling", "Vocabulary"],
     published: true,
   }
 ];

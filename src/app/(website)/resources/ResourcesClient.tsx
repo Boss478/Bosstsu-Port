@@ -64,6 +64,11 @@ export default function ResourcesClient({
 
   return (
     <div className="min-h-screen bg-sky-50 dark:bg-slate-950">
+      {isPending && (
+        <div className="fixed top-16 left-0 right-0 z-[60] pointer-events-none">
+          <div className="h-0.5 bg-sky-500 animate-pulse" />
+        </div>
+      )}
       <section className="pt-28 pb-12 px-4">
         <div className="max-w-7xl mx-auto">
           <Breadcrumb items={[{ label: "สื่อการเรียนรู้" }]} />
@@ -108,7 +113,7 @@ export default function ResourcesClient({
         </div>
       </section>
 
-      <section className="pb-20 px-4">
+      <section className={`pb-20 px-4 transition-opacity duration-150 ${isPending ? 'opacity-60' : 'opacity-100'}`}>
         <div className="max-w-7xl mx-auto">
           {items.length === 0 ? (
             <div className="text-center py-20">
@@ -120,8 +125,8 @@ export default function ResourcesClient({
               {items.map((item) => (
                 <Link
                   key={item.id}
-                  href={`/resources/${item.id}`}
-                  className="group flex flex-col bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-zinc-100 dark:border-slate-800 shadow-xs hover:shadow-xl hover:shadow-sky-100/50 dark:hover:shadow-black/30 hover:-translate-y-1 transition-all duration-300"
+                  href={item.link.startsWith('/') ? item.link : `/resources/${item.id}`}
+                  className="group flex flex-col bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/60 dark:border-slate-700/50 shadow-xs hover:shadow-xl hover:shadow-sky-100/50 dark:hover:shadow-black/30 hover:-translate-y-1 transition-all duration-300"
                 >
                   <div className="relative aspect-video overflow-hidden bg-zinc-100 dark:bg-slate-800">
                     {item.cover ? (
@@ -129,6 +134,7 @@ export default function ResourcesClient({
                       <img
                         src={item.cover}
                         alt={item.title}
+                        loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     ) : (

@@ -151,7 +151,7 @@ export default async function PortfolioDetailPage({
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8 px-4 pb-20">
         <main className="lg:col-span-3 space-y-8">
-          <article id="portfolio-article" className="space-y-8">
+          <article id="portfolio-article" className="space-y-8 mx-auto max-w-3xl">
             <div className="relative aspect-video rounded-3xl overflow-hidden shadow-xl shadow-sky-100/50 dark:shadow-black/30">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -309,6 +309,7 @@ export default async function PortfolioDetailPage({
                       <img
                         src={item.cover}
                         alt={item.title}
+                        loading="lazy"
                         className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
@@ -347,6 +348,7 @@ export default async function PortfolioDetailPage({
                         <img
                           src={item.cover}
                           alt={item.title}
+                          loading="lazy"
                           className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
                       </div>

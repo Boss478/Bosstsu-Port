@@ -90,7 +90,7 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
                     href={item.link}
                     target={item.link !== "#" ? "_blank" : "_self"}
                     rel="noopener noreferrer"
-                    className="group relative block bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-sky-100/30 dark:shadow-black/40 border border-transparent hover:border-sky-400/50 transition-all duration-500 hover:-translate-y-3"
+                    className="group relative block bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-[2.5rem] overflow-hidden shadow-2xl shadow-sky-100/30 dark:shadow-black/40 border border-white/60 dark:border-slate-700/50 hover:border-sky-400/50 transition-all duration-500 hover:-translate-y-3"
                   >
                     <div className="relative aspect-video overflow-hidden">
                       {item.cover ? (
@@ -98,6 +98,7 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
                         <img
                           src={item.cover}
                           alt={item.title}
+                          loading="lazy"
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />
                       ) : (

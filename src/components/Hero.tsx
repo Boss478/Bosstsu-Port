@@ -28,6 +28,7 @@ export default function HeroSection() {
                             alt={`${CONFIG.SITE.NAME} Logo`}
                             fill
                             sizes="128px"
+                            priority
                             className="object-cover" 
                         />
                     </div>
@@ -55,7 +56,7 @@ export default function HeroSection() {
                         ผลงาน
                     </Link>
                     <Link
-                        href="/gallery"
+                        href="/resources"
                         className="px-8 py-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xs text-zinc-900 dark:text-zinc-100 font-semibold text-lg border border-sky-200 dark:border-slate-700/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                     >
                         สื่อการเรียนรู้

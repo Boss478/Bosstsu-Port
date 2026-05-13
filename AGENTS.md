@@ -15,13 +15,13 @@ Single source of truth for AI agents. Every section answers: "Would an agent mis
 ### 1. Ensure the dev server is running
 
 ```bash
-curl -s http://localhost:3000 2>/dev/null || (
+curl -s http://localhost:3300 2>/dev/null || (
   npm run dev &
   disown && sleep 5
 )
 ```
 
-If port 3000 is in use, leave it — do NOT switch to another port. Wait for it to free up.
+If port 3300 is in use, leave it — do NOT switch to another port. Wait for it to free up.
 
 ### 2. Review project state
 
@@ -90,7 +90,7 @@ boss478/
 └── dockerfile
 ```
 
-**Key URLs (dev):** `http://localhost:3000` (or 3001)
+**Key URLs (dev):** `http://localhost:3300`
 - `/` Home · `/portfolio` · `/gallery` · `/resources` · `/games`
 - `/admin` (protected)
 
@@ -372,9 +372,8 @@ getError('U01')    // App error → { code: "ERROR_U01 [413]", httpStatus: 413, 
 2. Verify plan before starting implementation
 3. Mark items complete as you go
 4. Bump version + update changelog before marking done
-5. Save post-task report to `.agents/report/`
-6. **Update memory** — Add important context (bugs, errors, patterns, new configs) to `.agents/memory.md` after every task
-7. After completing a plan, update its status inside the plan file as `Done` with Date & Time
+5. **Update memory** — Add important context (bugs, errors, patterns, new configs) to `.agents/memory.md` after every task
+6. After completing a plan, update its status inside the plan file as `Done` with Date & Time
 
 ---
 

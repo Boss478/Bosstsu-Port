@@ -62,6 +62,11 @@ export default function GalleryClient({
 
   return (
     <div className="min-h-screen bg-sky-50 dark:bg-slate-950">
+      {isPending && (
+        <div className="fixed top-16 left-0 right-0 z-[60] pointer-events-none">
+          <div className="h-0.5 bg-sky-500 animate-pulse" />
+        </div>
+      )}
 
       <section id="gallery-header" className="pt-28 pb-12 px-4">
         <div className="max-w-7xl mx-auto">
@@ -109,20 +114,21 @@ export default function GalleryClient({
       </section>
 
 
-      <section id="gallery-grid" className="pb-20 px-4 bg-white dark:bg-slate-950">
+      <section id="gallery-grid" className={`pb-20 px-4 bg-white dark:bg-slate-950 transition-opacity duration-150 ${isPending ? 'opacity-60' : 'opacity-100'}`}>
         <div className="max-w-7xl mx-auto pt-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {items.map((album) => (
               <Link
                 key={album.id}
                 href={`/gallery/${album.id}`}
-                className="group block relative rounded-2xl bg-zinc-200/50 shadow-md shadow-sky-100/40 dark:shadow-black/20 hover:shadow-lg hover:shadow-sky-200/50 dark:hover:shadow-black/40 hover:-translate-y-1.5 transition-all duration-300 ease-in-out overflow-hidden"
+                className="group block relative rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-md shadow-sky-100/40 dark:shadow-black/20 hover:shadow-lg hover:shadow-sky-200/50 dark:hover:shadow-black/40 hover:-translate-y-1.5 transition-all duration-300 ease-in-out overflow-hidden"
                 style={{ aspectRatio: '16/10' }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={album.cover}
                   alt={album.title}
+                  loading="lazy"
                   className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
 

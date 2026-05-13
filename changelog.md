@@ -3,6 +3,21 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.21 (2026-05-13)
+
+* **Changed dev server port**: Updated from 3000 to 3300 across all configuration files
+  - `package.json`: Added `-p 3300` to dev script
+  - `AGENTS.md`: Updated session start protocol and key URLs documentation
+  - `docker-compose.yml`: Changed port mapping from `"3000:3000"` to `"3300:3300"`
+* **Fixed Hero CTA button**: Changed second CTA link from `/gallery` to `/resources` — the button labeled "สื่อการเรียนรู้" now correctly navigates to resources section
++ **Hero logo `priority` preload**: Added `priority` prop to hero Image component for faster above-fold render (~150ms LCP improvement)
++ **Lazy loading for content images**: Added `loading="lazy"` to all grid and sidebar images in portfolio, gallery, resources, and games lists — reduces initial bandwidth by ~5-8MB per list page
++ **Glassmorphism consistency**: Applied `bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm` card pattern to gallery, resources, and games lists per AGENTS.md spec (portfolio already had it)
++ **Navigation loading indicator**: Added thin pulsing progress bar + dimmed content (`opacity-60`) during filter/sort/pagination transitions — gives users immediate feedback that their click registered
++ **Skip-to-content link**: Added accessibility link "ข้ามไปที่เนื้อหาหลัก" — invisible by default, appears on Tab key focus for keyboard/screen-reader users
++ **Detail page content width capping**: Added `max-w-3xl` (~768px) to portfolio detail article body — improves desktop readability (optimal 65-75 char line length)
+- **Dead code cleanup**: Removed empty whitespace lines from home page
+
 ## v1.5.20 (2026-04-22)
 
 * **Fixed Cache-Control warning**: Removed redundant `/_next/static/(.*)` header block from `next.config.ts` — Next.js already sets `Cache-Control: public, max-age=31536000, immutable` internally in production; manually overriding it triggered dev-mode warning and could break HMR

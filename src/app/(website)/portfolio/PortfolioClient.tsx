@@ -62,6 +62,11 @@ export default function PortfolioClient({
 
   return (
     <div className="min-h-screen bg-sky-50 dark:bg-slate-950">
+      {isPending && (
+        <div className="fixed top-16 left-0 right-0 z-[60] pointer-events-none">
+          <div className="h-0.5 bg-sky-500 animate-pulse" />
+        </div>
+      )}
 
       <section id="portfolio-header" className="pt-28 pb-12 px-4">
         <div className="max-w-7xl mx-auto">
@@ -110,7 +115,7 @@ export default function PortfolioClient({
       </section>
 
 
-      <section id="portfolio-grid" className="pb-20 px-4 bg-white/70 dark:bg-slate-900">
+      <section id="portfolio-grid" className={`pb-20 px-4 bg-white/70 dark:bg-slate-900 transition-opacity duration-150 ${isPending ? 'opacity-60' : 'opacity-100'}`}>
         <div className="max-w-7xl mx-auto pt-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {items.map((item) => (
@@ -127,6 +132,7 @@ export default function PortfolioClient({
                       <img
                         src={item.cover}
                         alt={item.title}
+                        loading="lazy"
                         className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 z-10"
                         onError={(e) => {
                            e.currentTarget.style.display = 'none';
