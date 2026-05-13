@@ -158,3 +158,21 @@ Store important bugs, errors, mistakes, and project context from previous sessio
 - CSS variables for skeleton: `--sk-base` (background color) and `--sk-shine` (shimmer color) defined in `:root` with `.dark` override
 - All 7 `loading.tsx` files are pure static Server Components — zero JS overhead
 - **Gotcha fix confirmed**: `relative aspect-video overflow-hidden shrink-0 skeleton` pattern prevents height collapse in `flex flex-col` containers
+---
+
+## Session: 2026-05-13
+
+### Admin Games Edit Validation Error (v1.5.22)
+
+**Bug:** "Invalid input: expected string, received null" on admin/games/[id] edit page
+
+**Root cause:** Field name mismatch between GameForm.tsx and server action's Zod schema
+- Form used `name="genre"` and `defaultValue={initialData?.genre || ''}`
+- Server action read `formData.get('category')` (Zod schema expected `category`)
+- MongoDB model field is `category`
+
+**Fix:** In `src/components/admin/GameForm.tsx` line ~111:
+- Changed `name="genre"` → `name="category"`
+- Changed `defaultValue={initialData?.genre || ''}` → `defaultValue={initialData?.category || ''}`
+
+**Pattern to avoid:** Always match form `name` attributes with what the server action reads via `formData.get(...)` and ensure it aligns with the MongoDB model field name.

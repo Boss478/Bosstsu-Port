@@ -3,6 +3,10 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.22 (2026-05-13)
+
+* **Fixed admin games edit validation error**: Changed form field name from `genre` to `category` in GameForm.tsx to match the Zod schema and MongoDB model — the "Invalid input: expected string, received null" error no longer occurs
+
 ## v1.5.21 (2026-05-13)
 
 * **Changed dev server port**: Updated from 3000 to 3300 across all configuration files

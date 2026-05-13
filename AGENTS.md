@@ -31,6 +31,10 @@ Check current task and plan files in `.agents/plans/` and `.agents/report/` if a
 
 Read `.agents/memory.md` to recall important bugs, errors, mistakes, and project context from previous sessions.
 
+### 4. Read Obsidian Vault
+
+Read `/Users/boss123/obsidian-vault/` to check for additional context, notes, references, and project-related knowledge that may inform the current task.
+
 ---
 
 ## Project Overview
@@ -117,7 +121,27 @@ npm run seed     # Seed MongoDB via scripts/seed.ts (tsx)
 3. **`package.json` version and latest `changelog.md` entry must match exactly**
 4. **Save a post-task report** to `.agents/report/report-{Mon}_{Day}_{YYYY}-{HH}_{mm}.md`
 5. **Output a completion summary** — what changed, current version, changelog updated?
-6. **Update memory** — If there's something important to remember (bugs, errors, patterns, new configs), add to `.agents/memory.md`
+6. **Update memory** — If there's something important to remember (bugs, errors, patterns, new configs), add to **both**:
+   - `.agents/memory.md` (project memory)
+   - `/Users/boss123/obsidian-vault/boss-project/` (Obsidian vault — always mirror here)
+
+---
+
+## Knowledge Persistence Mapping
+
+Where to persist knowledge after each task:
+
+| Topic                                    | Target Folder                                                |
+| ---------------------------------------- | ------------------------------------------------------------ |
+| This project (Boss478 Portfolio)         | `boss-project/` (always, in addition to `.agents/memory.md`) |
+| Important coding patterns / bugs / fixes | `coding/`                                                    |
+| Concepts / techniques learned            | `learn/`                                                     |
+| Research / things searched               | `references/`                                                |
+| Everything else                          | `notes/`                                                     |
+
+**File naming convention for `boss-project/`:** `DATE_TIME_{TASK_NAME}` (e.g., `2026-05-13_14-30_Fix_Admin_Game_Edit_Validation.md`) — other folders use any reasonable naming.
+
+**Note:** Always include date and time (e.g., `2026-05-13 14:30`) at the top of new Obsidian Vault entries.
 
 ---
 
