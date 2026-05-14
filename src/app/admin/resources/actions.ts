@@ -6,7 +6,7 @@ import dbConnect from '@/lib/db';
 import Learning from '@/models/Learning';
 import { verifyAuth } from '@/lib/auth';
 import { saveFile } from '@/lib/upload';
-import { createErrorResponse } from '@/lib/error-code';
+import { formatError } from '@/lib/error-code';
 import { z } from 'zod';
 
 const TYPE_OPTIONS = [
@@ -22,16 +22,12 @@ const ALLOWED_FILE_TYPES: Record<string, string[]> = {
 };
 
 const learningBaseSchema = z.object({
-  title: z.string().min(1, 'กรุณาระบุชื่อ').max(100),
-  description: z.string().min(1, 'กรุณาระบุรายละเอียด').max(500),
-  subject: z.string().min(1, 'กรุณาเลือกวิชา'),
-  type: z.string().min(1, 'กรุณาเลือกประเภท'),
+  title: z.string().trim().min(1, 'กรุณาระบุชื่อ').max(100),
+  description: z.string().trim().min(1, 'กรุณาระบุรายละเอียด').max(500),
+  subject: z.string().trim().min(1, 'กรุณาเลือกวิชา'),
+  type: z.string().trim().min(1, 'กรุณาเลือกประเภท'),
   tagsStr: z.string().optional(),
-});
-
-function formatError(err: ReturnType<typeof createErrorResponse>): string {
-  return `${err.code}: ${err.message} (${err.translation})`;
-}
+}).strict();
 
 function validateFileType(file: File, allowed: string[]): boolean {
   if (!file || file.size === 0) return allowed.length === 0;
@@ -40,7 +36,7 @@ function validateFileType(file: File, allowed: string[]): boolean {
 
 export async function createLearningResource(formData: FormData) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
+  if (!isAuth) return { error: formatError('401') };
 
   const type = formData.get('type') as string;
   if (!TYPE_OPTIONS.includes(type as typeof TYPE_OPTIONS[number])) {
@@ -89,9 +85,8 @@ export async function createLearningResource(formData: FormData) {
   const thumbnailFile = formData.get('thumbnail') as File;
   const resourceFile = formData.get('resourceFile') as File;
 
-  await dbConnect();
-
   try {
+    await dbConnect();
     const tags = tagsStr ? tagsStr.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
 
     let thumbnail: string | undefined;
@@ -124,7 +119,7 @@ export async function createLearningResource(formData: FormData) {
     });
   } catch (error: unknown) {
     console.error('Create learning error:', error);
-    return { error: formatError(createErrorResponse('DB01')) };
+    return { error: formatError('DB01') };
   }
 
   revalidatePath('/admin/resources');
@@ -134,7 +129,7 @@ export async function createLearningResource(formData: FormData) {
 
 export async function updateLearningResource(id: string, formData: FormData) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
+  if (!isAuth) return { error: formatError('401') };
 
   const type = formData.get('type') as string;
   if (!TYPE_OPTIONS.includes(type as typeof TYPE_OPTIONS[number])) {
@@ -183,9 +178,8 @@ export async function updateLearningResource(id: string, formData: FormData) {
   const thumbnailFile = formData.get('thumbnail') as File;
   const resourceFile = formData.get('resourceFile') as File;
 
-  await dbConnect();
-
   try {
+    await dbConnect();
     const updateData: Record<string, unknown> = {
       title,
       description,
@@ -214,7 +208,7 @@ export async function updateLearningResource(id: string, formData: FormData) {
     await Learning.findByIdAndUpdate(id, updateData);
   } catch (error: unknown) {
     console.error('Update learning error:', error);
-    return { error: formatError(createErrorResponse('DB02')) };
+    return { error: formatError('DB02') };
   }
 
   revalidatePath('/admin/resources');
@@ -224,14 +218,14 @@ export async function updateLearningResource(id: string, formData: FormData) {
 
 export async function deleteLearningResource(id: string) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
+  if (!isAuth) return { error: formatError('401') };
 
-  await dbConnect();
   try {
+    await dbConnect();
     await Learning.findByIdAndDelete(id);
   } catch (error: unknown) {
     console.error('Delete learning error:', error);
-    return { error: formatError(createErrorResponse('DB03')) };
+    return { error: formatError('DB03') };
   }
 
   revalidatePath('/admin/resources');

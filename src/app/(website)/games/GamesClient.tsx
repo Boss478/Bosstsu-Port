@@ -88,8 +88,8 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
                   <a
                     key={item.id}
                     href={item.link}
-                    target={item.link !== "#" ? "_blank" : "_self"}
-                    rel="noopener noreferrer"
+                    target={item.isHtmlContent ? undefined : "_blank"}
+                    rel={item.isHtmlContent ? undefined : "noopener noreferrer"}
                     className="group relative block bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-[2.5rem] overflow-hidden shadow-2xl shadow-sky-100/30 dark:shadow-black/40 border border-white/60 dark:border-slate-700/50 hover:border-sky-400/50 transition-all duration-500 hover:-translate-y-3"
                   >
                     <div className="relative aspect-video overflow-hidden">

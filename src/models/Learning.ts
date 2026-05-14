@@ -5,7 +5,7 @@ export interface ILearningResource extends Document {
   description: string;
   subject: string;
   type: string;
-  link: string;
+  link?: string;
   thumbnail?: string;
   tags: string[];
   published: boolean;

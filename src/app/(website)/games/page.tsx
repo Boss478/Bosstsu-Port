@@ -12,20 +12,24 @@ export default async function GamesPage() {
     .lean();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const items = docs.map((doc: any) => ({
-    id: doc._id.toString(),
-    slug: doc.slug,
-    title: doc.title,
-    description: doc.description || "",
-    category: doc.category || "",
-    cover: doc.thumbnail || "",
-    link: doc.playUrl || "#",
-    date: doc.createdAt instanceof Date
-      ? doc.createdAt.toISOString()
-      : (doc.createdAt ? new Date(doc.createdAt).toISOString() : "2024-01-01T00:00:00.000Z"),
-    tags: doc.tags || [],
-    instructions: doc.instructions || "",
-  }));
+  const items = docs.map((doc: any) => {
+    const hasHtml = !!doc.htmlContent;
+    return {
+      id: doc._id.toString(),
+      slug: doc.slug,
+      title: doc.title,
+      description: doc.description || "",
+      category: doc.category || "",
+      cover: doc.thumbnail || "",
+      link: hasHtml ? `/games/play/${doc._id.toString()}` : (doc.playUrl || "#"),
+      date: doc.createdAt instanceof Date
+        ? doc.createdAt.toISOString()
+        : (doc.createdAt ? new Date(doc.createdAt).toISOString() : "2024-01-01T00:00:00.000Z"),
+      tags: doc.tags || [],
+      instructions: doc.instructions || "",
+      isHtmlContent: hasHtml,
+    };
+  });
 
   return <GamesClient initialItems={items} />;
 }

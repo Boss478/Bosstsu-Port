@@ -22,6 +22,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
   const [coverPreview, setCoverPreview] = useState<string | null>(initialData?.cover || null);
   const [photos, setPhotos] = useState<string[]>(initialData?.photos || []);
   const [newPhotoPreviews, setNewPhotoPreviews] = useState<string[]>([]);
+  const [newPhotoFiles, setNewPhotoFiles] = useState<File[]>([]); // Track File objects for upload
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [croppedCoverBlob, setCroppedCoverBlob] = useState<Blob | null>(null);
   const [previewModalSrc, setPreviewModalSrc] = useState<string | null>(null);
@@ -35,6 +36,11 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
     const formData = new FormData(e.currentTarget);
     formData.append('existingPhotos', JSON.stringify(photos));
 
+    // Append stored File objects for new photos
+    newPhotoFiles.forEach((file) => {
+      formData.append('photos', file);
+    });
+
     if (croppedCoverBlob) {
       formData.set('cover', croppedCoverBlob, 'cropped_cover.jpg');
     }
@@ -47,7 +53,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
         router.push('/admin/gallery');
       }
     } catch {
-      setError('An unexpected error occurred');
+      setError('เกิดข้อผิดพลาด กรุณาลองใหม่');
     } finally {
       setPending(false);
     }
@@ -74,13 +80,20 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
   const handlePhotosChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      const newPreviews = Array.from(files).map(file => URL.createObjectURL(file));
+      const fileArray = Array.from(files);
+      const newPreviews = fileArray.map(file => URL.createObjectURL(file));
       setNewPhotoPreviews(prev => [...prev, ...newPreviews]);
+      setNewPhotoFiles(prev => [...prev, ...fileArray]); // Store File objects
     }
   };
 
   const removeExistingPhoto = (index: number) => {
     setPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeNewPhoto = (index: number) => {
+    setNewPhotoPreviews(prev => prev.filter((_, i) => i !== index));
+    setNewPhotoFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const toSlug = (text: string) =>
@@ -216,7 +229,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
                   <div className="absolute top-1 left-1 bg-sky-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md pointer-events-none z-10">
                     NEW
                   </div>
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 gap-2">
                     <button
                       type="button"
                       onClick={() => setPreviewModalSrc(preview)}
@@ -224,6 +237,14 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
                       title="ดูรูปขยาย (View Full)"
                     >
                       <i className="fi fi-sr-expand flex" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeNewPhoto(index)}
+                      className="p-2 bg-red-500/80 hover:bg-red-600 text-white rounded-lg backdrop-blur-md transition-colors"
+                      title="ลบรูปนี้ (Remove)"
+                    >
+                      <i className="fi fi-sr-trash flex" />
                     </button>
                   </div>
                 </div>
@@ -241,7 +262,6 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
               <input
                 id="photos-upload-input"
                 type="file"
-                name="photos"
                 accept="image/*"
                 multiple
                 onChange={handlePhotosChange}

@@ -3,6 +3,53 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.24 (2026-05-14)
+
++ **Complete Codebase Refactoring**: Major refactoring across 5 phases to improve code quality, security, and maintainability
+  
+  **Phase 1 - Critical Fixes:**
+    * Added Zod `.strict()` validation to all admin CRUD schemas (portfolio, gallery, resources, games) — prevents extra/malicious form fields
+    * Moved all `dbConnect()` calls inside try/catch blocks — prevents unhandled rejections on DB connection failures
+    * Fixed games thumbnail validation order — check file presence BEFORE saveFile() to prevent orphaned files
+    * Fixed GalleryForm photo file tracking — added `newPhotoFiles` state to properly handle multiple photo batch selections (was losing files between batches)
+    * Fixed Learning model type mismatch — made `link` field optional to match schema definition
+  
+  **Phase 2 - Shared Utilities:**
+    + Added `formatError(key)` to `error-code.ts` — unified error formatting across all admin actions
+    + Created `lib/utils.ts` with `parseTags()` and `toSlug()` — eliminates duplicate tag parsing and slug functions
+    + Created `hooks/useSlug.ts` — reusable hook for auto-generating slugs from titles
+    + Created `hooks/useObjectURL.ts` — manages blob URLs with automatic cleanup to prevent memory leaks
+  
+  **Phase 3 - Admin Form Components:**
+    + Created `FormField.tsx` — reusable label+input wrapper with TextInput, Textarea, Select, Date variants
+    + Created `GlassCard.tsx` — consistent glassmorphism card container
+    + Created `FormSubmitButton.tsx` — standardized submit button with loading state
+    + Created `FormError.tsx` — consistent error banner display
+    + Created `PublishedToggle.tsx` — standardized publish checkbox
+  
+  **Phase 4 - Public Page Standardization:**
+    + Created `NavigationPendingBar` component — shared navigation loading indicator
+    + Created `Pagination` component — unified pagination UI
+    + Created `EmptyState` component — consistent empty state display
+    + Added empty states to PortfolioClient and GalleryClient (was missing)
+    + Added `generateMetadata` to gallery detail page for SEO/Open Graph
+    + Simplified `getError()` in error-code.ts — removed no-op ternary that had identical branches
+  
+  **Phase 5 - Code Cleanup:**
+    * Removed dead exports from `constants.ts`: ANIMATION, REVALIDATE, ROUTES, MONGO_EXPRESS (80% dead code)
+    * Updated all admin actions to use shared `formatError(key)` from error-code.ts
+    * Added `.trim()` to all Zod string schemas — prevents leading/trailing whitespace in stored data
+    * Standardized error message format across all admin CRUD operations
+
+## v1.5.23 (2026-05-13)
+
++ **One-page HTML game support**: Games can now be created as either an External Site URL or a self-contained One-page HTML document
+  - Admin form (`/admin/games/new`, `/admin/games/[id]`): Added radio toggle between "External Site (URL)" and "One-page HTML" modes with conditional fields
+  - Server actions: Updated Zod schema with conditional validation; `htmlContent` is sanitized with `DOMPurify.sanitize()` at write-time
+  - Public games list (`/games`): HTML games link to internal play page; URL games open in a new tab as before
+  - New play page (`/games/play/[id]`): Renders one-page HTML inside a sandboxed iframe (`sandbox="allow-scripts"`) with a full-screen button for immersive gameplay
+  - Game model: Added optional `htmlContent` field; `playUrl` stores empty string for HTML games
+
 ## v1.5.22 (2026-05-13)
 
 * **Fixed admin games edit validation error**: Changed form field name from `genre` to `category` in GameForm.tsx to match the Zod schema and MongoDB model — the "Invalid input: expected string, received null" error no longer occurs

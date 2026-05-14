@@ -5,70 +5,88 @@ import dbConnect from '@/lib/db';
 import Game from '@/models/Game';
 import { verifyAuth } from '@/lib/auth';
 import { saveFile } from '@/lib/upload';
-import { createErrorResponse } from '@/lib/error-code';
+import { formatError } from '@/lib/error-code';
 import { z } from 'zod';
+import DOMPurify from 'isomorphic-dompurify';
 
 const gameSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(100),
-  description: z.string().min(1, 'Description is required').max(500),
-  category: z.string().min(1, 'Category is required'),
-  playUrl: z.string().min(1, 'Play URL is required').refine((url) => url.startsWith('/') || url.startsWith('http://') || url.startsWith('https://'), 'Must be a valid URL or relative path'),
+  title: z.string().trim().min(1, 'กรุณาระบุชื่อ').max(100),
+  description: z.string().trim().min(1, 'กรุณาระบุรายละเอียด').max(500),
+  category: z.string().trim().min(1, 'กรุณาระบุหมวดหมู่'),
+  playUrl: z.string().optional(),
+  htmlContent: z.string().optional(),
   instructions: z.string().optional(),
   tagsStr: z.string().optional(),
+  gameType: z.enum(['url', 'html']),
+}).strict().refine((data) => {
+  if (data.gameType === 'url') {
+    return data.playUrl && (
+      data.playUrl.startsWith('/') ||
+      data.playUrl.startsWith('http://') ||
+      data.playUrl.startsWith('https://')
+    );
+  }
+  return true;
+}, {
+  message: 'URL ต้องเป็นลิงก์ที่ถูกต้องหรือเส้นทางที่ขึ้นต้นด้วย /',
+  path: ['playUrl'],
+}).refine((data) => {
+  if (data.gameType === 'html') {
+    return data.htmlContent && data.htmlContent.trim().length > 0;
+  }
+  return true;
+}, {
+  message: 'เนื้อหา HTML จำเป็นสำหรับเกมแบบ One-page HTML',
+  path: ['htmlContent'],
 });
-
-function formatError(err: ReturnType<typeof createErrorResponse>): string {
-  return `${err.code}: ${err.message} (${err.translation})`;
-}
 
 export async function createGame(formData: FormData) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
+  if (!isAuth) return { error: formatError('401') };
 
   const parsed = gameSchema.safeParse({
     title: formData.get('title'),
     description: formData.get('description'),
     category: formData.get('category'),
-    playUrl: formData.get('playUrl'),
+    playUrl: formData.get('playUrl') || '',
+    htmlContent: formData.get('htmlContent') || '',
     instructions: formData.get('instructions') || '',
     tagsStr: formData.get('tags') || '',
+    gameType: formData.get('gameType'),
   });
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0].message };
   }
 
-  const { title, description, category, playUrl, instructions, tagsStr } = parsed.data;
+  const { title, description, category, playUrl, htmlContent, instructions, tagsStr } = parsed.data;
   const published = formData.get('published') === 'on';
   const thumbnailFile = formData.get('thumbnail') as File;
 
-  await dbConnect();
+  // Validate thumbnail BEFORE any file operations
+  if (!thumbnailFile || thumbnailFile.size === 0) {
+    return { error: formatError('U03') };
+  }
 
   try {
+    await dbConnect();
     const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
-
-    let thumbnail = '';
-    if (thumbnailFile && thumbnailFile.size > 0) {
-      thumbnail = await saveFile(thumbnailFile, 'games');
-    }
-
-    if (!thumbnail) {
-      return { error: formatError(createErrorResponse('U03')) };
-    }
+    const thumbnail = await saveFile(thumbnailFile, 'games');
 
     await Game.create({
       title,
       description,
       category,
-      playUrl,
+      playUrl: playUrl || '',
       instructions: instructions || undefined,
+      htmlContent: htmlContent ? DOMPurify.sanitize(htmlContent) : undefined,
       tags,
       published,
       thumbnail,
     });
   } catch (error: unknown) {
     console.error('Create game error:', error);
-    return { error: formatError(createErrorResponse('DB01')) };
+    return { error: formatError('DB01') };
   }
 
   revalidatePath('/admin/games');
@@ -78,34 +96,36 @@ export async function createGame(formData: FormData) {
 
 export async function updateGame(id: string, formData: FormData) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
+  if (!isAuth) return { error: formatError('401') };
 
   const parsed = gameSchema.safeParse({
     title: formData.get('title'),
     description: formData.get('description'),
     category: formData.get('category'),
-    playUrl: formData.get('playUrl'),
+    playUrl: formData.get('playUrl') || '',
+    htmlContent: formData.get('htmlContent') || '',
     instructions: formData.get('instructions') || '',
     tagsStr: formData.get('tags') || '',
+    gameType: formData.get('gameType'),
   });
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0].message };
   }
 
-  const { title, description, category, playUrl, instructions, tagsStr } = parsed.data;
+  const { title, description, category, playUrl, htmlContent, instructions, tagsStr } = parsed.data;
   const published = formData.get('published') === 'on';
   const thumbnailFile = formData.get('thumbnail') as File;
-  
-  await dbConnect();
 
   try {
+    await dbConnect();
     const updateData: Record<string, unknown> = {
       title,
       description,
       category,
-      playUrl,
+      playUrl: playUrl || '',
       instructions: instructions || undefined,
+      htmlContent: htmlContent ? DOMPurify.sanitize(htmlContent) : undefined,
       tags: tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [],
       published,
     };
@@ -117,7 +137,7 @@ export async function updateGame(id: string, formData: FormData) {
     await Game.findByIdAndUpdate(id, updateData);
   } catch (error: unknown) {
     console.error('Update game error:', error);
-    return { error: formatError(createErrorResponse('DB02')) };
+    return { error: formatError('DB02') };
   }
 
   revalidatePath('/admin/games');
@@ -127,14 +147,14 @@ export async function updateGame(id: string, formData: FormData) {
 
 export async function deleteGame(id: string) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: formatError(createErrorResponse('401')) };
+  if (!isAuth) return { error: formatError('401') };
 
-  await dbConnect();
   try {
+    await dbConnect();
     await Game.findByIdAndDelete(id);
   } catch (error: unknown) {
     console.error('Delete game error:', error);
-    return { error: formatError(createErrorResponse('DB03')) };
+    return { error: formatError('DB03') };
   }
 
   revalidatePath('/admin/games');

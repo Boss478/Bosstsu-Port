@@ -44,7 +44,7 @@ export interface ErrorResponse {
 }
 
 export function getError(key: string): ErrorResponse {
-  const err = ERRORS[key as ErrorKey] as { http: number; message: string; translation: string };
+  const err = ERRORS[key as ErrorKey] as { http: number; message: string; translation: string } | undefined;
   if (!err) {
     return {
       code: `ERROR_${key} [500]`,
@@ -54,19 +54,16 @@ export function getError(key: string): ErrorResponse {
     };
   }
 
-  const httpStatus = err.http;
-  const code = key.toString().includes(key.match(/[0-9]/)?.at(0) || '') && parseInt(key) < 1000
-    ? `ERROR_${key}`
-    : `ERROR_${key}`;
-
   return {
-    code: `${code} [${httpStatus}]`,
-    httpStatus,
+    code: `ERROR_${key} [${err.http}]`,
+    httpStatus: err.http,
     message: err.message,
     translation: err.translation,
   };
 }
 
-export function createErrorResponse(key: string): ErrorResponse {
-  return getError(key);
+/** Format error for display to user: "ERROR_XXX [HTTP]: message (translation)" */
+export function formatError(key: string): string {
+  const err = getError(key);
+  return `${err.code}: ${err.message} (${err.translation})`;
 }

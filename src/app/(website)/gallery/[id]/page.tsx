@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import dbConnect from "@/lib/db";
 import Gallery from "@/models/Gallery";
 import AlbumContent from "./AlbumContent";
@@ -12,6 +13,29 @@ export async function generateStaticParams() {
   return docs.map((doc: any) => ({
     id: doc.slug,
   }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  await dbConnect();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const doc: any = await Gallery.findOne({ slug: id, published: { $ne: false } }).lean();
+
+  if (!doc) {
+    return {
+      title: "ไม่พบอัลบั้ม | Boss478",
+    };
+  }
+
+  return {
+    title: `${doc.title} | แกลเลอรี่ | Boss478`,
+    description: doc.description || `อัลบั้มรูปภาพ ${doc.title}`,
+    openGraph: {
+      title: doc.title,
+      description: doc.description,
+      images: doc.cover ? [doc.cover] : undefined,
+    },
+  };
 }
 
 export default async function GalleryAlbumPage({

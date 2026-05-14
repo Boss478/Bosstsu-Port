@@ -143,6 +143,11 @@ Where to persist knowledge after each task:
 
 **Note:** Always include date and time (e.g., `2026-05-13 14:30`) at the top of new Obsidian Vault entries.
 
+**Linking:** After creating a new report in Obsidian Vault (`boss-project/`), add internal links to related existing notes:
+  - Link to `2026-05-13_00-00_Project_Knowledge.md` if it's a general project update
+  - Link to relevant pattern files (e.g., `2026-05-13_00-00_RichTextEditor_Pattern.md`) if the new task relates to that pattern
+  - Use Obsidian `[[wikilink]]` syntax for internal links
+
 ---
 
 ## Versioning & Changelog

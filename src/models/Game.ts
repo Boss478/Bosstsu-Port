@@ -8,6 +8,7 @@ export interface IGame extends Document {
   playUrl: string;
   thumbnail: string;
   instructions?: string;
+  htmlContent?: string;
   tags: string[];
   published: boolean;
   createdAt: Date;
@@ -23,6 +24,7 @@ const GameSchema: Schema = new Schema(
     playUrl: { type: String, required: true },
     thumbnail: { type: String, required: true },
     instructions: { type: String },
+    htmlContent: { type: String },
     tags: { type: [String], default: [] },
     published: { type: Boolean, default: true, index: true },
   },

@@ -27,6 +27,9 @@ export default function GameForm({
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [gameType, setGameType] = useState<'url' | 'html'>(
+    initialData?.htmlContent ? 'html' : 'url'
+  );
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(
     initialData?.thumbnail || null
   );
@@ -101,6 +104,40 @@ export default function GameForm({
             />
           </div>
 
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 block">
+              ประเภทเกม (Game Type) <span className="text-red-500">*</span>
+            </label>
+            <div className="flex gap-4">
+              <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="radio"
+                  name="gameType"
+                  value="url"
+                  checked={gameType === 'url'}
+                  onChange={() => setGameType('url')}
+                  className="w-4 h-4 accent-sky-500"
+                />
+                <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                  External Site (URL)
+                </span>
+              </label>
+              <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="radio"
+                  name="gameType"
+                  value="html"
+                  checked={gameType === 'html'}
+                  onChange={() => setGameType('html')}
+                  className="w-4 h-4 accent-sky-500"
+                />
+                <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                  One-page HTML
+                </span>
+              </label>
+            </div>
+          </div>
+
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
@@ -122,20 +159,47 @@ export default function GameForm({
               </div>
             </div>
 
+            {gameType === 'url' ? (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  ลิงก์เล่นเกม (Play URL) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="playUrl"
+                  defaultValue={initialData?.playUrl}
+                  required
+                  placeholder="https://example.com/play"
+                  className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono text-sm"
+                />
+              </div>
+            ) : (
+              <input
+                type="hidden"
+                name="playUrl"
+                value=""
+              />
+            )}
+          </div>
+
+          {gameType === 'html' && (
             <div className="space-y-2">
               <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                ลิงก์เล่นเกม (Play URL) <span className="text-red-500">*</span>
+                HTML Content <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                name="playUrl"
-                defaultValue={initialData?.playUrl}
-                required
-                placeholder="https://example.com/play"
+              <textarea
+                name="htmlContent"
+                defaultValue={initialData?.htmlContent || ''}
+                required={gameType === 'html'}
+                rows={10}
+                placeholder="<!DOCTYPE html>\n<html>...</html>"
                 className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono text-sm"
               />
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                ใส่โค้ด HTML แบบเต็มหน้า (รองรับ CSS และ JavaScript)
+              </p>
             </div>
-          </div>
+          )}
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">

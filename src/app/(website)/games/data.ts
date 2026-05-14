@@ -9,4 +9,5 @@ export interface GameItem {
   date: string;
   tags: string[];
   instructions: string;
+  isHtmlContent: boolean;
 }

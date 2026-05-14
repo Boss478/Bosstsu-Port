@@ -48,6 +48,7 @@ yarn-error.log*
 
 # Project specific
 CLAUDE.md
+AGENTS.md
 requirements.md
 Tasks/
 .claude/

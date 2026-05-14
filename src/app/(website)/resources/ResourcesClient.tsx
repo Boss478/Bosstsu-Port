@@ -6,6 +6,8 @@ import Link from "next/link";
 import Breadcrumb from "@/components/Breadcrumb";
 import { formatDate } from "@/lib/format";
 import { type ResourceItem } from "./data";
+import { NavigationPendingBar } from "@/components/NavigationPendingBar";
+import { Pagination } from "@/components/Pagination";
 
 interface ResourcesClientProps {
   items: ResourceItem[];
@@ -64,11 +66,7 @@ export default function ResourcesClient({
 
   return (
     <div className="min-h-screen bg-sky-50 dark:bg-slate-950">
-      {isPending && (
-        <div className="fixed top-16 left-0 right-0 z-[60] pointer-events-none">
-          <div className="h-0.5 bg-sky-500 animate-pulse" />
-        </div>
-      )}
+      <NavigationPendingBar isPending={isPending} />
       <section className="pt-28 pb-12 px-4">
         <div className="max-w-7xl mx-auto">
           <Breadcrumb items={[{ label: "สื่อการเรียนรู้" }]} />
@@ -179,42 +177,12 @@ export default function ResourcesClient({
              </div>
           )}
 
-          {totalPages > 1 && (
-            <div id="resources-pagination" className="flex justify-center items-center gap-2 mt-12">
-              <button
-                onClick={() => navigateToPage(currentPage - 1)}
-                disabled={currentPage === 1 || isPending}
-                className="p-2 rounded-xl text-sm text-zinc-500 dark:text-zinc-400 hover:bg-sky-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
-              >
-                <i className="fi fi-sr-angle-left" />
-              </button>
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <button
-                    key={page}
-                    onClick={() => navigateToPage(page)}
-                    disabled={isPending}
-                    className={`w-10 h-10 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer disabled:opacity-60 ${
-                      currentPage === page
-                        ? "bg-sky-500 text-white shadow-md shadow-sky-500/25"
-                        : "text-zinc-500 dark:text-zinc-400 hover:bg-sky-100 dark:hover:bg-slate-800"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                )
-              )}
-
-              <button
-                onClick={() => navigateToPage(currentPage + 1)}
-                disabled={currentPage === totalPages || isPending}
-                className="p-2 rounded-xl text-sm text-zinc-500 dark:text-zinc-400 hover:bg-sky-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
-              >
-                <i className="fi fi-sr-angle-right" />
-              </button>
-            </div>
-          )}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={navigateToPage}
+            isPending={isPending}
+          />
         </div>
       </section>
     </div>
