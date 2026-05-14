@@ -2,7 +2,7 @@ import AlphabetAdventureClient from "./AlphabetAdventureClient";
 
 export const metadata = {
   title: "Alphabet Adventure | ผจญภัยโลกตัวอักษร",
-  description: "เรียนรู้ภาษาอังกฤษแสนสนุก กับการผจญภัยในโลกตัวอักษร A-Z สำหรับนักเรียนชั้น G.1",
+  description: "Learn English the fun way with Alphabet Adventure! Master A-Z through 4 engaging levels: Letter Match, Missing Caps, Missing Lowercase, and Typing Challenge. Perfect for Grade 1 students.",
 };
 
 export default function AlphabetAdventurePage() {

@@ -3,92 +3,55 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAudio } from "@/hooks/useAudio";
+import type { Screen, GameState, RoundData, FeedbackState, GridCell } from "./types";
+import { initialGameState, emptyRoundData } from "./types";
+import {
+  LEVELS,
+  GAME_CONFIG,
+  randomPraise,
+  calcStars,
+  generateMatchRound,
+  generateFillRound,
+  generateTypingRound,
+} from "./constants";
 
-// --- Constants ---
-const ALPHABET_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
-const ALPHABET_LOWER = "abcdefghijklmnopqrstuvwxyz".split('');
-
-interface LevelConfig {
-  name: string;
-  target: number;
-  type: string;
-  hideCount?: number;
-}
-
-const LEVELS: Record<number, LevelConfig> = {
-  1: { 
-    name: "จับคู่ตัวอักษร", 
-    target: 35, 
-    type: "match" 
-  },
-  2: { 
-    name: "เติมตัวพิมพ์ใหญ่ที่หายไป", 
-    target: 10, 
-    type: "fill-upper",
-    hideCount: 2
-  },
-  3: { 
-    name: "เติมตัวพิมพ์เล็กที่หายไป", 
-    target: 10, 
-    type: "fill-lower",
-    hideCount: 3
-  },
-  4: { 
-    name: "พิมพ์ตัวอักษร (ท้าทาย)", 
-    target: 10, 
-    type: "typing"
-  }
-};
+import MenuScreen from "./screens/MenuScreen";
+import GameScreen from "./screens/GameScreen";
+import VictoryScreen from "./screens/VictoryScreen";
 
 export default function AlphabetAdventureClient() {
-  const [screen, setScreen] = useState<'menu' | 'game' | 'victory'>('menu');
-  const [gameState, setGameState] = useState({
-    level: 1,
-    score: 0,
-    round: 1,
-    winsInLevel: 0,
-    difficulty: 3,
-    consecutiveErrors: 0,
-  });
-  
-  const [roundData, setRoundData] = useState<{
-    targetLetter?: string;
-    correctChar?: string;
-    choices: string[];
-    grid: { char: string; isHidden: boolean; isCorrect?: boolean; isWrong?: boolean; value?: string }[];
-    missingIndices: number[];
-    activeIndex: number;
-  }>({
-    choices: [],
-    grid: [],
-    missingIndices: [],
-    activeIndex: -1,
-  });
-
-  const [feedback, setFeedback] = useState<{ text: string; type: 'pop' | '' }>({ text: '', type: '' });
+  const [screen, setScreen] = useState<Screen>("menu");
+  const [gameState, setGameState] = useState<GameState>(initialGameState());
+  const [roundData, setRoundData] = useState<RoundData>(emptyRoundData());
+  const [feedback, setFeedback] = useState<FeedbackState>({ text: "", type: "" });
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [stageStars, setStageStars] = useState<number[]>([]);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { playSound } = useAudio();
+  const { playSound, muted, toggleMute } = useAudio();
+
+  const stateRef = useRef(gameState);
+  stateRef.current = gameState;
 
   useEffect(() => {
-    const header = document.getElementById('site-header');
-    const footer = document.getElementById('site-footer');
-    if (screen === 'game') {
-      header?.classList.add('hidden');
-      footer?.classList.add('hidden');
+    const header = document.getElementById("site-header");
+    const footer = document.getElementById("site-footer");
+    if (screen === "game") {
+      header?.classList.add("hidden");
+      footer?.classList.add("hidden");
     } else {
-      header?.classList.remove('hidden');
-      footer?.classList.remove('hidden');
+      header?.classList.remove("hidden");
+      footer?.classList.remove("hidden");
     }
     return () => {
-      header?.classList.remove('hidden');
-      footer?.classList.remove('hidden');
+      header?.classList.remove("hidden");
+      footer?.classList.remove("hidden");
     };
   }, [screen]);
 
-  // --- Handlers ---
-  const toggleFullscreen = () => {
+  const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
       containerRef.current?.requestFullscreen();
       setIsFullscreen(true);
@@ -96,177 +59,170 @@ export default function AlphabetAdventureClient() {
       document.exitFullscreen();
       setIsFullscreen(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', handleFsChange);
-    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+    document.addEventListener("fullscreenchange", handleFsChange);
+    return () => document.removeEventListener("fullscreenchange", handleFsChange);
   }, []);
 
-  const showFeedback = (text: string) => {
-    setFeedback({ text, type: 'pop' });
-    setTimeout(() => setFeedback({ text: '', type: '' }), 1000);
-  };
+  const showFeedback = useCallback((text: string, type: "correct" | "wrong") => {
+    setFeedback({ text, type });
+    setTimeout(() => setFeedback({ text: "", type: "" }), GAME_CONFIG.FEEDBACK_DURATION);
+  }, []);
 
-  const loadRound = useCallback((state: typeof gameState, baseRoundData?: typeof roundData) => {
-    const config = LEVELS[state.level as keyof typeof LEVELS];
-    let newRoundData: typeof roundData = { ...(baseRoundData || { choices: [], grid: [], missingIndices: [], activeIndex: -1 }), choices: [], grid: [], missingIndices: [], activeIndex: -1 };
+  const generateRound = useCallback((state: GameState): RoundData => {
+    const config = LEVELS[state.level];
+    if (!config) return emptyRoundData();
 
     if (config.type === "match") {
-      const targetIndex = state.round <= 26 ? state.round - 1 : Math.floor(Math.random() * 26);
-      const upper = ALPHABET_UPPER[targetIndex];
-      const correctLower = ALPHABET_LOWER[targetIndex];
-      
-      const choices = [correctLower];
-      while (choices.length < 3) {
-        const r = ALPHABET_LOWER[Math.floor(Math.random() * 26)];
-        if (!choices.includes(r)) choices.push(r);
-      }
-      newRoundData = {
-        ...newRoundData,
-        targetLetter: upper,
-        correctChar: correctLower,
-        choices: choices.sort(() => Math.random() - 0.5),
-      };
-    } 
-    else if (config.type.startsWith("fill")) {
-      const isUpper = config.type === "fill-upper";
-      const alphabet = isUpper ? ALPHABET_UPPER : ALPHABET_LOWER;
-      
-      const missing: number[] = [];
-      while (missing.length < (config.hideCount || 2)) {
-        const r = Math.floor(Math.random() * 26);
-        if (!missing.includes(r)) missing.push(r);
-      }
-      missing.sort((a, b) => a - b);
-
-      const grid = alphabet.map((char, index) => ({
-        char,
-        isHidden: missing.includes(index),
-      }));
-
-      newRoundData = {
-        ...newRoundData,
-        grid,
-        missingIndices: missing,
-        activeIndex: missing[0],
-      };
-      
-      // Load choices for the first active slot
-      const correct = alphabet[missing[0]];
-      const choices = [correct];
-      while (choices.length < 4) {
-        const r = alphabet[Math.floor(Math.random() * 26)];
-        if (!choices.includes(r)) choices.push(r);
-      }
-      newRoundData.choices = choices.sort(() => Math.random() - 0.5);
+      const { targetLetter, correctChar, choices } = generateMatchRound(state.round);
+      return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1 };
+    } else if (config.type.startsWith("fill")) {
+      const { grid, missingIndices, activeIndex, choices } = generateFillRound(config.type);
+      return { choices, grid, missingIndices, activeIndex };
+    } else if (config.type === "typing") {
+      const { grid, missingIndices } = generateTypingRound(state.difficulty);
+      return { grid, missingIndices, activeIndex: -1, choices: [] };
     }
-    else if (config.type === "typing") {
-      const isUpper = Math.random() > 0.5;
-      const alphabet = isUpper ? ALPHABET_UPPER : ALPHABET_LOWER;
-      
-      const missing: number[] = [];
-      while (missing.length < state.difficulty) {
-        const r = Math.floor(Math.random() * 26);
-        if (!missing.includes(r)) missing.push(r);
-      }
-      
-      const grid = alphabet.map((char, index) => ({
-        char,
-        isHidden: missing.includes(index),
-        value: "",
-      }));
-
-      newRoundData = {
-        ...newRoundData,
-        grid,
-        missingIndices: missing,
-        activeIndex: -1,
-      };
-    }
-
-    setRoundData(newRoundData);
+    return emptyRoundData();
   }, []);
 
-  const startGame = () => {
-    const initialState = {
-      level: 1,
-      score: 0,
-      round: 1,
-      winsInLevel: 0,
-      difficulty: 3,
-      consecutiveErrors: 0,
-    };
+  const startGame = useCallback(() => {
+    const initialState = initialGameState();
     setGameState(initialState);
-    setScreen('game');
-    loadRound(initialState, { choices: [], grid: [], missingIndices: [], activeIndex: -1 });
-  };
+    setScreen("game");
+    setRoundData(generateRound(initialState));
+    setStageStars([]);
+  }, [generateRound]);
 
-  const handleChoice = (selected: string) => {
-    const config = LEVELS[gameState.level as keyof typeof LEVELS];
-    const correct = config.type === "match" ? roundData.correctChar : roundData.grid[roundData.activeIndex].char;
+  const handleAnswer = useCallback((selected: string) => {
+    if (isTransitioning) return;
+    const config = LEVELS[stateRef.current.level];
+    if (!config) return;
+
+    const isMatch = config.type === "match";
+    const correct = isMatch
+      ? roundData.correctChar
+      : roundData.grid[roundData.activeIndex]?.char;
 
     if (selected === correct) {
-      playSound('correct');
-      const newScore = gameState.score + 5;
-      
-      if (config.type === "match") {
-        const nextRound = gameState.round + 1;
+      playSound("correct");
+      const points = config.type === "typing" ? GAME_CONFIG.SCORE_TYPING_CORRECT : GAME_CONFIG.SCORE_CORRECT;
+      const newScore = stateRef.current.score + points;
+      const newState = { ...stateRef.current, score: newScore };
+
+      if (isMatch) {
+        const nextRound = stateRef.current.round + 1;
+        newState.round = nextRound;
+        newState.levelCorrect += 1;
+        newState.levelTotal += 1;
+        showFeedback(randomPraise("correct"), "correct");
         if (nextRound > config.target) {
-          nextLevel(newScore);
+          handleLevelComplete(newScore, newState.levelCorrect, newState.levelTotal);
         } else {
-          const nextState = { ...gameState, score: newScore, round: nextRound };
-          setGameState(nextState);
-          loadRound(nextState, { choices: [], grid: [], missingIndices: [], activeIndex: -1 });
+          setGameState(newState);
+          setRoundData(generateRound(newState));
         }
       } else {
-        // Update grid
         const newGrid = [...roundData.grid];
         newGrid[roundData.activeIndex] = { ...newGrid[roundData.activeIndex], isHidden: false, isCorrect: true };
-        
         const nextMissing = roundData.missingIndices.filter(i => i !== roundData.activeIndex);
-        
+        newState.levelCorrect += 1;
+        newState.levelTotal += 1;
+
         if (nextMissing.length === 0) {
-          const newWins = gameState.winsInLevel + 1;
+          const newWins = stateRef.current.winsInLevel + 1;
+          newState.winsInLevel = newWins;
           if (newWins >= config.target) {
-            nextLevel(newScore);
+            handleLevelComplete(newScore, newState.levelCorrect, newState.levelTotal);
           } else {
-            const nextState = { ...gameState, score: newScore, winsInLevel: newWins };
-            setGameState(nextState);
-            setTimeout(() => loadRound(nextState, { choices: [], grid: [], missingIndices: [], activeIndex: -1 }), 1000);
+            setIsTransitioning(true);
+            setGameState(newState);
+            showFeedback(randomPraise("correct"), "correct");
+            setTimeout(() => {
+              setRoundData(generateRound(newState));
+              setIsTransitioning(false);
+            }, GAME_CONFIG.FEEDBACK_DURATION);
           }
         } else {
-          // Next Slot
           const isUpper = config.type === "fill-upper";
-          const alphabet = isUpper ? ALPHABET_UPPER : ALPHABET_LOWER;
+          const alphabet = isUpper ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("") : "abcdefghijklmnopqrstuvwxyz".split("");
           const nextActive = nextMissing[0];
           const nextCorrect = alphabet[nextActive];
-          const nextChoices = [nextCorrect];
-          while (nextChoices.length < 4) {
+          const choices = [nextCorrect];
+          while (choices.length < 4) {
             const r = alphabet[Math.floor(Math.random() * 26)];
-            if (!nextChoices.includes(r)) nextChoices.push(r);
+            if (!choices.includes(r)) choices.push(r);
           }
           setRoundData({
             ...roundData,
             grid: newGrid,
             missingIndices: nextMissing,
             activeIndex: nextActive,
-            choices: nextChoices.sort(() => Math.random() - 0.5),
+            choices: shuffleArray(choices),
           });
-          setGameState({ ...gameState, score: newScore });
+          setGameState(newState);
         }
       }
     } else {
-      playSound('wrong');
-      setGameState({ ...gameState, score: Math.max(0, gameState.score - 3) });
+      playSound("wrong");
+      const points = config.type === "typing" ? GAME_CONFIG.SCORE_TYPING_WRONG : GAME_CONFIG.SCORE_WRONG;
+      const newState = {
+        ...stateRef.current,
+        score: Math.max(0, stateRef.current.score - points),
+        levelTotal: stateRef.current.levelTotal + 1,
+      };
+      setGameState(newState);
+      showFeedback(randomPraise("wrong"), "wrong");
     }
-  };
+  }, [isTransitioning, roundData, generateRound, playSound, showFeedback]);
 
-  const checkTyping = () => {
+  const handleLevelComplete = useCallback((score: number, correct: number, total: number) => {
+    playSound("win");
+    const accuracy = total > 0 ? (correct / total) * 100 : 0;
+    const stars = calcStars(accuracy);
+    setStageStars(prev => [...prev, stars]);
+    showFeedback("Level Complete!", "correct");
+
+    const nextLevel = stateRef.current.level + 1;
+    if (nextLevel > 4) {
+      setTimeout(() => finishGame(score), GAME_CONFIG.FEEDBACK_DURATION + 500);
+    } else {
+      const nextState: GameState = {
+        ...stateRef.current,
+        level: nextLevel,
+        score,
+        round: 1,
+        winsInLevel: 0,
+        difficulty: GAME_CONFIG.INITIAL_DIFFICULTY,
+        consecutiveErrors: 0,
+        levelCorrect: 0,
+        levelTotal: 0,
+      };
+      setIsTransitioning(true);
+      setGameState(nextState);
+      setTimeout(() => {
+        setRoundData(generateRound(nextState));
+        setIsTransitioning(false);
+      }, GAME_CONFIG.FEEDBACK_DURATION + 500);
+    }
+  }, [playSound, showFeedback, generateRound]);
+
+  const finishGame = useCallback((score: number) => {
+    playSound("win");
+    setGameState(prev => ({ ...prev, score }));
+    setScreen("victory");
+  }, [playSound]);
+
+  const checkTyping = useCallback(() => {
+    if (isTransitioning) return;
     const config = LEVELS[4];
+    if (!config) return;
+
     let allCorrect = true;
-    const newGrid = roundData.grid.map(item => {
+    const newGrid: GridCell[] = roundData.grid.map(item => {
       if (!item.isHidden) return item;
       const isCorrect = item.value?.toUpperCase() === item.char.toUpperCase();
       if (!isCorrect) allCorrect = false;
@@ -276,322 +232,127 @@ export default function AlphabetAdventureClient() {
     setRoundData({ ...roundData, grid: newGrid });
 
     if (allCorrect) {
-      playSound('correct');
-      const newScore = gameState.score + 10;
-      const newWins = gameState.winsInLevel + 1;
-      const newDifficulty = Math.min(24, gameState.difficulty + 2);
-      
+      playSound("correct");
+      const newScore = stateRef.current.score + GAME_CONFIG.SCORE_TYPING_CORRECT;
+      const newWins = stateRef.current.winsInLevel + 1;
+      const newDifficulty = Math.min(GAME_CONFIG.MAX_DIFFICULTY, stateRef.current.difficulty + GAME_CONFIG.DIFFICULTY_INCREASE);
+      const newState: GameState = {
+        ...stateRef.current,
+        score: newScore,
+        winsInLevel: newWins,
+        difficulty: newDifficulty,
+        consecutiveErrors: 0,
+        levelCorrect: stateRef.current.levelCorrect + stateRef.current.difficulty,
+        levelTotal: stateRef.current.levelTotal + stateRef.current.difficulty,
+      };
+
       if (newWins >= config.target) {
-        victory(newScore);
+        handleLevelComplete(newScore, newState.levelCorrect, newState.levelTotal);
       } else {
-        const nextState = { ...gameState, score: newScore, winsInLevel: newWins, difficulty: newDifficulty, consecutiveErrors: 0 };
-        setGameState(nextState);
-        setTimeout(() => loadRound(nextState), 1000);
+        setIsTransitioning(true);
+        setGameState(newState);
+        showFeedback(randomPraise("correct"), "correct");
+        setTimeout(() => {
+          const round = generateTypingRound(newDifficulty);
+          setRoundData({ choices: [], ...round });
+          setIsTransitioning(false);
+        }, GAME_CONFIG.FEEDBACK_DURATION);
       }
     } else {
-      playSound('wrong');
-      const newErrors = gameState.consecutiveErrors + 1;
-      const nextState = { ...gameState, score: Math.max(0, gameState.score - 5), consecutiveErrors: newErrors };
-      
-      if (newErrors >= 3) {
-        showFeedback("ลดความยากลงนะ");
-        const easierState = { ...nextState, difficulty: Math.max(1, gameState.difficulty - 1), consecutiveErrors: 0 };
+      playSound("wrong");
+      const newErrors = stateRef.current.consecutiveErrors + 1;
+      const newState: GameState = {
+        ...stateRef.current,
+        score: Math.max(0, stateRef.current.score - GAME_CONFIG.SCORE_TYPING_WRONG),
+        consecutiveErrors: newErrors,
+        levelTotal: stateRef.current.levelTotal + stateRef.current.difficulty,
+      };
+
+      if (newErrors >= GAME_CONFIG.ERROR_THRESHOLD) {
+        showFeedback("Difficulty decreased!", "wrong");
+        const easierState = {
+          ...newState,
+          difficulty: Math.max(1, stateRef.current.difficulty - 1),
+          consecutiveErrors: 0,
+        };
         setGameState(easierState);
-        setTimeout(() => loadRound(easierState), 1500);
+        setIsTransitioning(true);
+        setTimeout(() => {
+          const round = generateTypingRound(easierState.difficulty);
+          setRoundData({ choices: [], ...round });
+          setIsTransitioning(false);
+        }, GAME_CONFIG.FEEDBACK_DURATION + 500);
       } else {
-        setGameState(nextState);
-        // Reset wrong marks after a bit
+        setGameState(newState);
+        showFeedback(randomPraise("wrong"), "wrong");
+        setIsTransitioning(true);
         setTimeout(() => {
           setRoundData(prev => ({
             ...prev,
-            grid: prev.grid.map(g => g.isWrong ? { ...g, isWrong: false } : g)
+            grid: prev.grid.map(g => g.isWrong ? { ...g, isWrong: false } : g),
           }));
+          setIsTransitioning(false);
         }, 800);
       }
     }
-  };
+  }, [isTransitioning, roundData, playSound, showFeedback, handleLevelComplete]);
 
-  const nextLevel = (score: number) => {
-    playSound('win');
-    showFeedback("ผ่านด่าน!");
-    const nextState = { 
-      ...gameState, 
-      level: gameState.level + 1, 
-      score, 
-      round: 1, 
-      winsInLevel: 0, 
-      difficulty: 3, 
-      consecutiveErrors: 0 
-    };
-    setGameState(nextState);
-    setTimeout(() => loadRound(nextState), 1500);
-  };
+  const handleSelectCell = useCallback((index: number) => {
+    setRoundData(prev => ({ ...prev, activeIndex: index }));
+  }, []);
 
-  const victory = (score: number) => {
-    playSound('win');
-    setGameState({ ...gameState, score });
-    setScreen('victory');
-  };
-
-  // --- Render Helpers ---
-  const currentConfig = LEVELS[gameState.level as keyof typeof LEVELS];
-  const progress = currentConfig.type === "match" ? gameState.round : gameState.winsInLevel;
-  const progressPct = Math.min(100, (progress / currentConfig.target) * 100);
+  const handleTypingInput = useCallback((index: number, value: string) => {
+    setRoundData(prev => {
+      const newGrid = [...prev.grid];
+      newGrid[index] = { ...newGrid[index], value };
+      return { ...prev, grid: newGrid };
+    });
+  }, []);
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className={`flex flex-col items-center justify-center p-4 transition-colors duration-500 ${
-        screen === 'game'
-          ? 'h-screen overflow-hidden bg-violet-50 dark:bg-zinc-950'
-          : 'min-h-screen bg-violet-50 dark:bg-zinc-950 pt-24'
+        screen === "game"
+          ? "h-screen overflow-hidden bg-violet-50 dark:bg-zinc-950"
+          : "min-h-screen bg-violet-50 dark:bg-zinc-950 pt-24"
       }`}
       style={{ fontFamily: "'Mali', sans-serif" }}
     >
       <div className="w-full max-w-3xl mx-auto relative">
+        {screen === "menu" && <MenuScreen onStart={startGame} />}
 
-
-        {/* --- SCREENS --- */}
-        {screen === 'menu' && (
-          <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 relative">
-            <button
-              onClick={() => router.push('/games')}
-              className="absolute top-6 right-6 p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-500 hover:text-violet-500 transition-colors"
-              title="Back to Games"
-            >
-              <i className="fi fi-sr-home text-lg"></i>
-            </button>
-            <div className="space-y-2">
-              <h1 className="text-4xl md:text-6xl font-black text-violet-600 dark:text-violet-400 tracking-tight">
-                Alphabet Adventure
-              </h1>
-              <p className="text-xl md:text-2xl text-zinc-500 dark:text-zinc-400 font-bold">
-                ผจญภัยโลกตัวอักษร
-              </p>
-            </div>
-            
-            <div className="text-8xl animate-bounce py-4 transition-all hover:scale-125 duration-500 cursor-default">
-              <i className="fi fi-sr-island-tropical text-violet-600 dark:text-violet-400"></i>
-            </div>
-            
-            <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-md mx-auto leading-relaxed">
-              เตรียมพร้อมสำหรับการเดินทางแสนสนุกผ่านเกาะตัวอักษร A-Z เรียนรู้และท้าทายตัวเองไปพร้อมกัน!
-            </p>
-
-            <div className="pt-4">
-              <button 
-                onClick={startGame}
-                className="group relative px-12 py-5 bg-violet-600 text-white text-2xl font-black rounded-3xl shadow-[0_12px_0_0_rgba(109,40,217,1)] active:shadow-none active:translate-y-3 transition-all duration-150 overflow-hidden"
-              >
-                <span className="relative z-10 flex items-center gap-3">
-                  เริ่มเกม <i className="fi fi-sr-play mt-1 transition-transform group-hover:translate-x-1"></i>
-                </span>
-                <div className="absolute inset-0 bg-violet-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              </button>
-            </div>
-            
-            <p className="text-sm font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-              เหมาะสำหรับชั้น G.1 • 4 ด่านหรรษา
-            </p>
-          </div>
+        {screen === "game" && (
+          <GameScreen
+            gameState={gameState}
+            roundData={roundData}
+            feedback={feedback}
+            isTransitioning={isTransitioning}
+            isFullscreen={isFullscreen}
+            muted={muted}
+            onAnswer={handleAnswer}
+            onCheckTyping={checkTyping}
+            onBack={() => setScreen("menu")}
+            onToggleFullscreen={toggleFullscreen}
+            onToggleMute={toggleMute}
+            onSelectCell={handleSelectCell}
+            onTypingInput={handleTypingInput}
+          />
         )}
 
-        {screen === 'game' && (
-          <div className="space-y-6 animate-in fade-in duration-500">
-            {/* HUD */}
-            <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 shadow-xl border-2 border-zinc-100 dark:border-zinc-800">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setScreen('menu')}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-500 hover:text-violet-500 transition-colors"
-                  >
-                    <i className="fi fi-sr-angle-left text-xs"></i>
-                    <span className="text-xs font-black uppercase tracking-widest">เมนู</span>
-                  </button>
-                  <button
-                    onClick={() => router.push('/games')}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-500 hover:text-violet-500 transition-colors"
-                    title="Back to Games"
-                  >
-                    <i className="fi fi-sr-home text-xs"></i>
-                  </button>
-                  <div className="w-12 h-12 rounded-2xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-violet-600 dark:text-violet-400 text-xl font-black">
-                    {gameState.level}
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">LEVEL</p>
-                    <p className="text-lg font-black text-zinc-800 dark:text-zinc-100">{currentConfig.name}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">SCORE</p>
-                    <p className="text-3xl font-black text-fuchsia-500 tracking-tighter">{gameState.score}</p>
-                  </div>
-                  <button
-                    onClick={toggleFullscreen}
-                    className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 hover:scale-110 transition-all"
-                    title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-                  >
-                    <i className={`fi ${isFullscreen ? 'fi-sr-exit' : 'fi-sr-expand'} text-violet-600 dark:text-violet-400 text-lg`}></i>
-                  </button>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="h-4 w-full bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden p-1 shadow-inner">
-                  <div
-                    className="h-full bg-violet-500 rounded-full transition-all duration-500 ease-out relative shadow-sm"
-                    style={{ width: `${progressPct}%` }}
-                  >
-                    <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-                  </div>
-                </div>
-                <div className="flex justify-between text-[11px] font-black text-zinc-400 uppercase tracking-wider">
-                  <span>PROGRESS</span>
-                  <span>{Math.min(progress, currentConfig.target)} / {currentConfig.target}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* MAIN GAME AREA */}
-            <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl min-h-[400px] flex flex-col items-center justify-center relative overflow-hidden">
-               {/* Decorative background elements */}
-               <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-               <div className="absolute bottom-0 left-0 w-32 h-32 bg-fuchsia-500/5 rounded-full -ml-16 -mb-16 blur-3xl"></div>
-
-               {/* Game Content Switcher */}
-               {currentConfig.type === "match" ? (
-                 <div className="flex flex-col items-center animate-in zoom-in duration-300">
-                   <div className="w-48 h-48 md:w-56 md:h-56 rounded-[3rem] bg-violet-50 dark:bg-violet-900/10 border-8 border-violet-100 dark:border-violet-900/30 flex items-center justify-center text-9xl font-black leading-none text-violet-600 dark:text-violet-400 shadow-2xl mb-12 transform hover:rotate-2 transition-transform">
-                     {roundData.targetLetter}
-                   </div>
-                   <div className="flex flex-wrap justify-center gap-6">
-                     {roundData.choices.map((choice, i) => (
-                       <button
-                         key={i}
-                         onClick={() => handleChoice(choice)}
-                         className="w-24 h-24 md:w-28 md:h-28 rounded-3xl bg-white dark:bg-zinc-800 text-5xl font-black text-zinc-700 dark:text-zinc-200 shadow-[0_8px_0_0_#e4e4e7] dark:shadow-[0_8px_0_0_#27272a] active:shadow-none active:translate-y-2 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all duration-150 border-2 border-zinc-100 dark:border-zinc-800"
-                       >
-                         {choice}
-                       </button>
-                     ))}
-                   </div>
-                 </div>
-               ) : (
-                 <div className="w-full space-y-12">
-                   <div className="grid grid-cols-7 md:grid-cols-13 gap-2 md:gap-3">
-                     {roundData.grid.map((item, index) => (
-                       <div 
-                         key={index}
-                         className={`aspect-square flex items-center justify-center rounded-lg md:rounded-xl text-xl md:text-2xl font-black transition-all duration-300 ${
-                           item.isHidden 
-                             ? (roundData.activeIndex === index 
-                               ? 'bg-violet-100 dark:bg-violet-900/40 border-4 border-violet-500 animate-pulse' 
-                               : (item.isWrong ? 'bg-rose-500 text-white shadow-none translate-y-1' : 'bg-zinc-100 dark:bg-zinc-800 border-2 border-dashed border-zinc-300 dark:border-zinc-700 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700'))
-                             : (item.isCorrect ? 'bg-emerald-500 text-white scale-105' : 'bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 text-zinc-400')
-                         }`}
-                         onClick={() => !item.isCorrect && currentConfig.type !== "typing" && setRoundData(prev => ({ ...prev, activeIndex: index }))}
-                       >
-                         {item.isHidden ? (
-                           currentConfig.type === "typing" ? (
-                             <input 
-                               autoFocus={index === roundData.missingIndices[0]}
-                               className="w-full h-full bg-transparent text-center focus:outline-2 focus:outline-violet-500 rounded"
-                               value={item.value}
-                               onChange={(e) => {
-                                 const val = e.target.value.slice(-1);
-                                 const nextGrid = [...roundData.grid];
-                                 nextGrid[index].value = val;
-                                 setRoundData(prev => ({ ...prev, grid: nextGrid }));
-                               }}
-                             />
-                           ) : "?"
-                         ) : item.char}
-                       </div>
-                     ))}
-                   </div>
-
-                   {currentConfig.type === "typing" ? (
-                     <div className="text-center pt-8">
-                        <button 
-                          onClick={checkTyping}
-                          className="px-10 py-4 bg-fuchsia-600 text-white text-xl font-black rounded-2xl shadow-[0_8px_0_0_#9d174d] active:shadow-none active:translate-y-2 transition-all flex items-center gap-2 mx-auto"
-                        >
-                          ตรวจคำตอบ <i className="fi fi-sr-checkbox"></i>
-                        </button>
-                     </div>
-                   ) : (
-                     <div className="flex flex-wrap justify-center gap-4">
-                        {roundData.choices.map((choice, i) => (
-                          <button
-                            key={i}
-                            onClick={() => handleChoice(choice)}
-                            className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-white dark:bg-zinc-800 text-3xl font-black text-zinc-700 dark:text-zinc-200 shadow-[0_6px_0_0_#e4e4e7] dark:shadow-[0_6px_0_0_#27272a] active:shadow-none active:translate-y-1.5 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all border-2 border-zinc-100 dark:border-zinc-800"
-                          >
-                            {choice}
-                          </button>
-                        ))}
-                     </div>
-                   )}
-                 </div>
-               )}
-            </div>
-            
-            {/* Feedback Pop */}
-            {feedback.text && (
-              <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] animate-in zoom-in slide-in-from-bottom-2 duration-300 pointer-events-none">
-                <div className="bg-white/95 dark:bg-zinc-800/95 backdrop-blur-md px-10 py-6 rounded-[2rem] shadow-2xl border-4 border-violet-500 transform -rotate-3">
-                  <p className="text-4xl md:text-6xl font-black text-violet-600 dark:text-violet-400 whitespace-nowrap">
-                    {feedback.text}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {screen === 'victory' && (
-          <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-12 shadow-2xl text-center space-y-8 animate-in zoom-in duration-500">
-            <h1 className="text-5xl md:text-7xl font-black text-emerald-500 animate-pulse tracking-tight">
-              ยอดเยี่ยมมาก!
-            </h1>
-            <div className="text-9xl rotate-12 py-6 drop-shadow-2xl">
-              <i className="fi fi-sr-trophy text-amber-500 dark:text-amber-400"></i>
-            </div>
-            <h2 className="text-2xl md:text-3xl text-zinc-600 dark:text-zinc-400 font-bold">
-              คุณพิชิตเกาะตัวอักษรสำเร็จแล้ว!
-            </h2>
-            
-            <div className="bg-violet-50 dark:bg-violet-900/10 p-8 rounded-3xl inline-block border-2 border-violet-100 dark:border-violet-900/30">
-              <p className="text-lg font-bold text-violet-600/60 dark:text-violet-400/60 uppercase tracking-widest mb-1">FINAL SCORE</p>
-              <p className="text-7xl font-black text-violet-600 dark:text-violet-400 tracking-tighter">{gameState.score}</p>
-            </div>
-
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 pt-8">
-              <button
-                onClick={startGame}
-                className="px-12 py-5 bg-emerald-600 text-white text-2xl font-black rounded-3xl shadow-[0_12px_0_0_#065f46] active:shadow-none active:translate-y-3 transition-all"
-              >
-                เล่นอีกครั้ง!
-              </button>
-              <button
-                onClick={() => router.push('/games')}
-                className="px-10 py-5 bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-100 text-xl font-black rounded-3xl shadow-[0_12px_0_0_#d4d4d8] dark:shadow-none active:shadow-none active:translate-y-3 transition-all"
-              >
-                <i className="fi fi-sr-gamepad mr-2"></i>เกมอื่นๆ
-              </button>
-              <button
-                onClick={() => setScreen('menu')}
-                className="text-zinc-400 hover:text-violet-500 font-bold transition-colors"
-              >
-                กลับหน้าหลัก
-              </button>
-            </div>
-          </div>
+        {screen === "victory" && (
+          <VictoryScreen score={gameState.score} stageStars={stageStars} />
         )}
       </div>
     </div>
   );
+}
+
+function shuffleArray<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }

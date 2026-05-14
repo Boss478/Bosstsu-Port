@@ -63,6 +63,12 @@ export async function createGame(formData: FormData) {
   const published = formData.get('published') === 'on';
   const thumbnailFile = formData.get('thumbnail') as File;
 
+  // Generate slug from title
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+
   // Validate thumbnail BEFORE any file operations
   if (!thumbnailFile || thumbnailFile.size === 0) {
     return { error: formatError('U03') };
@@ -75,6 +81,7 @@ export async function createGame(formData: FormData) {
 
     await Game.create({
       title,
+      slug,
       description,
       category,
       playUrl: playUrl || '',

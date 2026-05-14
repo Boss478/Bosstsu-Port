@@ -4,6 +4,19 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.5.30 (2026-05-15)
+
++ **Alphabet Adventure Refactor**: Complete 4-phase overhaul - refactored 597-line monolith into modular architecture with 8 files:
+  * Created `types.ts` (Screen, GameState, RoundData, GridCell types) and `constants.ts` (level config, praise pool, star calculation, high score key, Fisher-Yates shuffle)
+  * Extracted MenuScreen, GameScreen, VictoryScreen screen components to `screens/` directory
+  * Rewrote `AlphabetAdventureClient.tsx` as thin orchestrator with state machine and screen routing
++ **Engagement Features**: Star rating per level (1-3 stars based on accuracy ≥90%/≥70%), high score localStorage persistence with "NEW HIGH SCORE!" badge, per-level stars displayed on victory screen
++ **Polish**: Mute toggle button in HUD (uses shared useAudio hook), keyboard shortcuts (1-4 for answers, Enter for typing, Esc for menu), auto-focus first choice button on new round, keyboard hint display at bottom of game area
++ **English Localization**: Game UI now English primary + Thai subtitle (level names, menu description, buttons), random English praise pool (8 correct / 5 wrong encouragement messages), victory screen "Amazing!" title
+* **Admin Bug Fix**: Fixed game creation failing due to missing `slug` - now auto-generates from title (lowercase, hyphens for spaces/special chars)
+* **State Safety**: Added `stateRef` pattern to prevent stale closures in setTimeout callbacks, added `isTransitioning` guard to prevent double-click issues during feedback animation
+
+
 ## v1.5.29 (2026-05-14)
 
 * **English Localization**: Answer feedback (correct/wrong) changed to English for ESL focus; instructions/stage names now bilingual (EN primary, TH subtitle)
