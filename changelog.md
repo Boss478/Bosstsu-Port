@@ -3,6 +3,23 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+
+## v1.5.29 (2026-05-14)
+
+* **English Localization**: Answer feedback (correct/wrong) changed to English for ESL focus; instructions/stage names now bilingual (EN primary, TH subtitle)
+* **Progress Bar Fix**: Progress bar now uses per-stage \`stageDone\` counter instead of cumulative \`questionsDone\` — no longer fills to 100% immediately when entering stage 2 after sequential+review mode
++ **Number Game Refactor**: Complete 4-phase overhaul - refactored 622-line monolith into modular architecture with 8 files:
+  * Extracted shared \`useAudio\` hook (with mute toggle + speech synthesis) to \`src/hooks/useAudio.ts\`
+  * Created \`types.ts\` and \`constants.ts\` (types, game config, emojis, instructions, stage names, praise pool, star rating)
+  * Extracted MenuScreen, RangeScreen, GameScreen, VictoryScreen screen components
+  * Rewrote \`NumberGameClient.tsx\` with Fisher-Yates shuffle, useReducer-style state, proper stage progression (exact matches, not <=)
++ **Learning Features**: Speech synthesis on wrong answers, stage names displayed in HUD, random Thai/English encouragement pool using praise/reassurance
++ **Engagement Features**: Star rating per stage (1-3 stars based on accuracy), progress bar, victory stats grid (score, accuracy %, best streak), high score localStorage per range, NEW HIGH SCORE badge
++ **Polish**: Mute toggle, keyboard shortcuts (1/2/3 to answer, Esc to menu), fullscreen toggle, ARIA labels (\`role="application"\`, \`aria-live="polite"\`), emoji overflow fix (max 12 items + ×N multiplier), shows correct answer on wrong response
+* **Alphabet Adventure**: Replaced inline \`useAudio\` hook with shared \`@/hooks/useAudio\` import (removed 64 lines of duplicated code)
+* **Number Game Fix**: Victory screen now properly shows star ratings - \`stageStars\` was never populated, always displayed 0/0
+* **Number Game Fix**: Stage progression now correctly resets \`stageCorrect\`/ \`stageTotal\` on stage transitions (review→stage2 path had missing reset)
+
 ## v1.5.28 (2026-05-14)
 
 * **Python Compiler Worker Fix**: Fixed Pyodide worker being recreated on every mode switch (appendOutput stable with modeRef)
