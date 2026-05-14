@@ -3,6 +3,13 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.27 (2026-05-14)
+
+* **Python Compiler Fix**: Fixed clipboard crash when sharing code (navigator.clipboard undefined in non-secure contexts)
+  * Made `shareCode` async with try-catch and fallback to `document.execCommand('copy')`
+* **Python Compiler UI**: Fixed download dropdown text being too light in light mode
+  * Added `text-zinc-700 dark:text-zinc-300` to .py/.txt option buttons
+
 ## v1.5.26 (2026-05-14)
 
 * **Number Game Fix**: Disabled answer buttons during the 1-second transition period after each answer to prevent double-click issues

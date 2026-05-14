@@ -388,10 +388,21 @@ export default function PythonCompilerClient() {
     URL.revokeObjectURL(url);
   };
 
-  const shareCode = () => {
+  const shareCode = async () => {
     const encoded = window.btoa(code);
     const url = `${window.location.origin}${window.location.pathname}?code=${encoded}`;
-    navigator.clipboard.writeText(url);
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      const textarea = document.createElement('textarea');
+      textarea.value = url;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
     alert("คัดลอกลิงก์แชร์แล้ว!");
   };
 
@@ -495,8 +506,8 @@ export default function PythonCompilerClient() {
                     <i className="fi fi-sr-download"></i>
                   </button>
                   <div className="absolute right-0 top-full mt-1 w-32 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-zinc-100 dark:border-slate-700 hidden group-hover/down:block z-20">
-                    <button onClick={() => downloadFile("py")} className="w-full text-left px-3 py-2 text-xs hover:bg-zinc-50 dark:hover:bg-slate-700 rounded-t-lg">.py (Python)</button>
-                    <button onClick={() => downloadFile("txt")} className="w-full text-left px-3 py-2 text-xs hover:bg-zinc-50 dark:hover:bg-slate-700 rounded-b-lg">.txt (Text)</button>
+                    <button onClick={() => downloadFile("py")} className="w-full text-left px-3 py-2 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 rounded-t-lg">.py (Python)</button>
+                    <button onClick={() => downloadFile("txt")} className="w-full text-left px-3 py-2 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 rounded-b-lg">.txt (Text)</button>
                   </div>
                 </div>
               </div>
