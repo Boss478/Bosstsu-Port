@@ -30,6 +30,11 @@ export default function PythonCompilerClient() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
 
+  const [toast, setToast] = useState<string | null>(null);
+
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
+
   const workerRef = useRef<Worker | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const overlayRef = useRef<HTMLPreElement>(null);
@@ -37,18 +42,22 @@ export default function PythonCompilerClient() {
   const consoleInputRef = useRef<HTMLInputElement>(null);
 
   const appendOutput = useCallback((msg: string, isError = false) => {
+    const currentMode = modeRef.current;
     let internalMsg = msg;
-    if (isError && mode === "study") {
+    if (isError && currentMode === "study") {
       internalMsg = internalMsg.replace(/line (\d+)/gi, (match, lineNum) => {
         return `<span class="cursor-pointer text-red-500 underline font-bold" onclick="window.dispatchEvent(new CustomEvent('jump-to-line', { detail: ${lineNum} }))">${match}</span>`;
       });
     }
 
     setOutput((prev: string) => {
-      if (prev.length > 15000) return prev;
+      if (prev.length > 15000) {
+        const kept = prev.length > 13000 ? prev.slice(-12000) : prev;
+        return `[... ตัดข้อความบางส่วนออก ...]\n${kept}\n${isError ? `<span class="text-red-400">${internalMsg}</span>\n` : `${internalMsg}\n`}`;
+      }
       return prev + (isError ? `<span class="text-red-400">${internalMsg}</span>\n` : `${internalMsg}\n`);
     });
-  }, [mode]);
+  }, []);
 
   useEffect(() => {
     const handleJump = (e: any) => {
@@ -88,6 +97,7 @@ export default function PythonCompilerClient() {
         setExecTime(e.data.execTime);
         setIsRunning(false);
         setIsWaitingForInput(false);
+        textareaRef.current?.focus();
         return;
       }
     };
@@ -176,14 +186,21 @@ export default function PythonCompilerClient() {
     workerRef.current.postMessage({ type: "run", code });
   };
 
-  const submitConsoleInput = (value: string) => {
+  const submitConsoleInput = async (value: string) => {
     appendOutput(`<span class="text-sky-300">${inputPromptText}${value}</span>`);
     setIsWaitingForInput(false);
-    fetch("/api/pyodide-input", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: pendingInputId, value, cancelled: false }),
-    });
+    try {
+      const res = await fetch("/api/pyodide-input", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: pendingInputId, value, cancelled: false }),
+      });
+      if (!res.ok) {
+        appendOutput(`<span class="text-red-400">[Input error: ${res.status}]</span>`, true);
+      }
+    } catch {
+      appendOutput(`<span class="text-red-400">[Network error]</span>`, true);
+    }
   };
 
   const handleConsoleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -320,7 +337,8 @@ export default function PythonCompilerClient() {
 
     setActiveHint(PYTHON_METADATA[word] ? word : null);
 
-    if (mode === "easy" && wordBefore.length >= 2) {
+    const currentMode = modeRef.current;
+    if (currentMode === "easy" && wordBefore.length >= 2) {
       const allWords = Array.from(new Set([...Object.keys(PYTHON_METADATA), "print", "len", "input", "range", "def", "if", "else", "elif", "for", "while", "import", "from", "class", "try", "except", "finally", "with", "as", "return", "pass", "break", "continue", "True", "False", "None"]));
       const filtered = allWords.filter(w => w.startsWith(wordBefore) && w !== wordBefore);
       setSuggestions(filtered.slice(0, 5));
@@ -400,10 +418,11 @@ export default function PythonCompilerClient() {
       textarea.style.opacity = '0';
       document.body.appendChild(textarea);
       textarea.select();
-      document.execCommand('copy');
+      (document.execCommand as (commandId: string, showUI?: boolean) => boolean)('copy');
       document.body.removeChild(textarea);
     }
-    alert("คัดลอกลิงก์แชร์แล้ว!");
+    setToast("คัดลอกลิงก์แชร์แล้ว!");
+    setTimeout(() => setToast(null), 2500);
   };
 
   const toggleFullscreen = () => {
@@ -452,6 +471,7 @@ export default function PythonCompilerClient() {
               <button
                 onClick={runCode}
                 disabled={!isEngineReady || isRunning}
+                title="Run (Ctrl+Enter)"
                 className="flex items-center gap-2 px-5 py-2 bg-green-500 hover:bg-green-600 disabled:bg-zinc-300 dark:disabled:bg-slate-700 text-white rounded-xl font-medium transition-colors shadow-xs hover:shadow-md hover:shadow-green-500/20"
               >
                 {isRunning ? <i className="fi fi-sr-spinner animate-spin"></i> : <i className="fi fi-sr-play"></i>}
@@ -675,6 +695,12 @@ export default function PythonCompilerClient() {
           </div>
         </div>
       </section>
+
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-green-500 text-white px-5 py-3 rounded-xl shadow-lg shadow-green-500/20 animate-slide-down">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

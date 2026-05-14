@@ -3,6 +3,13 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.28 (2026-05-14)
+
+* **Python Compiler Worker Fix**: Fixed Pyodide worker being recreated on every mode switch (appendOutput stable with modeRef)
+* **Python Compiler Error Fix**: Fixed error messages being swallowed (split on actual newlines not literal \n in pyodide-worker.js)
+* **Python Compiler Output**: Fixed output truncation silently dropping content after 15k chars (now shows truncation notice)
+* **Python Compiler**: Added Ctrl+Enter hint to RUN button, replaced alert() with styled toast, added focus to editor after run, added error handling to submitConsoleInput, fixed execCommand deprecation warning
+
 ## v1.5.27 (2026-05-14)
 
 * **Python Compiler Fix**: Fixed clipboard crash when sharing code (navigator.clipboard undefined in non-secure contexts)

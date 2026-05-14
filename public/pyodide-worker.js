@@ -99,9 +99,9 @@ self.onmessage = async (e) => {
       await pyodide.runPythonAsync(buildExecutionWrapper(e.data.code));
     } catch (err) {
       const lines = String(err.message || err)
-        .split("\\n")
+        .split("\n")
         .filter((l) => !l.includes('File "<exec>"') && !l.includes("_console_input"));
-      self.postMessage({ type: "stderr", text: "❌ Error: " + lines.join("\\n") });
+      self.postMessage({ type: "stderr", text: "❌ Error: " + lines.join("\n") });
     } finally {
       const elapsed = ((performance.now() - startTime) / 1000).toFixed(3);
       self.postMessage({ type: "done", execTime: Number(elapsed) });
