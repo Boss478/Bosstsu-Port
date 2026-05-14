@@ -37,7 +37,7 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
             เกมการศึกษา
           </h1>
           <p className="mt-4 text-xl text-zinc-600 dark:text-zinc-400 font-medium">
-            เรียนรู้ผ่านการเล่น สนุกและได้ความรู้สไตล์ Boss478
+            เกมการเรียนรู้ในหมวดหมู่ต่าง ๆ
           </p>
         </div>
       </section>

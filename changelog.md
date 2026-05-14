@@ -3,6 +3,17 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.5.26 (2026-05-14)
+
+* **Number Game Fix**: Disabled answer buttons during the 1-second transition period after each answer to prevent double-click issues
+  * Added `isTransitioning` state to track transition period
+  * Buttons now visually dim and become non-interactive until next question appears
+
+## v1.5.25 (2026-05-14)
+
+ * **Syntax Error Fix**: Fixed corrupted JSDoc comments (`/"**` → `/**`) in 6 component files that caused parse errors
+   * EmptyState.tsx, Pagination.tsx, NavigationPendingBar.tsx, PublishedToggle.tsx, FormError.tsx, FormSubmitButton.tsx
+
 ## v1.5.24 (2026-05-14)
 
 + **Complete Codebase Refactoring**: Major refactoring across 5 phases to improve code quality, security, and maintainability

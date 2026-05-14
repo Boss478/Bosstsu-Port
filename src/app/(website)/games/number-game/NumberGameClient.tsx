@@ -121,6 +121,7 @@ export default function NumberGameClient() {
   } | null>(null);
 
   const [feedback, setFeedback] = useState<{ text: string; type: 'correct' | 'wrong' | '' }>({ text: '', type: '' });
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -284,10 +285,11 @@ export default function NumberGameClient() {
   };
 
   const handleAnswer = (selected: string) => {
-    if (!currentQuestion) return;
+    if (!currentQuestion || isTransitioning) return;
     const isCorrect = selected === currentQuestion.correct;
 
     if (isCorrect) {
+      setIsTransitioning(true);
       playSound('correct');
       setFeedback({ text: 'เก่งมาก! +3', type: 'correct' });
       const newScore = gameState.score + 3;
@@ -312,12 +314,14 @@ export default function NumberGameClient() {
           setGameState(nextState);
           setTimeout(() => {
             setFeedback({ text: '', type: '' });
+            setIsTransitioning(false);
             generateQuestion(nextState, range);
           }, 1000);
         } else {
           setGameState({ ...gameState, score: newScore, sequentialIndex: nextIndex, questionsDone: nextDone });
           setTimeout(() => {
             setFeedback({ text: '', type: '' });
+            setIsTransitioning(false);
             generateQuestion(stateRef.current, range);
           }, 1000);
         }
@@ -339,12 +343,14 @@ export default function NumberGameClient() {
           setGameState(nextState);
           setTimeout(() => {
             setFeedback({ text: '', type: '' });
+            setIsTransitioning(false);
             generateQuestion(nextState, range);
           }, 1000);
         } else {
           setGameState({ ...gameState, score: newScore, reviewIndex: nextReviewIndex, questionsDone: nextDone });
           setTimeout(() => {
             setFeedback({ text: '', type: '' });
+            setIsTransitioning(false);
             generateQuestion(stateRef.current, range);
           }, 1000);
         }
@@ -367,14 +373,19 @@ export default function NumberGameClient() {
       setGameState({ ...gameState, score: newScore, stage: nextStage, questionsDone: nextDone });
       setTimeout(() => {
         setFeedback({ text: '', type: '' });
+        setIsTransitioning(false);
         const st = stateRef.current;
         generateQuestion({ ...st, score: newScore, stage: nextStage, questionsDone: nextDone }, range);
       }, 1000);
     } else {
+      setIsTransitioning(true);
       playSound('wrong');
       setFeedback({ text: 'ไม่เป็นไรนะ! -2', type: 'wrong' });
       setGameState({ ...gameState, score: Math.max(0, gameState.score - 2) });
-      setTimeout(() => setFeedback({ text: '', type: '' }), 1000);
+      setTimeout(() => {
+        setFeedback({ text: '', type: '' });
+        setIsTransitioning(false);
+      }, 1000);
     }
   };
 
@@ -550,7 +561,8 @@ export default function NumberGameClient() {
                      <button
                         key={i}
                         onClick={() => handleAnswer(opt)}
-                        className="py-5 bg-zinc-50 dark:bg-zinc-800 text-xl font-black text-zinc-700 dark:text-zinc-200 rounded-3xl border-4 border-zinc-100 dark:border-zinc-700 hover:border-fuchsia-500 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 active:translate-y-2 active:shadow-none shadow-[0_8px_0_0_#e4e4e7] dark:shadow-none transition-all"
+                        disabled={isTransitioning}
+                        className={`py-5 bg-zinc-50 dark:bg-zinc-800 text-xl font-black text-zinc-700 dark:text-zinc-200 rounded-3xl border-4 border-zinc-100 dark:border-zinc-700 hover:border-fuchsia-500 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 active:translate-y-2 active:shadow-none shadow-[0_8px_0_0_#e4e4e7] dark:shadow-none transition-all ${isTransitioning ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
                      >
                        {opt}
                      </button>

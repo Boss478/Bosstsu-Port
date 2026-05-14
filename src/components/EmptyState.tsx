@@ -1,4 +1,4 @@
-/"/**
+/**
  * Empty state component for list pages.
  */
 

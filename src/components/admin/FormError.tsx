@@ -1,4 +1,4 @@
-/"/**
+/**
  * Form error display component.
  */
 

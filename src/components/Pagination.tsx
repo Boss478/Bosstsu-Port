@@ -1,4 +1,4 @@
-/"/**
+/**
  * Pagination component for list pages.
  */
 

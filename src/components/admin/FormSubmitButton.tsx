@@ -1,4 +1,4 @@
-/"/**
+/**
  * Form submit button with loading state.
  */
 

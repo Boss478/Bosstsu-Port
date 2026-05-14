@@ -1,4 +1,4 @@
-/"/**
+/**
  * Navigation pending indicator bar.
  * Shows a pulsing progress bar at the top during navigation transitions.
  */
