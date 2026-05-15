@@ -237,7 +237,7 @@ export default function PhotoLightbox({ photos, initialIndex, onClose }: PhotoLi
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-1 gap-x-2 gap-y-2.5">
                     {infoRows.map((row) => (
                       <div key={row.label} className="flex items-start gap-2">
-                        <i className={`${row.icon} text-sky-400 text-[10px] mt-0.5 shrink-0`} />
+                        <i className={`${row.icon} text-blue-400 text-[10px] mt-0.5 shrink-0`} />
                         <div className="min-w-0 flex-1">
                           <p className="text-[8px] text-white/50 uppercase tracking-wider mb-px">{row.label}</p>
                           <p className="text-[10px] sm:text-xs font-medium text-white/90 leading-tight wrap-break-word">{row.value}</p>

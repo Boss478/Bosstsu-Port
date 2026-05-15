@@ -54,12 +54,12 @@ export default async function GalleryListPage({
 
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
-          <i className="fi fi-sr-picture text-sky-500" />
+          <i className="fi fi-sr-picture text-blue-500" />
           จัดการแกลเลอรี (Gallery)
         </h1>
         <Link
           href="/admin/gallery/new"
-          className="flex items-center gap-2 px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20 transition-all hover:-translate-y-0.5"
+          className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:-translate-y-0.5"
         >
           <i className="fi fi-sr-plus text-sm" />
           เพิ่มอัลบั้มใหม่
@@ -92,7 +92,7 @@ export default async function GalleryListPage({
               items.map((item: any) => (
                 <tr
                   key={item._id}
-                  className="border-b last:border-0 border-zinc-100/60 dark:border-slate-700/30 hover:bg-sky-50/40 dark:hover:bg-slate-700/30 transition-colors group"
+                  className="border-b last:border-0 border-zinc-100/60 dark:border-slate-700/30 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors group"
                 >
                   <td className="p-4 w-24">
                     <div className="relative w-16 h-10 rounded-lg overflow-hidden bg-zinc-200 shadow-sm">
@@ -108,7 +108,7 @@ export default async function GalleryListPage({
                     <p className="font-semibold text-zinc-900 dark:text-zinc-100 line-clamp-1">
                       {item.title}
                     </p>
-                    <p className="text-xs text-sky-600 dark:text-sky-400 font-mono">
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-mono">
                       {item.slug}
                     </p>
                   </td>
@@ -136,7 +136,7 @@ export default async function GalleryListPage({
                     <div className="flex items-center justify-end gap-2 transition-opacity">
                       <Link
                         href={`/admin/gallery/${item._id}`}
-                        className="p-2 text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-900/20 rounded-lg transition-colors"
+                        className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                         title="Edit"
                       >
                         <i className="fi fi-sr-pencil" />

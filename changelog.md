@@ -4,6 +4,20 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.6.0 (2026-05-15)
+
++ **Cookie Monster Blue Theme**: Complete visual overhaul — swapped accent color from Tailwind `sky` to deep `blue` palette (#1560BD Cookie Monster blue) across all 30+ components and pages:
+  * Updated globals.css with `--color-cookie-blue` and `--color-cookie-gold` CSS variables
+  * All `bg-sky-*`, `text-sky-*`, `border-sky-*`, `shadow-sky-*`, `ring-sky-*` → corresponding `blue-*` classes
+  * Dark mode accent shifted to `blue-400` for readability on dark backgrounds
+  * Added warm `amber` cookie accent color (hero CTA hover, save progress bar)
++ **Bouncy Hero Animation**: Gentle continuous `gentle-bounce` animation on hero logo + 1 decorative blur circle (ball-dropping spring effect, loops infinitely)
++ **Entrance Animations**: Fade-slide-up staggered entrance on hero section (logo scale in → title → subtitle → CTAs with 200ms delay each)
+- Removed all `-sky-` Tailwind class references (zero remaining in source)
+* No character artwork or names — copyright-safe, professional presentation
+* All pages verified in light + dark mode
+
+
 ## v1.5.30 (2026-05-15)
 
 + **Alphabet Adventure Refactor**: Complete 4-phase overhaul - refactored 597-line monolith into modular architecture with 8 files:

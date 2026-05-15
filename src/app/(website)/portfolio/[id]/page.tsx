@@ -137,7 +137,7 @@ export default async function PortfolioDetailPage({
   const olderItem = olderItems.length > 0 ? { id: olderItems[olderItems.length - 1].slug, title: olderItems[olderItems.length - 1].title } : null;
 
   return (
-    <div className="min-h-screen bg-sky-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
       <section className="pt-28 pb-8 px-4">
         <div className="max-w-7xl mx-auto">
           <Breadcrumb
@@ -152,7 +152,7 @@ export default async function PortfolioDetailPage({
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8 px-4 pb-20">
         <main className="lg:col-span-3 space-y-8">
           <article id="portfolio-article" className="space-y-8 mx-auto max-w-3xl">
-            <div className="relative aspect-video rounded-3xl overflow-hidden shadow-xl shadow-sky-100/50 dark:shadow-black/30">
+            <div className="relative aspect-video rounded-3xl overflow-hidden shadow-xl shadow-blue-100/50 dark:shadow-black/30">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={item.cover}
@@ -167,7 +167,7 @@ export default async function PortfolioDetailPage({
                   {item.tags.map((t) => (
                     <span
                       key={t}
-                      className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300"
+                      className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
                     >
                       {t}
                     </span>
@@ -185,8 +185,8 @@ export default async function PortfolioDetailPage({
               </header>
 
               {item.description && (
-                <div className="mb-8 p-6 bg-sky-50 dark:bg-slate-800/50 rounded-2xl border border-sky-100 dark:border-slate-700/50">
-                  <h3 className="text-sm font-bold text-sky-800 dark:text-sky-300 mb-2 uppercase tracking-wider flex items-center gap-2">
+                <div className="mb-8 p-6 bg-blue-50 dark:bg-slate-800/50 rounded-2xl border border-blue-100 dark:border-slate-700/50">
+                  <h3 className="text-sm font-bold text-blue-800 dark:text-blue-300 mb-2 uppercase tracking-wider flex items-center gap-2">
                     <i className="fi fi-sr-info" />
                     TL;DR
                   </h3>
@@ -204,7 +204,7 @@ export default async function PortfolioDetailPage({
               {item.tools && item.tools.length > 0 && (
                 <div className="mt-20 pt-12 border-t border-zinc-100 dark:border-slate-800">
                   <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-200 mb-4 flex items-center gap-2">
-                    <i className="fi fi-sr-tools text-sky-500" /> Tools used
+                    <i className="fi fi-sr-tools text-blue-500" /> Tools used
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {item.tools.map((tool) => (
@@ -223,13 +223,13 @@ export default async function PortfolioDetailPage({
             {( (item.gallery && item.gallery.length > 0) || item.relatedGalleryId ) && (
               <section id="portfolio-gallery" className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 pl-2 border-l-4 border-sky-500">
+                  <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 pl-2 border-l-4 border-blue-500">
                     แกลเลอรี่
                   </h3>
                   {item.relatedGalleryId && (
                     <Link
                       href={`/gallery/${item.relatedGalleryId}`}
-                      className="text-sm font-medium text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1"
+                      className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
                     >
                       ดูรูปทั้งหมด
                       <i className="fi fi-sr-arrow-right text-xs mt-0.5"></i>
@@ -240,16 +240,16 @@ export default async function PortfolioDetailPage({
                 {item.gallery && item.gallery.length > 0 ? (
                   <PortfolioGallery images={item.gallery} />
                 ) : (
-                  <div className="flex flex-col items-center justify-center p-8 rounded-2xl bg-sky-50 dark:bg-slate-900/50 border border-sky-100 dark:border-slate-800 text-center">
-                     <div className="w-16 h-16 bg-sky-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
-                        <i className="fi fi-sr-picture text-2xl text-sky-500"></i>
+                  <div className="flex flex-col items-center justify-center p-8 rounded-2xl bg-blue-50 dark:bg-slate-900/50 border border-blue-100 dark:border-slate-800 text-center">
+                     <div className="w-16 h-16 bg-blue-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
+                        <i className="fi fi-sr-picture text-2xl text-blue-500"></i>
                      </div>
                      <p className="text-zinc-600 dark:text-zinc-400 mb-4">
                        ดูรูปภาพเพิ่มเติมได้ในอัลบั้มแกลเลอรี่
                      </p>
                      <Link
                       href={`/gallery/${item.relatedGalleryId}`}
-                      className="px-6 py-2 bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 rounded-full font-medium shadow-sm hover:shadow border border-sky-100 dark:border-slate-700 transition-all"
+                      className="px-6 py-2 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-full font-medium shadow-sm hover:shadow border border-blue-100 dark:border-slate-700 transition-all"
                     >
                       ไปที่แกลเลอรี่
                     </Link>
@@ -269,7 +269,7 @@ export default async function PortfolioDetailPage({
                   <i className="fi fi-sr-arrow-left transition-transform group-hover:-translate-x-1" />
                   ผลงานก่อนหน้า
                 </div>
-                <div className="font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">
+                <div className="font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                   {olderItem.title}
                 </div>
               </Link>
@@ -284,7 +284,7 @@ export default async function PortfolioDetailPage({
                   ผลงานถัดไป
                   <i className="fi fi-sr-arrow-right transition-transform group-hover:translate-x-1" />
                 </div>
-                <div className="font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">
+                <div className="font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                   {newerItem.title}
                 </div>
               </Link>
@@ -294,7 +294,7 @@ export default async function PortfolioDetailPage({
           {relatedItems.length > 0 && (
             <section id="portfolio-related" className="pt-16 border-t border-zinc-200 dark:border-slate-800">
               <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6 flex items-center gap-2">
-                <i className="fi fi-sr-apps text-sky-500" />
+                <i className="fi fi-sr-apps text-blue-500" />
                 ผลงานอื่น ๆ
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -314,7 +314,7 @@ export default async function PortfolioDetailPage({
                       />
                     </div>
                     <div className="p-4">
-                      <h4 className="font-bold text-zinc-800 dark:text-zinc-200 text-sm mb-1 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-1">
+                      <h4 className="font-bold text-zinc-800 dark:text-zinc-200 text-sm mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
                         {item.title}
                       </h4>
                       <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -332,7 +332,7 @@ export default async function PortfolioDetailPage({
           <div className="sticky top-28 space-y-6">
             <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm p-6 rounded-3xl border border-white/60 dark:border-slate-700/50 shadow-sm">
               <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
-                <i className="fi fi-sr-time-past text-sky-500" />
+                <i className="fi fi-sr-time-past text-blue-500" />
                 ผลงานล่าสุด
               </h3>
               <ul className="space-y-5">
@@ -356,7 +356,7 @@ export default async function PortfolioDetailPage({
                         <span className="text-xs text-zinc-400 dark:text-zinc-500 block mb-0.5">
                           {formatDate(item.date)}
                         </span>
-                        <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-2 leading-snug">
+                        <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
                           {item.title}
                         </h4>
                       </div>

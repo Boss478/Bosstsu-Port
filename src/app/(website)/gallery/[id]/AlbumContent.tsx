@@ -16,7 +16,7 @@ export default function AlbumContent({ album }: AlbumContentProps) {
 
 
   return (
-    <div className="min-h-screen bg-sky-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
 
       <section className="pt-28 pb-8 px-4">
         <div className="max-w-7xl mx-auto">
@@ -50,7 +50,7 @@ export default function AlbumContent({ album }: AlbumContentProps) {
             {album.tags.map((tag) => (
               <span
                 key={tag}
-                className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300"
+                className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
               >
                 {tag}
               </span>
@@ -62,7 +62,7 @@ export default function AlbumContent({ album }: AlbumContentProps) {
               href={`/portfolio/${album.relatedPortfolioId}`}
               className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/60 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-700 shadow-sm transition-all duration-300 text-zinc-700 dark:text-zinc-200 font-medium text-sm group"
             >
-              <i className="fi fi-sr-briefcase text-sky-500"></i>
+              <i className="fi fi-sr-briefcase text-blue-500"></i>
               ดูรายละเอียดโครงการ
               <i className="fi fi-sr-arrow-right text-xs opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"></i>
             </Link>

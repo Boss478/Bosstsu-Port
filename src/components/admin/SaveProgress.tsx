@@ -23,7 +23,7 @@ export default function SaveProgress({ isOpen, progress, statusText }: SaveProgr
               <i className="fi fi-sr-check-circle text-3xl" />
             </div>
           ) : (
-            <div className="w-16 h-16 bg-sky-100 dark:bg-sky-900/30 text-sky-500 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-500 rounded-full flex items-center justify-center">
               <i className="fi fi-sr-spinner-third animate-spin text-3xl" />
             </div>
           )}
@@ -40,7 +40,7 @@ export default function SaveProgress({ isOpen, progress, statusText }: SaveProgr
         {/* Progress Bar Container */}
         <div className="w-full bg-zinc-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden border border-zinc-200 dark:border-slate-700 relative">
           <div
-            className="h-full bg-linear-to-r from-sky-400 to-sky-600 transition-all duration-300 ease-out flex items-center justify-end"
+            className="h-full bg-linear-to-r from-blue-400 to-blue-600 transition-all duration-300 ease-out flex items-center justify-end"
             style={{ width: `${clampedProgress}%` }}
           />
         </div>
@@ -48,7 +48,7 @@ export default function SaveProgress({ isOpen, progress, statusText }: SaveProgr
         {/* Percentage Label */}
         <div className="mt-3 flex justify-between items-center text-xs font-semibold text-zinc-500 dark:text-zinc-400">
           <span>0%</span>
-          <span className="text-sky-600 dark:text-sky-400 text-base">{clampedProgress}%</span>
+          <span className="text-blue-600 dark:text-blue-400 text-base">{clampedProgress}%</span>
           <span>100%</span>
         </div>
       </div>

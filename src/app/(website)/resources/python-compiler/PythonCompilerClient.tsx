@@ -187,7 +187,7 @@ export default function PythonCompilerClient() {
   };
 
   const submitConsoleInput = async (value: string) => {
-    appendOutput(`<span class="text-sky-300">${inputPromptText}${value}</span>`);
+    appendOutput(`<span class="text-blue-300">${inputPromptText}${value}</span>`);
     setIsWaitingForInput(false);
     try {
       const res = await fetch("/api/pyodide-input", {
@@ -439,7 +439,7 @@ export default function PythonCompilerClient() {
   const lineNumbers = Array.from({ length: Math.max(10, lineCount) }, (_, i) => i + 1);
 
   return (
-    <div className={`min-h-screen bg-sky-50 dark:bg-slate-950 flex flex-col ${isFullscreen ? "fixed inset-0 z-100 overflow-auto" : ""}`}>
+    <div className={`min-h-screen bg-blue-50 dark:bg-slate-950 flex flex-col ${isFullscreen ? "fixed inset-0 z-100 overflow-auto" : ""}`}>
       {!isFullscreen && (
         <section className="pt-28 pb-8 px-4 shrink-0">
           <div className="max-w-6xl mx-auto">
@@ -495,7 +495,7 @@ export default function PythonCompilerClient() {
                     onClick={() => setMode(m)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       mode === m
-                        ? "bg-white dark:bg-slate-700 text-sky-600 shadow-sm"
+                        ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
                         : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
                     }`}
                   >
@@ -510,7 +510,7 @@ export default function PythonCompilerClient() {
                 <button
                   onClick={toggleFullscreen}
                   title="Fullscreen"
-                  className="p-2 text-zinc-500 hover:text-sky-600 dark:text-zinc-400 dark:hover:text-sky-400 transition-colors"
+                  className="p-2 text-zinc-500 hover:text-blue-600 dark:text-zinc-400 dark:hover:text-blue-400 transition-colors"
                 >
                   <i className={`fi fi-sr-${isFullscreen ? "exit" : "expand"}`}></i>
                 </button>
@@ -533,7 +533,7 @@ export default function PythonCompilerClient() {
               </div>
 
               <div className="relative group">
-                <button className="flex items-center gap-2 px-4 py-2 bg-sky-50 hover:bg-sky-100 dark:bg-sky-900/30 dark:hover:bg-sky-900/50 text-sky-600 dark:text-sky-400 rounded-xl font-medium transition-colors">
+                <button className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl font-medium transition-colors">
                   <i className="fi fi-sr-bulb"></i>
                   EXAMPLE
                   <i className="fi fi-sr-angle-small-down ml-1"></i>
@@ -545,9 +545,9 @@ export default function PythonCompilerClient() {
                       <button
                         key={i}
                         onClick={() => loadExample(ex.code)}
-                        className="w-full text-left px-4 py-3 hover:bg-sky-50 dark:hover:bg-slate-700 rounded-lg transition-colors group/item"
+                        className="w-full text-left px-4 py-3 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg transition-colors group/item"
                       >
-                        <div className="text-sm font-bold text-zinc-800 dark:text-zinc-200 group-hover/item:text-sky-600 dark:group-hover/item:text-sky-400">{ex.title}</div>
+                        <div className="text-sm font-bold text-zinc-800 dark:text-zinc-200 group-hover/item:text-blue-600 dark:group-hover/item:text-blue-400">{ex.title}</div>
                         <div className="text-xs text-zinc-500 mt-0.5">{ex.description}</div>
                       </button>
                     ))}
@@ -567,7 +567,7 @@ export default function PythonCompilerClient() {
 
               {!isEngineReady && (
                 <div className="absolute inset-0 z-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center">
-                  <i className="fi fi-sr-spinner animate-spin text-4xl text-sky-500 mb-4"></i>
+                  <i className="fi fi-sr-spinner animate-spin text-4xl text-blue-500 mb-4"></i>
                   <p className="font-bold text-zinc-800 dark:text-zinc-200">กำลังโหลด Python Engine...</p>
                   <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">ดาวน์โหลดครั้งแรกอาจใช้เวลา 3-5 วินาที</p>
                 </div>
@@ -601,10 +601,10 @@ export default function PythonCompilerClient() {
 
                 {activeHint && PYTHON_METADATA[activeHint] && (
                   <div
-                    className="absolute top-4 right-4 max-w-xs bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-2xl border border-sky-100 dark:border-slate-700 z-50 animate-slide-down"
+                    className="absolute top-4 right-4 max-w-xs bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-2xl border border-blue-100 dark:border-slate-700 z-50 animate-slide-down"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sky-600 font-bold font-mono">{activeHint}</span>
+                      <span className="text-blue-600 font-bold font-mono">{activeHint}</span>
                       <button onClick={() => setActiveHint(null)} className="text-zinc-400 hover:text-zinc-600"><i className="fi fi-sr-cross-small"></i></button>
                     </div>
                     <div className="text-xs space-y-2">
@@ -621,7 +621,7 @@ export default function PythonCompilerClient() {
                        </div>
 
                        {PYTHON_METADATA[activeHint].example && (
-                        <div className="mt-2 p-2 bg-sky-50 dark:bg-sky-900/20 rounded-lg text-[10px] font-mono text-sky-600 flex flex-col gap-1">
+                        <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-[10px] font-mono text-blue-600 flex flex-col gap-1">
                           <span className="text-[9px] uppercase tracking-wider text-zinc-400 font-sans">Example</span>
                           <span className="whitespace-pre">{PYTHON_METADATA[activeHint].example}</span>
                         </div>
@@ -644,7 +644,7 @@ export default function PythonCompilerClient() {
                           key={s}
                           onClick={() => applySuggestion(s)}
                           onMouseEnter={() => setActiveSuggestionIndex(i)}
-                          className={`w-full text-left px-4 py-2 text-sm font-mono transition-colors rounded-lg ${i === activeSuggestionIndex ? "bg-sky-500 text-white shadow-md shadow-sky-500/20" : "text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700"}`}
+                          className={`w-full text-left px-4 py-2 text-sm font-mono transition-colors rounded-lg ${i === activeSuggestionIndex ? "bg-blue-500 text-white shadow-md shadow-blue-500/20" : "text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700"}`}
                         >
                           {s}
                         </button>
@@ -676,7 +676,7 @@ export default function PythonCompilerClient() {
 
                 {isWaitingForInput && (
                   <div className="flex items-center mt-1">
-                    <span className="text-sky-300">{inputPromptText}</span>
+                    <span className="text-blue-300">{inputPromptText}</span>
                     <input
                       ref={consoleInputRef}
                       type="text"

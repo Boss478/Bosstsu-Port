@@ -18,7 +18,7 @@ export default function Card({
     return (
         <Link
             href={href}
-            className="group relative p-8 rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/60 dark:border-white/10 shadow-xl shadow-sky-900/5 dark:shadow-black/20 overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-sky-900/10 dark:hover:shadow-black/40 hover:bg-white/60 dark:hover:bg-slate-800/60"
+            className="group relative p-8 rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/60 dark:border-white/10 shadow-xl shadow-blue-900/5 dark:shadow-black/20 overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-blue-900/10 dark:hover:shadow-black/40 hover:bg-white/60 dark:hover:bg-slate-800/60"
         >
 
             <div
@@ -27,16 +27,16 @@ export default function Card({
 
             <div className="relative z-10">
                 <div className="text-5xl mb-4">
-                    <i className={`${icon} text-sky-700 dark:text-cyan-400`}></i>
+                    <i className={`${icon} text-blue-700 dark:text-cyan-400`}></i>
                 </div>
-                <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-300 mb-2 group-hover:text-gray-900 dark:group-hover:text-sky-400 transition-all duration-300">
+                <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-300 mb-2 group-hover:text-gray-900 dark:group-hover:text-blue-400 transition-all duration-300">
                     {title}
                 </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">{description}</p>
             </div>
 
 
-            <div className="absolute bottom-6 right-6 w-10 h-10 rounded-full bg-sky-100 dark:bg-slate-800 text-sky-600 dark:text-sky-400 flex items-center justify-center group-hover:bg-sky-500 dark:group-hover:bg-sky-600 group-hover:text-white transition-all duration-300 shadow-sm">
+            <div className="absolute bottom-6 right-6 w-10 h-10 rounded-full bg-blue-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:bg-blue-500 dark:group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
                 <i className="fi fi-sr-arrow-right text-lg leading-none"></i>
             </div>
         </Link>

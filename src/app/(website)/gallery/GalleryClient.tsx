@@ -64,7 +64,7 @@ export default function GalleryClient({
   const allTags = ["ทั้งหมด", ...uniqueTags];
 
   return (
-    <div className="min-h-screen bg-sky-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
       <NavigationPendingBar isPending={isPending} />
 
       <section id="gallery-header" className="pt-28 pb-12 px-4">
@@ -72,7 +72,7 @@ export default function GalleryClient({
 
           <Breadcrumb items={[{ label: "แกลเลอรี่" }]} />
 
-          <h1 className="text-4xl md:text-5xl font-bold text-sky-600 dark:text-sky-400">
+          <h1 className="text-4xl md:text-5xl font-bold text-blue-600 dark:text-blue-400">
             แกลเลอรี่
           </h1>
           <p className="mt-3 text-lg text-zinc-600 dark:text-zinc-400">
@@ -89,7 +89,7 @@ export default function GalleryClient({
             value={activeTag || "ทั้งหมด"}
             onChange={(e) => filterByTag(e.target.value)}
             disabled={isPending}
-            className="px-4 py-1.5 rounded-full text-sm font-medium bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:bg-sky-100 dark:hover:bg-slate-700 hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-200 cursor-pointer disabled:opacity-60"
+            className="px-4 py-1.5 rounded-full text-sm font-medium bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:bg-blue-100 dark:hover:bg-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200 cursor-pointer disabled:opacity-60"
           >
             {allTags.map((tag) => (
               <option key={tag} value={tag}>
@@ -101,7 +101,7 @@ export default function GalleryClient({
           <button
             onClick={toggleSortOrder}
             disabled={isPending}
-            className="ml-auto flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:bg-sky-100 dark:hover:bg-slate-700 hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-200 cursor-pointer disabled:opacity-60"
+            className="ml-auto flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:bg-blue-100 dark:hover:bg-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200 cursor-pointer disabled:opacity-60"
           >
             <i className="fi fi-sr-calendar text-xs" />
             {sort === "desc" ? "ใหม่สุด" : "เก่าสุด"}
@@ -127,7 +127,7 @@ export default function GalleryClient({
               <Link
                 key={album.id}
                 href={`/gallery/${album.id}`}
-                className="group block relative rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-md shadow-sky-100/40 dark:shadow-black/20 hover:shadow-lg hover:shadow-sky-200/50 dark:hover:shadow-black/40 hover:-translate-y-1.5 transition-all duration-300 ease-in-out overflow-hidden"
+                className="group block relative rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-md shadow-blue-100/40 dark:shadow-black/20 hover:shadow-lg hover:shadow-blue-200/50 dark:hover:shadow-black/40 hover:-translate-y-1.5 transition-all duration-300 ease-in-out overflow-hidden"
                 style={{ aspectRatio: '16/10' }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -144,7 +144,7 @@ export default function GalleryClient({
                 </div>
 
                 <div className="absolute left-0 right-0 bottom-0 w-full z-20 bg-black/40 backdrop-blur-3xs px-4 py-3 border-t border-white/10">
-                  <h3 className="text-sm font-bold text-white mb-1.5 line-clamp-1 group-hover:text-sky-300 transition-colors duration-300">
+                  <h3 className="text-sm font-bold text-white mb-1.5 line-clamp-1 group-hover:text-blue-300 transition-colors duration-300">
                     {album.title}
                   </h3>
 

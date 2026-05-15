@@ -34,7 +34,7 @@ export default async function EditPortfolioPage({
   const serializableItem = JSON.parse(JSON.stringify(item));
 
   return (
-    <div className="min-h-screen bg-sky-50 dark:bg-slate-950 pt-28 pb-12 px-4">
+    <div className="min-h-screen bg-blue-50 dark:bg-slate-950 pt-28 pb-12 px-4">
       <div className="max-w-4xl mx-auto">
         <Breadcrumb
           items={[
@@ -46,7 +46,7 @@ export default async function EditPortfolioPage({
 
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
-            <i className="fi fi-sr-pencil text-sky-500" />
+            <i className="fi fi-sr-pencil text-blue-500" />
             แก้ไขผลงาน (Edit Project)
           </h1>
           <p className="text-zinc-500 dark:text-zinc-400 mt-2">

@@ -225,7 +225,7 @@ export default function RichTextEditor({
   const btnCls = (active: boolean) =>
     `p-1.5 rounded-lg transition-colors flex items-center justify-center ${
       active
-        ? 'bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400'
+        ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
         : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-slate-700 hover:text-zinc-700 dark:hover:text-zinc-300'
     }`;
 
@@ -415,7 +415,7 @@ export default function RichTextEditor({
             onMouseDown={e => { e.preventDefault(); toggleViewMode(); }}
             className={`ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
               viewMode === 'html'
-                ? 'bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400'
+                ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
                 : 'bg-zinc-100 dark:bg-slate-700 text-zinc-500 dark:text-zinc-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:text-amber-600 dark:hover:text-amber-400'
             }`}
             title={viewMode === 'wysiwyg' ? 'ดูและแก้ไข HTML โดยตรง' : 'กลับไปยัง Visual Editor'}
@@ -531,8 +531,8 @@ export default function RichTextEditor({
 
         {/* Link Inline Dialog */}
         {openPanel === 'link' && (
-          <div className="flex items-center gap-2 px-3 py-2 bg-sky-50 dark:bg-sky-950/30 border-t border-zinc-200 dark:border-slate-700">
-            <i className="fi fi-sr-link text-sky-500 text-sm flex shrink-0" />
+          <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-950/30 border-t border-zinc-200 dark:border-slate-700">
+            <i className="fi fi-sr-link text-blue-500 text-sm flex shrink-0" />
             <input
               type="url"
               value={linkUrl}
@@ -548,7 +548,7 @@ export default function RichTextEditor({
             <button
               type="button"
               onClick={applyLink}
-              className="px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-500 hover:bg-sky-600 text-white transition-colors"
+              className="px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-500 hover:bg-blue-600 text-white transition-colors"
             >
               แทรก
             </button>
@@ -564,8 +564,8 @@ export default function RichTextEditor({
 
         {/* Image Inline Dialog */}
         {openPanel === 'image' && (
-          <div className="flex items-center gap-2 px-3 py-2 bg-sky-50 dark:bg-sky-950/30 border-t border-zinc-200 dark:border-slate-700">
-            <i className="fi fi-sr-picture text-sky-500 text-sm flex shrink-0" />
+          <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-950/30 border-t border-zinc-200 dark:border-slate-700">
+            <i className="fi fi-sr-picture text-blue-500 text-sm flex shrink-0" />
             <input
               type="url"
               value={imageUrl}
@@ -581,7 +581,7 @@ export default function RichTextEditor({
             <button
               type="button"
               onClick={applyImage}
-              className="px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-500 hover:bg-sky-600 text-white transition-colors"
+              className="px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-500 hover:bg-blue-600 text-white transition-colors"
             >
               แทรก
             </button>

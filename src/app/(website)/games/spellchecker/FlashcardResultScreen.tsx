@@ -21,7 +21,7 @@ export default function FlashcardResultScreen() {
   const isHardcoreFail = mode === "HARDCORE" && failedHardcoreWord !== null;
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl shadow-sky-100/50 dark:shadow-black/40 max-w-3xl mx-auto space-y-8 animate-float">
+    <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl shadow-blue-100/50 dark:shadow-black/40 max-w-3xl mx-auto space-y-8 animate-float">
       <div className="text-center relative">
         {isPerfect && !isHardcoreFail ? (
            <div className="absolute top-0 right-0 rotate-12 bg-amber-200 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 border-2 border-amber-400 px-4 py-1 rounded-full font-bold shadow-sm">
@@ -29,7 +29,7 @@ export default function FlashcardResultScreen() {
            </div>
         ) : null}
         <i className={`fi ${isHardcoreFail ? 'fi-sr-skull-crossbones text-rose-500' : 'fi-sr-trophy text-amber-500'} text-6xl mb-4 inline-block drop-shadow-md`}></i>
-        <h2 className={`text-3xl font-bold ${isHardcoreFail ? 'text-rose-600 dark:text-rose-400' : 'text-sky-600 dark:text-sky-400'} mb-2`}>
+        <h2 className={`text-3xl font-bold ${isHardcoreFail ? 'text-rose-600 dark:text-rose-400' : 'text-blue-600 dark:text-blue-400'} mb-2`}>
           {isHardcoreFail ? 'Game Over!' : 'Session Complete!'}
         </h2>
         <p className="text-zinc-500 dark:text-zinc-400">Here&apos;s your learning breakdown</p>
@@ -40,7 +40,7 @@ export default function FlashcardResultScreen() {
            <h3 className="text-xl font-bold text-rose-600 dark:text-rose-400 mb-2">You missed the word:</h3>
            <p className="text-3xl font-bold text-zinc-800 dark:text-zinc-100 mb-4">{failedHardcoreWord.word}</p>
            <div className="inline-block bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-6 py-2 rounded-full border border-zinc-200 dark:border-zinc-700 shadow-sm">
-             The spelling was <strong className="text-sky-500">{failedHardcoreWord.isCorrect ? "Correct" : "Incorrect"}</strong>
+             The spelling was <strong className="text-blue-500">{failedHardcoreWord.isCorrect ? "Correct" : "Incorrect"}</strong>
            </div>
         </div>
       )}
@@ -60,7 +60,7 @@ export default function FlashcardResultScreen() {
         </div>
         <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-xl p-4 text-center border border-zinc-200 dark:border-zinc-800">
           <p className="text-zinc-500 dark:text-zinc-400 text-xs uppercase font-bold mb-1">Avg Speed</p>
-          <p className="text-2xl font-bold text-sky-500">{(durationSeconds / Math.max(1, totalApps)).toFixed(1)}s</p>
+          <p className="text-2xl font-bold text-blue-500">{(durationSeconds / Math.max(1, totalApps)).toFixed(1)}s</p>
         </div>
       </div>
 
@@ -87,7 +87,7 @@ export default function FlashcardResultScreen() {
                       <td className="px-6 py-3">
                          <div className="font-bold text-zinc-800 dark:text-zinc-200">{item.word}</div>
                          {item.definition && item.isCorrectSpelling && (
-                            <div className="text-xs text-sky-600 dark:text-sky-400 mt-1 line-clamp-1" title={item.definition}>
+                            <div className="text-xs text-blue-600 dark:text-blue-400 mt-1 line-clamp-1" title={item.definition}>
                               {item.definition}
                             </div>
                          )}
@@ -123,7 +123,7 @@ export default function FlashcardResultScreen() {
       <div className="flex gap-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">
         <button 
           onClick={() => startGame(mode as GameMode, timeLimit)}
-          className="flex-1 bg-sky-500 text-white rounded-xl py-4 font-bold hover:bg-sky-600 transition-colors shadow-md hover:shadow-lg"
+          className="flex-1 bg-blue-500 text-white rounded-xl py-4 font-bold hover:bg-blue-600 transition-colors shadow-md hover:shadow-lg"
         >
           Play Again
         </button>

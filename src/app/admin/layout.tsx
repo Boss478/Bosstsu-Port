@@ -12,7 +12,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <AdminSessionProvider>
-      <div className="min-h-screen bg-sky-50 dark:bg-slate-950">
+      <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
         {!isLoginPage && (
           <>
             <AdminSidebar />
@@ -22,11 +22,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         
         {/* Mobile Top Header (Minimal) */}
         {!isLoginPage && (
-          <div className="md:hidden h-14 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-sky-100 dark:border-slate-800 flex items-center justify-between px-4 sticky top-0 z-40">
-             <span className="font-bold text-lg text-sky-600 dark:text-sky-400">
+          <div className="md:hidden h-14 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-blue-100 dark:border-slate-800 flex items-center justify-between px-4 sticky top-0 z-40">
+             <span className="font-bold text-lg text-blue-600 dark:text-blue-400">
                Boss478
              </span>
-             <div className="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center text-white text-xs font-bold shadow-md">
+             <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold shadow-md">
                A
              </div>
           </div>

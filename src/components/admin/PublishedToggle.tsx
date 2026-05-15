@@ -22,7 +22,7 @@ export function PublishedToggle({
           type="checkbox"
           name={name}
           defaultChecked={defaultChecked}
-          className="w-4 h-4 rounded accent-sky-500"
+          className="w-4 h-4 rounded accent-blue-500"
         />
         <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
           {label}

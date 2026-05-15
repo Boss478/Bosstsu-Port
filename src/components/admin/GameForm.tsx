@@ -86,7 +86,7 @@ export default function GameForm({
               defaultValue={initialData?.title}
               required
               placeholder="เกมจับคู่คำศัพท์"
-              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -100,7 +100,7 @@ export default function GameForm({
               required
               rows={3}
               placeholder="คำอธิบายสั้น ๆ เกี่ยวกับเนื้อหา"
-              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -116,7 +116,7 @@ export default function GameForm({
                   value="url"
                   checked={gameType === 'url'}
                   onChange={() => setGameType('url')}
-                  className="w-4 h-4 accent-sky-500"
+                  className="w-4 h-4 accent-blue-500"
                 />
                 <span className="text-sm text-zinc-700 dark:text-zinc-300">
                   External Site (URL)
@@ -129,7 +129,7 @@ export default function GameForm({
                   value="html"
                   checked={gameType === 'html'}
                   onChange={() => setGameType('html')}
-                  className="w-4 h-4 accent-sky-500"
+                  className="w-4 h-4 accent-blue-500"
                 />
                 <span className="text-sm text-zinc-700 dark:text-zinc-300">
                   One-page HTML
@@ -148,7 +148,7 @@ export default function GameForm({
                   name="category"
                   defaultValue={initialData?.category || ''}
                   required
-                  className="appearance-none w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer"
+                  className="appearance-none w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                 >
                   <option value="" disabled>เลือกแนวเกม...</option>
                   {GENRE_OPTIONS.map(g => (
@@ -170,7 +170,7 @@ export default function GameForm({
                   defaultValue={initialData?.playUrl}
                   required
                   placeholder="https://example.com/play"
-                  className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono text-sm"
+                  className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                 />
               </div>
             ) : (
@@ -193,7 +193,7 @@ export default function GameForm({
                 required={gameType === 'html'}
                 rows={10}
                 placeholder="<!DOCTYPE html>\n<html>...</html>"
-                className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono text-sm"
+                className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
               />
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 ใส่โค้ด HTML แบบเต็มหน้า (รองรับ CSS และ JavaScript)
@@ -210,7 +210,7 @@ export default function GameForm({
               defaultValue={initialData?.instructions}
               rows={4}
               placeholder="อธิบายวิธีเล่นเกมแบบสั้นๆ..."
-              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -229,7 +229,7 @@ export default function GameForm({
                 type="checkbox"
                 name="published"
                 defaultChecked={initialData?.published !== false}
-                className="w-4 h-4 rounded accent-sky-500"
+                className="w-4 h-4 rounded accent-blue-500"
               />
               <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 Public
@@ -241,7 +241,7 @@ export default function GameForm({
             <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               รูปปก (Thumbnail) <span className="text-red-500">*</span>
             </label>
-            <div className="relative aspect-4/3 rounded-xl overflow-hidden bg-zinc-100 dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-sky-500 transition-colors group">
+            <div className="relative aspect-4/3 rounded-xl overflow-hidden bg-zinc-100 dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors group">
               {thumbnailPreview ? (
                 <Image
                   src={thumbnailPreview}
@@ -281,7 +281,7 @@ export default function GameForm({
         <button
           type="submit"
           disabled={pending}
-          className="w-full py-3 px-4 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending ? 'กำลังบันทึก...' : (isEdit ? 'อัปเดตข้อมูล' : 'สร้างเกม')}
         </button>

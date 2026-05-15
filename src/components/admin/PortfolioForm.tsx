@@ -245,7 +245,7 @@ export default function PortfolioForm({
                 required
                 onChange={handleTitleChange}
                 placeholder="โครงการพัฒนาสื่อการเรียนรู้"
-                className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -260,7 +260,7 @@ export default function PortfolioForm({
                 onChange={handleSlugChange}
                 required
                 placeholder="portfolio-project-name"
-                className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono text-sm"
+                className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
               />
             </div>
           </div>
@@ -275,7 +275,7 @@ export default function PortfolioForm({
               required
               rows={3}
               placeholder="คำอธิบายสั้น ๆ เกี่ยวกับเนื้อหา"
-              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -314,16 +314,16 @@ export default function PortfolioForm({
               </div>
             ))}
             {newPhotoPreviews.map((preview, index) => (
-              <div key={`new-${index}`} className="relative aspect-square rounded-lg overflow-hidden border-2 border-sky-500">
+              <div key={`new-${index}`} className="relative aspect-square rounded-lg overflow-hidden border-2 border-blue-500">
                 <Image src={preview} alt="New Upload" fill className="object-cover" />
-                <div className="absolute top-1 left-1 bg-sky-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md pointer-events-none z-10">
+                <div className="absolute top-1 left-1 bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md pointer-events-none z-10">
                   NEW
                 </div>
               </div>
             ))}
             <label
               htmlFor="gallery-upload-input"
-              className="relative aspect-square rounded-lg border-2 border-dashed border-zinc-300 dark:border-slate-700 flex items-center justify-center cursor-pointer hover:border-sky-500 transition-colors bg-zinc-50 dark:bg-slate-900"
+              className="relative aspect-square rounded-lg border-2 border-dashed border-zinc-300 dark:border-slate-700 flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors bg-zinc-50 dark:bg-slate-900"
             >
               <div className="text-center pointer-events-none">
                 <i className="fi fi-sr-add text-2xl text-zinc-400" />
@@ -356,7 +356,7 @@ export default function PortfolioForm({
                 type="checkbox"
                 name="published"
                 defaultChecked={initialData?.published !== false}
-                className="w-4 h-4 rounded accent-sky-500"
+                className="w-4 h-4 rounded accent-blue-500"
               />
               <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 Public
@@ -368,7 +368,7 @@ export default function PortfolioForm({
             <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               รูปปก (Cover Image) <span className="text-red-500">*</span>
             </label>
-            <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-100 dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-sky-500 transition-colors group">
+            <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-100 dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors group">
               {coverPreview ? (
                 <Image
                   src={coverPreview}
@@ -408,7 +408,7 @@ export default function PortfolioForm({
                   : new Date().toISOString().split('T')[0]
               }
               required
-              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -441,7 +441,7 @@ export default function PortfolioForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-3 px-4 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting
             ? 'กำลังบันทึก...'

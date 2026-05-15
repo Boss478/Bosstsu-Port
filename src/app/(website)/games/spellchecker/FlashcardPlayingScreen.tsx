@@ -47,7 +47,7 @@ export default function FlashcardPlayingScreen() {
   if (!currentWord) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-sky-50 dark:bg-slate-950 py-8 sm:py-12 px-4 flex flex-col items-center overflow-hidden overscroll-none touch-none">
+    <div className="fixed inset-0 z-50 bg-blue-50 dark:bg-slate-950 py-8 sm:py-12 px-4 flex flex-col items-center overflow-hidden overscroll-none touch-none">
       <div className="w-full max-w-2xl h-full flex flex-col items-center justify-between relative">
         {/* Header HUD */}
         <div className="w-full flex justify-between items-center mb-4 px-4 h-10 shrink-0">
@@ -147,7 +147,7 @@ export default function FlashcardPlayingScreen() {
               {currentWord && (currentWord.wordClass || currentWord.level) && currentWord.isCorrect && (
                 <div className={`flex items-center gap-2 mt-4 pointer-events-none transition-opacity ${feedbackHint ? 'opacity-30' : 'opacity-100'}`}>
                   {currentWord.wordClass && (
-                    <span className="px-3 py-1 bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 font-bold text-xs rounded-full uppercase tracking-wider">
+                    <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-bold text-xs rounded-full uppercase tracking-wider">
                       {currentWord.wordClass}
                     </span>
                   )}
@@ -178,7 +178,7 @@ export default function FlashcardPlayingScreen() {
                     </p>
                     {currentWord && currentWord.definition && currentWord.isCorrect && (
                        <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2 px-4 text-center max-w-sm">
-                          <span className="font-bold text-sky-500">Def: </span>{currentWord.definition}
+                          <span className="font-bold text-blue-500">Def: </span>{currentWord.definition}
                        </p>
                     )}
                   </div>

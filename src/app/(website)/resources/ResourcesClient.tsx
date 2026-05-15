@@ -65,13 +65,13 @@ export default function ResourcesClient({
   const allTypes = ["All", ...uniqueTypes];
 
   return (
-    <div className="min-h-screen bg-sky-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
       <NavigationPendingBar isPending={isPending} />
       <section className="pt-28 pb-12 px-4">
         <div className="max-w-7xl mx-auto">
           <Breadcrumb items={[{ label: "สื่อการเรียนรู้" }]} />
 
-          <h1 className="text-4xl md:text-5xl font-bold text-sky-600 dark:text-sky-400">
+          <h1 className="text-4xl md:text-5xl font-bold text-blue-600 dark:text-blue-400">
             สื่อการเรียนรู้
           </h1>
           <p className="mt-3 text-lg text-zinc-600 dark:text-zinc-400">
@@ -90,8 +90,8 @@ export default function ResourcesClient({
               disabled={isPending}
               className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 disabled:opacity-60 border ${
                 activeType === type
-                  ? "bg-sky-500 text-white shadow-md shadow-sky-500/25"
-                  : "bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-300 hover:bg-sky-100 dark:hover:bg-slate-700"
+                  ? "bg-blue-500 text-white shadow-md shadow-blue-500/25"
+                  : "bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-300 hover:bg-blue-100 dark:hover:bg-slate-700"
               }`}
             >
               {type === "All" ? "ทั้งหมด" : type}
@@ -103,7 +103,7 @@ export default function ResourcesClient({
           value={sort}
           onChange={(e) => changeSort(e.target.value as "Newest" | "Oldest")}
           disabled={isPending}
-          className="px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:border-sky-300 focus:outline-hidden cursor-pointer disabled:opacity-60"
+          className="px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:border-blue-300 focus:outline-hidden cursor-pointer disabled:opacity-60"
         >
           <option value="Newest">ใหม่สุด</option>
           <option value="Oldest">เก่าสุด</option>
@@ -124,7 +124,7 @@ export default function ResourcesClient({
                 <Link
                   key={item.id}
                   href={item.link.startsWith('/') ? item.link : `/resources/${item.id}`}
-                  className="group flex flex-col bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/60 dark:border-slate-700/50 shadow-xs hover:shadow-xl hover:shadow-sky-100/50 dark:hover:shadow-black/30 hover:-translate-y-1 transition-all duration-300"
+                  className="group flex flex-col bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/60 dark:border-slate-700/50 shadow-xs hover:shadow-xl hover:shadow-blue-100/50 dark:hover:shadow-black/30 hover:-translate-y-1 transition-all duration-300"
                 >
                   <div className="relative aspect-video overflow-hidden bg-zinc-100 dark:bg-slate-800">
                     {item.cover ? (
@@ -146,7 +146,7 @@ export default function ResourcesClient({
                           item.type === "Worksheet" ? "bg-green-500/50 text-white" :
                           item.type === "Article" ? "bg-orange-500/50 text-white" :
                           item.type === "Video" ? "bg-red-500/50 text-white" :
-                          item.type === "Interactive" ? "bg-purple-500/50 text-white" : "bg-sky-500/50 text-white"
+                          item.type === "Interactive" ? "bg-purple-500/50 text-white" : "bg-blue-500/50 text-white"
                         }`}>
                           {item.type}
                         </span>
@@ -154,7 +154,7 @@ export default function ResourcesClient({
                   </div>
 
                   <div className="p-4 flex flex-col flex-1">
-                    <h3 className="font-bold text-zinc-800 dark:text-zinc-200 line-clamp-1 mb-1 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                    <h3 className="font-bold text-zinc-800 dark:text-zinc-200 line-clamp-1 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                       {item.title}
                     </h3>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400 line-clamp-2 mb-4 flex-1">
@@ -167,7 +167,7 @@ export default function ResourcesClient({
                         {formatDate(item.date)}
                       </span>
 
-                      <div className="w-8 h-8 rounded-full bg-sky-50 dark:bg-slate-800 flex items-center justify-center text-sky-500 group-hover:bg-sky-500 group-hover:text-white transition-all duration-300 shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300 shrink-0">
                         <i className="fi fi-sr-arrow-up-right text-xs"></i>
                       </div>
                     </div>

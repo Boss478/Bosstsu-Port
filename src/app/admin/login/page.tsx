@@ -8,12 +8,12 @@ export default function AdminLoginPage() {
   const [state, formAction, isPending] = useActionState(loginAdmin, {});
 
   return (
-    <div className="min-h-screen bg-sky-50 dark:bg-slate-950 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-blue-50 dark:bg-slate-950 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="p-8 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-lg">
 
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-sky-500 dark:bg-sky-600 flex items-center justify-center text-white mx-auto mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-blue-500 dark:bg-blue-600 flex items-center justify-center text-white mx-auto mb-4">
               <i className="fi fi-sr-lock text-2xl" />
             </div>
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -39,7 +39,7 @@ export default function AdminLoginPage() {
                 required
                 autoFocus
                 placeholder="••••••••••••••••••••"
-                className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
               />
             </div>
 
@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={isPending}
-              className="w-full py-3 px-4 rounded-xl bg-sky-500 hover:bg-sky-600 disabled:bg-sky-400 text-white font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 px-4 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-white font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
               {isPending ? (
                 <>
@@ -72,7 +72,7 @@ export default function AdminLoginPage() {
           <div className="mt-6 pt-6 border-t border-zinc-200/50 dark:border-slate-700/50 text-center">
             <Link 
               href="/" 
-              className="inline-flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+              className="inline-flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
               <i className="fi fi-sr-arrow-left text-xs" />
               กลับสู่หน้าเว็บไซต์

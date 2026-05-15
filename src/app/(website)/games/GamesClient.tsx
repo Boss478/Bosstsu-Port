@@ -29,11 +29,11 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
   }, [filteredItems]);
 
   return (
-    <div className="min-h-screen bg-sky-50 dark:bg-slate-950 px-4 pt-28 pb-20">
+    <div className="min-h-screen bg-blue-50 dark:bg-slate-950 px-4 pt-28 pb-20">
       <section className="pb-12">
         <div className="max-w-7xl mx-auto">
           <Breadcrumb items={[{ label: "เกมการศึกษา" }]} />
-          <h1 className="text-4xl md:text-6xl font-black text-sky-600 dark:text-sky-400 mt-6 tracking-tight">
+          <h1 className="text-4xl md:text-6xl font-black text-blue-600 dark:text-blue-400 mt-6 tracking-tight">
             เกมการศึกษา
           </h1>
           <p className="mt-4 text-xl text-zinc-600 dark:text-zinc-400 font-medium">
@@ -45,18 +45,18 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
       <section className="pb-12">
         <div className="max-w-2xl mx-auto">
           <div className="relative group">
-            <i className="fi fi-sr-search absolute left-5 top-1/2 -translate-y-1/2 text-sky-400 group-focus-within:text-sky-500 text-lg transition-colors"></i>
+            <i className="fi fi-sr-search absolute left-5 top-1/2 -translate-y-1/2 text-blue-400 group-focus-within:text-blue-500 text-lg transition-colors"></i>
             <input
               type="text"
               placeholder="ค้นหาเกม..."
               value={activeSearch}
               onChange={(e) => setActiveSearch(e.target.value)}
-              className="w-full pl-14 pr-12 py-5 rounded-3xl bg-white dark:bg-slate-900 border-2 border-transparent focus:border-sky-400 transition-all shadow-xl shadow-sky-100/50 dark:shadow-none text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-400 text-lg"
+              className="w-full pl-14 pr-12 py-5 rounded-3xl bg-white dark:bg-slate-900 border-2 border-transparent focus:border-blue-400 transition-all shadow-xl shadow-blue-100/50 dark:shadow-none text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-400 text-lg"
             />
             {activeSearch && (
               <button
                 onClick={() => setActiveSearch("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-zinc-100 dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-slate-700 flex items-center justify-center transition-colors shadow-sm"
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-zinc-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-slate-700 flex items-center justify-center transition-colors shadow-sm"
               >
                 <i className="fi fi-sr-cross-small text-zinc-500"></i>
               </button>
@@ -68,8 +68,8 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
       <div className="max-w-7xl mx-auto space-y-20">
         {filteredItems.length === 0 ? (
           <div className="text-center py-24 bg-white dark:bg-slate-900 rounded-[3rem] border-4 border-dashed border-zinc-100 dark:border-slate-800">
-            <div className="w-20 h-20 bg-sky-100 dark:bg-sky-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-              <i className="fi fi-sr-gamepad text-4xl text-sky-500 animate-bounce"></i>
+            <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <i className="fi fi-sr-gamepad text-4xl text-blue-500 animate-bounce"></i>
             </div>
             <p className="text-zinc-500 dark:text-zinc-400 text-xl font-bold">ไม่พบเกมที่ค้นหา</p>
           </div>
@@ -90,7 +90,7 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
                     href={item.link}
                     target={item.isHtmlContent ? undefined : "_blank"}
                     rel={item.isHtmlContent ? undefined : "noopener noreferrer"}
-                    className="group relative block bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-[2.5rem] overflow-hidden shadow-2xl shadow-sky-100/30 dark:shadow-black/40 border border-white/60 dark:border-slate-700/50 hover:border-sky-400/50 transition-all duration-500 hover:-translate-y-3"
+                    className="group relative block bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-[2.5rem] overflow-hidden shadow-2xl shadow-blue-100/30 dark:shadow-black/40 border border-white/60 dark:border-slate-700/50 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-3"
                   >
                     <div className="relative aspect-video overflow-hidden">
                       {item.cover ? (
@@ -102,7 +102,7 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />
                       ) : (
-                        <div className="w-full h-full bg-sky-500 flex items-center justify-center">
+                        <div className="w-full h-full bg-blue-500 flex items-center justify-center">
                           <i className="fi fi-sr-gamepad text-6xl text-white/50" />
                         </div>
                       )}
@@ -110,7 +110,7 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
                       <div className="absolute bottom-4 left-6 z-20">
                          <div className="flex gap-2">
                            {item.tags.map(tag => (
-<span key={tag} className="px-3 py-1 rounded-xl bg-white/60 backdrop-blur-sm border border-white/70 text-sky-700 shadow-sm text-[10px] font-black uppercase tracking-tighter">
+<span key={tag} className="px-3 py-1 rounded-xl bg-white/60 backdrop-blur-sm border border-white/70 text-blue-700 shadow-sm text-[10px] font-black uppercase tracking-tighter">
                                 {tag}
                              </span>
                            ))}
@@ -119,11 +119,11 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
                     </div>
 
                     <div className="p-8 relative">
-                      <div className="absolute -top-10 right-8 w-16 h-16 rounded-3xl bg-sky-500 text-white flex items-center justify-center text-3xl shadow-2xl shadow-sky-500/50 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 z-30">
+                      <div className="absolute -top-10 right-8 w-16 h-16 rounded-3xl bg-blue-500 text-white flex items-center justify-center text-3xl shadow-2xl shadow-blue-500/50 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 z-30">
                         <i className="fi fi-sr-play"></i>
                       </div>
 
-                      <h3 className="text-2xl font-black text-zinc-800 dark:text-zinc-100 mb-3 group-hover:text-sky-500 transition-colors leading-tight">
+                      <h3 className="text-2xl font-black text-zinc-800 dark:text-zinc-100 mb-3 group-hover:text-blue-500 transition-colors leading-tight">
                         {item.title}
                       </h3>
                       <p className="text-zinc-500 dark:text-zinc-400 mb-6 line-clamp-2 text-sm leading-relaxed">
@@ -132,10 +132,10 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
                       
                       <div className="flex items-center justify-between pt-4 border-t border-zinc-100 dark:border-slate-800">
                         <span className="flex items-center gap-2 text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-                           <i className="fi fi-sr-calendar text-sky-400"></i>
+                           <i className="fi fi-sr-calendar text-blue-400"></i>
                            {formatDate(item.date)}
                         </span>
-                        <div className="w-8 h-8 rounded-full bg-sky-50 dark:bg-slate-800 flex items-center justify-center text-sky-500 group-hover:bg-sky-500 group-hover:text-white transition-all duration-300">
+                        <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
                           <i className="fi fi-sr-angle-small-right"></i>
                         </div>
                       </div>

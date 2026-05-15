@@ -4,7 +4,7 @@ import pkg from '../../package.json';
 
 export default function Footer() {
     return (
-        <footer id="site-footer" className="bg-sky-100 dark:bg-slate-900 border-t border-white/80 dark:border-slate-800">
+        <footer id="site-footer" className="bg-blue-100 dark:bg-slate-900 border-t border-white/80 dark:border-slate-800">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
@@ -19,7 +19,7 @@ export default function Footer() {
                                     className="object-cover"
                                 />
                             </div>
-                            <span className="font-bold text-xl text-sky-600 dark:text-sky-400">
+                            <span className="font-bold text-xl text-blue-600 dark:text-blue-400">
                                 Boss478
                             </span>
                         </Link>
@@ -32,10 +32,10 @@ export default function Footer() {
                     <div className="space-y-4">
                         <h3 className="font-semibold text-zinc-900 dark:text-white">ติดต่อ (Contact)</h3>
                         <div className="flex flex-col gap-2">
-                            <a href="mailto:boss478@example.com" className="text-zinc-600 dark:text-zinc-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors text-sm">
+                            <a href="mailto:boss478@example.com" className="text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm">
                                 <i className="fi fi-sr-envelope mr-2"></i>Email: test@test.com
                             </a>
-                            <a href="https://github.com/Boss478" target="_blank" rel="noopener noreferrer" className="text-zinc-600 dark:text-zinc-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors text-sm">
+                            <a href="https://github.com/Boss478" target="_blank" rel="noopener noreferrer" className="text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm">
                                 <i className="fi fi-brands-github mr-2"></i>GitHub: Boss478
                             </a>
                         </div>
@@ -48,11 +48,11 @@ export default function Footer() {
                         © {new Date().getFullYear()} Boss478. All rights reserved.
                     </p>
                     <p className="text-zinc-400 dark:text-zinc-600 text-xs flex items-center justify-center gap-2">
-                        <span>Icons by <a href="https://www.flaticon.com/uicons" target="_blank" rel="noopener noreferrer" className="text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 transition-colors">Flaticon Uicons</a></span>
+                        <span>Icons by <a href="https://www.flaticon.com/uicons" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">Flaticon Uicons</a></span>
                         <span>·</span>
                         <span>v{pkg.version}</span>
                         <span>·</span>
-                        <Link href="/admin" className="text-zinc-400 dark:text-zinc-600 hover:text-sky-500 dark:hover:text-sky-400 transition-colors" aria-label="Admin">
+                        <Link href="/admin" className="text-zinc-400 dark:text-zinc-600 hover:text-blue-500 dark:hover:text-blue-400 transition-colors" aria-label="Admin">
                             <i className="fi fi-sr-settings text-xs mt-1" />
                         </Link>
                     </p>

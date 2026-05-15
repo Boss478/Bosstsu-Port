@@ -141,7 +141,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
                 required
                 onChange={handleTitleChange}
                 placeholder="ทัศนศึกษา Open House 2025"
-                className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             
@@ -156,7 +156,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
                 onChange={handleSlugChange}
                 required
                 placeholder="gallery-album-name"
-                className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono text-sm"
+                className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
               />
             </div>
           </div>
@@ -170,7 +170,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
               defaultValue={initialData?.description}
               rows={3}
               placeholder="คำอธิบายสั้น ๆ เกี่ยวกับเนื้อหา"
-              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -182,7 +182,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
               <select
                 name="relatedPortfolioId"
                 defaultValue={initialData?.relatedPortfolioId || ''}
-                className="appearance-none w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer"
+                className="appearance-none w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
                 <option value="">ไม่มี (None)</option>
                 {portfolios?.map((p) => (
@@ -224,9 +224,9 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
                 </div>
               ))}
               {newPhotoPreviews.map((preview, index) => (
-                <div key={`new-${index}`} className="relative aspect-square rounded-lg overflow-hidden border-2 border-sky-500 group">
+                <div key={`new-${index}`} className="relative aspect-square rounded-lg overflow-hidden border-2 border-blue-500 group">
                   <Image src={preview} alt="New Upload" fill className="object-cover" />
-                  <div className="absolute top-1 left-1 bg-sky-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md pointer-events-none z-10">
+                  <div className="absolute top-1 left-1 bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md pointer-events-none z-10">
                     NEW
                   </div>
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 gap-2">
@@ -252,7 +252,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
               
               <label 
                 htmlFor="photos-upload-input"
-                className="relative aspect-square rounded-lg border-2 border-dashed border-zinc-300 dark:border-slate-700 flex items-center justify-center cursor-pointer hover:border-sky-500 transition-colors bg-zinc-50 dark:bg-slate-900"
+                className="relative aspect-square rounded-lg border-2 border-dashed border-zinc-300 dark:border-slate-700 flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors bg-zinc-50 dark:bg-slate-900"
               >
                 <div className="text-center pointer-events-none">
                   <i className="fi fi-sr-add text-2xl text-zinc-400" />
@@ -285,7 +285,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
                 type="checkbox"
                 name="published"
                 defaultChecked={initialData?.published !== false}
-                className="w-4 h-4 rounded accent-sky-500"
+                className="w-4 h-4 rounded accent-blue-500"
               />
               <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 Public
@@ -297,7 +297,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
             <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               รูปปก (Cover Image) <span className="text-red-500">*</span>
             </label>
-            <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-100 dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-sky-500 transition-colors group">
+            <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-100 dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors group">
               {coverPreview ? (
                 <>
                   <Image
@@ -318,7 +318,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
                     </button>
                     <label
                       htmlFor="cover-upload-input"
-                      className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-xl cursor-pointer transition-colors flex items-center gap-2 text-sm"
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-xl cursor-pointer transition-colors flex items-center gap-2 text-sm"
                     >
                       <i className="fi fi-sr-pencil flex" /> เปลี่ยนรูป (Change)
                     </label>
@@ -327,7 +327,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
               ) : (
                 <label 
                   htmlFor="cover-upload-input"
-                  className="absolute inset-0 flex flex-col items-center justify-center text-zinc-400 cursor-pointer hover:text-sky-500 transition-colors"
+                  className="absolute inset-0 flex flex-col items-center justify-center text-zinc-400 cursor-pointer hover:text-blue-500 transition-colors"
                 >
                   <i className="fi fi-sr-add-image text-3xl mb-2" />
                   <span className="text-sm">อัปโหลดรูปปก (Cover)</span>
@@ -354,7 +354,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
               name="date"
               defaultValue={initialData?.date ? new Date(initialData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
               required
-              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -374,7 +374,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
         <button
           type="submit"
           disabled={pending}
-          className="w-full py-3 px-4 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending ? 'กำลังบันทึก...' : (isEdit ? 'อัปเดตข้อมูล' : 'สร้างอัลบั้ม')}
         </button>

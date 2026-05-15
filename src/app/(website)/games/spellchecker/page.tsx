@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function FlashcardGamePage() {
   return (
-    <div className="min-h-screen bg-sky-50 dark:bg-slate-950 pt-40 md:pt-48 pb-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-blue-50 dark:bg-slate-950 pt-40 md:pt-48 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <FlashcardClient />
       </div>

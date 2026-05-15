@@ -36,7 +36,7 @@ function HtmlEditor({ initialValue = '' }: { initialValue?: string }) {
   return (
     <div className="space-y-4">
       <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
-        <i className="fi fi-sr-edit text-sky-500" />
+        <i className="fi fi-sr-edit text-blue-500" />
         เนื้อหา (Content) <span className="text-red-500">*</span>
       </label>
       
@@ -73,7 +73,7 @@ function FileUploadField({
           ไฟล์ปัจจุบัน: <span className="font-mono">{existingUrl}</span>
         </p>
       )}
-      <label className="flex items-center gap-3 w-full px-4 py-5 rounded-xl bg-white dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-sky-500 transition-colors cursor-pointer">
+      <label className="flex items-center gap-3 w-full px-4 py-5 rounded-xl bg-white dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors cursor-pointer">
         <i className="fi fi-sr-cloud-upload text-xl text-zinc-400" />
         <span className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
           {fileName || 'คลิกเพื่ออัปโหลดไฟล์'}
@@ -162,7 +162,7 @@ export default function LearningForm({
               defaultValue={initialData?.title}
               required
               placeholder="บทเรียนออนไลน์เรื่องเศษส่วน"
-              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -177,7 +177,7 @@ export default function LearningForm({
               required
               rows={3}
               placeholder="คำอธิบายสั้น ๆ เกี่ยวกับเนื้อหา"
-              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -192,7 +192,7 @@ export default function LearningForm({
                   name="subject"
                   defaultValue={initialData?.subject || ''}
                   required
-                  className="appearance-none w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer"
+                  className="appearance-none w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                 >
                   <option value="" disabled>เลือกวิชา...</option>
                   {SUBJECT_OPTIONS.map(s => (
@@ -213,7 +213,7 @@ export default function LearningForm({
                   value={selectedType}
                   onChange={e => setSelectedType(e.target.value)}
                   required
-                  className="appearance-none w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer"
+                  className="appearance-none w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                 >
                   <option value="" disabled>เลือกประเภท...</option>
                   {TYPE_OPTIONS.map(t => (
@@ -246,7 +246,7 @@ export default function LearningForm({
                     name="link"
                     defaultValue={initialData?.link || ''}
                     placeholder="https://example.com/article หรือ /uploads/learning/doc.pdf"
-                    className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono text-sm"
+                    className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                   />
                 </div>
               </div>
@@ -264,7 +264,7 @@ export default function LearningForm({
                     name="canvaEmbed"
                     defaultValue={initialData?.canvaEmbed || ''}
                     placeholder="https://www.canva.com/design/xxxxx/view?embed"
-                    className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono text-sm"
+                    className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                   />
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
                     ใส่ Canva URL หรืออัปโหลด PDF ด้านล่าง
@@ -286,7 +286,7 @@ export default function LearningForm({
                   defaultValue={initialData?.youtubeId || initialData?.link || ''}
                   required
                   placeholder="https://youtube.com/watch?v=xxxxx หรือ https://youtu.be/xxxxx"
-                  className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono text-sm"
+                  className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                 />
               </div>
             )}
@@ -312,7 +312,7 @@ export default function LearningForm({
                   rows={5}
                   required
                   placeholder={'<iframe src="https://scratch.mit.edu/projects/xxxxx/embed" ...></iframe>'}
-                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono text-sm resize-y"
+                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm resize-y"
                 />
               </div>
             )}
@@ -332,7 +332,7 @@ export default function LearningForm({
               type="checkbox"
               name="published"
               defaultChecked={initialData?.published !== false}
-              className="w-4 h-4 rounded accent-sky-500"
+              className="w-4 h-4 rounded accent-blue-500"
             />
             <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Public</span>
           </label>
@@ -342,7 +342,7 @@ export default function LearningForm({
             <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               รูปปก (Thumbnail)
             </label>
-            <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-100 dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-sky-500 transition-colors">
+            <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-100 dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors">
               {thumbnailPreview ? (
                 <Image src={thumbnailPreview} alt="Thumbnail Preview" fill className="object-cover" />
               ) : (
@@ -380,7 +380,7 @@ export default function LearningForm({
         <button
           type="submit"
           disabled={pending}
-          className="w-full py-3 px-4 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending ? 'กำลังบันทึก...' : isEdit ? 'อัปเดตข้อมูล' : 'สร้างสื่อการเรียนรู้'}
         </button>

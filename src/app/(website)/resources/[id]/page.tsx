@@ -132,10 +132,10 @@ export default async function ResourceDetailPage({
       .lean() as Promise<LeanNavDoc | null>,
   ]);
 
-  const badgeColor = TYPE_COLORS[doc.type] ?? "bg-sky-500/80 text-white";
+  const badgeColor = TYPE_COLORS[doc.type] ?? "bg-blue-500/80 text-white";
 
   return (
-    <div className="min-h-screen bg-sky-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
       <section className="pt-28 pb-8 px-4">
         <div className="max-w-7xl mx-auto">
           <Breadcrumb
@@ -150,7 +150,7 @@ export default async function ResourceDetailPage({
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8 px-4 pb-20">
         <main className="lg:col-span-3 space-y-8">
           {doc.thumbnail && (
-            <div className="relative aspect-video rounded-3xl overflow-hidden shadow-xl shadow-sky-100/50 dark:shadow-black/30">
+            <div className="relative aspect-video rounded-3xl overflow-hidden shadow-xl shadow-blue-100/50 dark:shadow-black/30">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={doc.thumbnail}
@@ -171,7 +171,7 @@ export default async function ResourceDetailPage({
                 {doc.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300"
+                    className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
                   >
                     {tag}
                   </span>
@@ -195,8 +195,8 @@ export default async function ResourceDetailPage({
             </header>
 
             {doc.description && (
-              <div className="mb-8 p-6 bg-sky-50 dark:bg-slate-800/50 rounded-2xl border border-sky-100 dark:border-slate-700/50">
-                <h3 className="text-sm font-bold text-sky-800 dark:text-sky-300 mb-2 uppercase tracking-wider flex items-center gap-2">
+              <div className="mb-8 p-6 bg-blue-50 dark:bg-slate-800/50 rounded-2xl border border-blue-100 dark:border-slate-700/50">
+                <h3 className="text-sm font-bold text-blue-800 dark:text-blue-300 mb-2 uppercase tracking-wider flex items-center gap-2">
                   <i className="fi fi-sr-info" />
                   รายละเอียด
                 </h3>
@@ -266,7 +266,7 @@ export default async function ResourceDetailPage({
                   <a
                     href={doc.fileUrl}
                     download
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-medium transition-colors"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-colors"
                   >
                     <i className="fi fi-sr-download" />
                     ดาวน์โหลด
@@ -307,7 +307,7 @@ export default async function ResourceDetailPage({
                   href={doc.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-medium transition-colors"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-colors"
                 >
                   <i className="fi fi-sr-arrow-up-right" />
                   เปิดสื่อการเรียนรู้
@@ -326,7 +326,7 @@ export default async function ResourceDetailPage({
                   <i className="fi fi-sr-arrow-left transition-transform group-hover:-translate-x-1" />
                   สื่อก่อนหน้า
                 </div>
-                <div className="font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">
+                <div className="font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                   {olderDoc.title}
                 </div>
               </Link>
@@ -341,7 +341,7 @@ export default async function ResourceDetailPage({
                   สื่อถัดไป
                   <i className="fi fi-sr-arrow-right transition-transform group-hover:translate-x-1" />
                 </div>
-                <div className="font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">
+                <div className="font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                   {newerDoc.title}
                 </div>
               </Link>
@@ -353,7 +353,7 @@ export default async function ResourceDetailPage({
           <div className="sticky top-28 space-y-6">
             <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm p-6 rounded-3xl border border-white/60 dark:border-slate-700/50 shadow-sm">
               <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
-                <i className="fi fi-sr-time-past text-sky-500" />
+                <i className="fi fi-sr-time-past text-blue-500" />
                 สื่อล่าสุด
               </h3>
               <ul className="space-y-5">
@@ -385,7 +385,7 @@ export default async function ResourceDetailPage({
                               : new Date(item.createdAt).toISOString()
                           )}
                         </span>
-                        <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-2 leading-snug">
+                        <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
                           {item.title}
                         </h4>
                       </div>

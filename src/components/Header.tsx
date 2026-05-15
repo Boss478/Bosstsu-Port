@@ -96,7 +96,7 @@ export default function Header() {
 
 
 
-          <div id="desktop-nav" className="hidden md:flex items-center p-1 gap-1 rounded-full bg-white/40 dark:bg-slate-900/40 hover:bg-white/50 dark:hover:bg-slate-800/50 backdrop-blur-3xs hover:backdrop-blur-xs border border-white/60 dark:border-slate-700/50 shadow-lg shadow-sky-100/40 dark:shadow-black/20 transition-all duration-200">
+          <div id="desktop-nav" className="hidden md:flex items-center p-1 gap-1 rounded-full bg-white/40 dark:bg-slate-900/40 hover:bg-white/50 dark:hover:bg-slate-800/50 backdrop-blur-3xs hover:backdrop-blur-xs border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 transition-all duration-200">
             {navLinks.map((link) => (
               <div key={link.label} className="relative group">
                 {!link.subItems ? (
@@ -122,13 +122,13 @@ export default function Header() {
                     </button>
 
                     <div className={`absolute top-full left-1/2 -translate-x-1/2 pt-2 transition-all duration-200 ease-out z-50 min-w-40 ${desktopExpanded === link.label ? 'visible opacity-100 translate-y-0' : 'invisible opacity-0 translate-y-2 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0'}`}>
-                      <div className="p-1 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl shadow-sky-100/40 dark:shadow-black/20 flex flex-col gap-1 overflow-hidden">
+                      <div className="p-1 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl shadow-blue-100/40 dark:shadow-black/20 flex flex-col gap-1 overflow-hidden">
                         {link.subItems.map((subItem) => (
                           <Link
                             key={subItem.href}
                             href={subItem.href}
                             onClick={() => setDesktopExpanded(null)}
-                            className="px-4 py-2.5 rounded-xl text-sm text-zinc-600 dark:text-zinc-300 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-200 font-medium flex items-center gap-2 whitespace-nowrap"
+                            className="px-4 py-2.5 rounded-xl text-sm text-zinc-600 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-200 font-medium flex items-center gap-2 whitespace-nowrap"
                           >
                             <i className={subItem.icon}></i>
                             {subItem.label}
@@ -157,7 +157,7 @@ export default function Header() {
               ></i>
 
               <i 
-                className={`fi fi-sr-moon text-sky-400 text-md leading-none transition-all duration-500 ${
+                className={`fi fi-sr-moon text-blue-400 text-md leading-none transition-all duration-500 ${
                   mounted && theme === 'dark' 
                     ? 'opacity-100 rotate-0 scale-100' 
                     : 'opacity-0 -rotate-90 scale-50 absolute'
@@ -171,7 +171,7 @@ export default function Header() {
 
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-sky-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-all duration-200"
+              className="p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-all duration-200"
               aria-label="Toggle dark mode"
             >
               <div className="relative w-5 h-5 flex items-center justify-center">
@@ -183,7 +183,7 @@ export default function Header() {
                   }`}
                 ></i>
                 <i 
-                  className={`fi fi-sr-moon text-sky-400 text-md leading-none transition-all duration-500 ${
+                  className={`fi fi-sr-moon text-blue-400 text-md leading-none transition-all duration-500 ${
                     mounted && theme === 'dark' 
                       ? 'opacity-100 rotate-0 scale-100' 
                       : 'opacity-0 -rotate-90 scale-50 absolute'
@@ -194,7 +194,7 @@ export default function Header() {
 
             <button
               onClick={toggleMobileMenu}
-              className="p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-sky-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-all duration-200"
+              className="p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-all duration-200"
               aria-label="Toggle menu"
             >
               {isOpen ? (
@@ -209,7 +209,7 @@ export default function Header() {
 
         {isOpen && (
           <div id="mobile-nav" className={`md:hidden py-4 flex justify-end ${isClosing ? 'animate-slide-up' : 'animate-slide-down'}`}>
-            <div className="flex flex-col gap-1 p-2 rounded-3xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 shadow-lg shadow-sky-100/40 dark:shadow-black/20 w-fit min-w-50">
+            <div className="flex flex-col gap-1 p-2 rounded-3xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 w-fit min-w-50">
               {navLinks.map((link) => (
                 <div key={link.label} className="w-full">
                   {!link.subItems ? (
@@ -241,7 +241,7 @@ export default function Header() {
                               key={subItem.href}
                               href={subItem.href}
                               onClick={closeMenuWithAnimation}
-                              className="px-4 py-2 rounded-xl text-sm text-zinc-500 dark:text-zinc-400 hover:text-sky-600 dark:hover:text-sky-300 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-200 flex items-center gap-2"
+                              className="px-4 py-2 rounded-xl text-sm text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-300 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-200 flex items-center gap-2"
                             >
                               <i className={subItem.icon}></i>
                               {subItem.label}

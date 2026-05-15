@@ -33,7 +33,7 @@ export default function BackToTop() {
       {showButton && (
         <button
           onClick={scrollToPageTop}
-          className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-50 p-3 rounded-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-xs border border-white/60 text-sky-600 dark:text-sky-400 shadow-lg shadow-sky-100/40 dark:shadow-black/20 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-all duration-300 animate-fade-in-up"
+          className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-50 p-3 rounded-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-xs border border-white/60 text-blue-600 dark:text-blue-400 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-all duration-300 animate-fade-in-up"
           aria-label="Back to top"
         >
           <i className="fi fi-sr-arrow-small-up text-xl leading-none flex items-center justify-center"></i>

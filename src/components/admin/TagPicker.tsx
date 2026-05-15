@@ -78,8 +78,8 @@ export default function TagPicker({
                 onClick={() => toggleTag(tag)}
                 className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
                   isSelected
-                    ? 'bg-sky-500 border-sky-500 text-white shadow-sm'
-                    : 'bg-white dark:bg-slate-900 border-zinc-200 dark:border-slate-700 text-zinc-600 dark:text-zinc-400 hover:border-sky-400'
+                    ? 'bg-blue-500 border-blue-500 text-white shadow-sm'
+                    : 'bg-white dark:bg-slate-900 border-zinc-200 dark:border-slate-700 text-zinc-600 dark:text-zinc-400 hover:border-blue-400'
                 }`}
               >
                 {isSelected && (
@@ -105,13 +105,13 @@ export default function TagPicker({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={isPending}
-          className="flex-1 px-3 py-1.5 text-sm rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
+          className="flex-1 px-3 py-1.5 text-sm rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
         />
         <button
           type="button"
           onClick={handleAddCustomTag}
           disabled={isPending || !customInput.trim()}
-          className="px-3 py-1.5 rounded-xl bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 hover:bg-sky-200 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1.5 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <i className={`fi ${isPending ? 'fi-sr-spinner animate-spin' : 'fi-sr-plus'}`} />
         </button>
@@ -125,13 +125,13 @@ export default function TagPicker({
           {selected.map(tag => (
             <span
               key={tag}
-              className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-500 text-white text-xs font-medium"
+              className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500 text-white text-xs font-medium"
             >
               {tag}
               <button
                 type="button"
                 onClick={() => toggleTag(tag)}
-                className="hover:text-sky-200"
+                className="hover:text-blue-200"
               >
                 <i className="fi fi-sr-cross text-[8px]" />
               </button>

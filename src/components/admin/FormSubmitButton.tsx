@@ -19,7 +19,7 @@ export function FormSubmitButton({
     <button
       type="submit"
       disabled={pending}
-      className={`w-full py-3 px-4 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      className={`w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >
       {pending ? 'กำลังบันทึก...' : (isEdit ? 'อัปเดตข้อมูล' : createLabel)}
     </button>

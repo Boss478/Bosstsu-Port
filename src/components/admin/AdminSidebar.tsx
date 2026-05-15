@@ -18,14 +18,14 @@ export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
   const { theme, toggleTheme, mounted } = useTheme();
 
   return (
-    <aside className="hidden md:flex flex-col w-64 h-screen fixed top-0 left-0 bg-white/80 dark:bg-slate-900/90 backdrop-blur-xl border-r border-sky-100 dark:border-slate-800 z-50">
+    <aside className="hidden md:flex flex-col w-64 h-screen fixed top-0 left-0 bg-white/80 dark:bg-slate-900/90 backdrop-blur-xl border-r border-blue-100 dark:border-slate-800 z-50">
       {/* Brand */}
-      <div className="h-16 flex items-center justify-between px-6 border-b border-sky-100 dark:border-slate-800">
+      <div className="h-16 flex items-center justify-between px-6 border-b border-blue-100 dark:border-slate-800">
         <Link 
           href="/admin" 
-          className="text-xl font-bold text-sky-600 dark:text-sky-400 flex items-center gap-2"
+          className="text-xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2"
         >
-          <i className="fi fi-sr-shield-check text-sky-600 text-lg" />
+          <i className="fi fi-sr-shield-check text-blue-600 text-lg" />
           Boss478 <span className="text-zinc-400 text-xs font-medium">Admin</span>
         </Link>
           
@@ -51,11 +51,11 @@ export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 shadow-sm'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:bg-sky-50 dark:hover:bg-slate-800/50 hover:text-zinc-900 dark:hover:text-zinc-200'
+                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:bg-blue-50 dark:hover:bg-slate-800/50 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
-              <i className={`fi ${item.icon} ${isActive ? 'text-sky-600 dark:text-sky-400' : 'text-zinc-400'}`} />
+              <i className={`fi ${item.icon} ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-400'}`} />
               {item.label}
             </Link>
           );
@@ -63,7 +63,7 @@ export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
       </nav>
 
       {/* User Actions */}
-      <div className="p-4 border-t border-sky-100 dark:border-slate-800">
+      <div className="p-4 border-t border-blue-100 dark:border-slate-800">
         <div className="flex items-center justify-between">
         <button
           type="button"

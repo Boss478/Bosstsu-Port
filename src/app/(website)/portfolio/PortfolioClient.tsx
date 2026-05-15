@@ -64,7 +64,7 @@ export default function PortfolioClient({
   const allTags = ["ทั้งหมด", ...uniqueTags];
 
   return (
-    <div className="min-h-screen bg-sky-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
       <NavigationPendingBar isPending={isPending} />
 
       <section id="portfolio-header" className="pt-28 pb-12 px-4">
@@ -72,7 +72,7 @@ export default function PortfolioClient({
 
           <Breadcrumb items={[{ label: "ผลงาน" }]} />
 
-          <h1 className="text-4xl md:text-5xl font-bold text-sky-600 dark:text-sky-400">
+          <h1 className="text-4xl md:text-5xl font-bold text-blue-600 dark:text-blue-400">
             ผลงาน
           </h1>
           <p className="mt-3 text-lg text-zinc-600 dark:text-zinc-400">
@@ -89,7 +89,7 @@ export default function PortfolioClient({
             value={activeTag || "ทั้งหมด"}
             onChange={(e) => filterByTag(e.target.value)}
             disabled={isPending}
-            className="px-4 py-1.5 rounded-full text-sm font-medium bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:bg-sky-100 dark:hover:bg-slate-700 hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-200 cursor-pointer disabled:opacity-60"
+            className="px-4 py-1.5 rounded-full text-sm font-medium bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:bg-blue-100 dark:hover:bg-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200 cursor-pointer disabled:opacity-60"
           >
             {allTags.map((tag) => (
               <option key={tag} value={tag}>
@@ -102,7 +102,7 @@ export default function PortfolioClient({
           <button
             onClick={toggleSortOrder}
             disabled={isPending}
-            className="ml-auto flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:bg-sky-100 dark:hover:bg-slate-700 hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-200 cursor-pointer disabled:opacity-60"
+            className="ml-auto flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:bg-blue-100 dark:hover:bg-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200 cursor-pointer disabled:opacity-60"
           >
             <i className="fi fi-sr-calendar text-xs" />
             {sort === "desc" ? "ใหม่สุด" : "เก่าสุด"}
@@ -128,10 +128,10 @@ export default function PortfolioClient({
               <Link
                 key={item.id}
                 href={`/portfolio/${item.id}`}
-                className="group flex flex-col bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/10 overflow-hidden shadow-xl shadow-sky-900/5 dark:shadow-black/20 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-sky-900/10 dark:hover:shadow-black/40 hover:bg-white/60 dark:hover:bg-slate-800/60"
+                className="group flex flex-col bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/10 overflow-hidden shadow-xl shadow-blue-900/5 dark:shadow-black/20 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-blue-900/10 dark:hover:shadow-black/40 hover:bg-white/60 dark:hover:bg-slate-800/60"
                 suppressHydrationWarning
               >
-                <div className="relative w-full shrink-0 overflow-hidden bg-sky-100 dark:bg-slate-800 flex items-center justify-center" style={{ height: '14rem' }}>
+                <div className="relative w-full shrink-0 overflow-hidden bg-blue-100 dark:bg-slate-800 flex items-center justify-center" style={{ height: '14rem' }}>
                   {item.cover ? (
                     <>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -144,24 +144,24 @@ export default function PortfolioClient({
                            e.currentTarget.style.display = 'none';
                         }}
                       />
-                      <div className="absolute inset-0 flex items-center justify-center bg-sky-50 dark:bg-slate-800 z-0">
-                         <i className="fi fi-sr-briefcase text-4xl text-sky-200 dark:text-slate-600 group-hover:scale-110 transition-transform duration-500" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-blue-50 dark:bg-slate-800 z-0">
+                         <i className="fi fi-sr-briefcase text-4xl text-blue-200 dark:text-slate-600 group-hover:scale-110 transition-transform duration-500" />
                       </div>
                     </>
                   ) : (
-                    <i className="fi fi-sr-briefcase text-4xl text-sky-200 dark:text-slate-600 group-hover:scale-110 transition-transform duration-500" />
+                    <i className="fi fi-sr-briefcase text-4xl text-blue-200 dark:text-slate-600 group-hover:scale-110 transition-transform duration-500" />
                   )}
 
                   {item.gallery && item.gallery.length > 0 && (
                     <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/50 dark:bg-black/60 text-zinc-900 dark:text-zinc-100 text-[10px] font-semibold backdrop-blur-3xs shadow-sm">
-                      <i className="fi fi-sr-picture text-sky-500 text-[10px]" />
+                      <i className="fi fi-sr-picture text-blue-500 text-[10px]" />
                       {item.gallery.length}
                     </div>
                   )}
 
                   {item.tools && item.tools.length > 0 && (
                     <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/50 dark:bg-black/60 text-zinc-900 dark:text-zinc-100 text-[10px] font-semibold backdrop-blur-xs shadow-sm">
-                      <i className="fi fi-sr-tools text-sky-500 text-[10px]" />
+                      <i className="fi fi-sr-tools text-blue-500 text-[10px]" />
                       {item.tools.length}
                     </div>
                   )}
@@ -173,13 +173,13 @@ export default function PortfolioClient({
                       {item.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="px-2 py-0.5 rounded-md text-sm font-semibold bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400"
+                          className="px-2 py-0.5 rounded-md text-sm font-semibold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                         >
                           {tag}
                         </span>
                       ))}
                     </div>
-                    <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors duration-300 line-clamp-2 leading-snug">
+                    <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 line-clamp-2 leading-snug">
                       {item.title}
                     </h3>
                   </header>
@@ -193,7 +193,7 @@ export default function PortfolioClient({
                       <i className="fi fi-sr-calendar-lines" />
                       {formatDate(item.date)}
                     </span>
-                    <span className="inline-flex items-center gap-1.5 text-sm font-bold text-sky-600 dark:text-sky-400 group-hover:text-sky-500 transition-colors duration-300">
+                    <span className="inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 dark:text-blue-400 group-hover:text-blue-500 transition-colors duration-300">
                       อ่านต่อ
                       <i className="fi fi-sr-arrow-right text-[10px] transition-transform duration-300 group-hover:translate-x-1" />
                     </span>

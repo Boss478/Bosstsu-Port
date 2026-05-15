@@ -99,7 +99,7 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel, aspec
           <button
             type="button"
             onClick={handleSave}
-            className="px-6 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-medium shadow-lg shadow-sky-500/20 transition-colors"
+            className="px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg shadow-blue-500/20 transition-colors"
           >
             บันทึกและใช้รูปนี้ (Save Cropped Cover)
           </button>

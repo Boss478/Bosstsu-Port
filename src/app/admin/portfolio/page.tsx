@@ -49,18 +49,18 @@ export default async function PortfolioListPage({
   }
 
   return (
-    <div className="min-h-screen bg-sky-50 dark:bg-slate-950 pt-28 pb-12 px-4">
+    <div className="min-h-screen bg-blue-50 dark:bg-slate-950 pt-28 pb-12 px-4">
       <div className="max-w-6xl mx-auto">
         <Breadcrumb items={[{ label: 'Backend', href: '/admin' }, { label: 'Portfolio' }]} />
 
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
-            <i className="fi fi-sr-briefcase text-sky-500" />
+            <i className="fi fi-sr-briefcase text-blue-500" />
             จัดการผลงาน (Portfolio)
           </h1>
           <Link
             href="/admin/portfolio/new"
-            className="flex items-center gap-2 px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20 transition-all hover:-translate-y-0.5"
+            className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:-translate-y-0.5"
           >
             <i className="fi fi-sr-plus text-sm" />
             เพิ่มผลงานใหม่
@@ -93,7 +93,7 @@ export default async function PortfolioListPage({
                 items.map((item: any) => (
                   <tr
                     key={item._id}
-                    className="border-b last:border-0 border-zinc-100/60 dark:border-slate-700/30 hover:bg-sky-50/40 dark:hover:bg-slate-700/30 transition-colors group"
+                    className="border-b last:border-0 border-zinc-100/60 dark:border-slate-700/30 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors group"
                   >
                     <td className="p-4 w-24">
                       <div className="relative w-16 h-10 rounded-lg overflow-hidden bg-zinc-200 shadow-sm">
@@ -109,7 +109,7 @@ export default async function PortfolioListPage({
                       <p className="font-semibold text-zinc-900 dark:text-zinc-100 line-clamp-1">
                         {item.title}
                       </p>
-                      <p className="text-xs text-sky-600 dark:text-sky-400 font-mono">
+                      <p className="text-xs text-blue-600 dark:text-blue-400 font-mono">
                         {item.slug}
                       </p>
                     </td>
@@ -143,7 +143,7 @@ export default async function PortfolioListPage({
                       <div className="flex items-center justify-end gap-2 transition-opacity">
                         <Link
                           href={`/admin/portfolio/${item._id}`}
-                          className="p-2 text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-900/20 rounded-lg transition-colors"
+                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                           title="Edit"
                         >
                           <i className="fi fi-sr-pencil" />

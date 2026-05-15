@@ -9,14 +9,14 @@ export default async function AdminPage() {
   const [stats, recent] = await Promise.all([getDbStats(), getDashboardStats()]);
 
   return (
-    <div className="min-h-screen bg-sky-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
       <section className="pt-28 pb-8 px-4">
         <div className="max-w-6xl mx-auto">
           <Breadcrumb items={[{ label: "Backend" }]} />
 
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-zinc-100">
-              <i className="fi fi-sr-settings text-sky-500 mr-3" />
+              <i className="fi fi-sr-settings text-blue-500 mr-3" />
               Backend Dashboard
             </h1>
             <LogoutButton />
@@ -41,8 +41,8 @@ export default async function AdminPage() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-sky-50/60 dark:bg-slate-700/40">
-                <i className="fi fi-sr-database text-sky-500" />
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40">
+                <i className="fi fi-sr-database text-blue-500" />
                 <div>
                   <p className="text-zinc-400 dark:text-zinc-500 text-xs">Database</p>
                   <p className="font-semibold text-zinc-800 dark:text-zinc-200">
@@ -51,8 +51,8 @@ export default async function AdminPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-sky-50/60 dark:bg-slate-700/40">
-                <i className="fi fi-sr-link-alt text-sky-500" />
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40">
+                <i className="fi fi-sr-link-alt text-blue-500" />
                 <div>
                   <p className="text-zinc-400 dark:text-zinc-500 text-xs">URI</p>
                   <p className="font-mono font-semibold text-zinc-800 dark:text-zinc-200 text-xs break-all">
@@ -61,8 +61,8 @@ export default async function AdminPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-sky-50/60 dark:bg-slate-700/40">
-                <i className="fi fi-sr-server text-sky-500" />
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40">
+                <i className="fi fi-sr-server text-blue-500" />
                 <div>
                   <p className="text-zinc-400 dark:text-zinc-500 text-xs">Host</p>
                   <p className="font-semibold text-zinc-800 dark:text-zinc-200">
@@ -73,8 +73,8 @@ export default async function AdminPage() {
 
               {stats.serverStatus && (
                 <>
-                  <div className="flex items-center gap-2 p-3 rounded-xl bg-sky-50/60 dark:bg-slate-700/40">
-                    <i className="fi fi-sr-info text-sky-500" />
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40">
+                    <i className="fi fi-sr-info text-blue-500" />
                     <div>
                       <p className="text-zinc-400 dark:text-zinc-500 text-xs">
                         MongoDB Version
@@ -85,8 +85,8 @@ export default async function AdminPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 p-3 rounded-xl bg-sky-50/60 dark:bg-slate-700/40">
-                    <i className="fi fi-sr-time-past text-sky-500" />
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40">
+                    <i className="fi fi-sr-time-past text-blue-500" />
                     <div>
                       <p className="text-zinc-400 dark:text-zinc-500 text-xs">Uptime</p>
                       <p className="font-semibold text-zinc-800 dark:text-zinc-200">
@@ -122,7 +122,7 @@ export default async function AdminPage() {
 
           {/* Collection Stats */}
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-            <i className="fi fi-sr-layers text-sky-500 mr-2" />
+            <i className="fi fi-sr-layers text-blue-500 mr-2" />
             Collections
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
@@ -132,7 +132,7 @@ export default async function AdminPage() {
                 className="p-5 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <i className={`${col.icon} text-sky-500 text-xl`} />
+                  <i className={`${col.icon} text-blue-500 text-xl`} />
                   <span className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
                     {col.count}
                   </span>
@@ -149,7 +149,7 @@ export default async function AdminPage() {
 
           {/* Recent Portfolio Items */}
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-            <i className="fi fi-sr-time-past text-sky-500 mr-2" />
+            <i className="fi fi-sr-time-past text-blue-500 mr-2" />
             รายการล่าสุด — Portfolio
           </h2>
           <div className="mb-10 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm overflow-hidden">
@@ -170,9 +170,9 @@ export default async function AdminPage() {
                   {recent.portfolio.map((item: any) => (
                     <tr
                       key={item._id}
-                      className="border-b last:border-0 border-zinc-100/60 dark:border-slate-700/30 hover:bg-sky-50/40 dark:hover:bg-slate-700/30 transition-colors"
+                      className="border-b last:border-0 border-zinc-100/60 dark:border-slate-700/30 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors"
                     >
-                      <td className="py-3 px-5 font-mono text-xs text-sky-600 dark:text-sky-400">
+                      <td className="py-3 px-5 font-mono text-xs text-blue-600 dark:text-blue-400">
                         <Link href={`/portfolio/${item.slug}`} className="hover:underline">
                           {item.slug}
                         </Link>
@@ -185,7 +185,7 @@ export default async function AdminPage() {
                           {item.tags?.map((tag: string) => (
                             <span
                               key={tag}
-                              className="px-2 py-0.5 rounded-full text-xs bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300"
+                              className="px-2 py-0.5 rounded-full text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
                             >
                               {tag}
                             </span>
@@ -204,7 +204,7 @@ export default async function AdminPage() {
 
           {/* Recent Gallery Albums */}
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-            <i className="fi fi-sr-picture text-sky-500 mr-2" />
+            <i className="fi fi-sr-picture text-blue-500 mr-2" />
             รายการล่าสุด — Gallery
           </h2>
           <div className="mb-10 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm overflow-hidden">
@@ -225,9 +225,9 @@ export default async function AdminPage() {
                   {recent.gallery.map((album: any) => (
                     <tr
                       key={album._id}
-                      className="border-b last:border-0 border-zinc-100/60 dark:border-slate-700/30 hover:bg-sky-50/40 dark:hover:bg-slate-700/30 transition-colors"
+                      className="border-b last:border-0 border-zinc-100/60 dark:border-slate-700/30 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors"
                     >
-                      <td className="py-3 px-5 font-mono text-xs text-sky-600 dark:text-sky-400">
+                      <td className="py-3 px-5 font-mono text-xs text-blue-600 dark:text-blue-400">
                         <Link href={`/gallery/${album.slug}`} className="hover:underline">
                           {album.slug}
                         </Link>
@@ -251,46 +251,46 @@ export default async function AdminPage() {
           {/* System Info & Tools */}
           <div className="mb-8 p-6 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
             <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
-              <i className="fi fi-sr-info text-sky-500" />
+              <i className="fi fi-sr-info text-blue-500" />
               ข้อมูลระบบ (System Info)
             </h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 text-sm">
-              <div className="p-3 rounded-xl bg-sky-50/60 dark:bg-slate-700/40 border border-sky-100 dark:border-slate-600/50">
+              <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40 border border-blue-100 dark:border-slate-600/50">
                 <p className="text-zinc-400 dark:text-zinc-500 text-xs mb-1">Framework</p>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-zinc-800 dark:text-zinc-200">Next.js</span>
                   <span className="px-1.5 py-0.5 rounded text-[10px] bg-black text-white">v16.1.6</span>
                 </div>
               </div>
-              <div className="p-3 rounded-xl bg-sky-50/60 dark:bg-slate-700/40 border border-sky-100 dark:border-slate-600/50">
+              <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40 border border-blue-100 dark:border-slate-600/50">
                 <p className="text-zinc-400 dark:text-zinc-500 text-xs mb-1">Library</p>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-zinc-800 dark:text-zinc-200">React</span>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-sky-500 text-white">v19.2.3</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-blue-500 text-white">v19.2.3</span>
                 </div>
               </div>
-              <div className="p-3 rounded-xl bg-sky-50/60 dark:bg-slate-700/40 border border-sky-100 dark:border-slate-600/50">
+              <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40 border border-blue-100 dark:border-slate-600/50">
                 <p className="text-zinc-400 dark:text-zinc-500 text-xs mb-1">Styling</p>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-zinc-800 dark:text-zinc-200">TailwindCSS</span>
                   <span className="px-1.5 py-0.5 rounded text-[10px] bg-cyan-500 text-white">v4.0</span>
                 </div>
               </div>
-              <div className="p-3 rounded-xl bg-sky-50/60 dark:bg-slate-700/40 border border-sky-100 dark:border-slate-600/50">
+              <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40 border border-blue-100 dark:border-slate-600/50">
                 <p className="text-zinc-400 dark:text-zinc-500 text-xs mb-1">Database ORM</p>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-zinc-800 dark:text-zinc-200">Mongoose</span>
                   <span className="px-1.5 py-0.5 rounded text-[10px] bg-green-600 text-white">v9.1.6</span>
                 </div>
               </div>
-              <div className="p-3 rounded-xl bg-sky-50/60 dark:bg-slate-700/40 border border-sky-100 dark:border-slate-600/50">
+              <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40 border border-blue-100 dark:border-slate-600/50">
                 <p className="text-zinc-400 dark:text-zinc-500 text-xs mb-1">Language</p>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-zinc-800 dark:text-zinc-200">TypeScript</span>
                   <span className="px-1.5 py-0.5 rounded text-[10px] bg-blue-600 text-white">v5.0</span>
                 </div>
               </div>
-               <div className="p-3 rounded-xl bg-sky-50/60 dark:bg-slate-700/40 border border-sky-100 dark:border-slate-600/50">
+               <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40 border border-blue-100 dark:border-slate-600/50">
                 <p className="text-zinc-400 dark:text-zinc-500 text-xs mb-1">Environment</p>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-zinc-800 dark:text-zinc-200">Node.js</span>
@@ -302,7 +302,7 @@ export default async function AdminPage() {
 
           {/* Quick Actions */}
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-            <i className="fi fi-sr-bolt text-sky-500 mr-2" />
+            <i className="fi fi-sr-bolt text-blue-500 mr-2" />
             เมนูลัด (Quick Links)
           </h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -310,7 +310,7 @@ export default async function AdminPage() {
               href="/admin/portfolio"
               className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
             >
-              <i className="fi fi-sr-briefcase text-sky-500" />
+              <i className="fi fi-sr-briefcase text-blue-500" />
               <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
                 จัดการผลงาน
               </span>
@@ -320,7 +320,7 @@ export default async function AdminPage() {
               href="/admin/gallery"
               className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
             >
-              <i className="fi fi-sr-picture text-sky-500" />
+              <i className="fi fi-sr-picture text-blue-500" />
               <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
                 จัดการแกลเลอรี
               </span>
@@ -330,7 +330,7 @@ export default async function AdminPage() {
               href="/admin/resources"
               className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
             >
-              <i className="fi fi-sr-book-alt text-sky-500" />
+              <i className="fi fi-sr-book-alt text-blue-500" />
               <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
                 จัดการสื่อการเรียนรู้
               </span>
@@ -340,7 +340,7 @@ export default async function AdminPage() {
               href="/admin/games"
               className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
             >
-              <i className="fi fi-sr-gamepad text-sky-500" />
+              <i className="fi fi-sr-gamepad text-blue-500" />
               <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
                 จัดการเกม
               </span>
