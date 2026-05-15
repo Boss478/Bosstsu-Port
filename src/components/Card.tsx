@@ -6,6 +6,8 @@ interface CardProps {
     href: string;
     icon: string;
     color: string;
+    iconColor?: string;
+    textColor?: string;
 }
 
 export default function Card({
@@ -14,6 +16,8 @@ export default function Card({
     href,
     icon,
     color,
+    iconColor = "text-blue-700 dark:text-cyan-400",
+    textColor = "text-zinc-900 dark:text-zinc-300 group-hover:text-zinc-800 dark:group-hover:text-blue-300",
 }: CardProps) {
     return (
         <Link
@@ -27,9 +31,9 @@ export default function Card({
 
             <div className="relative z-10">
                 <div className="text-5xl mb-4">
-                    <i className={`${icon} text-blue-700 dark:text-cyan-400`}></i>
+                    <i className={`${icon} ${iconColor}`}></i>
                 </div>
-                <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-300 mb-2 group-hover:text-gray-900 dark:group-hover:text-blue-400 transition-all duration-300">
+                <h3 className={`text-2xl font-bold mb-2 ${textColor} transition-all duration-300`}>
                     {title}
                 </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">{description}</p>
