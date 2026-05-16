@@ -1,22 +1,22 @@
-
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: dockerfile
+      target: runner
     ports:
-      - "3300:3300"
+      - "127.0.0.1:3300:3300"
     volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.next
+      - uploads:/app/public/uploads
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - MONGODB_URI=${MONGODB_URI}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ADMIN_TOKEN_SECRET=${ADMIN_TOKEN_SECRET}
     depends_on:
       mongo:
         condition: service_healthy
-    restart: unless-stopped
+    restart: always
     deploy:
       resources:
         limits:
@@ -31,7 +31,7 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
-    restart: unless-stopped
+    restart: always
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -57,7 +57,24 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
-    restart: unless-stopped
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      # - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    restart: always
     deploy:
       resources:
         limits:
@@ -65,3 +82,6 @@ services:
 
 volumes:
   mongo_data:
+  uploads:
+  caddy_data:
+  caddy_config:

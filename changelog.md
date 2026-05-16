@@ -4,6 +4,14 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.7.6 (2026-05-16)
+
++ Added production deployment setup for KVM1 VPS — multi-stage Dockerfile, production docker-compose with Caddy reverse proxy, persistent volumes
++ Created .env.production template with strong password placeholders
++ Created Caddyfile for reverse proxy with security headers and upload caching
++ Created backup.sh script for daily mongodump + uploads archive with 7-day rotation
++ Updated AGENTS.md with production deployment commands
+
 ## v1.7.5 (2026-05-16)
 
 * Changed all modal overlay backgrounds from 40-90% opacity to 10% — subtle darkening (bg-black/10), removed all backdrop blur effects
