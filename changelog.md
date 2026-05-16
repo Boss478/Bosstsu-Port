@@ -4,6 +4,12 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.7.4 (2026-05-16)
+
++ Added full-screen button on Session Code Card — shows large centered code + URL + response count in modal overlay
++ Moved Results full-screen button to Results section — toggle now appears next to refresh/export buttons
+
+
 ## v1.7.3 (2026-05-16)
 
 * Fixed text overflow issue in Padlet, Q&A Board, and Discussion results — long text without spaces no longer overlaps layout

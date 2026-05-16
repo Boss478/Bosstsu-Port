@@ -10,6 +10,8 @@ interface ResultsViewProps {
   session: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialResponses: any[];
+  fullScreen?: boolean;
+  onToggleFullScreen?: () => void;
 }
 
 const TOOL_LABELS: Record<string, string> = {
@@ -22,7 +24,7 @@ const TOOL_LABELS: Record<string, string> = {
   discussion: 'Discussion',
 };
 
-export default function ResultsView({ session, initialResponses }: ResultsViewProps) {
+export default function ResultsView({ session, initialResponses, fullScreen, onToggleFullScreen }: ResultsViewProps) {
   const toolType = session.type || 'padlet';
   const [responses, setResponses] = useState(initialResponses);
   const [refreshing, setRefreshing] = useState(false);
@@ -74,6 +76,15 @@ export default function ResultsView({ session, initialResponses }: ResultsViewPr
           >
             <i className={`fi fi-sr-refresh text-sm ${refreshing ? 'animate-spin' : ''}`} />
           </button>
+          {onToggleFullScreen && (
+            <button
+              onClick={onToggleFullScreen}
+              className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 text-zinc-400 transition-colors"
+              title={fullScreen ? "Exit Full Screen" : "Full Screen"}
+            >
+              <i className={`fi ${fullScreen ? 'fi-sr-compress' : 'fi-sr-expand'} text-sm`} />
+            </button>
+          )}
           <ExportButton session={session} responses={responses} />
         </div>
       </div>

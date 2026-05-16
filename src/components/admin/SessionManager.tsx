@@ -7,9 +7,10 @@ import { endSession } from '@/app/admin/tools/actions';
 interface SessionManagerProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
+  onToggleCodeFullScreen?: () => void;
 }
 
-export default function SessionManager({ session }: SessionManagerProps) {
+export default function SessionManager({ session, onToggleCodeFullScreen }: SessionManagerProps) {
   const [pending, setPending] = useState(false);
   const [origin, setOrigin] = useState('');
 
@@ -62,7 +63,16 @@ export default function SessionManager({ session }: SessionManagerProps) {
       </div>
 
       {session.isActive && (
-        <div className="p-8 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-blue-200 dark:border-blue-800 shadow-lg text-center">
+        <div className="p-8 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-blue-200 dark:border-blue-800 shadow-lg text-center relative">
+          {onToggleCodeFullScreen && (
+            <button
+              onClick={onToggleCodeFullScreen}
+              className="absolute top-4 right-4 p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500 transition-colors"
+              title="Full Screen"
+            >
+              <i className="fi fi-sr-expand text-sm" />
+            </button>
+          )}
           <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">
             Share This Code With Students
           </p>

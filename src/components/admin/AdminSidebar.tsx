@@ -39,6 +39,7 @@ export default function AdminSidebar({
       )}
 
       <aside
+        data-admin="sidebar"
         className={`hidden md:flex flex-col h-screen fixed top-0 left-0 bg-white/80 dark:bg-slate-900/90 backdrop-blur-xl border-r border-blue-100 dark:border-slate-800 z-50 transition-all duration-300 ease-in-out ${
           collapsed ? 'w-0 -translate-x-full overflow-hidden' : 'w-64 translate-x-0'
         }`}
