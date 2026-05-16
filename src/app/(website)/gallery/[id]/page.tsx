@@ -7,12 +7,16 @@ import AlbumContent from "./AlbumContent";
 export const revalidate = 60;
 
 export async function generateStaticParams() {
-  await dbConnect();
-  const docs = await Gallery.find({ published: { $ne: false } }, "slug").lean();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return docs.map((doc: any) => ({
-    id: doc.slug,
-  }));
+  try {
+    await dbConnect();
+    const docs = await Gallery.find({ published: { $ne: false } }, "slug").lean();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return docs.map((doc: any) => ({
+      id: doc.slug,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {

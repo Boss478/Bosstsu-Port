@@ -36,11 +36,15 @@ export async function generateMetadata({
 }
 
 export async function generateStaticParams() {
-  await dbConnect();
-  const docs = await Portfolio.find({ published: { $ne: false } }, "slug").lean() as IPortfolioItem[];
-  return docs.map((doc) => ({
-    id: doc.slug,
-  }));
+  try {
+    await dbConnect();
+    const docs = await Portfolio.find({ published: { $ne: false } }, "slug").lean() as IPortfolioItem[];
+    return docs.map((doc) => ({
+      id: doc.slug,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export default async function PortfolioDetailPage({
