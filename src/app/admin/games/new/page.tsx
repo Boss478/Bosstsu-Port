@@ -3,6 +3,8 @@ import GameForm from '@/components/admin/GameForm';
 import { createGame } from '../actions';
 import { getTagsByCategory } from '@/app/actions/tags';
 
+export const dynamic = 'force-dynamic';
+
 export default async function NewGamePage() {
   const availableTags = await getTagsByCategory('game');
 

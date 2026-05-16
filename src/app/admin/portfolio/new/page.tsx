@@ -3,6 +3,8 @@ import PortfolioForm from '@/components/admin/PortfolioForm';
 import { createPortfolioItem } from '../actions';
 import { getTagsByCategory } from '@/app/actions/tags';
 
+export const dynamic = 'force-dynamic';
+
 export default async function NewPortfolioPage() {
   const [availableTags, availableTools] = await Promise.all([
     getTagsByCategory('portfolio'),

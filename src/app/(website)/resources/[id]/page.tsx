@@ -7,7 +7,7 @@ import Learning from "@/models/Learning";
 import Breadcrumb from "@/components/Breadcrumb";
 import { formatDate } from "@/lib/format";
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 type LeanLearningDoc = {
   _id: mongoose.Types.ObjectId;
