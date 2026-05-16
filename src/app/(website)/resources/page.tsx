@@ -5,7 +5,7 @@ import { type ResourceItem } from "./data";
 import { CONFIG } from "@/lib/config";
 import type { ILearningResource } from "@/models/Learning";
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 export default async function ResourcesPage({
   searchParams,

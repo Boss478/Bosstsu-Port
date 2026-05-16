@@ -2,7 +2,7 @@ import dbConnect from "@/lib/db";
 import Game from "@/models/Game";
 import GamesClient from "./GamesClient";
 
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
 
 export default async function GamesPage() {
   await dbConnect();

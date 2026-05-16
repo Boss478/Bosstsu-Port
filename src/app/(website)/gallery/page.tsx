@@ -5,7 +5,7 @@ import { type GalleryAlbum } from "./data";
 import { CONFIG } from "@/lib/config";
 import type { IGalleryAlbum } from "@/models/Gallery";
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 export default async function GalleryPage({
   searchParams,

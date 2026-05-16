@@ -5,7 +5,7 @@ import { type PortfolioItem } from "./data";
 import { CONFIG } from "@/lib/config";
 import type { IPortfolioItem } from "@/models/Portfolio";
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 export default async function PortfolioPage({
   searchParams,
