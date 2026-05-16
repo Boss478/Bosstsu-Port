@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: dockerfile
       target: runner
+      args:
+        - MONGODB_URI=${MONGODB_URI}
     ports:
       - "127.0.0.1:3300:3300"
     volumes:

@@ -12,6 +12,8 @@ WORKDIR /app
 COPY package*.json ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+ARG MONGODB_URI
+ENV MONGODB_URI=$MONGODB_URI
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_ESLINT=false
