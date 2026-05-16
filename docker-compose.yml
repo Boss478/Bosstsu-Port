@@ -8,6 +8,12 @@ services:
         - MONGODB_URI=${MONGODB_URI}
     ports:
       - "127.0.0.1:3300:3300"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.boss478.rule=Host(`srv1676702.hstgr.cloud`)"
+      - "traefik.http.routers.boss478.entrypoints=websecure"
+      - "traefik.http.routers.boss478.tls.certresolver=letsencrypt"
+      - "traefik.http.services.boss478.loadbalancer.server.url=http://127.0.0.1:3300"
     volumes:
       - uploads:/app/public/uploads
     environment:
@@ -65,25 +71,6 @@ services:
         limits:
           memory: 128M
 
-  caddy:
-    image: caddy:2-alpine
-    ports:
-      - "80:80"
-      # - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - app
-    restart: always
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-
 volumes:
   mongo_data:
   uploads:
-  caddy_data:
-  caddy_config:
