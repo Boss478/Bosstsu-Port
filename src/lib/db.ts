@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
 import { DB } from './constants';
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-  throw new Error(
-    'Please define the MONGODB_URI environment variable inside .env.local'
-  );
+function getMongoUri(): string {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
+  }
+  return uri;
 }
 
 interface MongooseCache {
@@ -18,7 +18,6 @@ declare global {
   var mongoose: MongooseCache | undefined;
 }
 
-// Global scope to persist connection across hot reloads in development
 let cached: MongooseCache = global.mongoose as MongooseCache;
 
 if (!cached) {
@@ -40,7 +39,7 @@ async function dbConnect() {
       connectTimeoutMS: DB.TIMEOUTS.CONNECT,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
+    cached.promise = mongoose.connect(getMongoUri(), opts).then((mongoose) => {
       return mongoose;
     });
   }

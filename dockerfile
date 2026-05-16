@@ -2,7 +2,9 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN apk add --no-cache python3 make g++ && \
+    npm ci && \
+    npm rebuild sharp
 
 # ─── Stage 2: Build Next.js ─────────────────────────────────────
 FROM node:20-alpine AS builder
@@ -11,6 +13,9 @@ COPY package*.json ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_ESLINT=false
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN npm run build
 
 # ─── Stage 3: Production runner ─────────────────────────────────

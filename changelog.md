@@ -4,6 +4,12 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.7.8 (2026-05-16)
+
+* Fixed Docker build failure — moved MONGODB_URI check to lazy inside dbConnect() (module-level throw with no .env during Docker build)
+* Fixed Docker build failure — added Alpine build deps (python3, make, g++) and npm rebuild sharp for native module compilation
+* Fixed Docker build failure — added NODE_OPTIONS memory limit (2048), NEXT_TELEMETRY_DISABLED, NEXT_ESLINT=false to Docker builder
+
 ## v1.7.7 (2026-05-16)
 
 * Fixed Docker build failure — archiver v8 is ESM with named exports (not CJS default), updated import and type declaration
