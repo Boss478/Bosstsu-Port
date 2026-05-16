@@ -4,6 +4,15 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.7.9 (2026-05-17)
+
++ First-time production deployment to KVM1 VPS (187.77.146.149)
+* Fixed Docker build failure — `generateStaticParams` now wrapped in try-catch to handle MongoDB unavailability during build (gallery/[id], portfolio/[id])
+* Fixed Docker build failure — list pages (4 website + all admin) marked `force-dynamic` to prevent Next.js prerendering that requires DB at build time
+* Fixed Docker build failure — admin new pages (games, resources, portfolio) marked `force-dynamic` since they call `getTagsByCategory()` which connects to MongoDB
+* Fixed Docker build failure — passed `MONGODB_URI` as Docker build arg so static generation can reach DB when available
+* Fixed Docker build failure — added `docker compose down` before rebuild to ensure clean start
+
 ## v1.7.8 (2026-05-16)
 
 * Fixed Docker build failure — moved MONGODB_URI check to lazy inside dbConnect() (module-level throw with no .env during Docker build)
