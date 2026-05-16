@@ -93,7 +93,7 @@ export default function ResultsView({ session, initialResponses }: ResultsViewPr
                     <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{r.studentName || 'Anonymous'}</span>
                     <DeleteButton id={r._id} action={deleteResponse} />
                   </div>
-                  <p className="text-zinc-700 dark:text-zinc-300 text-sm">{r.content?.message}</p>
+                  <p className="text-zinc-700 dark:text-zinc-300 text-sm break-words">{r.content?.message}</p>
                   <p className="text-xs text-zinc-400 mt-2">{new Date(r.createdAt).toLocaleTimeString('th-TH')}</p>
                 </div>
               ))}
@@ -155,7 +155,7 @@ export default function ResultsView({ session, initialResponses }: ResultsViewPr
                     <div className="flex items-start gap-3">
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-xs text-blue-600 dark:text-blue-400 mb-1">{r.studentName || 'Anonymous'}</p>
-                        <p className="text-zinc-700 dark:text-zinc-300">{r.content?.question}</p>
+                        <p className="text-zinc-700 dark:text-zinc-300 break-words">{r.content?.question}</p>
                         <p className="text-xs text-zinc-400 mt-1">
                           {r.content?.upvotes || 0} upvote{r.content?.upvotes !== 1 ? 's' : ''} · {new Date(r.createdAt).toLocaleTimeString('th-TH')}
                         </p>
@@ -196,7 +196,7 @@ export default function ResultsView({ session, initialResponses }: ResultsViewPr
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="font-semibold text-xs text-blue-600 dark:text-blue-400">{r.studentName || 'Anonymous'}</p>
-                      <p className="text-zinc-700 dark:text-zinc-300 mt-1">{r.content?.reply}</p>
+                      <p className="text-zinc-700 dark:text-zinc-300 mt-1 break-words">{r.content?.reply}</p>
                       <p className="text-xs text-zinc-400 mt-1">{new Date(r.createdAt).toLocaleTimeString('th-TH')}</p>
                     </div>
                     <DeleteButton id={r._id} action={deleteResponse} />

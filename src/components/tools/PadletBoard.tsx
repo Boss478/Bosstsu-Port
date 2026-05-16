@@ -271,7 +271,7 @@ export default function PadletBoard({ session }: PadletBoardProps) {
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-zinc-700 dark:text-zinc-300">{post.content?.message}</p>
+                <p className="text-sm text-zinc-700 dark:text-zinc-300 break-words">{post.content?.message}</p>
               )}
             </div>
           ))}

@@ -258,7 +258,7 @@ export default function DiscussionForum({ session }: DiscussionForumProps) {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-zinc-700 dark:text-zinc-300">{r.content?.reply}</p>
+                    <p className="text-sm text-zinc-700 dark:text-zinc-300 break-words">{r.content?.reply}</p>
                   )}
                 </div>
               ))}

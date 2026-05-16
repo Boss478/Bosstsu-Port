@@ -4,6 +4,11 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.7.3 (2026-05-16)
+
+* Fixed text overflow issue in Padlet, Q&A Board, and Discussion results — long text without spaces no longer overlaps layout
+
+
 ## v1.7.2 (2026-05-16)
 
 + **Poll Anti-Refresh Protection**: Added localStorage guard to MentimeterPoll — after voting, stores `voted_{sessionId}` to prevent re-voting on page refresh
