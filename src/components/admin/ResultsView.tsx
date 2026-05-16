@@ -181,7 +181,10 @@ export default function ResultsView({ session, responses }: ResultsViewProps) {
 
 function PollResults({ responses, session, onDelete }: { responses: { _id: string; content: { selectedOption?: string; word?: string } }[]; session: { config: { pollMode?: string; allowCustomChoices?: boolean; questions?: { options?: string[] }[] } }; onDelete: (id: string) => void }) {
   const mode = session.config?.pollMode || 'mcq';
-  const options = session.config?.questions?.[0]?.options || ['Option A', 'Option B', 'Option C', 'Option D'];
+  const rawOptions = session.config?.questions?.[0]?.options;
+  const options = rawOptions?.length
+    ? rawOptions.map((o, i) => o || `Option ${i + 1}`)
+    : ['Option A', 'Option B', 'Option C', 'Option D'];
 
   if (mode === 'wordcloud') {
     const wordCounts: Record<string, number> = {};

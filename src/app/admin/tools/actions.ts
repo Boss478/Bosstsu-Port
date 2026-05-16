@@ -24,7 +24,7 @@ const quickStartSchema = z.object({
   pollMode: z.enum(['mcq', 'wordcloud']).optional(),
   allowCustomChoices: z.boolean().optional(),
   questions: z.array(z.object({
-    question: z.string(),
+    question: z.string().optional(),
     options: z.array(z.string()).optional(),
     correctAnswer: z.number().optional(),
   })).optional(),

@@ -4,6 +4,12 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.7.1 (2026-05-16)
++ Added custom option labels for Poll MCQ mode — teachers can enter custom message for each option
++ Added dynamic option management — default 2 options, can add more via "Add Option" button
++ Empty option labels fallback to "Option 1", "Option 2", etc.
++ Fixed Zod validation error when creating poll with custom options (made `question` field optional)
+
 ## v1.7.0 (2026-05-16)
 + Reordered AdminSidebar: Class Tools moved below Games
 + Added collapse/expand to AdminSidebar (slide off-screen, default expanded)
