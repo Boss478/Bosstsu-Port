@@ -19,6 +19,14 @@ export default function MentimeterPoll({ session }: MentimeterPollProps) {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
+  const STORAGE_KEY = `poll_voted_${session._id}`;
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEY)) {
+      setSubmitted(true);
+    }
+  }, [session._id]);
+
   const pollMode = session.config?.pollMode || 'mcq';
   const rawOptions = session.config?.questions?.[0]?.options;
   const options = rawOptions?.length
@@ -87,6 +95,9 @@ export default function MentimeterPoll({ session }: MentimeterPollProps) {
         setError(data.error);
       } else {
         setSubmitted(true);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(STORAGE_KEY, 'true');
+        }
         fetchPoll();
       }
     } catch {

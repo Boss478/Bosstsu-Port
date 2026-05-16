@@ -14,6 +14,11 @@ interface Post {
   createdAt: string;
 }
 
+interface OwnPost {
+  _id: string;
+  editToken: string;
+}
+
 export default function PadletBoard({ session }: PadletBoardProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [lastFetch, setLastFetch] = useState(Date.now());
@@ -23,6 +28,29 @@ export default function PadletBoard({ session }: PadletBoardProps) {
   const [studentName, setStudentName] = useState('');
   const [message, setMessage] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [ownPosts, setOwnPosts] = useState<OwnPost[]>([]);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editMessage, setEditMessage] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const STORAGE_KEY = `padlet_${session._id}`;
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          setOwnPosts(JSON.parse(stored));
+        } catch {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
+    }
+  }, [session._id]);
+
+  const isOwnPost = (postId: string) => ownPosts.some(p => p._id === postId);
+  const getOwnToken = (postId: string) => ownPosts.find(p => p._id === postId)?.editToken;
 
   const fetchPosts = async (since?: number) => {
     try {
@@ -71,12 +99,75 @@ export default function PadletBoard({ session }: PadletBoardProps) {
       } else {
         setMessage('');
         fetchPosts();
+        if (data.id && data.editToken && typeof window !== 'undefined') {
+          const newOwnPost = { _id: data.id, editToken: data.editToken };
+          const updatedOwnPosts = [...ownPosts, newOwnPost];
+          setOwnPosts(updatedOwnPosts);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedOwnPosts));
+        }
         setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 300);
       }
     } catch {
       setError('Failed to submit');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchPosts();
+    setRefreshing(false);
+  };
+
+  const handleEditClick = (post: Post) => {
+    setEditingPostId(post._id);
+    setEditMessage(post.content?.message || '');
+  };
+
+  const handleEditCancel = () => {
+    setEditingPostId(null);
+    setEditMessage('');
+  };
+
+  const handleEditSave = async (postId: string) => {
+    if (!editMessage.trim()) return;
+    const token = getOwnToken(postId);
+    if (!token) return;
+
+    setEditSaving(true);
+    try {
+      const res = await fetch('/api/tools/edit', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          responseId: postId,
+          editToken: token,
+          content: { message: editMessage.trim() },
+        }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error);
+      } else {
+        setEditingPostId(null);
+        setEditMessage('');
+        fetchPosts();
+        if (typeof window !== 'undefined') {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            const updated = parsed.map((p: OwnPost) =>
+              p._id === postId ? { ...p, content: { message: editMessage.trim() } } : p
+            );
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+          }
+        }
+      }
+    } catch {
+      setError('Failed to save');
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -121,20 +212,70 @@ export default function PadletBoard({ session }: PadletBoardProps) {
       {loading && posts.length === 0 ? (
         <div className="text-center py-12 text-zinc-400">Loading...</div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+        <div className="space-y-4 pb-4">
+          <div className="flex items-center justify-end">
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 text-zinc-400 transition-colors disabled:opacity-50"
+              title="Refresh"
+            >
+              <i className={`fi fi-sr-refresh text-sm ${refreshing ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {posts.map(post => (
             <div key={post._id} className="p-4 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
                   {post.studentName || 'Anonymous'}
                 </span>
-                <span className="text-[10px] text-zinc-400">
-                  {new Date(post.createdAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
-                </span>
+                <div className="flex items-center gap-2">
+                  {isOwnPost(post._id) && !editingPostId && (
+                    <button
+                      onClick={() => handleEditClick(post)}
+                      className="p-1 text-zinc-400 hover:text-blue-500 transition-colors"
+                      title="Edit"
+                    >
+                      <i className="fi fi-sr-pencil text-xs" />
+                    </button>
+                  )}
+                  <span className="text-[10px] text-zinc-400">
+                    {new Date(post.createdAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
               </div>
-              <p className="text-sm text-zinc-700 dark:text-zinc-300">{post.content?.message}</p>
+              {editingPostId === post._id ? (
+                <div className="space-y-2">
+                  <textarea
+                    value={editMessage}
+                    onChange={e => setEditMessage(e.target.value)}
+                    rows={3}
+                    className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 text-sm resize-none"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleEditCancel}
+                      className="flex-1 py-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => handleEditSave(post._id)}
+                      disabled={editSaving || !editMessage.trim()}
+                      className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50"
+                    >
+                      {editSaving ? 'Saving...' : 'Save'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-zinc-700 dark:text-zinc-300">{post.content?.message}</p>
+              )}
             </div>
           ))}
+          </div>
           <div ref={bottomRef} />
         </div>
       )}

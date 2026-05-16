@@ -4,6 +4,17 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.7.2 (2026-05-16)
+
++ **Poll Anti-Refresh Protection**: Added localStorage guard to MentimeterPoll — after voting, stores `voted_{sessionId}` to prevent re-voting on page refresh
++ **Edit Own Answers**: Added editToken-based ownership system for Assignment, Padlet, and Discussion tools
+  * Added `editToken` field to ToolResponse model (UUID generated on create)
+  * Created new `PATCH /api/tools/edit` endpoint for editing responses
+  * AssignmentForm now shows submitted answer with Edit button to modify
+  * PadletBoard now shows inline edit for own posts
+  * DiscussionForum now shows inline edit for own replies
+
+
 ## v1.7.1 (2026-05-16)
 + Added custom option labels for Poll MCQ mode — teachers can enter custom message for each option
 + Added dynamic option management — default 2 options, can add more via "Add Option" button

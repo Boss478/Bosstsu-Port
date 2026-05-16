@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import dbConnect from '@/lib/db';
 import ToolResponse from '@/models/ToolResponse';
 import ToolSession from '@/models/ToolSession';
@@ -90,15 +91,18 @@ export async function POST(req: NextRequest) {
       fileUrl = await saveFile(file, 'tools');
     }
 
+    const editToken = crypto.randomUUID();
+
     const response = await ToolResponse.create({
       sessionId,
       studentName: studentName || undefined,
       content,
       fileUrl,
       ipHash,
+      editToken,
     } as Parameters<typeof ToolResponse.create>[0]) as { _id: { toString(): string } };
 
-    return NextResponse.json({ success: true, id: response._id.toString() });
+    return NextResponse.json({ success: true, id: response._id.toString(), editToken });
   } catch (err) {
     console.error('Respond error:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

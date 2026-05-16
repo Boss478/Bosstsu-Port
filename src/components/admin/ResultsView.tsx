@@ -9,7 +9,7 @@ interface ResultsViewProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  responses: any[];
+  initialResponses: any[];
 }
 
 const TOOL_LABELS: Record<string, string> = {
@@ -22,19 +22,41 @@ const TOOL_LABELS: Record<string, string> = {
   discussion: 'Discussion',
 };
 
-export default function ResultsView({ session, responses }: ResultsViewProps) {
+export default function ResultsView({ session, initialResponses }: ResultsViewProps) {
   const toolType = session.type || 'padlet';
-  const [, setRefresh] = useState(0);
-  const forceRefresh = () => setRefresh(n => n + 1);
+  const [responses, setResponses] = useState(initialResponses);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchResponses = async () => {
+    try {
+      const res = await fetch(`/api/tools/poll?sessionId=${session._id}`);
+      const data = await res.json();
+      if (data.responses) {
+        setResponses(data.responses);
+      }
+    } catch {
+      // silent fail
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchResponses();
+    setRefreshing(false);
+  };
+
+  const forceRefresh = async () => {
+    await fetchResponses();
+  };
 
   const handleDelete = async (id: string) => {
     await deleteResponse(id);
-    forceRefresh();
+    await fetchResponses();
   };
 
   const handleToggleAnswered = async (id: string, current: boolean) => {
     await toggleQAAnswered(id, !current);
-    forceRefresh();
+    await fetchResponses();
   };
 
   return (
@@ -43,7 +65,17 @@ export default function ResultsView({ session, responses }: ResultsViewProps) {
         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
           Results — {TOOL_LABELS[toolType] || toolType}
         </h2>
-        <ExportButton session={session} responses={responses} />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 text-zinc-400 transition-colors disabled:opacity-50"
+            title="Refresh results"
+          >
+            <i className={`fi fi-sr-refresh text-sm ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
+          <ExportButton session={session} responses={responses} />
+        </div>
       </div>
 
       {responses.length === 0 ? (

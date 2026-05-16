@@ -72,7 +72,7 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
         )}
 
         <div className={fullScreen ? '' : 'mt-6'}>
-          <ResultsView session={session} responses={responses} />
+          <ResultsView session={session} initialResponses={responses} />
         </div>
       </div>
     </div>

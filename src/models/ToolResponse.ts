@@ -6,6 +6,7 @@ export interface IToolResponse extends Document {
   content: Record<string, unknown>;
   fileUrl?: string;
   ipHash?: string;
+  editToken?: string;
   createdAt: Date;
 }
 
@@ -16,12 +17,14 @@ const ToolResponseSchema = new Schema(
     content: { type: Schema.Types.Mixed, required: true },
     fileUrl: { type: String },
     ipHash: { type: String },
+    editToken: { type: String },
   },
   { timestamps: true }
 );
 
 ToolResponseSchema.index({ sessionId: 1, createdAt: -1 });
 ToolResponseSchema.index({ sessionId: 1, ipHash: 1 });
+ToolResponseSchema.index({ editToken: 1 });
 
 const ToolResponse: Model<IToolResponse> =
   mongoose.models.ToolResponse || mongoose.model<IToolResponse>('ToolResponse', ToolResponseSchema);

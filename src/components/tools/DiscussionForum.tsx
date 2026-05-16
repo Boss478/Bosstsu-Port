@@ -14,6 +14,11 @@ interface Reply {
   createdAt: string;
 }
 
+interface OwnReply {
+  _id: string;
+  editToken: string;
+}
+
 export default function DiscussionForum({ session }: DiscussionForumProps) {
   const [replies, setReplies] = useState<Reply[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +27,28 @@ export default function DiscussionForum({ session }: DiscussionForumProps) {
   const [name, setName] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [ownReplies, setOwnReplies] = useState<OwnReply[]>([]);
+  const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
+  const [editReply, setEditReply] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+
+  const STORAGE_KEY = `discussion_${session._id}`;
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          setOwnReplies(JSON.parse(stored));
+        } catch {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
+    }
+  }, [session._id]);
+
+  const isOwnReply = (replyId: string) => ownReplies.some(r => r._id === replyId);
+  const getOwnToken = (replyId: string) => ownReplies.find(r => r._id === replyId)?.editToken;
 
   const fetchReplies = async () => {
     try {
@@ -68,11 +95,58 @@ export default function DiscussionForum({ session }: DiscussionForumProps) {
       } else {
         setReply('');
         fetchReplies();
+        if (data.id && data.editToken && typeof window !== 'undefined') {
+          const newOwnReply = { _id: data.id, editToken: data.editToken };
+          const updatedOwnReplies = [...ownReplies, newOwnReply];
+          setOwnReplies(updatedOwnReplies);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedOwnReplies));
+        }
       }
     } catch {
       setError('Failed to submit');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleEditClick = (r: Reply) => {
+    setEditingReplyId(r._id);
+    setEditReply(r.content?.reply || '');
+  };
+
+  const handleEditCancel = () => {
+    setEditingReplyId(null);
+    setEditReply('');
+  };
+
+  const handleEditSave = async (replyId: string) => {
+    if (!editReply.trim()) return;
+    const token = getOwnToken(replyId);
+    if (!token) return;
+
+    setEditSaving(true);
+    try {
+      const res = await fetch('/api/tools/edit', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          responseId: replyId,
+          editToken: token,
+          content: { reply: editReply.trim() },
+        }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error);
+      } else {
+        setEditingReplyId(null);
+        setEditReply('');
+        fetchReplies();
+      }
+    } catch {
+      setError('Failed to save');
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -143,11 +217,49 @@ export default function DiscussionForum({ session }: DiscussionForumProps) {
                     <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
                       {r.studentName || 'Anonymous'}
                     </span>
-                    <span className="text-[10px] text-zinc-400">
-                      {new Date(r.createdAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {isOwnReply(r._id) && !editingReplyId && (
+                        <button
+                          onClick={() => handleEditClick(r)}
+                          className="p-1 text-zinc-400 hover:text-blue-500 transition-colors"
+                          title="Edit"
+                        >
+                          <i className="fi fi-sr-pencil text-xs" />
+                        </button>
+                      )}
+                      <span className="text-[10px] text-zinc-400">
+                        {new Date(r.createdAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-sm text-zinc-700 dark:text-zinc-300">{r.content?.reply}</p>
+                  {editingReplyId === r._id ? (
+                    <div className="space-y-2">
+                      <textarea
+                        value={editReply}
+                        onChange={e => setEditReply(e.target.value)}
+                        rows={3}
+                        className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 text-sm resize-none"
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleEditCancel}
+                          className="flex-1 py-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => handleEditSave(r._id)}
+                          disabled={editSaving || !editReply.trim()}
+                          className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50"
+                        >
+                          {editSaving ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-zinc-700 dark:text-zinc-300">{r.content?.reply}</p>
+                  )}
                 </div>
               ))}
             </div>
