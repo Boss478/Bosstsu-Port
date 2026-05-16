@@ -4,6 +4,13 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.7.7 (2026-05-16)
+
+* Fixed Docker build failure — archiver v8 is ESM with named exports (not CJS default), updated import and type declaration
+* Fixed Docker build failure — removed unused `deleteFile` import from edit/route.ts
+* Fixed Docker build failure — wrapped `session.responseCount` with String()/Number() for Record<string, unknown> type safety
+* Fixed Docker build failure — added explicit `: string` type to .map() callback param in MentimeterPoll
+
 ## v1.7.6 (2026-05-16)
 
 + Added production deployment setup for KVM1 VPS — multi-stage Dockerfile, production docker-compose with Caddy reverse proxy, persistent volumes

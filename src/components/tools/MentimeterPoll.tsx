@@ -30,7 +30,7 @@ export default function MentimeterPoll({ session }: MentimeterPollProps) {
   const pollMode = session.config?.pollMode || 'mcq';
   const rawOptions = session.config?.questions?.[0]?.options;
   const options = rawOptions?.length
-    ? rawOptions.map((o, i) => o || `Option ${i + 1}`)
+    ? rawOptions.map((o: string, i: number) => o || `Option ${i + 1}`)
     : ['Option A', 'Option B', 'Option C', 'Option D'];
   const allowCustom = session.config?.allowCustomChoices || false;
 

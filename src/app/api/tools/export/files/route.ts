@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Archiver from 'archiver';
+import { Archiver } from 'archiver';
 import fs from 'fs';
 import path from 'path';
 import { PassThrough } from 'stream';

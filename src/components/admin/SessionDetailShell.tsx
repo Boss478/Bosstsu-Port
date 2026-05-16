@@ -51,7 +51,7 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
             </button>
 
             <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-4">
-              {session.responseCount} response{session.responseCount !== 1 ? 's' : ''}
+              {String(session.responseCount)} response{Number(session.responseCount) !== 1 ? 's' : ''}
             </p>
             <p className="text-[10rem] leading-none font-bold tracking-[0.2em] font-mono text-blue-600 dark:text-blue-400 select-all mb-8">
               {String(session.sessionCode)}

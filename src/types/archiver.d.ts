@@ -19,5 +19,5 @@ declare module 'archiver' {
     pipe(destination: any): this;
   }
 
-  export = Archiver;
+  export { Archiver };
 }

@@ -3,7 +3,7 @@ import dbConnect from '@/lib/db';
 import ToolResponse from '@/models/ToolResponse';
 import ToolSession from '@/models/ToolSession';
 import { getError } from '@/lib/error-code';
-import { saveFile, deleteFile } from '@/lib/upload';
+import { saveFile } from '@/lib/upload';
 import { CONFIG } from '@/lib/config';
 
 export async function PATCH(req: NextRequest) {
