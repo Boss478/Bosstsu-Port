@@ -5,6 +5,8 @@ import dbConnect from '@/lib/db';
 import Portfolio from '@/models/Portfolio';
 import { getTagsByCategory } from '@/app/actions/tags';
 
+export const dynamic = 'force-dynamic';
+
 export default async function NewGalleryPage() {
   await dbConnect();
 

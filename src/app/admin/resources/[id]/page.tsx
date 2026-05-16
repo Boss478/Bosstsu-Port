@@ -6,6 +6,8 @@ import LearningForm from '@/components/admin/LearningForm';
 import { updateLearningResource } from '../actions';
 import { getTagsByCategory } from '@/app/actions/tags';
 
+export const dynamic = 'force-dynamic';
+
 export default async function EditLearningPage({
   params,
 }: {

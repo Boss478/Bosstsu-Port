@@ -6,6 +6,8 @@ import GameForm from '@/components/admin/GameForm';
 import { updateGame } from '../actions';
 import { getTagsByCategory } from '@/app/actions/tags';
 
+export const dynamic = 'force-dynamic';
+
 export default async function EditGamePage({
   params,
 }: {

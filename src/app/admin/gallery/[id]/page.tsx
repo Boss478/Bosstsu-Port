@@ -7,6 +7,8 @@ import GalleryForm from '@/components/admin/GalleryForm';
 import { updateGalleryAlbum } from '../actions';
 import { getTagsByCategory } from '@/app/actions/tags';
 
+export const dynamic = 'force-dynamic';
+
 export default async function EditGalleryPage({
   params,
 }: {
