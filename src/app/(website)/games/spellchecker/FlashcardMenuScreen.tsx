@@ -58,7 +58,7 @@ export default function FlashcardMenuScreen() {
         </div>
 
         {showHelp && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/10 animate-in fade-in">
             <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-800 rounded-3xl p-8 max-w-lg w-full shadow-2xl text-left relative overflow-y-auto max-h-[90vh]">
               <button onClick={() => setShowHelp(false)} className="absolute top-6 right-6 text-zinc-400 hover:text-rose-500">
                 <i className="fi fi-sr-cross-circle text-2xl"></i>
@@ -90,7 +90,7 @@ export default function FlashcardMenuScreen() {
         )}
 
         {showChangelog && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/10 animate-in fade-in">
             <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-800 rounded-3xl p-8 max-w-lg w-full shadow-2xl text-left relative overflow-y-auto max-h-[90vh]">
               <button onClick={() => setShowChangelog(false)} className="absolute top-6 right-6 text-zinc-400 hover:text-rose-500">
                 <i className="fi fi-sr-cross-circle text-2xl"></i>

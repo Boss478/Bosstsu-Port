@@ -4,6 +4,11 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.7.5 (2026-05-16)
+
+* Changed all modal overlay backgrounds from 40-90% opacity to 10% — subtle darkening (bg-black/10), removed all backdrop blur effects
+
+
 ## v1.7.4 (2026-05-16)
 
 + Added full-screen button on Session Code Card — shows large centered code + URL + response count in modal overlay

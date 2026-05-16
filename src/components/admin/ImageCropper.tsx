@@ -61,7 +61,7 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel, aspec
   };
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/10 p-4">
       <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-4xl flex flex-col max-h-[90vh] overflow-hidden shadow-2xl">
         <div className="p-4 border-b border-zinc-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900">
           <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100">ครอปรอปรูป (Crop Image)</h3>

@@ -35,7 +35,7 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
     <>
       {codeFullScreen && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity duration-300"
           onClick={() => setCodeFullScreen(false)}
         >
           <div 
