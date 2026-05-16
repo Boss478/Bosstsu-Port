@@ -4,6 +4,35 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.7.0 (2026-05-16)
++ Reordered AdminSidebar: Class Tools moved below Games
++ Added collapse/expand to AdminSidebar (slide off-screen, default expanded)
++ Fixed vanishing results bug in MentimeterPoll, QABoard, DiscussionForum (removed `since` polling — now always fetches full latest set)
++ Added manual refresh button to Live Results in MentimeterPoll, QABoard, DiscussionForum
++ Added `beforeunload` warning after submission in MentimeterPoll, QuickQuiz, AssignmentForm, ExitTicketForm
+* MentimeterPoll now shows accurate total vote count from API
+  * Toggle icons: `fi-sr-expand` (expand) / `fi-sr-compress` (collapse) / `fi-sr-menu-burger` (floating button when collapsed)
+  * Toggle icons: `fi-sr-expand` (expand) / `fi-sr-compress` (collapse) / `fi-sr-menu-burger` (floating button when collapsed)
+* Fixed "Try it" icon not rendering — replaced invalid Flaticon class
+* Fixed html-to-image build error — added to serverExternalPackages + dynamic import
++ Added full-screen mode on admin session detail page
+
++ **Class Tools v2 — Sessions-First Redesign**: Complete architecture refactor with Option B (embed config in ToolSession, no LearningTool model):
+  * Removed `LearningTool` model — `type` + `config` now embedded directly in `ToolSession`
+  * Removed `toolId` from `ToolResponse` — responses belong to sessions only
+  * Rewrote `admin/tools/page.tsx` — sessions-first layout: active sessions at top, past sessions below
+  * Created `QuickStartModal.tsx` — inline 2-step modal (pick type → configure → start)
+  * Deleted old pages: `new/page.tsx`, `[id]/page.tsx`, `sessions/page.tsx`, `ToolForm.tsx`
++ **Session Management**: `quickStartSession()` action creates session + generates 5-char code in one atomic operation
++ **Updated API Routes**: poll/session/respond/export routes now read `session.config` directly instead of joining `LearningTool`
++ **Export System**: CSV (UTF-8 BOM), ZIP (renamed `{studentName}_files` + `_summary.csv`), PNG capture via `html-to-image`
++ **7 Tool Components Updated**: PadletBoard, MentimeterPoll, AssignmentForm, QABoard, QuickQuiz, ExitTicketForm, DiscussionForum — all read `session.type` + `session.config` instead of `tool` prop
++ **Student Route Redesign**: Changed public student URL from `/tools/{code}` to `/study/{code}`:
+  * Added `/study` → enter session code page (centered glass card, 5-char input, auto-uppercase)
+  * `/study/{code}` → actual tool session page (no navbar, standalone)
+  * Updated SessionManager share URL and admin "Try it" link
+
+
 ## v1.6.0 (2026-05-15)
 
 + **Cookie Monster Blue Theme**: Complete visual overhaul — swapped accent color from Tailwind `sky` to deep `blue` palette (#1560BD Cookie Monster blue) across all 30+ components and pages:

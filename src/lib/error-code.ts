@@ -32,6 +32,11 @@ export const ERRORS = {
 
   P01: { http: 400, message: "คำขอไม่ถูกต้อง", translation: "Invalid request" },
   P02: { http: 400, message: "คำนำเข้าไม่ถูกต้อง", translation: "Invalid input" },
+
+  T04: { http: 400, message: "เซสชันไม่พร้อมใช้งานหรือหมดอายุแล้ว", translation: "Session not available or expired" },
+  T05: { http: 400, message: "รหัสเซสชันไม่ถูกต้อง", translation: "Invalid session code" },
+  T06: { http: 429, message: "ส่งคำตอบเร็วเกินไป กรุณารอสักครู่", translation: "Too many submissions" },
+  T07: { http: 400, message: "คุณส่งคำตอบครบจำนวนที่กำหนดแล้ว", translation: "Submission limit reached" },
 } as const;
 
 export type ErrorKey = keyof typeof ERRORS;
@@ -66,4 +71,8 @@ export function getError(key: string): ErrorResponse {
 export function formatError(key: string): string {
   const err = getError(key);
   return `${err.code}: ${err.message} (${err.translation})`;
+}
+
+export function createErrorResponse(key: string): ErrorResponse {
+  return getError(key);
 }

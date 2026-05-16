@@ -16,7 +16,7 @@ export const CONFIG = {
     ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'] as const,
 
     // Folders the upload API accepts — add/remove here to control allowed destinations
-    ALLOWED_FOLDERS: ['portfolio', 'gallery', 'portfolio/gallery', 'misc', 'learning'] as const,
+    ALLOWED_FOLDERS: ['portfolio', 'gallery', 'portfolio/gallery', 'misc', 'learning', 'tools'] as const,
 
     // Folders that get converted to WebP for better compression — others save as JPEG
     FOLDERS_CONVERT_TO_WEBP: ['portfolio'] as const,
@@ -58,6 +58,25 @@ export const CONFIG = {
     WINDOW_MS: 15 * 60 * 1000,          // 15-minute sliding window
     LOCKOUT_MS: 15 * 60 * 1000,         // 15-minute lockout duration
     MAX_IPS: 20,                         // max tracked IPs (evict oldest when full)
+  },
+
+  // ─── Learning Tools ──────────────────────────────────────────────────
+  TOOLS: {
+    SESSION_CODE_LENGTH: 5,
+    POLL_INTERVAL_MS: 10000,
+    RATE_LIMIT_PER_MINUTE: 5,
+    MAX_FILE_SIZE: 10 * 1024 * 1024,
+    ALLOWED_FILE_TYPES: [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+      'text/plain',
+    ] as const,
+    SESSION_AUTO_CLOSE_HOURS: 24,
+    PAGINATION: {
+      TOOLS_PUBLIC: 50,
+    },
   },
 
   // ─── Site Metadata ────────────────────────────────────────────────────

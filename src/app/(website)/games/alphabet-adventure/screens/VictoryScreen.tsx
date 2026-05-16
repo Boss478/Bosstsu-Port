@@ -112,20 +112,14 @@ export default function VictoryScreen({ score, stageStars }: Props) {
       </div>
 
       <div className="flex flex-col md:flex-row items-center justify-center gap-4 pt-8">
-        <button
-          onClick={() => router.reload()}
+<button
+          onClick={() => window.location.reload()}
           className="px-12 py-5 bg-emerald-600 text-white text-2xl font-black rounded-3xl shadow-[0_12px_0_0_#065f46] active:shadow-none active:translate-y-3 transition-all"
         >
           Play Again
         </button>
-        <button
-          onClick={() => router.push("/games")}
-          className="px-10 py-5 bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-100 text-xl font-black rounded-3xl shadow-[0_12px_0_0_#d4d4d8] dark:shadow-none active:shadow-none active:translate-y-3 transition-all"
-        >
-          <i className="fi fi-sr-gamepad mr-2"></i>More Games
-        </button>
-        <button
-          onClick={() => router.reload()}
+          <button
+            onClick={() => window.location.href = '/games/alphabet-adventure'}
           className="text-zinc-400 hover:text-violet-500 font-bold transition-colors"
         >
           Back to Menu

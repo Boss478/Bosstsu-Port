@@ -80,7 +80,7 @@ export default function GameScreen({
   }, [handleKeyDown]);
 
   useEffect(() => {
-    if (levelType === "match" || (levelType !== "match" && roundData.choices.length > 0)) {
+    if (roundData.choices.length > 0) {
       const firstBtn = choiceRefs.current[0];
       if (firstBtn && !isTransitioning) {
         firstBtn.focus();
@@ -94,7 +94,7 @@ export default function GameScreen({
       <div className="flex flex-wrap justify-center gap-4 pt-8">
         {roundData.choices.map((choice, i) => (
           <button
-            ref={(el) => (choiceRefs.current[i] = el)}
+            ref={(el) => { choiceRefs.current[i] = el; }}
             key={i}
             onClick={() => !isTransitioning && !isFeedbackVisible && onAnswer(choice)}
             disabled={isTransitioning || isFeedbackVisible}
@@ -186,7 +186,7 @@ export default function GameScreen({
             <div className="flex flex-wrap justify-center gap-6">
               {roundData.choices.map((choice, i) => (
                 <button
-                  ref={(el) => (choiceRefs.current[i] = el)}
+ref={(el) => { choiceRefs.current[i] = el; }}
                   key={i}
                   onClick={() => !isTransitioning && !isFeedbackVisible && onAnswer(choice)}
                   disabled={isTransitioning || isFeedbackVisible}

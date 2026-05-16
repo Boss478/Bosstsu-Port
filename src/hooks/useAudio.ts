@@ -7,18 +7,19 @@ export function useAudio() {
   const [muted, setMuted] = useState(false);
 
   const getCtx = useCallback(() => {
-    const AudioContextClass =
-      (window as Window).AudioContext ||
-      (window as Window & { webkitAudioContext: typeof AudioContext })
-        .webkitAudioContext;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
     if (!AudioContextClass) return null;
-    if (!ctxRef.current) {
-      ctxRef.current = new AudioContextClass();
+    const ctx = ctxRef.current;
+    if (!ctx) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ctxRef.current = new AudioContextClass() as AudioContext;
     }
-    if (ctxRef.current.state === "suspended") {
-      ctxRef.current.resume();
+    const current = ctxRef.current!;
+    if (current.state === 'suspended') {
+      current.resume();
     }
-    return ctxRef.current;
+    return current;
   }, []);
 
   useEffect(() => {

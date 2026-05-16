@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
     },
     proxyClientMaxBodySize: "30mb",
   },
-  serverExternalPackages: ["sharp"],
+  serverExternalPackages: ["sharp", "html-to-image"],
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [

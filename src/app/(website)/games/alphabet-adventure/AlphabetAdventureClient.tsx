@@ -79,7 +79,7 @@ export default function AlphabetAdventureClient() {
     if (config.type === "match") {
       const { targetLetter, correctChar, choices } = generateMatchRound(state.round);
       return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1 };
-    } else if (config.type.startsWith("fill")) {
+    } else if (config.type === 'fill-upper' || config.type === 'fill-lower') {
       const { grid, missingIndices, activeIndex, choices } = generateFillRound(config.type);
       return { choices, grid, missingIndices, activeIndex };
     } else if (config.type === "typing") {
