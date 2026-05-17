@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import mongoose from "mongoose";
+import DOMPurify from "isomorphic-dompurify";
 import dbConnect from "@/lib/db";
 import Learning from "@/models/Learning";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -210,7 +211,7 @@ export default async function ResourceDetailPage({
               {doc.type === "Article" && doc.content && (
                 <div
                   className="article-content"
-                  dangerouslySetInnerHTML={{ __html: doc.content }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(doc.content) }}
                 />
               )}
 
@@ -231,7 +232,7 @@ export default async function ResourceDetailPage({
                   {doc.canvaEmbed ? (
                     <div
                       className="rounded-2xl overflow-hidden shadow-md"
-                      dangerouslySetInnerHTML={{ __html: doc.canvaEmbed }}
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(doc.canvaEmbed) }}
                     />
                   ) : doc.fileUrl ? (
                     <div className="aspect-video rounded-2xl overflow-hidden shadow-md border border-zinc-200 dark:border-slate-700">
@@ -298,7 +299,7 @@ export default async function ResourceDetailPage({
               {(doc.type === "Scratch" || doc.type === "Interactive") && doc.embedCode && (
                 <div
                   className="rounded-2xl overflow-hidden shadow-md"
-                  dangerouslySetInnerHTML={{ __html: doc.embedCode }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(doc.embedCode) }}
                 />
               )}
 

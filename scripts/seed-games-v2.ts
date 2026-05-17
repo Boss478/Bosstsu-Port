@@ -1,9 +1,13 @@
 import mongoose from 'mongoose';
 import Game from '../src/models/Game';
 
-// Run: npx tsx scripts/seed-games-v2.ts
+// Run: MONGODB_URI="mongodb://..." npx tsx scripts/seed-games-v2.ts
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://admin:password123@localhost:27017/boss478?authSource=admin';
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) {
+  console.error('ERROR: MONGODB_URI environment variable is required');
+  process.exit(1);
+}
 
 const gamesData = [
   {

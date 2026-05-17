@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import DOMPurify from "isomorphic-dompurify";
 import dbConnect from "@/lib/db";
 import Portfolio from "@/models/Portfolio";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -202,7 +203,7 @@ export default async function PortfolioDetailPage({
 
               <div
                 className="prose prose-lg prose-sky dark:prose-invert max-w-none text-zinc-700 dark:text-zinc-300"
-                dangerouslySetInnerHTML={{ __html: item.content }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.content) }}
               />
 
               {item.tools && item.tools.length > 0 && (

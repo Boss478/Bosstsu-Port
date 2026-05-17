@@ -3,7 +3,12 @@ set -e
 
 BACKUP_DIR="/root/backups"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-MONGO_URI="${MONGODB_URI:-mongodb://admin:password123@localhost:27017/boss478?authSource=admin}"
+MONGO_URI="${MONGODB_URI}"
+
+if [ -z "$MONGO_URI" ]; then
+  echo "ERROR: MONGODB_URI environment variable is required"
+  exit 1
+fi
 
 mkdir -p "$BACKUP_DIR/$TIMESTAMP"
 

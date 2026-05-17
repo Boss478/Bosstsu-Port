@@ -1,8 +1,12 @@
 import mongoose from 'mongoose';
 
-// Run: npx tsx scripts/seed.ts
+// Run: MONGODB_URI="mongodb://..." npx tsx scripts/seed.ts
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://admin:password123@localhost:27017/boss478?authSource=admin';
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) {
+  console.error('ERROR: MONGODB_URI environment variable is required');
+  process.exit(1);
+}
 
 const PLACEHOLDER_COVER =
   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTDPxqVzul5btXF69mZfyylKkinDyfGlx4haA&s";
