@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ExportButton from './ExportButton';
 import DeleteButton from './DeleteButton';
 import { deleteResponse, toggleQAAnswered } from '@/app/admin/tools/actions';
@@ -12,6 +12,7 @@ interface ResultsViewProps {
   initialResponses: any[];
   fullScreen?: boolean;
   onToggleFullScreen?: () => void;
+  refreshInterval?: number;
 }
 
 const TOOL_LABELS: Record<string, string> = {
@@ -24,10 +25,13 @@ const TOOL_LABELS: Record<string, string> = {
   discussion: 'Discussion',
 };
 
-export default function ResultsView({ session, initialResponses, fullScreen, onToggleFullScreen }: ResultsViewProps) {
+export default function ResultsView({ session, initialResponses, fullScreen, onToggleFullScreen, refreshInterval = 15000 }: ResultsViewProps) {
   const toolType = session.type || 'padlet';
   const [responses, setResponses] = useState(initialResponses);
   const [refreshing, setRefreshing] = useState(false);
+  const [columnsPerRow, setColumnsPerRow] = useState<number | null>(null);
+  const [sizePercent, setSizePercent] = useState(100);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchResponses = async () => {
     try {
@@ -40,6 +44,13 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
       // silent fail
     }
   };
+
+  useEffect(() => {
+    intervalRef.current = setInterval(fetchResponses, refreshInterval);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [fetchResponses, refreshInterval]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -62,7 +73,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
   };
 
   return (
-    <div id="results-capture-area">
+    <div id="results-capture-area" className="overflow-x-auto" style={{ zoom: `${sizePercent}%` }}>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
           Results — {TOOL_LABELS[toolType] || toolType}
@@ -89,15 +100,68 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
         </div>
       </div>
 
+      <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-1 bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 rounded-xl p-1">
+          <button
+            onClick={() => setColumnsPerRow(null)}
+            className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+              columnsPerRow === null
+                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+            }`}
+          >
+            Auto
+          </button>
+          {[2, 3, 4, 6, 12].map((n) => (
+            <button
+              key={n}
+              onClick={() => setColumnsPerRow(n)}
+              className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                columnsPerRow === n
+                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+
+        <span className="text-zinc-300 dark:text-zinc-600">|</span>
+
+        <div className="flex items-center gap-2 bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 rounded-xl px-3 py-1">
+          <button
+            onClick={() => setSizePercent((p) => Math.max(50, p - 10))}
+            disabled={sizePercent <= 50}
+            className="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 disabled:opacity-30 transition-colors"
+          >
+            <i className="fi fi-sr-minus text-xs" />
+          </button>
+          <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 min-w-[3ch] text-center">
+            {sizePercent}%
+          </span>
+          <button
+            onClick={() => setSizePercent((p) => Math.min(250, p + 10))}
+            disabled={sizePercent >= 250}
+            className="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 disabled:opacity-30 transition-colors"
+          >
+            <i className="fi fi-sr-plus text-xs" />
+          </button>
+        </div>
+      </div>
+
       {responses.length === 0 ? (
-        <div className="p-12 rounded-2xl bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 text-center">
-          <i className="fi fi-sr-inbox text-4xl text-zinc-300 dark:text-zinc-600 block mb-3" />
+          <div className="p-12 rounded-2xl bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 text-center">
+            <i className="fi fi-sr-inbox text-4xl text-zinc-300 dark:text-zinc-600 block mb-3" />
           <p className="text-zinc-500 dark:text-zinc-400">No responses yet. Share the session code with students!</p>
         </div>
       ) : (
         <div className="space-y-4">
           {toolType === 'padlet' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div
+              className={`grid grid-cols-1 gap-4 ${columnsPerRow === null ? (fullScreen ? 'sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6' : 'sm:grid-cols-2 lg:grid-cols-3') : ''}`}
+              style={columnsPerRow !== null ? { gridTemplateColumns: `repeat(${columnsPerRow}, minmax(0, 1fr))` } : undefined}
+            >
               {responses.map((r: { _id: string; studentName?: string; content: { message?: string }; createdAt: string }) => (
                 <div key={r._id} className="p-4 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
                   <div className="flex items-center justify-between mb-2">

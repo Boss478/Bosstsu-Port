@@ -4,6 +4,21 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.2 (2026-05-17)
+
++ Added column selector on session results page — Auto | 2 | 3 | 4 | 6 | 12 per row
++ Added size zoom controls on session results page — +/-10%, default 100%, range 50-250%
+
+
+## v1.8.1 (2026-05-17)
+
++ Auto-refresh for session results — 15s on main page, 5s on full-screen tab
++ New full-screen tab at /admin/tools/sessions/{id}/results — no sidebar, wider grid
+* Full-screen button now opens dedicated results tab (replaces overlay)
+* Padlet grid in full-screen: 6 columns on xl, 4 on lg, 3 on md
+- Removed results-fullscreen body class (no longer needed)
+
+
 ## v1.8.0 (2026-05-17)
 
 - Removed 5 unused component files (FormError, FormField, FormSubmitButton, GlassCard, PublishedToggle from src/components/admin/)

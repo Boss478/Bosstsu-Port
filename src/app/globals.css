@@ -309,7 +309,3 @@ body.python-fullscreen footer {
   display: none;
 }
 
-body.results-fullscreen [data-admin] {
-  display: none !important;
-}
-

@@ -12,24 +12,12 @@ interface SessionDetailShellProps {
 }
 
 export default function SessionDetailShell({ session, responses }: SessionDetailShellProps) {
-  const [resultsFullScreen, setResultsFullScreen] = useState(false);
   const [codeFullScreen, setCodeFullScreen] = useState(false);
   const [origin, setOrigin] = useState('');
 
   useEffect(() => {
     setOrigin(window.location.origin);
   }, []);
-
-  useEffect(() => {
-    if (resultsFullScreen) {
-      document.body.classList.add('results-fullscreen');
-    } else {
-      document.body.classList.remove('results-fullscreen');
-    }
-    return () => {
-      document.body.classList.remove('results-fullscreen');
-    };
-  }, [resultsFullScreen]);
 
   return (
     <>
@@ -72,79 +60,46 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
         </div>
       )}
 
-      {resultsFullScreen && (
-        <div 
-          className="fixed inset-0 z-40 bg-blue-50 dark:bg-slate-950 pt-4 pb-4 px-4 overflow-auto"
-          onClick={() => setResultsFullScreen(false)}
-        >
-          <div className="max-w-full mx-auto">
-            <div className="flex items-center justify-between mb-4 px-2" onClick={(e) => e.stopPropagation()}>
-              <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{String(session.sessionCode)}</span>
-                {' — '}{String(session.title)}
-              </div>
-              <button
-                onClick={() => setResultsFullScreen(false)}
-                className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 rounded-xl shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors"
-              >
-                <i className="fi fi-sr-compress text-sm" />
-                Exit Full Screen
-              </button>
+      <div className="min-h-screen bg-blue-50 dark:bg-slate-950 pt-28 pb-12 px-4">
+        <div className="max-w-5xl mx-auto">
+          <Breadcrumb items={[
+            { label: 'Backend', href: '/admin' },
+            { label: 'Class Tools', href: '/admin/tools' },
+            { label: String(session.sessionCode) },
+          ]} />
+
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
+                <i className="fi fi-sr-play text-blue-500" />
+                Session <span className="font-mono tracking-widest text-blue-600 dark:text-blue-400">{String(session.sessionCode)}</span>
+              </h1>
+              <p className="text-zinc-500 dark:text-zinc-400 mt-1">{String(session.title)}</p>
             </div>
-            <div onClick={(e) => e.stopPropagation()}>
-              <ResultsView 
-                session={session} 
-                initialResponses={responses}
-                fullScreen={resultsFullScreen}
-                onToggleFullScreen={() => setResultsFullScreen(v => !v)}
-              />
-            </div>
+            <Link
+              href="/admin/tools"
+              className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 rounded-xl shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              <i className="fi fi-sr-arrow-left" />
+              All Sessions
+            </Link>
           </div>
-        </div>
-      )}
 
-      {!resultsFullScreen && (
-        <div className="min-h-screen bg-blue-50 dark:bg-slate-950 pt-28 pb-12 px-4">
-          <div className="max-w-5xl mx-auto">
-            <Breadcrumb items={[
-              { label: 'Backend', href: '/admin' },
-              { label: 'Class Tools', href: '/admin/tools' },
-              { label: String(session.sessionCode) },
-            ]} />
+          <SessionManager 
+            session={session} 
+            onToggleCodeFullScreen={() => setCodeFullScreen(true)}
+          />
 
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
-                  <i className="fi fi-sr-play text-blue-500" />
-                  Session <span className="font-mono tracking-widest text-blue-600 dark:text-blue-400">{String(session.sessionCode)}</span>
-                </h1>
-                <p className="text-zinc-500 dark:text-zinc-400 mt-1">{String(session.title)}</p>
-              </div>
-              <Link
-                href="/admin/tools"
-                className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 rounded-xl shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors"
-              >
-                <i className="fi fi-sr-arrow-left" />
-                All Sessions
-              </Link>
-            </div>
-
-            <SessionManager 
+          <div className="mt-6">
+            <ResultsView 
               session={session} 
-              onToggleCodeFullScreen={() => setCodeFullScreen(true)}
+              initialResponses={responses}
+              onToggleFullScreen={() => window.open(`/admin/tools/sessions/${String(session._id)}/results`, '_blank')}
+              refreshInterval={15000}
             />
-
-            <div className="mt-6">
-              <ResultsView 
-                session={session} 
-                initialResponses={responses}
-                fullScreen={resultsFullScreen}
-                onToggleFullScreen={() => setResultsFullScreen(v => !v)}
-              />
-            </div>
           </div>
         </div>
-      )}
+      </div>
     </>
   );
 }
