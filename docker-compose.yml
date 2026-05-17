@@ -25,10 +25,6 @@ services:
       mongo:
         condition: service_healthy
     restart: always
-    deploy:
-      resources:
-        limits:
-          memory: 1024M
 
   mongo:
     image: mongo:latest
@@ -46,10 +42,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    deploy:
-      resources:
-        limits:
-          memory: 1536M
 
   mongo-express:
     image: mongo-express:latest
@@ -66,10 +58,6 @@ services:
       mongo:
         condition: service_healthy
     restart: always
-    deploy:
-      resources:
-        limits:
-          memory: 128M
 
 volumes:
   mongo_data:
