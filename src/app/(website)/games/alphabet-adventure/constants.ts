@@ -172,12 +172,3 @@ export function generateTypingRound(difficulty: number) {
   };
 }
 
-export function getLevelName(level: number): string {
-  const config = LEVELS[level];
-  return config ? `${config.name} — ${config.subtitle}` : "";
-}
-
-export function getLevelNameShort(level: number): string {
-  const config = LEVELS[level];
-  return config ? config.name : "";
-}

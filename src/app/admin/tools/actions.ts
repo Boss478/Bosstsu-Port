@@ -161,14 +161,3 @@ export async function getAllSessions() {
   return JSON.parse(JSON.stringify(sessions));
 }
 
-export async function getSessionResults(sessionId: string) {
-  await dbConnect();
-  const [session, responses] = await Promise.all([
-    ToolSession.findById(sessionId).lean(),
-    ToolResponse.find({ sessionId }).sort({ createdAt: 1 }).lean(),
-  ]);
-  return {
-    session: JSON.parse(JSON.stringify(session)),
-    responses: JSON.parse(JSON.stringify(responses)),
-  };
-}

@@ -4,6 +4,16 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.0 (2026-05-17)
+
+- Removed 5 unused component files (FormError, FormField, FormSubmitButton, GlassCard, PublishedToggle from src/components/admin/)
+- Removed 2 unused hooks (useObjectURL, useSlug from src/hooks/)
+- Removed 2 unused action files (gallery.ts, portfolio.ts from src/app/actions/)
+- Removed unused lib/utils.ts (only contained toSlug which was imported by useSlug)
+- Removed unused exports getLevelName and getLevelNameShort from alphabet-adventure/constants.ts
+- Removed unused export getSessionResults from admin/tools/actions.ts
+- Removed unused npm packages: pdfjs-dist, quill, react-pdf, @types/uuid, cheerio, csv-parse, csv-stringify
+
 ## v1.7.9 (2026-05-17)
 
 + First-time production deployment to KVM1 VPS (187.77.146.149)
