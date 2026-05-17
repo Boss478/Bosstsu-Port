@@ -55,14 +55,6 @@ services:
     image: mongo-express:latest
     ports:
       - "127.0.0.1:8081:8081"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.mongoexpress.rule=Host(`srv1676702.hstgr.cloud`) && PathPrefix(`/mongo/`)"
-      - "traefik.http.routers.mongoexpress.entrypoints=websecure"
-      - "traefik.http.routers.mongoexpress.tls.certresolver=letsencrypt"
-      - "traefik.http.services.mongoexpress.loadbalancer.server.url=http://127.0.0.1:8081"
-      - "traefik.http.middlewares.mongoexpress-strip.stripprefix.prefixes=/mongo"
-      - "traefik.http.routers.mongoexpress.middlewares=mongoexpress-strip"
     environment:
       - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
