@@ -7,7 +7,7 @@ services:
       args:
         - MONGODB_URI=${MONGODB_URI}
     ports:
-      - "127.0.0.1:3300:3300"
+      - "3300:3300"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.boss478.rule=Host(`srv1676702.hstgr.cloud`)"
@@ -33,7 +33,7 @@ services:
   mongo:
     image: mongo:latest
     ports:
-      - "127.0.0.1:27017:27017"
+      - "27017:27017"
     volumes:
       - mongo_data:/data/db
     environment:
