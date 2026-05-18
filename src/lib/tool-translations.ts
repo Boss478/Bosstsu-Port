@@ -35,6 +35,7 @@ export const toolStrings = {
   thankYouReflection: { th: 'ขอบคุณสำหรับการสะท้อนความคิด!', en: 'Thank you for your reflection!' },
 
   customChoices: { th: 'ตัวเลือกอื่น ๆ', en: 'Custom Choices' },
+  voteNow: { th: 'โหวตเลย!', en: 'Vote now!' },
   otherTypeYourOwn: { th: 'อื่น ๆ (พิมพ์เอง)', en: 'Other (type your own)' },
   typeCustomOption: { th: 'พิมพ์ตัวเลือกของคุณ...', en: 'Type your custom option...' },
   typeAnswerEnter: { th: 'พิมพ์คำตอบแล้วกด Enter...', en: 'Type your answer and press Enter...' },
@@ -66,6 +67,9 @@ export const toolStrings = {
   sessionClosedThankYou: { th: 'ห้องเรียนนี้ถูกปิดโดยครูแล้ว ขอบคุณสำหรับการมีส่วนร่วม!', en: 'This session has been closed by the teacher. Thank you for participating!' },
   backToHome: { th: 'กลับหน้าหลัก', en: 'Back to Home' },
   toolTypeNotFound: { th: 'ไม่พบประเภทเครื่องมือ', en: 'Tool type not found' },
+  sessionTimeout: { th: 'หมดเวลาเช็คอิน', en: 'Session Timeout' },
+  loggingOut: { th: 'กำลังออกจากระบบ...', en: 'Logging out...' },
+  moveMouseStay: { th: 'ขยับเมาส์เพื่ออยู่ต่อ', en: 'Move mouse to stay' },
 
   failedToSubmit: { th: 'ส่งไม่สำเร็จ กรุณาลองใหม่', en: 'Failed to submit. Please try again.' },
   failedToSubmitSimple: { th: 'ส่งไม่สำเร็จ', en: 'Failed to submit' },

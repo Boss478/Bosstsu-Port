@@ -47,6 +47,7 @@ export default function GameForm({
       const result = await action(formData);
       if (result && result.error) {
         if (result.error.includes('[401]')) {
+          setPending(false);
           onAuthError();
           return;
         }

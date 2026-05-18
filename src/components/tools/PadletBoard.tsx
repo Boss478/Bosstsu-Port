@@ -192,7 +192,7 @@ export default function PadletBoard({ session }: PadletBoardProps) {
             className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <textarea
-            placeholder={session.config?.prompt || 'แบ่งปันความคิดของคุณ...'}
+            placeholder={session.config?.prompt || t('shareThoughts')}
             value={message}
             onChange={e => setMessage(e.target.value)}
             rows={3}

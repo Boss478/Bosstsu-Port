@@ -140,7 +140,7 @@ export default function MentimeterPoll({ session }: MentimeterPollProps) {
     <div className="min-h-screen flex flex-col max-w-3xl mx-auto p-4 gap-4">
       <div className="text-center py-6">
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{session.title}</h1>
-        <p className="text-zinc-500 dark:text-zinc-400">{session.config?.prompt || 'โหวตเลย!'}</p>
+        <p className="text-zinc-500 dark:text-zinc-400">{session.config?.prompt || t('voteNow')}</p>
       </div>
 
       <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">

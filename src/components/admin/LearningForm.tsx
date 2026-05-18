@@ -127,6 +127,7 @@ export default function LearningForm({
       const result = await action(new FormData(e.currentTarget));
       if (result?.error) {
         if (result.error.includes('[401]')) {
+          setPending(false);
           onAuthError();
           return;
         }

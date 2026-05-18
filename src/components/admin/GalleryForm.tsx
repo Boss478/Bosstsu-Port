@@ -52,6 +52,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
       const result = await action(formData);
       if (result && result.error) {
         if (result.error.includes('[401]')) {
+          setPending(false);
           onAuthError();
           return;
         }

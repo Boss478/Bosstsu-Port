@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from 'react';
 import { logoutAdmin } from '@/app/admin/login/actions';
 import { CONFIG } from '@/lib/config';
+import { t } from '@/lib/tool-translations';
 
 interface AdminSessionContextType {
   isUploading: boolean;
@@ -159,9 +160,9 @@ export default function AdminSessionProvider({ children }: { children: ReactNode
           </div>
           <div>
             <h4 className="font-bold text-sm">
-              {isLoggingOut ? 'Logging out...' : 'Session Timeout'}
+              {isLoggingOut ? t('loggingOut') : t('sessionTimeout')}
             </h4>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Move mouse to stay</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">{t('moveMouseStay')}</p>
           </div>
         </div>
       </div>
