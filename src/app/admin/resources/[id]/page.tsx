@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import dbConnect from '@/lib/db';
+import dbConnect, { serializeDoc } from '@/lib/db';
 import Learning from '@/models/Learning';
 import Breadcrumb from '@/components/Breadcrumb';
 import LearningForm from '@/components/admin/LearningForm';
@@ -25,7 +25,7 @@ export default async function EditLearningPage({
 
   const availableTags = await getTagsByCategory('learning');
   const updateAction = updateLearningResource.bind(null, id);
-  const serializableItem = JSON.parse(JSON.stringify(item));
+  const serializableItem = serializeDoc(item);
 
   return (
     <div className="min-h-screen bg-blue-50 dark:bg-slate-950 pt-28 pb-12 px-4">

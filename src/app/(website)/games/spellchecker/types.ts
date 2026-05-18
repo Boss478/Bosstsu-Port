@@ -21,7 +21,4 @@ export type WordStat = {
   isCorrectSpelling?: boolean;
 };
 
-export type VocabularyData = {
-  thai: VocabularyWord[];
-  english: VocabularyWord[];
-};
+

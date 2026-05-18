@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import ImageCropper from './ImageCropper';
 import TagPicker from './TagPicker';
+import { slugify } from '@/lib/format';
 
 interface GalleryFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -96,17 +97,9 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
     setNewPhotoFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const toSlug = (text: string) =>
-    text
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
-
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isEdit) {
-      setAutoSlug(toSlug(e.target.value));
+      setAutoSlug(slugify(e.target.value));
     }
   };
 

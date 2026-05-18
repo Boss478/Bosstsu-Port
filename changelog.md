@@ -4,6 +4,19 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.5 (2026-05-18)
+
+* Refactored: Removed unused types (GameAction, VocabularyData, ResourceType, PaginatedResources)
+* Refactored: Removed unnecessary exports from 14 internal-only symbols (ALPHABET_UPPER/LOWER, PRAISE, fisherYatesShuffle, ERRORS, ErrorKey, MONTHS, generateSessionCode, IGame, ITag, IToolResponse, ISessionConfig, IToolSession)
+* Refactored: Removed 7 dead CSS classes and 4 unused @keyframes from globals.css
+* Refactored: Removed createErrorResponse wrapper, replaced with getError in tags.ts
+* Refactored: Extracted slugify() to format.ts, updated PortfolioForm, GalleryForm, games/actions.ts
+* Refactored: Extracted parseTagString() to format.ts, updated 8 call sites across portfolio, gallery, games, resources actions
+* Refactored: Extracted serializeDoc() to db.ts, updated 5 call sites in admin edit pages
+* Refactored: Created validation.ts with shared Zod fields (titleField, descriptionField, slugField, tagsStrField, coverImageField)
+* Refactored: Consolidated TYPE_OPTIONS and ALLOWED_FILE_TYPES to constants.ts
+
+
 ## v1.8.4 (2026-05-18)
 
 + Added custom 404 page for non-existent routes

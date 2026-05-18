@@ -1,4 +1,4 @@
-export const ERRORS = {
+const ERRORS = {
   // HTTP Errors (key = HTTP status code)
   '400': { http: 400, message: "คำขอไม่ถูกต้อง", translation: "Bad Request" },
   '401': { http: 401, message: "กรุณาเข้าสู่ระบบ", translation: "Unauthorized" },
@@ -41,7 +41,7 @@ export const ERRORS = {
   T09: { http: 400, message: "เซสึนหมดอายุแล้ว ไม่สามารถแก้ไขได้", translation: "Session expired, cannot edit" },
 } as const;
 
-export type ErrorKey = keyof typeof ERRORS;
+type ErrorKey = keyof typeof ERRORS;
 
 export interface ErrorResponse {
   code: string;
@@ -75,6 +75,4 @@ export function formatError(key: string): string {
   return `${err.code}: ${err.message} (${err.translation})`;
 }
 
-export function createErrorResponse(key: string): ErrorResponse {
-  return getError(key);
-}
+

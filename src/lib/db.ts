@@ -54,4 +54,8 @@ async function dbConnect() {
   return cached.conn;
 }
 
+export function serializeDoc<T>(doc: T): T {
+  return JSON.parse(JSON.stringify(doc));
+}
+
 export default dbConnect;

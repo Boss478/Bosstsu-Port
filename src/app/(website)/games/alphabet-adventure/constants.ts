@@ -1,7 +1,7 @@
 import type { LevelConfig, LevelType } from "./types";
 
-export const ALPHABET_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-export const ALPHABET_LOWER = "abcdefghijklmnopqrstuvwxyz".split("");
+const ALPHABET_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const ALPHABET_LOWER = "abcdefghijklmnopqrstuvwxyz".split("");
 
 export const LEVELS: Record<number, LevelConfig> = {
   1: {
@@ -46,7 +46,7 @@ export const GAME_CONFIG = {
   STAR_TWO: 70,
 } as const;
 
-export const PRAISE = {
+const PRAISE = {
   correct: [
     "Excellent!",
     "Great job!",
@@ -79,7 +79,7 @@ export function randomPraise(type: "correct" | "wrong"): string {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-export function fisherYatesShuffle<T>(arr: T[]): T[] {
+function fisherYatesShuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));

@@ -7,6 +7,7 @@ import TagPicker from './TagPicker';
 import RichTextEditor from './RichTextEditor';
 import SaveProgress from './SaveProgress';
 import { useAdminSession } from './AdminSessionProvider';
+import { slugify } from '@/lib/format';
 
 interface PortfolioFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -200,17 +201,9 @@ export default function PortfolioForm({
     setPhotos(prev => prev.filter((_, i) => i !== index));
   };
 
-  const toSlug = (text: string) =>
-    text
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
-
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isEdit) {
-      setAutoSlug(toSlug(e.target.value));
+      setAutoSlug(slugify(e.target.value));
     }
   };
 

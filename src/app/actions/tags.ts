@@ -3,7 +3,7 @@
 import dbConnect from '@/lib/db';
 import Tag from '@/models/Tag';
 import { verifyAuth } from '@/lib/auth';
-import { createErrorResponse } from '@/lib/error-code';
+import { getError } from '@/lib/error-code';
 
 export async function getTagsByCategory(category: string): Promise<string[]> {
   await dbConnect();
@@ -13,11 +13,11 @@ export async function getTagsByCategory(category: string): Promise<string[]> {
 
 export async function addCustomTag(name: string, category: string) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: createErrorResponse('401') };
+  if (!isAuth) return { error: getError('401') };
 
   await dbConnect();
   const formattedName = name.trim();
-  if (!formattedName) return { error: createErrorResponse('T01') };
+  if (!formattedName) return { error: getError('T01') };
 
   try {
     const existing = await Tag.findOne({
@@ -34,6 +34,6 @@ export async function addCustomTag(name: string, category: string) {
     }
     return { success: true, name: existing ? existing.name : formattedName };
   } catch {
-    return { error: createErrorResponse('T02') };
+    return { error: getError('T02') };
   }
 }

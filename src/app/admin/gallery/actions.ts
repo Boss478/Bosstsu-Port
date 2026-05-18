@@ -6,6 +6,7 @@ import Gallery from '@/models/Gallery';
 import { verifyAuth } from '@/lib/auth';
 import { saveFile } from '@/lib/upload';
 import { formatError } from '@/lib/error-code';
+import { parseTagString } from '@/lib/format';
 import { z } from 'zod';
 
 const gallerySchema = z.object({
@@ -46,7 +47,7 @@ export async function createGalleryAlbum(formData: FormData) {
   try {
     await dbConnect();
     const coverPath = await saveFile(coverFile, 'gallery/covers', true);
-    const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
+    const tags = parseTagString(tagsStr);
     
     const photos: string[] = [];
     for (const file of photoFiles) {

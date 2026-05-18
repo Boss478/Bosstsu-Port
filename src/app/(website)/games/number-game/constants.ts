@@ -42,7 +42,7 @@ export const STAGE_NAMES: Record<number, { th: string; en: string }> = {
   6: { th: "โหมดท้าทาย", en: "Endless Mode" },
 };
 
-export const PRAISE = {
+const PRAISE = {
   correct: [
     "Excellent!",
     "Great job!",

@@ -5,6 +5,7 @@ import dbConnect from '@/lib/db';
 import Portfolio from '@/models/Portfolio';
 import { verifyAuth } from '@/lib/auth';
 import { formatError } from '@/lib/error-code';
+import { parseTagString } from '@/lib/format';
 import { z } from 'zod';
 import DOMPurify from 'isomorphic-dompurify';
 
@@ -49,7 +50,7 @@ export async function createPortfolioItem(formData: FormData) {
 
   try {
     await dbConnect();
-    const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
+    const tags = parseTagString(tagsStr);
     const tools = toolsStr ? toolsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
 
     await Portfolio.create({

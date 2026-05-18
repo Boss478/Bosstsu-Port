@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import dbConnect from '@/lib/db';
+import dbConnect, { serializeDoc } from '@/lib/db';
 import Gallery from '@/models/Gallery';
 import Portfolio from '@/models/Portfolio';
 import Breadcrumb from '@/components/Breadcrumb';
@@ -29,8 +29,8 @@ export default async function EditGalleryPage({
 
   const availableTags = await getTagsByCategory('gallery');
   const updateAction = updateGalleryAlbum.bind(null, id);
-  const serializableItem = JSON.parse(JSON.stringify(item));
-  const serializablePortfolios = JSON.parse(JSON.stringify(portfolios));
+  const serializableItem = serializeDoc(item);
+  const serializablePortfolios = serializeDoc(portfolios);
 
   return (
     <div className="max-w-4xl mx-auto">

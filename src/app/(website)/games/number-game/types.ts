@@ -48,17 +48,4 @@ export interface RangeOption {
   max: number;
 }
 
-export type GameAction =
-  | { type: "START_GAME"; range: RangeOption }
-  | { type: "CORRECT_ANSWER"; range: RangeOption }
-  | { type: "WRONG_ANSWER" }
-  | { type: "ADVANCE_SEQUENTIAL"; range: RangeOption }
-  | { type: "FINISH_SEQUENTIAL" }
-  | { type: "ADVANCE_REVIEW" }
-  | { type: "FINISH_REVIEW"; range: RangeOption }
-  | { type: "PROGRESS_STAGE"; nextStage: number }
-  | { type: "VICTORY" }
-  | { type: "START_ENDLESS" }
-  | { type: "GO_MENU" }
-  | { type: "GO_RANGE" }
-  | { type: "GO_GAME"; state: GameState };
+

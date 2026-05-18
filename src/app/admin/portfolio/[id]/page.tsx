@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import dbConnect from '@/lib/db';
+import dbConnect, { serializeDoc } from '@/lib/db';
 import Portfolio from '@/models/Portfolio';
 import Breadcrumb from '@/components/Breadcrumb';
 import PortfolioForm from '@/components/admin/PortfolioForm';
@@ -33,7 +33,7 @@ export default async function EditPortfolioPage({
   ]);
 
   const updateAction = updatePortfolioItem.bind(null, id);
-  const serializableItem = JSON.parse(JSON.stringify(item));
+  const serializableItem = serializeDoc(item);
 
   return (
     <div className="min-h-screen bg-blue-50 dark:bg-slate-950 pt-28 pb-12 px-4">

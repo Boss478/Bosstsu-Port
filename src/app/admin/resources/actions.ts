@@ -7,6 +7,7 @@ import Learning from '@/models/Learning';
 import { verifyAuth } from '@/lib/auth';
 import { saveFile } from '@/lib/upload';
 import { formatError } from '@/lib/error-code';
+import { parseTagString } from '@/lib/format';
 import { z } from 'zod';
 
 const TYPE_OPTIONS = [
@@ -87,7 +88,7 @@ export async function createLearningResource(formData: FormData) {
 
   try {
     await dbConnect();
-    const tags = tagsStr ? tagsStr.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
+    const tags = parseTagString(tagsStr);
 
     let thumbnail: string | undefined;
     if (thumbnailFile && thumbnailFile.size > 0) {

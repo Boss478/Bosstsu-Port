@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-export interface IToolResponse extends Document {
+interface IToolResponse extends Document {
   sessionId: mongoose.Types.ObjectId;
   studentName?: string;
   content: Record<string, unknown>;

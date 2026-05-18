@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export type ToolType = 'padlet' | 'poll' | 'assignment' | 'qa_board' | 'quiz' | 'exit_ticket' | 'discussion';
 
-export interface ISessionConfig {
+interface ISessionConfig {
   prompt?: string;
   allowAnonymous?: boolean;
   maxSubmissions?: number;
@@ -17,7 +17,7 @@ export interface ISessionConfig {
   }>;
 }
 
-export interface IToolSession extends Document {
+interface IToolSession extends Document {
   sessionCode: string;
   type: ToolType;
   title: string;

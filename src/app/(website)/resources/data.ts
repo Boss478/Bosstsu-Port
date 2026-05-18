@@ -1,5 +1,3 @@
-export type ResourceType = "Sheet" | "Slide" | "VDO" | "Other";
-
 export interface ResourceItem {
   id: string;
   title: string;
@@ -11,12 +9,4 @@ export interface ResourceItem {
   author?: string;
 }
 
-export interface PaginatedResources {
-  items: ResourceItem[];
-  uniqueTypes: string[];
-  currentPage: number;
-  totalPages: number;
-  activeType: string;
-  sort: "Newest" | "Oldest";
-  totalItems: number;
-}
+

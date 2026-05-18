@@ -6,6 +6,7 @@ import Game from '@/models/Game';
 import { verifyAuth } from '@/lib/auth';
 import { saveFile } from '@/lib/upload';
 import { formatError } from '@/lib/error-code';
+import { slugify, parseTagString } from '@/lib/format';
 import { z } from 'zod';
 import DOMPurify from 'isomorphic-dompurify';
 
@@ -64,10 +65,7 @@ export async function createGame(formData: FormData) {
   const thumbnailFile = formData.get('thumbnail') as File;
 
   // Generate slug from title
-  const slug = title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
+  const slug = slugify(title);
 
   // Validate thumbnail BEFORE any file operations
   if (!thumbnailFile || thumbnailFile.size === 0) {
@@ -76,7 +74,7 @@ export async function createGame(formData: FormData) {
 
   try {
     await dbConnect();
-    const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
+    const tags = parseTagString(tagsStr);
     const thumbnail = await saveFile(thumbnailFile, 'games');
 
     await Game.create({

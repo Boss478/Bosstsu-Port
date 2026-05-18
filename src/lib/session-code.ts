@@ -5,7 +5,7 @@ import ToolSession from '@/models/ToolSession';
 const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const CODE_LENGTH = 5;
 
-export function generateSessionCode(): string {
+function generateSessionCode(): string {
   let code = '';
   for (let i = 0; i < CODE_LENGTH; i++) {
     code += CHARS[Math.floor(Math.random() * CHARS.length)];
