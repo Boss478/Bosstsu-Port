@@ -73,7 +73,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
   };
 
   return (
-    <div id="results-capture-area" className="overflow-x-auto" style={{ zoom: `${sizePercent}%` }}>
+    <div id="results-capture-area">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
           Results — {TOOL_LABELS[toolType] || toolType}
@@ -150,7 +150,9 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
         </div>
       </div>
 
-      {responses.length === 0 ? (
+      <div className="overflow-x-auto">
+        <div style={{ zoom: `${sizePercent}%` }}>
+          {responses.length === 0 ? (
           <div className="p-12 rounded-2xl bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 text-center">
             <i className="fi fi-sr-inbox text-4xl text-zinc-300 dark:text-zinc-600 block mb-3" />
           <p className="text-zinc-500 dark:text-zinc-400">No responses yet. Share the session code with students!</p>
@@ -281,7 +283,9 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
             </div>
           )}
         </div>
-      )}
+)}
+        </div>
+      </div>
     </div>
   );
 }
