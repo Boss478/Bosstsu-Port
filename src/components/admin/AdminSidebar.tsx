@@ -47,13 +47,16 @@ export default function AdminSidebar({
         {/* Brand */}
         <div className={`h-16 flex items-center justify-between border-b border-blue-100 dark:border-slate-800 ${collapsed ? 'px-0' : 'px-6'}`}>
           {!collapsed && (
-            <Link
-              href="/admin"
-              className="text-xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2"
-            >
-              <i className="fi fi-sr-shield-check text-blue-600 text-lg" />
-              Boss478 <span className="text-zinc-400 text-xs font-medium">Admin</span>
-            </Link>
+            <div className="flex flex-col">
+              <Link
+                href="/admin"
+                className="text-xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2"
+              >
+                <i className="fi fi-sr-shield-check text-blue-600 text-lg" />
+                Boss478 <span className="text-zinc-400 text-xs font-medium">Admin</span>
+              </Link>
+              <p className="text-zinc-500 text-[10px] font-mono">v1.8.3</p>
+            </div>
           )}
 
           {/* Toggle Button */}

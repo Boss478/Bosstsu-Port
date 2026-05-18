@@ -4,6 +4,11 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.3 (2026-05-17)
+
++ Fixed: zoom now only affects result cards, not control bar
+
+
 ## v1.8.2 (2026-05-17)
 
 + Added column selector on session results page — Auto | 2 | 3 | 4 | 6 | 12 per row
