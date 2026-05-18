@@ -1,5 +1,6 @@
 services:
   app:
+    user: "1001:1001"
     build:
       context: .
       dockerfile: dockerfile
