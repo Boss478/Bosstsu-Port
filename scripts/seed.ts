@@ -204,7 +204,7 @@ const galleryData = [
 
 async function seed() {
   console.log('Connecting to MongoDB...');
-  await mongoose.connect(MONGODB_URI);
+  await mongoose.connect(MONGODB_URI!);
   console.log('Connected!');
 
   // Define schemas inline (to avoid import path issues in scripts)

@@ -69,6 +69,10 @@ export function getError(key: string): ErrorResponse {
   };
 }
 
+export function createErrorResponse(key: string): ErrorResponse {
+  return getError(key);
+}
+
 /** Format error for display to user: "ERROR_XXX [HTTP]: message (translation)" */
 export function formatError(key: string): string {
   const err = getError(key);
