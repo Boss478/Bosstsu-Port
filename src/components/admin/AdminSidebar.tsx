@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { logoutAdmin } from '@/app/admin/login/actions';
 import { useTheme } from '@/components/ThemeProvider';
+import pkg from '../../../package.json';
 
 const navItems = [
   { label: 'ภาพรวม (Dashboard)', href: '/admin', icon: 'fi-sr-apps' },
@@ -55,7 +56,7 @@ export default function AdminSidebar({
                 <i className="fi fi-sr-shield-check text-blue-600 text-lg" />
                 Boss478 <span className="text-zinc-400 text-xs font-medium">Admin</span>
               </Link>
-              <p className="text-zinc-500 text-[10px] font-mono">v1.8.3</p>
+              <p className="text-zinc-500 text-[10px] font-mono">v{pkg.version}</p>
             </div>
           )}
 

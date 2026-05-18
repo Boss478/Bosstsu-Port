@@ -4,6 +4,11 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.6 (2026-05-18)
+
+* Fixed: AdminSidebar version hardcoded to use dynamic `pkg.version` (was v1.8.3)
+
+
 ## v1.8.5 (2026-05-18)
 
 * Refactored: Removed unused types (GameAction, VocabularyData, ResourceType, PaginatedResources)
