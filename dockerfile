@@ -45,10 +45,13 @@ RUN chown -R 1001:1001 /app && \
     mkdir -p /app/.next/cache && \
     chown -R 1001:1001 /app/.next/cache
 
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 USER nextjs
 EXPOSE 3300
 
 ENV PORT=3300
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+ENTRYPOINT ["/entrypoint.sh"]
