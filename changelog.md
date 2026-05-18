@@ -6,11 +6,16 @@
 
 ## v1.8.9 (2026-05-18)
 
++ Added WebP auto-detection in saveFile() — automatically converts to WebP based on FOLDERS_CONVERT_TO_WEBP config
++ Added WebP conversion for gallery covers, game thumbnails, and learning resource thumbnails (gallery album photos stay JPEG)
++ Reduced image compression quality from 80 to 75 for both JPEG and WebP
+
+## v1.8.8 (2026-05-18)
+
 * Fixed file upload permission error on VPS — upload directories now pre-created with correct ownership in Dockerfile
 + Added permission-aware error handling in saveFile() with user-friendly Thai error messages
 * Upload permission errors now bubble up to the user instead of showing generic "Cannot create data"
 + Added toast notification system for admin CRUD actions — success/error feedback at top-right of screen
-+ Added WebP conversion for all portfolio covers, gallery covers, game thumbnails, and learning resource thumbnails (previously only portfolio covers were WebP; gallery album photos remain JPEG)
 
 ## v1.8.7 (2026-05-18)
 

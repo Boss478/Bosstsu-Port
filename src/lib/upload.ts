@@ -15,9 +15,11 @@ export function isHeicFile(file: File | { name?: string; type?: string }): boole
   return extMatch || typeLC === 'image/heic' || typeLC === 'image/heif';
 }
 
-export async function saveFile(file: File, folder: string = 'misc', asWebP: boolean = false): Promise<string> {
+export async function saveFile(file: File, folder: string = 'misc', asWebP?: boolean): Promise<string> {
   const allowedTypes = CONFIG.UPLOAD.ALLOWED_TYPES as readonly string[];
   const maxSize = CONFIG.UPLOAD.MAX_SIZE;
+
+  const shouldConvert = asWebP ?? (CONFIG.UPLOAD.FOLDERS_CONVERT_TO_WEBP as readonly string[]).includes(folder);
 
   if (!isHeicFile(file) && !allowedTypes.includes(file.type)) {
     throw new Error(`Invalid file type: ${file.type}. Allowed: ${allowedTypes.join(', ')}`);
@@ -43,7 +45,7 @@ export async function saveFile(file: File, folder: string = 'misc', asWebP: bool
     throw new Error(formatError('U05'));
   }
 
-  const ext = asWebP ? 'webp' : 'jpg';
+  const ext = shouldConvert ? 'webp' : 'jpg';
   const filename = `${uuidv4()}.${ext}`;
   const filePath = path.join(uploadDir, filename);
 
@@ -69,7 +71,7 @@ export async function saveFile(file: File, folder: string = 'misc', asWebP: bool
   try {
     const img = sharp(buffer).withMetadata();
 
-    if (asWebP) {
+    if (shouldConvert) {
       buffer = Buffer.from(await img.webp({ quality: CONFIG.IMAGE_PROCESSING.WEBP_QUALITY }).toBuffer());
     } else {
       buffer = Buffer.from(

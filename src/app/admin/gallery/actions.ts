@@ -46,7 +46,7 @@ export async function createGalleryAlbum(formData: FormData) {
 
   try {
     await dbConnect();
-    const coverPath = await saveFile(coverFile, 'gallery/covers', true);
+    const coverPath = await saveFile(coverFile, 'gallery/covers');
     const tags = parseTagString(tagsStr);
     
     const photos: string[] = [];
@@ -123,7 +123,7 @@ export async function updateGalleryAlbum(id: string, formData: FormData) {
     }
 
     if (coverFile && coverFile.size > 0) {
-      updateData.cover = await saveFile(coverFile, 'gallery/covers', true);
+      updateData.cover = await saveFile(coverFile, 'gallery/covers');
     }
 
     const photos = existingPhotosStr ? JSON.parse(existingPhotosStr) : [];

@@ -26,8 +26,8 @@ export const CONFIG = {
 
   // ─── Image Processing (sharp / canvas) ────────────────────────────────
   IMAGE_PROCESSING: {
-    JPEG_QUALITY: 80,                       // 0–100 — sharp JPEG output quality after upload
-    WEBP_QUALITY: 80,                       // 0–100 — sharp WebP output quality after upload
+    JPEG_QUALITY: 75,                       // 0–100 — sharp JPEG output quality after upload
+    WEBP_QUALITY: 75,                       // 0–100 — sharp WebP output quality after upload
     JPEG_QUALITY_FRACTION: 0.9,             // 0.0–1.0 — canvas.toBlob() quality for image cropping in admin
     USE_MOZJPEG: true,                      // enable MozJPEG encoder (~20-30% smaller JPEGs at same quality)
     CONCURRENT_SHARP: 1,                    // count — sharp worker threads; keep at 1 on low-CPU VPS
