@@ -98,7 +98,7 @@ export const toolStrings = {
 export type ToolStringKey = keyof typeof toolStrings;
 
 export function t(key: ToolStringKey, vars?: Record<string, string | number>): string {
-  let str = toolStrings[key].th;
+  let str: string = toolStrings[key].th;
   if (vars) {
     Object.entries(vars).forEach(([k, v]) => {
       str = str.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
