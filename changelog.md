@@ -4,6 +4,14 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.4 (2026-05-18)
+
++ Added custom 404 page for non-existent routes
++ Added friendly "Session not found" message on /study/[code] when session doesn't exist (replaces default Next.js 404)
++ Added client-side code validation on /study entry page — checks session before navigating, shows inline red error if not found or ended
++ Added inline error handling for admin session pages (valid ObjectId check, catches CastError, shows message within admin layout)
+
+
 ## v1.8.3 (2026-05-17)
 
 + Fixed: zoom now only affects result cards, not control bar
