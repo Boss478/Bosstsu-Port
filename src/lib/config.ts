@@ -19,7 +19,7 @@ export const CONFIG = {
     ALLOWED_FOLDERS: ['portfolio', 'gallery', 'portfolio/gallery', 'misc', 'learning', 'tools'] as const,
 
     // Folders that get converted to WebP for better compression — others save as JPEG
-    FOLDERS_CONVERT_TO_WEBP: ['portfolio'] as const,
+    FOLDERS_CONVERT_TO_WEBP: ['portfolio', 'gallery/covers', 'games', 'learning'] as const,
 
     ROOT_DIR: 'public/uploads',             // filesystem path — base directory for saved uploads
   },

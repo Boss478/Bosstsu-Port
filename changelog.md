@@ -4,12 +4,13 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
-## v1.8.8 (2026-05-18)
+## v1.8.9 (2026-05-18)
 
 * Fixed file upload permission error on VPS — upload directories now pre-created with correct ownership in Dockerfile
 + Added permission-aware error handling in saveFile() with user-friendly Thai error messages
 * Upload permission errors now bubble up to the user instead of showing generic "Cannot create data"
-+ Added toast notification system for admin CRUD actions — success/error feedback at bottom-right of screen
++ Added toast notification system for admin CRUD actions — success/error feedback at top-right of screen
++ Added WebP conversion for all portfolio covers, gallery covers, game thumbnails, and learning resource thumbnails (previously only portfolio covers were WebP; gallery album photos remain JPEG)
 
 ## v1.8.7 (2026-05-18)
 
