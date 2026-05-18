@@ -1,0 +1,104 @@
+export const toolStrings = {
+  anonymous: { th: 'ไม่ระบุตัวตน', en: 'Anonymous' },
+  yourName: { th: 'ชื่อของคุณ', en: 'Your name' },
+  yourNameOptional: { th: 'ชื่อของคุณ (ไม่บังคับ)', en: 'Your name (optional)' },
+  nameOptional: { th: 'ชื่อ (ไม่บังคับ)', en: 'Name (optional)' },
+  anonymousPlaceholder: { th: 'ไม่ระบุตัวตน', en: 'Anonymous' },
+  anonymousShort: { th: 'ไม่ระบุ', en: 'Anonymous' },
+  loading: { th: 'กำลังโหลด...', en: 'Loading...' },
+  submitting: { th: 'กำลังส่ง...', en: 'Submitting...' },
+  posting: { th: 'กำลังโพสต์...', en: 'Posting...' },
+  saving: { th: 'กำลังบันทึก...', en: 'Saving...' },
+  refresh: { th: 'รีเฟรช', en: 'Refresh' },
+  refreshResults: { th: 'รีเฟรชผลลัพธ์', en: 'Refresh results' },
+  refreshResultsTitle: { th: 'รีเฟรชผลลัพธ์', en: 'Refresh results' },
+  cancel: { th: 'ยกเลิก', en: 'Cancel' },
+  save: { th: 'บันทึก', en: 'Save' },
+  saveChanges: { th: 'บันทึกการแก้ไข', en: 'Save Changes' },
+  edit: { th: 'แก้ไข', en: 'Edit' },
+  editMyAnswer: { th: 'แก้ไขคำตอบของฉัน', en: 'Edit My Answer' },
+  delete: { th: 'ลบ', en: 'Delete' },
+
+  postIdea: { th: 'โพสต์ไอเดีย', en: 'Post Idea' },
+  postReply: { th: 'โพสต์ตอบกลับ', en: 'Post Reply' },
+  submitVote: { th: 'ส่งคะแนนโหวต', en: 'Submit Vote' },
+  submitQuestion: { th: 'ส่งคำถาม', en: 'Submit Question' },
+  submitQuiz: { th: 'ส่งแบบทดสอบ', en: 'Submit Quiz' },
+  submitExitTicket: { th: 'ส่งบัตรออก', en: 'Submit Exit Ticket' },
+  submitAssignment: { th: 'ส่งงาน', en: 'Submit Assignment' },
+
+  voteSubmitted: { th: 'ส่งคะแนนเรียบร้อย!', en: 'Vote submitted!' },
+  resultsAutoUpdate: { th: 'ผลลัพธ์จะอัปเดตอัตโนมัติ', en: 'Results will update automatically' },
+  liveResults: { th: 'ผลลัพธ์แบบเรียลไทม์', en: 'Live Results' },
+  submitted: { th: 'ส่งแล้ว', en: 'Submitted' },
+  submittedTitle: { th: 'ส่งแล้ว!', en: 'Submitted!' },
+  thankYouReflection: { th: 'ขอบคุณสำหรับการสะท้อนความคิด!', en: 'Thank you for your reflection!' },
+
+  customChoices: { th: 'ตัวเลือกอื่น ๆ', en: 'Custom Choices' },
+  otherTypeYourOwn: { th: 'อื่น ๆ (พิมพ์เอง)', en: 'Other (type your own)' },
+  typeCustomOption: { th: 'พิมพ์ตัวเลือกของคุณ...', en: 'Type your custom option...' },
+  typeAnswerEnter: { th: 'พิมพ์คำตอบแล้วกด Enter...', en: 'Type your answer and press Enter...' },
+
+  questions: { th: 'คำถาม', en: 'Questions' },
+  noQuestionsYet: { th: 'ยังไม่มีคำถาม เป็นคนแรกสิ!', en: 'No questions yet. Be the first to ask!' },
+  askAnonymously: { th: 'ถามคำถามของคุณแบบไม่ระบุตัวตน!', en: 'Ask your questions anonymously!' },
+  typeYourQuestion: { th: 'พิมพ์คำถามของคุณ...', en: 'Type your question...' },
+  votes: { th: 'โหวต', en: 'votes' },
+  vote: { th: 'โหวต', en: 'vote' },
+  answered: { th: 'ตอบแล้ว', en: 'Answered' },
+
+  noQuizQuestions: { th: 'ยังไม่ได้ตั้งค่าแบบทดสอบ', en: 'No quiz questions configured.' },
+  scoreOfTotal: { th: 'คะแนน: {score} / {total}', en: 'Score: {score} / {total}' },
+  perfectGreatJob: { th: 'สมบูรณ์แบบ! ทำได้ดีมาก!', en: 'Perfect! Great job!' },
+  moreToGo: { th: 'อีก {n} ข้อเพื่อให้สมบูรณ์', en: '{n} more to go!' },
+  questionOfTotal: { th: 'ข้อ {current} จาก {total}', en: 'Question {current} of {total}' },
+  previous: { th: 'ย้อนกลับ', en: 'Previous' },
+  next: { th: 'ถัดไป', en: 'Next' },
+
+  discussionTopic: { th: 'หัวข้ออภิปราย', en: 'Discussion Topic' },
+  shareRespectful: { th: 'แบ่งปันความคิดของคุณ โปรดให้เกียรติและสร้างสรรค์', en: 'Share your thoughts on this topic. Be respectful and constructive.' },
+  shareThoughts: { th: 'แบ่งปันความคิดของคุณ...', en: 'Share your thoughts...' },
+  replies: { th: 'ตอบกลับ', en: 'replies' },
+  reply: { th: 'ตอบกลับ', en: 'reply' },
+  noRepliesYet: { th: 'ยังไม่มีตอบกลับ เป็นคนแรกสิ!', en: 'No replies yet. Be the first to share!' },
+
+  sessionEnded: { th: 'ห้องเรียนปิดแล้ว', en: 'Session Ended' },
+  sessionClosedThankYou: { th: 'ห้องเรียนนี้ถูกปิดโดยครูแล้ว ขอบคุณสำหรับการมีส่วนร่วม!', en: 'This session has been closed by the teacher. Thank you for participating!' },
+  backToHome: { th: 'กลับหน้าหลัก', en: 'Back to Home' },
+  toolTypeNotFound: { th: 'ไม่พบประเภทเครื่องมือ', en: 'Tool type not found' },
+
+  failedToSubmit: { th: 'ส่งไม่สำเร็จ กรุณาลองใหม่', en: 'Failed to submit. Please try again.' },
+  failedToSubmitSimple: { th: 'ส่งไม่สำเร็จ', en: 'Failed to submit' },
+  failedToSave: { th: 'บันทึกไม่สำเร็จ', en: 'Failed to save' },
+  serverError: { th: 'เกิดข้อผิดพลาดของเซิร์ฟเวอร์', en: 'Server error' },
+  noResponsesYet: { th: 'ยังไม่มีการตอบกลับ เป็นคนแรกสิ!', en: 'No responses yet. Be the first!' },
+
+  answer: { th: 'คำตอบ', en: 'Answer' },
+  name: { th: 'ชื่อ', en: 'Name' },
+  typeYourAnswerHere: { th: 'พิมพ์คำตอบของคุณที่นี่...', en: 'Type your answer here...' },
+  yourFullName: { th: 'ชื่อ-นามสกุลของคุณ', en: 'Your full name' },
+  fileUploadOptional: { th: 'อัปโหลดไฟล์ (ไม่บังคับ, สูงสุด 10MB)', en: 'File Upload (optional, max 10MB)' },
+  clickToUploadFile: { th: 'คลิกเพื่ออัปโหลดไฟล์', en: 'Click to upload a file' },
+  file: { th: 'ไฟล์', en: 'File' },
+  downloadAttachedFile: { th: 'ดาวน์โหลดไฟล์แนบ', en: 'Download attached file' },
+  submitYourAssignment: { th: 'ส่งงานของคุณ', en: 'Submit your assignment' },
+
+  learnedToday: { th: '1. สิ่งที่คุณเรียนรู้วันนี้คืออะไร?', en: '1. What is one thing you learned today?' },
+  learnedPlaceholder: { th: 'วันนี้ฉันเรียนรู้เรื่อง...', en: 'Today I learned about...' },
+  questionStillHave: { th: '2. คำถามที่คุณยังมีอยู่คืออะไร?', en: '2. What is one question you still have?' },
+  questionPlaceholder: { th: 'ฉันยังไม่เข้าใจเรื่อง...', en: "I still don't understand..." },
+  wantToKnowMore: { th: '3. สิ่งที่คุณอยากรู้เพิ่มเติมคืออะไร?', en: '3. What is one thing you want to know more about?' },
+  wantToKnowPlaceholder: { th: 'ฉันอยากรู้เพิ่มเติมเรื่อง...', en: 'I want to learn more about...' },
+} as const;
+
+export type ToolStringKey = keyof typeof toolStrings;
+
+export function t(key: ToolStringKey, vars?: Record<string, string | number>): string {
+  let str = toolStrings[key].th;
+  if (vars) {
+    Object.entries(vars).forEach(([k, v]) => {
+      str = str.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
+    });
+  }
+  return str;
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { t } from '@/lib/tool-translations';
 
 interface PadletBoardProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -108,7 +109,7 @@ export default function PadletBoard({ session }: PadletBoardProps) {
         setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 300);
       }
     } catch {
-      setError('Failed to submit');
+      setError(t('failedToSubmitSimple'));
     } finally {
       setSubmitting(false);
     }
@@ -165,7 +166,7 @@ export default function PadletBoard({ session }: PadletBoardProps) {
         }
       }
     } catch {
-      setError('Failed to save');
+      setError(t('failedToSave'));
     } finally {
       setEditSaving(false);
     }
@@ -185,13 +186,13 @@ export default function PadletBoard({ session }: PadletBoardProps) {
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
             type="text"
-            placeholder="Your name"
+            placeholder={t('yourName')}
             value={studentName}
             onChange={e => setStudentName(e.target.value)}
             className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <textarea
-            placeholder={session.config?.prompt || 'Share your idea...'}
+            placeholder={session.config?.prompt || 'แบ่งปันความคิดของคุณ...'}
             value={message}
             onChange={e => setMessage(e.target.value)}
             rows={3}
@@ -204,13 +205,13 @@ export default function PadletBoard({ session }: PadletBoardProps) {
             disabled={submitting || !message.trim()}
             className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50"
           >
-            {submitting ? 'Submitting...' : 'Post Idea'}
+            {submitting ? t('submitting') : t('postIdea')}
           </button>
         </form>
       </div>
 
       {loading && posts.length === 0 ? (
-        <div className="text-center py-12 text-zinc-400">Loading...</div>
+        <div className="text-center py-12 text-zinc-400">{t('loading')}</div>
       ) : (
         <div className="space-y-4 pb-4">
           <div className="flex items-center justify-end">
@@ -218,7 +219,7 @@ export default function PadletBoard({ session }: PadletBoardProps) {
               onClick={handleRefresh}
               disabled={refreshing}
               className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 text-zinc-400 transition-colors disabled:opacity-50"
-              title="Refresh"
+              title={t('refresh')}
             >
               <i className={`fi fi-sr-refresh text-sm ${refreshing ? 'animate-spin' : ''}`} />
             </button>
@@ -228,14 +229,14 @@ export default function PadletBoard({ session }: PadletBoardProps) {
             <div key={post._id} className="p-4 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
-                  {post.studentName || 'Anonymous'}
+                  {post.studentName || t('anonymous')}
                 </span>
                 <div className="flex items-center gap-2">
                   {isOwnPost(post._id) && !editingPostId && (
                     <button
                       onClick={() => handleEditClick(post)}
                       className="p-1 text-zinc-400 hover:text-blue-500 transition-colors"
-                      title="Edit"
+                      title={t('edit')}
                     >
                       <i className="fi fi-sr-pencil text-xs" />
                     </button>
@@ -259,14 +260,14 @@ export default function PadletBoard({ session }: PadletBoardProps) {
                       onClick={handleEditCancel}
                       className="flex-1 py-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
                     >
-                      Cancel
+                      {t('cancel')}
                     </button>
                     <button
                       onClick={() => handleEditSave(post._id)}
                       disabled={editSaving || !editMessage.trim()}
                       className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50"
                     >
-                      {editSaving ? 'Saving...' : 'Save'}
+                      {editSaving ? t('saving') : t('save')}
                     </button>
                   </div>
                 </div>

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import TagPicker from './TagPicker';
 import RichTextEditor from './RichTextEditor';
+import { useAdminSession } from './AdminSessionProvider';
 
 const SUBJECT_OPTIONS = [
   'คณิตศาสตร์ (Mathematics)',
@@ -106,6 +107,7 @@ export default function LearningForm({
   availableTags = [],
 }: LearningFormProps) {
   const router = useRouter();
+  const { onAuthError } = useAdminSession();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState(initialData?.type || '');
@@ -124,6 +126,10 @@ export default function LearningForm({
     try {
       const result = await action(new FormData(e.currentTarget));
       if (result?.error) {
+        if (result.error.includes('[401]')) {
+          onAuthError();
+          return;
+        }
         setError(result.error);
       } else {
         router.push('/admin/resources');

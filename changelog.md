@@ -4,6 +4,11 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.7 (2026-05-18)
+
++ Added bilingual Thai/English UI for all student tool components (Padlet, Poll, Assignment, Q&A, Quiz, Exit Ticket, Discussion)
+* Fixed admin timeout handling — 401 errors now redirect to /admin/login instead of showing alerts
+
 ## v1.8.6 (2026-05-18)
 
 * Fixed: AdminSidebar version hardcoded to use dynamic `pkg.version` (was v1.8.3)

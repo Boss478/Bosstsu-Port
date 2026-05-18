@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { t } from '@/lib/tool-translations';
 
 interface MentimeterPollProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -30,8 +31,8 @@ export default function MentimeterPoll({ session }: MentimeterPollProps) {
   const pollMode = session.config?.pollMode || 'mcq';
   const rawOptions = session.config?.questions?.[0]?.options;
   const options = rawOptions?.length
-    ? rawOptions.map((o: string, i: number) => o || `Option ${i + 1}`)
-    : ['Option A', 'Option B', 'Option C', 'Option D'];
+    ? rawOptions.map((o: string, i: number) => o || `ตัวเลือก ${i + 1}`)
+    : ['ตัวเลือก ก', 'ตัวเลือก ข', 'ตัวเลือก ค', 'ตัวเลือก ง'];
   const allowCustom = session.config?.allowCustomChoices || false;
 
   const fetchPoll = async () => {
@@ -101,7 +102,7 @@ export default function MentimeterPoll({ session }: MentimeterPollProps) {
         fetchPoll();
       }
     } catch {
-      setError('Failed to submit');
+      setError(t('failedToSubmitSimple'));
     } finally {
       setSubmitting(false);
     }
@@ -139,22 +140,22 @@ export default function MentimeterPoll({ session }: MentimeterPollProps) {
     <div className="min-h-screen flex flex-col max-w-3xl mx-auto p-4 gap-4">
       <div className="text-center py-6">
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{session.title}</h1>
-        <p className="text-zinc-500 dark:text-zinc-400">{session.config?.prompt || 'Vote now!'}</p>
+        <p className="text-zinc-500 dark:text-zinc-400">{session.config?.prompt || 'โหวตเลย!'}</p>
       </div>
 
       <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
         {submitted ? (
           <div className="text-center py-8">
             <i className="fi fi-sr-check-circle text-5xl text-emerald-500 block mb-3" />
-            <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">Vote submitted!</p>
-            <p className="text-sm text-zinc-400 mt-1">Results will update automatically</p>
+            <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{t('voteSubmitted')}</p>
+            <p className="text-sm text-zinc-400 mt-1">{t('resultsAutoUpdate')}</p>
           </div>
         ) : (
           <div className="space-y-4">
-{pollMode === 'mcq' ? (
-          <div className="space-y-2">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {options.map((opt: any) => (
+            {pollMode === 'mcq' ? (
+              <div className="space-y-2">
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {options.map((opt: any) => (
                   <label
                     key={opt}
                     className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
@@ -191,14 +192,14 @@ export default function MentimeterPoll({ session }: MentimeterPollProps) {
                         onChange={() => { setSelected(null); setCustomMode(true); }}
                         className="accent-blue-500 w-4 h-4"
                       />
-                      <span className="text-zinc-700 dark:text-zinc-300 font-medium">Other (type your own)</span>
+                      <span className="text-zinc-700 dark:text-zinc-300 font-medium">{t('otherTypeYourOwn')}</span>
                     </div>
                     {customMode && (
                       <input
                         type="text"
                         value={customValue}
                         onChange={e => setCustomValue(e.target.value)}
-                        placeholder="Type your custom option..."
+                        placeholder={t('typeCustomOption')}
                         className="ml-7 w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                         autoFocus
                       />
@@ -209,7 +210,7 @@ export default function MentimeterPoll({ session }: MentimeterPollProps) {
             ) : (
               <input
                 type="text"
-                placeholder="Type your answer and press Enter..."
+                placeholder={t('typeAnswerEnter')}
                 value={word}
                 onChange={e => setWord(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSubmit(); } }}
@@ -224,7 +225,7 @@ export default function MentimeterPoll({ session }: MentimeterPollProps) {
               disabled={submitting || (pollMode === 'mcq' ? (customMode ? !customValue.trim() : !selected) : !word.trim())}
               className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50"
             >
-              {submitting ? 'Submitting...' : 'Submit Vote'}
+              {submitting ? t('submitting') : t('submitVote')}
             </button>
           </div>
         )}
@@ -232,17 +233,19 @@ export default function MentimeterPoll({ session }: MentimeterPollProps) {
 
       <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-zinc-900 dark:text-zinc-100">Live Results</h2>
+          <h2 className="font-bold text-zinc-900 dark:text-zinc-100">{t('liveResults')}</h2>
           <div className="flex items-center gap-2">
             <button
               onClick={handleRefresh}
               disabled={refreshing}
               className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 text-zinc-400 transition-colors disabled:opacity-50"
-              title="Refresh results"
+              title={t('refreshResultsTitle')}
             >
               <i className={`fi fi-sr-refresh text-sm ${refreshing ? 'animate-spin' : ''}`} />
             </button>
-            <span className="text-xs text-zinc-400">{totalCount} vote{totalCount !== 1 ? 's' : ''}</span>
+            <span className="text-xs text-zinc-400">
+              {totalCount} {totalCount !== 1 ? t('votes') : t('vote')}
+            </span>
           </div>
         </div>
 
@@ -265,7 +268,7 @@ export default function MentimeterPoll({ session }: MentimeterPollProps) {
             })}
             {Object.keys(customCounts).length > 0 && (
               <div className="mt-4 pt-4 border-t border-zinc-200/60 dark:border-slate-700/50 space-y-2">
-                <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wide">Custom Choices</p>
+                <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wide">{t('customChoices')}</p>
                 {Object.entries(customCounts).sort((a, b) => b[1] - a[1]).map(([opt, count]) => {
                   const pct = responses.length ? Math.round((count / responses.length) * 100) : 0;
                   return (
@@ -286,7 +289,7 @@ export default function MentimeterPoll({ session }: MentimeterPollProps) {
         ) : (
           <div className="flex flex-wrap gap-3 min-h-16">
             {sortedWords.length === 0 ? (
-              <p className="text-sm text-zinc-400">No responses yet. Be the first!</p>
+              <p className="text-sm text-zinc-400">{t('noResponsesYet')}</p>
             ) : (
               sortedWords.map(([w, count]) => (
                 <span

@@ -1,12 +1,13 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from 'react';
 import { logoutAdmin } from '@/app/admin/login/actions';
 import { CONFIG } from '@/lib/config';
 
 interface AdminSessionContextType {
   isUploading: boolean;
   setIsUploading: (uploading: boolean) => void;
+  onAuthError: () => void;
 }
 
 const AdminSessionContext = createContext<AdminSessionContextType | undefined>(undefined);
@@ -24,13 +25,17 @@ export default function AdminSessionProvider({ children }: { children: ReactNode
   const [isAFK, setIsAFK] = useState(false);
   const [countdown, setCountdown] = useState(10);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  
+
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Constants
   const IDLE_TIMEOUT = CONFIG.AUTH.IDLE_TIMEOUT;
   const COUNTDOWN_DURATION = CONFIG.AUTH.COUNTDOWN_DURATION;
+
+  const redirectToLogin = useCallback(() => {
+    window.location.href = '/admin/login';
+  }, []);
 
   const startIdleTimer = () => {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
@@ -110,7 +115,7 @@ export default function AdminSessionProvider({ children }: { children: ReactNode
   }, [isAFK, countdown, isLoggingOut]);
 
   return (
-    <AdminSessionContext.Provider value={{ isUploading, setIsUploading }}>
+    <AdminSessionContext.Provider value={{ isUploading, setIsUploading, onAuthError: redirectToLogin }}>
       {children}
       
       {/* AFK Notification */}

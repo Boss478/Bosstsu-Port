@@ -2,6 +2,7 @@
 
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAdminSession } from './AdminSessionProvider';
 
 interface DeleteButtonProps {
   id: string;
@@ -11,14 +12,19 @@ interface DeleteButtonProps {
 export default function DeleteButton({ id, action }: DeleteButtonProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const { onAuthError } = useAdminSession();
 
   const handleDelete = async () => {
-    if (!confirm('ยืนยันการลบข้อมูลนี้หรือไม่? (Are you sure?)')) return;
+    if (!confirm('ยืนยันการลบข้อมูลนี้หรือไม่?')) return;
 
     startTransition(async () => {
       const result = await action(id);
       if (result?.error) {
-        alert(result.error);
+        if (result.error.includes('[401]')) {
+          onAuthError();
+        } else {
+          alert(result.error);
+        }
       } else {
         router.refresh();
       }

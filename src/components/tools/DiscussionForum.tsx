@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { t } from '@/lib/tool-translations';
 
 interface DiscussionForumProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -103,7 +104,7 @@ export default function DiscussionForum({ session }: DiscussionForumProps) {
         }
       }
     } catch {
-      setError('Failed to submit');
+      setError(t('failedToSubmitSimple'));
     } finally {
       setSubmitting(false);
     }
@@ -144,7 +145,7 @@ export default function DiscussionForum({ session }: DiscussionForumProps) {
         fetchReplies();
       }
     } catch {
-      setError('Failed to save');
+      setError(t('failedToSave'));
     } finally {
       setEditSaving(false);
     }
@@ -158,23 +159,23 @@ export default function DiscussionForum({ session }: DiscussionForumProps) {
 
       <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
         <h2 className="font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-          {session.config?.prompt || 'Discussion Topic'}
+          {session.config?.prompt || t('discussionTopic')}
         </h2>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Share your thoughts on this topic. Be respectful and constructive.
+          {t('shareRespectful')}
         </p>
       </div>
 
       <div className="p-4 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-3">
         <input
           type="text"
-          placeholder="Your name (optional)"
+          placeholder={t('yourNameOptional')}
           value={name}
           onChange={e => setName(e.target.value)}
           className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <textarea
-          placeholder="Share your thoughts..."
+          placeholder={t('shareThoughts')}
           value={reply}
           onChange={e => setReply(e.target.value)}
           rows={4}
@@ -186,43 +187,43 @@ export default function DiscussionForum({ session }: DiscussionForumProps) {
           disabled={submitting || !reply.trim()}
           className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50"
         >
-          {submitting ? 'Posting...' : 'Post Reply'}
+          {submitting ? t('posting') : t('postReply')}
         </button>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-zinc-400">Loading...</div>
+        <div className="text-center py-12 text-zinc-400">{t('loading')}</div>
       ) : (
         <div className="space-y-3 pb-4">
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-bold text-zinc-900 dark:text-zinc-100">
-              {replies.length} {replies.length === 1 ? 'reply' : 'replies'}
+              {replies.length} {replies.length === 1 ? t('reply') : t('replies')}
             </h2>
             <button
               onClick={handleRefresh}
               disabled={refreshing}
               className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 text-zinc-400 transition-colors disabled:opacity-50"
-              title="Refresh"
+              title={t('refresh')}
             >
               <i className={`fi fi-sr-refresh text-sm ${refreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
           {replies.length === 0 ? (
-            <div className="text-center py-12 text-zinc-400">No replies yet. Be the first to share!</div>
+            <div className="text-center py-12 text-zinc-400">{t('noRepliesYet')}</div>
           ) : (
             <div className="space-y-3">
               {replies.map(r => (
                 <div key={r._id} className="p-4 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
-                      {r.studentName || 'Anonymous'}
+                      {r.studentName || t('anonymous')}
                     </span>
                     <div className="flex items-center gap-2">
                       {isOwnReply(r._id) && !editingReplyId && (
                         <button
                           onClick={() => handleEditClick(r)}
                           className="p-1 text-zinc-400 hover:text-blue-500 transition-colors"
-                          title="Edit"
+                          title={t('edit')}
                         >
                           <i className="fi fi-sr-pencil text-xs" />
                         </button>
@@ -246,14 +247,14 @@ export default function DiscussionForum({ session }: DiscussionForumProps) {
                           onClick={handleEditCancel}
                           className="flex-1 py-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
                         >
-                          Cancel
+                          {t('cancel')}
                         </button>
                         <button
                           onClick={() => handleEditSave(r._id)}
                           disabled={editSaving || !editReply.trim()}
                           className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50"
                         >
-                          {editSaving ? 'Saving...' : 'Save'}
+                          {editSaving ? t('saving') : t('save')}
                         </button>
                       </div>
                     </div>

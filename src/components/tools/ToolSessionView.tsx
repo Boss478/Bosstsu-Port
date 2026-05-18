@@ -8,6 +8,7 @@ import QuickQuiz from './QuickQuiz';
 import ExitTicketForm from './ExitTicketForm';
 import DiscussionForum from './DiscussionForum';
 import SessionGuard from './SessionGuard';
+import { t } from '@/lib/tool-translations';
 
 interface ToolSessionViewProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,7 +40,7 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
         <div className="min-h-screen flex items-center justify-center">
           <div className="p-8 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 text-center">
             <i className="fi fi-sr-tool text-4xl text-zinc-400 block mb-3" />
-            <p className="text-zinc-500">Tool type not found</p>
+            <p className="text-zinc-500">{t('toolTypeNotFound')}</p>
           </div>
         </div>
       );

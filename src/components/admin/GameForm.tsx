@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import TagPicker from './TagPicker';
+import { useAdminSession } from './AdminSessionProvider';
 
 interface GameFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -25,6 +26,7 @@ export default function GameForm({
   availableTags = [],
 }: GameFormProps) {
   const router = useRouter();
+  const { onAuthError } = useAdminSession();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [gameType, setGameType] = useState<'url' | 'html'>(
@@ -44,12 +46,16 @@ export default function GameForm({
     try {
       const result = await action(formData);
       if (result && result.error) {
+        if (result.error.includes('[401]')) {
+          onAuthError();
+          return;
+        }
         setError(result.error);
       } else {
         router.push('/admin/games');
       }
     } catch {
-      setError('An unexpected error occurred');
+      setError('เกิดข้อผิดพลาด กรุณาลองใหม่');
     } finally {
       setPending(false);
     }

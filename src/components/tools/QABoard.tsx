@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { t } from '@/lib/tool-translations';
 
 interface QABoardProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -68,7 +69,7 @@ export default function QABoard({ session }: QABoardProps) {
         fetchQuestions();
       }
     } catch {
-      setError('Failed to submit');
+      setError(t('failedToSubmitSimple'));
     } finally {
       setSubmitting(false);
     }
@@ -80,12 +81,12 @@ export default function QABoard({ session }: QABoardProps) {
     <div className="min-h-screen flex flex-col max-w-3xl mx-auto p-4 gap-4">
       <div className="text-center py-6">
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{session.title}</h1>
-        <p className="text-zinc-500 dark:text-zinc-400">{session.config?.prompt || 'Ask your questions anonymously!'}</p>
+        <p className="text-zinc-500 dark:text-zinc-400">{session.config?.prompt || t('askAnonymously')}</p>
       </div>
 
       <div className="p-4 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
         <textarea
-          placeholder={session.config?.prompt || 'Type your question...'}
+          placeholder={session.config?.prompt || t('typeYourQuestion')}
           value={question}
           onChange={e => setQuestion(e.target.value)}
           rows={3}
@@ -97,27 +98,27 @@ export default function QABoard({ session }: QABoardProps) {
           disabled={submitting || !question.trim()}
           className="mt-3 w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50"
         >
-          {submitting ? 'Submitting...' : 'Submit Question'}
+          {submitting ? t('submitting') : t('submitQuestion')}
         </button>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-zinc-400">Loading...</div>
+        <div className="text-center py-12 text-zinc-400">{t('loading')}</div>
       ) : (
         <div className="space-y-3 pb-4">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="font-bold text-zinc-900 dark:text-zinc-100">Questions</h2>
+            <h2 className="font-bold text-zinc-900 dark:text-zinc-100">{t('questions')}</h2>
             <button
               onClick={handleRefresh}
               disabled={refreshing}
               className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 text-zinc-400 transition-colors disabled:opacity-50"
-              title="Refresh"
+              title={t('refresh')}
             >
               <i className={`fi fi-sr-refresh text-sm ${refreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
           {sorted.length === 0 ? (
-            <div className="text-center py-12 text-zinc-400">No questions yet. Be the first to ask!</div>
+            <div className="text-center py-12 text-zinc-400">{t('noQuestionsYet')}</div>
           ) : (
             sorted.map(q => (
               <div
@@ -133,7 +134,7 @@ export default function QABoard({ session }: QABoardProps) {
                     <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
                       {q.content?.upvotes || 0}
                     </span>
-                    <span className="text-xs text-zinc-400">votes</span>
+                    <span className="text-xs text-zinc-400">{t('votes')}</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-zinc-700 dark:text-zinc-300">{q.content?.question}</p>
@@ -142,7 +143,7 @@ export default function QABoard({ session }: QABoardProps) {
                         {new Date(q.createdAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                       {q.content?.isAnswered && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-700 font-medium">Answered</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-700 font-medium">{t('answered')}</span>
                       )}
                     </div>
                   </div>

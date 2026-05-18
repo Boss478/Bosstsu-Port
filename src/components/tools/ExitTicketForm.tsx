@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { t } from '@/lib/tool-translations';
 
 interface ExitTicketFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,7 +49,7 @@ export default function ExitTicketForm({ session }: ExitTicketFormProps) {
         setSubmitted(true);
       }
     } catch {
-      setError('Failed to submit');
+      setError(t('failedToSubmitSimple'));
     } finally {
       setSubmitting(false);
     }
@@ -59,8 +60,8 @@ export default function ExitTicketForm({ session }: ExitTicketFormProps) {
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-lg w-full p-8 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-lg text-center">
           <i className="fi fi-sr-check-circle text-6xl text-emerald-500 block mb-4" />
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Submitted!</h2>
-          <p className="text-zinc-500 dark:text-zinc-400">Thank you for your reflection!</p>
+          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{t('submittedTitle')}</h2>
+          <p className="text-zinc-500 dark:text-zinc-400">{t('thankYouReflection')}</p>
         </div>
       </div>
     );
@@ -81,13 +82,13 @@ export default function ExitTicketForm({ session }: ExitTicketFormProps) {
           <div className="p-4 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Your name (optional)
+                {t('yourNameOptional')}
               </label>
               <input
                 type="text"
                 value={studentName}
                 onChange={e => setStudentName(e.target.value)}
-                placeholder="Anonymous"
+                placeholder={t('anonymousPlaceholder')}
                 className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -95,14 +96,14 @@ export default function ExitTicketForm({ session }: ExitTicketFormProps) {
             <div className="space-y-2">
               <label className="text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
                 <i className="fi fi-sr-lightbulb text-emerald-500" />
-                1. What is one thing you learned today?
+                {t('learnedToday')}
               </label>
               <textarea
                 value={learned}
                 onChange={e => setLearned(e.target.value)}
                 required
                 rows={3}
-                placeholder="Today I learned about..."
+                placeholder={t('learnedPlaceholder')}
                 className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
               />
             </div>
@@ -110,14 +111,14 @@ export default function ExitTicketForm({ session }: ExitTicketFormProps) {
             <div className="space-y-2">
               <label className="text-sm font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
                 <i className="fi fi-sr-interrogation text-blue-500" />
-                2. What is one question you still have?
+                {t('questionStillHave')}
               </label>
               <textarea
                 value={question}
                 onChange={e => setQuestion(e.target.value)}
                 required
                 rows={3}
-                placeholder="I still don't understand..."
+                placeholder={t('questionPlaceholder')}
                 className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
             </div>
@@ -125,14 +126,14 @@ export default function ExitTicketForm({ session }: ExitTicketFormProps) {
             <div className="space-y-2">
               <label className="text-sm font-bold text-purple-600 dark:text-purple-400 flex items-center gap-2">
                 <i className="fi fi-sr-search text-purple-500" />
-                3. What is one thing you want to know more about?
+                {t('wantToKnowMore')}
               </label>
               <textarea
                 value={wantToKnow}
                 onChange={e => setWantToKnow(e.target.value)}
                 required
                 rows={3}
-                placeholder="I want to learn more about..."
+                placeholder={t('wantToKnowPlaceholder')}
                 className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
               />
             </div>
@@ -145,7 +146,7 @@ export default function ExitTicketForm({ session }: ExitTicketFormProps) {
             disabled={submitting || !learned.trim() || !question.trim() || !wantToKnow.trim()}
             className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50"
           >
-            {submitting ? 'Submitting...' : 'Submit Exit Ticket'}
+            {submitting ? t('submitting') : t('submitExitTicket')}
           </button>
         </form>
       </div>

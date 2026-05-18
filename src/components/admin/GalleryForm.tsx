@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import ImageCropper from './ImageCropper';
 import TagPicker from './TagPicker';
 import { slugify } from '@/lib/format';
+import { useAdminSession } from './AdminSessionProvider';
 
 interface GalleryFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -18,6 +19,7 @@ interface GalleryFormProps {
 
 export default function GalleryForm({ initialData, portfolios, action, isEdit, availableTags = [] }: GalleryFormProps) {
   const router = useRouter();
+  const { onAuthError } = useAdminSession();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(initialData?.cover || null);
@@ -49,6 +51,10 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
     try {
       const result = await action(formData);
       if (result && result.error) {
+        if (result.error.includes('[401]')) {
+          onAuthError();
+          return;
+        }
         setError(result.error);
       } else {
         router.push('/admin/gallery');

@@ -26,7 +26,7 @@ export default function PortfolioForm({
   availableTools = [],
 }: PortfolioFormProps) {
   const router = useRouter();
-  const { setIsUploading } = useAdminSession();
+  const { setIsUploading, onAuthError } = useAdminSession();
   
   // Basic states
   const [error, setError] = useState<string | null>(null);
@@ -169,6 +169,12 @@ export default function PortfolioForm({
 
     } catch (err: unknown) {
       if (err instanceof Error) {
+        if (err.message.includes('[401]')) {
+          onAuthError();
+          setIsSubmitting(false);
+          setIsUploading(false);
+          return;
+        }
         setError(err.message);
       } else {
         setError('เกิดข้อผิดพลาดที่ไม่คาดคิด');

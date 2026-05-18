@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { t } from '@/lib/tool-translations';
 
 interface AssignmentFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -100,7 +101,7 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
         if (contentType?.includes('application/json')) {
           data = await res.json();
         } else {
-          data = { error: 'Server error' };
+          data = { error: t('serverError') };
         }
 
         if (data.error) {
@@ -121,7 +122,7 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
         }
       }
     } catch {
-      setError('Failed to submit. Please try again.');
+      setError(t('failedToSubmit'));
     } finally {
       setSubmitting(false);
     }
@@ -135,18 +136,18 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{session.title}</h1>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm font-mono">
               <i className="fi fi-sr-check-circle" />
-              Submitted
+              {t('submitted')}
             </div>
           </div>
 
           <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Name</label>
-              <p className="text-zinc-900 dark:text-zinc-100 font-medium">{studentName || 'Anonymous'}</p>
+              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('name')}</label>
+              <p className="text-zinc-900 dark:text-zinc-100 font-medium">{studentName || t('anonymous')}</p>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Answer</label>
+              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('answer')}</label>
               <div className="p-4 rounded-xl bg-zinc-50 dark:bg-slate-900 text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
                 {answer}
               </div>
@@ -154,10 +155,10 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
 
             {fileUrl && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">File</label>
+                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('file')}</label>
                 <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-600 hover:underline">
                   <i className="fi fi-sr-file" />
-                  Download attached file
+                  {t('downloadAttachedFile')}
                 </a>
               </div>
             )}
@@ -168,7 +169,7 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
             className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all"
           >
             <i className="fi fi-sr-pencil mr-2" />
-            Edit My Answer
+            {t('editMyAnswer')}
           </button>
         </div>
       </div>
@@ -188,32 +189,32 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
 
         <form onSubmit={(e) => handleSubmit(e, isEditing)} className="space-y-4">
           <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-4">
-            <h3 className="font-bold text-zinc-900 dark:text-zinc-100">{session.config?.prompt || 'Submit your assignment'}</h3>
+            <h3 className="font-bold text-zinc-900 dark:text-zinc-100">{session.config?.prompt || t('submitYourAssignment')}</h3>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Name <span className="text-red-500">*</span>
+                {t('name')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={studentName}
                 onChange={e => setStudentName(e.target.value)}
                 required
-                placeholder="Your full name"
+                placeholder={t('yourFullName')}
                 className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Answer <span className="text-red-500">*</span>
+                {t('answer')} <span className="text-red-500">*</span>
               </label>
               <textarea
                 value={answer}
                 onChange={e => setAnswer(e.target.value)}
                 required
                 rows={6}
-                placeholder="Type your answer here..."
+                placeholder={t('typeYourAnswerHere')}
                 className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
               />
             </div>
@@ -221,12 +222,12 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
             {allowFileUpload && !isEditing && (
               <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  File Upload (optional, max 10MB)
+                  {t('fileUploadOptional')}
                 </label>
                 <label className="flex items-center gap-3 w-full px-4 py-5 rounded-xl bg-white dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors cursor-pointer">
                   <i className="fi fi-sr-cloud-upload text-xl text-zinc-400" />
                   <span className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
-                    {fileName || 'Click to upload a file'}
+                    {fileName || t('clickToUploadFile')}
                   </span>
                   <input
                     type="file"
@@ -255,7 +256,7 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
                 onClick={() => { setIsEditing(false); setError(null); }}
                 className="flex-1 py-3 bg-zinc-100 dark:bg-slate-800 text-zinc-600 dark:text-zinc-400 font-bold rounded-xl hover:bg-zinc-200 transition-colors"
               >
-                Cancel
+                {t('cancel')}
               </button>
             )}
             <button
@@ -263,7 +264,7 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
               disabled={submitting || !answer.trim()}
               className={`py-3 ${isEditing ? 'flex-1' : 'w-full'} bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50`}
             >
-              {submitting ? 'Saving...' : isEditing ? 'Save Changes' : 'Submit Assignment'}
+              {submitting ? t('saving') : isEditing ? t('saveChanges') : t('submitAssignment')}
             </button>
           </div>
         </form>
