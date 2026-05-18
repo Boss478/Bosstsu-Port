@@ -46,8 +46,13 @@ export async function POST(req: NextRequest) {
     const filePath = await saveFile(file, folderInput, convertToWebP);
 
     return NextResponse.json({ url: filePath }, { status: 200 });
-  } catch (error: Error | unknown) {
+  } catch (error: unknown) {
     console.error('API Upload Error:', error);
+    const msg = error instanceof Error ? error.message : '';
+    if (msg.includes('ERROR_U05') || msg.includes('ERROR_U06') || msg.includes('ERROR_U07')) {
+      const err = createErrorResponse(msg.includes('U07') ? 'U07' : msg.includes('U06') ? 'U06' : 'U05');
+      return NextResponse.json({ error: err }, { status: err.httpStatus });
+    }
     const err = createErrorResponse('500');
     return NextResponse.json({ error: err }, { status: err.httpStatus });
   }

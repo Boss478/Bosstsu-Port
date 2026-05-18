@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import AdminSessionProvider from '@/components/admin/AdminSessionProvider';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminMobileNav from '@/components/admin/AdminMobileNav';
+import ToastProvider from '@/components/admin/ToastProvider';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -15,7 +16,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <AdminSessionProvider>
-      <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
+      <ToastProvider>
+        <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
         {!isMinimalLayout && (
           <>
             <AdminSidebar
@@ -49,6 +51,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </main>
         </div>
       </div>
+      </ToastProvider>
     </AdminSessionProvider>
   );
 }

@@ -7,6 +7,7 @@ import TagPicker from './TagPicker';
 import RichTextEditor from './RichTextEditor';
 import SaveProgress from './SaveProgress';
 import { useAdminSession } from './AdminSessionProvider';
+import { useToast } from './ToastProvider';
 import { slugify } from '@/lib/format';
 
 interface PortfolioFormProps {
@@ -27,6 +28,7 @@ export default function PortfolioForm({
 }: PortfolioFormProps) {
   const router = useRouter();
   const { setIsUploading, onAuthError } = useAdminSession();
+  const { showToast } = useToast();
   
   // Basic states
   const [error, setError] = useState<string | null>(null);
@@ -176,8 +178,10 @@ export default function PortfolioForm({
           return;
         }
         setError(err.message);
+        showToast(err.message, 'error');
       } else {
         setError('เกิดข้อผิดพลาดที่ไม่คาดคิด');
+        showToast('เกิดข้อผิดพลาดที่ไม่คาดคิด', 'error');
       }
       setIsSubmitting(false);
     } finally {

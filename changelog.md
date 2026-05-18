@@ -4,6 +4,13 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.8 (2026-05-18)
+
+* Fixed file upload permission error on VPS — upload directories now pre-created with correct ownership in Dockerfile
++ Added permission-aware error handling in saveFile() with user-friendly Thai error messages
+* Upload permission errors now bubble up to the user instead of showing generic "Cannot create data"
++ Added toast notification system for admin CRUD actions — success/error feedback at bottom-right of screen
+
 ## v1.8.7 (2026-05-18)
 
 + Added bilingual Thai/English UI for all student tool components (Padlet, Poll, Assignment, Q&A, Quiz, Exit Ticket, Discussion)

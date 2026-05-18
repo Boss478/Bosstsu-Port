@@ -32,6 +32,16 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/static ./.next/static
 
+RUN mkdir -p /app/public/uploads/portfolio \
+    /app/public/uploads/gallery/covers \
+    /app/public/uploads/gallery/albums \
+    /app/public/uploads/games \
+    /app/public/uploads/learning \
+    /app/public/uploads/tools \
+    /app/public/uploads/misc && \
+    chown -R 1001:1001 /app/public/uploads && \
+    chmod -R 755 /app/public/uploads
+
 USER nextjs
 EXPOSE 3300
 

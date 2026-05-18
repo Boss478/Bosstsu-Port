@@ -105,6 +105,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, id: response._id.toString(), editToken });
   } catch (err) {
     console.error('Respond error:', err);
+    const msg = err instanceof Error ? err.message : '';
+    if (msg.includes('ERROR_U05') || msg.includes('ERROR_U06') || msg.includes('ERROR_U07')) {
+      return NextResponse.json({ error: msg }, { status: 500 });
+    }
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

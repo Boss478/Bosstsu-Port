@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import TagPicker from './TagPicker';
 import { useAdminSession } from './AdminSessionProvider';
+import { useToast } from './ToastProvider';
 
 interface GameFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,6 +28,7 @@ export default function GameForm({
 }: GameFormProps) {
   const router = useRouter();
   const { onAuthError } = useAdminSession();
+  const { showToast } = useToast();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [gameType, setGameType] = useState<'url' | 'html'>(
@@ -52,11 +54,14 @@ export default function GameForm({
           return;
         }
         setError(result.error);
+        showToast(result.error, 'error');
       } else {
+        showToast('บันทึกข้อมูลสำเร็จ');
         router.push('/admin/games');
       }
     } catch {
       setError('เกิดข้อผิดพลาด กรุณาลองใหม่');
+      showToast('เกิดข้อผิดพลาด กรุณาลองใหม่', 'error');
     } finally {
       setPending(false);
     }

@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { v4 as uuidv4 } from 'uuid';
 import { CONFIG } from '@/lib/config';
+import { formatError } from '@/lib/error-code';
 import sharp from 'sharp';
 import convert from 'heic-convert';
 
@@ -36,7 +37,10 @@ export async function saveFile(file: File, folder: string = 'misc', asWebP: bool
     await fs.mkdir(uploadDir, { recursive: true });
   } catch (error) {
     console.error('Error creating upload directory:', error);
-    throw new Error('Failed to create upload directory');
+    if (error instanceof Error && (error as NodeJS.ErrnoException).code === 'EACCES') {
+      throw new Error(formatError('U07'));
+    }
+    throw new Error(formatError('U05'));
   }
 
   const ext = asWebP ? 'webp' : 'jpg';
@@ -80,7 +84,15 @@ export async function saveFile(file: File, folder: string = 'misc', asWebP: bool
     throw new Error('Failed to process/compress image. Ensure the file is not corrupted.');
   }
 
-  await fs.writeFile(filePath, buffer as unknown as Uint8Array);
+  try {
+    await fs.writeFile(filePath, buffer as unknown as Uint8Array);
+  } catch (error) {
+    console.error('Error writing file:', error);
+    if (error instanceof Error && (error as NodeJS.ErrnoException).code === 'EACCES') {
+      throw new Error(formatError('U07'));
+    }
+    throw new Error(formatError('U06'));
+  }
 
   return `/uploads/${folder}/${year}/${month}/${filename}`;
 }

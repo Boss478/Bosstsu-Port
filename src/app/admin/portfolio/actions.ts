@@ -67,6 +67,10 @@ export async function createPortfolioItem(formData: FormData) {
     });
   } catch (error: unknown) {
     console.error('Create error:', error);
+    const msg = error instanceof Error ? error.message : '';
+    if (msg.includes('ERROR_U05') || msg.includes('ERROR_U06') || msg.includes('ERROR_U07')) {
+      return { error: msg };
+    }
     return { error: formatError('DB01') };
   }
 
@@ -124,6 +128,10 @@ export async function updatePortfolioItem(id: string, formData: FormData) {
     await Portfolio.findByIdAndUpdate(id, updateData);
   } catch (error: unknown) {
     console.error('Update error:', error);
+    const msg = error instanceof Error ? error.message : '';
+    if (msg.includes('ERROR_U05') || msg.includes('ERROR_U06') || msg.includes('ERROR_U07')) {
+      return { error: msg };
+    }
     return { error: formatError('DB02') };
   }
 

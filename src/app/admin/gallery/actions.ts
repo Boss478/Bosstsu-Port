@@ -70,6 +70,10 @@ export async function createGalleryAlbum(formData: FormData) {
     });
   } catch (error: unknown) {
     console.error('CreateGallery Error:', error);
+    const msg = error instanceof Error ? error.message : '';
+    if (msg.includes('ERROR_U05') || msg.includes('ERROR_U06') || msg.includes('ERROR_U07')) {
+      return { error: msg };
+    }
     return { error: formatError('DB01') };
   }
 
@@ -135,6 +139,10 @@ export async function updateGalleryAlbum(id: string, formData: FormData) {
     await Gallery.findByIdAndUpdate(id, updateData);
   } catch (error: unknown) {
     console.error('UpdateGallery Error:', error);
+    const msg = error instanceof Error ? error.message : '';
+    if (msg.includes('ERROR_U05') || msg.includes('ERROR_U06') || msg.includes('ERROR_U07')) {
+      return { error: msg };
+    }
     return { error: formatError('DB02') };
   }
 

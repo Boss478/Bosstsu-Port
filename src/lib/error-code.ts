@@ -18,6 +18,8 @@ const ERRORS = {
   U03: { http: 400, message: "ไฟล์ปกอร์ไม่ถูกต้อง", translation: "Cover image required" },
   U04: { http: 400, message: "โฟลเดอร์ไม่ถูกต้อง", translation: "Invalid folder" },
   U05: { http: 400, message: "ไม่พบไฟล์", translation: "File not found" },
+  U06: { http: 500, message: "เกิดข้อผิดพลาดในการบันทึกไฟล์", translation: "File save error" },
+  U07: { http: 500, message: "ไม่สามารถบันทึกไฟล์ได้ กรุณาติดต่อผู้ดูแลระบบ", translation: "Upload directory permission error" },
 
   A01: { http: 401, message: "รหัสผ่านไม่ถูกต้อง", translation: "Invalid password" },
   A02: { http: 429, message: "ระบบถูกล็อกชั่วคราว โปรดลองอีกครั้งใน 15 นาที", translation: "Rate limited" },

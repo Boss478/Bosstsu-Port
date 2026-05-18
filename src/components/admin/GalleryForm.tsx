@@ -7,6 +7,7 @@ import ImageCropper from './ImageCropper';
 import TagPicker from './TagPicker';
 import { slugify } from '@/lib/format';
 import { useAdminSession } from './AdminSessionProvider';
+import { useToast } from './ToastProvider';
 
 interface GalleryFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,6 +21,7 @@ interface GalleryFormProps {
 export default function GalleryForm({ initialData, portfolios, action, isEdit, availableTags = [] }: GalleryFormProps) {
   const router = useRouter();
   const { onAuthError } = useAdminSession();
+  const { showToast } = useToast();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(initialData?.cover || null);
@@ -57,11 +59,14 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
           return;
         }
         setError(result.error);
+        showToast(result.error, 'error');
       } else {
+        showToast('บันทึกข้อมูลสำเร็จ');
         router.push('/admin/gallery');
       }
     } catch {
       setError('เกิดข้อผิดพลาด กรุณาลองใหม่');
+      showToast('เกิดข้อผิดพลาด กรุณาลองใหม่', 'error');
     } finally {
       setPending(false);
     }

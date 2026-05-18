@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import TagPicker from './TagPicker';
 import RichTextEditor from './RichTextEditor';
 import { useAdminSession } from './AdminSessionProvider';
+import { useToast } from './ToastProvider';
 
 const SUBJECT_OPTIONS = [
   'คณิตศาสตร์ (Mathematics)',
@@ -108,6 +109,7 @@ export default function LearningForm({
 }: LearningFormProps) {
   const router = useRouter();
   const { onAuthError } = useAdminSession();
+  const { showToast } = useToast();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState(initialData?.type || '');
@@ -132,11 +134,14 @@ export default function LearningForm({
           return;
         }
         setError(result.error);
+        showToast(result.error, 'error');
       } else {
+        showToast('บันทึกข้อมูลสำเร็จ');
         router.push('/admin/resources');
       }
     } catch {
       setError('เกิดข้อผิดพลาด กรุณาลองใหม่');
+      showToast('เกิดข้อผิดพลาด กรุณาลองใหม่', 'error');
     } finally {
       setPending(false);
     }

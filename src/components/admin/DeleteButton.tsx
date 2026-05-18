@@ -3,6 +3,7 @@
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminSession } from './AdminSessionProvider';
+import { useToast } from './ToastProvider';
 
 interface DeleteButtonProps {
   id: string;
@@ -13,6 +14,7 @@ export default function DeleteButton({ id, action }: DeleteButtonProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const { onAuthError } = useAdminSession();
+  const { showToast } = useToast();
 
   const handleDelete = async () => {
     if (!confirm('ยืนยันการลบข้อมูลนี้หรือไม่?')) return;
@@ -23,9 +25,10 @@ export default function DeleteButton({ id, action }: DeleteButtonProps) {
         if (result.error.includes('[401]')) {
           onAuthError();
         } else {
-          alert(result.error);
+          showToast(result.error, 'error');
         }
       } else {
+        showToast('ลบข้อมูลสำเร็จ');
         router.refresh();
       }
     });

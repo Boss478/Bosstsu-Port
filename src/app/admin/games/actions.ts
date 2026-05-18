@@ -91,6 +91,10 @@ export async function createGame(formData: FormData) {
     });
   } catch (error: unknown) {
     console.error('Create game error:', error);
+    const msg = error instanceof Error ? error.message : '';
+    if (msg.includes('ERROR_U05') || msg.includes('ERROR_U06') || msg.includes('ERROR_U07')) {
+      return { error: msg };
+    }
     return { error: formatError('DB01') };
   }
 
@@ -142,6 +146,10 @@ export async function updateGame(id: string, formData: FormData) {
     await Game.findByIdAndUpdate(id, updateData);
   } catch (error: unknown) {
     console.error('Update game error:', error);
+    const msg = error instanceof Error ? error.message : '';
+    if (msg.includes('ERROR_U05') || msg.includes('ERROR_U06') || msg.includes('ERROR_U07')) {
+      return { error: msg };
+    }
     return { error: formatError('DB02') };
   }
 

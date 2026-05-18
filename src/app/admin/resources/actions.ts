@@ -120,6 +120,10 @@ export async function createLearningResource(formData: FormData) {
     });
   } catch (error: unknown) {
     console.error('Create learning error:', error);
+    const msg = error instanceof Error ? error.message : '';
+    if (msg.includes('ERROR_U05') || msg.includes('ERROR_U06') || msg.includes('ERROR_U07')) {
+      return { error: msg };
+    }
     return { error: formatError('DB01') };
   }
 
@@ -209,6 +213,10 @@ export async function updateLearningResource(id: string, formData: FormData) {
     await Learning.findByIdAndUpdate(id, updateData);
   } catch (error: unknown) {
     console.error('Update learning error:', error);
+    const msg = error instanceof Error ? error.message : '';
+    if (msg.includes('ERROR_U05') || msg.includes('ERROR_U06') || msg.includes('ERROR_U07')) {
+      return { error: msg };
+    }
     return { error: formatError('DB02') };
   }
 
