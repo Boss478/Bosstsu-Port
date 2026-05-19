@@ -22,6 +22,8 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [existingFileUrl, setExistingFileUrl] = useState<string | null>(null);
   const [removeCurrentFile, setRemoveCurrentFile] = useState(false);
+  const [previewFileUrl, setPreviewFileUrl] = useState<string | null>(null);
+  const [previewFileType, setPreviewFileType] = useState<'image' | 'pdf' | 'other' | null>(null);
 
   const STORAGE_KEY = `assignment_${session._id}`;
 
@@ -56,6 +58,18 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
   }, [submitted, isEditing]);
 
   const allowFileUpload = session.config?.allowFileUpload !== false;
+
+  const getFileType = (url: string): 'image' | 'pdf' | 'other' => {
+    const ext = url.split('.').pop()?.toLowerCase() || '';
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image';
+    if (ext === 'pdf') return 'pdf';
+    return 'other';
+  };
+
+  const handlePreviewFile = (url: string) => {
+    setPreviewFileType(getFileType(url));
+    setPreviewFileUrl(url);
+  };
 
   const handleSubmit = async (e: React.FormEvent, isEdit = false) => {
     e.preventDefault();
@@ -172,10 +186,13 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
             {fileUrl && (
               <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('file')}</label>
-                <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-600 hover:underline">
-                  <i className="fi fi-sr-file" />
-                  {t('downloadAttachedFile')}
-                </a>
+                <button
+                  onClick={() => handlePreviewFile(fileUrl)}
+                  className="flex items-center gap-2 text-blue-600 hover:underline"
+                >
+                  <i className="fi fi-sr-eye" />
+                  {t('previewFile')}
+                </button>
               </div>
             )}
           </div>
@@ -327,6 +344,49 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
             </button>
           </div>
         </form>
+
+        {previewFileUrl && (
+          <div 
+            className="fixed inset-0 z-150 flex items-center justify-center bg-black/10 p-4 animate-fade-in-up"
+            onClick={() => setPreviewFileUrl(null)}
+          >
+            <button 
+              type="button"
+              className="absolute top-4 right-4 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full w-12 h-12 flex items-center justify-center transition-all z-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewFileUrl(null);
+              }}
+            >
+              <i className="fi fi-sr-cross text-xl flex" />
+            </button>
+            <div 
+              className="relative w-full h-full max-w-4xl max-h-[90vh] flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {previewFileType === 'image' && (
+                <img
+                  src={previewFileUrl}
+                  alt="File Preview"
+                  className="max-w-full max-h-full object-contain drop-shadow-2xl rounded-lg"
+                />
+              )}
+              {previewFileType === 'pdf' && (
+                <iframe
+                  src={previewFileUrl}
+                  className="w-full h-full rounded-lg bg-white"
+                  title="PDF Preview"
+                />
+              )}
+              {previewFileType === 'other' && (
+                <div className="text-center p-8 bg-white dark:bg-slate-800 rounded-lg">
+                  <i className="fi fi-sr-file text-6xl text-zinc-300 dark:text-zinc-600 mb-4 block" />
+                  <p className="text-zinc-500 dark:text-zinc-400">{t('noPreviewAvailable')}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
