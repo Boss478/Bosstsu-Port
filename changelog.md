@@ -13,6 +13,7 @@
 ## v1.8.8 (2026-05-18)
 
 * Fixed file upload permission error on VPS — upload directories now pre-created with correct ownership in Dockerfile
+* Fixed `.webp` images returning 404 on VPS — added entrypoint script to normalize upload file permissions to 644 on startup
 + Added permission-aware error handling in saveFile() with user-friendly Thai error messages
 * Upload permission errors now bubble up to the user instead of showing generic "Cannot create data"
 + Added toast notification system for admin CRUD actions — success/error feedback at top-right of screen
