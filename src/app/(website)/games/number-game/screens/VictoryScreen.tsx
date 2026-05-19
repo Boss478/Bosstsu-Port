@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { calcStars, HIGH_SCORE_KEY, RANGES } from "../constants";
-import { useEffect, useState } from "react";
+import { HIGH_SCORE_KEY } from "../constants";
+import { useState } from "react";
 
 interface Props {
   score: number;
@@ -40,18 +40,17 @@ export default function VictoryScreen({
   const maxStars = stageStars.length * 3;
   const isNewBest = accuracy >= 90 && totalQuestions >= 5;
 
-  const [showNewBest, setShowNewBest] = useState(false);
-
-  useEffect(() => {
-    if (isNewBest) {
+  const [showNewBest] = useState(() => {
+    if (isNewBest && typeof window !== 'undefined') {
       const key = `${HIGH_SCORE_KEY}-${currentRangeId}`;
       const prev = Number(localStorage.getItem(key) ?? "0");
       if (score > prev) {
         localStorage.setItem(key, String(score));
-        setShowNewBest(true);
+        return true;
       }
     }
-  }, [isNewBest, score, currentRangeId]);
+    return false;
+  });
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl text-center space-y-6 animate-in zoom-in duration-500">

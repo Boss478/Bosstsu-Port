@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { RangeOption } from "../types";
 import { RANGES, HIGH_SCORE_KEY } from "../constants";
 
@@ -10,16 +10,15 @@ interface Props {
 }
 
 export default function RangeScreen({ onSelect, onBack }: Props) {
-  const [highScores, setHighScores] = useState<Record<string, number>>({});
-
-  useEffect(() => {
+  const [highScores] = useState<Record<string, number>>(() => {
+    if (typeof window === 'undefined') return {};
     const scores: Record<string, number> = {};
     for (const r of RANGES) {
       const val = localStorage.getItem(`${HIGH_SCORE_KEY}-${r.id}`);
       if (val) scores[r.id] = Number(val);
     }
-    setHighScores(scores);
-  }, []);
+    return scores;
+  });
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl text-center space-y-8 animate-in zoom-in duration-500">

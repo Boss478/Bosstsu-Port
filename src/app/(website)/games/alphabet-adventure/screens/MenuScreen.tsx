@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { HIGH_SCORE_KEY } from "../constants";
 
 interface Props {
@@ -10,12 +10,13 @@ interface Props {
 
 export default function MenuScreen({ onStart }: Props) {
   const router = useRouter();
-  const [highScore, setHighScore] = useState<number>(0);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(HIGH_SCORE_KEY);
-    if (stored) setHighScore(Number(stored));
-  }, []);
+  const [highScore] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(HIGH_SCORE_KEY);
+      return stored ? Number(stored) : 0;
+    }
+    return 0;
+  });
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 relative">

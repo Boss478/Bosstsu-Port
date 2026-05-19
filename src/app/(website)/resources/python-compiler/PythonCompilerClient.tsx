@@ -10,7 +10,19 @@ import { PYTHON_METADATA } from "./data";
 type EditorMode = "default" | "easy" | "study";
 
 export default function PythonCompilerClient() {
-  const [code, setCode] = useState('print("Hello world")');
+  const [code, setCode] = useState(() => {
+    if (typeof window === 'undefined') return 'print("Hello world")';
+    const params = new URLSearchParams(window.location.search);
+    const sharedCode = params.get("code");
+    if (sharedCode) {
+      try {
+        return window.atob(sharedCode);
+      } catch (e) {
+        console.error("Failed to decode shared code", e);
+      }
+    }
+    return 'print("Hello world")';
+  });
   const [output, setOutput] = useState<string>("");
   const [isEngineReady, setIsEngineReady] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
@@ -33,7 +45,9 @@ export default function PythonCompilerClient() {
   const [toast, setToast] = useState<string | null>(null);
 
   const modeRef = useRef(mode);
-  modeRef.current = mode;
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
 
   const workerRef = useRef<Worker | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -60,8 +74,8 @@ export default function PythonCompilerClient() {
   }, []);
 
   useEffect(() => {
-    const handleJump = (e: any) => {
-      const lineNum = e.detail;
+    const handleJump = (e: Event) => {
+      const lineNum = (e as CustomEvent).detail;
       if (textareaRef.current) {
         const lines = code.split("\n");
         let charPos = 0;
@@ -104,16 +118,6 @@ export default function PythonCompilerClient() {
 
     worker.postMessage({ type: "init" });
 
-    const params = new URLSearchParams(window.location.search);
-    const sharedCode = params.get("code");
-    if (sharedCode) {
-      try {
-        setCode(window.atob(sharedCode));
-      } catch (e) {
-        console.error("Failed to decode shared code", e);
-      }
-    }
-
     return () => { worker.terminate(); };
   }, [appendOutput]);
 
@@ -136,7 +140,6 @@ export default function PythonCompilerClient() {
 
   useEffect(() => {
     if (mode !== "study") {
-      setValidationState({ errors: [], unused: [] });
       return;
     }
 

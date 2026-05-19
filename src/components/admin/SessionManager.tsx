@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { endSession } from '@/app/admin/tools/actions';
 
 interface SessionManagerProps {
@@ -12,11 +12,7 @@ interface SessionManagerProps {
 
 export default function SessionManager({ session, onToggleCodeFullScreen }: SessionManagerProps) {
   const [pending, setPending] = useState(false);
-  const [origin, setOrigin] = useState('');
-
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
+  const [origin] = useState(typeof window !== 'undefined' ? window.location.origin : '');
 
   const handleEnd = async () => {
     if (!confirm('End this session? Students will no longer be able to submit responses.')) return;

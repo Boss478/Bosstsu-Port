@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { HIGH_SCORE_KEY } from "../constants";
 import { LEVELS } from "../constants";
 
@@ -25,33 +24,20 @@ function StarDisplay({ count }: { count: number }) {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-violet-50 dark:bg-violet-900/10 rounded-2xl p-4 border-2 border-violet-100 dark:border-violet-900/30">
-      <p className="text-[10px] font-black text-violet-400 uppercase tracking-widest">
-        {label}
-      </p>
-      <p className="text-2xl font-black text-violet-600 dark:text-violet-400 mt-1">
-        {value}
-      </p>
-    </div>
-  );
-}
-
 export default function VictoryScreen({ score, stageStars }: Props) {
-  const router = useRouter();
-  const [isNewBest, setIsNewBest] = useState(false);
+  const [isNewBest] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const key = HIGH_SCORE_KEY;
+      const prev = Number(localStorage.getItem(key) ?? "0");
+      if (score > prev) {
+        localStorage.setItem(key, String(score));
+        return true;
+      }
+    }
+    return false;
+  });
 
   const totalStars = stageStars.reduce((sum, s) => sum + s, 0);
-
-  useEffect(() => {
-    const key = HIGH_SCORE_KEY;
-    const prev = Number(localStorage.getItem(key) ?? "0");
-    if (score > prev) {
-      localStorage.setItem(key, String(score));
-      setIsNewBest(true);
-    }
-  }, [score]);
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-12 shadow-2xl text-center space-y-8 animate-in zoom-in duration-500">

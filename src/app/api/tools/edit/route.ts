@@ -3,7 +3,7 @@ import dbConnect from '@/lib/db';
 import ToolResponse from '@/models/ToolResponse';
 import ToolSession from '@/models/ToolSession';
 import { getError } from '@/lib/error-code';
-import { saveFile } from '@/lib/upload';
+import { saveFile, sanitizeFilename } from '@/lib/upload';
 import { CONFIG } from '@/lib/config';
 import fs from 'fs';
 import path from 'path';
@@ -73,7 +73,10 @@ export async function PATCH(req: NextRequest) {
           fs.unlinkSync(oldPath);
         }
       }
-      newFileUrl = await saveFile(file, 'tools');
+      const namePrefix = response.studentName 
+        ? `${session.sessionCode}_${sanitizeFilename(response.studentName)}` 
+        : session.sessionCode;
+      newFileUrl = await saveFile(file, 'tools', undefined, namePrefix);
     }
 
     await ToolResponse.findByIdAndUpdate(responseId, {

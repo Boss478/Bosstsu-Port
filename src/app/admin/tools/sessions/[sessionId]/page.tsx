@@ -55,6 +55,11 @@ export default async function SessionDetailPage({
     return <SessionNotFound sessionId={sessionId} />;
   }
 
+  let sessionData: Record<string, unknown> | null = null;
+  let responsesData: Record<string, unknown>[] = [];
+  let fetchError = false;
+  let notFound = false;
+
   try {
     await dbConnect();
 
@@ -64,16 +69,23 @@ export default async function SessionDetailPage({
     ]);
 
     if (!session) {
-      return <SessionNotFound sessionId={sessionId} />;
+      notFound = true;
+    } else {
+      sessionData = JSON.parse(JSON.stringify(session));
+      responsesData = JSON.parse(JSON.stringify(responses));
     }
-
-    return (
-      <SessionDetailShell
-        session={JSON.parse(JSON.stringify(session))}
-        responses={JSON.parse(JSON.stringify(responses))}
-      />
-    );
   } catch {
+    fetchError = true;
+  }
+
+  if (notFound || fetchError || !sessionData) {
     return <SessionNotFound sessionId={sessionId} />;
   }
+
+  return (
+    <SessionDetailShell
+      session={sessionData}
+      responses={responsesData}
+    />
+  );
 }

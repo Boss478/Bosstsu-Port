@@ -4,6 +4,11 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.13 (2026-05-19)
+
+* Fixed Assignment file preview not showing in submitted view — added preview modal to both submitted and form views
+* Changed uploaded assignment files to include session code and student name in filename — format: `{SESSION}_{NAME}_{shortId}.{ext}` (e.g., `ABC12_Boss_Test_a1b2c3d4.jpg`)
+
 ## v1.8.12 (2026-05-19)
 
 + Added file preview for Assignment tool — supports images (jpg/png/gif/webp) and PDF preview in modal; click "Preview File" button in results table to view

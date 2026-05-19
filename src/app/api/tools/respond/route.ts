@@ -4,7 +4,7 @@ import dbConnect from '@/lib/db';
 import ToolResponse from '@/models/ToolResponse';
 import ToolSession from '@/models/ToolSession';
 import { getError } from '@/lib/error-code';
-import { saveFile } from '@/lib/upload';
+import { saveFile, sanitizeFilename } from '@/lib/upload';
 import { CONFIG } from '@/lib/config';
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -81,7 +81,8 @@ export async function POST(req: NextRequest) {
       if (file.size > CONFIG.TOOLS.MAX_FILE_SIZE) {
         return NextResponse.json({ error: 'File too large (max 10MB)' }, { status: 400 });
       }
-      fileUrl = await saveFile(file, 'tools');
+      const namePrefix = studentName ? `${session.sessionCode}_${sanitizeFilename(studentName)}` : session.sessionCode;
+      fileUrl = await saveFile(file, 'tools', undefined, namePrefix);
     }
 
     const editToken = crypto.randomUUID();

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { t } from '@/lib/tool-translations';
+import { getStudentToken } from '@/lib/client-token';
 
 interface AssignmentFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -93,6 +94,9 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
         
         const res = await fetch('/api/tools/edit', {
           method: 'PATCH',
+          headers: {
+            'student-token': getStudentToken(),
+          },
           body: editFormData,
         });
         const data = await res.json();
@@ -123,6 +127,9 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
 
         const res = await fetch('/api/tools/respond', {
           method: 'POST',
+          headers: {
+            'student-token': getStudentToken(),
+          },
           body: formData,
         });
 
@@ -206,6 +213,49 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
             {t('editMyAnswer')}
           </button>
         </div>
+
+        {previewFileUrl && (
+          <div 
+            className="fixed inset-0 z-150 flex items-center justify-center bg-black/10 p-4 animate-fade-in-up"
+            onClick={() => setPreviewFileUrl(null)}
+          >
+            <button 
+              type="button"
+              className="absolute top-4 right-4 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full w-12 h-12 flex items-center justify-center transition-all z-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewFileUrl(null);
+              }}
+            >
+              <i className="fi fi-sr-cross text-xl flex" />
+            </button>
+            <div 
+              className="relative w-full h-full max-w-4xl max-h-[90vh] flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {previewFileType === 'image' && (
+                <img
+                  src={previewFileUrl}
+                  alt="File Preview"
+                  className="max-w-full max-h-full object-contain drop-shadow-2xl rounded-lg"
+                />
+              )}
+              {previewFileType === 'pdf' && (
+                <iframe
+                  src={previewFileUrl}
+                  className="w-full h-full rounded-lg bg-white"
+                  title="PDF Preview"
+                />
+              )}
+              {previewFileType === 'other' && (
+                <div className="text-center p-8 bg-white dark:bg-slate-800 rounded-lg">
+                  <i className="fi fi-sr-file text-6xl text-zinc-300 dark:text-zinc-600 mb-4 block" />
+                  <p className="text-zinc-500 dark:text-zinc-400">{t('noPreviewAvailable')}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

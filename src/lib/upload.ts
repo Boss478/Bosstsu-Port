@@ -8,6 +8,17 @@ import convert from 'heic-convert';
 
 sharp.concurrency(CONFIG.IMAGE_PROCESSING.CONCURRENT_SHARP);
 
+export function sanitizeFilename(name: string): string {
+  if (!name) return '';
+  const sanitized = name
+    .trim()
+    .replace(/\s+/g, '_')
+    .replace(/[^\w\-\u0E00-\u0E7F]/g, '')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '');
+  return sanitized.length > 30 ? sanitized.substring(0, 30) : sanitized;
+}
+
 export function isHeicFile(file: File | { name?: string; type?: string }): boolean {
   const nameLC = file.name?.toLowerCase() || '';
   const typeLC = file.type?.toLowerCase() || '';
@@ -15,7 +26,7 @@ export function isHeicFile(file: File | { name?: string; type?: string }): boole
   return extMatch || typeLC === 'image/heic' || typeLC === 'image/heif';
 }
 
-export async function saveFile(file: File, folder: string = 'misc', asWebP?: boolean): Promise<string> {
+export async function saveFile(file: File, folder: string = 'misc', asWebP?: boolean, filenamePrefix?: string): Promise<string> {
   const allowedTypes = CONFIG.UPLOAD.ALLOWED_TYPES as readonly string[];
   const maxSize = CONFIG.UPLOAD.MAX_SIZE;
 
@@ -45,8 +56,15 @@ export async function saveFile(file: File, folder: string = 'misc', asWebP?: boo
     throw new Error(formatError('U05'));
   }
 
-  const ext = shouldConvert ? 'webp' : 'jpg';
-  const filename = `${uuidv4()}.${ext}`;
+  let filename: string;
+  if (filenamePrefix) {
+    const shortUuid = uuidv4().replace(/-/g, '').substring(0, 8);
+    const ext = shouldConvert ? 'webp' : 'jpg';
+    filename = `${filenamePrefix}_${shortUuid}.${ext}`;
+  } else {
+    const ext = shouldConvert ? 'webp' : 'jpg';
+    filename = `${uuidv4()}.${ext}`;
+  }
   const filePath = path.join(uploadDir, filename);
 
   const arrayBuffer = await file.arrayBuffer();

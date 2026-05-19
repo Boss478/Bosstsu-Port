@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { useAudio } from "@/hooks/useAudio";
 import type { Screen, GameState, RoundData, FeedbackState, GridCell } from "./types";
 import { initialGameState, emptyRoundData } from "./types";
@@ -29,7 +28,6 @@ export default function AlphabetAdventureClient() {
   const [stageStars, setStageStars] = useState<number[]>([]);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
   const { playSound, muted, toggleMute } = useAudio();
 
   const stateRef = useRef(gameState);
@@ -96,6 +94,43 @@ export default function AlphabetAdventureClient() {
     setRoundData(generateRound(initialState));
     setStageStars([]);
   }, [generateRound]);
+
+  const finishGame = useCallback((score: number) => {
+    playSound("win");
+    setGameState(prev => ({ ...prev, score }));
+    setScreen("victory");
+  }, [playSound]);
+
+  const handleLevelComplete = useCallback((score: number, correct: number, total: number) => {
+    playSound("win");
+    const accuracy = total > 0 ? (correct / total) * 100 : 0;
+    const stars = calcStars(accuracy);
+    setStageStars(prev => [...prev, stars]);
+    showFeedback("Level Complete!", "correct");
+
+    const nextLevel = stateRef.current.level + 1;
+    if (nextLevel > 4) {
+      setTimeout(() => finishGame(score), GAME_CONFIG.FEEDBACK_DURATION + 500);
+    } else {
+      const nextState: GameState = {
+        ...stateRef.current,
+        level: nextLevel,
+        score,
+        round: 1,
+        winsInLevel: 0,
+        difficulty: GAME_CONFIG.INITIAL_DIFFICULTY,
+        consecutiveErrors: 0,
+        levelCorrect: 0,
+        levelTotal: 0,
+      };
+      setIsTransitioning(true);
+      setGameState(nextState);
+      setTimeout(() => {
+        setRoundData(generateRound(nextState));
+        setIsTransitioning(false);
+      }, GAME_CONFIG.FEEDBACK_DURATION + 500);
+    }
+  }, [playSound, showFeedback, generateRound, finishGame]);
 
   const handleAnswer = useCallback((selected: string) => {
     if (isTransitioning) return;
@@ -177,44 +212,7 @@ export default function AlphabetAdventureClient() {
       setGameState(newState);
       showFeedback(randomPraise("wrong"), "wrong");
     }
-  }, [isTransitioning, roundData, generateRound, playSound, showFeedback]);
-
-  const handleLevelComplete = useCallback((score: number, correct: number, total: number) => {
-    playSound("win");
-    const accuracy = total > 0 ? (correct / total) * 100 : 0;
-    const stars = calcStars(accuracy);
-    setStageStars(prev => [...prev, stars]);
-    showFeedback("Level Complete!", "correct");
-
-    const nextLevel = stateRef.current.level + 1;
-    if (nextLevel > 4) {
-      setTimeout(() => finishGame(score), GAME_CONFIG.FEEDBACK_DURATION + 500);
-    } else {
-      const nextState: GameState = {
-        ...stateRef.current,
-        level: nextLevel,
-        score,
-        round: 1,
-        winsInLevel: 0,
-        difficulty: GAME_CONFIG.INITIAL_DIFFICULTY,
-        consecutiveErrors: 0,
-        levelCorrect: 0,
-        levelTotal: 0,
-      };
-      setIsTransitioning(true);
-      setGameState(nextState);
-      setTimeout(() => {
-        setRoundData(generateRound(nextState));
-        setIsTransitioning(false);
-      }, GAME_CONFIG.FEEDBACK_DURATION + 500);
-    }
-  }, [playSound, showFeedback, generateRound]);
-
-  const finishGame = useCallback((score: number) => {
-    playSound("win");
-    setGameState(prev => ({ ...prev, score }));
-    setScreen("victory");
-  }, [playSound]);
+  }, [isTransitioning, roundData, generateRound, playSound, showFeedback, handleLevelComplete]);
 
   const checkTyping = useCallback(() => {
     if (isTransitioning) return;

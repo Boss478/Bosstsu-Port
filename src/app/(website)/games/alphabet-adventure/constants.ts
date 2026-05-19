@@ -1,4 +1,4 @@
-import type { LevelConfig, LevelType } from "./types";
+import type { LevelConfig } from "./types";
 
 const ALPHABET_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const ALPHABET_LOWER = "abcdefghijklmnopqrstuvwxyz".split("");
@@ -89,7 +89,6 @@ function fisherYatesShuffle<T>(arr: T[]): T[] {
 }
 
 export function generateMatchRound(round: number) {
-  const letterIndex = round <= 26 ? round - 1 : -1;
   const usePool = round > 26;
   const pool = usePool ? fisherYatesShuffle([...Array(26).keys()]) : [];
   let poolIndex = 0;

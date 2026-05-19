@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import type { Question, FeedbackState } from "../types";
-import { INSTRUCTIONS, STAGE_NAMES, GAME_CONFIG, EMOJIS } from "../constants";
+import { INSTRUCTIONS, STAGE_NAMES, GAME_CONFIG } from "../constants";
 
 interface Props {
   question: Question;

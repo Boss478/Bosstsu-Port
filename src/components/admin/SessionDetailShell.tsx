@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Breadcrumb from '@/components/Breadcrumb';
 import ResultsView from '@/components/admin/ResultsView';
@@ -13,11 +13,7 @@ interface SessionDetailShellProps {
 
 export default function SessionDetailShell({ session, responses }: SessionDetailShellProps) {
   const [codeFullScreen, setCodeFullScreen] = useState(false);
-  const [origin, setOrigin] = useState('');
-
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
+  const [origin] = useState(typeof window !== 'undefined' ? window.location.origin : '');
 
   return (
     <>
