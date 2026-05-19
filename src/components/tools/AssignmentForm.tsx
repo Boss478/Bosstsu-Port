@@ -140,13 +140,14 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
           setSubmitted(true);
           setResponseId(data.id);
           setEditToken(data.editToken);
+          setFileUrl(data.fileUrl || null);
           if (typeof window !== 'undefined') {
             localStorage.setItem(STORAGE_KEY, JSON.stringify({
               responseId: data.id,
               editToken: data.editToken,
               studentName,
               content: { answer: answer.trim() },
-              fileUrl: null,
+              fileUrl: data.fileUrl || null,
             }));
           }
         }

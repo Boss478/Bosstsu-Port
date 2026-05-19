@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
 
     await ToolSession.findByIdAndUpdate(sessionId, { $inc: { responseCount: 1 } });
 
-    return NextResponse.json({ success: true, id: response._id.toString(), editToken });
+    return NextResponse.json({ success: true, id: response._id.toString(), editToken, fileUrl });
   } catch (err) {
     console.error('Respond error:', err);
     const msg = err instanceof Error ? err.message : '';
