@@ -226,7 +226,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
                           >
                             <i className="fi fi-sr-eye text-xs" />
                             {t('previewFile')}
-                          </a>
+                          </button>
                         )}
                       </td>
                       <td className="p-4 text-right text-xs text-zinc-400">
