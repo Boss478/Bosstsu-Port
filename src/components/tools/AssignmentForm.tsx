@@ -2,20 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { t } from '@/lib/tool-translations';
-import { getStudentToken } from '@/lib/client-token';
 
 interface AssignmentFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
-}
-
-const PREVIEWABLE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf', 'text/plain', 'text/markdown', 'application/json', 'text/javascript', 'text/css', 'text/html', 'application/x-javascript'];
-const PREVIEWABLE_EXTS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf', '.txt', '.md', '.json', '.js', '.css', '.html', '.py', '.ts', '.tsx'];
-
-function canPreview(fileUrl: string | null): boolean {
-  if (!fileUrl) return false;
-  const ext = fileUrl.toLowerCase().slice(fileUrl.lastIndexOf('.'));
-  return PREVIEWABLE_EXTS.includes(ext) || PREVIEWABLE_TYPES.some(t => fileUrl.includes(t));
 }
 
 export default function AssignmentForm({ session }: AssignmentFormProps) {
@@ -30,8 +20,6 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
   const [editToken, setEditToken] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
-  const [removeFile, setRemoveFile] = useState(false);
 
   const STORAGE_KEY = `assignment_${session._id}`;
 
@@ -74,59 +62,25 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
 
     try {
       if (isEdit && responseId && editToken) {
-        let updatedFileUrl: string | null = null;
-        let newFile: File | null = null;
-        
-        if (file && file.size > 0) {
-          newFile = file;
-        } else if (removeFile && fileUrl) {
-          updatedFileUrl = null;
-        }
-        
-        const formData = new FormData();
-        formData.set('responseId', responseId);
-        formData.set('editToken', editToken);
-        formData.set('content', JSON.stringify({ answer: answer.trim() }));
-        if (newFile) {
-          formData.set('file', newFile);
-          formData.set('action', 'replace');
-        } else if (removeFile) {
-          formData.set('action', 'remove');
-        }
-        
         const res = await fetch('/api/tools/edit', {
           method: 'PATCH',
-          headers: { 
-            'student-token': getStudentToken(),
-          },
-          body: formData,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            responseId,
+            editToken,
+            content: { answer: answer.trim() },
+          }),
         });
-        const contentType = res.headers.get('content-type');
-        let data;
-        if (contentType?.includes('application/json')) {
-          data = await res.json();
-        } else {
-          data = { error: t('serverError') };
-        }
-        
+        const data = await res.json();
         if (data.error) {
           setError(data.error);
         } else {
           setIsEditing(false);
-          setRemoveFile(false);
-          const newFileUrl = newFile ? data.fileUrl : (removeFile ? null : fileUrl);
-          setFileUrl(newFileUrl);
-          setFile(null);
-          setFileName('');
           if (typeof window !== 'undefined') {
             const stored = localStorage.getItem(STORAGE_KEY);
             if (stored) {
               const parsed = JSON.parse(stored);
-              localStorage.setItem(STORAGE_KEY, JSON.stringify({ 
-                ...parsed, 
-                content: { answer: answer.trim() },
-                fileUrl: newFileUrl,
-              }));
+              localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...parsed, content: { answer: answer.trim() } }));
             }
           }
         }
@@ -139,7 +93,6 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
 
         const res = await fetch('/api/tools/respond', {
           method: 'POST',
-          headers: { 'student-token': getStudentToken() },
           body: formData,
         });
 
@@ -203,27 +156,10 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
             {fileUrl && (
               <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('file')}</label>
-                <div className="flex flex-wrap gap-2">
-                  {canPreview(fileUrl) && (
-                    <button
-                      type="button"
-                      onClick={() => setShowPreview(true)}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors text-sm"
-                    >
-                      <i className="fi fi-sr-eye" />
-                      Preview
-                    </button>
-                  )}
-                  <a
-                    href={fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-100 dark:bg-slate-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-slate-600 transition-colors text-sm"
-                  >
-                    <i className="fi fi-sr-download" />
-                    Download
-                  </a>
-                </div>
+                <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-600 hover:underline">
+                  <i className="fi fi-sr-file" />
+                  {t('downloadAttachedFile')}
+                </a>
               </div>
             )}
           </div>
@@ -283,65 +219,28 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
               />
             </div>
 
-            {allowFileUpload && (
+            {allowFileUpload && !isEditing && (
               <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                   {t('fileUploadOptional')}
                 </label>
-                {(fileUrl && !isEditing) && (
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                    <i className="fi fi-sr-check-circle text-blue-600 dark:text-blue-400" />
-                    <span className="text-sm text-blue-700 dark:text-blue-300">File attached</span>
-                  </div>
-                )}
-                {(fileUrl && isEditing) && (
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-zinc-50 dark:bg-slate-800 border border-zinc-200 dark:border-slate-700">
-                    <div className="flex items-center gap-2">
-                      <i className="fi fi-sr-file text-zinc-500" />
-                      <span className="text-sm text-zinc-600 dark:text-zinc-300 truncate max-w-[200px]">
-                        {fileUrl.split('/').pop()}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {canPreview(fileUrl) && (
-                        <button
-                          type="button"
-                          onClick={() => setShowPreview(true)}
-                          className="px-2 py-1 text-xs rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50"
-                        >
-                          Preview
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => { setRemoveFile(true); setFileUrl(null); }}
-                        className="px-2 py-1 text-xs rounded bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                )}
-                {(!fileUrl || isEditing) && (
-                  <label className="flex items-center gap-3 w-full px-4 py-5 rounded-xl bg-white dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors cursor-pointer">
-                    <i className="fi fi-sr-cloud-upload text-xl text-zinc-400" />
-                    <span className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
-                      {fileName || (removeFile ? 'File will be removed' : t('clickToUploadFile'))}
-                    </span>
-                    <input
-                      type="file"
-                      onChange={e => {
-                        const f = e.target.files?.[0];
-                        if (f) {
-                          setFile(f);
-                          setFileName(f.name);
-                          setRemoveFile(false);
-                        }
-                      }}
-                      className="sr-only"
-                    />
-                  </label>
-                )}
+                <label className="flex items-center gap-3 w-full px-4 py-5 rounded-xl bg-white dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors cursor-pointer">
+                  <i className="fi fi-sr-cloud-upload text-xl text-zinc-400" />
+                  <span className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
+                    {fileName || t('clickToUploadFile')}
+                  </span>
+                  <input
+                    type="file"
+                    onChange={e => {
+                      const f = e.target.files?.[0];
+                      if (f) {
+                        setFile(f);
+                        setFileName(f.name);
+                      }
+                    }}
+                    className="sr-only"
+                  />
+                </label>
               </div>
             )}
 
@@ -371,38 +270,5 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
         </form>
       </div>
     </div>
-
-    {showPreview && fileUrl && (
-      <div 
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-        onClick={() => setShowPreview(false)}
-      >
-        <div 
-          className="relative max-w-4xl max-h-[90vh] w-full mx-4 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden"
-          onClick={e => e.stopPropagation()}
-        >
-          <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-slate-700">
-            <h3 className="font-bold text-zinc-900 dark:text-zinc-100">File Preview</h3>
-            <button
-              onClick={() => setShowPreview(false)}
-              className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 text-zinc-500 transition-colors"
-            >
-              <i className="fi fi-sr-times text-xl" />
-            </button>
-          </div>
-          <div className="p-4 max-h-[calc(90vh-80px)] overflow-auto">
-            {fileUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-              <img src={fileUrl} alt="Preview" className="max-w-full h-auto rounded-lg" />
-            ) : fileUrl.match(/\.pdf$/i) ? (
-              <iframe src={fileUrl} className="w-full h-[70vh] rounded-lg" title="PDF Preview" />
-            ) : (
-              <pre className="p-4 bg-zinc-100 dark:bg-slate-900 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 overflow-auto max-h-[70vh] whitespace-pre-wrap font-mono">
-                {typeof window !== 'undefined' && fetch(fileUrl).then(r => r.text()).catch(() => 'Unable to load file content')}
-              </pre>
-            )}
-          </div>
-        </div>
-      </div>
-    )}
   );
 }

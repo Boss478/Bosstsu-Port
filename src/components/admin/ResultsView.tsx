@@ -25,21 +25,12 @@ const TOOL_LABELS: Record<string, string> = {
   discussion: 'Discussion',
 };
 
-const PREVIEWABLE_EXTS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf', '.txt', '.md', '.json', '.js', '.css', '.html', '.py', '.ts', '.tsx'];
-
-function canPreview(fileUrl: string | null): boolean {
-  if (!fileUrl) return false;
-  const ext = fileUrl.toLowerCase().slice(fileUrl.lastIndexOf('.'));
-  return PREVIEWABLE_EXTS.includes(ext);
-}
-
 export default function ResultsView({ session, initialResponses, fullScreen, onToggleFullScreen, refreshInterval = 15000 }: ResultsViewProps) {
   const toolType = session.type || 'padlet';
   const [responses, setResponses] = useState(initialResponses);
   const [refreshing, setRefreshing] = useState(false);
   const [columnsPerRow, setColumnsPerRow] = useState<number | null>(null);
   const [sizePercent, setSizePercent] = useState(100);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchResponses = async () => {
@@ -212,21 +203,10 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
                       </td>
                       <td className="p-4 hidden md:table-cell">
                         {r.fileUrl && (
-                          <div className="flex items-center gap-2">
-                            {canPreview(r.fileUrl) && (
-                              <button
-                                onClick={() => setPreviewUrl(r.fileUrl!)}
-                                className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                              >
-                                <i className="fi fi-sr-eye text-xs" />
-                                Preview
-                              </button>
-                            )}
-                            <a href={r.fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1">
-                              <i className="fi fi-sr-download text-xs" />
-                              Download
-                            </a>
-                          </div>
+                          <a href={r.fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                            <i className="fi fi-sr-file text-xs" />
+                            Download
+                          </a>
                         )}
                       </td>
                       <td className="p-4 text-right text-xs text-zinc-400">
@@ -448,42 +428,9 @@ function ExitTicketResults({ responses, onDelete }: { responses: { _id: string; 
                   <p className="text-sm text-zinc-700 dark:text-zinc-300">{r.content?.[field]}</p>
                 </div>
               ))}
-</div>
-        </div>
-      </div>
-
-      {previewUrl && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-          onClick={() => setPreviewUrl(null)}
-        >
-          <div 
-            className="relative max-w-4xl max-h-[90vh] w-full mx-4 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-slate-700">
-              <h3 className="font-bold text-zinc-900 dark:text-zinc-100">File Preview</h3>
-              <button
-                onClick={() => setPreviewUrl(null)}
-                className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 text-zinc-500 transition-colors"
-              >
-                <i className="fi fi-sr-times text-xl" />
-              </button>
-            </div>
-            <div className="p-4 max-h-[calc(90vh-80px)] overflow-auto">
-              {previewUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                <img src={previewUrl} alt="Preview" className="max-w-full h-auto rounded-lg" />
-              ) : previewUrl.match(/\.pdf$/i) ? (
-                <iframe src={previewUrl} className="w-full h-[70vh] rounded-lg" title="PDF Preview" />
-              ) : (
-                <pre className="p-4 bg-zinc-100 dark:bg-slate-900 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 overflow-auto max-h-[70vh] whitespace-pre-wrap font-mono">
-                  {typeof window !== 'undefined' && fetch(previewUrl).then(r => r.text()).catch(() => 'Unable to load file content')}
-                </pre>
-              )}
-            </div>
           </div>
         </div>
-      )}
+      ))}
     </div>
   );
 }
