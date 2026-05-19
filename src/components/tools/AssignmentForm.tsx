@@ -85,7 +85,10 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
         editFormData.set('editToken', editToken);
         editFormData.set('content', JSON.stringify({ answer: answer.trim() }));
         
-        if (removeCurrentFile) {
+        if (removeCurrentFile && file) {
+          editFormData.set('action', 'replace');
+          editFormData.set('file', file);
+        } else if (removeCurrentFile) {
           editFormData.set('action', 'remove');
         } else if (file) {
           editFormData.set('action', 'replace');
@@ -105,7 +108,7 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
         } else {
           setIsEditing(false);
           setRemoveCurrentFile(false);
-          setFile(data.fileUrl || null);
+          setFileUrl(data.fileUrl || null);
           if (typeof window !== 'undefined') {
             const stored = localStorage.getItem(STORAGE_KEY);
             if (stored) {
@@ -318,10 +321,11 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
                         </span>
                       </div>
                       <div className="flex gap-2">
-                        <label className="px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 rounded-lg cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">
-                          {t('replaceFile')}
+                        <label className="px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 rounded-lg cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors whitespace-nowrap overflow-hidden text-ellipsis max-w-[140px]">
+                          {fileName || t('replaceFile')}
                           <input
                             type="file"
+                            accept="image/jpeg,image/png,application/pdf,image/gif,image/webp,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                             onChange={e => {
                               const f = e.target.files?.[0];
                               if (f) {

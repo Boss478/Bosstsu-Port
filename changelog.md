@@ -4,6 +4,11 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.14 (2026-05-19)
+
+* Fixed Assignment edit file upload bugs — remove+re-upload now works (was only removing old file), removed typo causing file state corruption, added filename display on Replace button
+* Fixed Assignment file state corruption after edit — was assigning string URL to File state, now correctly updates fileUrl
+
 ## v1.8.13 (2026-05-19)
 
 * Fixed Assignment file preview not showing in submitted view — added preview modal to both submitted and form views
