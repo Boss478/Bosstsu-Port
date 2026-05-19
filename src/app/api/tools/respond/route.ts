@@ -95,6 +95,8 @@ export async function POST(req: NextRequest) {
       editToken,
     } as Parameters<typeof ToolResponse.create>[0]) as { _id: { toString(): string } };
 
+    await ToolSession.findByIdAndUpdate(sessionId, { $inc: { responseCount: 1 } });
+
     return NextResponse.json({ success: true, id: response._id.toString(), editToken });
   } catch (err) {
     console.error('Respond error:', err);

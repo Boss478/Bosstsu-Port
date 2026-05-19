@@ -4,6 +4,12 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.12 (2026-05-19)
+
++ Added file preview for Assignment tool — supports images (jpg/png/gif/webp) and PDF preview in modal; disabled for unsupported types (docx, xlsx, etc.)
++ Added file re-upload capability for students — can replace or remove existing file when editing submission
+* Fixed Assignment response count showing 0 — respond route now increments responseCount after creating response
+
 ## v1.8.11 (2026-05-19)
 
 * Fixed upload files returning 404 on VPS — Docker volume mount issue with missing directories, fixed by updating entrypoint.sh to create all upload directories on startup
