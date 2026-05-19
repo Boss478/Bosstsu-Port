@@ -48,7 +48,6 @@ yarn-error.log*
 
 # Project specific
 CLAUDE.md
-AGENTS.md
 requirements.md
 Tasks/
 .claude/
@@ -63,4 +62,5 @@ Tasks/
 # Legacy paths (kept for safety)
 tasks/
 public/uploads/
+uploads/
 report/

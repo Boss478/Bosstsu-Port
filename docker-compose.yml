@@ -16,7 +16,7 @@ services:
       - "traefik.http.routers.boss478.tls.certresolver=letsencrypt"
       - "traefik.http.services.boss478.loadbalancer.server.url=http://127.0.0.1:3300"
     volumes:
-      - uploads:/app/public/uploads
+      - ./uploads:/app/public/uploads
     environment:
       - NODE_ENV=production
       - MONGODB_URI=${MONGODB_URI}
@@ -62,4 +62,3 @@ services:
 
 volumes:
   mongo_data:
-  uploads:
