@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import ExportButton from './ExportButton';
 import DeleteButton from './DeleteButton';
 import { deleteResponse, toggleQAAnswered } from '@/app/admin/tools/actions';
+import { t } from '@/lib/tool-translations';
 
 interface ResultsViewProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -31,7 +32,23 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
   const [refreshing, setRefreshing] = useState(false);
   const [columnsPerRow, setColumnsPerRow] = useState<number | null>(null);
   const [sizePercent, setSizePercent] = useState(100);
+  const [previewFileUrl, setPreviewFileUrl] = useState<string | null>(null);
+  const [previewFileType, setPreviewFileType] = useState<'image' | 'pdf' | 'other' | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const getFileType = (url: string | undefined): 'image' | 'pdf' | 'other' => {
+    if (!url) return 'other';
+    const ext = url.split('.').pop()?.toLowerCase() || '';
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image';
+    if (ext === 'pdf') return 'pdf';
+    return 'other';
+  };
+
+  const handlePreviewFile = (url: string | undefined) => {
+    if (!url) return;
+    setPreviewFileType(getFileType(url));
+    setPreviewFileUrl(url);
+  };
 
   const fetchResponses = async () => {
     try {
@@ -203,9 +220,12 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
                       </td>
                       <td className="p-4 hidden md:table-cell">
                         {r.fileUrl && (
-                          <a href={r.fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1">
-                            <i className="fi fi-sr-file text-xs" />
-                            Download
+                          <button
+                            onClick={() => handlePreviewFile(r.fileUrl)}
+                            className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                          >
+                            <i className="fi fi-sr-eye text-xs" />
+                            {t('previewFile')}
                           </a>
                         )}
                       </td>
@@ -285,6 +305,58 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
         </div>
 )}
         </div>
+
+        {previewFileUrl && (
+          <div 
+            className="fixed inset-0 z-150 flex items-center justify-center bg-black/10 p-4 animate-fade-in-up"
+            onClick={() => setPreviewFileUrl(null)}
+          >
+            <button 
+              type="button"
+              className="absolute top-4 right-4 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full w-12 h-12 flex items-center justify-center transition-all z-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewFileUrl(null);
+              }}
+            >
+              <i className="fi fi-sr-cross text-xl flex" />
+            </button>
+            <div 
+              className="relative w-full h-full max-w-4xl max-h-[90vh] flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {previewFileType === 'image' && (
+                <img
+                  src={previewFileUrl}
+                  alt="File Preview"
+                  className="max-w-full max-h-full object-contain drop-shadow-2xl rounded-lg"
+                />
+              )}
+              {previewFileType === 'pdf' && (
+                <iframe
+                  src={previewFileUrl}
+                  className="w-full h-full rounded-lg bg-white"
+                  title="PDF Preview"
+                />
+              )}
+              {previewFileType === 'other' && (
+                <div className="text-center p-8 bg-white dark:bg-slate-800 rounded-lg">
+                  <i className="fi fi-sr-file text-6xl text-zinc-300 dark:text-zinc-600 mb-4 block" />
+                  <p className="text-zinc-500 dark:text-zinc-400">{t('noPreviewAvailable')}</p>
+                  <a 
+                    href={previewFileUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                  >
+                    <i className="fi fi-sr-download" />
+                    {t('downloadAttachedFile')}
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

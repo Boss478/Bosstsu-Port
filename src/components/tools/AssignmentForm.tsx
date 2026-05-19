@@ -20,6 +20,8 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
   const [editToken, setEditToken] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [existingFileUrl, setExistingFileUrl] = useState<string | null>(null);
+  const [removeCurrentFile, setRemoveCurrentFile] = useState(false);
 
   const STORAGE_KEY = `assignment_${session._id}`;
 
@@ -34,6 +36,7 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
           setStudentName(data.studentName || '');
           setAnswer(data.content?.answer || '');
           setFileUrl(data.fileUrl || null);
+          setExistingFileUrl(data.fileUrl || null);
           setSubmitted(true);
         } catch {
           localStorage.removeItem(STORAGE_KEY);
@@ -62,25 +65,38 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
 
     try {
       if (isEdit && responseId && editToken) {
+        const editFormData = new FormData();
+        editFormData.set('responseId', responseId);
+        editFormData.set('editToken', editToken);
+        editFormData.set('content', JSON.stringify({ answer: answer.trim() }));
+        
+        if (removeCurrentFile) {
+          editFormData.set('action', 'remove');
+        } else if (file) {
+          editFormData.set('action', 'replace');
+          editFormData.set('file', file);
+        }
+        
         const res = await fetch('/api/tools/edit', {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            responseId,
-            editToken,
-            content: { answer: answer.trim() },
-          }),
+          body: editFormData,
         });
         const data = await res.json();
         if (data.error) {
           setError(data.error);
         } else {
           setIsEditing(false);
+          setRemoveCurrentFile(false);
+          setFile(data.fileUrl || null);
           if (typeof window !== 'undefined') {
             const stored = localStorage.getItem(STORAGE_KEY);
             if (stored) {
               const parsed = JSON.parse(stored);
-              localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...parsed, content: { answer: answer.trim() } }));
+              localStorage.setItem(STORAGE_KEY, JSON.stringify({ 
+                ...parsed, 
+                content: { answer: answer.trim() },
+                fileUrl: data.fileUrl || null,
+              }));
             }
           }
         }
@@ -219,28 +235,71 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
               />
             </div>
 
-            {allowFileUpload && !isEditing && (
+            {allowFileUpload && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  {t('fileUploadOptional')}
-                </label>
-                <label className="flex items-center gap-3 w-full px-4 py-5 rounded-xl bg-white dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors cursor-pointer">
-                  <i className="fi fi-sr-cloud-upload text-xl text-zinc-400" />
-                  <span className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
-                    {fileName || t('clickToUploadFile')}
-                  </span>
-                  <input
-                    type="file"
-                    onChange={e => {
-                      const f = e.target.files?.[0];
-                      if (f) {
-                        setFile(f);
-                        setFileName(f.name);
-                      }
-                    }}
-                    className="sr-only"
-                  />
-                </label>
+                {isEditing && existingFileUrl && !removeCurrentFile ? (
+                  <>
+                    <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                      {t('currentFile')}
+                    </label>
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-zinc-50 dark:bg-slate-900 border border-zinc-200 dark:border-slate-700">
+                      <div className="flex items-center gap-3">
+                        <i className="fi fi-sr-file text-xl text-blue-600 dark:text-blue-400" />
+                        <span className="text-sm text-zinc-700 dark:text-zinc-300 truncate max-w-[200px]">
+                          {existingFileUrl.split('/').pop()}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <label className="px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 rounded-lg cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">
+                          {t('replaceFile')}
+                          <input
+                            type="file"
+                            onChange={e => {
+                              const f = e.target.files?.[0];
+                              if (f) {
+                                setFile(f);
+                                setFileName(f.name);
+                              }
+                            }}
+                            className="sr-only"
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => { setRemoveCurrentFile(true); setFile(null); setFileName(''); }}
+                          className="px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
+                        >
+                          {t('removeFile')}
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  !isEditing && (
+                    <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                      {t('fileUploadOptional')}
+                    </label>
+                  )
+                )}
+                {(!isEditing || !existingFileUrl || removeCurrentFile) && (
+                  <label className="flex items-center gap-3 w-full px-4 py-5 rounded-xl bg-white dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors cursor-pointer">
+                    <i className="fi fi-sr-cloud-upload text-xl text-zinc-400" />
+                    <span className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
+                      {fileName || t('clickToUploadFile')}
+                    </span>
+                    <input
+                      type="file"
+                      onChange={e => {
+                        const f = e.target.files?.[0];
+                        if (f) {
+                          setFile(f);
+                          setFileName(f.name);
+                        }
+                      }}
+                      className="sr-only"
+                    />
+                  </label>
+                )}
               </div>
             )}
 

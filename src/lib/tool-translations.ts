@@ -85,6 +85,11 @@ export const toolStrings = {
   clickToUploadFile: { th: 'คลิกเพื่ออัปโหลดไฟล์', en: 'Click to upload a file' },
   file: { th: 'ไฟล์', en: 'File' },
   downloadAttachedFile: { th: 'ดาวน์โหลดไฟล์แนบ', en: 'Download attached file' },
+  previewFile: { th: 'ดูไฟล์', en: 'Preview File' },
+  replaceFile: { th: 'เปลี่ยนไฟล์', en: 'Replace File' },
+  removeFile: { th: 'ลบไฟล์', en: 'Remove File' },
+  currentFile: { th: 'ไฟล์ปัจจุบัน', en: 'Current File' },
+  noPreviewAvailable: { th: 'ไม่สามารถดูตัวอย่างไฟล์นี้ได้', en: 'No preview available' },
   submitYourAssignment: { th: 'ส่งงานของคุณ', en: 'Submit your assignment' },
 
   learnedToday: { th: '1. สิ่งที่คุณเรียนรู้วันนี้คืออะไร?', en: '1. What is one thing you learned today?' },
