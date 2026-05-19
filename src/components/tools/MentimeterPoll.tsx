@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { t } from '@/lib/tool-translations';
+import { getStudentToken } from '@/lib/client-token';
 
 interface MentimeterPollProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -84,7 +85,10 @@ export default function MentimeterPoll({ session }: MentimeterPollProps) {
     try {
       const res = await fetch(`/api/tools/poll?sessionId=${session._id}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'student-token': getStudentToken(),
+        },
         body: JSON.stringify({
           content: pollMode === 'mcq'
             ? { selectedOption: customMode ? customValue.trim() : selected }

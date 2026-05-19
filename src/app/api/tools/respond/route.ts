@@ -3,7 +3,6 @@ import crypto from 'crypto';
 import dbConnect from '@/lib/db';
 import ToolResponse from '@/models/ToolResponse';
 import ToolSession from '@/models/ToolSession';
-import { hashIP } from '@/lib/session-code';
 import { getError } from '@/lib/error-code';
 import { saveFile } from '@/lib/upload';
 import { CONFIG } from '@/lib/config';
@@ -23,15 +22,9 @@ function checkRateLimit(key: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  let ip = 'unknown';
-  let ipHash = '';
-
-  try {
-    const forwarded = req.headers.get('x-forwarded-for');
-    ip = forwarded?.split(',')[0] || 'unknown';
-    ipHash = hashIP(ip);
-  } catch {
-    // continue without IP hash
+  const studentToken = req.headers.get('student-token');
+  if (!studentToken) {
+    return NextResponse.json({ error: getError('T05').message }, { status: 400 });
   }
 
   let sessionId: string | null = null;
@@ -44,7 +37,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: getError('T05').message }, { status: 400 });
     }
 
-    const rateKey = `${sessionId}:${ipHash}`;
+    const rateKey = `${sessionId}:${studentToken}`;
     if (!checkRateLimit(rateKey)) {
       return NextResponse.json(
         { error: getError('T06').message },
@@ -64,7 +57,7 @@ export async function POST(req: NextRequest) {
 
     const maxSubmissions = session.config?.maxSubmissions || 10;
 
-    const existingCount = await ToolResponse.countDocuments({ sessionId, ipHash });
+    const existingCount = await ToolResponse.countDocuments({ sessionId, studentToken });
     if (existingCount >= maxSubmissions) {
       return NextResponse.json(
         { error: getError('T07').message },
@@ -98,7 +91,7 @@ export async function POST(req: NextRequest) {
       studentName: studentName || undefined,
       content,
       fileUrl,
-      ipHash,
+      studentToken,
       editToken,
     } as Parameters<typeof ToolResponse.create>[0]) as { _id: { toString(): string } };
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { t } from '@/lib/tool-translations';
+import { getStudentToken } from '@/lib/client-token';
 
 interface AssignmentFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -64,7 +65,10 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
       if (isEdit && responseId && editToken) {
         const res = await fetch('/api/tools/edit', {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'student-token': getStudentToken(),
+          },
           body: JSON.stringify({
             responseId,
             editToken,
@@ -93,6 +97,7 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
 
         const res = await fetch('/api/tools/respond', {
           method: 'POST',
+          headers: { 'student-token': getStudentToken() },
           body: formData,
         });
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { t } from '@/lib/tool-translations';
+import { getStudentToken } from '@/lib/client-token';
 
 interface QABoardProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -56,7 +57,10 @@ export default function QABoard({ session }: QABoardProps) {
     try {
       const res = await fetch(`/api/tools/poll?sessionId=${session._id}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'student-token': getStudentToken(),
+        },
         body: JSON.stringify({
           content: { question: question.trim(), upvotes: 0, isAnswered: false },
         }),

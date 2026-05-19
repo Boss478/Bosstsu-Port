@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { t } from '@/lib/tool-translations';
+import { getStudentToken } from '@/lib/client-token';
 
 interface PadletBoardProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -88,7 +89,10 @@ export default function PadletBoard({ session }: PadletBoardProps) {
     try {
       const res = await fetch(`/api/tools/poll?sessionId=${session._id}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'student-token': getStudentToken(),
+        },
         body: JSON.stringify({
           studentName: studentName.trim() || undefined,
           content: { message: message.trim() },
@@ -140,7 +144,10 @@ export default function PadletBoard({ session }: PadletBoardProps) {
     try {
       const res = await fetch('/api/tools/edit', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'student-token': getStudentToken(),
+        },
         body: JSON.stringify({
           responseId: postId,
           editToken: token,

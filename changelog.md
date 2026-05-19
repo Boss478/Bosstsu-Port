@@ -4,6 +4,12 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.11 (2026-05-19)
+
+* Fixed upload files returning 404 on VPS — Docker volume mount issue with missing directories, fixed by updating entrypoint.sh to create all upload directories on startup
+* Changed Classroom Tools per-student rate limiting from IP-based to sessionStorage-based studentToken — fixes classroom LAN issue where all students share the same public IP
+
+
 ## v1.8.10 (2026-05-19)
 
 + Added confirmation dialog before ending Class Tools session to prevent accidental termination

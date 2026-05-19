@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { t } from '@/lib/tool-translations';
+import { getStudentToken } from '@/lib/client-token';
 
 interface ExitTicketFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,7 +37,10 @@ export default function ExitTicketForm({ session }: ExitTicketFormProps) {
     try {
       const res = await fetch(`/api/tools/poll?sessionId=${session._id}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'student-token': getStudentToken(),
+        },
         body: JSON.stringify({
           studentName: studentName.trim() || undefined,
           content: { learned: learned.trim(), question: question.trim(), wantToKnow: wantToKnow.trim() },

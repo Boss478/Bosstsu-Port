@@ -3,7 +3,6 @@ import crypto from 'crypto';
 import dbConnect from '@/lib/db';
 import ToolSession from '@/models/ToolSession';
 import ToolResponse from '@/models/ToolResponse';
-import { hashIP } from '@/lib/session-code';
 import { getError } from '@/lib/error-code';
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -64,10 +63,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: getError('T05').message }, { status: 400 });
   }
 
-  const forwarded = req.headers.get('x-forwarded-for');
-  const ip = forwarded?.split(',')[0] || 'unknown';
-  const ipHash = hashIP(ip);
-  const rateKey = `${sessionId}:${ipHash}`;
+  const studentToken = req.headers.get('student-token');
+  if (!studentToken) {
+    return NextResponse.json({ error: getError('T05').message }, { status: 400 });
+  }
+
+  const rateKey = `${sessionId}:${studentToken}`;
 
   if (!checkRateLimit(rateKey)) {
     return NextResponse.json(
@@ -96,7 +97,7 @@ export async function POST(req: NextRequest) {
 
     const existingCount = await ToolResponse.countDocuments({
       sessionId,
-      ipHash,
+      studentToken,
     });
 
     const maxSubmissions = session.config?.maxSubmissions || 10;
@@ -115,7 +116,7 @@ export async function POST(req: NextRequest) {
       studentName: studentName || null,
       content,
       fileUrl: fileUrl || null,
-      ipHash,
+      studentToken,
       editToken,
     });
 

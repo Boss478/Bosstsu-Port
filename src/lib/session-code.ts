@@ -1,4 +1,3 @@
-import crypto from 'crypto';
 import dbConnect from './db';
 import ToolSession from '@/models/ToolSession';
 
@@ -21,8 +20,4 @@ export async function generateUniqueSessionCode(maxAttempts = 10): Promise<strin
     if (!existing) return code;
   }
   throw new Error('Failed to generate unique session code after max attempts');
-}
-
-export function hashIP(ip: string): string {
-  return crypto.createHash('sha256').update(ip).digest('hex').substring(0, 16);
 }
