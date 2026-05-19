@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import Breadcrumb from '@/components/Breadcrumb';
 import DeleteButton from '@/components/admin/DeleteButton';
-import { endSession, deleteSession, getAllSessions } from './actions';
+import EndSessionButton from '@/components/admin/EndSessionButton';
+import { deleteSession, getAllSessions } from './actions';
 import QuickStartModal from '@/components/admin/QuickStartModal';
 import dbConnect from '@/lib/db';
 
@@ -110,16 +111,7 @@ export default async function ToolsListPage() {
                         <i className="fi fi-sr-eye text-sm" />
                         View
                       </Link>
-                      <form action={endSession}>
-                        <input type="hidden" name="sessionId" value={session._id} />
-                        <button
-                          type="submit"
-                          className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-xl border border-red-200 transition-colors"
-                        >
-                          <i className="fi fi-sr-stop text-sm" />
-                          End
-                        </button>
-                      </form>
+                      <EndSessionButton sessionId={session._id} />
                     </div>
                   </div>
                 </div>

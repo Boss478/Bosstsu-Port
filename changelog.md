@@ -4,6 +4,10 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.10 (2026-05-19)
+
++ Added confirmation dialog before ending Class Tools session to prevent accidental termination
+
 ## v1.8.9 (2026-05-18)
 
 + Added WebP auto-detection in saveFile() — automatically converts to WebP based on FOLDERS_CONVERT_TO_WEBP config
