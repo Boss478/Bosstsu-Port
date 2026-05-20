@@ -4,6 +4,20 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.18 (2026-05-20)
+
++ Added Class Tools admin page parity features — search, sort, pagination, and inline status toggle
++ Added ToggleActive component for Class Tools sessions — click Active/Ended badge to toggle inline with confirmation
++ Added PageSizeSelector component — configurable rows per page (10/20/25/50/75/100) for admin list pages
++ Added SearchFilter to Class Tools admin page — search by session code or title, sort by date/type
++ Added PageSizeSelector to all admin CRUD pages (portfolio, gallery, games, resources) — configurable rows per page
++ Added pagination for Class Tools sessions — page navigation with configurable page size
+* Removed EndSessionButton — replaced by ToggleActive component for consistent inline status toggling
+* Fixed resources and games pagination links to preserve search, sort, and limit params
+* Fixed SearchFilter layout — search, sort, type filter, and page size now render in same row with proper spacing
+* Fixed ToggleActive icon — changed `fi-sr-signal-stream-2` to `fi-sr-signal-stream` (variant didn't exist)
+* Fixed PageSizeSelector — removed "รายการ" text, now shows just the number
+
 ## v1.8.17 (2026-05-20)
 
 * Added confirmation alert before toggling published status — prevents accidental status changes

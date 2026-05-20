@@ -6,6 +6,7 @@ import DeleteButton from '@/components/admin/DeleteButton';
 import ToggleStatus from '@/components/admin/ToggleStatus';
 import { deleteGame, togglePublished } from './actions';
 import SearchFilter from '@/components/admin/SearchFilter';
+import PageSizeSelector from '@/components/admin/PageSizeSelector';
 import { CONFIG } from '@/lib/config';
 
 export const dynamic = 'force-dynamic';
@@ -19,7 +20,9 @@ export default async function GamesListPage({
 
   const resolvedSearchParams = await searchParams;
   const page = typeof resolvedSearchParams.page === 'string' ? parseInt(resolvedSearchParams.page) : 1;
-  const limit = CONFIG.PAGINATION.DEFAULT_LIMIT;
+  const limit = typeof resolvedSearchParams.limit === 'string'
+    ? Math.min(parseInt(resolvedSearchParams.limit), 250)
+    : CONFIG.PAGINATION.DEFAULT_LIMIT;
   const skip = (page - 1) * limit;
 
   const search = typeof resolvedSearchParams.q === 'string' ? resolvedSearchParams.q : '';
@@ -40,6 +43,14 @@ export default async function GamesListPage({
 
   const totalPages = Math.ceil(total / limit);
 
+  function buildPaginationQuery(newPage: number): Record<string, string | number> {
+    const params: Record<string, string | number> = { page: newPage };
+    if (resolvedSearchParams.q && typeof resolvedSearchParams.q === 'string') params.q = resolvedSearchParams.q;
+    if (resolvedSearchParams.sort && typeof resolvedSearchParams.sort === 'string') params.sort = resolvedSearchParams.sort;
+    if (resolvedSearchParams.limit && typeof resolvedSearchParams.limit === 'string') params.limit = resolvedSearchParams.limit;
+    return params;
+  }
+
   return (
     <div className="min-h-screen bg-blue-50 dark:bg-slate-950 pt-28 pb-12 px-4">
       <div className="max-w-6xl mx-auto">
@@ -59,7 +70,10 @@ export default async function GamesListPage({
           </Link>
         </div>
 
-        <SearchFilter />
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <SearchFilter />
+          <PageSizeSelector />
+        </div>
 
         <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-white/60 dark:border-slate-700/50 shadow-sm overflow-hidden">
           <table className="w-full text-left border-collapse">
@@ -127,7 +141,7 @@ export default async function GamesListPage({
         {totalPages > 1 && (
           <div className="mt-8 flex justify-center gap-2">
             <Link
-              href={`?page=${page - 1}`}
+              href={page <= 1 ? '#' : { pathname: '/admin/games', query: buildPaginationQuery(page - 1) }}
               className={`p-2 rounded-lg border ${
                 page <= 1
                   ? 'pointer-events-none opacity-50 border-zinc-200 dark:border-slate-700'
@@ -140,7 +154,7 @@ export default async function GamesListPage({
               Page {page} of {totalPages}
             </span>
             <Link
-              href={`?page=${page + 1}`}
+              href={page >= totalPages ? '#' : { pathname: '/admin/games', query: buildPaginationQuery(page + 1) }}
               className={`p-2 rounded-lg border ${
                 page >= totalPages
                   ? 'pointer-events-none opacity-50 border-zinc-200 dark:border-slate-700'

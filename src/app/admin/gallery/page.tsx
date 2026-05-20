@@ -11,6 +11,7 @@ import { CONFIG } from '@/lib/config';
 export const dynamic = 'force-dynamic';
 
 import SearchFilter from '@/components/admin/SearchFilter';
+import PageSizeSelector from '@/components/admin/PageSizeSelector';
 
 export default async function GalleryListPage({
   searchParams,
@@ -21,7 +22,9 @@ export default async function GalleryListPage({
 
   const resolvedSearchParams = await searchParams;
   const page = typeof resolvedSearchParams.page === 'string' ? parseInt(resolvedSearchParams.page) : 1;
-  const limit = CONFIG.PAGINATION.DEFAULT_LIMIT;
+  const limit = typeof resolvedSearchParams.limit === 'string'
+    ? Math.min(parseInt(resolvedSearchParams.limit), 250)
+    : CONFIG.PAGINATION.DEFAULT_LIMIT;
   const skip = (page - 1) * limit;
 
   const search = typeof resolvedSearchParams.q === 'string' ? resolvedSearchParams.q : '';
@@ -46,6 +49,7 @@ export default async function GalleryListPage({
     const params: Record<string, string | number> = { page: newPage };
     if (resolvedSearchParams.q && typeof resolvedSearchParams.q === 'string') params.q = resolvedSearchParams.q;
     if (resolvedSearchParams.sort && typeof resolvedSearchParams.sort === 'string') params.sort = resolvedSearchParams.sort;
+    if (resolvedSearchParams.limit && typeof resolvedSearchParams.limit === 'string') params.limit = resolvedSearchParams.limit;
     return params;
   }
 
@@ -67,7 +71,10 @@ export default async function GalleryListPage({
         </Link>
       </div>
 
-      <SearchFilter />
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        <SearchFilter />
+        <PageSizeSelector />
+      </div>
 
       <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-white/60 dark:border-slate-700/50 shadow-sm overflow-hidden">
         <table className="w-full text-left border-collapse">

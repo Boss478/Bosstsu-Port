@@ -153,11 +153,81 @@ export async function toggleQAAnswered(responseId: string, isAnswered: boolean) 
   return { error: undefined };
 }
 
-export async function getAllSessions() {
+export async function getAllSessions(options?: {
+  search?: string;
+  sort?: string;
+  type?: string;
+  limit?: number;
+  skip?: number;
+}) {
   await dbConnect();
-  const sessions = await ToolSession.find()
-    .sort({ createdAt: -1 })
-    .lean();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const query: any = {};
+  if (options?.search) {
+    const search = options.search;
+    query.$or = [
+      { title: { $regex: search, $options: 'i' } },
+      { sessionCode: { $regex: search, $options: 'i' } },
+    ];
+  }
+  if (options?.type) {
+    query.type = options.type;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let sortQuery: any = { createdAt: -1 };
+  if (options?.sort === 'oldest') sortQuery = { createdAt: 1 };
+  if (options?.sort === 'type_asc') sortQuery = { type: 1 };
+  if (options?.sort === 'type_desc') sortQuery = { type: -1 };
+
+  let chain = ToolSession.find(query).sort(sortQuery);
+  if (options?.skip !== undefined && options?.limit !== undefined) {
+    chain = chain.skip(options.skip).limit(options.limit);
+  }
+
+  const sessions = await chain.lean();
   return JSON.parse(JSON.stringify(sessions));
+}
+
+export async function countSessions(search?: string, type?: string) {
+  await dbConnect();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const query: any = {};
+  if (search) {
+    query.$or = [
+      { title: { $regex: search, $options: 'i' } },
+      { sessionCode: { $regex: search, $options: 'i' } },
+    ];
+  }
+  if (type) {
+    query.type = type;
+  }
+
+  return ToolSession.countDocuments(query);
+}
+
+export async function toggleActive(id: string) {
+  const isAuth = await verifyAuth();
+  if (!isAuth) return { error: formatError('401') };
+
+  try {
+    await dbConnect();
+    const session = await ToolSession.findById(id).select('_id isActive');
+    if (!session) return { error: formatError('404') };
+
+    const newIsActive = !session.isActive;
+    await ToolSession.findByIdAndUpdate(id, {
+      isActive: newIsActive,
+      endedAt: newIsActive ? null : new Date(),
+    });
+  } catch (err) {
+    console.error('Toggle active error:', err);
+    return { error: formatError('DB02') };
+  }
+
+  revalidatePath('/admin/tools');
+  return { error: undefined };
 }
 

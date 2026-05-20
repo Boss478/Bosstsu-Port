@@ -3,7 +3,11 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
 
-export default function SearchFilter() {
+interface SearchFilterProps {
+  toolTypes?: Record<string, string>;
+}
+
+export default function SearchFilter({ toolTypes }: SearchFilterProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
@@ -12,15 +16,28 @@ export default function SearchFilter() {
     const params = new URLSearchParams(searchParams);
     params.set('sort', sort);
     params.set('page', '1');
-    
+
+    startTransition(() => {
+      router.replace(`?${params.toString()}`);
+    });
+  };
+
+  const handleToolType = (type: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (type && type !== 'all') {
+      params.set('type', type);
+    } else {
+      params.delete('type');
+    }
+    params.set('page', '1');
     startTransition(() => {
       router.replace(`?${params.toString()}`);
     });
   };
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 mb-6">
-      <div className="relative flex-1">
+    <>
+      <div className="relative flex-1 min-w-[200px]">
         <i className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
         <input
           type="text"
@@ -55,6 +72,21 @@ export default function SearchFilter() {
         </select>
         <i className="fi fi-sr-angle-small-down absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
       </div>
-    </div>
+      {toolTypes && (
+        <div className="relative">
+          <select
+            defaultValue={searchParams.get('type')?.toString() || 'all'}
+            onChange={(e) => handleToolType(e.target.value)}
+            className="appearance-none w-full pl-4 pr-10 py-2 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+          >
+            <option value="all">ทุกประเภท (All)</option>
+            {Object.entries(toolTypes).map(([key, label]) => (
+              <option key={key} value={key}>{label}</option>
+            ))}
+          </select>
+          <i className="fi fi-sr-angle-small-down absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+        </div>
+      )}
+    </>
   );
 }
