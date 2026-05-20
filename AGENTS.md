@@ -108,7 +108,7 @@ npm run lint     # ESLint 9 flat config (eslint.config.mjs)
 npm run seed     # Seed MongoDB via scripts/seed.ts (tsx)
 ```
 
-**Never run `npm run build`** for verification during development — `npm run dev` only.
+**Use `npm run dev` for development. Run `npm run build` only as final verification before marking a task done.**
 
 ---
 
@@ -116,14 +116,15 @@ npm run seed     # Seed MongoDB via scripts/seed.ts (tsx)
 
 > **No exceptions.**
 
-1. **Bump `package.json` `"version"`** — minor patch by default; major only when explicitly told
-2. **Add a matching entry to `changelog.md`** using `+` / `*` / `-` bullets
-3. **`package.json` version and latest `changelog.md` entry must match exactly**
-4. **Save a post-task report** to `.agents/report/report-{Mon}_{Day}_{YYYY}-{HH}_{mm}.md`
-5. **Output a completion summary** — what changed, current version, changelog updated?
-6. **Update memory** — If there's something important to remember (bugs, errors, patterns, new configs), add to **both**:
-   - `.agents/memory.md` (project memory)
-   - `/Users/boss123/obsidian-vault/boss-project/` (Obsidian vault — always mirror here)
+1. **Run `npm run build`** — verify build passes before marking done (no errors, no warnings)
+2. **Bump `package.json` `"version"`** — minor patch by default; major only when explicitly told (**ask user before bumping**)
+3. **Add a matching entry to `changelog.md`** using `+` / `*` / `-` bullets
+4. **`package.json` version and latest `changelog.md` entry must match exactly**
+5. **Save a post-task report** to `.agents/report/report-{Mon}_{Day}_{YYYY}-{HH}_{mm}.md`
+6. **Output a completion summary** — what changed, current version, changelog updated?
+7. **Update memory** — If there's something important to remember (bugs, errors, patterns, new configs), add to **both**:
+   - `.agents/memory.md` (project memory — single monolithic file)
+   - `/Users/boss123/obsidian-vault/` (Obsidian vault — each distinct topic as its own `.md` file in the appropriate subfolder)
 
 ---
 
@@ -138,6 +139,8 @@ Where to persist knowledge after each task:
 | Concepts / techniques learned            | `learn/`                                                     |
 | Research / things searched               | `references/`                                                |
 | Everything else                          | `notes/`                                                     |
+
+**Topic separation:** When writing to Obsidian vault, split knowledge across multiple `.md` files — one per topic. Do not bundle unrelated topics into a single file. Place each file in the appropriate subfolder (`boss-project/`, `coding/`, `learn/`, `references/`, `notes/`).
 
 **File naming convention for `boss-project/`:** `DATE_TIME_{TASK_NAME}` (e.g., `2026-05-13_14-30_Fix_Admin_Game_Edit_Validation.md`) — other folders use any reasonable naming.
 
@@ -155,6 +158,7 @@ Where to persist knowledge after each task:
 **Versioning rules:**
 - Minor patch (default): `1.1.1` → `1.1.2`
 - Major bump: `1.1.x` → `1.2.0` — only when explicitly instructed
+- **Always ask user before bumping version** — do not auto-bump without confirmation
 
 **Changelog format:**
 ```
@@ -448,7 +452,7 @@ Caddy will auto-provision Let's Encrypt certificates.
 - Never mark a task complete without proving it works.
 - Diff behavior between main and your changes when relevant.
 - Ask: "Would a staff engineer approve this?"
-- **Use `npm run dev` only — do NOT run `npm run build` unless explicitly told to.**
+- **Run `npm run build` as final verification** — build must pass with no errors before marking done.
 
 ### 5. Demand Elegance (Balanced)
 - For non-trivial changes: pause and ask "is there a more elegant way?"
@@ -467,9 +471,10 @@ Caddy will auto-provision Let's Encrypt certificates.
 1. Write plan to `.agents/tasks/todo.md` with checkable items
 2. Verify plan before starting implementation
 3. Mark items complete as you go
-4. Bump version + update changelog before marking done
-5. **Update memory** — Add important context (bugs, errors, patterns, new configs) to `.agents/memory.md` after every task
-6. After completing a plan, update its status inside the plan file as `Done` with Date & Time
+4. Run `npm run build` — must pass before marking done
+5. Bump version + update changelog before marking done (**ask user before bumping**)
+6. **Update memory** — Add important context (bugs, errors, patterns, new configs) to `.agents/memory.md` after every task
+7. After completing a plan, update its status inside the plan file as `Done` with Date & Time
 
 ---
 

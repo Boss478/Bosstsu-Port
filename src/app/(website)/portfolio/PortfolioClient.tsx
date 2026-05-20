@@ -91,7 +91,7 @@ export default function PortfolioClient({
       </section>
 
 
-      <section id="portfolio-grid" className={`pb-20 px-4 bg-white/70 dark:bg-slate-900 transition-opacity duration-150 ${isPending ? 'opacity-60' : 'opacity-100'}`}>
+      <section id="portfolio-grid" className={`pt-8 pb-20 px-4 bg-white/70 dark:bg-slate-900 transition-opacity duration-150 ${isPending ? 'opacity-60' : 'opacity-100'}`}>
         <div className="max-w-7xl mx-auto pt-8">
           {items.length === 0 ? (
             <EmptyState 

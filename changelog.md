@@ -4,6 +4,10 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.21 (2026-05-20)
+
+* Standardized content grid layout across all 4 public listing pages (portfolio, gallery, resources, games) — added `pt-8` top padding and unified `bg-white/70 dark:bg-slate-900` lighter content area background
+
 ## v1.8.20 (2026-05-20)
 
 * Centralized config — merged constants.ts into config.ts (DB timeouts/pool), added VALIDATION, REVALIDATION, PAGINATION (SIZE_OPTIONS, POLL_LIMIT, RECENT_RESOURCES) sections
