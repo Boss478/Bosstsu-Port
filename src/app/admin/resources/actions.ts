@@ -241,3 +241,22 @@ export async function deleteLearningResource(id: string) {
   revalidatePath('/resources');
   return { error: undefined };
 }
+
+export async function togglePublished(id: string) {
+  const isAuth = await verifyAuth();
+  if (!isAuth) return { error: formatError('401') };
+
+  try {
+    await dbConnect();
+    const item = await Learning.findById(id).select('_id published');
+    if (!item) return { error: formatError('404') };
+    await Learning.findByIdAndUpdate(id, { published: !item.published });
+  } catch (error: unknown) {
+    console.error('Toggle published error:', error);
+    return { error: formatError('DB02') };
+  }
+
+  revalidatePath('/admin/resources');
+  revalidatePath('/resources');
+  return { error: undefined };
+}

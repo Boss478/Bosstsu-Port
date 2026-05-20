@@ -3,7 +3,8 @@ import dbConnect from '@/lib/db';
 import Learning from '@/models/Learning';
 import Breadcrumb from '@/components/Breadcrumb';
 import DeleteButton from '@/components/admin/DeleteButton';
-import { deleteLearningResource } from './actions';
+import ToggleStatus from '@/components/admin/ToggleStatus';
+import { deleteLearningResource, togglePublished } from './actions';
 import SearchFilter from '@/components/admin/SearchFilter';
 import { CONFIG } from '@/lib/config';
 
@@ -102,15 +103,11 @@ export default async function LearningListPage({
                       </span>
                     </td>
                     <td className="p-4 hidden sm:table-cell">
-                      {item.published === false ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-200 dark:bg-slate-700 text-zinc-600 dark:text-zinc-400 border border-zinc-300 dark:border-slate-600">
-                          <i className="fi fi-sr-eye-crossed" />Draft
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-200 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
-                          <i className="fi fi-sr-eye" />Public
-                        </span>
-                      )}
+                      <ToggleStatus
+                        id={item._id.toString()}
+                        currentStatus={item.published ?? true}
+                        action={togglePublished}
+                      />
                     </td>
                     <td className="p-4 text-right">
                       <div className="flex items-center justify-end gap-2">

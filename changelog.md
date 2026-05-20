@@ -4,6 +4,14 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.17 (2026-05-20)
+
+* Added confirmation alert before toggling published status — prevents accidental status changes
+
+## v1.8.16 (2026-05-20)
+
++ Added inline clickable status toggle on all admin list pages (portfolio, gallery, games, resources) — click Public/Draft badge to toggle without leaving the page
+
 ## v1.8.15 (2026-05-20)
 
 * Fixed upload file 404 on VPS — added `/uploads/[...path]` route handler to serve bind-mounted files (Next.js standalone static server doesn't serve runtime-uploaded files)

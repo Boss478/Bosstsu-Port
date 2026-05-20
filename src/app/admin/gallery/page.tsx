@@ -4,7 +4,8 @@ import dbConnect from '@/lib/db';
 import Gallery from '@/models/Gallery';
 import Breadcrumb from '@/components/Breadcrumb';
 import DeleteButton from '@/components/admin/DeleteButton';
-import { deleteGalleryAlbum } from './actions';
+import ToggleStatus from '@/components/admin/ToggleStatus';
+import { deleteGalleryAlbum, togglePublished } from './actions';
 import { CONFIG } from '@/lib/config';
 
 export const dynamic = 'force-dynamic';
@@ -118,17 +119,13 @@ export default async function GalleryListPage({
                       {item.photos?.length || 0}
                     </div>
                   </td>
-                  <td className="p-4 hidden sm:table-cell">
-                    {item.published === false ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-200 dark:bg-slate-700 text-zinc-600 dark:text-zinc-400 border border-zinc-300 dark:border-slate-600">
-                        <i className="fi fi-sr-eye-crossed" />Draft
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-200 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
-                        <i className="fi fi-sr-eye" />Public
-                      </span>
-                    )}
-                  </td>
+                    <td className="p-4 hidden sm:table-cell">
+                      <ToggleStatus
+                        id={item._id.toString()}
+                        currentStatus={item.published ?? true}
+                        action={togglePublished}
+                      />
+                    </td>
                   <td className="p-4 hidden sm:table-cell text-sm text-zinc-500 dark:text-zinc-400">
                     {new Date(item.date).toLocaleDateString('th-TH')}
                   </td>

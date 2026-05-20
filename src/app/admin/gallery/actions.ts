@@ -167,3 +167,22 @@ export async function deleteGalleryAlbum(id: string) {
   revalidatePath('/gallery');
   return { error: undefined };
 }
+
+export async function togglePublished(id: string) {
+  const isAuth = await verifyAuth();
+  if (!isAuth) return { error: formatError('401') };
+
+  try {
+    await dbConnect();
+    const item = await Gallery.findById(id).select('_id published');
+    if (!item) return { error: formatError('404') };
+    await Gallery.findByIdAndUpdate(id, { published: !item.published });
+  } catch (error: unknown) {
+    console.error('Toggle published error:', error);
+    return { error: formatError('DB02') };
+  }
+
+  revalidatePath('/admin/gallery');
+  revalidatePath('/gallery');
+  return { error: undefined };
+}
