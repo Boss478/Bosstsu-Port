@@ -4,6 +4,17 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.23 (2026-05-20)
+
+* Refactored tools API rate limit to use `CONFIG.TOOLS.RATE_LIMIT_PER_MINUTE` instead of hardcoded value — changed default from 5 → 10 requests/min
+
+## v1.8.22 (2026-05-20)
+
+* Student token persistence: `sessionStorage` → `localStorage` — fixes tab isolation bug (one token per browser, not per tab)
+* Added IP address capture to all learning tool submissions (`poll`, `respond`) — stored in `ToolResponse` for admin audit
+* Rate limit key now includes IP (`sessionId:ip:token`) — prevents token-cycling bypass while staying school-NAT-safe
+* Added IP column to admin assignment results table (hidden on mobile, visible on `lg+`)
+
 ## v1.8.21 (2026-05-20)
 
 * Standardized content grid layout across all 4 public listing pages (portfolio, gallery, resources, games) — added `pt-8` top padding and unified `bg-white/70 dark:bg-slate-900` lighter content area background

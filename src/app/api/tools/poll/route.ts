@@ -8,6 +8,12 @@ import { CONFIG } from '@/lib/config';
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
+function getClientIp(req: NextRequest): string {
+  const forwarded = req.headers.get('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0].trim();
+  return req.headers.get('x-real-ip') || 'unknown';
+}
+
 function checkRateLimit(key: string): boolean {
   const now = Date.now();
   const entry = rateLimitMap.get(key);
@@ -15,7 +21,7 @@ function checkRateLimit(key: string): boolean {
     rateLimitMap.set(key, { count: 1, resetAt: now + 60000 });
     return true;
   }
-  if (entry.count >= 5) return false;
+  if (entry.count >= CONFIG.TOOLS.RATE_LIMIT_PER_MINUTE) return false;
   entry.count++;
   return true;
 }
@@ -69,7 +75,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: getError('T05').message }, { status: 400 });
   }
 
-  const rateKey = `${sessionId}:${studentToken}`;
+  const rateKey = `${sessionId}:${getClientIp(req)}:${studentToken}`;
 
   if (!checkRateLimit(rateKey)) {
     return NextResponse.json(
@@ -119,6 +125,7 @@ export async function POST(req: NextRequest) {
       fileUrl: fileUrl || null,
       studentToken,
       editToken,
+      ip: getClientIp(req),
     });
 
     await ToolSession.findByIdAndUpdate(sessionId, {

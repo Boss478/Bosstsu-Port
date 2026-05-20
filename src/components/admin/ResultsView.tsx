@@ -205,6 +205,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
                   <tr className="border-b border-zinc-200/60 dark:border-slate-700/50 text-sm text-zinc-500 dark:text-zinc-400">
                     <th className="p-4 font-medium">Student</th>
                     <th className="p-4 font-medium hidden md:table-cell">Answer</th>
+                    <th className="p-4 font-medium hidden lg:table-cell">IP</th>
                     <th className="p-4 font-medium hidden md:table-cell">File</th>
                     <th className="p-4 font-medium text-right">Time</th>
                   </tr>
@@ -218,6 +219,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
                       <td className="p-4 hidden md:table-cell text-sm text-zinc-600 dark:text-zinc-400 max-w-xs truncate">
                         {r.content?.answer}
                       </td>
+                      <td className="p-4 hidden lg:table-cell text-xs text-zinc-400 font-mono">{r.ip || '—'}</td>
                       <td className="p-4 hidden md:table-cell">
                         {r.fileUrl && (
                           <button

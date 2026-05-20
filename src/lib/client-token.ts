@@ -1,9 +1,9 @@
 export function getStudentToken(): string {
   if (typeof window === 'undefined') return '';
-  let token = sessionStorage.getItem('studentToken');
+  let token = localStorage.getItem('studentToken');
   if (!token) {
     token = crypto.randomUUID();
-    sessionStorage.setItem('studentToken', token);
+    localStorage.setItem('studentToken', token);
   }
   return token;
 }

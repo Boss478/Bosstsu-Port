@@ -95,7 +95,7 @@ export const CONFIG = {
   TOOLS: {
     SESSION_CODE_LENGTH: 5,
     POLL_INTERVAL_MS: 10000,
-    RATE_LIMIT_PER_MINUTE: 5,
+    RATE_LIMIT_PER_MINUTE: 10,
     MAX_FILE_SIZE: 10 * 1024 * 1024,
     ALLOWED_FILE_TYPES: [
       'application/pdf',
