@@ -7,6 +7,7 @@ import dbConnect from "@/lib/db";
 import Learning from "@/models/Learning";
 import Breadcrumb from "@/components/Breadcrumb";
 import { formatDate } from "@/lib/format";
+import { CONFIG } from "@/lib/config";
 
 export const dynamic = 'force-dynamic';
 
@@ -115,7 +116,7 @@ export default async function ResourceDetailPage({
     Learning.find({ _id: { $ne: doc._id }, published: { $ne: false } })
       .select("_id title thumbnail type createdAt")
       .sort({ createdAt: -1 })
-      .limit(5)
+      .limit(CONFIG.PAGINATION.RECENT_RESOURCES)
       .lean() as Promise<LeanRecentDoc[]>,
     Learning.findOne({
       createdAt: { $lt: docCreatedAt },

@@ -4,7 +4,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useTransition } from 'react';
 import { CONFIG } from '@/lib/config';
 
-const PAGE_SIZE_OPTIONS = [10, 20, 25, 50, 75, 100];
+const PAGE_SIZE_OPTIONS = CONFIG.PAGINATION.SIZE_OPTIONS;
 
 export default function PageSizeSelector() {
   const router = useRouter();

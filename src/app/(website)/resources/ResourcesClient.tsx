@@ -1,6 +1,5 @@
 "use client";
 
-import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -9,6 +8,7 @@ import { type ResourceItem } from "./data";
 import { NavigationPendingBar } from "@/components/NavigationPendingBar";
 import { Pagination } from "@/components/Pagination";
 import { EmptyState } from "@/components/EmptyState";
+import { useListNavigation } from "@/hooks/useListNavigation";
 
 interface ResourcesClientProps {
   items: ResourceItem[];
@@ -30,38 +30,12 @@ export default function ResourcesClient({
   sort,
   total,
 }: ResourcesClientProps) {
-  const [isPending, startTransition] = useTransition();
+  const { navigateToPage, filterBy, changeSort, isPending } = useListNavigation({
+    basePath: '/resources',
+    filterKey: 'type',
+    allLabel: 'All',
+  });
   const router = useRouter();
-
-  function navigateToPage(page: number) {
-    startTransition(() => {
-      const params = new URLSearchParams();
-      params.set("page", String(page));
-      if (activeType && activeType !== "All") params.set("type", activeType);
-      params.set("sort", sort);
-      router.push(`/resources?${params.toString()}`);
-    });
-  }
-
-  function filterByType(type: string) {
-    startTransition(() => {
-      const params = new URLSearchParams();
-      params.set("page", "1");
-      if (type !== "All") params.set("type", type);
-      params.set("sort", sort);
-      router.push(`/resources?${params.toString()}`);
-    });
-  }
-
-  function changeSort(newSort: "Newest" | "Oldest") {
-    startTransition(() => {
-      const params = new URLSearchParams();
-      params.set("page", "1");
-      if (activeType && activeType !== "All") params.set("type", activeType);
-      params.set("sort", newSort);
-      router.push(`/resources?${params.toString()}`);
-    });
-  }
 
   const allTypes = ["All", ...uniqueTypes];
 
@@ -90,7 +64,7 @@ export default function ResourcesClient({
           {allTypes.map((type) => (
             <button
               key={type}
-              onClick={() => filterByType(type)}
+                onClick={() => filterBy(type, sort)}
               disabled={isPending}
               className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 disabled:opacity-60 border ${
                 activeType === type
@@ -105,7 +79,7 @@ export default function ResourcesClient({
 
         <select
           value={sort}
-          onChange={(e) => changeSort(e.target.value as "Newest" | "Oldest")}
+            onChange={(e) => changeSort(e.target.value, activeType)}
           disabled={isPending}
           className="px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:border-blue-300 focus:outline-hidden cursor-pointer disabled:opacity-60"
         >

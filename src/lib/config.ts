@@ -11,6 +11,7 @@ export const CONFIG = {
   // ─── File Uploads ─────────────────────────────────────────────────────
   UPLOAD: {
     MAX_SIZE: 30 * 1024 * 1024,             // bytes — must match next.config.ts bodySizeLimit
+    MAX_SIZE_MB: '30mb',                    // string form for next.config.ts
 
     // MIME types accepted at upload (used before any image processing)
     ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'] as const,
@@ -41,9 +42,36 @@ export const CONFIG = {
     EXTENSIONS: ['.heic', '.heif'] as const,// detected by file extension (catches wrong MIME types from Safari/iOS)
   },
 
+  // ─── Database ─────────────────────────────────────────────────────────
+  DB: {
+    TIMEOUTS: {
+      SERVER_SELECTION: 5000,
+      SOCKET: 30000,
+      CONNECT: 5000,
+    },
+    POOL: {
+      MAX: 3,
+      MIN: 1,
+    },
+  },
+
+  // ─── Validation ───────────────────────────────────────────────────────
+  VALIDATION: {
+    TITLE_MAX: 100,
+    DESCRIPTION_MAX: 500,
+    SLUG_REGEX: /^[a-z0-9-]+$/,
+    SESSION_TITLE_MAX: 100,
+  },
+
+  // ─── Revalidation ─────────────────────────────────────────────────────
+  REVALIDATION: {
+    DETAIL_PAGE: 60,
+  },
+
   // ─── Pagination ───────────────────────────────────────────────────────
   PAGINATION: {
     DEFAULT_LIMIT: 10,                      // items per page — admin list pages
+    SIZE_OPTIONS: [10, 20, 25, 50, 75, 100] as const,
     DASHBOARD_RECENT: 5,                    // items — recently updated on admin dashboard
     PORTFOLIO_RECENT: 5,                    // items — recent items on portfolio detail page
     PORTFOLIO_RELATED: 3,                   // items — related items on portfolio detail page
@@ -51,6 +79,8 @@ export const CONFIG = {
     GALLERY_PUBLIC: 15,                     // items per page — public gallery list
     LEARNING_PUBLIC: 15,                    // items per page — public resources list
     GAMES_PUBLIC: 15,                       // items per page — public games list
+    POLL_LIMIT: 50,                         // items — poll results API limit
+    RECENT_RESOURCES: 5,                    // items — recent resources on detail page
   },
 
   // ─── Rate Limiting ────────────────────────────────────────────────────

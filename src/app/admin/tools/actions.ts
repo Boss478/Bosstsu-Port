@@ -16,7 +16,7 @@ const TOOL_TYPES: ToolType[] = [
 
 const quickStartSchema = z.object({
   type: z.string().min(1),
-  title: z.string().trim().min(1, 'Please enter a title').max(100),
+  title: z.string().trim().min(1, 'กรุณาระบุชื่อ').max(100),
   prompt: z.string().optional(),
   allowAnonymous: z.boolean().optional(),
   maxSubmissions: z.number().optional(),

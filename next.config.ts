@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { CONFIG } from "./src/lib/config";
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -8,9 +9,9 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["localhost", "100.97.15.5", "0.0.0.0"],
   experimental: {
     serverActions: {
-      bodySizeLimit: "30mb",
+      bodySizeLimit: CONFIG.UPLOAD.MAX_SIZE_MB,
     },
-    proxyClientMaxBodySize: "30mb",
+    proxyClientMaxBodySize: CONFIG.UPLOAD.MAX_SIZE_MB,
   },
   serverExternalPackages: ["sharp", "html-to-image"],
   images: {

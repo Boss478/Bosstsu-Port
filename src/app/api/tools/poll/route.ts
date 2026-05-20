@@ -4,6 +4,7 @@ import dbConnect from '@/lib/db';
 import ToolSession from '@/models/ToolSession';
 import ToolResponse from '@/models/ToolResponse';
 import { getError } from '@/lib/error-code';
+import { CONFIG } from '@/lib/config';
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
@@ -38,7 +39,7 @@ export async function GET(req: NextRequest) {
 
     const responses = await ToolResponse.find(query)
       .sort({ createdAt: 1 })
-      .limit(50)
+      .limit(CONFIG.TOOLS.PAGINATION.TOOLS_PUBLIC)
       .lean();
 
     const session = await ToolSession.findById(sessionId).lean();

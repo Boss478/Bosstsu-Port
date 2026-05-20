@@ -1,6 +1,5 @@
 "use client";
 
-import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { type GalleryAlbum } from "./data";
@@ -9,6 +8,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import { NavigationPendingBar } from "@/components/NavigationPendingBar";
 import { Pagination } from "@/components/Pagination";
 import { EmptyState } from "@/components/EmptyState";
+import { useListNavigation } from "@/hooks/useListNavigation";
 
 interface GalleryClientProps {
   items: GalleryAlbum[];
@@ -29,38 +29,11 @@ export default function GalleryClient({
   sort,
   total,
 }: GalleryClientProps) {
-  const [isPending, startTransition] = useTransition();
+  const { navigateToPage, filterBy, changeSort, isPending } = useListNavigation({
+    basePath: '/gallery',
+    filterKey: 'tag',
+  });
   const router = useRouter();
-
-  function navigateToPage(page: number) {
-    startTransition(() => {
-      const params = new URLSearchParams();
-      params.set("page", String(page));
-      if (activeTag && activeTag !== "ทั้งหมด") params.set("tag", activeTag);
-      params.set("sort", sort);
-      router.push(`/gallery?${params.toString()}`);
-    });
-  }
-
-  function filterByTag(tag: string) {
-    startTransition(() => {
-      const params = new URLSearchParams();
-      params.set("page", "1");
-      if (tag !== "ทั้งหมด") params.set("tag", tag);
-      params.set("sort", sort);
-      router.push(`/gallery?${params.toString()}`);
-    });
-  }
-
-  function changeSort(newSort: "desc" | "asc") {
-    startTransition(() => {
-      const params = new URLSearchParams();
-      params.set("page", "1");
-      if (activeTag && activeTag !== "ทั้งหมด") params.set("tag", activeTag);
-      params.set("sort", newSort);
-      router.push(`/gallery?${params.toString()}`);
-    });
-  }
 
   const allTags = ["ทั้งหมด", ...uniqueTags];
 
@@ -92,7 +65,7 @@ export default function GalleryClient({
             {allTags.map((tag) => (
               <button
                 key={tag}
-                onClick={() => filterByTag(tag)}
+                onClick={() => filterBy(tag, sort)}
                 disabled={isPending}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 disabled:opacity-60 border ${
                   activeTag === tag
@@ -107,7 +80,7 @@ export default function GalleryClient({
 
           <select
             value={sort}
-            onChange={(e) => changeSort(e.target.value as "desc" | "asc")}
+            onChange={(e) => changeSort(e.target.value, activeTag)}
             disabled={isPending}
             className="ml-auto px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:border-blue-300 focus:outline-hidden cursor-pointer disabled:opacity-60"
           >

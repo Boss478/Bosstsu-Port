@@ -1,6 +1,5 @@
 "use client";
 
-import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatDate } from "@/lib/format";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -8,6 +7,7 @@ import { NavigationPendingBar } from "@/components/NavigationPendingBar";
 import { Pagination } from "@/components/Pagination";
 import { EmptyState } from "@/components/EmptyState";
 import type { GameItem } from "./data";
+import { useListNavigation } from "@/hooks/useListNavigation";
 
 interface GamesClientProps {
   items: GameItem[];
@@ -28,38 +28,11 @@ export default function GamesClient({
   sort,
   total,
 }: GamesClientProps) {
-  const [isPending, startTransition] = useTransition();
+  const { navigateToPage, filterBy, changeSort, isPending } = useListNavigation({
+    basePath: '/games',
+    filterKey: 'category',
+  });
   const router = useRouter();
-
-  function navigateToPage(page: number) {
-    startTransition(() => {
-      const params = new URLSearchParams();
-      params.set("page", String(page));
-      if (activeCategory && activeCategory !== "ทั้งหมด") params.set("category", activeCategory);
-      params.set("sort", sort);
-      router.push(`/games?${params.toString()}`);
-    });
-  }
-
-  function filterByCategory(cat: string) {
-    startTransition(() => {
-      const params = new URLSearchParams();
-      params.set("page", "1");
-      if (cat !== "ทั้งหมด") params.set("category", cat);
-      params.set("sort", sort);
-      router.push(`/games?${params.toString()}`);
-    });
-  }
-
-  function changeSort(newSort: "desc" | "asc") {
-    startTransition(() => {
-      const params = new URLSearchParams();
-      params.set("page", "1");
-      if (activeCategory && activeCategory !== "ทั้งหมด") params.set("category", activeCategory);
-      params.set("sort", newSort);
-      router.push(`/games?${params.toString()}`);
-    });
-  }
 
   const allCategories = ["ทั้งหมด", ...uniqueCategories];
 
@@ -88,7 +61,7 @@ export default function GamesClient({
             {allCategories.map((cat) => (
               <button
                 key={cat}
-                onClick={() => filterByCategory(cat)}
+                onClick={() => filterBy(cat, sort)}
                 disabled={isPending}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 disabled:opacity-60 border ${
                   activeCategory === cat
@@ -103,7 +76,7 @@ export default function GamesClient({
 
           <select
             value={sort}
-            onChange={(e) => changeSort(e.target.value as "desc" | "asc")}
+            onChange={(e) => changeSort(e.target.value, activeCategory)}
             disabled={isPending}
             className="ml-auto px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:border-blue-300 focus:outline-hidden cursor-pointer disabled:opacity-60"
           >

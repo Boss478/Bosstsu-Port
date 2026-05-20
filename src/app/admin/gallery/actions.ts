@@ -1,188 +1,122 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import dbConnect from '@/lib/db';
 import Gallery from '@/models/Gallery';
-import { verifyAuth } from '@/lib/auth';
 import { saveFile } from '@/lib/upload';
 import { formatError } from '@/lib/error-code';
 import { parseTagString } from '@/lib/format';
-import { z } from 'zod';
+import { titleField, slugField, tagsField, optionalString } from '@/lib/validation';
+import { ROUTES } from '@/lib/routes';
+import { withAuth, handleDbError, revalidateContentPaths, createTogglePublished, createDeleteItem } from '@/lib/admin-crud';
 
 const gallerySchema = z.object({
-  title: z.string().trim().min(1, 'กรุณาระบุชื่อ').max(100),
-  slug: z.string().trim().min(1, 'กรุณาระบุ slug').regex(/^[a-z0-9-]+$/, 'รูปแบบ slug ไม่ถูกต้อง'),
-  description: z.string().optional(),
+  title: titleField,
+  slug: slugField,
+  description: optionalString,
   dateStr: z.string().trim().min(1, 'กรุณาระบุวันที่'),
-  tagsStr: z.string().optional(),
+  tagsStr: tagsField,
   relatedPortfolioId: z.string().optional(),
 }).strict();
 
+const ADMIN = ROUTES.ADMIN.GALLERY;
+const PUBLIC = ROUTES.PUBLIC.GALLERY;
+
+export const togglePublished = createTogglePublished(Gallery, ADMIN, PUBLIC);
+export const deleteGalleryAlbum = createDeleteItem(Gallery, ADMIN, PUBLIC);
+
 export async function createGalleryAlbum(formData: FormData) {
-  const isAuth = await verifyAuth();
-  if (!isAuth) return { error: formatError('401') };
-
-  const parsed = gallerySchema.safeParse({
-    title: formData.get('title'),
-    slug: formData.get('slug'),
-    description: formData.get('description'),
-    dateStr: formData.get('date'),
-    tagsStr: formData.get('tags') || '',
-    relatedPortfolioId: formData.get('relatedPortfolioId') || undefined,
-  });
-
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0].message };
-  }
-
-  const { title, slug, description, dateStr, tagsStr, relatedPortfolioId } = parsed.data;
-  const published = formData.get('published') === 'on';
-  const coverFile = formData.get('cover') as File;
-  const photoFiles = formData.getAll('photos') as File[];
-
-  if (!coverFile || coverFile.size === 0) {
-    return { error: formatError('U03') };
-  }
-
-  try {
-    await dbConnect();
-    const coverPath = await saveFile(coverFile, 'gallery/covers');
-    const tags = parseTagString(tagsStr);
-    
-    const photos: string[] = [];
-    for (const file of photoFiles) {
-      if (file.size > 0) {
-        const path = await saveFile(file, 'gallery/albums');
-        photos.push(path);
-      }
-    }
-
-    await Gallery.create({
-      title,
-      slug,
-      description,
-      date: new Date(dateStr),
-      tags,
-      cover: coverPath,
-      photos,
-      published,
-      relatedPortfolioId: relatedPortfolioId || undefined,
+  return withAuth(async () => {
+    const parsed = gallerySchema.safeParse({
+      title: formData.get('title'),
+      slug: formData.get('slug'),
+      description: formData.get('description'),
+      dateStr: formData.get('date'),
+      tagsStr: formData.get('tags') || '',
+      relatedPortfolioId: formData.get('relatedPortfolioId') || undefined,
     });
-  } catch (error: unknown) {
-    console.error('CreateGallery Error:', error);
-    const msg = error instanceof Error ? error.message : '';
-    if (msg.includes('ERROR_U05') || msg.includes('ERROR_U06') || msg.includes('ERROR_U07')) {
-      return { error: msg };
-    }
-    return { error: formatError('DB01') };
-  }
 
-  revalidatePath('/admin/gallery');
-  revalidatePath('/gallery');
-  return { error: undefined };
+    if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+    const { title, slug, description, dateStr, tagsStr, relatedPortfolioId } = parsed.data;
+    const published = formData.get('published') === 'on';
+    const coverFile = formData.get('cover') as File;
+    const photoFiles = formData.getAll('photos') as File[];
+
+    if (!coverFile || coverFile.size === 0) return { error: formatError('U03') };
+
+    try {
+      await dbConnect();
+      const coverPath = await saveFile(coverFile, 'gallery/covers');
+      const tags = parseTagString(tagsStr);
+      const photos: string[] = [];
+      for (const file of photoFiles) {
+        if (file.size > 0) photos.push(await saveFile(file, 'gallery/albums'));
+      }
+
+      await Gallery.create({
+        title, slug, description,
+        date: new Date(dateStr),
+        tags, cover: coverPath, photos, published,
+        relatedPortfolioId: relatedPortfolioId || undefined,
+      });
+    } catch (error: unknown) {
+      return handleDbError(error, 'Create gallery', 'DB01');
+    }
+    revalidateContentPaths(ADMIN, PUBLIC);
+    return { error: undefined };
+  });
 }
 
 export async function updateGalleryAlbum(id: string, formData: FormData) {
-  const isAuth = await verifyAuth();
-  if (!isAuth) return { error: formatError('401') };
+  return withAuth(async () => {
+    const parsed = gallerySchema.safeParse({
+      title: formData.get('title'),
+      slug: formData.get('slug'),
+      description: formData.get('description'),
+      dateStr: formData.get('date'),
+      tagsStr: formData.get('tags') || '',
+      relatedPortfolioId: formData.get('relatedPortfolioId') || undefined,
+    });
 
-  const parsed = gallerySchema.safeParse({
-    title: formData.get('title'),
-    slug: formData.get('slug'),
-    description: formData.get('description'),
-    dateStr: formData.get('date'),
-    tagsStr: formData.get('tags') || '',
-    relatedPortfolioId: formData.get('relatedPortfolioId') || undefined,
-  });
+    if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0].message };
-  }
+    const { title, slug, description, dateStr, tagsStr, relatedPortfolioId } = parsed.data;
+    const published = formData.get('published') === 'on';
+    const coverFile = formData.get('cover') as File;
+    const photoFiles = formData.getAll('photos') as File[];
+    const existingPhotosStr = formData.get('existingPhotos') as string;
 
-  const { title, slug, description, dateStr, tagsStr, relatedPortfolioId } = parsed.data;
-  const published = formData.get('published') === 'on';
-  const coverFile = formData.get('cover') as File;
-  const photoFiles = formData.getAll('photos') as File[];
-  const existingPhotosStr = formData.get('existingPhotos') as string;
+    try {
+      await dbConnect();
+      const updateData: Record<string, unknown> = {
+        title, slug, description,
+        date: new Date(dateStr),
+        tags: parseTagString(tagsStr),
+        published,
+      };
 
-  try {
-    await dbConnect();
-    const updateData: Record<string, unknown> = {
-      title,
-      slug,
-      description,
-      date: new Date(dateStr),
-      tags: tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [],
-      published,
-    };
-
-    if (relatedPortfolioId) {
-      updateData.relatedPortfolioId = relatedPortfolioId;
-    } else {
-      updateData.$unset = { relatedPortfolioId: 1 };
-    }
-
-    if (coverFile && coverFile.size > 0) {
-      updateData.cover = await saveFile(coverFile, 'gallery/covers');
-    }
-
-    const photos = existingPhotosStr ? JSON.parse(existingPhotosStr) : [];
-    
-    for (const file of photoFiles) {
-      if (file.size > 0) {
-        const path = await saveFile(file, 'gallery/albums');
-        photos.push(path);
+      if (relatedPortfolioId) {
+        updateData.relatedPortfolioId = relatedPortfolioId;
+      } else {
+        updateData.$unset = { relatedPortfolioId: 1 };
       }
+
+      if (coverFile && coverFile.size > 0) {
+        updateData.cover = await saveFile(coverFile, 'gallery/covers');
+      }
+
+      const photos = existingPhotosStr ? JSON.parse(existingPhotosStr) : [];
+      for (const file of photoFiles) {
+        if (file.size > 0) photos.push(await saveFile(file, 'gallery/albums'));
+      }
+      updateData.photos = photos;
+
+      await Gallery.findByIdAndUpdate(id, updateData);
+    } catch (error: unknown) {
+      return handleDbError(error, 'Update gallery', 'DB02');
     }
-    updateData.photos = photos;
-
-    await Gallery.findByIdAndUpdate(id, updateData);
-  } catch (error: unknown) {
-    console.error('UpdateGallery Error:', error);
-    const msg = error instanceof Error ? error.message : '';
-    if (msg.includes('ERROR_U05') || msg.includes('ERROR_U06') || msg.includes('ERROR_U07')) {
-      return { error: msg };
-    }
-    return { error: formatError('DB02') };
-  }
-
-  revalidatePath('/admin/gallery');
-  revalidatePath('/gallery');
-  return { error: undefined };
-}
-
-export async function deleteGalleryAlbum(id: string) {
-  const isAuth = await verifyAuth();
-  if (!isAuth) return { error: formatError('401') };
-
-  try {
-    await dbConnect();
-    await Gallery.findByIdAndDelete(id);
-  } catch (error: unknown) {
-    console.error('DeleteGallery Error:', error);
-    return { error: formatError('DB03') };
-  }
-
-  revalidatePath('/admin/gallery');
-  revalidatePath('/gallery');
-  return { error: undefined };
-}
-
-export async function togglePublished(id: string) {
-  const isAuth = await verifyAuth();
-  if (!isAuth) return { error: formatError('401') };
-
-  try {
-    await dbConnect();
-    const item = await Gallery.findById(id).select('_id published');
-    if (!item) return { error: formatError('404') };
-    await Gallery.findByIdAndUpdate(id, { published: !item.published });
-  } catch (error: unknown) {
-    console.error('Toggle published error:', error);
-    return { error: formatError('DB02') };
-  }
-
-  revalidatePath('/admin/gallery');
-  revalidatePath('/gallery');
-  return { error: undefined };
+    revalidateContentPaths(ADMIN, PUBLIC);
+    return { error: undefined };
+  });
 }

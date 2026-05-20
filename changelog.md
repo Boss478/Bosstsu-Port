@@ -4,6 +4,29 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.20 (2026-05-20)
+
+* Centralized config — merged constants.ts into config.ts (DB timeouts/pool), added VALIDATION, REVALIDATION, PAGINATION (SIZE_OPTIONS, POLL_LIMIT, RECENT_RESOURCES) sections
+* Created env.ts — centralized all process.env access (MONGODB_URI, ADMIN_TOKEN_SECRET, ADMIN_PASSWORD, MONGO_EXPRESS_URL, NODE_ENV) across 5 files
+* Centralized body size limit — next.config.ts now imports CONFIG.UPLOAD.MAX_SIZE_MB from config.ts (single source of truth)
+* Created routes.ts — centralized all route paths (ADMIN.PORTFOLIO, PUBLIC.GALLERY, etc.) replacing 30+ hardcoded strings
+* Created validation.ts — shared Zod field primitives (titleField, slugField, descriptionField, tagsField) using config limits
+* Created admin-crud.ts — shared server action utilities (withAuth, handleDbError, sanitizeHtml, revalidateContentPaths, createTogglePublished, createDeleteItem)
+* Refactored portfolio/actions.ts — 177→105 lines, uses shared utilities and factory functions
+* Refactored gallery/actions.ts — 188→117 lines, uses shared utilities and factory functions
+* Refactored games/actions.ts — 195→124 lines, uses shared utilities and factory functions
+* Refactored resources/actions.ts — 262→184 lines, uses shared utilities and factory functions
+* Created useListNavigation hook — extracts URLSearchParams navigation pattern from 4 public Client components
+* Migrated PortfolioClient, GalleryClient, GamesClient, ResourcesClient to useListNavigation hook
+* Centralized page size options in CONFIG.PAGINATION.SIZE_OPTIONS (PageSizeSelector)
+* Centralized poll limit in CONFIG.TOOLS.PAGINATION.TOOLS_PUBLIC (poll/route.ts)
+* Centralized recent resources limit in CONFIG.PAGINATION.RECENT_RESOURCES (resources/[id]/page.tsx)
+* Fixed session-code.ts to use CONFIG.TOOLS.SESSION_CODE_LENGTH instead of hardcoded 5
+* Fixed English-only error message in tools/actions.ts → Thai
+* Removed src/lib/validation.ts — unused Zod schemas, no callers in codebase
+* Removed TYPE_OPTIONS and ALLOWED_FILE_TYPES exports from src/lib/constants.ts — duplicated locally in LearningForm.tsx and resources/actions.ts
+* Removed unused toolStrings export from src/lib/tool-translations.ts — only t() function is used
+
 ## v1.8.19 (2026-05-20)
 
 + Added server-side pagination to games listing page — GAMES_PUBLIC:15 in config, skip/limit query, distinct categories

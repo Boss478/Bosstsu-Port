@@ -3,6 +3,7 @@
 import { headers, cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { CONFIG } from '@/lib/config';
+import { getEnv } from '@/lib/env';
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from '@/lib/rate-limit';
 import { createErrorResponse } from '@/lib/error-code';
 
@@ -22,7 +23,7 @@ async function hmacSign(secret: string, message: string): Promise<string> {
 }
 
 async function generateToken(): Promise<string> {
-  const secret = process.env.ADMIN_TOKEN_SECRET;
+  const secret = getEnv().ADMIN_TOKEN_SECRET;
   if (!secret) {
     throw new Error('ADMIN_TOKEN_SECRET is missing');
   }
@@ -51,7 +52,7 @@ export async function loginAdmin(
   }
 
   const password = formData.get('password') as string;
-  const adminPassword = process.env.ADMIN_PASSWORD;
+  const adminPassword = getEnv().ADMIN_PASSWORD;
 
   if (!adminPassword) {
     const err = createErrorResponse('500');
@@ -70,7 +71,7 @@ export async function loginAdmin(
   const cookieStore = await cookies();
   cookieStore.set(CONFIG.AUTH.COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: getEnv().NODE_ENV === 'production',
     sameSite: 'strict',
     maxAge: CONFIG.AUTH.SESSION_DURATION / 1000,
     path: '/',

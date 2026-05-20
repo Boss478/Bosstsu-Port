@@ -1,8 +1,9 @@
 import { cookies } from 'next/headers';
 import { CONFIG } from '@/lib/config';
+import { getEnv } from '@/lib/env';
 
 export async function isValidToken(token: string): Promise<boolean> {
-  const secret = process.env.ADMIN_TOKEN_SECRET;
+  const secret = getEnv().ADMIN_TOKEN_SECRET;
   if (!secret) return false;
   const parts = token.split('.');
   if (parts.length !== 2) return false;

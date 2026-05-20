@@ -1,177 +1,109 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import dbConnect from '@/lib/db';
 import Portfolio from '@/models/Portfolio';
-import { verifyAuth } from '@/lib/auth';
 import { formatError } from '@/lib/error-code';
 import { parseTagString } from '@/lib/format';
-import { z } from 'zod';
-import DOMPurify from 'isomorphic-dompurify';
+import { titleField, slugField, descriptionField, tagsField, optionalString } from '@/lib/validation';
+import { ROUTES } from '@/lib/routes';
+import { withAuth, handleDbError, sanitizeHtml, revalidateContentPaths, createTogglePublished, createDeleteItem } from '@/lib/admin-crud';
 
 const portfolioSchema = z.object({
-  title: z.string().trim().min(1, 'กรุณาระบุชื่อ').max(100),
-  slug: z.string().trim().min(1, 'กรุณาระบุ slug').regex(/^[a-z0-9-]+$/, 'รูปแบบ slug ไม่ถูกต้อง'),
-  description: z.string().trim().min(1, 'กรุณาระบุรายละเอียด').max(500),
-  content: z.string().optional(),
+  title: titleField,
+  slug: slugField,
+  description: descriptionField,
+  content: optionalString,
   dateStr: z.string().trim().min(1, 'กรุณาระบุวันที่'),
-  tagsStr: z.string().optional(),
+  tagsStr: tagsField,
   toolsStr: z.string().optional(),
 }).strict();
 
+const ADMIN = ROUTES.ADMIN.PORTFOLIO;
+const PUBLIC = ROUTES.PUBLIC.PORTFOLIO;
+
+export const togglePublished = createTogglePublished(Portfolio, ADMIN, PUBLIC);
+export const deletePortfolioItem = createDeleteItem(Portfolio, ADMIN, PUBLIC);
+
 export async function createPortfolioItem(formData: FormData) {
-  const isAuth = await verifyAuth();
-  if (!isAuth) return { error: formatError('401') };
-
-  const parsed = portfolioSchema.safeParse({
-    title: formData.get('title'),
-    slug: formData.get('slug'),
-    description: formData.get('description'),
-    content: formData.get('content'),
-    dateStr: formData.get('date'),
-    tagsStr: formData.get('tags') || '',
-    toolsStr: formData.get('tools') || '',
-  });
-
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0].message };
-  }
-
-  const { title, slug, description, content, dateStr, tagsStr, toolsStr } = parsed.data;
-  const published = formData.get('published') === 'on';
-  
-  const coverUrl = formData.get('coverUrl') as string;
-  const galleryUrlsStr = formData.get('galleryUrls') as string;
-  const galleryUrls = galleryUrlsStr ? JSON.parse(galleryUrlsStr) : [];
-
-  if (!coverUrl) {
-    return { error: formatError('U03') };
-  }
-
-  try {
-    await dbConnect();
-    const tags = parseTagString(tagsStr);
-    const tools = toolsStr ? toolsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
-
-    await Portfolio.create({
-      title,
-      slug,
-      description,
-      content: content ? DOMPurify.sanitize(content) : '',
-      date: new Date(dateStr),
-      tags,
-      tools,
-      cover: coverUrl,
-      gallery: galleryUrls,
-      published,
+  return withAuth(async () => {
+    const parsed = portfolioSchema.safeParse({
+      title: formData.get('title'),
+      slug: formData.get('slug'),
+      description: formData.get('description'),
+      content: formData.get('content'),
+      dateStr: formData.get('date'),
+      tagsStr: formData.get('tags') || '',
+      toolsStr: formData.get('tools') || '',
     });
-  } catch (error: unknown) {
-    console.error('Create error:', error);
-    const msg = error instanceof Error ? error.message : '';
-    if (msg.includes('ERROR_U05') || msg.includes('ERROR_U06') || msg.includes('ERROR_U07')) {
-      return { error: msg };
-    }
-    return { error: formatError('DB01') };
-  }
 
-  revalidatePath('/admin/portfolio');
-  revalidatePath('/portfolio');
-  return { error: undefined };
+    if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+    const { title, slug, description, content, dateStr, tagsStr, toolsStr } = parsed.data;
+    const published = formData.get('published') === 'on';
+    const coverUrl = formData.get('coverUrl') as string;
+    const galleryUrls = JSON.parse((formData.get('galleryUrls') as string) || '[]');
+
+    if (!coverUrl) return { error: formatError('U03') };
+
+    try {
+      await dbConnect();
+      await Portfolio.create({
+        title, slug, description,
+        date: new Date(dateStr),
+        tags: parseTagString(tagsStr),
+        tools: toolsStr ? toolsStr.split(',').map(t => t.trim()).filter(Boolean) : [],
+        content: sanitizeHtml(content),
+        cover: coverUrl,
+        gallery: galleryUrls,
+        published,
+      });
+    } catch (error: unknown) {
+      return handleDbError(error, 'Create portfolio', 'DB01');
+    }
+    revalidateContentPaths(ADMIN, PUBLIC);
+    return { error: undefined };
+  });
 }
 
 export async function updatePortfolioItem(id: string, formData: FormData) {
-  const isAuth = await verifyAuth();
-  if (!isAuth) return { error: formatError('401') };
+  return withAuth(async () => {
+    const parsed = portfolioSchema.safeParse({
+      title: formData.get('title'),
+      slug: formData.get('slug'),
+      description: formData.get('description'),
+      content: formData.get('content'),
+      dateStr: formData.get('date'),
+      tagsStr: formData.get('tags') || '',
+      toolsStr: formData.get('tools') || '',
+    });
 
-  const parsed = portfolioSchema.safeParse({
-    title: formData.get('title'),
-    slug: formData.get('slug'),
-    description: formData.get('description'),
-    content: formData.get('content'),
-    dateStr: formData.get('date'),
-    tagsStr: formData.get('tags') || '',
-    toolsStr: formData.get('tools') || '',
+    if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+    const { title, slug, description, content, dateStr, tagsStr, toolsStr } = parsed.data;
+    const published = formData.get('published') === 'on';
+    const coverUrl = formData.get('coverUrl') as string;
+    const galleryUrls = formData.get('galleryUrls') as string;
+
+    try {
+      await dbConnect();
+      const updateData: Record<string, unknown> = {
+        title, slug, description,
+        date: new Date(dateStr),
+        tags: parseTagString(tagsStr),
+        tools: toolsStr ? toolsStr.split(',').map(t => t.trim()).filter(Boolean) : [],
+        content: sanitizeHtml(content),
+        published,
+      };
+
+      if (coverUrl) updateData.cover = coverUrl;
+      if (galleryUrls) updateData.gallery = JSON.parse(galleryUrls);
+
+      await Portfolio.findByIdAndUpdate(id, updateData);
+    } catch (error: unknown) {
+      return handleDbError(error, 'Update portfolio', 'DB02');
+    }
+    revalidateContentPaths(ADMIN, PUBLIC);
+    return { error: undefined };
   });
-
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0].message };
-  }
-
-  const { title, slug, description, content, dateStr, tagsStr, toolsStr } = parsed.data;
-  const published = formData.get('published') === 'on';
-  
-  const coverUrl = formData.get('coverUrl') as string;
-  const galleryUrlsStr = formData.get('galleryUrls') as string;
-  const galleryUrls = galleryUrlsStr ? JSON.parse(galleryUrlsStr) : undefined;
-
-  try {
-    await dbConnect();
-    const updateData: Record<string, unknown> = {
-      title,
-      slug,
-      description,
-      content: content ? DOMPurify.sanitize(content) : '',
-      date: new Date(dateStr),
-      tags: tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [],
-      tools: toolsStr ? toolsStr.split(',').map(t => t.trim()).filter(Boolean) : [],
-      published,
-    };
-
-    if (coverUrl) {
-      updateData.cover = coverUrl;
-    }
-
-    if (galleryUrls !== undefined) {
-      updateData.gallery = galleryUrls;
-    }
-
-    await Portfolio.findByIdAndUpdate(id, updateData);
-  } catch (error: unknown) {
-    console.error('Update error:', error);
-    const msg = error instanceof Error ? error.message : '';
-    if (msg.includes('ERROR_U05') || msg.includes('ERROR_U06') || msg.includes('ERROR_U07')) {
-      return { error: msg };
-    }
-    return { error: formatError('DB02') };
-  }
-
-  revalidatePath('/admin/portfolio');
-  revalidatePath('/portfolio');
-  return { error: undefined };
-}
-
-export async function deletePortfolioItem(id: string) {
-  const isAuth = await verifyAuth();
-  if (!isAuth) return { error: formatError('401') };
-
-  try {
-    await dbConnect();
-    await Portfolio.findByIdAndDelete(id);
-  } catch (error: unknown) {
-    console.error('Delete error:', error);
-    return { error: formatError('DB03') };
-  }
-
-  revalidatePath('/admin/portfolio');
-  revalidatePath('/portfolio');
-  return { error: undefined };
-}
-
-export async function togglePublished(id: string) {
-  const isAuth = await verifyAuth();
-  if (!isAuth) return { error: formatError('401') };
-
-  try {
-    await dbConnect();
-    const item = await Portfolio.findById(id).select('_id published');
-    if (!item) return { error: formatError('404') };
-    await Portfolio.findByIdAndUpdate(id, { published: !item.published });
-  } catch (error: unknown) {
-    console.error('Toggle published error:', error);
-    return { error: formatError('DB02') };
-  }
-
-  revalidatePath('/admin/portfolio');
-  revalidatePath('/portfolio');
-  return { error: undefined };
 }

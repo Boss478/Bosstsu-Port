@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
-import { DB } from './constants';
+import { CONFIG } from '@/lib/config';
+import { getEnv } from '@/lib/env';
 
 function getMongoUri(): string {
-  const uri = process.env.MONGODB_URI;
+  const uri = getEnv().MONGODB_URI;
   if (!uri) {
     throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
   }
@@ -32,11 +33,11 @@ async function dbConnect() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      maxPoolSize: DB.POOL.MAX,
-      minPoolSize: DB.POOL.MIN,
-      serverSelectionTimeoutMS: DB.TIMEOUTS.SERVER_SELECTION,
-      socketTimeoutMS: DB.TIMEOUTS.SOCKET,
-      connectTimeoutMS: DB.TIMEOUTS.CONNECT,
+      maxPoolSize: CONFIG.DB.POOL.MAX,
+      minPoolSize: CONFIG.DB.POOL.MIN,
+      serverSelectionTimeoutMS: CONFIG.DB.TIMEOUTS.SERVER_SELECTION,
+      socketTimeoutMS: CONFIG.DB.TIMEOUTS.SOCKET,
+      connectTimeoutMS: CONFIG.DB.TIMEOUTS.CONNECT,
     };
 
     cached.promise = mongoose.connect(getMongoUri(), opts).then((mongoose) => {

@@ -5,6 +5,7 @@ import Portfolio from '@/models/Portfolio';
 import Gallery from '@/models/Gallery';
 import { CONFIG } from '@/lib/config';
 import { verifyAuth } from '@/lib/auth';
+import { getEnv } from '@/lib/env';
 
 export interface DbStats {
   connected: boolean;
@@ -51,7 +52,7 @@ export async function getDbStats(): Promise<DbStats> {
       // serverStatus may not be available with limited permissions
     }
 
-    const uri = process.env.MONGODB_URI || '';
+    const uri = getEnv().MONGODB_URI || '';
     // Mask password in URI for display
     const maskedUri = uri.replace(/:([^@]+)@/, ':****@');
 

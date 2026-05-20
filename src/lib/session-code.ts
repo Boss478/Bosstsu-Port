@@ -1,12 +1,13 @@
 import dbConnect from './db';
 import ToolSession from '@/models/ToolSession';
+import { CONFIG } from '@/lib/config';
 
 const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const CODE_LENGTH = 5;
 
 function generateSessionCode(): string {
   let code = '';
-  for (let i = 0; i < CODE_LENGTH; i++) {
+  for (let i = 0; i < CONFIG.TOOLS.SESSION_CODE_LENGTH; i++) {
     code += CHARS[Math.floor(Math.random() * CHARS.length)];
   }
   return code;

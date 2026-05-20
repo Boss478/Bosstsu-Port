@@ -2,10 +2,12 @@ import Link from "next/link";
 import { getDbStats, getDashboardStats } from "@/app/actions/admin";
 import Breadcrumb from "@/components/Breadcrumb";
 import LogoutButton from "./LogoutButton";
+import { getEnv } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
+  const mongoExpressUrl = getEnv().MONGO_EXPRESS_URL || 'http://localhost:8081';
   const [stats, recent] = await Promise.all([getDbStats(), getDashboardStats()]);
 
   return (
@@ -101,7 +103,7 @@ export default async function AdminPage() {
             {/* Mongo Express Link */}
             <div className="mt-5 pt-5 border-t border-zinc-200/40 dark:border-slate-700/40">
               <a
-                href={process.env.MONGO_EXPRESS_URL || "http://localhost:8081"}
+                href={mongoExpressUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/10 border border-emerald-500/30 dark:border-emerald-500/20 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/20 transition-all group"
@@ -112,7 +114,7 @@ export default async function AdminPage() {
                     Mongo Express
                   </p>
                   <p className="text-xs text-emerald-600/70 dark:text-emerald-400/60">
-                    {process.env.MONGO_EXPRESS_URL?.replace(/^https?:\/\//, '') || 'localhost:8081'}
+                    {mongoExpressUrl.replace(/^https?:\/\//, '')}
                   </p>
                 </div>
                 <i className="fi fi-sr-arrow-up-right text-emerald-500 text-xs ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
