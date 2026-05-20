@@ -62,5 +62,5 @@ Tasks/
 # Legacy paths (kept for safety)
 tasks/
 public/uploads/
-uploads/
+/uploads/
 report/
