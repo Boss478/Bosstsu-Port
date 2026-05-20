@@ -63,7 +63,7 @@ export default async function ResourcesPage({
       totalPages={totalPages}
       activeType={type}
       sort={sort}
-      totalItems={total}
+      total={total}
     />
   );
 }

@@ -1,36 +1,73 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import Breadcrumb from "@/components/Breadcrumb";
+import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { formatDate } from "@/lib/format";
+import Breadcrumb from "@/components/Breadcrumb";
+import { NavigationPendingBar } from "@/components/NavigationPendingBar";
+import { Pagination } from "@/components/Pagination";
+import { EmptyState } from "@/components/EmptyState";
 import type { GameItem } from "./data";
 
-export default function GamesClient({ initialItems }: { initialItems: GameItem[] }) {
-  const [activeSearch, setActiveSearch] = useState("");
+interface GamesClientProps {
+  items: GameItem[];
+  uniqueCategories: string[];
+  currentPage: number;
+  totalPages: number;
+  activeCategory: string;
+  sort: "desc" | "asc";
+  total: number;
+}
 
-  const filteredItems = useMemo(() => {
-    const lower = activeSearch.toLowerCase();
-    return initialItems.filter(
-      (item) =>
-        item.title.toLowerCase().includes(lower) ||
-        item.description.toLowerCase().includes(lower) ||
-        item.tags.some((t) => t.toLowerCase().includes(lower))
-    );
-  }, [activeSearch, initialItems]);
+export default function GamesClient({
+  items,
+  uniqueCategories,
+  currentPage,
+  totalPages,
+  activeCategory,
+  sort,
+  total,
+}: GamesClientProps) {
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
-  const categories = useMemo(() => {
-    if (filteredItems.length === 0) return [];
-    const groups: Record<string, GameItem[]> = {};
-    filteredItems.forEach((item) => {
-      if (!groups[item.category]) groups[item.category] = [];
-      groups[item.category].push(item);
+  function navigateToPage(page: number) {
+    startTransition(() => {
+      const params = new URLSearchParams();
+      params.set("page", String(page));
+      if (activeCategory && activeCategory !== "ทั้งหมด") params.set("category", activeCategory);
+      params.set("sort", sort);
+      router.push(`/games?${params.toString()}`);
     });
-    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
-  }, [filteredItems]);
+  }
+
+  function filterByCategory(cat: string) {
+    startTransition(() => {
+      const params = new URLSearchParams();
+      params.set("page", "1");
+      if (cat !== "ทั้งหมด") params.set("category", cat);
+      params.set("sort", sort);
+      router.push(`/games?${params.toString()}`);
+    });
+  }
+
+  function changeSort(newSort: "desc" | "asc") {
+    startTransition(() => {
+      const params = new URLSearchParams();
+      params.set("page", "1");
+      if (activeCategory && activeCategory !== "ทั้งหมด") params.set("category", activeCategory);
+      params.set("sort", newSort);
+      router.push(`/games?${params.toString()}`);
+    });
+  }
+
+  const allCategories = ["ทั้งหมด", ...uniqueCategories];
 
   return (
-    <div className="min-h-screen bg-blue-50 dark:bg-slate-950 px-4 pt-28 pb-20">
-      <section className="pb-12">
+    <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
+      <NavigationPendingBar isPending={isPending} />
+
+      <section className="pt-28 pb-12 px-4">
         <div className="max-w-7xl mx-auto">
           <Breadcrumb items={[{ label: "เกมการศึกษา" }]} />
           <h1 className="text-4xl md:text-6xl font-black text-blue-600 dark:text-blue-400 mt-6 tracking-tight">
@@ -39,114 +76,122 @@ export default function GamesClient({ initialItems }: { initialItems: GameItem[]
           <p className="mt-4 text-xl text-zinc-600 dark:text-zinc-400 font-medium">
             เกมการเรียนรู้ในหมวดหมู่ต่าง ๆ
           </p>
+          <p className="mt-2 text-sm text-zinc-400 dark:text-zinc-500">
+            ทั้งหมด {total} รายการ
+          </p>
         </div>
       </section>
 
-      <section className="pb-12">
-        <div className="max-w-2xl mx-auto">
-          <div className="relative group">
-            <i className="fi fi-sr-search absolute left-5 top-1/2 -translate-y-1/2 text-blue-400 group-focus-within:text-blue-500 text-lg transition-colors"></i>
-            <input
-              type="text"
-              placeholder="ค้นหาเกม..."
-              value={activeSearch}
-              onChange={(e) => setActiveSearch(e.target.value)}
-              className="w-full pl-14 pr-12 py-5 rounded-3xl bg-white dark:bg-slate-900 border-2 border-transparent focus:border-blue-400 transition-all shadow-xl shadow-blue-100/50 dark:shadow-none text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-400 text-lg"
-            />
-            {activeSearch && (
+      <section className="px-4 pb-6">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+            {allCategories.map((cat) => (
               <button
-                onClick={() => setActiveSearch("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-zinc-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-slate-700 flex items-center justify-center transition-colors shadow-sm"
+                key={cat}
+                onClick={() => filterByCategory(cat)}
+                disabled={isPending}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 disabled:opacity-60 border ${
+                  activeCategory === cat
+                    ? "bg-blue-500 text-white shadow-md shadow-blue-500/25"
+                    : "bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-300 hover:bg-blue-100 dark:hover:bg-slate-700"
+                }`}
               >
-                <i className="fi fi-sr-cross-small text-zinc-500"></i>
+                {cat}
               </button>
-            )}
+            ))}
           </div>
+
+          <select
+            value={sort}
+            onChange={(e) => changeSort(e.target.value as "desc" | "asc")}
+            disabled={isPending}
+            className="ml-auto px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:border-blue-300 focus:outline-hidden cursor-pointer disabled:opacity-60"
+          >
+            <option value="desc">ใหม่สุด</option>
+            <option value="asc">เก่าสุด</option>
+          </select>
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto space-y-20">
-        {filteredItems.length === 0 ? (
-          <div className="text-center py-24 bg-white dark:bg-slate-900 rounded-[3rem] border-4 border-dashed border-zinc-100 dark:border-slate-800">
-            <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-              <i className="fi fi-sr-gamepad text-4xl text-blue-500 animate-bounce"></i>
-            </div>
-            <p className="text-zinc-500 dark:text-zinc-400 text-xl font-bold">ไม่พบเกมที่ค้นหา</p>
-          </div>
-        ) : (
-          categories.map(([category, items]) => (
-            <div key={category} className="space-y-8">
-              <div className="flex items-center gap-4">
-                <h2 className="text-3xl font-black text-zinc-800 dark:text-zinc-100 px-6 py-2 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-zinc-100 dark:border-slate-800 uppercase tracking-widest">
-                  {category}
-                </h2>
-                <div className="h-1 flex-1 bg-zinc-200 dark:bg-slate-800 rounded-full opacity-50"></div>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {items.map((item) => (
-                  <a
-                    key={item.id}
-                    href={item.link}
-                    target={item.isHtmlContent ? undefined : "_blank"}
-                    rel={item.isHtmlContent ? undefined : "noopener noreferrer"}
-                    className="group relative block bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-[2.5rem] overflow-hidden shadow-2xl shadow-blue-100/30 dark:shadow-black/40 border border-white/60 dark:border-slate-700/50 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-3"
-                  >
-                    <div className="relative aspect-video overflow-hidden">
-                      {item.cover ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={item.cover}
-                          alt={item.title}
-                          loading="lazy"
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-blue-500 flex items-center justify-center">
-                          <i className="fi fi-sr-gamepad text-6xl text-white/50" />
-                        </div>
-                      )}
-                      
-                      <div className="absolute bottom-4 left-6 z-20">
-                         <div className="flex gap-2">
-                           {item.tags.map(tag => (
-<span key={tag} className="px-3 py-1 rounded-xl bg-white/60 backdrop-blur-sm border border-white/70 text-blue-700 shadow-sm text-[10px] font-black uppercase tracking-tighter">
-                                {tag}
-                             </span>
-                           ))}
-                         </div>
+      <section className={`pb-20 px-4 transition-opacity duration-150 ${isPending ? 'opacity-60' : 'opacity-100'}`}>
+        <div className="max-w-7xl mx-auto">
+          {items.length === 0 ? (
+            <EmptyState
+              title="ไม่พบเกม"
+              message="ไม่มีเกมที่ตรงกับเงื่อนไขการค้นหา"
+              icon="fi-sr-gamepad"
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {items.map((item) => (
+                <a
+                  key={item.id}
+                  href={item.link}
+                  target={item.isHtmlContent ? undefined : "_blank"}
+                  rel={item.isHtmlContent ? undefined : "noopener noreferrer"}
+                  className="group relative block bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-[2.5rem] overflow-hidden shadow-2xl shadow-blue-100/30 dark:shadow-black/40 border border-white/60 dark:border-slate-700/50 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-3"
+                >
+                  <div className="relative aspect-video overflow-hidden">
+                    {item.cover ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={item.cover}
+                        alt={item.title}
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-blue-500 flex items-center justify-center">
+                        <i className="fi fi-sr-gamepad text-6xl text-white/50" />
+                      </div>
+                    )}
+
+                    <div className="absolute bottom-4 left-6 z-20">
+                      <div className="flex gap-2">
+                        {item.tags.map(tag => (
+                          <span key={tag} className="px-3 py-1 rounded-xl bg-white/60 backdrop-blur-sm border border-white/70 text-blue-700 shadow-sm text-[10px] font-black uppercase tracking-tighter">
+                            {tag}
+                          </span>
+                        ))}
                       </div>
                     </div>
+                  </div>
 
-                    <div className="p-8 relative">
-                      <div className="absolute -top-10 right-8 w-16 h-16 rounded-3xl bg-blue-500 text-white flex items-center justify-center text-3xl shadow-2xl shadow-blue-500/50 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 z-30">
-                        <i className="fi fi-sr-play"></i>
-                      </div>
+                  <div className="p-8 relative">
+                    <div className="absolute -top-10 right-8 w-16 h-16 rounded-3xl bg-blue-500 text-white flex items-center justify-center text-3xl shadow-2xl shadow-blue-500/50 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 z-30">
+                      <i className="fi fi-sr-play"></i>
+                    </div>
 
-                      <h3 className="text-2xl font-black text-zinc-800 dark:text-zinc-100 mb-3 group-hover:text-blue-500 transition-colors leading-tight">
-                        {item.title}
-                      </h3>
-                      <p className="text-zinc-500 dark:text-zinc-400 mb-6 line-clamp-2 text-sm leading-relaxed">
-                         {item.description}
-                      </p>
-                      
-                      <div className="flex items-center justify-between pt-4 border-t border-zinc-100 dark:border-slate-800">
-                        <span className="flex items-center gap-2 text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-                           <i className="fi fi-sr-calendar text-blue-400"></i>
-                           {formatDate(item.date)}
-                        </span>
-                        <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
-                          <i className="fi fi-sr-angle-small-right"></i>
-                        </div>
+                    <h3 className="text-2xl font-black text-zinc-800 dark:text-zinc-100 mb-3 group-hover:text-blue-500 transition-colors leading-tight">
+                      {item.title}
+                    </h3>
+                    <p className="text-zinc-500 dark:text-zinc-400 mb-6 line-clamp-2 text-sm leading-relaxed">
+                      {item.description}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-zinc-100 dark:border-slate-800">
+                      <span className="flex items-center gap-2 text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                        <i className="fi fi-sr-calendar text-blue-400"></i>
+                        {formatDate(item.date)}
+                      </span>
+                      <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
+                        <i className="fi fi-sr-angle-small-right"></i>
                       </div>
                     </div>
-                  </a>
-                ))}
-              </div>
+                  </div>
+                </a>
+              ))}
             </div>
-          ))
-        )}
-      </div>
+          )}
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={navigateToPage}
+            isPending={isPending}
+          />
+        </div>
+      </section>
     </div>
   );
 }

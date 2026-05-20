@@ -4,6 +4,17 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.19 (2026-05-20)
+
++ Added server-side pagination to games listing page — GAMES_PUBLIC:15 in config, skip/limit query, distinct categories
++ Added total count display on all 4 public listing pages (portfolio, gallery, resources, games)
++ Added scroll-to-top on page change via Pagination component
+* Changed games filter UI from client-side text search to category button pills + sort select dropdown
+* Changed portfolio and gallery tag filter from select dropdown to button pills
+* Changed portfolio and gallery sort from toggle button to select dropdown
+* Changed resources inline empty state to shared EmptyState component
+* Standardized filter/sort/pagination patterns across all 4 public listing pages
+
 ## v1.8.18 (2026-05-20)
 
 + Added Class Tools admin page parity features — search, sort, pagination, and inline status toggle

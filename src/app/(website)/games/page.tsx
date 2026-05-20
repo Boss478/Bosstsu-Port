@@ -1,18 +1,44 @@
 import dbConnect from "@/lib/db";
 import Game from "@/models/Game";
 import GamesClient from "./GamesClient";
+import { CONFIG } from "@/lib/config";
+import type { IGame } from "@/models/Game";
 
 export const dynamic = 'force-dynamic';
 
-export default async function GamesPage() {
+export default async function GamesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; category?: string; sort?: string }>;
+}) {
   await dbConnect();
 
-  const docs = await Game.find({ published: true })
-    .sort({ createdAt: -1 })
-    .lean();
+  const params = await searchParams;
+  const page = Math.max(1, parseInt(params.page || "1"));
+  const category = params.category || "";
+  const sort = params.sort === "asc" ? "asc" : "desc";
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const items = docs.map((doc: any) => {
+  const skip = (page - 1) * CONFIG.PAGINATION.GAMES_PUBLIC;
+
+  const match: { published: { $ne: boolean }; category?: string } = { published: { $ne: false } };
+  if (category && category !== "ทั้งหมด") {
+    match.category = category;
+  }
+
+  const [docs, total, uniqueCategories] = await Promise.all([
+    Game.find(match)
+      .select("slug title description category thumbnail playUrl htmlContent instructions tags createdAt")
+      .sort({ createdAt: sort === "desc" ? -1 : 1 })
+      .skip(skip)
+      .limit(CONFIG.PAGINATION.GAMES_PUBLIC)
+      .lean(),
+    Game.countDocuments(match),
+    Game.distinct("category", { published: { $ne: false } }),
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(total / CONFIG.PAGINATION.GAMES_PUBLIC));
+
+  const items = docs.map((doc: IGame) => {
     const hasHtml = !!doc.htmlContent;
     return {
       id: doc._id.toString(),
@@ -31,5 +57,15 @@ export default async function GamesPage() {
     };
   });
 
-  return <GamesClient initialItems={items} />;
+  return (
+    <GamesClient
+      items={items}
+      uniqueCategories={uniqueCategories as string[]}
+      currentPage={page > totalPages ? 1 : page}
+      totalPages={totalPages}
+      activeCategory={category}
+      sort={sort}
+      total={total}
+    />
+  );
 }

@@ -58,6 +58,7 @@ export default async function GalleryPage({
       totalPages={totalPages}
       activeTag={tag}
       sort={sort}
+      total={total}
     />
   );
 }

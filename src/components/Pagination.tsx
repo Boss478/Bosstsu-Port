@@ -1,6 +1,7 @@
 /**
  * Pagination component for list pages.
  */
+import { useEffect } from "react";
 
 interface PaginationProps {
   currentPage: number;
@@ -15,6 +16,10 @@ export function Pagination({
   onPageChange, 
   isPending = false 
 }: PaginationProps) {
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentPage]);
+
   if (totalPages <= 1) return null;
 
   return (

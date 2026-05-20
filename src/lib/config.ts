@@ -50,6 +50,7 @@ export const CONFIG = {
     PORTFOLIO_PUBLIC: 15,                   // items per page — public portfolio list
     GALLERY_PUBLIC: 15,                     // items per page — public gallery list
     LEARNING_PUBLIC: 15,                    // items per page — public resources list
+    GAMES_PUBLIC: 15,                       // items per page — public games list
   },
 
   // ─── Rate Limiting ────────────────────────────────────────────────────

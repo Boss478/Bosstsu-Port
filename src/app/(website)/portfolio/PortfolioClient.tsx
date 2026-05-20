@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { type PortfolioItem } from "./data";
 import { formatDate } from "@/lib/format";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -17,6 +17,7 @@ interface PortfolioClientProps {
   totalPages: number;
   activeTag: string;
   sort: "desc" | "asc";
+  total: number;
 }
 
 export default function PortfolioClient({
@@ -26,6 +27,7 @@ export default function PortfolioClient({
   totalPages,
   activeTag,
   sort,
+  total,
 }: PortfolioClientProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -50,8 +52,7 @@ export default function PortfolioClient({
     });
   }
 
-  function toggleSortOrder() {
-    const newSort = sort === "desc" ? "asc" : "desc";
+  function changeSort(newSort: "desc" | "asc") {
     startTransition(() => {
       const params = new URLSearchParams();
       params.set("page", "1");
@@ -78,38 +79,41 @@ export default function PortfolioClient({
           <p className="mt-3 text-lg text-zinc-600 dark:text-zinc-400">
             รวบรวมโปรเจกต์ ผลงาน และกิจกรรมต่าง ๆ
           </p>
+          <p className="mt-2 text-sm text-zinc-400 dark:text-zinc-500">
+            ทั้งหมด {total} รายการ
+          </p>
         </div>
       </section>
 
 
       <section id="portfolio-filter-bar" className="px-4 pb-6">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-3">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => filterByTag(tag)}
+                disabled={isPending}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 disabled:opacity-60 border ${
+                  activeTag === tag
+                    ? "bg-blue-500 text-white shadow-md shadow-blue-500/25"
+                    : "bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-300 hover:bg-blue-100 dark:hover:bg-slate-700"
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
 
           <select
-            value={activeTag || "ทั้งหมด"}
-            onChange={(e) => filterByTag(e.target.value)}
+            value={sort}
+            onChange={(e) => changeSort(e.target.value as "desc" | "asc")}
             disabled={isPending}
-            className="px-4 py-1.5 rounded-full text-sm font-medium bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:bg-blue-100 dark:hover:bg-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200 cursor-pointer disabled:opacity-60"
+            className="ml-auto px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:border-blue-300 focus:outline-hidden cursor-pointer disabled:opacity-60"
           >
-            {allTags.map((tag) => (
-              <option key={tag} value={tag}>
-                {tag}
-              </option>
-            ))}
+            <option value="desc">ใหม่สุด</option>
+            <option value="asc">เก่าสุด</option>
           </select>
-
-
-          <button
-            onClick={toggleSortOrder}
-            disabled={isPending}
-            className="ml-auto flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:bg-blue-100 dark:hover:bg-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200 cursor-pointer disabled:opacity-60"
-          >
-            <i className="fi fi-sr-calendar text-xs" />
-            {sort === "desc" ? "ใหม่สุด" : "เก่าสุด"}
-            <i
-              className={`fi fi-sr-arrow-${sort === "desc" ? "down" : "up"} text-xs transition-transform duration-200`}
-            />
-          </button>
         </div>
       </section>
 

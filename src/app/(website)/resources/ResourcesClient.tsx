@@ -8,6 +8,7 @@ import { formatDate } from "@/lib/format";
 import { type ResourceItem } from "./data";
 import { NavigationPendingBar } from "@/components/NavigationPendingBar";
 import { Pagination } from "@/components/Pagination";
+import { EmptyState } from "@/components/EmptyState";
 
 interface ResourcesClientProps {
   items: ResourceItem[];
@@ -17,7 +18,7 @@ interface ResourcesClientProps {
   totalPages: number;
   activeType: string;
   sort: "Newest" | "Oldest";
-  totalItems: number;
+  total: number;
 }
 
 export default function ResourcesClient({
@@ -27,7 +28,7 @@ export default function ResourcesClient({
   totalPages,
   activeType,
   sort,
-  totalItems: _totalItems,
+  total,
 }: ResourcesClientProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -77,6 +78,9 @@ export default function ResourcesClient({
           <p className="mt-3 text-lg text-zinc-600 dark:text-zinc-400">
             เอกสารประกอบการเรียน สไลด์ และวิดีโอความรู้
           </p>
+          <p className="mt-2 text-sm text-zinc-400 dark:text-zinc-500">
+            ทั้งหมด {total} รายการ
+          </p>
         </div>
       </section>
 
@@ -114,10 +118,11 @@ export default function ResourcesClient({
       <section className={`pb-20 px-4 transition-opacity duration-150 ${isPending ? 'opacity-60' : 'opacity-100'}`}>
         <div className="max-w-7xl mx-auto">
           {items.length === 0 ? (
-            <div className="text-center py-20">
-              <i className="fi fi-sr-search-alt text-4xl text-zinc-300 dark:text-zinc-600 mb-4 block"></i>
-              <p className="text-zinc-500 dark:text-zinc-400">ไม่พบข้อมูลสื่อการเรียนรู้</p>
-            </div>
+            <EmptyState
+              title="ไม่พบสื่อการเรียนรู้"
+              message="ไม่มีสื่อการเรียนรู้ที่ตรงกับเงื่อนไขการค้นหา"
+              icon="fi-sr-search-alt"
+            />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {items.map((item) => (
