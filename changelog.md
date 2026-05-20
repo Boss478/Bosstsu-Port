@@ -4,6 +4,11 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.15 (2026-05-20)
+
+* Fixed upload file 404 on VPS — added `/uploads/[...path]` route handler to serve bind-mounted files (Next.js standalone static server doesn't serve runtime-uploaded files)
+* Fixed `.gitignore` `uploads/` pattern to `/uploads/` so `src/app/uploads/` route is not ignored
+
 ## v1.8.14 (2026-05-19)
 
 * Fixed Assignment edit file upload bugs — remove+re-upload now works (was only removing old file), removed typo causing file state corruption, added filename display on Replace button
