@@ -4,6 +4,13 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.27 (2026-05-21)
+
+* Fixed "All" filter button not active on first load for /games, /portfolio, /gallery — changed server default from `""` to `"ทั้งหมด"` to match client button label
+* Removed zero-width space (`\u200b`) accidentally injected by sed command in server files
+* Removed `NavigationPendingBar` component entirely — no loading indicator during navigation, consistent with instant-response UX from v1.8.25
+* Deleted `src/components/NavigationPendingBar.tsx` — no longer used
+
 ## v1.8.26 (2026-05-21)
 
 * Fixed filter buttons on /resources and /games — corrected `filterKey` in `useListNavigation` config (`'tag'` → `'type'` for resources, `'tag'` → `'category'` for games)

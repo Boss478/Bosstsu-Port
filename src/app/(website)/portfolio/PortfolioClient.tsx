@@ -6,7 +6,6 @@ import Link from "next/link";
 import { type PortfolioItem } from "./data";
 import { formatDate } from "@/lib/format";
 import Breadcrumb from "@/components/Breadcrumb";
-import { NavigationPendingBar } from "@/components/NavigationPendingBar";
 import { Pagination } from "@/components/Pagination";
 import { EmptyState } from "@/components/EmptyState";
 import { useListNavigation } from "@/hooks/useListNavigation";
@@ -32,7 +31,7 @@ export default function PortfolioClient({
   sort,
   total,
 }: PortfolioClientProps) {
-  const { navigateToPage, filterBy, changeSort, searchBy, isPending } = useListNavigation({
+  const { navigateToPage, filterBy, changeSort, searchBy } = useListNavigation({
     basePath: '/portfolio',
     filterKey: 'tag',
   });
@@ -62,7 +61,6 @@ export default function PortfolioClient({
 
   return (
     <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
-      <NavigationPendingBar isPending={isPending} />
 
       <section id="portfolio-header" className="pt-28 pb-12 px-4">
         <div className="max-w-7xl mx-auto">

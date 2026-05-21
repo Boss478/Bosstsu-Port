@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Breadcrumb from "@/components/Breadcrumb";
 import { formatDate } from "@/lib/format";
-import { type ResourceItem } from "./data";
-import { NavigationPendingBar } from "@/components/NavigationPendingBar";
 import { Pagination } from "@/components/Pagination";
 import { EmptyState } from "@/components/EmptyState";
 import { useListNavigation } from "@/hooks/useListNavigation";
@@ -33,7 +31,7 @@ export default function ResourcesClient({
   sort,
   total,
 }: ResourcesClientProps) {
-  const { navigateToPage, filterBy, changeSort, searchBy, isPending } = useListNavigation({
+  const { navigateToPage, filterBy, changeSort, searchBy } = useListNavigation({
     basePath: '/resources',
     filterKey: 'type',
   });
@@ -63,7 +61,6 @@ export default function ResourcesClient({
 
   return (
     <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
-      <NavigationPendingBar isPending={isPending} />
       <section className="pt-28 pb-12 px-4">
         <div className="max-w-7xl mx-auto">
           <Breadcrumb items={[{ label: "สื่อการเรียนรู้" }]} />

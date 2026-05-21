@@ -4,7 +4,6 @@ import { useTransition, useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from "next/navigation";
 import { formatDate } from "@/lib/format";
 import Breadcrumb from "@/components/Breadcrumb";
-import { NavigationPendingBar } from "@/components/NavigationPendingBar";
 import { Pagination } from "@/components/Pagination";
 import { EmptyState } from "@/components/EmptyState";
 import type { GameItem } from "./data";
@@ -31,7 +30,7 @@ export default function GamesClient({
   sort,
   total,
 }: GamesClientProps) {
-  const { navigateToPage, filterBy, changeSort, searchBy, isPending } = useListNavigation({
+  const { navigateToPage, filterBy, changeSort, searchBy } = useListNavigation({
     basePath: '/games',
     filterKey: 'category',
   });
@@ -61,7 +60,6 @@ export default function GamesClient({
 
   return (
     <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
-      <NavigationPendingBar isPending={isPending} />
 
       <section className="pt-28 pb-12 px-4">
         <div className="max-w-7xl mx-auto">
