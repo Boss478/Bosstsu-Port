@@ -36,7 +36,7 @@ export default function GamesClient({
   });
   const router = useRouter();
   const [localQuery, setLocalQuery] = useState(activeQuery);
-  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const filteredItems = useMemo(() => {
     if (!localQuery) return items;

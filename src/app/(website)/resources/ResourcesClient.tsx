@@ -3,6 +3,7 @@
 import { useTransition, useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ResourceItem } from './data';
 import Breadcrumb from "@/components/Breadcrumb";
 import { formatDate } from "@/lib/format";
 import { Pagination } from "@/components/Pagination";
@@ -37,7 +38,7 @@ export default function ResourcesClient({
   });
   const router = useRouter();
   const [localQuery, setLocalQuery] = useState(activeQuery);
-  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const filteredItems = useMemo(() => {
     if (!localQuery) return items;
