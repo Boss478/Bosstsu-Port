@@ -4,6 +4,17 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.24 (2026-05-21)
+
++ Added B-tree index `{ title: 1 }` on all 4 models (Portfolio, Gallery, Learning, Game) — enables index-scan for admin `$regex` title search
++ Added EXIF data cache in PhotoLightbox (Map-based, per-mount) — eliminates redundant EXIF re-parsing on photo navigation
++ Added visibility-aware polling in ResultsView — pauses polling when tab is hidden, resumes + immediate fetch on return
++ Added dynamic imports for RichTextEditor in PortfolioForm and LearningForm — reduces initial JS bundle by ~15KB
++ Added search bar to all 4 public listing pages (/portfolio, /gallery, /resources, /games) — server-side `$regex` search on title, uses `{ title: 1 }` index, integrates with existing tag/type/category filters
++ Changed resources detail page from `force-dynamic` to ISR (`revalidate = 60`) — enables CDN caching for repeat visitors
+* Fixed gallery album photo upload from sequential loop to `Promise.all` — ~60% faster for multi-photo albums
+* Fixed pre-existing type errors: `navigateToPage` signature mismatch in 4 Client pages, `ip` property missing in ResultsView, Mongoose Document cast in admin-crud
+
 ## v1.8.23 (2026-05-20)
 
 * Refactored tools API rate limit to use `CONFIG.TOOLS.RATE_LIMIT_PER_MINUTE` instead of hardcoded value — changed default from 5 → 10 requests/min

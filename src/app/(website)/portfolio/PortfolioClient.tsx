@@ -1,5 +1,6 @@
 "use client";
 
+import { useTransition, useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { type PortfolioItem } from "./data";
@@ -16,6 +17,7 @@ interface PortfolioClientProps {
   currentPage: number;
   totalPages: number;
   activeTag: string;
+  activeQuery: string;
   sort: "desc" | "asc";
   total: number;
 }
@@ -26,14 +28,35 @@ export default function PortfolioClient({
   currentPage,
   totalPages,
   activeTag,
+  activeQuery,
   sort,
   total,
 }: PortfolioClientProps) {
-  const { navigateToPage, filterBy, changeSort, isPending } = useListNavigation({
+  const { navigateToPage, filterBy, changeSort, searchBy, isPending } = useListNavigation({
     basePath: '/portfolio',
     filterKey: 'tag',
   });
   const router = useRouter();
+  const [localQuery, setLocalQuery] = useState(activeQuery);
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const filteredItems = useMemo(() => {
+    if (!localQuery) return items;
+    const q = localQuery.toLowerCase();
+    return items.filter(item => item.title.toLowerCase().includes(q));
+  }, [items, localQuery]);
+
+  useEffect(() => {
+    clearTimeout(syncTimeoutRef.current);
+    syncTimeoutRef.current = setTimeout(() => {
+      if (localQuery !== activeQuery) searchBy(localQuery, activeTag, sort);
+    }, 800);
+    return () => clearTimeout(syncTimeoutRef.current);
+  }, [localQuery]);
+
+  const handlePageChange = (page: number) => {
+    navigateToPage(page, activeTag, sort);
+  };
 
   const allTags = ["ทั้งหมด", ...uniqueTags];
 
@@ -60,14 +83,24 @@ export default function PortfolioClient({
 
 
       <section id="portfolio-filter-bar" className="px-4 pb-6">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-2">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <i className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-sm" />
+            <input
+              type="text"
+              placeholder="ค้นหา..."
+              value={localQuery}
+              onChange={(e) => setLocalQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-full text-sm bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-300 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+            />
+          </div>
+
           <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
             {allTags.map((tag) => (
               <button
                 key={tag}
                 onClick={() => filterBy(tag, sort)}
-                disabled={isPending}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 disabled:opacity-60 border ${
+                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 border ${
                   activeTag === tag
                     ? "bg-blue-500 text-white shadow-md shadow-blue-500/25"
                     : "bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-300 hover:bg-blue-100 dark:hover:bg-slate-700"
@@ -81,8 +114,7 @@ export default function PortfolioClient({
           <select
             value={sort}
             onChange={(e) => changeSort(e.target.value, activeTag)}
-            disabled={isPending}
-            className="ml-auto px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:border-blue-300 focus:outline-hidden cursor-pointer disabled:opacity-60"
+            className="ml-auto px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:border-blue-300 focus:outline-hidden cursor-pointer"
           >
             <option value="desc">ใหม่สุด</option>
             <option value="asc">เก่าสุด</option>
@@ -91,9 +123,9 @@ export default function PortfolioClient({
       </section>
 
 
-      <section id="portfolio-grid" className={`pt-8 pb-20 px-4 bg-white/70 dark:bg-slate-900 transition-opacity duration-150 ${isPending ? 'opacity-60' : 'opacity-100'}`}>
+      <section id="portfolio-grid" className="pt-8 pb-20 px-4 bg-white/70 dark:bg-slate-900">
         <div className="max-w-7xl mx-auto pt-8">
-          {items.length === 0 ? (
+          {filteredItems.length === 0 ? (
             <EmptyState 
               title="ไม่พบผลงาน"
               message="ไม่มีผลงานที่ตรงกับเงื่อนไขการค้นหา"
@@ -101,7 +133,7 @@ export default function PortfolioClient({
             />
           ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {items.map((item) => (
+            {filteredItems.map((item) => (
               <Link
                 key={item.id}
                 href={`/portfolio/${item.id}`}
@@ -184,8 +216,7 @@ export default function PortfolioClient({
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
-            onPageChange={navigateToPage}
-            isPending={isPending}
+            onPageChange={handlePageChange}
           />
         </div>
       </section>

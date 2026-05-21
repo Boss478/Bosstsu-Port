@@ -9,7 +9,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import { formatDate } from "@/lib/format";
 import { CONFIG } from "@/lib/config";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 type LeanLearningDoc = {
   _id: mongoose.Types.ObjectId;

@@ -36,6 +36,7 @@ const PortfolioSchema: Schema = new Schema(
 );
 
 // Indexes for performance
+PortfolioSchema.index({ title: 1 });
 PortfolioSchema.index({ date: -1 });
 PortfolioSchema.index({ title: 'text', description: 'text', tags: 'text' });
 PortfolioSchema.index({ relatedGalleryId: 1 });

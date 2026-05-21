@@ -63,8 +63,20 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
   };
 
   useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        if (intervalRef.current) clearInterval(intervalRef.current);
+      } else {
+        fetchResponses();
+        intervalRef.current = setInterval(fetchResponses, refreshInterval);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
     intervalRef.current = setInterval(fetchResponses, refreshInterval);
+
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [fetchResponses, refreshInterval]);
@@ -211,7 +223,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
                   </tr>
                 </thead>
                 <tbody>
-                  {responses.map((r: { _id: string; studentName?: string; content: { answer?: string }; fileUrl?: string; createdAt: string }) => (
+                  {responses.map((r: { _id: string; studentName?: string; content: { answer?: string }; fileUrl?: string; ip?: string; createdAt: string }) => (
                     <tr key={r._id} className="border-b last:border-0 border-zinc-100/60 dark:border-slate-700/30">
                       <td className="p-4 font-semibold text-zinc-900 dark:text-zinc-100">
                         {r.studentName || 'Anonymous'}

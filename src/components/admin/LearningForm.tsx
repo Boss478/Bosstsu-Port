@@ -3,10 +3,15 @@
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import TagPicker from './TagPicker';
-import RichTextEditor from './RichTextEditor';
 import { useAdminSession } from './AdminSessionProvider';
 import { useToast } from './ToastProvider';
+
+const RichTextEditor = dynamic(
+  () => import('./RichTextEditor'),
+  { ssr: false, loading: () => <div className="h-48 rounded-xl bg-zinc-100 dark:bg-slate-800 animate-pulse" /> }
+);
 
 const SUBJECT_OPTIONS = [
   'คณิตศาสตร์ (Mathematics)',

@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import exifr from "exifr";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 interface PhotoLightboxProps {
   photos: string[];
@@ -44,6 +43,7 @@ export default function PhotoLightbox({ photos, initialIndex, onClose }: PhotoLi
   const [exifData, setExifData] = useState<ExifData | null>(null);
   const [exifLoading, setExifLoading] = useState(false);
   const [fileInfo, setFileInfo] = useState<{ name: string; size: string } | null>(null);
+  const exifCache = useRef(new Map<string, ExifData>());
 
   const showPrevious = useCallback(() => {
     setActiveIndex((i) => (i === 0 ? photos.length - 1 : i - 1));
@@ -74,6 +74,15 @@ export default function PhotoLightbox({ photos, initialIndex, onClose }: PhotoLi
     const url = photos[activeIndex];
     const filename = url.split('/').pop()?.split('?')[0] || "image.jpg";
 
+    // Check cache first
+    const cached = exifCache.current.get(url);
+    if (cached) {
+      setExifData(cached);
+      setExifLoading(false);
+      setFileInfo({ name: filename, size: "" });
+      return;
+    }
+
     // Fetch Content-Length for file size
     fetch(url, { method: "HEAD" })
       .then((res) => {
@@ -94,41 +103,46 @@ export default function PhotoLightbox({ photos, initialIndex, onClose }: PhotoLi
         if (!cancelled) setFileInfo({ name: filename, size: "" });
       });
 
-    exifr
-      .parse(url, {
+    // Dynamic import exifr only when needed
+    import("exifr").then((exifrModule) => {
+      if (cancelled) return;
+      return exifrModule.default.parse(url, {
         pick: [
           "Make", "Model", "LensModel", "LensMake",
           "ISO", "ExposureTime", "FNumber", "FocalLength",
           "DateTimeOriginal",
         ],
-      })
-      .then((data) => {
-        if (cancelled || !data) {
-          setExifData(null);
-          setExifLoading(false);
-          return;
-        }
-
-        const camera = [data.Make, data.Model].filter(Boolean).join(" ") || undefined;
-        const lens = data.LensModel || data.LensMake || undefined;
-
-        setExifData({
-          camera,
-          lens,
-          iso: data.ISO ? `ISO ${data.ISO}` : undefined,
-          shutter: formatShutter(data.ExposureTime),
-          aperture: data.FNumber ? `f/${data.FNumber}` : undefined,
-          focalLength: data.FocalLength ? `${data.FocalLength}mm` : undefined,
-          dateTaken: formatExifDate(data.DateTimeOriginal),
-        });
-        setExifLoading(false);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setExifData(null);
-          setExifLoading(false);
-        }
       });
+    }).then((data) => {
+      if (cancelled || !data) {
+        setExifData(null);
+        setExifLoading(false);
+        return;
+      }
+
+      const camera = [data.Make, data.Model].filter(Boolean).join(" ") || undefined;
+      const lens = data.LensModel || data.LensMake || undefined;
+
+      const parsed: ExifData = {
+        camera,
+        lens,
+        iso: data.ISO ? `ISO ${data.ISO}` : undefined,
+        shutter: formatShutter(data.ExposureTime),
+        aperture: data.FNumber ? `f/${data.FNumber}` : undefined,
+        focalLength: data.FocalLength ? `${data.FocalLength}mm` : undefined,
+        dateTaken: formatExifDate(data.DateTimeOriginal),
+      };
+
+      // Cache the result
+      exifCache.current.set(url, parsed);
+      setExifData(parsed);
+      setExifLoading(false);
+    }).catch(() => {
+      if (!cancelled) {
+        setExifData(null);
+        setExifLoading(false);
+      }
+    });
 
     return () => {
       cancelled = true;

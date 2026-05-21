@@ -32,6 +32,7 @@ const GallerySchema: Schema = new Schema(
 );
 
 // Indexes for performance
+GallerySchema.index({ title: 1 });
 GallerySchema.index({ published: 1, date: -1 });
 GallerySchema.index({ slug: 1, published: 1 });
 GallerySchema.index({ title: 'text', description: 'text', tags: 'text' });

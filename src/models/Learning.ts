@@ -39,6 +39,7 @@ const LearningSchema: Schema = new Schema(
   }
 );
 
+LearningSchema.index({ title: 1 });
 LearningSchema.index({ published: 1, createdAt: -1 });
 
 const Learning: Model<ILearningResource> =

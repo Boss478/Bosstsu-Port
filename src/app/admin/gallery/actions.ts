@@ -49,10 +49,10 @@ export async function createGalleryAlbum(formData: FormData) {
       await dbConnect();
       const coverPath = await saveFile(coverFile, 'gallery/covers');
       const tags = parseTagString(tagsStr);
-      const photos: string[] = [];
-      for (const file of photoFiles) {
-        if (file.size > 0) photos.push(await saveFile(file, 'gallery/albums'));
-      }
+      const photoPromises = photoFiles
+        .filter(f => f.size > 0)
+        .map(f => saveFile(f, 'gallery/albums'));
+      const photos = await Promise.all(photoPromises);
 
       await Gallery.create({
         title, slug, description,
@@ -107,9 +107,10 @@ export async function updateGalleryAlbum(id: string, formData: FormData) {
       }
 
       const photos = existingPhotosStr ? JSON.parse(existingPhotosStr) : [];
-      for (const file of photoFiles) {
-        if (file.size > 0) photos.push(await saveFile(file, 'gallery/albums'));
-      }
+      const newPhotos = await Promise.all(
+        photoFiles.filter(f => f.size > 0).map(f => saveFile(f, 'gallery/albums'))
+      );
+      photos.push(...newPhotos);
       updateData.photos = photos;
 
       await Gallery.findByIdAndUpdate(id, updateData);

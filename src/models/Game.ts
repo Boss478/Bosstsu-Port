@@ -34,6 +34,7 @@ const GameSchema: Schema = new Schema(
 );
 
 // Indexes
+GameSchema.index({ title: 1 });
 GameSchema.index({ category: 1 });
 GameSchema.index({ published: 1, createdAt: -1 });
 

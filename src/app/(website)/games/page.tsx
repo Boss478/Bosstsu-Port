@@ -9,21 +9,21 @@ export const dynamic = 'force-dynamic';
 export default async function GamesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; category?: string; sort?: string }>;
+  searchParams: Promise<{ page?: string; category?: string; sort?: string; q?: string }>;
 }) {
   await dbConnect();
 
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page || "1"));
   const category = params.category || "";
+  const query = params.q || "";
   const sort = params.sort === "asc" ? "asc" : "desc";
 
   const skip = (page - 1) * CONFIG.PAGINATION.GAMES_PUBLIC;
 
-  const match: { published: { $ne: boolean }; category?: string } = { published: { $ne: false } };
-  if (category && category !== "ทั้งหมด") {
-    match.category = category;
-  }
+  const match: Record<string, unknown> = { published: { $ne: false } };
+  if (category && category !== "ทั้งหมด") match.category = category;
+  if (query) match.title = { $regex: query, $options: 'i' };
 
   const [docs, total, uniqueCategories] = await Promise.all([
     Game.find(match)
@@ -64,6 +64,7 @@ export default async function GamesPage({
       currentPage={page > totalPages ? 1 : page}
       totalPages={totalPages}
       activeCategory={category}
+      activeQuery={query}
       sort={sort}
       total={total}
     />

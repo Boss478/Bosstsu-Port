@@ -10,21 +10,21 @@ export const dynamic = 'force-dynamic';
 export default async function GalleryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; tag?: string; sort?: string }>;
+  searchParams: Promise<{ page?: string; tag?: string; sort?: string; q?: string }>;
 }) {
   await dbConnect();
 
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page || "1"));
   const tag = params.tag || "";
+  const query = params.q || "";
   const sort = params.sort === "asc" ? "asc" : "desc";
 
   const skip = (page - 1) * CONFIG.PAGINATION.GALLERY_PUBLIC;
 
-  const match: { published: { $ne: boolean }; tags?: string } = { published: { $ne: false } };
-  if (tag && tag !== "ทั้งหมด") {
-    match.tags = tag;
-  }
+  const match: Record<string, unknown> = { published: { $ne: false } };
+  if (tag && tag !== "ทั้งหมด") match.tags = tag;
+  if (query) match.title = { $regex: query, $options: 'i' };
 
   const [docs, total, uniqueTags] = await Promise.all([
     Gallery.find(match)
@@ -57,6 +57,7 @@ export default async function GalleryPage({
       currentPage={page > totalPages ? 1 : page}
       totalPages={totalPages}
       activeTag={tag}
+      activeQuery={query}
       sort={sort}
       total={total}
     />

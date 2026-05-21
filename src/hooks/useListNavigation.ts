@@ -44,5 +44,14 @@ export function useListNavigation(config: UseListNavigationConfig) {
     });
   }
 
-  return { navigateToPage, filterBy, changeSort, isPending };
+  function searchBy(query: string, activeFilter: string, sort: string) {
+    startTransition(() => {
+      const params = buildParams({ q: query, [filterKey]: activeFilter, sort });
+      if (!params.has('page')) params.set('page', '1');
+      if (!params.has('sort')) params.set('sort', sort);
+      router.replace(`${basePath}?${params.toString()}`);
+    });
+  }
+
+  return { navigateToPage, filterBy, changeSort, searchBy, isPending };
 }

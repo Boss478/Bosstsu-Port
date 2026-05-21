@@ -10,21 +10,21 @@ export const dynamic = 'force-dynamic';
 export default async function ResourcesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; type?: string; sort?: string }>;
+  searchParams: Promise<{ page?: string; type?: string; sort?: string; q?: string }>;
 }) {
   await dbConnect();
 
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page || "1"));
   const type = params.type || "All";
+  const query = params.q || "";
   const sort = params.sort === "Oldest" ? "Oldest" : "Newest";
 
   const skip = (page - 1) * CONFIG.PAGINATION.LEARNING_PUBLIC;
 
-  const match: { published: { $ne: boolean }; type?: string } = { published: { $ne: false } };
-  if (type && type !== "All") {
-    match.type = type;
-  }
+  const match: Record<string, unknown> = { published: { $ne: false } };
+  if (type && type !== "All") match.type = type;
+  if (query) match.title = { $regex: query, $options: 'i' };
 
   const [docs, total, uniqueTypes, uniqueTags] = await Promise.all([
     Learning.find(match)
@@ -62,6 +62,7 @@ export default async function ResourcesPage({
       currentPage={page > totalPages ? 1 : page}
       totalPages={totalPages}
       activeType={type}
+      activeQuery={query}
       sort={sort}
       total={total}
     />
