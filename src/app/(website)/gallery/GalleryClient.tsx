@@ -84,7 +84,7 @@ export default function GalleryClient({
 
       <section id="gallery-filter-bar" className="px-4 pb-6">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <div className="relative w-64">
             <i className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-sm" />
             <input
               type="text"

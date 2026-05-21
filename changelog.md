@@ -4,6 +4,15 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.25 (2026-05-21)
+
+* Fixed blurry search icon — removed `backdrop-blur-xs` from search inputs across all 4 public listing pages
+* Changed search from server-side navigation to client-side filtering — `localQuery` state + `useMemo` for instant results, zero server round-trip while typing
+* Added debounced URL sync (800ms) via `router.replace()` — keeps URLs shareable without disrupting typing or polluting history
+* Removed `isPending` visual feedback — no opacity flash on grid, filter buttons, sort dropdown, or input during transitions
+* Fixed `activeTag` vs `activeCategory`/`activeType` runtime errors in GamesClient and ResourcesClient
+* Changed search bar from `flex-1` to fixed `w-64` — filter buttons now sit immediately next to search bar
+
 ## v1.8.24 (2026-05-21)
 
 + Added B-tree index `{ title: 1 }` on all 4 models (Portfolio, Gallery, Learning, Game) — enables index-scan for admin `$regex` title search

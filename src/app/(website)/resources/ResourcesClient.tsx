@@ -81,8 +81,8 @@ export default function ResourcesClient({
       </section>
 
       <section className="px-4 pb-8">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-y-3 gap-x-3">
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-3">
+          <div className="relative w-64">
             <i className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-sm" />
             <input
               type="text"
@@ -112,7 +112,7 @@ export default function ResourcesClient({
         <select
           value={sort}
             onChange={(e) => changeSort(e.target.value, activeType)}
-            className="px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:border-blue-300 focus:outline-hidden cursor-pointer"
+            className="ml-auto px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:border-blue-300 focus:outline-hidden cursor-pointer"
         >
           <option value="Newest">ใหม่สุด</option>
           <option value="Oldest">เก่าสุด</option>
