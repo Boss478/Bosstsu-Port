@@ -16,7 +16,7 @@ export default async function GalleryPage({
 
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page || "1"));
-  const tag = params.tag || "";
+  const tag = params.tag || "ทั้งหมด";
   const query = params.q || "";
   const sort = params.sort === "asc" ? "asc" : "desc";
 

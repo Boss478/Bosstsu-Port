@@ -15,7 +15,7 @@ export default async function GamesPage({
 
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page || "1"));
-  const category = params.category || "";
+  const category = params.category || "ทั้งหมด";
   const query = params.q || "";
   const sort = params.sort === "asc" ? "asc" : "desc";
 

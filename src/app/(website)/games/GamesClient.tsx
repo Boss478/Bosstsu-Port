@@ -33,7 +33,7 @@ export default function GamesClient({
 }: GamesClientProps) {
   const { navigateToPage, filterBy, changeSort, searchBy, isPending } = useListNavigation({
     basePath: '/games',
-    filterKey: 'tag',
+    filterKey: 'category',
   });
   const router = useRouter();
   const [localQuery, setLocalQuery] = useState(activeQuery);
@@ -54,14 +54,7 @@ export default function GamesClient({
   }, [localQuery]);
 
   const handlePageChange = (page: number) => {
-    navigateToPage(page, activeTag, sort);
-  };
-
-  const handleSearchChange = (value: string) => {
-    clearTimeout(searchTimeoutRef.current);
-    searchTimeoutRef.current = setTimeout(() => {
-      searchBy(value, activeCategory, sort);
-    }, 400);
+    navigateToPage(page, activeCategory, sort);
   };
 
   const allCategories = ["ทั้งหมด", ...uniqueCategories];
@@ -134,7 +127,7 @@ export default function GamesClient({
               icon="fi-sr-gamepad"
             />
           ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredItems.map((item) => (
                 <a
                   key={item.id}

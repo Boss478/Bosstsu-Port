@@ -35,7 +35,7 @@ export default function ResourcesClient({
 }: ResourcesClientProps) {
   const { navigateToPage, filterBy, changeSort, searchBy, isPending } = useListNavigation({
     basePath: '/resources',
-    filterKey: 'tag',
+    filterKey: 'type',
   });
   const router = useRouter();
   const [localQuery, setLocalQuery] = useState(activeQuery);
@@ -56,7 +56,7 @@ export default function ResourcesClient({
   }, [localQuery]);
 
   const handlePageChange = (page: number) => {
-    navigateToPage(page, activeTag, sort);
+    navigateToPage(page, activeType, sort);
   };
 
   const allTypes = ["All", ...uniqueTypes];

@@ -4,6 +4,13 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.8.26 (2026-05-21)
+
+* Fixed filter buttons on /resources and /games — corrected `filterKey` in `useListNavigation` config (`'tag'` → `'type'` for resources, `'tag'` → `'category'` for games)
+* Fixed `handlePageChange` crash on /resources (`activeTag` → `activeType`) and /games (`activeTag` → `activeCategory`)
+* Removed dead `handleSearchChange` function from GamesClient — leftover from pre-refactored state, referenced undefined `searchTimeoutRef`
+* Capped games grid at 3 columns max — removed `xl:grid-cols-4` to prevent play button overlap with tag badges on narrow cards
+
 ## v1.8.25 (2026-05-21)
 
 * Fixed blurry search icon — removed `backdrop-blur-xs` from search inputs across all 4 public listing pages
