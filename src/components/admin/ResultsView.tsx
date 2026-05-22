@@ -14,6 +14,7 @@ interface ResultsViewProps {
   fullScreen?: boolean;
   onToggleFullScreen?: () => void;
   refreshInterval?: number;
+  sessionCurrentStep?: number;
 }
 
 const TOOL_LABELS: Record<string, string> = {
@@ -26,7 +27,7 @@ const TOOL_LABELS: Record<string, string> = {
   discussion: 'Discussion',
 };
 
-export default function ResultsView({ session, initialResponses, fullScreen, onToggleFullScreen, refreshInterval = 15000 }: ResultsViewProps) {
+export default function ResultsView({ session, initialResponses, fullScreen, onToggleFullScreen, refreshInterval = 15000, sessionCurrentStep = -1 }: ResultsViewProps) {
   const toolType = session.type || 'padlet';
   const [responses, setResponses] = useState(initialResponses);
   const [refreshing, setRefreshing] = useState(false);
@@ -38,7 +39,22 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
 
   const steps = session.steps as Array<{ type: string; title: string; config?: Record<string, unknown> }> | undefined;
   const hasSteps = steps && steps.length > 1;
-  const [activeStepTab, setActiveStepTab] = useState<number | null>(hasSteps ? 0 : null);
+  const [activeStepTab, setActiveStepTab] = useState<number | null>(
+    hasSteps ? (sessionCurrentStep >= 0 ? sessionCurrentStep : null) : null
+  );
+  const userChangedTab = useRef(false);
+
+  // Auto-sync activeStepTab with session current step unless teacher manually selected a tab
+  useEffect(() => {
+    if (hasSteps && !userChangedTab.current) {
+      setActiveStepTab(sessionCurrentStep >= 0 ? sessionCurrentStep : null);
+    }
+  }, [sessionCurrentStep, hasSteps]);
+
+  const handleStepTabClick = (idx: number | null) => {
+    userChangedTab.current = true;
+    setActiveStepTab(idx);
+  };
 
   const getFileType = (url: string | undefined): 'image' | 'pdf' | 'other' => {
     if (!url) return 'other';
@@ -141,7 +157,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
         {hasSteps && (
           <div className="flex items-center gap-1 bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 rounded-xl p-1">
             <button
-              onClick={() => setActiveStepTab(null)}
+              onClick={() => handleStepTabClick(null)}
               className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
                 activeStepTab === null
                   ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
@@ -153,7 +169,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
             {steps.map((step, idx) => (
               <button
                 key={idx}
-                onClick={() => setActiveStepTab(idx)}
+                onClick={() => handleStepTabClick(idx)}
                 className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
                   activeStepTab === idx
                     ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'

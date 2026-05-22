@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { endSession } from '@/app/admin/tools/actions';
 
 interface SessionManagerProps {
@@ -12,7 +12,11 @@ interface SessionManagerProps {
 
 export default function SessionManager({ session, onToggleCodeFullScreen }: SessionManagerProps) {
   const [pending, setPending] = useState(false);
-  const [origin] = useState(typeof window !== 'undefined' ? window.location.origin : '');
+  const [origin, setOrigin] = useState('');
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
 
   const handleEnd = async () => {
     if (!confirm('End this session? Students will no longer be able to submit responses.')) return;
@@ -23,8 +27,6 @@ export default function SessionManager({ session, onToggleCodeFullScreen }: Sess
     setPending(false);
     window.location.href = '/admin/tools';
   };
-
-  const shareUrl = origin ? `${origin}/study/${session.sessionCode}` : '';
 
   return (
     <div className="space-y-4">
@@ -77,14 +79,20 @@ export default function SessionManager({ session, onToggleCodeFullScreen }: Sess
           </p>
           <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-slate-700">
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Students go to:</p>
-            <Link
-              href={shareUrl}
-              target="_blank"
-              className="inline-flex items-center gap-2 font-mono text-blue-600 dark:text-blue-400 hover:underline text-sm"
-            >
-              {shareUrl}
-              <i className="fi fi-sr-arrow-up-right text-xs" />
-            </Link>
+            {origin ? (
+              <Link
+                href={`${origin}/study/${session.sessionCode}`}
+                target="_blank"
+                className="inline-flex items-center gap-2 font-mono text-blue-600 dark:text-blue-400 hover:underline text-sm"
+              >
+                {origin}/study/{session.sessionCode}
+                <i className="fi fi-sr-arrow-up-right text-xs" />
+              </Link>
+            ) : (
+              <span className="font-mono text-blue-600 dark:text-blue-400 text-sm">
+                study/{session.sessionCode}
+              </span>
+            )}
           </div>
         </div>
       )}

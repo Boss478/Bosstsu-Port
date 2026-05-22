@@ -15,17 +15,35 @@ interface SessionDetailShellProps {
 
 export default function SessionDetailShell({ session, responses }: SessionDetailShellProps) {
   const [codeFullScreen, setCodeFullScreen] = useState(false);
-  const [origin] = useState(typeof window !== 'undefined' ? window.location.origin : '');
   const [advancing, setAdvancing] = useState(false);
 
   const steps = session.steps as Array<{ type: string; title: string }> | undefined;
   const hasSteps = steps && steps.length > 1;
-  const currentStep = (session.currentStep as number) ?? 0;
+  const initialCurrentStep = (session.currentStep as number) ?? -1;
+  const initialLastActiveStep = (session.lastActiveStep as number) ?? -1;
   const isActive = session.isActive === true;
+
+  const [localCurrentStep, setLocalCurrentStep] = useState(initialCurrentStep);
+  const [localLastActiveStep, setLocalLastActiveStep] = useState(initialLastActiveStep);
 
   const handleAdvance = async (stepIndex: number) => {
     setAdvancing(true);
-    await advanceStep(String(session._id), stepIndex);
+    const result = await advanceStep(String(session._id), stepIndex);
+    if (result.currentStep !== undefined) {
+      setLocalCurrentStep(result.currentStep);
+      setLocalLastActiveStep(result.lastActiveStep ?? -1);
+    }
+    setAdvancing(false);
+  };
+
+  const handleToggleWaiting = async () => {
+    setAdvancing(true);
+    const prevStep = localCurrentStep;
+    const result = await advanceStep(String(session._id), -1);
+    if (result.currentStep !== undefined) {
+      setLocalCurrentStep(result.currentStep);
+      setLocalLastActiveStep(result.lastActiveStep ?? prevStep);
+    }
     setAdvancing(false);
   };
 
@@ -57,12 +75,12 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
             <div className="pt-6 border-t border-zinc-200 dark:border-slate-700">
               <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Students go to:</p>
               <a
-                href={`${origin}/study/${session.sessionCode}`}
+                href={`/study/${session.sessionCode}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 font-mono text-blue-600 dark:text-blue-400 hover:underline text-lg"
               >
-                {origin}/study/{String(session.sessionCode)}
+                /study/{String(session.sessionCode)}
                 <i className="fi fi-sr-arrow-up-right text-sm" />
               </a>
             </div>
@@ -105,7 +123,7 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{t('step')}</h3>
                 <div className="flex items-center gap-2">
-                  {currentStep === -1 && isActive && (
+                  {localCurrentStep === -1 && isActive && localLastActiveStep < 0 && (
                     <button
                       onClick={() => handleAdvance(0)}
                       disabled={advancing}
@@ -115,9 +133,29 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
                       {t('startSession')}
                     </button>
                   )}
-                  {currentStep >= 0 && currentStep < steps.length - 1 && isActive && (
+                  {localCurrentStep === -1 && isActive && localLastActiveStep >= 0 && (
                     <button
-                      onClick={() => handleAdvance(currentStep + 1)}
+                      onClick={() => handleAdvance(localLastActiveStep)}
+                      disabled={advancing}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50"
+                    >
+                      <i className="fi fi-sr-play text-xs" />
+                      Resume
+                    </button>
+                  )}
+                  {localCurrentStep >= 0 && isActive && (
+                    <button
+                      onClick={handleToggleWaiting}
+                      disabled={advancing}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50"
+                    >
+                      <i className="fi fi-sr-pause text-xs" />
+                      Waiting
+                    </button>
+                  )}
+                  {localCurrentStep >= 0 && localCurrentStep < steps.length - 1 && isActive && (
+                    <button
+                      onClick={() => handleAdvance(localCurrentStep + 1)}
                       disabled={advancing}
                       className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50"
                     >
@@ -135,9 +173,9 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
                       onClick={() => handleAdvance(idx)}
                       disabled={advancing}
                       className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                        idx === currentStep
+                        idx === localCurrentStep
                           ? 'bg-blue-600 text-white shadow-sm'
-                          : idx < currentStep
+                          : idx < localCurrentStep
                             ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
                             : 'bg-zinc-100 dark:bg-slate-700 text-zinc-500 dark:text-zinc-400'
                       }`}
@@ -146,7 +184,7 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
                       <span className="block truncate">{step.title}</span>
                     </button>
                     {idx < steps.length - 1 && (
-                      <div className={`w-4 h-0.5 ${idx < currentStep ? 'bg-emerald-400' : 'bg-zinc-300 dark:bg-slate-600'}`} />
+                      <div className={`w-4 h-0.5 ${idx < localCurrentStep ? 'bg-emerald-400' : 'bg-zinc-300 dark:bg-slate-600'}`} />
                     )}
                   </div>
                 ))}
@@ -160,6 +198,7 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
               initialResponses={responses}
               onToggleFullScreen={() => window.open(`/admin/tools/sessions/${String(session._id)}/results`, '_blank')}
               refreshInterval={15000}
+              sessionCurrentStep={localCurrentStep}
             />
           </div>
         </div>

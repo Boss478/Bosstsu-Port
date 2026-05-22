@@ -4,13 +4,22 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.1 (2026-05-22)
+
+* Fixed stale `currentStep` in session detail UI — added local state to sync with server action result instead of relying on stale `session` prop
+* Fixed hydration error in SessionManager — SSR `<a href="">` vs client `<a href="http://...">` mismatch. Moved `window.location.origin` to `useEffect`
+* Added waiting state toggle for teachers — sets `currentStep: -1` while preserving step in new `lastActiveStep` field; Resume button returns to same step
+* ResultsView auto-syncs step tab with session's current step unless teacher manually clicked another tab (`userChangedTab` ref)
+* Added `lastActiveStep` field to `ToolSession` model (default -1)
+* `advanceStep` action now selects `currentStep`, computes and saves `lastActiveStep`, returns `{ currentStep, lastActiveStep }` for local state
+
 ## v1.9.0 (2026-05-22)
 
 + Multi-step classroom sessions — teachers can chain multiple tools (e.g., Word Cloud → Padlet → Assignment) under one session code, students auto-follow like Mentimeter slides
 + `MultiStepSessionView.tsx` — slideshow controller with step progress dots, visibility-aware polling (10s), teacher-controlled or student self-navigation mode
 + `PATCH /api/tools/step` — teacher advances session step with auth verification
 + `GET /api/tools/step` — lightweight student poll for step changes (returns currentStep, totalSteps, allowStudentNavigation)
-+ `ToolSession` model: added `steps[]`, `currentStep` (default -1), `allowStudentNavigation` fields
++ `ToolSession` model: added `steps[]`, `currentStep` (default -1), `lastActiveStep` (default -1), `allowStudentNavigation` fields
 + `ToolResponse` model: added `stepIndex` field + compound index `{sessionId, stepIndex}` for per-step filtering
 + `QuickStartModal.tsx` — multi-step builder UI with step list, reorder (up/down), edit, delete, and tool type selection
 + `ResultsView.tsx` — step tabs for multi-step sessions, client-side filtering by stepIndex
@@ -20,7 +29,11 @@
 + All 7 tool components (Padlet, Poll, Assignment, QA, Quiz, ExitTicket, Discussion) — optional `stepIndex` prop passed to API calls
 + Translation keys: stepOfTotal, sessionCode, waitingForTeacher, startSession, nextStep, goToStep, allSteps, step, allowStudentNavigation, addStep, singleTool, multiStep, deleteConfirm
 * Fixed QuickStartModal multi-step mode — clicking a tool card now navigates to config step (handleTypeSelect setStep('config') for multi mode). Previously: selection only, no path to config, steps could never be added
-* Fixed pre-existing type errors: DiscussionForum (missing Reply/OwnReply interfaces, content?.reply → content), QABoard (missing Question interface, createdAt null check), MultiStepSessionView (prev type annotation), actions.ts (z.record → z.unknown, steps! non-null assertion)
+* Fixed hydration error in SessionManager — `typeof window !== 'undefined'` in useState causes SSR `<a href="">` vs client `<a href="http://...">` mismatch. Moved to `useEffect` with SSR-safe fallback render
+* Added waiting state toggle — teacher can set `currentStep: -1` to show "Waiting for teacher" to students while preserving current step in `lastActiveStep`. Resume returns to same step
+* Fixed stale `currentStep` in UI — was derived from `session` prop which never updated after DB action. Added local state + returning `{ currentStep, lastActiveStep }` from advanceStep action
+* ResultsView auto-syncs step tab with session's current step unless teacher manually clicked another tab (userChangedTab ref tracks manual interaction)
+* Fixed pre-existing type errors in advanceStep action: `select('steps currentStep')` instead of `select('steps')`
 
 ## v1.8.27 (2026-05-21)
 

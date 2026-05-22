@@ -30,6 +30,7 @@ interface IToolSession extends Document {
   config: ISessionConfig;
   steps?: IStep[];
   currentStep: number;
+  lastActiveStep: number;
   allowStudentNavigation: boolean;
   isActive: boolean;
   startedAt: Date;
@@ -86,6 +87,7 @@ const ToolSessionSchema = new Schema(
       },
     }],
     currentStep: { type: Number, default: -1 },
+    lastActiveStep: { type: Number, default: -1 },
     allowStudentNavigation: { type: Boolean, default: false },
   },
   { timestamps: true }

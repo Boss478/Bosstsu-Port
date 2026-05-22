@@ -21,20 +21,6 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
   const [transitioning, setTransitioning] = useState(false);
   const isVisible = useRef(true);
 
-  if (currentStep < 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950">
-        <div className="text-center">
-          <i className="fi fi-sr-hourglass text-4xl text-blue-400 animate-pulse block mb-4" />
-          <h2 className="text-xl font-bold text-zinc-700 dark:text-zinc-300">
-            {t('waitingForTeacher')}
-          </h2>
-          <p className="text-zinc-400 mt-2 font-mono">{session.sessionCode}</p>
-        </div>
-      </div>
-    );
-  }
-
   const pollStep = useCallback(async () => {
     if (!isVisible.current) return;
     try {
@@ -59,6 +45,20 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
     document.addEventListener('visibilitychange', onVisibility);
     return () => { clearInterval(interval); document.removeEventListener('visibilitychange', onVisibility); };
   }, [pollStep]);
+
+  if (currentStep < 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950">
+        <div className="text-center">
+          <i className="fi fi-sr-hourglass text-4xl text-blue-400 animate-pulse block mb-4" />
+          <h2 className="text-xl font-bold text-zinc-700 dark:text-zinc-300">
+            {t('waitingForTeacher')}
+          </h2>
+          <p className="text-zinc-400 mt-2 font-mono">{session.sessionCode}</p>
+        </div>
+      </div>
+    );
+  }
 
   const step = session.steps?.[currentStep];
   const stepConfig = { ...session, type: step?.type, config: step?.config };
