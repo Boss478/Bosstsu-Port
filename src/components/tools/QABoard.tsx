@@ -7,16 +7,23 @@ import { getStudentToken } from '@/lib/client-token';
 interface QABoardProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
+  stepIndex?: number;
 }
 
 interface Question {
   _id: string;
   studentName?: string;
-  content: { question?: string; upvotes?: number; isAnswered?: boolean };
-  createdAt: string;
+  content: {
+    question: string;
+    isAnswered?: boolean;
+    upvotes?: number;
+  };
+  votes: number;
+  hasVoted: boolean;
+  createdAt?: string;
 }
 
-export default function QABoard({ session }: QABoardProps) {
+export default function QABoard({ session, stepIndex }: QABoardProps) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -63,6 +70,7 @@ export default function QABoard({ session }: QABoardProps) {
         },
         body: JSON.stringify({
           content: { question: question.trim(), upvotes: 0, isAnswered: false },
+          ...(stepIndex !== undefined && { stepIndex }),
         }),
       });
       const data = await res.json();
@@ -144,7 +152,7 @@ export default function QABoard({ session }: QABoardProps) {
                     <p className="text-zinc-700 dark:text-zinc-300">{q.content?.question}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-zinc-400">
-                        {new Date(q.createdAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
+                        {q.createdAt && new Date(q.createdAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                       {q.content?.isAnswered && (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-700 font-medium">{t('answered')}</span>

@@ -98,6 +98,20 @@ export const toolStrings = {
   questionPlaceholder: { th: 'ฉันยังไม่เข้าใจเรื่อง...', en: "I still don't understand..." },
   wantToKnowMore: { th: '3. สิ่งที่คุณอยากรู้เพิ่มเติมคืออะไร?', en: '3. What is one thing you want to know more about?' },
   wantToKnowPlaceholder: { th: 'ฉันอยากรู้เพิ่มเติมเรื่อง...', en: 'I want to learn more about...' },
+
+  stepOfTotal: { th: 'ขั้นตอนที่ {current} จาก {total}', en: 'Step {current} of {total}' },
+  sessionCode: { th: 'รหัสห้องเรียน', en: 'Session Code' },
+  waitingForTeacher: { th: 'กำลังรอให้ผู้สอนเริ่ม...', en: 'Waiting for teacher to start...' },
+  startSession: { th: 'เริ่มห้องเรียน', en: 'Start Session' },
+  nextStep: { th: 'ขั้นตอนถัดไป', en: 'Next Step' },
+  goToStep: { th: 'ไปที่ขั้นตอน', en: 'Go to Step' },
+  allSteps: { th: 'ทุกขั้นตอน', en: 'All Steps' },
+  step: { th: 'ขั้นตอน', en: 'Step' },
+  allowStudentNavigation: { th: 'อนุญาตให้นักเรียนเลื่อนขั้นตอนเอง', en: 'Allow students to navigate steps' },
+  addStep: { th: 'เพิ่มขั้นตอน', en: 'Add Step' },
+  singleTool: { th: 'Single Session', en: 'Single Session' },
+  multiStep: { th: 'Multi Session', en: 'Multi Session' },
+  deleteConfirm: { th: 'คุณแน่ใจหรือไม่ว่าต้องการลบ? การกระทำนี้ไม่สามารถยกเลิกได้', en: 'Are you sure you want to delete? This action cannot be undone.' },
 } as const;
 
 export type ToolStringKey = keyof typeof toolStrings;

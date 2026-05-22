@@ -7,6 +7,7 @@ import QABoard from './QABoard';
 import QuickQuiz from './QuickQuiz';
 import ExitTicketForm from './ExitTicketForm';
 import DiscussionForum from './DiscussionForum';
+import MultiStepSessionView from './MultiStepSessionView';
 import SessionGuard from './SessionGuard';
 import { t } from '@/lib/tool-translations';
 
@@ -18,6 +19,10 @@ interface ToolSessionViewProps {
 export default function ToolSessionView({ session }: ToolSessionViewProps) {
   if (!session.isActive) {
     return <SessionGuard session={session} />;
+  }
+
+  if (session.steps && session.steps.length > 1) {
+    return <MultiStepSessionView session={session} />;
   }
 
   switch (session.type) {

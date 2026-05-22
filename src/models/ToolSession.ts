@@ -17,11 +17,20 @@ interface ISessionConfig {
   }>;
 }
 
+export interface IStep {
+  type: ToolType;
+  title: string;
+  config: ISessionConfig;
+}
+
 interface IToolSession extends Document {
   sessionCode: string;
   type: ToolType;
   title: string;
   config: ISessionConfig;
+  steps?: IStep[];
+  currentStep: number;
+  allowStudentNavigation: boolean;
   isActive: boolean;
   startedAt: Date;
   endedAt?: Date;
@@ -58,6 +67,26 @@ const ToolSessionSchema = new Schema(
     endedAt: { type: Date },
     participantCount: { type: Number, default: 0 },
     responseCount: { type: Number, default: 0 },
+    steps: [{
+      type: { type: String, required: true, enum: ['padlet', 'poll', 'assignment', 'qa_board', 'quiz', 'exit_ticket', 'discussion'] },
+      title: { type: String, required: true },
+      config: {
+        prompt: { type: String },
+        allowAnonymous: { type: Boolean, default: false },
+        maxSubmissions: { type: Number, default: 10 },
+        allowFileUpload: { type: Boolean, default: false },
+        maxFileSize: { type: Number, default: 10 * 1024 * 1024 },
+        pollMode: { type: String, enum: ['mcq', 'wordcloud'], default: 'mcq' },
+        allowCustomChoices: { type: Boolean, default: false },
+        questions: [{
+          question: { type: String },
+          options: [String],
+          correctAnswer: { type: Number },
+        }],
+      },
+    }],
+    currentStep: { type: Number, default: -1 },
+    allowStudentNavigation: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

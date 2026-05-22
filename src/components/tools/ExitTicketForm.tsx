@@ -7,9 +7,10 @@ import { getStudentToken } from '@/lib/client-token';
 interface ExitTicketFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
+  stepIndex?: number;
 }
 
-export default function ExitTicketForm({ session }: ExitTicketFormProps) {
+export default function ExitTicketForm({ session, stepIndex }: ExitTicketFormProps) {
   const [studentName, setStudentName] = useState('');
   const [learned, setLearned] = useState('');
   const [question, setQuestion] = useState('');
@@ -44,6 +45,7 @@ export default function ExitTicketForm({ session }: ExitTicketFormProps) {
         body: JSON.stringify({
           studentName: studentName.trim() || undefined,
           content: { learned: learned.trim(), question: question.trim(), wantToKnow: wantToKnow.trim() },
+          ...(stepIndex !== undefined && { stepIndex }),
         }),
       });
       const data = await res.json();

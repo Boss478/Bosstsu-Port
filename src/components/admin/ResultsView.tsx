@@ -36,6 +36,10 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
   const [previewFileType, setPreviewFileType] = useState<'image' | 'pdf' | 'other' | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const steps = session.steps as Array<{ type: string; title: string; config?: Record<string, unknown> }> | undefined;
+  const hasSteps = steps && steps.length > 1;
+  const [activeStepTab, setActiveStepTab] = useState<number | null>(hasSteps ? 0 : null);
+
   const getFileType = (url: string | undefined): 'image' | 'pdf' | 'other' => {
     if (!url) return 'other';
     const ext = url.split('.').pop()?.toLowerCase() || '';
@@ -91,6 +95,10 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
     await fetchResponses();
   };
 
+  const displayedResponses = hasSteps && activeStepTab !== null
+    ? responses.filter((r: { stepIndex?: number }) => r.stepIndex === activeStepTab)
+    : responses;
+
   const handleDelete = async (id: string) => {
     await deleteResponse(id);
     await fetchResponses();
@@ -130,6 +138,34 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
       </div>
 
       <div className="flex items-center gap-2 mb-4">
+        {hasSteps && (
+          <div className="flex items-center gap-1 bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 rounded-xl p-1">
+            <button
+              onClick={() => setActiveStepTab(null)}
+              className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                activeStepTab === null
+                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+              }`}
+            >
+              {t('allSteps')}
+            </button>
+            {steps.map((step, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveStepTab(idx)}
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                  activeStepTab === idx
+                    ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+                }`}
+              >
+                {t('step', { current: idx + 1 })}: {step.title}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="flex items-center gap-1 bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 rounded-xl p-1">
           <button
             onClick={() => setColumnsPerRow(null)}
@@ -181,7 +217,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
 
       <div className="overflow-x-auto">
         <div style={{ zoom: `${sizePercent}%` }}>
-          {responses.length === 0 ? (
+          {displayedResponses.length === 0 ? (
           <div className="p-12 rounded-2xl bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 text-center">
             <i className="fi fi-sr-inbox text-4xl text-zinc-300 dark:text-zinc-600 block mb-3" />
           <p className="text-zinc-500 dark:text-zinc-400">No responses yet. Share the session code with students!</p>
@@ -193,7 +229,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
               className={`grid grid-cols-1 gap-4 ${columnsPerRow === null ? (fullScreen ? 'sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6' : 'sm:grid-cols-2 lg:grid-cols-3') : ''}`}
               style={columnsPerRow !== null ? { gridTemplateColumns: `repeat(${columnsPerRow}, minmax(0, 1fr))` } : undefined}
             >
-              {responses.map((r: { _id: string; studentName?: string; content: { message?: string }; createdAt: string }) => (
+              {displayedResponses.map((r: { _id: string; studentName?: string; content: { message?: string }; createdAt: string }) => (
                 <div key={r._id} className="p-4 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{r.studentName || 'Anonymous'}</span>
@@ -207,7 +243,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
           )}
 
           {toolType === 'poll' && (
-            <PollResults responses={responses} session={session} onDelete={handleDelete} />
+            <PollResults responses={displayedResponses} session={session} onDelete={handleDelete} />
           )}
 
           {toolType === 'assignment' && (
@@ -223,7 +259,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
                   </tr>
                 </thead>
                 <tbody>
-                  {responses.map((r: { _id: string; studentName?: string; content: { answer?: string }; fileUrl?: string; ip?: string; createdAt: string }) => (
+                  {displayedResponses.map((r: { _id: string; studentName?: string; content: { answer?: string }; fileUrl?: string; ip?: string; createdAt: string }) => (
                     <tr key={r._id} className="border-b last:border-0 border-zinc-100/60 dark:border-slate-700/30">
                       <td className="p-4 font-semibold text-zinc-900 dark:text-zinc-100">
                         {r.studentName || 'Anonymous'}
@@ -255,7 +291,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
 
           {toolType === 'qa_board' && (
             <div className="space-y-3">
-              {responses
+              {displayedResponses
                 .sort((a: { content: { upvotes?: number } }, b: { content: { upvotes?: number } }) => (b.content?.upvotes || 0) - (a.content?.upvotes || 0))
                 .map((r: { _id: string; studentName?: string; content: { question?: string; upvotes?: number; isAnswered?: boolean }; createdAt: string }) => (
                   <div key={r._id} className={`p-4 rounded-xl backdrop-blur-sm border shadow-sm ${
@@ -293,16 +329,16 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
           )}
 
           {toolType === 'quiz' && (
-            <QuizResults responses={responses} session={session} onDelete={handleDelete} />
+            <QuizResults responses={displayedResponses} session={session} onDelete={handleDelete} />
           )}
 
           {toolType === 'exit_ticket' && (
-            <ExitTicketResults responses={responses} onDelete={handleDelete} />
+            <ExitTicketResults responses={displayedResponses} onDelete={handleDelete} />
           )}
 
           {toolType === 'discussion' && (
             <div className="space-y-3">
-              {responses.map((r: { _id: string; studentName?: string; content: { reply?: string }; createdAt: string }) => (
+              {displayedResponses.map((r: { _id: string; studentName?: string; content: { reply?: string }; createdAt: string }) => (
                 <div key={r._id} className="p-4 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
                   <div className="flex items-start justify-between">
                     <div>

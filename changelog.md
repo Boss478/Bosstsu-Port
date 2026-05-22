@@ -4,6 +4,24 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.0 (2026-05-22)
+
++ Multi-step classroom sessions — teachers can chain multiple tools (e.g., Word Cloud → Padlet → Assignment) under one session code, students auto-follow like Mentimeter slides
++ `MultiStepSessionView.tsx` — slideshow controller with step progress dots, visibility-aware polling (10s), teacher-controlled or student self-navigation mode
++ `PATCH /api/tools/step` — teacher advances session step with auth verification
++ `GET /api/tools/step` — lightweight student poll for step changes (returns currentStep, totalSteps, allowStudentNavigation)
++ `ToolSession` model: added `steps[]`, `currentStep` (default -1), `allowStudentNavigation` fields
++ `ToolResponse` model: added `stepIndex` field + compound index `{sessionId, stepIndex}` for per-step filtering
++ `QuickStartModal.tsx` — multi-step builder UI with step list, reorder (up/down), edit, delete, and tool type selection
++ `ResultsView.tsx` — step tabs for multi-step sessions, client-side filtering by stepIndex
++ `SessionDetailShell.tsx` — step progress bar, Start Session button (currentStep=-1), Next Step button, direct step navigation
++ `DELETE /api/tools/respond` — student can delete own posts with editToken verification + rate limiting
++ Padlet UI fixes: textarea rows 3→5, student name truncate (max-w-[120px]), replaced Edit button with Delete button + confirmation dialog
++ All 7 tool components (Padlet, Poll, Assignment, QA, Quiz, ExitTicket, Discussion) — optional `stepIndex` prop passed to API calls
++ Translation keys: stepOfTotal, sessionCode, waitingForTeacher, startSession, nextStep, goToStep, allSteps, step, allowStudentNavigation, addStep, singleTool, multiStep, deleteConfirm
+* Fixed QuickStartModal multi-step mode — clicking a tool card now navigates to config step (handleTypeSelect setStep('config') for multi mode). Previously: selection only, no path to config, steps could never be added
+* Fixed pre-existing type errors: DiscussionForum (missing Reply/OwnReply interfaces, content?.reply → content), QABoard (missing Question interface, createdAt null check), MultiStepSessionView (prev type annotation), actions.ts (z.record → z.unknown, steps! non-null assertion)
+
 ## v1.8.27 (2026-05-21)
 
 * Fixed "All" filter button not active on first load for /games, /portfolio, /gallery — changed server default from `""` to `"ทั้งหมด"` to match client button label

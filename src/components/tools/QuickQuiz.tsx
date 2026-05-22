@@ -7,9 +7,10 @@ import { getStudentToken } from '@/lib/client-token';
 interface QuickQuizProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
+  stepIndex?: number;
 }
 
-export default function QuickQuiz({ session }: QuickQuizProps) {
+export default function QuickQuiz({ session, stepIndex }: QuickQuizProps) {
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -49,6 +50,7 @@ export default function QuickQuiz({ session }: QuickQuizProps) {
         },
         body: JSON.stringify({
           content: { score, total, answers },
+          ...(stepIndex !== undefined && { stepIndex }),
         }),
       });
       const data = await res.json();

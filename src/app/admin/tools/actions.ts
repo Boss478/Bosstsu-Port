@@ -28,6 +28,12 @@ const quickStartSchema = z.object({
     options: z.array(z.string()).optional(),
     correctAnswer: z.number().optional(),
   })).optional(),
+  steps: z.array(z.object({
+    type: z.string().min(1),
+    title: z.string().min(1),
+    config: z.unknown().optional(),
+  })).optional(),
+  allowStudentNavigation: z.boolean().optional(),
 }).strict();
 
 export async function quickStartSession(formData: FormData) {
@@ -44,6 +50,8 @@ export async function quickStartSession(formData: FormData) {
     pollMode: formData.get('pollMode') as 'mcq' | 'wordcloud' || undefined,
     allowCustomChoices: formData.get('allowCustomChoices') === 'on',
     questions: formData.get('questions') ? JSON.parse(formData.get('questions') as string) : undefined,
+    steps: formData.get('steps') ? JSON.parse(formData.get('steps') as string) : undefined,
+    allowStudentNavigation: formData.get('allowStudentNavigation') === 'on',
   };
 
   const parsed = quickStartSchema.safeParse(raw);
@@ -65,13 +73,22 @@ export async function quickStartSession(formData: FormData) {
     if (parsed.data.allowCustomChoices) config.allowCustomChoices = parsed.data.allowCustomChoices;
     if (parsed.data.questions) config.questions = parsed.data.questions;
 
-    const session = await ToolSession.create({
+    const isMultiStep = parsed.data.steps && parsed.data.steps.length > 0;
+    const sessionData: Record<string, unknown> = {
       sessionCode,
-      type: toolType,
+      type: isMultiStep ? (parsed.data.steps![0].type as ToolType) : toolType,
       title: parsed.data.title,
       config,
       isActive: true,
-    });
+    };
+
+    if (isMultiStep) {
+      sessionData.steps = parsed.data.steps;
+      sessionData.currentStep = -1;
+      sessionData.allowStudentNavigation = parsed.data.allowStudentNavigation ?? false;
+    }
+
+    const session = await ToolSession.create(sessionData);
 
     revalidatePath('/admin/tools');
     revalidatePath(`/admin/tools/sessions/${session._id}`);
@@ -228,6 +245,31 @@ export async function toggleActive(id: string) {
   }
 
   revalidatePath('/admin/tools');
+  return { error: undefined };
+}
+
+export async function advanceStep(sessionId: string, stepIndex: number) {
+  const isAuth = await verifyAuth();
+  if (!isAuth) return { error: formatError('401') };
+
+  try {
+    await dbConnect();
+    const session = await ToolSession.findById(sessionId).select('steps').lean();
+    if (!session) return { error: formatError('404') };
+
+    const maxStep = (session.steps?.length ?? 1) - 1;
+    if (stepIndex < -1 || stepIndex > maxStep) {
+      return { error: `Step index out of bounds: ${stepIndex} (valid: -1 to ${maxStep})` };
+    }
+
+    await ToolSession.findByIdAndUpdate(sessionId, { currentStep: stepIndex });
+  } catch (err) {
+    console.error('Advance step error:', err);
+    return { error: formatError('DB02') };
+  }
+
+  revalidatePath('/admin/tools');
+  revalidatePath(`/admin/tools/sessions/${sessionId}`);
   return { error: undefined };
 }
 

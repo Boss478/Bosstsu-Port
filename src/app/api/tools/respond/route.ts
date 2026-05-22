@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 import dbConnect from '@/lib/db';
 import ToolResponse from '@/models/ToolResponse';
 import ToolSession from '@/models/ToolSession';
@@ -112,6 +114,54 @@ export async function POST(req: NextRequest) {
     if (msg.includes('ERROR_U05') || msg.includes('ERROR_U06') || msg.includes('ERROR_U07')) {
       return NextResponse.json({ error: msg }, { status: 500 });
     }
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  const studentToken = req.headers.get('student-token');
+  if (!studentToken) {
+    return NextResponse.json({ error: getError('T05').message }, { status: 400 });
+  }
+
+  try {
+    const body = await req.json();
+    const { responseId, editToken } = body;
+
+    if (!responseId || !editToken) {
+      return NextResponse.json({ error: getError('T05').message }, { status: 400 });
+    }
+
+    await dbConnect();
+
+    const response = await ToolResponse.findById(responseId);
+    if (!response) {
+      return NextResponse.json({ error: getError('T05').message }, { status: 400 });
+    }
+
+    const sessionId = String(response.sessionId);
+    const rateKey = `${sessionId}:${getClientIp(req)}:${studentToken}`;
+    if (!checkRateLimit(rateKey)) {
+      return NextResponse.json({ error: getError('T06').message }, { status: 429 });
+    }
+
+    if (response.editToken !== editToken) {
+      return NextResponse.json({ error: getError('T08').message }, { status: 400 });
+    }
+
+    await ToolResponse.findByIdAndDelete(responseId);
+    await ToolSession.findByIdAndUpdate(sessionId, { $inc: { responseCount: -1 } });
+
+    if (response.fileUrl) {
+      const filePath = path.join(process.cwd(), 'public', response.fileUrl);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error('Delete error:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

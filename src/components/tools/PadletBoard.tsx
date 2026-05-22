@@ -7,6 +7,7 @@ import { getStudentToken } from '@/lib/client-token';
 interface PadletBoardProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
+  stepIndex?: number;
 }
 
 interface Post {
@@ -21,7 +22,7 @@ interface OwnPost {
   editToken: string;
 }
 
-export default function PadletBoard({ session }: PadletBoardProps) {
+export default function PadletBoard({ session, stepIndex }: PadletBoardProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [lastFetch, setLastFetch] = useState(Date.now());
   const [loading, setLoading] = useState(true);
@@ -31,9 +32,6 @@ export default function PadletBoard({ session }: PadletBoardProps) {
   const [message, setMessage] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
   const [ownPosts, setOwnPosts] = useState<OwnPost[]>([]);
-  const [editingPostId, setEditingPostId] = useState<string | null>(null);
-  const [editMessage, setEditMessage] = useState('');
-  const [editSaving, setEditSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const STORAGE_KEY = `padlet_${session._id}`;
@@ -96,6 +94,7 @@ export default function PadletBoard({ session }: PadletBoardProps) {
         body: JSON.stringify({
           studentName: studentName.trim() || undefined,
           content: { message: message.trim() },
+          ...(stepIndex !== undefined && { stepIndex }),
         }),
       });
       const data = await res.json();
@@ -125,57 +124,37 @@ export default function PadletBoard({ session }: PadletBoardProps) {
     setRefreshing(false);
   };
 
-  const handleEditClick = (post: Post) => {
-    setEditingPostId(post._id);
-    setEditMessage(post.content?.message || '');
-  };
-
-  const handleEditCancel = () => {
-    setEditingPostId(null);
-    setEditMessage('');
-  };
-
-  const handleEditSave = async (postId: string) => {
-    if (!editMessage.trim()) return;
+  const handleDelete = async (postId: string) => {
+    if (!confirm(t('deleteConfirm'))) return;
     const token = getOwnToken(postId);
     if (!token) return;
 
-    setEditSaving(true);
     try {
-      const res = await fetch('/api/tools/edit', {
-        method: 'PATCH',
-        headers: { 
+      const res = await fetch('/api/tools/respond', {
+        method: 'DELETE',
+        headers: {
           'Content-Type': 'application/json',
           'student-token': getStudentToken(),
         },
-        body: JSON.stringify({
-          responseId: postId,
-          editToken: token,
-          content: { message: editMessage.trim() },
-        }),
+        body: JSON.stringify({ responseId: postId, editToken: token }),
       });
       const data = await res.json();
       if (data.error) {
         setError(data.error);
       } else {
-        setEditingPostId(null);
-        setEditMessage('');
-        fetchPosts();
+        setPosts(prev => prev.filter(p => p._id !== postId));
         if (typeof window !== 'undefined') {
           const stored = localStorage.getItem(STORAGE_KEY);
           if (stored) {
             const parsed = JSON.parse(stored);
-            const updated = parsed.map((p: OwnPost) =>
-              p._id === postId ? { ...p, content: { message: editMessage.trim() } } : p
-            );
+            const updated = parsed.filter((p: OwnPost) => p._id !== postId);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+            setOwnPosts(updated);
           }
         }
       }
     } catch {
-      setError(t('failedToSave'));
-    } finally {
-      setEditSaving(false);
+      setError(t('failedToSubmitSimple'));
     }
   };
 
@@ -202,7 +181,7 @@ export default function PadletBoard({ session }: PadletBoardProps) {
             placeholder={session.config?.prompt || t('shareThoughts')}
             value={message}
             onChange={e => setMessage(e.target.value)}
-            rows={3}
+            rows={5}
             required
             className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           />
@@ -235,17 +214,17 @@ export default function PadletBoard({ session }: PadletBoardProps) {
           {posts.map(post => (
             <div key={post._id} className="p-4 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
+                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 truncate max-w-[120px]">
                   {post.studentName || t('anonymous')}
                 </span>
                 <div className="flex items-center gap-2">
-                  {isOwnPost(post._id) && !editingPostId && (
+                  {isOwnPost(post._id) && (
                     <button
-                      onClick={() => handleEditClick(post)}
-                      className="p-1 text-zinc-400 hover:text-blue-500 transition-colors"
-                      title={t('edit')}
+                      onClick={() => handleDelete(post._id)}
+                      className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
+                      title={t('delete')}
                     >
-                      <i className="fi fi-sr-pencil text-xs" />
+                      <i className="fi fi-sr-trash text-xs" />
                     </button>
                   )}
                   <span className="text-[10px] text-zinc-400">
@@ -253,34 +232,7 @@ export default function PadletBoard({ session }: PadletBoardProps) {
                   </span>
                 </div>
               </div>
-              {editingPostId === post._id ? (
-                <div className="space-y-2">
-                  <textarea
-                    value={editMessage}
-                    onChange={e => setEditMessage(e.target.value)}
-                    rows={3}
-                    className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 text-sm resize-none"
-                    autoFocus
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleEditCancel}
-                      className="flex-1 py-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
-                    >
-                      {t('cancel')}
-                    </button>
-                    <button
-                      onClick={() => handleEditSave(post._id)}
-                      disabled={editSaving || !editMessage.trim()}
-                      className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50"
-                    >
-                      {editSaving ? t('saving') : t('save')}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-sm text-zinc-700 dark:text-zinc-300 break-words">{post.content?.message}</p>
-              )}
+              <p className="text-sm text-zinc-700 dark:text-zinc-300 break-words">{post.content?.message}</p>
             </div>
           ))}
           </div>

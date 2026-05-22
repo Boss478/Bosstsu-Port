@@ -7,21 +7,24 @@ import { getStudentToken } from '@/lib/client-token';
 interface DiscussionForumProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
+  stepIndex?: number;
 }
 
 interface Reply {
   _id: string;
   studentName?: string;
-  content: { reply?: string };
+  name: string;
+  content: string;
   createdAt: string;
 }
 
 interface OwnReply {
   _id: string;
+  content?: string;
   editToken: string;
 }
 
-export default function DiscussionForum({ session }: DiscussionForumProps) {
+export default function DiscussionForum({ session, stepIndex }: DiscussionForumProps) {
   const [replies, setReplies] = useState<Reply[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -92,6 +95,7 @@ export default function DiscussionForum({ session }: DiscussionForumProps) {
         body: JSON.stringify({
           studentName: name.trim() || undefined,
           content: { reply: reply.trim() },
+          ...(stepIndex !== undefined && { stepIndex }),
         }),
       });
       const data = await res.json();
@@ -116,7 +120,7 @@ export default function DiscussionForum({ session }: DiscussionForumProps) {
 
   const handleEditClick = (r: Reply) => {
     setEditingReplyId(r._id);
-    setEditReply(r.content?.reply || '');
+    setEditReply(r.content || '');
   };
 
   const handleEditCancel = () => {
@@ -266,7 +270,7 @@ export default function DiscussionForum({ session }: DiscussionForumProps) {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-zinc-700 dark:text-zinc-300 break-words">{r.content?.reply}</p>
+                    <p className="text-sm text-zinc-700 dark:text-zinc-300 break-words">{r.content}</p>
                   )}
                 </div>
               ))}

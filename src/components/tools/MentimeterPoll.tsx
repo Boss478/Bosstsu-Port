@@ -7,9 +7,10 @@ import { getStudentToken } from '@/lib/client-token';
 interface MentimeterPollProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
+  stepIndex?: number;
 }
 
-export default function MentimeterPoll({ session }: MentimeterPollProps) {
+export default function MentimeterPoll({ session, stepIndex }: MentimeterPollProps) {
   const [responses, setResponses] = useState<{ _id: string; content: { selectedOption?: string; word?: string } }[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
@@ -93,6 +94,7 @@ export default function MentimeterPoll({ session }: MentimeterPollProps) {
           content: pollMode === 'mcq'
             ? { selectedOption: customMode ? customValue.trim() : selected }
             : { word: word.trim() },
+          ...(stepIndex !== undefined && { stepIndex }),
         }),
       });
       const data = await res.json();

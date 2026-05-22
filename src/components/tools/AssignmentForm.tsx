@@ -7,9 +7,10 @@ import { getStudentToken } from '@/lib/client-token';
 interface AssignmentFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
+  stepIndex?: number;
 }
 
-export default function AssignmentForm({ session }: AssignmentFormProps) {
+export default function AssignmentForm({ session, stepIndex }: AssignmentFormProps) {
   const [studentName, setStudentName] = useState('');
   const [answer, setAnswer] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -126,6 +127,7 @@ export default function AssignmentForm({ session }: AssignmentFormProps) {
         formData.set('sessionId', session._id);
         formData.set('studentName', studentName);
         formData.set('content', JSON.stringify({ answer: answer.trim() }));
+        if (stepIndex !== undefined) formData.set('stepIndex', String(stepIndex));
         if (file) formData.set('file', file);
 
         const res = await fetch('/api/tools/respond', {

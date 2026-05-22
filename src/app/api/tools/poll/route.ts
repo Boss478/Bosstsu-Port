@@ -42,6 +42,10 @@ export async function GET(req: NextRequest) {
     if (since) {
       query.createdAt = { $gt: new Date(parseInt(since)) };
     }
+    const stepIndex = searchParams.get('stepIndex');
+    if (stepIndex !== null) {
+      query.stepIndex = parseInt(stepIndex);
+    }
 
     const responses = await ToolResponse.find(query)
       .sort({ createdAt: 1 })
@@ -96,7 +100,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { studentName, content, fileUrl } = body;
+    const { studentName, content, fileUrl, stepIndex } = body;
 
     if (!content || typeof content !== 'object') {
       return NextResponse.json({ error: 'Invalid content' }, { status: 400 });
@@ -126,6 +130,7 @@ export async function POST(req: NextRequest) {
       studentToken,
       editToken,
       ip: getClientIp(req),
+      ...(stepIndex !== undefined && { stepIndex }),
     });
 
     await ToolSession.findByIdAndUpdate(sessionId, {

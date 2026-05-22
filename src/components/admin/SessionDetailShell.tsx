@@ -5,6 +5,8 @@ import Link from 'next/link';
 import Breadcrumb from '@/components/Breadcrumb';
 import ResultsView from '@/components/admin/ResultsView';
 import SessionManager from '@/components/admin/SessionManager';
+import { advanceStep } from '@/app/admin/tools/actions';
+import { t } from '@/lib/tool-translations';
 
 interface SessionDetailShellProps {
   session: Record<string, unknown>;
@@ -14,6 +16,18 @@ interface SessionDetailShellProps {
 export default function SessionDetailShell({ session, responses }: SessionDetailShellProps) {
   const [codeFullScreen, setCodeFullScreen] = useState(false);
   const [origin] = useState(typeof window !== 'undefined' ? window.location.origin : '');
+  const [advancing, setAdvancing] = useState(false);
+
+  const steps = session.steps as Array<{ type: string; title: string }> | undefined;
+  const hasSteps = steps && steps.length > 1;
+  const currentStep = (session.currentStep as number) ?? 0;
+  const isActive = session.isActive === true;
+
+  const handleAdvance = async (stepIndex: number) => {
+    setAdvancing(true);
+    await advanceStep(String(session._id), stepIndex);
+    setAdvancing(false);
+  };
 
   return (
     <>
@@ -81,10 +95,64 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
             </Link>
           </div>
 
-          <SessionManager 
-            session={session} 
+          <SessionManager
+            session={session}
             onToggleCodeFullScreen={() => setCodeFullScreen(true)}
           />
+
+          {hasSteps && (
+            <div className="mt-6 p-4 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{t('step')}</h3>
+                <div className="flex items-center gap-2">
+                  {currentStep === -1 && isActive && (
+                    <button
+                      onClick={() => handleAdvance(0)}
+                      disabled={advancing}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50"
+                    >
+                      <i className="fi fi-sr-play text-xs" />
+                      {t('startSession')}
+                    </button>
+                  )}
+                  {currentStep >= 0 && currentStep < steps.length - 1 && isActive && (
+                    <button
+                      onClick={() => handleAdvance(currentStep + 1)}
+                      disabled={advancing}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50"
+                    >
+                      {t('nextStep')}
+                      <i className="fi fi-sr-arrow-right text-xs" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {steps.map((step, idx) => (
+                  <div key={idx} className="flex items-center gap-2 flex-1">
+                    <button
+                      onClick={() => handleAdvance(idx)}
+                      disabled={advancing}
+                      className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                        idx === currentStep
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : idx < currentStep
+                            ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+                            : 'bg-zinc-100 dark:bg-slate-700 text-zinc-500 dark:text-zinc-400'
+                      }`}
+                    >
+                      <span className="block font-bold">{idx + 1}</span>
+                      <span className="block truncate">{step.title}</span>
+                    </button>
+                    {idx < steps.length - 1 && (
+                      <div className={`w-4 h-0.5 ${idx < currentStep ? 'bg-emerald-400' : 'bg-zinc-300 dark:bg-slate-600'}`} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="mt-6">
             <ResultsView 
