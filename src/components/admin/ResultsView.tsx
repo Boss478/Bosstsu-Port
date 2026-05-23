@@ -28,7 +28,6 @@ const TOOL_LABELS: Record<string, string> = {
 };
 
 export default function ResultsView({ session, initialResponses, fullScreen, onToggleFullScreen, refreshInterval = 15000, sessionCurrentStep = -1 }: ResultsViewProps) {
-  const toolType = session.type || 'padlet';
   const [responses, setResponses] = useState(initialResponses);
   const [refreshing, setRefreshing] = useState(false);
   const [columnsPerRow, setColumnsPerRow] = useState<number | null>(null);
@@ -43,6 +42,13 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
     hasSteps ? (sessionCurrentStep >= 0 ? sessionCurrentStep : null) : null
   );
   const userChangedTab = useRef(false);
+
+  const activeStepType = hasSteps && activeStepTab !== null ? steps[activeStepTab].type : null;
+  const toolType = activeStepType || session.type || 'padlet';
+
+  const stepSession = hasSteps && activeStepTab !== null && steps[activeStepTab].config
+    ? { ...session, config: { ...session.config, ...steps[activeStepTab].config } }
+    : session;
 
   // Auto-sync activeStepTab with session current step unless teacher manually selected a tab
   useEffect(() => {
@@ -129,7 +135,9 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
     <div id="results-capture-area">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-          Results — {TOOL_LABELS[toolType] || toolType}
+          {activeStepType
+            ? `Results — Step ${(activeStepTab ?? 0) + 1}: ${steps![activeStepTab ?? 0].title}`
+            : `Results — ${TOOL_LABELS[toolType] || toolType}`}
         </h2>
         <div className="flex items-center gap-2">
           <button
@@ -259,7 +267,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
           )}
 
           {toolType === 'poll' && (
-            <PollResults responses={displayedResponses} session={session} onDelete={handleDelete} />
+            <PollResults responses={displayedResponses} session={stepSession} onDelete={handleDelete} />
           )}
 
           {toolType === 'assignment' && (
@@ -345,7 +353,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
           )}
 
           {toolType === 'quiz' && (
-            <QuizResults responses={displayedResponses} session={session} onDelete={handleDelete} />
+            <QuizResults responses={displayedResponses} session={stepSession} onDelete={handleDelete} />
           )}
 
           {toolType === 'exit_ticket' && (

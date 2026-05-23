@@ -4,6 +4,15 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.2 (2026-05-22)
+
+* Added manual refresh button on student waiting screen — students can immediately check if teacher resumed instead of waiting for auto-poll
+* Enlarged session code on student waiting screen (`text-5xl font-bold tracking-widest`) — visible from across the classroom
+* Changed teacher step bar to yellow/gold during pause state — previous steps show amber, last active step shows gold, preserving progress visibility (was all-grey)
+* Fixed multi-step results view to render per-step tool type instead of always using first step's type — step tabs now show correct result format (e.g., Quiz tab renders quiz results, not Padlet grid)
+* Updated ResultsView heading to show step-specific label when a step tab is selected
+* Fixed admin multi-step results config — PollResults and QuizResults now receive merged step config (step-specific config like `pollMode: 'wordcloud'` was being lost, falling back to session-level defaults)
+
 ## v1.9.1 (2026-05-22)
 
 * Fixed stale `currentStep` in session detail UI — added local state to sync with server action result instead of relying on stale `session` prop

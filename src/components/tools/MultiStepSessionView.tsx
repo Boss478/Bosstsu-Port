@@ -19,6 +19,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
   const totalSteps = session.steps?.length ?? 0;
   const [currentStep, setCurrentStep] = useState(session.currentStep ?? 0);
   const [transitioning, setTransitioning] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const isVisible = useRef(true);
 
   const pollStep = useCallback(async () => {
@@ -54,7 +55,22 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
           <h2 className="text-xl font-bold text-zinc-700 dark:text-zinc-300">
             {t('waitingForTeacher')}
           </h2>
-          <p className="text-zinc-400 mt-2 font-mono">{session.sessionCode}</p>
+          <p className="text-zinc-500 dark:text-zinc-400 mt-6 text-sm">{t('sessionCode')}</p>
+          <p className="text-zinc-400 mt-1 text-5xl font-bold tracking-[0.15em] font-mono select-all">
+            {session.sessionCode}
+          </p>
+          <button
+            onClick={async () => {
+              setRefreshing(true);
+              await pollStep();
+              setRefreshing(false);
+            }}
+            disabled={refreshing}
+            className="mt-8 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-all disabled:opacity-50"
+          >
+            <i className={`fi fi-sr-refresh text-sm ${refreshing ? 'animate-spin' : ''}`} />
+            {t('refresh')}
+          </button>
         </div>
       </div>
     );

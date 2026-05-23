@@ -514,3 +514,30 @@ KVM1 VPS runs **multiple services simultaneously** — resources are shared and 
 ## Website Update Log
 
 See [changelog.md](./changelog.md) for complete version history.
+
+## Docker Dev Environment (v1.9.3)
+
+A Docker-based dev environment with hot reloading was added alongside the existing production Docker setup.
+
+### Usage
+
+```bash
+# Dev — everything in Docker with hot reload
+docker compose --profile dev up -d --build
+
+# Production (unchanged)
+docker compose up -d --build
+
+# Local dev (unchanged)
+npm run dev
+```
+
+### Architecture
+
+- **`docker-compose.yml`** added `app-dev` service with `profiles: ["dev"]` — only starts when `--profile dev` is passed
+- **`dockerfile.dev`** single-stage dev Dockerfile — installs deps, runs `npm run dev`
+- Source code is volume-mounted (`.:/app`) for hot reload
+- Container `node_modules` and `.next` are isolated via anonymous volumes (never host's)
+- Runs as root (no `user: "1001:1001"`) to avoid volume mount permission issues
+- Connects to the same `mongo` and `mongo-express` services as production
+- Both `app` and `app-dev` expose port 3300 — cannot run simultaneously (intentional)

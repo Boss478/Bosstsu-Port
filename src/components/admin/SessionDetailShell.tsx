@@ -167,27 +167,39 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
               </div>
 
               <div className="flex items-center gap-2">
-                {steps.map((step, idx) => (
-                  <div key={idx} className="flex items-center gap-2 flex-1">
-                    <button
-                      onClick={() => handleAdvance(idx)}
-                      disabled={advancing}
-                      className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                        idx === localCurrentStep
-                          ? 'bg-blue-600 text-white shadow-sm'
-                          : idx < localCurrentStep
-                            ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
-                            : 'bg-zinc-100 dark:bg-slate-700 text-zinc-500 dark:text-zinc-400'
-                      }`}
-                    >
-                      <span className="block font-bold">{idx + 1}</span>
-                      <span className="block truncate">{step.title}</span>
-                    </button>
-                    {idx < steps.length - 1 && (
-                      <div className={`w-4 h-0.5 ${idx < localCurrentStep ? 'bg-emerald-400' : 'bg-zinc-300 dark:bg-slate-600'}`} />
-                    )}
-                  </div>
-                ))}
+                {steps.map((step, idx) => {
+                  const effectiveStep = localCurrentStep === -1 ? localLastActiveStep : localCurrentStep;
+                  let btnClasses: string;
+                  if (idx === effectiveStep) {
+                    btnClasses = localCurrentStep === -1
+                      ? 'bg-amber-500 text-white shadow-sm'
+                      : 'bg-blue-600 text-white shadow-sm';
+                  } else if (idx < effectiveStep) {
+                    btnClasses = localCurrentStep === -1
+                      ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+                      : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400';
+                  } else {
+                    btnClasses = 'bg-zinc-100 dark:bg-slate-700 text-zinc-500 dark:text-zinc-400';
+                  }
+                  const lineClasses = idx < effectiveStep
+                    ? (localCurrentStep === -1 ? 'bg-amber-400' : 'bg-emerald-400')
+                    : 'bg-zinc-300 dark:bg-slate-600';
+                  return (
+                    <div key={idx} className="flex items-center gap-2 flex-1">
+                      <button
+                        onClick={() => handleAdvance(idx)}
+                        disabled={advancing}
+                        className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${btnClasses}`}
+                      >
+                        <span className="block font-bold">{idx + 1}</span>
+                        <span className="block truncate">{step.title}</span>
+                      </button>
+                      {idx < steps.length - 1 && (
+                        <div className={`w-4 h-0.5 ${lineClasses}`} />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
