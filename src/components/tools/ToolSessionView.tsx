@@ -90,7 +90,7 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
     case 'qa_board':
       return <QABoard session={session} />;
     case 'quiz':
-      return <QuickQuiz session={session} />;
+      return <QuickQuiz session={session} studentName={studentName} />;
     case 'exit_ticket':
       return <ExitTicketForm {...sharedProps} />;
     default:

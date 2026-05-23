@@ -4,6 +4,14 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.7 (2026-05-23)
+
++ Added participantCount tracking — now increments on first student submission via poll or respond route (was always 0, only schema-defined but never written)
++ Added studentName to QuickQuiz submissions — passes from name gate through props into POST JSON body, wired in ToolSessionView + MultiStepSessionView
++ Added stepIndex filtering to Q&A Board poll fetch — now only loads current step's questions in multi-step sessions
+* Fixed deleteResponse not decrementing responseCount/participantCount — now fetches response first to get sessionId
+* Fixed deleteAllResponses not resetting participantCount to 0
+
 ## v1.9.6 (2026-05-23)
 
 + Added Quiz inline question builder in QuickStartModal — teachers can add multiple questions, options, and select correct answers when creating single or multi-step quiz sessions

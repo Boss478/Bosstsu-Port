@@ -8,9 +8,10 @@ interface QuickQuizProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
   stepIndex?: number;
+  studentName?: string;
 }
 
-export default function QuickQuiz({ session, stepIndex }: QuickQuizProps) {
+export default function QuickQuiz({ session, stepIndex, studentName }: QuickQuizProps) {
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -50,6 +51,7 @@ export default function QuickQuiz({ session, stepIndex }: QuickQuizProps) {
         },
         body: JSON.stringify({
           content: { score, total, answers },
+          ...(studentName && { studentName }),
           ...(stepIndex !== undefined && { stepIndex }),
         }),
       });

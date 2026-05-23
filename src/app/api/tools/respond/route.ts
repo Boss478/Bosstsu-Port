@@ -109,6 +109,13 @@ export async function POST(req: NextRequest) {
 
     await ToolSession.findByIdAndUpdate(sessionId, { $inc: { responseCount: 1 } });
 
+    const participantCount = await ToolResponse.countDocuments({ sessionId, studentToken });
+    if (participantCount === 1) {
+      await ToolSession.findByIdAndUpdate(sessionId, {
+        $inc: { participantCount: 1 },
+      });
+    }
+
     return NextResponse.json({ success: true, id: response._id.toString(), editToken, fileUrl });
   } catch (err) {
     console.error('Respond error:', err);

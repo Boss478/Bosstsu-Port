@@ -169,7 +169,15 @@ export async function deleteResponse(responseId: string) {
 
   try {
     await dbConnect();
-    await ToolResponse.findByIdAndDelete(responseId);
+    const response = await ToolResponse.findByIdAndDelete(responseId);
+    if (response) {
+      const sessionId = response.sessionId?.toString();
+      if (sessionId) {
+        await ToolSession.findByIdAndUpdate(sessionId, {
+          $inc: { responseCount: -1 },
+        });
+      }
+    }
   } catch (err) {
     console.error('Delete response error:', err);
     return { error: formatError('DB03') };

@@ -37,7 +37,8 @@ export default function QABoard({ session, stepIndex }: QABoardProps) {
 
   const fetchQuestions = async () => {
     try {
-      const res = await fetch(`/api/tools/poll?sessionId=${session._id}`);
+      const stepParam = stepIndex !== undefined ? `&stepIndex=${stepIndex}` : '';
+      const res = await fetch(`/api/tools/poll?sessionId=${session._id}${stepParam}`);
       const data = await res.json();
       if (data.responses) {
         setQuestions(data.responses);

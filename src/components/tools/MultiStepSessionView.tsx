@@ -219,7 +219,7 @@ function renderTool(session: unknown, stepIndex: number, studentName?: string) {
     case 'qa_board':
       return <QABoard session={session} stepIndex={stepIndex} />;
     case 'quiz':
-      return <QuickQuiz session={session} stepIndex={stepIndex} />;
+      return <QuickQuiz session={session} stepIndex={stepIndex} studentName={studentName} />;
     case 'exit_ticket':
       return <ExitTicketForm session={session} stepIndex={stepIndex} studentName={studentName} />;
     default:
