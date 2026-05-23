@@ -19,20 +19,20 @@ export const toolStrings = {
   editMyAnswer: { th: 'แก้ไขคำตอบของฉัน', en: 'Edit My Answer' },
   delete: { th: 'ลบ', en: 'Delete' },
 
-  postIdea: { th: 'โพสต์ไอเดีย', en: 'Post Idea' },
-  postReply: { th: 'โพสต์ตอบกลับ', en: 'Post Reply' },
-  submitVote: { th: 'ส่งคะแนนโหวต', en: 'Submit Vote' },
+  postIdea: { th: 'ส่งคำตอบ', en: 'Post Idea' },
+  postReply: { th: 'ตอบกลับ', en: 'Reply' },
+  submitVote: { th: 'ส่งคำตอบ', en: 'Submit Vote' },
   submitQuestion: { th: 'ส่งคำถาม', en: 'Submit Question' },
   submitQuiz: { th: 'ส่งแบบทดสอบ', en: 'Submit Quiz' },
-  submitExitTicket: { th: 'ส่งบัตรออก', en: 'Submit Exit Ticket' },
+  submitExitTicket: { th: 'ส่งคำตอบ', en: 'Submit Exit Ticket' },
   submitAssignment: { th: 'ส่งงาน', en: 'Submit Assignment' },
 
-  voteSubmitted: { th: 'ส่งคะแนนเรียบร้อย!', en: 'Vote submitted!' },
+  voteSubmitted: { th: 'ส่งคำตอบเรียบร้อย!', en: 'Vote submitted!' },
   resultsAutoUpdate: { th: 'ผลลัพธ์จะอัปเดตอัตโนมัติ', en: 'Results will update automatically' },
   liveResults: { th: 'ผลลัพธ์แบบเรียลไทม์', en: 'Live Results' },
   submitted: { th: 'ส่งแล้ว', en: 'Submitted' },
   submittedTitle: { th: 'ส่งแล้ว!', en: 'Submitted!' },
-  thankYouReflection: { th: 'ขอบคุณสำหรับการสะท้อนความคิด!', en: 'Thank you for your reflection!' },
+  thankYouReflection: { th: 'ขอบคุณสำหรับการแชร์ความเห็น!', en: 'Thank you for your reflection!' },
 
   customChoices: { th: 'ตัวเลือกอื่น ๆ', en: 'Custom Choices' },
   voteNow: { th: 'โหวตเลย!', en: 'Vote now!' },
@@ -112,6 +112,9 @@ export const toolStrings = {
   singleTool: { th: 'Single Session', en: 'Single Session' },
   multiStep: { th: 'Multi Session', en: 'Multi Session' },
   deleteConfirm: { th: 'คุณแน่ใจหรือไม่ว่าต้องการลบ? การกระทำนี้ไม่สามารถยกเลิกได้', en: 'Are you sure you want to delete? This action cannot be undone.' },
+  removeAllResults: { th: 'ลบผลลัพธ์ทั้งหมด', en: 'Remove All Results' },
+  removeAllResultsConfirm: { th: 'คุณแน่ใจหรือไม่? จะลบผลลัพธ์ทั้งหมดของห้องเรียนนี้ รวมถึงทุกขั้นตอน การกระทำนี้ไม่สามารถยกเลิกได้', en: 'Are you sure? This will delete all results for this session, including all steps. This action cannot be undone.' },
+  removeAllResultsSuccess: { th: 'ลบผลลัพธ์ทั้งหมดสำเร็จ', en: 'All results removed successfully' },
 } as const;
 
 export type ToolStringKey = keyof typeof toolStrings;

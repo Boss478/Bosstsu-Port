@@ -145,6 +145,24 @@ export async function deleteSession(sessionId: string) {
   return { error: undefined };
 }
 
+export async function deleteAllResponses(sessionId: string) {
+  const isAuth = await verifyAuth();
+  if (!isAuth) return { error: formatError('401') };
+
+  try {
+    await dbConnect();
+    await ToolResponse.deleteMany({ sessionId });
+    await ToolSession.findByIdAndUpdate(sessionId, { responseCount: 0 });
+  } catch (err) {
+    console.error('Delete all responses error:', err);
+    return { error: formatError('DB03') };
+  }
+
+  revalidatePath('/admin/tools');
+  revalidatePath(`/admin/tools/sessions/${sessionId}`);
+  return { error: undefined };
+}
+
 export async function deleteResponse(responseId: string) {
   const isAuth = await verifyAuth();
   if (!isAuth) return { error: formatError('401') };

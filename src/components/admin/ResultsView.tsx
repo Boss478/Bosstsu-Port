@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import ExportButton from './ExportButton';
 import DeleteButton from './DeleteButton';
-import { deleteResponse, toggleQAAnswered } from '@/app/admin/tools/actions';
+import { deleteResponse, deleteAllResponses, toggleQAAnswered } from '@/app/admin/tools/actions';
 import { t } from '@/lib/tool-translations';
 
 interface ResultsViewProps {
@@ -38,12 +38,12 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
 
   const steps = session.steps as Array<{ type: string; title: string; config?: Record<string, unknown> }> | undefined;
   const hasSteps = steps && steps.length > 1;
-  const [activeStepTab, setActiveStepTab] = useState<number | null>(
-    hasSteps ? (sessionCurrentStep >= 0 ? sessionCurrentStep : null) : null
+  const [activeStepTab, setActiveStepTab] = useState<number>(
+    hasSteps ? (sessionCurrentStep >= 0 ? sessionCurrentStep : 0) : 0
   );
   const userChangedTab = useRef(false);
 
-  const activeStepType = hasSteps && activeStepTab !== null ? steps[activeStepTab].type : null;
+  const activeStepType = hasSteps && steps ? steps[activeStepTab].type : null;
   const toolType = activeStepType || session.type || 'padlet';
 
   const stepSession = hasSteps && activeStepTab !== null && steps[activeStepTab].config
@@ -53,11 +53,11 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
   // Auto-sync activeStepTab with session current step unless teacher manually selected a tab
   useEffect(() => {
     if (hasSteps && !userChangedTab.current) {
-      setActiveStepTab(sessionCurrentStep >= 0 ? sessionCurrentStep : null);
+      setActiveStepTab(sessionCurrentStep >= 0 ? sessionCurrentStep : 0);
     }
   }, [sessionCurrentStep, hasSteps]);
 
-  const handleStepTabClick = (idx: number | null) => {
+  const handleStepTabClick = (idx: number) => {
     userChangedTab.current = true;
     setActiveStepTab(idx);
   };
@@ -117,7 +117,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
     await fetchResponses();
   };
 
-  const displayedResponses = hasSteps && activeStepTab !== null
+  const displayedResponses = hasSteps
     ? responses.filter((r: { stepIndex?: number }) => r.stepIndex === activeStepTab)
     : responses;
 
@@ -136,7 +136,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
           {activeStepType
-            ? `Results — Step ${(activeStepTab ?? 0) + 1}: ${steps![activeStepTab ?? 0].title}`
+            ? `Results — Step ${activeStepTab + 1}: ${steps![activeStepTab].title}`
             : `Results — ${TOOL_LABELS[toolType] || toolType}`}
         </h2>
         <div className="flex items-center gap-2">
@@ -157,28 +157,33 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
               <i className={`fi ${fullScreen ? 'fi-sr-compress' : 'fi-sr-expand'} text-sm`} />
             </button>
           )}
+          <button
+            onClick={async () => {
+              if (!confirm(t('removeAllResultsConfirm'))) return;
+              const result = await deleteAllResponses(String(session._id));
+              if (result?.error) {
+                alert(result.error);
+              } else {
+                await fetchResponses();
+              }
+            }}
+            className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-400 hover:text-red-600 transition-colors"
+            title={t('removeAllResults')}
+          >
+            <i className="fi fi-sr-trash text-sm" />
+          </button>
           <ExportButton session={session} responses={responses} />
         </div>
       </div>
 
       <div className="flex items-center gap-2 mb-4">
         {hasSteps && (
-          <div className="flex items-center gap-1 bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 rounded-xl p-1">
-            <button
-              onClick={() => handleStepTabClick(null)}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                activeStepTab === null
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
-              }`}
-            >
-              {t('allSteps')}
-            </button>
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar flex-1 min-w-0 bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 rounded-xl p-1">
             {steps.map((step, idx) => (
               <button
                 key={idx}
                 onClick={() => handleStepTabClick(idx)}
-                className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                className={`flex-shrink-0 whitespace-nowrap px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
                   activeStepTab === idx
                     ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
                     : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'

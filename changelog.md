@@ -4,6 +4,13 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.4 (2026-05-23)
+
++ Added "Remove All Results" button in teacher results view — deletes all student responses across all steps/stages for a session, with confirmation dialog
+* Changed step tab bar to horizontal scroll (`overflow-x-auto no-scrollbar flex-1 min-w-0` container + `flex-shrink-0 whitespace-nowrap` buttons) so it handles 7+ steps without cramping buttons
+- Removed "All Steps" tab option — mixed-tool results across different step types are not meaningful
+* Fixed multi-session student name guard — name prompt now appears regardless of session state (standalone early return before currentStep check)
+
 ## v1.9.3 (2026-05-23)
 
 + Added Step Templates feature — teachers can save reusable tool step configurations and load them in one click (disk icon on step row saves template, template chips auto-fill config in multi-step mode)
