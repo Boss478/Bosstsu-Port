@@ -7,7 +7,6 @@ import AssignmentForm from './AssignmentForm';
 import QABoard from './QABoard';
 import QuickQuiz from './QuickQuiz';
 import ExitTicketForm from './ExitTicketForm';
-import DiscussionForum from './DiscussionForum';
 import { t } from '@/lib/tool-translations';
 
 interface MultiStepSessionViewProps {
@@ -111,6 +110,10 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
       <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950">
         <div className="text-center max-w-md w-full p-6">
           <i className="fi fi-sr-hourglass text-4xl text-blue-400 animate-pulse block mb-4" />
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{session.title}</h1>
+          {session.description && (
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">{session.description}</p>
+          )}
           <h2 className="text-xl font-bold text-zinc-700 dark:text-zinc-300">
             {t('waitingForTeacher')}
           </h2>
@@ -132,7 +135,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
   }
 
   const step = session.steps?.[currentStep];
-  const stepConfig = { ...session, type: step?.type, config: step?.config };
+  const stepConfig = { ...session, type: step?.type, config: step?.config, title: step?.title || session.title };
 
   const handlePrevStep = () => {
     if (currentStep > 0 && session.allowStudentNavigation) {
@@ -149,6 +152,12 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
   return (
     <div className={`min-h-screen flex flex-col bg-blue-50 dark:bg-slate-950 transition-opacity duration-300 ${transitioning ? 'opacity-0' : 'opacity-100'}`}>
       <div className="p-4 max-w-5xl mx-auto w-full">
+        <div className="text-center mb-3">
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{session.title}</h1>
+          {session.description && (
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{session.description}</p>
+          )}
+        </div>
         <div className="flex items-center gap-2 justify-center">
           {session.steps?.map((_: unknown, i: number) => (
             <div
@@ -213,8 +222,6 @@ function renderTool(session: unknown, stepIndex: number, studentName?: string) {
       return <QuickQuiz session={session} stepIndex={stepIndex} />;
     case 'exit_ticket':
       return <ExitTicketForm session={session} stepIndex={stepIndex} studentName={studentName} />;
-    case 'discussion':
-      return <DiscussionForum session={session} stepIndex={stepIndex} studentName={studentName} />;
     default:
       return <div className="text-center py-20 text-zinc-400">{t('toolTypeNotFound')}</div>;
   }

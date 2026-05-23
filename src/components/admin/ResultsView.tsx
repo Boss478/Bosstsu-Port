@@ -24,7 +24,6 @@ const TOOL_LABELS: Record<string, string> = {
   qa_board: 'Q&A Board',
   quiz: 'Quiz',
   exit_ticket: 'Exit Ticket',
-  discussion: 'Discussion',
 };
 
 export default function ResultsView({ session, initialResponses, fullScreen, onToggleFullScreen, refreshInterval = 15000, sessionCurrentStep = -1 }: ResultsViewProps) {
@@ -240,23 +239,6 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
         return <QuizResults responses={stepRes} session={stepSesh} onDelete={handleDelete} />;
       case 'exit_ticket':
         return <ExitTicketResults responses={stepRes} onDelete={handleDelete} />;
-      case 'discussion':
-        return (
-          <div className="space-y-3">
-            {stepRes.map((r: { _id: string; studentName?: string; content: { reply?: string }; createdAt: string }) => (
-              <div key={r._id} className="p-4 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-semibold text-xs text-blue-600 dark:text-blue-400">{r.studentName || 'Anonymous'}</p>
-                    <p className="text-zinc-700 dark:text-zinc-300 mt-1 break-words">{r.content?.reply}</p>
-                    <p className="text-xs text-zinc-400 mt-1">{new Date(r.createdAt).toLocaleTimeString('th-TH')}</p>
-                  </div>
-                  <DeleteButton id={r._id} action={deleteResponse} />
-                </div>
-              </div>
-            ))}
-          </div>
-        );
       default:
         return null;
     }

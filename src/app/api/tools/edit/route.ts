@@ -23,6 +23,20 @@ export async function PATCH(req: NextRequest) {
     const action = formData.get('action') as string | null;
     const file = formData.get('file') as File | null;
 
+    // Vote action — no editToken needed for classroom Q&A voting
+    if (action === 'vote') {
+      if (!responseId) {
+        return NextResponse.json({ error: getError('T05').message }, { status: 400 });
+      }
+      const studentToken = req.headers.get('student-token');
+      if (!studentToken) {
+        return NextResponse.json({ error: getError('401').message }, { status: 401 });
+      }
+      await dbConnect();
+      await ToolResponse.findByIdAndUpdate(responseId, { $inc: { 'content.upvotes': 1 } });
+      return NextResponse.json({ success: true });
+    }
+
     if (!responseId || !editToken) {
       return NextResponse.json({ error: getError('T05').message }, { status: 400 });
     }
@@ -43,7 +57,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: getError('T09').message, code: getError('T09').code }, { status: 400 });
     }
 
-    const toolTypesAllowEdit = ['assignment', 'padlet', 'discussion'];
+    const toolTypesAllowEdit = ['assignment', 'padlet'];
     if (!toolTypesAllowEdit.includes(session.type)) {
       return NextResponse.json({ error: getError('T08').message, code: getError('T08').code }, { status: 400 });
     }

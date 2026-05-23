@@ -4,6 +4,15 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.6 (2026-05-23)
+
++ Added Quiz inline question builder in QuickStartModal — teachers can add multiple questions, options, and select correct answers when creating single or multi-step quiz sessions
++ Added Q&A Board upvote button with localStorage-based vote persistence — students can upvote questions, survives page refresh
++ Added session title + description display in multi-step waiting screen and step wrapper
++ Added question text display in MentimeterPoll (shows `questions[0].question` between title and options)
+* Fixed step titles not showing as tool headings in multi-step sessions — step title now propagates to `session.title` in merged config
+- Removed Discussion Forum tool (never used) — deleted from 16 references across models, components, API routes, admin UI, and translations
+
 ## v1.9.5 (2026-05-23)
 
 + Added student name persistence across page refreshes — name saved to localStorage on join, auto-restored on revisit, no re-prompt

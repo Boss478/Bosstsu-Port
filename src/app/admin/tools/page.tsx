@@ -17,7 +17,6 @@ const TOOL_TYPE_LABELS: Record<string, string> = {
   qa_board: 'Q&A Board',
   quiz: 'Quick Quiz',
   exit_ticket: 'Exit Ticket',
-  discussion: 'Discussion',
 };
 
 const TOOL_TYPE_ICONS: Record<string, string> = {
@@ -27,7 +26,6 @@ const TOOL_TYPE_ICONS: Record<string, string> = {
   qa_board: 'fi-sr-interrogation',
   quiz: 'fi-sr-graduation-cap',
   exit_ticket: 'fi-sr-ticket',
-  discussion: 'fi-sr-comments',
 };
 
 export default async function ToolsListPage({

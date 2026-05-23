@@ -48,6 +48,7 @@ export const toolStrings = {
   vote: { th: 'โหวต', en: 'vote' },
   answered: { th: 'ตอบแล้ว', en: 'Answered' },
 
+  shareThoughts: { th: 'แบ่งปันความคิดของคุณ...', en: 'Share your thoughts...' },
   noQuizQuestions: { th: 'ยังไม่ได้ตั้งค่าแบบทดสอบ', en: 'No quiz questions configured.' },
   scoreOfTotal: { th: 'คะแนน: {score} / {total}', en: 'Score: {score} / {total}' },
   perfectGreatJob: { th: 'สมบูรณ์แบบ! ทำได้ดีมาก!', en: 'Perfect! Great job!' },
@@ -56,12 +57,6 @@ export const toolStrings = {
   previous: { th: 'ย้อนกลับ', en: 'Previous' },
   next: { th: 'ถัดไป', en: 'Next' },
 
-  discussionTopic: { th: 'หัวข้ออภิปราย', en: 'Discussion Topic' },
-  shareRespectful: { th: 'แบ่งปันความคิดของคุณ โปรดให้เกียรติและสร้างสรรค์', en: 'Share your thoughts on this topic. Be respectful and constructive.' },
-  shareThoughts: { th: 'แบ่งปันความคิดของคุณ...', en: 'Share your thoughts...' },
-  replies: { th: 'ตอบกลับ', en: 'replies' },
-  reply: { th: 'ตอบกลับ', en: 'reply' },
-  noRepliesYet: { th: 'ยังไม่มีตอบกลับ เป็นคนแรกสิ!', en: 'No replies yet. Be the first to share!' },
 
   sessionEnded: { th: 'ห้องเรียนปิดแล้ว', en: 'Session Ended' },
   sessionClosedThankYou: { th: 'ห้องเรียนนี้ถูกปิดโดยครูแล้ว ขอบคุณสำหรับการมีส่วนร่วม!', en: 'This session has been closed by the teacher. Thank you for participating!' },

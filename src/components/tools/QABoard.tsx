@@ -30,6 +30,10 @@ export default function QABoard({ session, stepIndex }: QABoardProps) {
   const [question, setQuestion] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [votedIds, setVotedIds] = useState<Set<string>>(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem(`voted_qa_${session._id}`) : null;
+    return new Set<string>(saved ? JSON.parse(saved) : []);
+  });
 
   const fetchQuestions = async () => {
     try {
@@ -84,6 +88,29 @@ export default function QABoard({ session, stepIndex }: QABoardProps) {
       setError(t('failedToSubmitSimple'));
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleVote = async (questionId: string) => {
+    if (votedIds.has(questionId)) return;
+    const formData = new FormData();
+    formData.append('responseId', questionId);
+    formData.append('action', 'vote');
+    try {
+      const res = await fetch('/api/tools/edit', {
+        method: 'PATCH',
+        headers: { 'student-token': getStudentToken() },
+        body: formData,
+      });
+      if (res.ok) {
+        const newVoted = new Set(votedIds);
+        newVoted.add(questionId);
+        setVotedIds(newVoted);
+        localStorage.setItem(`voted_qa_${session._id}`, JSON.stringify([...newVoted]));
+        fetchQuestions();
+      }
+    } catch {
+      // silent
     }
   };
 
@@ -143,6 +170,17 @@ export default function QABoard({ session, stepIndex }: QABoardProps) {
               >
                 <div className="flex items-start gap-3">
                   <div className="flex flex-col items-center flex-shrink-0">
+                    <button
+                      onClick={() => handleVote(q._id)}
+                      disabled={votedIds.has(q._id)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        votedIds.has(q._id)
+                          ? 'text-blue-600 dark:text-blue-400 cursor-default'
+                          : 'text-zinc-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+                      }`}
+                    >
+                      <i className={`fi ${votedIds.has(q._id) ? 'fi-sr-triangle-fill' : 'fi-sr-triangle'} text-lg`} />
+                    </button>
                     <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
                       {q.content?.upvotes || 0}
                     </span>

@@ -85,13 +85,6 @@ export async function GET(req: NextRequest) {
         });
         break;
 
-      case 'discussion':
-        csv += 'studentName,reply,createdAt\n';
-        responses.forEach(r => {
-          csv += `"${(r.studentName || '').replace(/"/g, '""')}","${((r.content as { reply?: string })?.reply || '').replace(/"/g, '""')}","${new Date(r.createdAt).toISOString()}"\n`;
-        });
-        break;
-
       default:
         csv += 'studentName,content,createdAt\n';
         responses.forEach(r => {

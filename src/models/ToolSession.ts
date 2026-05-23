@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-export type ToolType = 'padlet' | 'poll' | 'assignment' | 'qa_board' | 'quiz' | 'exit_ticket' | 'discussion';
+export type ToolType = 'padlet' | 'poll' | 'assignment' | 'qa_board' | 'quiz' | 'exit_ticket';
 
 interface ISessionConfig {
   prompt?: string;
@@ -47,7 +47,7 @@ const ToolSessionSchema = new Schema(
     type: {
       type: String,
       required: true,
-      enum: ['padlet', 'poll', 'assignment', 'qa_board', 'quiz', 'exit_ticket', 'discussion'],
+      enum: ['padlet', 'poll', 'assignment', 'qa_board', 'quiz', 'exit_ticket'],
     },
     title: { type: String, required: true },
     config: {

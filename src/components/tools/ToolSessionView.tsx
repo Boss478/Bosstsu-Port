@@ -7,7 +7,6 @@ import AssignmentForm from './AssignmentForm';
 import QABoard from './QABoard';
 import QuickQuiz from './QuickQuiz';
 import ExitTicketForm from './ExitTicketForm';
-import DiscussionForum from './DiscussionForum';
 import MultiStepSessionView from './MultiStepSessionView';
 import SessionGuard from './SessionGuard';
 import { t } from '@/lib/tool-translations';
@@ -94,8 +93,6 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
       return <QuickQuiz session={session} />;
     case 'exit_ticket':
       return <ExitTicketForm {...sharedProps} />;
-    case 'discussion':
-      return <DiscussionForum {...sharedProps} />;
     default:
       return (
         <div className="min-h-screen flex items-center justify-center">

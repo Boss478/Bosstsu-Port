@@ -14,7 +14,7 @@ const ToolStepTemplateSchema = new Schema<IToolStepTemplate>(
     type: {
       type: String,
       required: true,
-      enum: ['padlet', 'poll', 'assignment', 'qa_board', 'quiz', 'exit_ticket', 'discussion'],
+      enum: ['padlet', 'poll', 'assignment', 'qa_board', 'quiz', 'exit_ticket'],
     },
     title: { type: String, required: true },
     config: { type: Schema.Types.Mixed, default: {} },

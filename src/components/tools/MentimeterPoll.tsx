@@ -36,6 +36,7 @@ export default function MentimeterPoll({ session, stepIndex }: MentimeterPollPro
     ? rawOptions.map((o: string, i: number) => o || `ตัวเลือก ${i + 1}`)
     : ['ตัวเลือก ก', 'ตัวเลือก ข', 'ตัวเลือก ค', 'ตัวเลือก ง'];
   const allowCustom = session.config?.allowCustomChoices || false;
+  const questionText = session.config?.questions?.[0]?.question;
 
   const fetchPoll = async () => {
     try {
@@ -147,6 +148,9 @@ export default function MentimeterPoll({ session, stepIndex }: MentimeterPollPro
       <div className="text-center py-6">
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{session.title}</h1>
         <p className="text-zinc-500 dark:text-zinc-400">{session.config?.prompt || t('voteNow')}</p>
+        {questionText && (
+          <p className="text-lg mt-4 text-zinc-600 dark:text-zinc-400">{questionText}</p>
+        )}
       </div>
 
       <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">

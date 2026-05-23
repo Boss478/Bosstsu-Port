@@ -12,7 +12,7 @@ import { generateUniqueSessionCode } from '@/lib/session-code';
 import type { ToolType } from '@/models/ToolSession';
 
 const TOOL_TYPES: ToolType[] = [
-  'padlet', 'poll', 'assignment', 'qa_board', 'quiz', 'exit_ticket', 'discussion'
+  'padlet', 'poll', 'assignment', 'qa_board', 'quiz', 'exit_ticket'
 ];
 
 const quickStartSchema = z.object({

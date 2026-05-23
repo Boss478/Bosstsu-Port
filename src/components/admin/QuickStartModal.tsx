@@ -13,10 +13,9 @@ const TOOL_TYPES = [
   { value: 'qa_board', label: 'Q&A Board', desc: 'Anonymous Q&A with voting · Post-lesson Q&A, identifying common confusions', icon: 'fi-sr-interrogation', helpTh: 'นักเรียนตั้งคำถามแบบไม่ระบุตัวตน โหวตคำถามที่อยากได้คำตอบมากที่สุด', helpEn: 'Students ask questions anonymously. Vote on questions they want answered most.', usageTh: 'เหมาะสำหรับ: ถาม-ตอบหลังเรียน, ระบุจุดที่สับสนร่วมกัน', usageEn: 'Best for: Post-lesson Q&A, identifying common confusions' },
   { value: 'quiz', label: 'Quick Quiz', desc: 'Multiple choice quiz with scoring · Comprehension tests, formative assessment', icon: 'fi-sr-graduation-cap', helpTh: 'สร้างควิซแบบเลือกตอบหลายข้อ นักเรียนได้คะแนนและฟีดแบ็กทันที', helpEn: 'Create multi-question MCQ quizzes. Students get instant scores and feedback.', usageTh: 'เหมาะสำหรับ: ทดสอบความเข้าใจ, ประเมินผลระหว่างเรียน', usageEn: 'Best for: Comprehension tests, formative assessment' },
   { value: 'exit_ticket', label: 'Exit Ticket', desc: '3-field reflection form · Lesson wrap-up, end-of-class reflection', icon: 'fi-sr-ticket', helpTh: 'แบบฟอร์มสะท้อนการเรียนรู้ 3 ช่อง: สิ่งที่เรียนรู้, คำถามที่ยังมี, สิ่งที่อยากรู้เพิ่ม', helpEn: '3-field reflection form: What I learned, Questions I still have, What I want to know more.', usageTh: 'เหมาะสำหรับ: สรุปบทเรียน, สะท้อนการเรียนรู้ท้ายคาบ', usageEn: 'Best for: Lesson wrap-up, end-of-class reflection' },
-  { value: 'discussion', label: 'Discussion Forum', desc: 'Threaded conversation board · Group discussions, exchanging opinions, peer learning', icon: 'fi-sr-comments', helpTh: 'นักเรียนเริ่มหัวข้อสนทนาและตอบกลับซึ่งกันและกันแบบ Thread', helpEn: 'Students start discussion threads and reply to each other.', usageTh: 'เหมาะสำหรับ: อภิปรายกลุ่ม, แลกเปลี่ยนความคิดเห็น, Peer learning', usageEn: 'Best for: Group discussions, exchanging opinions, peer learning' },
 ];
 
-const NAMED_TOOL_TYPES = ['padlet', 'assignment', 'exit_ticket', 'discussion'];
+const NAMED_TOOL_TYPES = ['padlet', 'assignment', 'exit_ticket'];
 
 interface StepConfig {
   type: string;
@@ -35,6 +34,15 @@ export default function QuickStartModal() {
   const [pollMode, setPollMode] = useState<'mcq' | 'wordcloud'>('mcq');
   const [allowCustomChoices, setAllowCustomChoices] = useState(false);
   const [pollOptions, setPollOptions] = useState<string[]>(['', '']);
+
+  interface QuizQuestion {
+    question: string;
+    options: string[];
+    correctAnswer: number;
+  }
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
+  const [currentEditingQuizQuestion, setCurrentEditingQuizQuestion] = useState<number | null>(null);
+
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,6 +70,7 @@ export default function QuickStartModal() {
     setPollMode('mcq');
     setAllowCustomChoices(false);
     setPollOptions(['', '']);
+    setQuizQuestions([]);
     setSteps([]);
     setEditingStepIndex(-1);
     setAllowStudentNavigation(false);
@@ -93,6 +102,18 @@ export default function QuickStartModal() {
       const hasCustomOptions = pollOptions.some(o => o.trim());
       if (hasCustomOptions) {
         config.questions = [{ options: pollOptions.filter(o => o.trim()) }];
+      }
+    }
+    if (selectedType === 'quiz') {
+      const hasQuestions = quizQuestions.some(q => q.question.trim());
+      if (hasQuestions) {
+        config.questions = quizQuestions
+          .filter(q => q.question.trim())
+          .map(q => ({
+            question: q.question.trim(),
+            options: q.options.filter(o => o.trim()),
+            correctAnswer: q.correctAnswer >= 0 ? q.correctAnswer : undefined,
+          }));
       }
     }
     return config;
@@ -233,6 +254,18 @@ export default function QuickStartModal() {
       const hasCustomOptions = pollOptions.some(o => o.trim());
       if (hasCustomOptions) {
         formData.set('questions', JSON.stringify([{ options: pollOptions }]));
+      }
+    }
+    if (selectedType === 'quiz') {
+      const hasQuestions = quizQuestions.some(q => q.question.trim());
+      if (hasQuestions) {
+        formData.set('questions', JSON.stringify(quizQuestions
+          .filter(q => q.question.trim())
+          .map(q => ({
+            question: q.question.trim(),
+            options: q.options.filter(o => o.trim()),
+            correctAnswer: q.correctAnswer >= 0 ? q.correctAnswer : undefined,
+          }))));
       }
     }
     const result = await quickStartSession(formData);
@@ -418,6 +451,106 @@ export default function QuickStartModal() {
         </div>
       )}
 
+      {selectedType === 'quiz' && (
+        <div className="space-y-3">
+          <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Quiz Questions</label>
+          <div className="space-y-3">
+            {quizQuestions.map((q, qi) => (
+              <div key={qi} className="p-3 rounded-xl bg-zinc-50 dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400 shrink-0">Q{qi + 1}</span>
+                  <input
+                    type="text"
+                    value={q.question}
+                    onChange={e => {
+                      const copy = [...quizQuestions];
+                      copy[qi] = { ...copy[qi], question: e.target.value };
+                      setQuizQuestions(copy);
+                    }}
+                    placeholder="e.g. What is 2+2?"
+                    className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setQuizQuestions(quizQuestions.filter((_, i) => i !== qi))}
+                    className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                  >
+                    <i className="fi fi-sr-cross text-sm" />
+                  </button>
+                </div>
+                <div className="pl-4 space-y-1.5">
+                  {q.options.map((opt, oi) => (
+                    <div key={oi} className="flex items-center gap-2">
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`correct_${qi}`}
+                          checked={q.correctAnswer === oi}
+                          onChange={() => {
+                            const copy = [...quizQuestions];
+                            copy[qi] = { ...copy[qi], correctAnswer: oi };
+                            setQuizQuestions(copy);
+                          }}
+                          className="accent-blue-500 w-3.5 h-3.5"
+                        />
+                        <input
+                          type="text"
+                          value={opt}
+                          onChange={e => {
+                            const copy = [...quizQuestions];
+                            const newOpts = [...copy[qi].options];
+                            newOpts[oi] = e.target.value;
+                            copy[qi] = { ...copy[qi], options: newOpts };
+                            setQuizQuestions(copy);
+                          }}
+                          placeholder={`Option ${oi + 1}`}
+                          className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm w-full"
+                        />
+                        {oi >= 2 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const copy = [...quizQuestions];
+                              copy[qi] = { ...copy[qi], options: copy[qi].options.filter((_, i) => i !== oi) };
+                              if (copy[qi].correctAnswer === oi) copy[qi].correctAnswer = -1;
+                              else if (copy[qi].correctAnswer > oi) copy[qi].correctAnswer--;
+                              setQuizQuestions(copy);
+                            }}
+                            className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
+                          >
+                            <i className="fi fi-sr-cross text-xs" />
+                          </button>
+                        )}
+                      </label>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const copy = [...quizQuestions];
+                      copy[qi] = { ...copy[qi], options: [...copy[qi].options, ''] };
+                      setQuizQuestions(copy);
+                    }}
+                    className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors ml-7"
+                  >
+                    <i className="fi fi-sr-plus text-xs" />
+                    Add Option
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setQuizQuestions([...quizQuestions, { question: '', options: ['', ''], correctAnswer: -1 }])}
+            className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+          >
+            <i className="fi fi-sr-plus text-xs" />
+            Add Question
+          </button>
+        </div>
+      )}
+
       {selectedType === 'assignment' && (
         <div className="flex items-center gap-2">
           <input
@@ -559,7 +692,7 @@ export default function QuickStartModal() {
   const renderModeToggle = () => (
     <div className="flex gap-2 mb-4">
       <button
-        onClick={() => { setMode('single'); setStep('type'); }}
+        onClick={() => { setMode('single'); setStep('type'); setQuizQuestions([]); }}
         className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
           mode === 'single'
             ? 'bg-blue-600 text-white'
@@ -569,7 +702,7 @@ export default function QuickStartModal() {
         {t('singleTool')}
       </button>
       <button
-        onClick={() => { setMode('multi'); setStep('type'); }}
+        onClick={() => { setMode('multi'); setStep('type'); setQuizQuestions([]); }}
         className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
           mode === 'multi'
             ? 'bg-blue-600 text-white'
