@@ -8,6 +8,7 @@ interface DiscussionForumProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
   stepIndex?: number;
+  studentName?: string;
 }
 
 interface Reply {
@@ -24,12 +25,12 @@ interface OwnReply {
   editToken: string;
 }
 
-export default function DiscussionForum({ session, stepIndex }: DiscussionForumProps) {
+export default function DiscussionForum({ session, stepIndex, studentName: propName }: DiscussionForumProps) {
   const [replies, setReplies] = useState<Reply[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [reply, setReply] = useState('');
-  const [name, setName] = useState('');
+  const [name, setName] = useState(propName || '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ownReplies, setOwnReplies] = useState<OwnReply[]>([]);
@@ -178,6 +179,7 @@ export default function DiscussionForum({ session, stepIndex }: DiscussionForumP
       </div>
 
       <div className="p-4 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-3">
+        {!propName && (
         <input
           type="text"
           placeholder={t('yourNameOptional')}
@@ -185,6 +187,7 @@ export default function DiscussionForum({ session, stepIndex }: DiscussionForumP
           onChange={e => setName(e.target.value)}
           className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+        )}
         <textarea
           placeholder={t('shareThoughts')}
           value={reply}

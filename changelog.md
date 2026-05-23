@@ -4,6 +4,17 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.3 (2026-05-23)
+
++ Added Step Templates feature — teachers can save reusable tool step configurations and load them in one click (disk icon on step row saves template, template chips auto-fill config in multi-step mode)
++ Added Step Templates management page at `/admin/tools/templates` with search, filter by type, and delete
++ Added "From Template" button on multi-step type screen that opens an inline template picker — teachers browse saved templates grouped by tool type, search by name, and add a template as a step in one click (also linked to full template management page)
++ Added "Session Title" step as the first page in multi-step creation — teachers enter a session-wide title and optional description before adding individual tool steps (accessible via Back button from type screen)
+* Changed multi-step workflow: add tools first → then enter session title + description (with step summary) → Start. Footer: Cancel → Back to tools, or Start to create session. (was: title first, then tools)
++ Added session description field — optional textarea alongside the title, stored in session config for reference
+* Moved Step Templates entry point from admin sidebar into Class Tools page — "Templates" button in same row as "Start New Session" (before it)
+* Fixed Step Templates page text contrast in light mode — search input, type filter, and empty state text were too faint on bg-blue-50 (changed to text-zinc-600, added explicit text-zinc-900 to inputs + dark mode variants)
+
 ## v1.9.2 (2026-05-22)
 
 * Added manual refresh button on student waiting screen — students can immediately check if teacher resumed instead of waiting for auto-poll

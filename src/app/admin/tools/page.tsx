@@ -91,7 +91,16 @@ export default async function ToolsListPage({
             <i className="fi fi-sr-chalkboard text-blue-500" />
             Class Tools
           </h1>
-          <QuickStartModal />
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/tools/templates"
+              className="flex items-center gap-2 px-6 py-2.5 bg-white dark:bg-slate-800 text-zinc-700 dark:text-zinc-300 font-bold rounded-xl border border-zinc-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all hover:-translate-y-0.5"
+            >
+              <i className="fi fi-sr-template text-sm" />
+              Templates
+            </Link>
+            <QuickStartModal />
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 mb-6">

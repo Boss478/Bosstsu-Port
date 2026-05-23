@@ -28,6 +28,7 @@ interface IToolSession extends Document {
   type: ToolType;
   title: string;
   config: ISessionConfig;
+  requireStudentName: boolean;
   steps?: IStep[];
   currentStep: number;
   lastActiveStep: number;
@@ -63,6 +64,7 @@ const ToolSessionSchema = new Schema(
         correctAnswer: { type: Number },
       }],
     },
+    requireStudentName: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
     startedAt: { type: Date, default: Date.now },
     endedAt: { type: Date },

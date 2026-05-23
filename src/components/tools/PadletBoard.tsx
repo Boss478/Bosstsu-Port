@@ -8,6 +8,7 @@ interface PadletBoardProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
   stepIndex?: number;
+  studentName?: string;
 }
 
 interface Post {
@@ -22,13 +23,13 @@ interface OwnPost {
   editToken: string;
 }
 
-export default function PadletBoard({ session, stepIndex }: PadletBoardProps) {
+export default function PadletBoard({ session, stepIndex, studentName: propName }: PadletBoardProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [lastFetch, setLastFetch] = useState(Date.now());
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [studentName, setStudentName] = useState('');
+  const [studentName, setStudentName] = useState(propName || '');
   const [message, setMessage] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
   const [ownPosts, setOwnPosts] = useState<OwnPost[]>([]);
@@ -170,6 +171,7 @@ export default function PadletBoard({ session, stepIndex }: PadletBoardProps) {
 
       <div className="p-4 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-3">
+          {!propName && (
           <input
             type="text"
             placeholder={t('yourName')}
@@ -177,6 +179,7 @@ export default function PadletBoard({ session, stepIndex }: PadletBoardProps) {
             onChange={e => setStudentName(e.target.value)}
             className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          )}
           <textarea
             placeholder={session.config?.prompt || t('shareThoughts')}
             value={message}

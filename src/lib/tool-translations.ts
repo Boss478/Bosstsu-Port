@@ -1,8 +1,8 @@
 export const toolStrings = {
   anonymous: { th: 'ไม่ระบุตัวตน', en: 'Anonymous' },
   yourName: { th: 'ชื่อของคุณ', en: 'Your name' },
-  yourNameOptional: { th: 'ชื่อของคุณ (ไม่บังคับ)', en: 'Your name (optional)' },
-  nameOptional: { th: 'ชื่อ (ไม่บังคับ)', en: 'Name (optional)' },
+  yourNameOptional: { th: 'ชื่อของคุณ', en: 'Your name' },
+  nameOptional: { th: 'ชื่อ', en: 'Name' },
   anonymousPlaceholder: { th: 'ไม่ระบุตัวตน', en: 'Anonymous' },
   anonymousShort: { th: 'ไม่ระบุ', en: 'Anonymous' },
   loading: { th: 'กำลังโหลด...', en: 'Loading...' },
@@ -101,7 +101,7 @@ export const toolStrings = {
 
   stepOfTotal: { th: 'ขั้นตอนที่ {current} จาก {total}', en: 'Step {current} of {total}' },
   sessionCode: { th: 'รหัสห้องเรียน', en: 'Session Code' },
-  waitingForTeacher: { th: 'กำลังรอให้ผู้สอนเริ่ม...', en: 'Waiting for teacher to start...' },
+  waitingForTeacher: { th: 'กำลังรอให้เซสชันเริ่ม...', en: 'Waiting for session to start...' },
   startSession: { th: 'เริ่มห้องเรียน', en: 'Start Session' },
   nextStep: { th: 'ขั้นตอนถัดไป', en: 'Next Step' },
   goToStep: { th: 'ไปที่ขั้นตอน', en: 'Go to Step' },

@@ -120,11 +120,8 @@ npm run seed     # Seed MongoDB via scripts/seed.ts (tsx)
 2. **Bump `package.json` `"version"`** — minor patch by default; major only when explicitly told (**ask user before bumping**)
 3. **Add a matching entry to `changelog.md`** using `+` / `*` / `-` bullets
 4. **`package.json` version and latest `changelog.md` entry must match exactly**
-5. **Save a post-task report** to `.agents/report/report-{Mon}_{Day}_{YYYY}-{HH}_{mm}.md`
+5. **Ask about post-mortem** — Ask the user if they want a post-mortem report. If yes, invoke the `boss478-post-mortem` skill which handles the report (`.agents/report/`), project memory (`.agents/memory.md`), and Obsidian vault persistence.
 6. **Output a completion summary** — what changed, current version, changelog updated?
-7. **Update memory** — If there's something important to remember (bugs, errors, patterns, new configs), add to **both**:
-   - `.agents/memory.md` (project memory — single monolithic file)
-   - `/Users/boss123/obsidian-vault/` (Obsidian vault — each distinct topic as its own `.md` file in the appropriate subfolder)
 
 ---
 
@@ -473,7 +470,7 @@ Caddy will auto-provision Let's Encrypt certificates.
 3. Mark items complete as you go
 4. Run `npm run build` — must pass before marking done
 5. Bump version + update changelog before marking done (**ask user before bumping**)
-6. **Update memory** — Add important context (bugs, errors, patterns, new configs) to `.agents/memory.md` after every task
+6. **Ask about post-mortem** — Ask the user if they want a post-mortem report. If yes, invoke the `boss478-post-mortem` skill which handles report, memory, and vault persistence.
 7. After completing a plan, update its status inside the plan file as `Done` with Date & Time
 
 ---

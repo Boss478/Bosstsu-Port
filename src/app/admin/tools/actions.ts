@@ -5,6 +5,7 @@ import { z } from 'zod';
 import dbConnect from '@/lib/db';
 import ToolSession from '@/models/ToolSession';
 import ToolResponse from '@/models/ToolResponse';
+import ToolStepTemplate from '@/models/ToolStepTemplate';
 import { verifyAuth } from '@/lib/auth';
 import { formatError } from '@/lib/error-code';
 import { generateUniqueSessionCode } from '@/lib/session-code';
@@ -17,6 +18,7 @@ const TOOL_TYPES: ToolType[] = [
 const quickStartSchema = z.object({
   type: z.string().min(1),
   title: z.string().trim().min(1, 'กรุณาระบุชื่อ').max(100),
+  description: z.string().optional(),
   prompt: z.string().optional(),
   allowAnonymous: z.boolean().optional(),
   maxSubmissions: z.number().optional(),
@@ -34,6 +36,7 @@ const quickStartSchema = z.object({
     config: z.unknown().optional(),
   })).optional(),
   allowStudentNavigation: z.boolean().optional(),
+  requireStudentName: z.boolean().optional(),
 }).strict();
 
 export async function quickStartSession(formData: FormData) {
@@ -43,6 +46,7 @@ export async function quickStartSession(formData: FormData) {
   const raw = {
     type: formData.get('type') as string,
     title: formData.get('title') as string,
+    description: formData.get('description') as string || undefined,
     prompt: formData.get('prompt') as string || undefined,
     allowAnonymous: formData.get('allowAnonymous') === 'on',
     maxSubmissions: formData.get('maxSubmissions') ? parseInt(formData.get('maxSubmissions') as string) : undefined,
@@ -52,6 +56,7 @@ export async function quickStartSession(formData: FormData) {
     questions: formData.get('questions') ? JSON.parse(formData.get('questions') as string) : undefined,
     steps: formData.get('steps') ? JSON.parse(formData.get('steps') as string) : undefined,
     allowStudentNavigation: formData.get('allowStudentNavigation') === 'on',
+    requireStudentName: formData.get('requireStudentName') === 'on',
   };
 
   const parsed = quickStartSchema.safeParse(raw);
@@ -65,6 +70,7 @@ export async function quickStartSession(formData: FormData) {
     const sessionCode = await generateUniqueSessionCode();
 
     const config: Record<string, unknown> = {};
+    if (parsed.data.description) config.description = parsed.data.description;
     if (parsed.data.prompt) config.prompt = parsed.data.prompt;
     if (parsed.data.allowAnonymous !== undefined) config.allowAnonymous = parsed.data.allowAnonymous;
     if (parsed.data.maxSubmissions) config.maxSubmissions = parsed.data.maxSubmissions;
@@ -79,6 +85,7 @@ export async function quickStartSession(formData: FormData) {
       type: isMultiStep ? (parsed.data.steps![0].type as ToolType) : toolType,
       title: parsed.data.title,
       config,
+      requireStudentName: parsed.data.requireStudentName ?? false,
       isActive: true,
     };
 
@@ -276,6 +283,68 @@ export async function advanceStep(sessionId: string, stepIndex: number) {
   } catch (err) {
     console.error('Advance step error:', err);
     return { error: formatError('DB02'), currentStep: undefined, lastActiveStep: undefined };
+  }
+}
+
+const saveTemplateSchema = z.object({
+  type: z.string().min(1),
+  title: z.string().trim().min(1, 'กรุณาระบุชื่อแม่แบบ').max(100),
+  config: z.unknown(),
+}).strict();
+
+export async function saveTemplate(formData: FormData) {
+  const isAuth = await verifyAuth();
+  if (!isAuth) return { error: formatError('401'), template: undefined };
+
+  const raw = {
+    type: formData.get('type') as string,
+    title: formData.get('title') as string,
+    config: formData.get('config') ? JSON.parse(formData.get('config') as string) : {},
+  };
+
+  const parsed = saveTemplateSchema.safeParse(raw);
+  if (!parsed.success) return { error: parsed.error.issues[0].message, template: undefined };
+
+  try {
+    await dbConnect();
+    const template = await ToolStepTemplate.findOneAndUpdate(
+      { type: parsed.data.type, title: parsed.data.title },
+      { type: parsed.data.type, title: parsed.data.title, config: parsed.data.config },
+      { upsert: true, new: true, runValidators: true }
+    ).lean();
+
+    revalidatePath('/admin/tools/templates');
+    return { error: undefined, template: JSON.parse(JSON.stringify(template)) };
+  } catch (err) {
+    console.error('Save template error:', err);
+    return { error: formatError('DB01'), template: undefined };
+  }
+}
+
+export async function getTemplates(type?: string) {
+  await dbConnect();
+  const query = type ? { type } : {};
+  const templates = await ToolStepTemplate.find(query)
+    .sort({ updatedAt: -1 })
+    .lean();
+  return JSON.parse(JSON.stringify(templates));
+}
+
+export async function deleteTemplate(formData: FormData) {
+  const isAuth = await verifyAuth();
+  if (!isAuth) return { error: formatError('401') };
+
+  const id = formData.get('id') as string;
+  if (!id) return { error: formatError('404') };
+
+  try {
+    await dbConnect();
+    await ToolStepTemplate.findByIdAndDelete(id);
+    revalidatePath('/admin/tools/templates');
+    return { error: undefined };
+  } catch (err) {
+    console.error('Delete template error:', err);
+    return { error: formatError('DB03') };
   }
 }
 

@@ -13,6 +13,7 @@ import { t } from '@/lib/tool-translations';
 interface MultiStepSessionViewProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
+  studentName?: string;
 }
 
 export default function MultiStepSessionView({ session }: MultiStepSessionViewProps) {
@@ -20,6 +21,8 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
   const [currentStep, setCurrentStep] = useState(session.currentStep ?? 0);
   const [transitioning, setTransitioning] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [studentName, setStudentName] = useState('');
+  const [nameConfirmed, setNameConfirmed] = useState(false);
   const isVisible = useRef(true);
 
   const pollStep = useCallback(async () => {
@@ -47,10 +50,50 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
     return () => { clearInterval(interval); document.removeEventListener('visibilitychange', onVisibility); };
   }, [pollStep]);
 
+  if (session.requireStudentName && !nameConfirmed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950">
+        <div className="text-center max-w-md w-full p-6">
+          <i className="fi fi-sr-user text-4xl text-blue-400 block mb-4" />
+          <h2 className="text-xl font-bold text-zinc-700 dark:text-zinc-300">
+            {t('yourName')}
+          </h2>
+          <input
+            type="text"
+            value={studentName}
+            onChange={e => setStudentName(e.target.value)}
+            placeholder={t('yourNameOptional')}
+            className="w-full mt-3 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+            autoFocus
+          />
+          <button
+            onClick={() => setNameConfirmed(true)}
+            disabled={!studentName.trim()}
+            className="w-full mt-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold rounded-xl transition-all disabled:cursor-not-allowed"
+          >
+            {currentStep < 0 ? 'เข้าร่วม' : 'ยืนยัน'}
+          </button>
+          <p className="text-zinc-500 dark:text-zinc-400 mt-6 text-sm">{t('sessionCode')}</p>
+          <p className="text-zinc-400 mt-1 text-5xl font-bold tracking-[0.15em] font-mono select-all">
+            {session.sessionCode}
+          </p>
+          <button
+            onClick={async () => { setRefreshing(true); await pollStep(); setRefreshing(false); }}
+            disabled={refreshing}
+            className="mt-8 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-all disabled:opacity-50"
+          >
+            <i className={`fi fi-sr-refresh text-sm ${refreshing ? 'animate-spin' : ''}`} />
+            {t('refresh')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (currentStep < 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950">
-        <div className="text-center">
+        <div className="text-center max-w-md w-full p-6">
           <i className="fi fi-sr-hourglass text-4xl text-blue-400 animate-pulse block mb-4" />
           <h2 className="text-xl font-bold text-zinc-700 dark:text-zinc-300">
             {t('waitingForTeacher')}
@@ -60,11 +103,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
             {session.sessionCode}
           </p>
           <button
-            onClick={async () => {
-              setRefreshing(true);
-              await pollStep();
-              setRefreshing(false);
-            }}
+            onClick={async () => { setRefreshing(true); await pollStep(); setRefreshing(false); }}
             disabled={refreshing}
             className="mt-8 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-all disabled:opacity-50"
           >
@@ -133,7 +172,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
       )}
 
       <div className="flex-1">
-        {renderTool(stepConfig, currentStep)}
+        {renderTool(stepConfig, currentStep, studentName)}
       </div>
 
       <div className="text-center py-4 text-sm text-zinc-400 font-mono">
@@ -143,23 +182,23 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
   );
 }
 
-function renderTool(session: unknown, stepIndex: number) {
+function renderTool(session: unknown, stepIndex: number, studentName?: string) {
   const s = session as { type?: string; config?: unknown };
   switch (s.type) {
     case 'padlet':
-      return <PadletBoard session={session} stepIndex={stepIndex} />;
+      return <PadletBoard session={session} stepIndex={stepIndex} studentName={studentName} />;
     case 'poll':
       return <MentimeterPoll session={session} stepIndex={stepIndex} />;
     case 'assignment':
-      return <AssignmentForm session={session} stepIndex={stepIndex} />;
+      return <AssignmentForm session={session} stepIndex={stepIndex} studentName={studentName} />;
     case 'qa_board':
       return <QABoard session={session} stepIndex={stepIndex} />;
     case 'quiz':
       return <QuickQuiz session={session} stepIndex={stepIndex} />;
     case 'exit_ticket':
-      return <ExitTicketForm session={session} stepIndex={stepIndex} />;
+      return <ExitTicketForm session={session} stepIndex={stepIndex} studentName={studentName} />;
     case 'discussion':
-      return <DiscussionForum session={session} stepIndex={stepIndex} />;
+      return <DiscussionForum session={session} stepIndex={stepIndex} studentName={studentName} />;
     default:
       return <div className="text-center py-20 text-zinc-400">{t('toolTypeNotFound')}</div>;
   }

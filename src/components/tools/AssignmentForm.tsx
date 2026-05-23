@@ -8,10 +8,11 @@ interface AssignmentFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
   stepIndex?: number;
+  studentName?: string;
 }
 
-export default function AssignmentForm({ session, stepIndex }: AssignmentFormProps) {
-  const [studentName, setStudentName] = useState('');
+export default function AssignmentForm({ session, stepIndex, studentName: propName }: AssignmentFormProps) {
+  const [studentName, setStudentName] = useState(propName || '');
   const [answer, setAnswer] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState('');
@@ -284,6 +285,7 @@ export default function AssignmentForm({ session, stepIndex }: AssignmentFormPro
               <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 {t('name')} <span className="text-red-500">*</span>
               </label>
+              {!propName && (
               <input
                 type="text"
                 value={studentName}
@@ -292,6 +294,7 @@ export default function AssignmentForm({ session, stepIndex }: AssignmentFormPro
                 placeholder={t('yourFullName')}
                 className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              )}
             </div>
 
             <div className="space-y-2">
