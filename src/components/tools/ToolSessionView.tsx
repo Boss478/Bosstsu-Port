@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PadletBoard from './PadletBoard';
 import MentimeterPoll from './MentimeterPoll';
 import AssignmentForm from './AssignmentForm';
@@ -20,6 +20,23 @@ interface ToolSessionViewProps {
 export default function ToolSessionView({ session }: ToolSessionViewProps) {
   const [studentName, setStudentName] = useState('');
   const [nameConfirmed, setNameConfirmed] = useState(false);
+
+  const nameStorageKey = `tool_name_${session._id}`;
+
+  useEffect(() => {
+    if (session.requireStudentName) {
+      const saved = localStorage.getItem(nameStorageKey);
+      if (saved) {
+        setStudentName(saved);
+        setNameConfirmed(true);
+      }
+    }
+  }, [session.requireStudentName, nameStorageKey]);
+
+  const handleConfirmName = () => {
+    localStorage.setItem(nameStorageKey, studentName);
+    setNameConfirmed(true);
+  };
 
   if (!session.isActive) {
     return <SessionGuard session={session} />;
@@ -47,7 +64,7 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
             autoFocus
           />
           <button
-            onClick={() => setNameConfirmed(true)}
+            onClick={handleConfirmName}
             disabled={!studentName.trim()}
             className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold rounded-xl transition-all disabled:cursor-not-allowed"
           >

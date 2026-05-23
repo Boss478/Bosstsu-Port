@@ -4,6 +4,13 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.5 (2026-05-23)
+
++ Added student name persistence across page refreshes — name saved to localStorage on join, auto-restored on revisit, no re-prompt
++ Added "All Steps" tab in teacher results view — groups all stages responses by step section
+* Fixed Assignment responses invisible in teacher results — respond route now extracts/saves stepIndex from FormData (was missing, causing teacher-side filter to match no tab)
+* Fixed poll response count showing all-stage total instead of per-stage count — poll route now uses countDocuments with query filters including stepIndex
+
 ## v1.9.4 (2026-05-23)
 
 + Added "Remove All Results" button in teacher results view — deletes all student responses across all steps/stages for a session, with confirmation dialog

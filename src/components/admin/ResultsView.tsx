@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import ExportButton from './ExportButton';
 import DeleteButton from './DeleteButton';
 import { deleteResponse, deleteAllResponses, toggleQAAnswered } from '@/app/admin/tools/actions';
@@ -38,28 +38,42 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
 
   const steps = session.steps as Array<{ type: string; title: string; config?: Record<string, unknown> }> | undefined;
   const hasSteps = steps && steps.length > 1;
+
+  const stepCounts = useMemo(() => {
+    const counts: Record<number, number> = {};
+    if (hasSteps && steps) {
+      for (let i = 0; i < steps.length; i++) counts[i] = 0;
+      responses.forEach((r: { stepIndex?: number }) => {
+        const si = r.stepIndex;
+        if (si !== undefined && si >= 0 && si < steps.length) counts[si] = (counts[si] || 0) + 1;
+      });
+    }
+    return counts;
+  }, [responses, hasSteps, steps]);
+
   const [activeStepTab, setActiveStepTab] = useState<number>(
-    hasSteps ? (sessionCurrentStep >= 0 ? sessionCurrentStep : 0) : 0
+    hasSteps ? (sessionCurrentStep >= 0 ? sessionCurrentStep : -1) : 0
   );
   const userChangedTab = useRef(false);
 
-  const activeStepType = hasSteps && steps ? steps[activeStepTab].type : null;
+  const activeStepType = hasSteps && steps && activeStepTab >= 0 ? steps[activeStepTab].type : null;
   const toolType = activeStepType || session.type || 'padlet';
 
-  const stepSession = hasSteps && activeStepTab !== null && steps[activeStepTab].config
+  const stepSession = hasSteps && activeStepTab >= 0 && steps && steps[activeStepTab].config
     ? { ...session, config: { ...session.config, ...steps[activeStepTab].config } }
     : session;
 
   // Auto-sync activeStepTab with session current step unless teacher manually selected a tab
   useEffect(() => {
     if (hasSteps && !userChangedTab.current) {
-      setActiveStepTab(sessionCurrentStep >= 0 ? sessionCurrentStep : 0);
+      setActiveStepTab(sessionCurrentStep >= 0 ? sessionCurrentStep : -1);
     }
   }, [sessionCurrentStep, hasSteps]);
 
   const handleStepTabClick = (idx: number) => {
     userChangedTab.current = true;
     setActiveStepTab(idx);
+    fetchResponses(idx);
   };
 
   const getFileType = (url: string | undefined): 'image' | 'pdf' | 'other' => {
@@ -76,9 +90,11 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
     setPreviewFileUrl(url);
   };
 
-  const fetchResponses = async () => {
+  const fetchResponses = async (customStepIndex?: number) => {
     try {
-      const res = await fetch(`/api/tools/poll?sessionId=${session._id}`);
+      const stepIdx = customStepIndex ?? (hasSteps ? activeStepTab : undefined);
+      const stepParam = stepIdx !== undefined && stepIdx >= 0 ? `&stepIndex=${stepIdx}` : '';
+      const res = await fetch(`/api/tools/poll?sessionId=${session._id}${stepParam}`);
       const data = await res.json();
       if (data.responses) {
         setResponses(data.responses);
@@ -117,7 +133,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
     await fetchResponses();
   };
 
-  const displayedResponses = hasSteps
+  const displayedResponses = hasSteps && activeStepTab >= 0
     ? responses.filter((r: { stepIndex?: number }) => r.stepIndex === activeStepTab)
     : responses;
 
@@ -131,13 +147,130 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
     await fetchResponses();
   };
 
+  const renderStepContent = (stepType: string, stepRes: any[], stepSesh: any) => {
+    switch (stepType) {
+      case 'padlet':
+        return (
+          <div
+            className={`grid grid-cols-1 gap-4 ${columnsPerRow === null ? (fullScreen ? 'sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6' : 'sm:grid-cols-2 lg:grid-cols-3') : ''}`}
+            style={columnsPerRow !== null ? { gridTemplateColumns: `repeat(${columnsPerRow}, minmax(0, 1fr))` } : undefined}
+          >
+            {stepRes.map((r: { _id: string; studentName?: string; content: { message?: string }; createdAt: string }) => (
+              <div key={r._id} className="p-4 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{r.studentName || 'Anonymous'}</span>
+                  <DeleteButton id={r._id} action={deleteResponse} />
+                </div>
+                <p className="text-zinc-700 dark:text-zinc-300 text-sm break-words">{r.content?.message}</p>
+                <p className="text-xs text-zinc-400 mt-2">{new Date(r.createdAt).toLocaleTimeString('th-TH')}</p>
+              </div>
+            ))}
+          </div>
+        );
+      case 'poll':
+        return <PollResults responses={stepRes} session={stepSesh} onDelete={handleDelete} />;
+      case 'assignment':
+        return (
+          <div className="rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm overflow-hidden">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-zinc-200/60 dark:border-slate-700/50 text-sm text-zinc-500 dark:text-zinc-400">
+                  <th className="p-4 font-medium">Student</th>
+                  <th className="p-4 font-medium hidden md:table-cell">Answer</th>
+                  <th className="p-4 font-medium hidden lg:table-cell">IP</th>
+                  <th className="p-4 font-medium hidden md:table-cell">File</th>
+                  <th className="p-4 font-medium text-right">Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stepRes.map((r: { _id: string; studentName?: string; content: { answer?: string }; fileUrl?: string; ip?: string; createdAt: string }) => (
+                  <tr key={r._id} className="border-b last:border-0 border-zinc-100/60 dark:border-slate-700/30">
+                    <td className="p-4 font-semibold text-zinc-900 dark:text-zinc-100">{r.studentName || 'Anonymous'}</td>
+                    <td className="p-4 hidden md:table-cell text-sm text-zinc-600 dark:text-zinc-400 max-w-xs truncate">{r.content?.answer}</td>
+                    <td className="p-4 hidden lg:table-cell text-xs text-zinc-400 font-mono">{r.ip || '—'}</td>
+                    <td className="p-4 hidden md:table-cell">
+                      {r.fileUrl && (
+                        <button onClick={() => handlePreviewFile(r.fileUrl)} className="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                          <i className="fi fi-sr-eye text-xs" />
+                          {t('previewFile')}
+                        </button>
+                      )}
+                    </td>
+                    <td className="p-4 text-right text-xs text-zinc-400">{new Date(r.createdAt).toLocaleTimeString('th-TH')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      case 'qa_board':
+        return (
+          <div className="space-y-3">
+            {stepRes
+              .sort((a: { content: { upvotes?: number } }, b: { content: { upvotes?: number } }) => (b.content?.upvotes || 0) - (a.content?.upvotes || 0))
+              .map((r: { _id: string; studentName?: string; content: { question?: string; upvotes?: number; isAnswered?: boolean }; createdAt: string }) => (
+                <div key={r._id} className={`p-4 rounded-xl backdrop-blur-sm border shadow-sm ${
+                  r.content?.isAnswered
+                    ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
+                    : 'bg-white/60 dark:bg-slate-800/60 border-white/60 dark:border-slate-700/50'
+                }`}>
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-xs text-blue-600 dark:text-blue-400 mb-1">{r.studentName || 'Anonymous'}</p>
+                      <p className="text-zinc-700 dark:text-zinc-300 break-words">{r.content?.question}</p>
+                      <p className="text-xs text-zinc-400 mt-1">
+                        {r.content?.upvotes || 0} upvote{r.content?.upvotes !== 1 ? 's' : ''} · {new Date(r.createdAt).toLocaleTimeString('th-TH')}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {r.content?.isAnswered && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-400 font-medium">Answered</span>
+                      )}
+                      <button onClick={() => handleToggleAnswered(r._id, !!r.content?.isAnswered)} className="p-1.5 text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors" title="Toggle answered">
+                        <i className="fi fi-sr-check text-sm" />
+                      </button>
+                      <DeleteButton id={r._id} action={deleteResponse} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+        );
+      case 'quiz':
+        return <QuizResults responses={stepRes} session={stepSesh} onDelete={handleDelete} />;
+      case 'exit_ticket':
+        return <ExitTicketResults responses={stepRes} onDelete={handleDelete} />;
+      case 'discussion':
+        return (
+          <div className="space-y-3">
+            {stepRes.map((r: { _id: string; studentName?: string; content: { reply?: string }; createdAt: string }) => (
+              <div key={r._id} className="p-4 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-semibold text-xs text-blue-600 dark:text-blue-400">{r.studentName || 'Anonymous'}</p>
+                    <p className="text-zinc-700 dark:text-zinc-300 mt-1 break-words">{r.content?.reply}</p>
+                    <p className="text-xs text-zinc-400 mt-1">{new Date(r.createdAt).toLocaleTimeString('th-TH')}</p>
+                  </div>
+                  <DeleteButton id={r._id} action={deleteResponse} />
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div id="results-capture-area">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-          {activeStepType
-            ? `Results — Step ${activeStepTab + 1}: ${steps![activeStepTab].title}`
-            : `Results — ${TOOL_LABELS[toolType] || toolType}`}
+          {hasSteps && activeStepTab === -1
+            ? `Results — ${t('allSteps')}`
+            : activeStepType
+              ? `Results — Step ${activeStepTab + 1}: ${steps![activeStepTab].title}`
+              : `Results — ${TOOL_LABELS[toolType] || toolType}`}
         </h2>
         <div className="flex items-center gap-2">
           <button
@@ -177,23 +310,43 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
       </div>
 
       <div className="flex items-center gap-2 mb-4">
-        {hasSteps && (
-          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar flex-1 min-w-0 bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 rounded-xl p-1">
-            {steps.map((step, idx) => (
+          {hasSteps && (
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar flex-1 min-w-0 bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 rounded-xl p-1">
               <button
-                key={idx}
-                onClick={() => handleStepTabClick(idx)}
-                className={`flex-shrink-0 whitespace-nowrap px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                  activeStepTab === idx
+                onClick={() => handleStepTabClick(-1)}
+                className={`flex-shrink-0 whitespace-nowrap px-3 py-1 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                  activeStepTab === -1
                     ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
                     : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
                 }`}
               >
-                {t('step', { current: idx + 1 })}: {step.title}
+                {t('allSteps')}
+                <span className="text-xs px-1.5 py-0.5 rounded-full bg-zinc-200/60 dark:bg-slate-600/60">
+                  {Object.values(stepCounts).reduce((a, b) => a + b, 0)}
+                </span>
               </button>
-            ))}
-          </div>
-        )}
+              {steps.map((step, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleStepTabClick(idx)}
+                  className={`flex-shrink-0 whitespace-nowrap px-3 py-1 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                    activeStepTab === idx
+                      ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                      : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+                  }`}
+                >
+                  {t('step', { current: idx + 1 })}: {step.title}
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                    activeStepTab === idx
+                      ? 'bg-blue-100 dark:bg-blue-800/40'
+                      : 'bg-zinc-200/60 dark:bg-slate-600/60'
+                  }`}>
+                    {stepCounts[idx] ?? 0}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
 
         <div className="flex items-center gap-1 bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 rounded-xl p-1">
           <button
@@ -253,133 +406,28 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
         </div>
       ) : (
         <div className="space-y-4">
-          {toolType === 'padlet' && (
-            <div
-              className={`grid grid-cols-1 gap-4 ${columnsPerRow === null ? (fullScreen ? 'sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6' : 'sm:grid-cols-2 lg:grid-cols-3') : ''}`}
-              style={columnsPerRow !== null ? { gridTemplateColumns: `repeat(${columnsPerRow}, minmax(0, 1fr))` } : undefined}
-            >
-              {displayedResponses.map((r: { _id: string; studentName?: string; content: { message?: string }; createdAt: string }) => (
-                <div key={r._id} className="p-4 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{r.studentName || 'Anonymous'}</span>
-                    <DeleteButton id={r._id} action={deleteResponse} />
+          {activeStepTab === -1 && hasSteps ? (
+            steps.map((step, sidx) => {
+              const stepRes = responses.filter((r: { stepIndex?: number }) => r.stepIndex === sidx);
+              if (stepRes.length === 0) return null;
+              const stepSesh = { ...session, config: { ...session.config, ...step.config } };
+              return (
+                <div key={sidx}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold flex items-center justify-center">
+                      {sidx + 1}
+                    </span>
+                    <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                      {step.title}
+                    </h3>
+                    <span className="text-xs text-zinc-400">({stepRes.length})</span>
                   </div>
-                  <p className="text-zinc-700 dark:text-zinc-300 text-sm break-words">{r.content?.message}</p>
-                  <p className="text-xs text-zinc-400 mt-2">{new Date(r.createdAt).toLocaleTimeString('th-TH')}</p>
+                  {renderStepContent(step.type, stepRes, stepSesh)}
                 </div>
-              ))}
-            </div>
-          )}
-
-          {toolType === 'poll' && (
-            <PollResults responses={displayedResponses} session={stepSession} onDelete={handleDelete} />
-          )}
-
-          {toolType === 'assignment' && (
-            <div className="rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm overflow-hidden">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-zinc-200/60 dark:border-slate-700/50 text-sm text-zinc-500 dark:text-zinc-400">
-                    <th className="p-4 font-medium">Student</th>
-                    <th className="p-4 font-medium hidden md:table-cell">Answer</th>
-                    <th className="p-4 font-medium hidden lg:table-cell">IP</th>
-                    <th className="p-4 font-medium hidden md:table-cell">File</th>
-                    <th className="p-4 font-medium text-right">Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {displayedResponses.map((r: { _id: string; studentName?: string; content: { answer?: string }; fileUrl?: string; ip?: string; createdAt: string }) => (
-                    <tr key={r._id} className="border-b last:border-0 border-zinc-100/60 dark:border-slate-700/30">
-                      <td className="p-4 font-semibold text-zinc-900 dark:text-zinc-100">
-                        {r.studentName || 'Anonymous'}
-                      </td>
-                      <td className="p-4 hidden md:table-cell text-sm text-zinc-600 dark:text-zinc-400 max-w-xs truncate">
-                        {r.content?.answer}
-                      </td>
-                      <td className="p-4 hidden lg:table-cell text-xs text-zinc-400 font-mono">{r.ip || '—'}</td>
-                      <td className="p-4 hidden md:table-cell">
-                        {r.fileUrl && (
-                          <button
-                            onClick={() => handlePreviewFile(r.fileUrl)}
-                            className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                          >
-                            <i className="fi fi-sr-eye text-xs" />
-                            {t('previewFile')}
-                          </button>
-                        )}
-                      </td>
-                      <td className="p-4 text-right text-xs text-zinc-400">
-                        {new Date(r.createdAt).toLocaleTimeString('th-TH')}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {toolType === 'qa_board' && (
-            <div className="space-y-3">
-              {displayedResponses
-                .sort((a: { content: { upvotes?: number } }, b: { content: { upvotes?: number } }) => (b.content?.upvotes || 0) - (a.content?.upvotes || 0))
-                .map((r: { _id: string; studentName?: string; content: { question?: string; upvotes?: number; isAnswered?: boolean }; createdAt: string }) => (
-                  <div key={r._id} className={`p-4 rounded-xl backdrop-blur-sm border shadow-sm ${
-                    r.content?.isAnswered
-                      ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
-                      : 'bg-white/60 dark:bg-slate-800/60 border-white/60 dark:border-slate-700/50'
-                  }`}>
-                    <div className="flex items-start gap-3">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-xs text-blue-600 dark:text-blue-400 mb-1">{r.studentName || 'Anonymous'}</p>
-                        <p className="text-zinc-700 dark:text-zinc-300 break-words">{r.content?.question}</p>
-                        <p className="text-xs text-zinc-400 mt-1">
-                          {r.content?.upvotes || 0} upvote{r.content?.upvotes !== 1 ? 's' : ''} · {new Date(r.createdAt).toLocaleTimeString('th-TH')}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        {r.content?.isAnswered && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-400 font-medium">
-                            Answered
-                          </span>
-                        )}
-                        <button
-                          onClick={() => handleToggleAnswered(r._id, !!r.content?.isAnswered)}
-                          className="p-1.5 text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
-                          title="Toggle answered"
-                        >
-                          <i className="fi fi-sr-check text-sm" />
-                        </button>
-                        <DeleteButton id={r._id} action={deleteResponse} />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
-
-          {toolType === 'quiz' && (
-            <QuizResults responses={displayedResponses} session={stepSession} onDelete={handleDelete} />
-          )}
-
-          {toolType === 'exit_ticket' && (
-            <ExitTicketResults responses={displayedResponses} onDelete={handleDelete} />
-          )}
-
-          {toolType === 'discussion' && (
-            <div className="space-y-3">
-              {displayedResponses.map((r: { _id: string; studentName?: string; content: { reply?: string }; createdAt: string }) => (
-                <div key={r._id} className="p-4 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-semibold text-xs text-blue-600 dark:text-blue-400">{r.studentName || 'Anonymous'}</p>
-                      <p className="text-zinc-700 dark:text-zinc-300 mt-1 break-words">{r.content?.reply}</p>
-                      <p className="text-xs text-zinc-400 mt-1">{new Date(r.createdAt).toLocaleTimeString('th-TH')}</p>
-                    </div>
-                    <DeleteButton id={r._id} action={deleteResponse} />
-                  </div>
-                </div>
-              ))}
-            </div>
+              );
+            })
+          ) : (
+            renderStepContent(toolType, displayedResponses, stepSession)
           )}
         </div>
 )}

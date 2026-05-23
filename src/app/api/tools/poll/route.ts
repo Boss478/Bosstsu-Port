@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
       .lean();
 
     const session = await ToolSession.findById(sessionId).lean();
-    const count = await ToolResponse.countDocuments({ sessionId });
+    const count = await ToolResponse.countDocuments(query);
 
     return NextResponse.json({
       responses: JSON.parse(JSON.stringify(responses)),

@@ -76,6 +76,7 @@ export async function POST(req: NextRequest) {
     const studentName = formData.get('studentName') as string || undefined;
     const contentRaw = formData.get('content') as string;
     const file = formData.get('file') as File | null;
+    const stepIndex = formData.get('stepIndex') as string | null;
 
     let content: Record<string, unknown> = {};
     try {
@@ -103,6 +104,7 @@ export async function POST(req: NextRequest) {
       studentToken,
       editToken,
       ip: getClientIp(req),
+      ...(stepIndex !== null && { stepIndex: parseInt(stepIndex) }),
     } as Parameters<typeof ToolResponse.create>[0]) as { _id: { toString(): string } };
 
     await ToolSession.findByIdAndUpdate(sessionId, { $inc: { responseCount: 1 } });

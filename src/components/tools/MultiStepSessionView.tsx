@@ -23,7 +23,23 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
   const [refreshing, setRefreshing] = useState(false);
   const [studentName, setStudentName] = useState('');
   const [nameConfirmed, setNameConfirmed] = useState(false);
+  const nameStorageKey = `tool_name_${session._id}`;
   const isVisible = useRef(true);
+
+  useEffect(() => {
+    if (session.requireStudentName) {
+      const saved = localStorage.getItem(nameStorageKey);
+      if (saved) {
+        setStudentName(saved);
+        setNameConfirmed(true);
+      }
+    }
+  }, [session.requireStudentName, nameStorageKey]);
+
+  const handleConfirmName = () => {
+    localStorage.setItem(nameStorageKey, studentName);
+    setNameConfirmed(true);
+  };
 
   const pollStep = useCallback(async () => {
     if (!isVisible.current) return;
@@ -67,7 +83,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
             autoFocus
           />
           <button
-            onClick={() => setNameConfirmed(true)}
+            onClick={handleConfirmName}
             disabled={!studentName.trim()}
             className="w-full mt-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold rounded-xl transition-all disabled:cursor-not-allowed"
           >
