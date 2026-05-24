@@ -20,26 +20,30 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const { id } = await params;
-  await dbConnect();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const doc: any = await Gallery.findOne({ slug: id, published: { $ne: false } }).lean();
+  try {
+    const { id } = await params;
+    await dbConnect();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const doc: any = await Gallery.findOne({ slug: id, published: { $ne: false } }).lean();
 
-  if (!doc) {
+    if (!doc) {
+      return {
+        title: "ไม่พบอัลบั้ม | Boss478",
+      };
+    }
+
     return {
-      title: "ไม่พบอัลบั้ม | Boss478",
+      title: `${doc.title} | แกลเลอรี่ | Boss478`,
+      description: doc.description || `อัลบั้มรูปภาพ ${doc.title}`,
+      openGraph: {
+        title: doc.title,
+        description: doc.description,
+        images: doc.cover ? [doc.cover] : undefined,
+      },
     };
+  } catch {
+    return { title: "แกลเลอรี่ | Boss478" };
   }
-
-  return {
-    title: `${doc.title} | แกลเลอรี่ | Boss478`,
-    description: doc.description || `อัลบั้มรูปภาพ ${doc.title}`,
-    openGraph: {
-      title: doc.title,
-      description: doc.description,
-      images: doc.cover ? [doc.cover] : undefined,
-    },
-  };
 }
 
 export default async function GalleryAlbumPage({
@@ -49,9 +53,14 @@ export default async function GalleryAlbumPage({
 }) {
   const { id } = await params;
 
-  await dbConnect();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const doc: any = await Gallery.findOne({ slug: id, published: { $ne: false } }).lean();
+  let doc: any = null;
+  try {
+    await dbConnect();
+    doc = await Gallery.findOne({ slug: id, published: { $ne: false } }).lean();
+  } catch {
+    // DB unavailable (Docker build) — ISR populates at runtime
+  }
 
   if (!doc) notFound();
 

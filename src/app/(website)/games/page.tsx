@@ -11,30 +11,41 @@ export default async function GamesPage({
 }: {
   searchParams: Promise<{ page?: string; category?: string; sort?: string; q?: string }>;
 }) {
-  await dbConnect();
-
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page || "1"));
   const category = params.category || "ทั้งหมด";
   const query = params.q || "";
   const sort = params.sort === "asc" ? "asc" : "desc";
 
-  const skip = (page - 1) * CONFIG.PAGINATION.GAMES_PUBLIC;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let docs: any[] = [];
+  let total = 0;
+  let uniqueCategories: string[] = [];
 
-  const match: Record<string, unknown> = { published: { $ne: false } };
-  if (category && category !== "ทั้งหมด") match.category = category;
-  if (query) match.title = { $regex: query, $options: 'i' };
+  try {
+    await dbConnect();
 
-  const [docs, total, uniqueCategories] = await Promise.all([
-    Game.find(match)
-      .select("slug title description category thumbnail playUrl htmlContent instructions tags createdAt")
-      .sort({ createdAt: sort === "desc" ? -1 : 1 })
-      .skip(skip)
-      .limit(CONFIG.PAGINATION.GAMES_PUBLIC)
-      .lean(),
-    Game.countDocuments(match),
-    Game.distinct("category", { published: { $ne: false } }),
-  ]);
+    const skip = (page - 1) * CONFIG.PAGINATION.GAMES_PUBLIC;
+    const match: Record<string, unknown> = { published: { $ne: false } };
+    if (category && category !== "ทั้งหมด") match.category = category;
+    if (query) match.title = { $regex: query, $options: 'i' };
+
+    const results = await Promise.all([
+      Game.find(match)
+        .select("slug title description category thumbnail playUrl htmlContent instructions tags createdAt")
+        .sort({ createdAt: sort === "desc" ? -1 : 1 })
+        .skip(skip)
+        .limit(CONFIG.PAGINATION.GAMES_PUBLIC)
+        .lean(),
+      Game.countDocuments(match),
+      Game.distinct("category", { published: { $ne: false } }),
+    ]);
+    docs = results[0] as any[];
+    total = results[1] as number;
+    uniqueCategories = results[2] as string[];
+  } catch {
+    // DB unavailable (Docker build) — ISR populates at runtime
+  }
 
   const totalPages = Math.max(1, Math.ceil(total / CONFIG.PAGINATION.GAMES_PUBLIC));
 

@@ -19,9 +19,13 @@ export default async function PlayGamePage({ params }: PlayGamePageProps) {
     redirect('/games');
   }
 
-  await dbConnect();
-
-  const doc = await Game.findById(id).lean();
+  let doc: Record<string, unknown> | null = null;
+  try {
+    await dbConnect();
+    doc = await Game.findById(id).lean() as Record<string, unknown> | null;
+  } catch {
+    // DB unavailable (Docker build) — ISR populates at runtime
+  }
 
   if (!doc || !doc.htmlContent) {
     redirect('/games');

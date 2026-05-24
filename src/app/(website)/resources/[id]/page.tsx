@@ -72,27 +72,31 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
-  if (!mongoose.isValidObjectId(id)) return { title: "Not Found" };
+  try {
+    const { id } = await params;
+    if (!mongoose.isValidObjectId(id)) return { title: "Not Found" };
 
-  await dbConnect();
-  const doc = await Learning.findOne(
-    { _id: id, published: { $ne: false } },
-    "title description thumbnail"
-  ).lean() as LeanLearningDoc | null;
+    await dbConnect();
+    const doc = await Learning.findOne(
+      { _id: id, published: { $ne: false } },
+      "title description thumbnail"
+    ).lean() as LeanLearningDoc | null;
 
-  if (!doc) return { title: "Not Found" };
+    if (!doc) return { title: "Not Found" };
 
-  return {
-    title: `${doc.title} | Boss478`,
-    description: doc.description || undefined,
-    openGraph: {
-      title: doc.title,
+    return {
+      title: `${doc.title} | Boss478`,
       description: doc.description || undefined,
-      images: doc.thumbnail ? [{ url: doc.thumbnail }] : [],
-      type: "article",
-    },
-  };
+      openGraph: {
+        title: doc.title,
+        description: doc.description || undefined,
+        images: doc.thumbnail ? [{ url: doc.thumbnail }] : [],
+        type: "article",
+      },
+    };
+  } catch {
+    return { title: "Boss478" };
+  }
 }
 
 export default async function ResourceDetailPage({
@@ -103,10 +107,15 @@ export default async function ResourceDetailPage({
   const { id } = await params;
   if (!mongoose.isValidObjectId(id)) notFound();
 
-  await dbConnect();
-  const doc = await Learning.findOne(
-    { _id: id, published: { $ne: false } }
-  ).lean() as LeanLearningDoc | null;
+  let doc: LeanLearningDoc | null = null;
+  try {
+    await dbConnect();
+    doc = await Learning.findOne(
+      { _id: id, published: { $ne: false } }
+    ).lean() as LeanLearningDoc | null;
+  } catch {
+    // DB unavailable (Docker build) — ISR populates at runtime
+  }
   if (!doc) notFound();
 
   const docCreatedAt =

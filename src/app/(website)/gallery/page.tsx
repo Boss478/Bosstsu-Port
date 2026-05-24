@@ -13,32 +13,43 @@ export default async function GalleryPage({
 }: {
   searchParams: Promise<{ page?: string; tag?: string; sort?: string; q?: string }>;
 }) {
-  await dbConnect();
-
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page || "1"));
   const tag = params.tag || "ทั้งหมด";
   const query = params.q || "";
   const sort = params.sort === "asc" ? "asc" : "desc";
 
-  const skip = (page - 1) * CONFIG.PAGINATION.GALLERY_PUBLIC;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let docs: any[] = [];
+  let total = 0;
+  let tagDocs: string[] = [];
 
-  const match: Record<string, unknown> = { published: { $ne: false } };
-  if (tag && tag !== "ทั้งหมด") match.tags = tag;
-  if (query) match.title = { $regex: query, $options: 'i' };
+  try {
+    await dbConnect();
 
-  const [docs, total, tagDocs] = await Promise.all([
-    Gallery.find(match)
-      .select("slug title cover tags date photos")
-      .sort({ date: sort === "desc" ? -1 : 1 })
-      .skip(skip)
-      .limit(CONFIG.PAGINATION.GALLERY_PUBLIC)
-      .lean(),
-    Gallery.countDocuments(match),
-    Tag.distinct("name", { category: "gallery" }),
-  ]);
+    const skip = (page - 1) * CONFIG.PAGINATION.GALLERY_PUBLIC;
+    const match: Record<string, unknown> = { published: { $ne: false } };
+    if (tag && tag !== "ทั้งหมด") match.tags = tag;
+    if (query) match.title = { $regex: query, $options: 'i' };
 
-  const uniqueTags = (tagDocs.length > 0 ? tagDocs : await Gallery.distinct("tags", { published: { $ne: false } })) as string[];
+    const results = await Promise.all([
+      Gallery.find(match)
+        .select("slug title cover tags date photos")
+        .sort({ date: sort === "desc" ? -1 : 1 })
+        .skip(skip)
+        .limit(CONFIG.PAGINATION.GALLERY_PUBLIC)
+        .lean(),
+      Gallery.countDocuments(match),
+      Tag.distinct("name", { category: "gallery" }),
+    ]);
+    docs = results[0] as any[];
+    total = results[1] as number;
+    tagDocs = results[2] as string[];
+  } catch {
+    // DB unavailable (Docker build) — ISR populates at runtime
+  }
+
+  const uniqueTags = tagDocs.length > 0 ? tagDocs : [];
 
   const totalPages = Math.max(1, Math.ceil(total / CONFIG.PAGINATION.GALLERY_PUBLIC));
 

@@ -13,33 +13,46 @@ export default async function ResourcesPage({
 }: {
   searchParams: Promise<{ page?: string; type?: string; sort?: string; q?: string }>;
 }) {
-  await dbConnect();
-
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page || "1"));
   const type = params.type || "All";
   const query = params.q || "";
   const sort = params.sort === "Oldest" ? "Oldest" : "Newest";
 
-  const skip = (page - 1) * CONFIG.PAGINATION.LEARNING_PUBLIC;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let docs: any[] = [];
+  let total = 0;
+  let tagDocs: string[] = [];
+  let uniqueTypes: string[] = [];
 
-  const match: Record<string, unknown> = { published: { $ne: false } };
-  if (type && type !== "All") match.type = type;
-  if (query) match.title = { $regex: query, $options: 'i' };
+  try {
+    await dbConnect();
 
-  const [docs, total, uniqueTypes, tagDocs] = await Promise.all([
-    Learning.find(match)
-      .select("title description type thumbnail link createdAt")
-      .sort({ createdAt: sort === "Newest" ? -1 : 1 })
-      .skip(skip)
-      .limit(CONFIG.PAGINATION.LEARNING_PUBLIC)
-      .lean(),
-    Learning.countDocuments(match),
-    Learning.distinct("type", { published: { $ne: false } }),
-    Tag.distinct("name", { category: "learning" }),
-  ]);
+    const skip = (page - 1) * CONFIG.PAGINATION.LEARNING_PUBLIC;
+    const match: Record<string, unknown> = { published: { $ne: false } };
+    if (type && type !== "All") match.type = type;
+    if (query) match.title = { $regex: query, $options: 'i' };
 
-  const uniqueTags = (tagDocs.length > 0 ? tagDocs : await Learning.distinct("tags", { published: { $ne: false } })) as string[];
+    const results = await Promise.all([
+      Learning.find(match)
+        .select("title description type thumbnail link createdAt")
+        .sort({ createdAt: sort === "Newest" ? -1 : 1 })
+        .skip(skip)
+        .limit(CONFIG.PAGINATION.LEARNING_PUBLIC)
+        .lean(),
+      Learning.countDocuments(match),
+      Learning.distinct("type", { published: { $ne: false } }),
+      Tag.distinct("name", { category: "learning" }),
+    ]);
+    docs = results[0] as any[];
+    total = results[1] as number;
+    uniqueTypes = results[2] as string[];
+    tagDocs = results[3] as string[];
+  } catch {
+    // DB unavailable (Docker build) — ISR populates at runtime
+  }
+
+  const uniqueTags = tagDocs.length > 0 ? tagDocs : [];
 
   const totalPages = Math.max(1, Math.ceil(total / CONFIG.PAGINATION.LEARNING_PUBLIC));
 

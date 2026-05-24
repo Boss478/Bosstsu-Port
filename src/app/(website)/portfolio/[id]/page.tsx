@@ -18,22 +18,26 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
-  await dbConnect();
-  const doc = await Portfolio.findOne({ slug: id, published: { $ne: false } }).lean() as IPortfolioItem | null;
+  try {
+    const { id } = await params;
+    await dbConnect();
+    const doc = await Portfolio.findOne({ slug: id, published: { $ne: false } }).lean() as IPortfolioItem | null;
 
-  if (!doc) return { title: "Not Found" };
+    if (!doc) return { title: "Not Found" };
 
-  return {
-    title: `${doc.title} | Boss478`,
-    description: doc.description || undefined,
-    openGraph: {
-      title: doc.title,
+    return {
+      title: `${doc.title} | Boss478`,
       description: doc.description || undefined,
-      images: doc.cover ? [{ url: doc.cover }] : [],
-      type: "article",
-    },
-  };
+      openGraph: {
+        title: doc.title,
+        description: doc.description || undefined,
+        images: doc.cover ? [{ url: doc.cover }] : [],
+        type: "article",
+      },
+    };
+  } catch {
+    return { title: "Boss478" };
+  }
 }
 
 export async function generateStaticParams() {
@@ -54,8 +58,14 @@ export default async function PortfolioDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  await dbConnect();
-  const doc = await Portfolio.findOne({ slug: id, published: { $ne: false } }).lean() as IPortfolioItem | null;
+
+  let doc: IPortfolioItem | null = null;
+  try {
+    await dbConnect();
+    doc = await Portfolio.findOne({ slug: id, published: { $ne: false } }).lean() as IPortfolioItem | null;
+  } catch {
+    // DB unavailable (Docker build) — ISR populates at runtime
+  }
   if (!doc) notFound();
 
   const defaultFallbackDate = new Date("2024-01-01T00:00:00.000Z");

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "@flaticon/flaticon-uicons/css/solid/rounded.css";
-import "@flaticon/flaticon-uicons/css/brands/all.css";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CONFIG } from "@/lib/config";
@@ -18,11 +17,10 @@ const geistMono = localFont({
 
 const mali = localFont({
   src: [
-    { path: "../fonts/Mali-Light.ttf", weight: "300", style: "normal" },
-    { path: "../fonts/Mali-Regular.ttf", weight: "400", style: "normal" },
-    { path: "../fonts/Mali-Medium.ttf", weight: "500", style: "normal" },
-    { path: "../fonts/Mali-SemiBold.ttf", weight: "600", style: "normal" },
-    { path: "../fonts/Mali-Bold.ttf", weight: "700", style: "normal" },
+    { path: "../fonts/Mali-Regular.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/Mali-Medium.woff2", weight: "500", style: "normal" },
+    { path: "../fonts/Mali-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "../fonts/Mali-Bold.woff2", weight: "700", style: "normal" },
   ],
   variable: "--font-mali",
 });
@@ -48,6 +46,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="th" suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://cdn-uicons.flaticon.com" crossOrigin="anonymous" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${mali.variable} antialiased`}
       >

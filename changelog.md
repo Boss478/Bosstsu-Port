@@ -4,6 +4,22 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.12 (2026-05-24)
+
++ Added Performance Optimization Phase 3 — Frontend & Bundle
++ Converted Mali TTF fonts to WOFF2 (4 weights: Regular, Medium, SemiBold, Bold); pruned unused Light weight (550 KB → 188 KB)
++ Removed 12 KB brands CSS import (@flaticon/flaticon-uicons/css/brands/all.css); replaced `fi-brands-github` icon with inline SVG (~800 bytes)
++ Removed dead CSS: @keyframes floatUpFade (zero refs); added missing @keyframes scaleIn for animate-scale-in utility; merged duplicate :root blocks
++ Dynamically imported BackToTop component (ssr: false) — removes scroll-tracking JS from initial bundle
++ Added preconnect hint for Flaticon CDN (https://cdn-uicons.flaticon.com) in root layout
++ Fixed Footer version import — reads from config.ts SITE.VERSION instead of importing entire package.json
++ Added loading.tsx skeleton for games/play/[id] route (dynamic game play pages)
++ Optimized next.config.ts image config — minimumCacheTTL: 1 year, narrowed deviceSizes (7→5) and imageSizes (8→4) for fewer image variants
++ Moved @types/archiver to devDependencies in package.json
+* Fixed pre-existing type error in QuickQuiz.tsx — && expression returned false instead of undefined (non-functional fix)
+* Merged duplicate :root CSS variable blocks in globals.css
+* Fixed Docker build failure caused by duplicate `devDependencies` key in package.json — merged `@types/archiver` into the existing devDependencies block (second key overwrote TypeScript, TailwindCSS, babel-plugin-react-compiler, etc.)
+
 ## v1.9.11 (2026-05-24)
 
 + Added attempt count display to student Quiz UI — shows "Attempt X of Y" on the quiz form, after submission, and on the max-submissions-reached screen

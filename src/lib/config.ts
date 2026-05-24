@@ -113,6 +113,7 @@ export const CONFIG = {
   // ─── Site Metadata ────────────────────────────────────────────────────
   SITE: {
     NAME: 'Boss478',
+    VERSION: '1.9.12',
     TITLE: 'Boss478 | Portfolio',
     DESCRIPTION: 'เว็บไซต์ส่วนตัวสำหรับเก็บผลงาน กิจกรรม รูปภาพ สื่อการเรียนรู้ และเกมการศึกษา',
     EMAIL: 'bossnt45@gmail.com',

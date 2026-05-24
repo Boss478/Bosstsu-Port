@@ -26,7 +26,7 @@ export default function QuickQuiz({ session, stepIndex, studentName }: QuickQuiz
   const questions = session.config?.questions || [];
   const total = questions.length;
   const currentQuestion = questions[currentQ];
-  const resolvedStepCfg = stepIndex !== undefined && (session.steps as Record<string, unknown>[] | undefined)?.[stepIndex]?.config as Record<string, unknown> | undefined;
+  const resolvedStepCfg = stepIndex !== undefined ? (session.steps as Record<string, unknown>[])?.[stepIndex]?.config as Record<string, unknown> | undefined : undefined;
   const maxSubmissions = (resolvedStepCfg?.maxSubmissions as number | undefined) ?? session.config?.maxSubmissions ?? 10;
 
   useEffect(() => {

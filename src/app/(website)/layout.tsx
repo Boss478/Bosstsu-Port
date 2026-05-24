@@ -1,6 +1,8 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import BackToTop from "@/components/BackToTop";
+import dynamic from "next/dynamic";
+
+const BackToTop = dynamic(() => import("@/components/BackToTop"));
 
 export default function WebsiteLayout({
   children,

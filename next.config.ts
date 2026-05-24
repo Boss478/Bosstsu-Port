@@ -16,6 +16,9 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["sharp", "html-to-image"],
   images: {
     formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 31536000,
+    deviceSizes: [480, 768, 1024, 1280, 1920],
+    imageSizes: [32, 64, 128, 256],
     remotePatterns: [
       {
         protocol: 'https',
