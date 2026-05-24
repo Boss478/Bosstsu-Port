@@ -86,12 +86,15 @@ export async function POST(req: NextRequest) {
     }
 
     let fileUrl: string | null = null;
-    if (file && file.size > 0 && session.config?.allowFileUpload) {
+    const si = stepIndex !== null ? parseInt(stepIndex, 10) : -1;
+    const stepCfg = si >= 0 ? (session.steps as Record<string, unknown>[] | undefined)?.[si]?.config as Record<string, unknown> | undefined : null;
+    const allowFileUpload = (stepCfg?.allowFileUpload as boolean | undefined) ?? (session.config as Record<string, unknown> | undefined)?.allowFileUpload as boolean | undefined;
+    if (file && file.size > 0 && allowFileUpload) {
       if (file.size > CONFIG.TOOLS.MAX_FILE_SIZE) {
         return NextResponse.json({ error: 'File too large (max 10MB)' }, { status: 400 });
       }
       const namePrefix = studentName ? `${session.sessionCode}_${sanitizeFilename(studentName)}` : session.sessionCode;
-      fileUrl = await saveFile(file, 'tools', undefined, namePrefix);
+      fileUrl = await saveFile(file, 'tools', false, namePrefix, CONFIG.TOOLS.ALLOWED_FILE_TYPES);
     }
 
     const editToken = crypto.randomUUID();

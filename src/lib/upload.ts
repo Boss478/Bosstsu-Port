@@ -26,14 +26,15 @@ export function isHeicFile(file: File | { name?: string; type?: string }): boole
   return extMatch || typeLC === 'image/heic' || typeLC === 'image/heif';
 }
 
-export async function saveFile(file: File, folder: string = 'misc', asWebP?: boolean, filenamePrefix?: string): Promise<string> {
-  const allowedTypes = CONFIG.UPLOAD.ALLOWED_TYPES as readonly string[];
+export async function saveFile(file: File, folder: string = 'misc', asWebP?: boolean, filenamePrefix?: string, allowedTypes?: readonly string[]): Promise<string> {
+  const types = allowedTypes ?? (CONFIG.UPLOAD.ALLOWED_TYPES as readonly string[]);
+  const imageTypes = CONFIG.UPLOAD.ALLOWED_TYPES as readonly string[];
   const maxSize = CONFIG.UPLOAD.MAX_SIZE;
 
   const shouldConvert = asWebP ?? (CONFIG.UPLOAD.FOLDERS_CONVERT_TO_WEBP as readonly string[]).includes(folder);
 
-  if (!isHeicFile(file) && !allowedTypes.includes(file.type)) {
-    throw new Error(`Invalid file type: ${file.type}. Allowed: ${allowedTypes.join(', ')}`);
+  if (!isHeicFile(file) && !types.includes(file.type)) {
+    throw new Error(`Invalid file type: ${file.type}. Allowed: ${types.join(', ')}`);
   }
 
   if (file.size > maxSize) {
@@ -56,21 +57,29 @@ export async function saveFile(file: File, folder: string = 'misc', asWebP?: boo
     throw new Error(formatError('U05'));
   }
 
-  let filename: string;
-  if (filenamePrefix) {
-    const shortUuid = uuidv4().replace(/-/g, '').substring(0, 8);
-    const ext = shouldConvert ? 'webp' : 'jpg';
-    filename = `${filenamePrefix}_${shortUuid}.${ext}`;
-  } else {
-    const ext = shouldConvert ? 'webp' : 'jpg';
-    filename = `${uuidv4()}.${ext}`;
-  }
-  const filePath = path.join(uploadDir, filename);
-
   const arrayBuffer = await file.arrayBuffer();
   let buffer = Buffer.from(new Uint8Array(arrayBuffer));
 
   const isHeic = isHeicFile(file);
+  const isImageType = imageTypes.includes(file.type) || isHeic;
+
+  if (!isImageType) {
+    const origExt = file.name?.split('.').pop()?.toLowerCase() || 'bin';
+    const filename = filenamePrefix
+      ? `${sanitizeFilename(filenamePrefix)}_${uuidv4().replace(/-/g, '').substring(0, 8)}.${origExt}`
+      : `${uuidv4()}.${origExt}`;
+    const filePath = path.join(uploadDir, filename);
+    try {
+      await fs.writeFile(filePath, buffer);
+    } catch (error) {
+      console.error('Error writing file:', error);
+      if (error instanceof Error && (error as NodeJS.ErrnoException).code === 'EACCES') {
+        throw new Error(formatError('U07'));
+      }
+      throw new Error(formatError('U06'));
+    }
+    return `/uploads/${folder}/${year}/${month}/${filename}`;
+  }
 
   if (isHeic && CONFIG.HEIC.ENABLED) {
     try {
@@ -103,6 +112,17 @@ export async function saveFile(file: File, folder: string = 'misc', asWebP?: boo
     console.error('Sharp Image Processing Error:', error);
     throw new Error('Failed to process/compress image. Ensure the file is not corrupted.');
   }
+
+  let filename: string;
+  if (filenamePrefix) {
+    const shortUuid = uuidv4().replace(/-/g, '').substring(0, 8);
+    const ext = shouldConvert ? 'webp' : 'jpg';
+    filename = `${filenamePrefix}_${shortUuid}.${ext}`;
+  } else {
+    const ext = shouldConvert ? 'webp' : 'jpg';
+    filename = `${uuidv4()}.${ext}`;
+  }
+  const filePath = path.join(uploadDir, filename);
 
   try {
     await fs.writeFile(filePath, buffer as unknown as Uint8Array);

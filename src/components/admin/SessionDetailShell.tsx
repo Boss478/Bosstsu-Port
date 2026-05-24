@@ -7,6 +7,7 @@ import Breadcrumb from '@/components/Breadcrumb';
 import ResultsView from '@/components/admin/ResultsView';
 import SessionManager from '@/components/admin/SessionManager';
 import QuickStartModal, { type StepConfig } from '@/components/admin/QuickStartModal';
+import StageManagerModal from '@/components/admin/StageManagerModal';
 import StudentList from '@/components/admin/StudentList';
 import { advanceStep } from '@/app/admin/tools/actions';
 import { t } from '@/lib/tool-translations';
@@ -21,6 +22,7 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
   const [codeFullScreen, setCodeFullScreen] = useState(false);
   const [advancing, setAdvancing] = useState(false);
   const [editSessionData, setEditSessionData] = useState<Record<string, unknown> | null>(null);
+  const [showStageManager, setShowStageManager] = useState(false);
 
   const steps = session.steps as Array<{ type: string; title: string }> | undefined;
   const hasSteps = steps && steps.length > 1;
@@ -110,6 +112,15 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
               <p className="text-zinc-500 dark:text-zinc-400 mt-1">{String(session.title)}</p>
             </div>
             <div className="flex items-center gap-3">
+              {hasSteps && (
+                <button
+                  onClick={() => setShowStageManager(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 rounded-xl shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors"
+                >
+                  <i className="fi fi-sr-list" />
+                  Manage Stages
+                </button>
+              )}
               <button
                 onClick={() => setEditSessionData(session)}
                 className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 rounded-xl shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors"
@@ -232,6 +243,19 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
           </div>
         </div>
       </div>
+
+      {showStageManager && (
+        <StageManagerModal
+          sessionId={String(session._id)}
+          steps={steps || []}
+          currentStep={localCurrentStep}
+          onSuccess={() => {
+            setShowStageManager(false);
+            router.refresh();
+          }}
+          onClose={() => setShowStageManager(false)}
+        />
+      )}
 
       {editSessionData && (
         <QuickStartModal

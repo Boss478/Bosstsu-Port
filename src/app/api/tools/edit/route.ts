@@ -58,7 +58,11 @@ export async function PATCH(req: NextRequest) {
     }
 
     const toolTypesAllowEdit = ['assignment', 'padlet'];
-    if (!toolTypesAllowEdit.includes(session.type)) {
+    const responseStep = response.stepIndex !== undefined
+      ? (session.steps as Record<string, unknown>[] | undefined)?.[response.stepIndex as number]
+      : null;
+    const effectiveType = (responseStep?.type as string | undefined) || session.type as string;
+    if (!toolTypesAllowEdit.includes(effectiveType)) {
       return NextResponse.json({ error: getError('T08').message, code: getError('T08').code }, { status: 400 });
     }
 
@@ -70,6 +74,8 @@ export async function PATCH(req: NextRequest) {
     }
 
     let newFileUrl: string | null = response.fileUrl || null;
+    const stepCfg = responseStep?.config as Record<string, unknown> | undefined;
+    const allowFileUpload = (stepCfg?.allowFileUpload as boolean | undefined) ?? (session.config as Record<string, unknown> | undefined)?.allowFileUpload as boolean | undefined;
 
     if (action === 'remove' && response.fileUrl) {
       const filePath = path.join(process.cwd(), 'public', response.fileUrl);
@@ -77,7 +83,7 @@ export async function PATCH(req: NextRequest) {
         fs.unlinkSync(filePath);
       }
       newFileUrl = null;
-    } else if (file && file.size > 0 && session.config?.allowFileUpload) {
+    } else if (file && file.size > 0 && allowFileUpload) {
       if (file.size > CONFIG.TOOLS.MAX_FILE_SIZE) {
         return NextResponse.json({ error: 'File too large (max 10MB)' }, { status: 400 });
       }
@@ -90,7 +96,7 @@ export async function PATCH(req: NextRequest) {
       const namePrefix = response.studentName 
         ? `${session.sessionCode}_${sanitizeFilename(response.studentName)}` 
         : session.sessionCode;
-      newFileUrl = await saveFile(file, 'tools', undefined, namePrefix);
+      newFileUrl = await saveFile(file, 'tools', undefined, namePrefix, CONFIG.TOOLS.ALLOWED_FILE_TYPES);
     }
 
     await ToolResponse.findByIdAndUpdate(responseId, {

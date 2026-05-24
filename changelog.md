@@ -4,6 +4,14 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.10 (2026-05-24)
+
++ Added Stage Manager Modal — ADD/EDIT/DELETE individual stages in multi-session classroom tools from the session detail page (lightweight modal, no QuickStartModal required)
++ Added `addStage()`, `editStage()`, `deleteStage()` server actions — atomic `$push`/`$set` with proper `currentStep` adjustment on delete
+* Fixed file upload not saving in multi-step assignment sessions — respond and edit routes now resolve `allowFileUpload` from step config instead of only session-level config
+* Fixed non-image file types (PDF, DOC, DOCX, TXT) rejected by `saveFile` — added optional `allowedTypes` param + raw-bytes write path that skips sharp processing
+* Fixed edit route rejecting multi-step assignment edits when session type ≠ assignment — checks `response.stepIndex` to determine effective tool type
+
 ## v1.9.9 (2026-05-24)
 
 + Added Performance Optimization Phase 2 — ISR (`revalidate=60`) on portfolio, gallery, resources, games pages (was `force-dynamic`)

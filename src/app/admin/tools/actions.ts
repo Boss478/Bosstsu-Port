@@ -185,6 +185,176 @@ export async function updateSessionSteps(sessionId: string, formData: FormData) 
   }
 }
 
+export async function addStage(sessionId: string, formData: FormData) {
+  const isAuth = await verifyAuth();
+  if (!isAuth) return { error: formatError('401') };
+
+  const raw = {
+    type: formData.get('type') as string,
+    title: formData.get('title') as string,
+    config: formData.get('config') ? JSON.parse(formData.get('config') as string) : {},
+    position: formData.get('position') ? parseInt(formData.get('position') as string) : -1,
+  };
+
+  const addStageSchema = z.object({
+    type: z.string().min(1),
+    title: z.string().trim().min(1, 'กรุณาระบุชื่อ'),
+    config: z.unknown().optional(),
+    position: z.number().int().min(-1),
+  }).strict();
+
+  const parsed = addStageSchema.safeParse(raw);
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  const toolType = parsed.data.type as ToolType;
+  if (!TOOL_TYPES.includes(toolType)) return { error: 'Invalid tool type' };
+
+  try {
+    await dbConnect();
+
+    const session = await ToolSession.findById(sessionId).select('steps currentStep').lean();
+    if (!session) return { error: formatError('404') };
+
+    const currentSteps = (session.steps as Array<unknown>) ?? [];
+    const step = { type: parsed.data.type, title: parsed.data.title, config: parsed.data.config || {} };
+
+    // position: -1 means append; otherwise, clamp to valid range
+    const position = parsed.data.position === -1 ? currentSteps.length : Math.min(parsed.data.position, currentSteps.length);
+
+    await ToolSession.findByIdAndUpdate(sessionId, {
+      $push: { steps: { $each: [step], $position: position } },
+    });
+
+    // Adjust currentStep if inserting before the active step
+    const currentStep = session.currentStep ?? -1;
+    if (currentStep >= 0 && position <= currentStep) {
+      await ToolSession.findByIdAndUpdate(sessionId, {
+        $inc: { currentStep: 1 },
+      });
+    }
+
+    revalidatePath('/admin/tools');
+    revalidatePath(`/admin/tools/sessions/${sessionId}`);
+    return { error: undefined };
+  } catch (err) {
+    console.error('Add stage error:', err);
+    return { error: formatError('DB01') };
+  }
+}
+
+export async function editStage(sessionId: string, formData: FormData) {
+  const isAuth = await verifyAuth();
+  if (!isAuth) return { error: formatError('401') };
+
+  const raw = {
+    index: parseInt(formData.get('index') as string),
+    type: formData.get('type') as string,
+    title: formData.get('title') as string,
+    config: formData.get('config') ? JSON.parse(formData.get('config') as string) : {},
+  };
+
+  const editStageSchema = z.object({
+    index: z.number().int().min(0),
+    type: z.string().min(1),
+    title: z.string().trim().min(1, 'กรุณาระบุชื่อ'),
+    config: z.unknown().optional(),
+  }).strict();
+
+  const parsed = editStageSchema.safeParse(raw);
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  const toolType = parsed.data.type as ToolType;
+  if (!TOOL_TYPES.includes(toolType)) return { error: 'Invalid tool type' };
+
+  try {
+    await dbConnect();
+
+    // Validate index against actual steps array (prevents corrupting the document)
+    const session = await ToolSession.findById(sessionId).select('steps').lean();
+    if (!session) return { error: formatError('404') };
+    if (parsed.data.index >= ((session.steps as Array<unknown>)?.length ?? 0)) {
+      return { error: 'Stage index out of bounds' };
+    }
+
+    const step = { type: parsed.data.type, title: parsed.data.title, config: parsed.data.config || {} };
+
+    await ToolSession.findByIdAndUpdate(sessionId, {
+      $set: { [`steps.${parsed.data.index}`]: step },
+    });
+
+    revalidatePath('/admin/tools');
+    revalidatePath(`/admin/tools/sessions/${sessionId}`);
+    return { error: undefined };
+  } catch (err) {
+    console.error('Edit stage error:', err);
+    return { error: formatError('DB03') };
+  }
+}
+
+export async function deleteStage(sessionId: string, formData: FormData) {
+  const isAuth = await verifyAuth();
+  if (!isAuth) return { error: formatError('401') };
+
+  const raw = {
+    index: parseInt(formData.get('index') as string),
+  };
+
+  const deleteStageSchema = z.object({
+    index: z.number().int().min(0),
+  }).strict();
+
+  const parsed = deleteStageSchema.safeParse(raw);
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  try {
+    await dbConnect();
+
+    const session = await ToolSession.findById(sessionId).select('steps currentStep lastActiveStep').lean();
+    if (!session) return { error: formatError('404') };
+
+    const steps = session.steps as Array<unknown> | undefined;
+    if (!steps || parsed.data.index >= steps.length) {
+      return { error: 'Stage index out of bounds' };
+    }
+
+    // Remove the step at index
+    steps.splice(parsed.data.index, 1);
+
+    // Adjust currentStep if needed
+    const currentStep = session.currentStep ?? -1;
+    const lastActiveStep = session.lastActiveStep ?? -1;
+    let newCurrentStep = currentStep;
+    let newLastActiveStep = lastActiveStep;
+
+    if (currentStep === parsed.data.index) {
+      // Deleting the active step — reset to waiting
+      newCurrentStep = -1;
+      newLastActiveStep = -1;
+    } else if (currentStep > parsed.data.index) {
+      // Deleting a step before the active one — shift down
+      newCurrentStep = currentStep - 1;
+      if (lastActiveStep > parsed.data.index) {
+        newLastActiveStep = lastActiveStep - 1;
+      }
+    }
+
+    await ToolSession.findByIdAndUpdate(sessionId, {
+      $set: {
+        steps,
+        currentStep: newCurrentStep,
+        lastActiveStep: newLastActiveStep >= 0 ? newLastActiveStep : -1,
+      },
+    });
+
+    revalidatePath('/admin/tools');
+    revalidatePath(`/admin/tools/sessions/${sessionId}`);
+    return { error: undefined };
+  } catch (err) {
+    console.error('Delete stage error:', err);
+    return { error: formatError('DB03') };
+  }
+}
+
 export async function deleteStudentResponses(sessionId: string, studentToken: string) {
   const isAuth = await verifyAuth();
   if (!isAuth) return { error: formatError('401') };
