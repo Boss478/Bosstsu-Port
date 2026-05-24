@@ -207,7 +207,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
               {photos.map((photo, index) => (
                 <div key={index} className="relative aspect-square rounded-lg overflow-hidden group">
-                  <Image src={photo} alt={`Photo ${index}`} fill className="object-cover" />
+                  <Image src={photo} alt={`Photo ${index}`} fill sizes="(max-width: 768px) 50vw, 150px" className="object-cover" />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                     <button
                       type="button"
@@ -230,7 +230,7 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
               ))}
               {newPhotoPreviews.map((preview, index) => (
                 <div key={`new-${index}`} className="relative aspect-square rounded-lg overflow-hidden border-2 border-blue-500 group">
-                  <Image src={preview} alt="New Upload" fill className="object-cover" />
+                  <Image src={preview} alt="New Upload" fill sizes="(max-width: 768px) 50vw, 150px" className="object-cover" />
                   <div className="absolute top-1 left-1 bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md pointer-events-none z-10">
                     NEW
                   </div>

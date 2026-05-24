@@ -109,8 +109,8 @@ export async function POST(req: NextRequest) {
 
     await ToolSession.findByIdAndUpdate(sessionId, { $inc: { responseCount: 1 } });
 
-    const participantCount = await ToolResponse.countDocuments({ sessionId, studentToken });
-    if (participantCount === 1) {
+    const isFirstSubmission = existingCount === 0;
+    if (isFirstSubmission) {
       await ToolSession.findByIdAndUpdate(sessionId, {
         $inc: { participantCount: 1 },
       });

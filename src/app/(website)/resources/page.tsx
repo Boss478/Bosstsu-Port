@@ -1,11 +1,12 @@
 import dbConnect from "@/lib/db";
 import Learning from "@/models/Learning";
+import Tag from "@/models/Tag";
 import ResourcesClient from "./ResourcesClient";
 import { type ResourceItem } from "./data";
 import { CONFIG } from "@/lib/config";
 import type { ILearningResource } from "@/models/Learning";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function ResourcesPage({
   searchParams,
@@ -26,7 +27,7 @@ export default async function ResourcesPage({
   if (type && type !== "All") match.type = type;
   if (query) match.title = { $regex: query, $options: 'i' };
 
-  const [docs, total, uniqueTypes, uniqueTags] = await Promise.all([
+  const [docs, total, uniqueTypes, tagDocs] = await Promise.all([
     Learning.find(match)
       .select("title description type thumbnail link createdAt")
       .sort({ createdAt: sort === "Newest" ? -1 : 1 })
@@ -35,8 +36,10 @@ export default async function ResourcesPage({
       .lean(),
     Learning.countDocuments(match),
     Learning.distinct("type", { published: { $ne: false } }),
-    Learning.distinct("tags", { published: { $ne: false } }),
+    Tag.distinct("name", { category: "learning" }),
   ]);
+
+  const uniqueTags = (tagDocs.length > 0 ? tagDocs : await Learning.distinct("tags", { published: { $ne: false } })) as string[];
 
   const totalPages = Math.max(1, Math.ceil(total / CONFIG.PAGINATION.LEARNING_PUBLIC));
 

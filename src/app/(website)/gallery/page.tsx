@@ -1,11 +1,12 @@
 import dbConnect from "@/lib/db";
 import Gallery from "@/models/Gallery";
+import Tag from "@/models/Tag";
 import GalleryClient from "./GalleryClient";
 import { type GalleryAlbum } from "./data";
 import { CONFIG } from "@/lib/config";
 import type { IGalleryAlbum } from "@/models/Gallery";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function GalleryPage({
   searchParams,
@@ -26,7 +27,7 @@ export default async function GalleryPage({
   if (tag && tag !== "ทั้งหมด") match.tags = tag;
   if (query) match.title = { $regex: query, $options: 'i' };
 
-  const [docs, total, uniqueTags] = await Promise.all([
+  const [docs, total, tagDocs] = await Promise.all([
     Gallery.find(match)
       .select("slug title cover tags date photos")
       .sort({ date: sort === "desc" ? -1 : 1 })
@@ -34,8 +35,10 @@ export default async function GalleryPage({
       .limit(CONFIG.PAGINATION.GALLERY_PUBLIC)
       .lean(),
     Gallery.countDocuments(match),
-    Gallery.distinct("tags", { published: { $ne: false } }),
+    Tag.distinct("name", { category: "gallery" }),
   ]);
+
+  const uniqueTags = (tagDocs.length > 0 ? tagDocs : await Gallery.distinct("tags", { published: { $ne: false } })) as string[];
 
   const totalPages = Math.max(1, Math.ceil(total / CONFIG.PAGINATION.GALLERY_PUBLIC));
 

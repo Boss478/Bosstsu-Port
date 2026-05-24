@@ -1,11 +1,12 @@
 import dbConnect from "@/lib/db";
 import Portfolio from "@/models/Portfolio";
+import Tag from "@/models/Tag";
 import PortfolioClient from "./PortfolioClient";
 import { type PortfolioItem } from "./data";
 import { CONFIG } from "@/lib/config";
 import type { IPortfolioItem } from "@/models/Portfolio";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function PortfolioPage({
   searchParams,
@@ -26,7 +27,7 @@ export default async function PortfolioPage({
   if (tag && tag !== "ทั้งหมด") match.tags = tag;
   if (query) match.title = { $regex: query, $options: 'i' };
 
-  const [docs, total, uniqueTags] = await Promise.all([
+  const [docs, total, tagDocs] = await Promise.all([
     Portfolio.find(match)
       .select("slug title description cover tags date gallery tools")
       .sort({ date: sort === "desc" ? -1 : 1 })
@@ -34,8 +35,10 @@ export default async function PortfolioPage({
       .limit(CONFIG.PAGINATION.PORTFOLIO_PUBLIC)
       .lean(),
     Portfolio.countDocuments(match),
-    Portfolio.distinct("tags", { published: { $ne: false } }),
+    Tag.distinct("name", { category: "portfolio" }),
   ]);
+
+  const uniqueTags = (tagDocs.length > 0 ? tagDocs : await Portfolio.distinct("tags", { published: { $ne: false } })) as string[];
 
   const totalPages = Math.max(1, Math.ceil(total / CONFIG.PAGINATION.PORTFOLIO_PUBLIC));
 

@@ -109,6 +109,7 @@ export default async function PortfolioListPage({
                           src={item.cover}
                           alt={item.title}
                           fill
+                          sizes="64px"
                           className="object-cover"
                         />
                       </div>

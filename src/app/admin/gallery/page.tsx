@@ -108,6 +108,7 @@ export default async function GalleryListPage({
                         src={item.cover}
                         alt={item.title}
                         fill
+                        sizes="64px"
                         className="object-cover"
                       />
                     </div>

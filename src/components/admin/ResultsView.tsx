@@ -143,9 +143,10 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
     await fetchResponses();
   };
 
-  const displayedResponses = hasSteps && activeStepTab >= 0
+  const displayedResponses = useMemo(() => hasSteps && activeStepTab >= 0
     ? responses.filter((r: { stepIndex?: number }) => r.stepIndex === activeStepTab)
-    : responses;
+    : responses,
+  [responses, hasSteps, activeStepTab]);
 
   const handleDelete = async (id: string) => {
     await deleteResponse(id);
@@ -475,17 +476,21 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
 function PollResults({ responses, session, onDelete }: { responses: { _id: string; content: { selectedOption?: string; word?: string } }[]; session: { config: { pollMode?: string; allowCustomChoices?: boolean; questions?: { options?: string[] }[] } }; onDelete: (id: string) => void }) {
   const mode = session.config?.pollMode || 'mcq';
   const rawOptions = session.config?.questions?.[0]?.options;
-  const options = rawOptions?.length
+  const options = useMemo(() => rawOptions?.length
     ? rawOptions.map((o, i) => o || `Option ${i + 1}`)
-    : ['Option A', 'Option B', 'Option C', 'Option D'];
+    : ['Option A', 'Option B', 'Option C', 'Option D'],
+  [rawOptions]);
 
   if (mode === 'wordcloud') {
-    const wordCounts: Record<string, number> = {};
-    responses.forEach((r) => {
-      const word = r.content?.word?.trim();
-      if (word) wordCounts[word] = (wordCounts[word] || 0) + 1;
-    });
-    const sorted = Object.entries(wordCounts).sort((a, b) => b[1] - a[1]);
+    const wordCounts = useMemo(() => {
+      const counts: Record<string, number> = {};
+      responses.forEach((r) => {
+        const word = r.content?.word?.trim();
+        if (word) counts[word] = (counts[word] || 0) + 1;
+      });
+      return counts;
+    }, [responses]);
+    const sorted = useMemo(() => Object.entries(wordCounts).sort((a, b) => b[1] - a[1]), [wordCounts]);
 
     return (
       <div className="p-6 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
@@ -505,20 +510,24 @@ function PollResults({ responses, session, onDelete }: { responses: { _id: strin
     );
   }
 
-  const counts: Record<string, number> = {};
-  const customCounts: Record<string, number> = {};
-  options.forEach(o => { counts[o] = 0; });
-  responses.forEach(r => {
-    const opt = r.content?.selectedOption;
-    if (opt) {
-      if (counts[opt] !== undefined) {
-        counts[opt]++;
-      } else {
-        customCounts[opt] = (customCounts[opt] || 0) + 1;
+  const { counts, customCounts, total } = useMemo(() => {
+    const counts: Record<string, number> = {};
+    const customCounts: Record<string, number> = {};
+    options.forEach(o => { counts[o] = 0; });
+    responses.forEach(r => {
+      const opt = r.content?.selectedOption;
+      if (opt) {
+        if (counts[opt] !== undefined) {
+          counts[opt]++;
+        } else {
+          customCounts[opt] = (customCounts[opt] || 0) + 1;
+        }
       }
-    }
-  });
-  const total = responses.length || 1;
+    });
+    return { counts, customCounts, total: responses.length || 1 };
+  }, [options, responses]);
+
+  const sortedCustomChoices = useMemo(() => Object.entries(customCounts).sort((a, b) => b[1] - a[1]), [customCounts]);
 
   return (
     <div className="p-6 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-3">
@@ -540,7 +549,7 @@ function PollResults({ responses, session, onDelete }: { responses: { _id: strin
         {Object.keys(customCounts).length > 0 && (
           <div className="mt-4 pt-4 border-t border-zinc-200/60 dark:border-slate-700/50 space-y-2">
             <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wide">Custom Choices</p>
-            {Object.entries(customCounts).sort((a, b) => b[1] - a[1]).map(([opt, count]) => {
+            {sortedCustomChoices.map(([opt, count]) => {
               const pct = Math.round((count / total) * 100);
               return (
                 <div key={opt} className="space-y-1">

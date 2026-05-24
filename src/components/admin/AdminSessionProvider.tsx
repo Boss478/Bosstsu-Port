@@ -29,6 +29,12 @@ export default function AdminSessionProvider({ children }: { children: ReactNode
 
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isAFKRef = useRef(isAFK);
+  const isUploadingRef = useRef(isUploading);
+
+  // Keep refs in sync with state
+  useEffect(() => { isAFKRef.current = isAFK; }, [isAFK]);
+  useEffect(() => { isUploadingRef.current = isUploading; }, [isUploading]);
 
   // Constants
   const IDLE_TIMEOUT = CONFIG.AUTH.IDLE_TIMEOUT;
@@ -42,33 +48,27 @@ export default function AdminSessionProvider({ children }: { children: ReactNode
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     
     idleTimerRef.current = setTimeout(() => {
-      // If uploading, don't trigger AFK
-      if (!isUploading) {
+      if (!isUploadingRef.current) {
         setIsAFK(true);
         setCountdown(COUNTDOWN_DURATION);
       } else {
-        // Retry later if uploading
         startIdleTimer();
       }
     }, IDLE_TIMEOUT);
   };
 
   const handleActivity = () => {
-    // If we are already AFK, activity resets everything
-    if (isAFK) {
+    if (isAFKRef.current) {
       setIsAFK(false);
       if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
     }
-    
-    // Always restart the idle timer on activity
     startIdleTimer();
   };
 
-  // Effect for idle detection events
+  // Effect for idle detection events — stable listeners, reads refs
   useEffect(() => {
     const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
     
-    // Throttle activity updates slightly to avoid excessive timer resets
     let lastActivity = Date.now();
     const throttledHandler = () => {
       const now = Date.now();
@@ -79,14 +79,14 @@ export default function AdminSessionProvider({ children }: { children: ReactNode
     };
 
     events.forEach((event) => window.addEventListener(event, throttledHandler));
-    startIdleTimer(); // Initial start
+    startIdleTimer();
 
     return () => {
       events.forEach((event) => window.removeEventListener(event, throttledHandler));
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAFK, isUploading]); 
+  }, []); 
 
   // Effect for Countdown Logic
   useEffect(() => {

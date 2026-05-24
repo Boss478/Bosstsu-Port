@@ -4,6 +4,19 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.9 (2026-05-24)
+
++ Added Performance Optimization Phase 2 — ISR (`revalidate=60`) on portfolio, gallery, resources, games pages (was `force-dynamic`)
++ Migrated 4 client list components from native `<img>` to Next.js `<Image fill>` with `sizes` attribute — ResourcesClient, PortfolioClient, GamesClient, GalleryClient
++ Added `sizes` prop to 6 existing `<Image fill>` instances in admin forms and table thumbnails
+* Deduplicated `countDocuments` calls in poll and respond API routes — saves 1 DB roundtrip per submission
++ Added Tag routing — Portfolio, Gallery, Resources tag `distinct()` queries now read from Tag collection with fallback to model-level distinct
++ Added compound indexes on Learning (`type_1`) and Game (`category_1`) models for faster distinct queries
++ Added `priority` prop to Header logo `<Image>`
+* Fixed AdminSessionProvider event listener leak — refactored to stable ref-pattern (`[]`-deps) eliminating re-subscribe on every render
++ Added `useMemo` for computed array ops in ResultsView (`displayedResponses`), PollResults (counts/options), and QABoard (sorted questions)
++ Added `min-h-[200px]` to GalleryClient parent wrapper for correct `<Image fill>` layout
+
 ## v1.9.8 (2026-05-23)
 
 + Added Teacher Controls Phase 2 — edit button on session detail, QuickStartModal edit mode (pre-populate, branching submit, onClose callback)

@@ -361,7 +361,7 @@ export default function LearningForm({
             </label>
             <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-100 dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors">
               {thumbnailPreview ? (
-                <Image src={thumbnailPreview} alt="Thumbnail Preview" fill className="object-cover" />
+                <Image src={thumbnailPreview} alt="Thumbnail Preview" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-zinc-400">
                   <i className="fi fi-sr-image text-3xl" />

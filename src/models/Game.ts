@@ -37,6 +37,7 @@ const GameSchema: Schema = new Schema(
 GameSchema.index({ title: 1 });
 GameSchema.index({ category: 1 });
 GameSchema.index({ published: 1, createdAt: -1 });
+GameSchema.index({ published: 1, category: 1 });
 
 const Game: Model<IGame> =
   mongoose.models.Game || mongoose.model<IGame>('Game', GameSchema);

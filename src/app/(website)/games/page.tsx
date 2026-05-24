@@ -4,7 +4,7 @@ import GamesClient from "./GamesClient";
 import { CONFIG } from "@/lib/config";
 import type { IGame } from "@/models/Game";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function GamesPage({
   searchParams,

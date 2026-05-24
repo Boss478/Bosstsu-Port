@@ -3,6 +3,7 @@
 import { useTransition, useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { type PortfolioItem } from "./data";
 import { formatDate } from "@/lib/format";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -142,11 +143,12 @@ export default function PortfolioClient({
                   {item.cover ? (
                     <>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <Image
                         src={item.cover}
                         alt={item.title}
-                        loading="lazy"
-                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 z-10"
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500 z-10"
                         onError={(e) => {
                            e.currentTarget.style.display = 'none';
                         }}

@@ -90,6 +90,7 @@ export default function Header() {
                 fill
                 sizes="40px"
                 className="object-cover" 
+                priority
               />
             </div>
           </Link>

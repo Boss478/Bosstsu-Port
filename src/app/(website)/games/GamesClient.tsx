@@ -2,6 +2,7 @@
 
 import { useTransition, useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { formatDate } from "@/lib/format";
 import Breadcrumb from "@/components/Breadcrumb";
 import { Pagination } from "@/components/Pagination";
@@ -137,11 +138,12 @@ export default function GamesClient({
                   <div className="relative aspect-video overflow-hidden">
                     {item.cover ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={item.cover}
                         alt={item.title}
-                        loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                        className="object-cover group-hover:scale-110 transition-transform duration-700"
                       />
                     ) : (
                       <div className="w-full h-full bg-blue-500 flex items-center justify-center">

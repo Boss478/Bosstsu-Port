@@ -3,6 +3,7 @@
 import { useTransition, useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { ResourceItem } from './data';
 import Breadcrumb from "@/components/Breadcrumb";
 import { formatDate } from "@/lib/format";
@@ -137,11 +138,12 @@ export default function ResourcesClient({
                   <div className="relative aspect-video overflow-hidden bg-zinc-100 dark:bg-slate-800">
                     {item.cover ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={item.cover}
                         alt={item.title}
-                        loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">

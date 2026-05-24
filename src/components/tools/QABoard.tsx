@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { t } from '@/lib/tool-translations';
 import { getStudentToken } from '@/lib/client-token';
 
@@ -115,7 +115,7 @@ export default function QABoard({ session, stepIndex }: QABoardProps) {
     }
   };
 
-  const sorted = [...questions].sort((a, b) => (b.content?.upvotes || 0) - (a.content?.upvotes || 0));
+  const sorted = useMemo(() => [...questions].sort((a, b) => (b.content?.upvotes || 0) - (a.content?.upvotes || 0)), [questions]);
 
   return (
     <div className="min-h-screen flex flex-col max-w-3xl mx-auto p-4 gap-4">

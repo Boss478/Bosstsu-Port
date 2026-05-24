@@ -3,6 +3,7 @@
 import { useTransition, useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { type GalleryAlbum } from "./data";
 import { formatDate } from "@/lib/format";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -135,15 +136,15 @@ export default function GalleryClient({
               <Link
                 key={album.id}
                 href={`/gallery/${album.id}`}
-                className="group block relative rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-md shadow-blue-100/40 dark:shadow-black/20 hover:shadow-lg hover:shadow-blue-200/50 dark:hover:shadow-black/40 hover:-translate-y-1.5 transition-all duration-300 ease-in-out overflow-hidden"
+                className="group block relative rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-md shadow-blue-100/40 dark:shadow-black/20 hover:shadow-lg hover:shadow-blue-200/50 dark:hover:shadow-black/40 hover:-translate-y-1.5 transition-all duration-300 ease-in-out overflow-hidden min-h-[200px]"
                 style={{ aspectRatio: '16/10' }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={album.cover}
                   alt={album.title}
-                  loading="lazy"
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
 
                 <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/15 dark:bg-black/30 text-white text-[10px] font-semibold backdrop-blur-md border border-white/25 dark:border-white/15 shadow-lg shadow-black/10 dark:shadow-black/30">
