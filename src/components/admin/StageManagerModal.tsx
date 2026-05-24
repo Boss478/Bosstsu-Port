@@ -55,6 +55,7 @@ export default function StageManagerModal({
   const [allowCustomChoices, setAllowCustomChoices] = useState(false);
   const [pollOptions, setPollOptions] = useState<string[]>(['', '']);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
+  const [maxSubmissions, setMaxSubmissions] = useState<number>(0);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deletingIndex, setDeletingIndex] = useState(-1);
@@ -64,6 +65,7 @@ export default function StageManagerModal({
   const buildStepConfig = (): Record<string, unknown> => {
     const config: Record<string, unknown> = {};
     if (prompt) config.prompt = prompt;
+    if (maxSubmissions > 0) config.maxSubmissions = maxSubmissions;
     if (allowFileUpload) config.allowFileUpload = true;
     if (selectedType === 'poll') {
       config.pollMode = pollMode;
@@ -98,6 +100,7 @@ export default function StageManagerModal({
     setPrompt((cfg.prompt as string) || '');
     setAllowFileUpload((cfg.allowFileUpload as boolean) || false);
     setPollMode((cfg.pollMode as 'mcq' | 'wordcloud') || 'mcq');
+    setMaxSubmissions((cfg.maxSubmissions as number) || 0);
     setAllowCustomChoices((cfg.allowCustomChoices as boolean) || false);
 
     const questions = cfg.questions as Array<{ question?: string; options?: string[]; correctAnswer?: number }> | undefined;
@@ -134,6 +137,7 @@ export default function StageManagerModal({
     setAllowCustomChoices(false);
     setPollOptions(['', '']);
     setQuizQuestions([]);
+    setMaxSubmissions(0);
     setError(null);
     setView('config');
   };
@@ -387,6 +391,22 @@ export default function StageManagerModal({
                 className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
             </div>
+
+            {['quiz', 'assignment', 'poll'].includes(selectedType) && (
+              <div className="space-y-2 mt-4">
+                <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                  Submission Limit (0 = unlimited)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  value={maxSubmissions}
+                  onChange={e => setMaxSubmissions(parseInt(e.target.value) || 0)}
+                  placeholder="e.g. 3"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            )}
 
             {selectedType === 'poll' && (
               <div className="space-y-2 mt-4">

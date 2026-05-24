@@ -31,6 +31,7 @@ ToolResponseSchema.index({ sessionId: 1, studentToken: 1 });
 ToolResponseSchema.index({ sessionId: 1, ip: 1 });
 ToolResponseSchema.index({ editToken: 1 });
 ToolResponseSchema.index({ sessionId: 1, stepIndex: 1 });
+ToolResponseSchema.index({ sessionId: 1, studentToken: 1, stepIndex: 1 });
 
 const ToolResponse: Model<IToolResponse> =
   mongoose.models.ToolResponse || mongoose.model<IToolResponse>('ToolResponse', ToolResponseSchema);

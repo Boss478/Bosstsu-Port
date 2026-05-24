@@ -150,15 +150,15 @@ const sessions = sessionsRaw as Array<{
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        {session.participantCount > 0 && (
-                          <Link
-                            href={`/admin/tools/sessions/${session._id}`}
-                            className="text-xs text-blue-500 hover:underline"
-                          >
-                            <i className="fi fi-sr-arrow-up-right text-sm" />
-                            Try it
-                          </Link>
-                        )}
+                        <Link
+                          href={`/study/${session.sessionCode}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-500 hover:underline"
+                        >
+                          <i className="fi fi-sr-arrow-up-right text-sm" />
+                          Try it
+                        </Link>
                         <Link
                           href={`/admin/tools/sessions/${session._id}`}
                           className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-colors"

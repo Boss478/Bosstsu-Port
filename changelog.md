@@ -4,6 +4,19 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.11 (2026-05-24)
+
++ Added attempt count display to student Quiz UI — shows "Attempt X of Y" on the quiz form, after submission, and on the max-submissions-reached screen
++ Added translation keys: `attemptLeft` ("Attempt {current} of {max}") and `attemptsRemaining` ("{n} attempts remaining")
++ Added maxSubmissions field to Stage Manager modal — teachers can now set/edit per-step submission limits for quiz, assignment, and poll tools in multi-step sessions
+* Fixed maxSubmissions submission count in multi-step sessions — poll and respond API routes now scope submission counting by `stepIndex` (submissions to other steps no longer count against current step's limit)
+* Fixed maxSubmissions config resolution for multi-step sessions — API routes now read from `steps[n].config.maxSubmissions` with session-level fallback, matching the same pattern as allowFileUpload
+* Fixed participantCount overcount when step-scoping — added separate total-submissions query for participant tracking (was using step-scoped count, causing multi-step students to increment participantCount on each step)
+* Fixed bestScore/history in poll error response for multi-step — prevAttempts query now scoped by stepIndex (was showing combined history across all steps)
++ Added compound index `{ sessionId: 1, studentToken: 1, stepIndex: 1 }` on ToolResponse for step-scoped query performance
+* Fixed student quiz form reappearing after exhausting attempts on page refresh — QuickQuiz now checks existing attempts against `maxSubmissions` on mount and shows the max-reached results screen immediately
+* Fixed frontend `maxSubmissions` not reading from step config — resolves from `steps[n].config.maxSubmissions` with session-level fallback (same pattern as backend)
+
 ## v1.9.10 (2026-05-24)
 
 + Added Stage Manager Modal — ADD/EDIT/DELETE individual stages in multi-session classroom tools from the session detail page (lightweight modal, no QuickStartModal required)

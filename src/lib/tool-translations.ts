@@ -97,6 +97,8 @@ export const toolStrings = {
   wantToKnowMore: { th: '3. สิ่งที่คุณอยากรู้เพิ่มเติมคืออะไร?', en: '3. What is one thing you want to know more about?' },
   wantToKnowPlaceholder: { th: 'ฉันอยากรู้เพิ่มเติมเรื่อง...', en: 'I want to learn more about...' },
 
+  attemptLeft: { th: 'ครั้งที่ {current} จาก {max}', en: 'Attempt {current} of {max}' },
+  attemptsRemaining: { th: 'เหลืออีก {n} ครั้ง', en: '{n} attempts remaining' },
   stepOfTotal: { th: 'ขั้นตอนที่ {current} จาก {total}', en: 'Step {current} of {total}' },
   sessionCode: { th: 'รหัสห้องเรียน', en: 'Session Code' },
   waitingForTeacher: { th: 'กำลังรอให้เซสชันเริ่ม...', en: 'Waiting for session to start...' },

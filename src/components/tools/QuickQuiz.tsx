@@ -21,10 +21,42 @@ export default function QuickQuiz({ session, stepIndex, studentName }: QuickQuiz
   const [bestScore, setBestScore] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [history, setHistory] = useState<Array<{ score: number }>>([]);
+  const [existingAttempts, setExistingAttempts] = useState(0);
 
   const questions = session.config?.questions || [];
   const total = questions.length;
   const currentQuestion = questions[currentQ];
+  const resolvedStepCfg = stepIndex !== undefined && (session.steps as Record<string, unknown>[] | undefined)?.[stepIndex]?.config as Record<string, unknown> | undefined;
+  const maxSubmissions = (resolvedStepCfg?.maxSubmissions as number | undefined) ?? session.config?.maxSubmissions ?? 10;
+
+  useEffect(() => {
+    const fetchExistingAttempts = async () => {
+      try {
+        const token = getStudentToken();
+        if (!token) return;
+        const res = await fetch(`/api/tools/poll?sessionId=${session._id}${stepIndex !== undefined ? `&stepIndex=${stepIndex}` : ''}`);
+        const data = await res.json();
+        const myResponses = (data.responses || []).filter((r: { studentToken?: string }) => r.studentToken === token);
+        const count = myResponses.length;
+        setExistingAttempts(count);
+        if (count >= maxSubmissions && maxSubmissions > 0) {
+          const totalQ = session.config?.questions?.length || 0;
+          const scores = myResponses
+            .map((r: { content?: Record<string, unknown> }) => (r.content?.score as number) ?? 0)
+            .filter((s: number) => s >= 0);
+          setBestScore(scores.length ? Math.max(...scores) : 0);
+          setTotalQuestions(totalQ);
+          setHistory(myResponses.map((r: { content?: Record<string, unknown> }) => ({
+            score: (r.content?.score as number) ?? 0,
+          })));
+          setMaxReached(true);
+        }
+      } catch {
+        // silent
+      }
+    };
+    fetchExistingAttempts();
+  }, [session._id, stepIndex, maxSubmissions]);
 
   useEffect(() => {
     if (!submitted) return;
@@ -91,7 +123,13 @@ export default function QuickQuiz({ session, stepIndex, studentName }: QuickQuiz
     return (
       <div className="min-h-screen flex items-start justify-center p-4 pt-12">
         <div className="max-w-lg w-full space-y-4">
-          <div className="p-8 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-lg text-center">
+          <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-lg text-center">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">
+              {t('attemptLeft', { current: Math.min(existingAttempts, maxSubmissions), max: maxSubmissions })}
+              {existingAttempts < maxSubmissions && (
+                <span className="ml-2">· {t('attemptsRemaining', { n: maxSubmissions - existingAttempts })}</span>
+              )}
+            </p>
             <i className="fi fi-sr-trophy text-6xl text-amber-500 block mb-4" />
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
               {t('bestScore', { score: bestScore, total: totalQuestions })}
@@ -129,6 +167,12 @@ export default function QuickQuiz({ session, stepIndex, studentName }: QuickQuiz
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-lg w-full p-8 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-lg text-center">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">
+            {t('attemptLeft', { current: Math.min(existingAttempts + 1, maxSubmissions), max: maxSubmissions })}
+            {existingAttempts + 1 < maxSubmissions && (
+              <span className="ml-2">· {t('attemptsRemaining', { n: maxSubmissions - existingAttempts - 1 })}</span>
+            )}
+          </p>
           <i className="fi fi-sr-trophy text-6xl text-amber-500 block mb-4" />
           <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
             {t('scoreOfTotal', { score, total })}
@@ -155,6 +199,11 @@ export default function QuickQuiz({ session, stepIndex, studentName }: QuickQuiz
               />
             </div>
           </div>
+          {maxSubmissions > 0 && (
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2">
+              {t('attemptLeft', { current: Math.min(existingAttempts + 1, maxSubmissions), max: maxSubmissions })}
+            </p>
+          )}
         </div>
 
         {currentQuestion && (

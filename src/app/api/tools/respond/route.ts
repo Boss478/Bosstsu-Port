@@ -63,20 +63,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: getError('T04').message }, { status: 400 });
     }
 
-    const maxSubmissions = session.config?.maxSubmissions || 10;
+    const stepIndex = formData.get('stepIndex') as string | null;
+    const studentName = formData.get('studentName') as string || undefined;
+    const contentRaw = formData.get('content') as string;
+    const file = formData.get('file') as File | null;
 
-    const existingCount = await ToolResponse.countDocuments({ sessionId, studentToken });
+    const totalExisting = await ToolResponse.countDocuments({ sessionId, studentToken });
+    const existingCount = stepIndex !== null
+      ? await ToolResponse.countDocuments({ sessionId, studentToken, stepIndex: parseInt(stepIndex, 10) })
+      : totalExisting;
+
+    const siVal = stepIndex !== null ? parseInt(stepIndex, 10) : -1;
+    const stepCfg = siVal >= 0 ? (session.steps as Record<string, unknown>[] | undefined)?.[siVal]?.config as Record<string, unknown> | undefined : null;
+    const maxSubmissions = (stepCfg?.maxSubmissions as number | undefined) ?? (session.config?.maxSubmissions as number | undefined) ?? 10;
+
     if (existingCount >= maxSubmissions) {
       return NextResponse.json(
         { error: getError('T07').message },
         { status: 400 }
       );
     }
-
-    const studentName = formData.get('studentName') as string || undefined;
-    const contentRaw = formData.get('content') as string;
-    const file = formData.get('file') as File | null;
-    const stepIndex = formData.get('stepIndex') as string | null;
 
     let content: Record<string, unknown> = {};
     try {
@@ -86,8 +92,6 @@ export async function POST(req: NextRequest) {
     }
 
     let fileUrl: string | null = null;
-    const si = stepIndex !== null ? parseInt(stepIndex, 10) : -1;
-    const stepCfg = si >= 0 ? (session.steps as Record<string, unknown>[] | undefined)?.[si]?.config as Record<string, unknown> | undefined : null;
     const allowFileUpload = (stepCfg?.allowFileUpload as boolean | undefined) ?? (session.config as Record<string, unknown> | undefined)?.allowFileUpload as boolean | undefined;
     if (file && file.size > 0 && allowFileUpload) {
       if (file.size > CONFIG.TOOLS.MAX_FILE_SIZE) {
@@ -112,7 +116,7 @@ export async function POST(req: NextRequest) {
 
     await ToolSession.findByIdAndUpdate(sessionId, { $inc: { responseCount: 1 } });
 
-    const isFirstSubmission = existingCount === 0;
+    const isFirstSubmission = totalExisting === 0;
     if (isFirstSubmission) {
       await ToolSession.findByIdAndUpdate(sessionId, {
         $inc: { participantCount: 1 },

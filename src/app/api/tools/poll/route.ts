@@ -106,12 +106,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid content' }, { status: 400 });
     }
 
-    const existingCount = await ToolResponse.countDocuments({
-      sessionId,
-      studentToken,
-    });
+    const totalExisting = await ToolResponse.countDocuments({ sessionId, studentToken });
 
-    const maxSubmissions = session.config?.maxSubmissions || 10;
+    const existingCount = stepIndex !== undefined
+      ? await ToolResponse.countDocuments({ sessionId, studentToken, stepIndex })
+      : totalExisting;
+
+    const si = stepIndex !== undefined ? stepIndex : -1;
+    const stepCfg = si >= 0
+      ? (session.steps as Record<string, unknown>[] | undefined)?.[si]?.config as Record<string, unknown> | undefined
+      : null;
+    const maxSubmissions = (stepCfg?.maxSubmissions as number | undefined) ?? (session.config?.maxSubmissions as number | undefined) ?? 10;
 
     if (existingCount >= maxSubmissions) {
       const result: Record<string, unknown> = {
@@ -119,8 +124,10 @@ export async function POST(req: NextRequest) {
         code: getError('T07').code,
       };
       if (body.content && typeof body.content === 'object' && 'total' in body.content) {
+        const histQuery: Record<string, unknown> = { sessionId, studentToken };
+        if (stepIndex !== undefined) histQuery.stepIndex = stepIndex;
         const prevAttempts = await ToolResponse.find(
-          { sessionId, studentToken },
+          histQuery,
           'content createdAt',
         ).sort({ createdAt: -1 }).lean();
         const scores = prevAttempts
@@ -153,7 +160,7 @@ export async function POST(req: NextRequest) {
       $inc: { responseCount: 1 },
     });
 
-    const isFirstSubmission = existingCount === 0;
+    const isFirstSubmission = totalExisting === 0;
     if (isFirstSubmission) {
       await ToolSession.findByIdAndUpdate(sessionId, {
         $inc: { participantCount: 1 },
