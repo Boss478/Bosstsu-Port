@@ -55,7 +55,8 @@ export default function PadletBoard({ session, stepIndex, studentName: propName 
 
   const fetchPosts = async (since?: number) => {
     try {
-      const url = `/api/tools/poll?sessionId=${session._id}${since ? `&since=${since}` : ''}`;
+      const stepParam = stepIndex !== undefined ? `&stepIndex=${stepIndex}` : '';
+      const url = `/api/tools/poll?sessionId=${session._id}${stepParam}${since ? `&since=${since}` : ''}`;
       const res = await fetch(url);
       const data = await res.json();
       if (data.responses) {

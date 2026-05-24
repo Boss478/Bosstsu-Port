@@ -89,19 +89,30 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
     setPreviewFileUrl(url);
   };
 
-  const fetchResponses = async (customStepIndex?: number) => {
-    try {
-      const stepIdx = customStepIndex ?? (hasSteps ? activeStepTab : undefined);
-      const stepParam = stepIdx !== undefined && stepIdx >= 0 ? `&stepIndex=${stepIdx}` : '';
-      const res = await fetch(`/api/tools/poll?sessionId=${session._id}${stepParam}`);
-      const data = await res.json();
-      if (data.responses) {
-        setResponses(data.responses);
-      }
-    } catch {
-      // silent fail
-    }
-  };
+   const fetchResponses = async (customStepIndex?: number) => {
+     try {
+       const stepIdx = customStepIndex ?? (hasSteps ? activeStepTab : undefined);
+       const stepParam = stepIdx !== undefined && stepIdx >= 0 ? `&stepIndex=${stepIdx}` : '';
+       const res = await fetch(`/api/tools/poll?sessionId=${session._id}${stepParam}`);
+       const data = await res.json();
+       if (data.responses) {
+         setResponses(prev => {
+           // If fetching a specific step, replace only that step's data
+           if (stepIdx !== undefined && stepIdx >= 0 && hasSteps) {
+             const others = prev.filter((r: any) => {
+               const rStepIdx = r.stepIndex;
+               return rStepIdx === undefined || rStepIdx < 0 || rStepIdx !== stepIdx;
+             });
+             return [...others, ...data.responses];
+           }
+           // If fetching all steps (e.g., all steps view or single step), replace all
+           return data.responses;
+         });
+       }
+     } catch {
+       // silent fail
+     }
+   };
 
   useEffect(() => {
     const handleVisibility = () => {
@@ -247,13 +258,13 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
   return (
     <div id="results-capture-area">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-          {hasSteps && activeStepTab === -1
-            ? `Results — ${t('allSteps')}`
-            : activeStepType
-              ? `Results — Step ${activeStepTab + 1}: ${steps![activeStepTab].title}`
-              : `Results — ${TOOL_LABELS[toolType] || toolType}`}
-        </h2>
+         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+            {hasSteps && activeStepTab === -1
+              ? <>{t('allSteps')} <span className="bg-zinc-200/60 dark:bg-slate-600/60 rounded-full text-xs px-2 py-0.5 leading-none">{responses.length}</span></>
+              : activeStepType
+                ? <>Step {activeStepTab + 1}: {steps![activeStepTab].title} <span className="bg-zinc-200/60 dark:bg-slate-600/60 rounded-full text-xs px-2 py-0.5 leading-none">{stepCounts[activeStepTab] ?? 0}</span></>
+                : <>{TOOL_LABELS[toolType] || toolType} <span className="bg-zinc-200/60 dark:bg-slate-600/60 rounded-full text-xs px-2 py-0.5 leading-none">{responses.length}</span></>}
+          </h2>
         <div className="flex items-center gap-2">
           <button
             onClick={handleRefresh}
@@ -303,9 +314,6 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
                 }`}
               >
                 {t('allSteps')}
-                <span className="text-xs px-1.5 py-0.5 rounded-full bg-zinc-200/60 dark:bg-slate-600/60">
-                  {Object.values(stepCounts).reduce((a, b) => a + b, 0)}
-                </span>
               </button>
               {steps.map((step, idx) => (
                 <button
@@ -318,13 +326,6 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
                   }`}
                 >
                   {t('step', { current: idx + 1 })}: {step.title}
-                  <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                    activeStepTab === idx
-                      ? 'bg-blue-100 dark:bg-blue-800/40'
-                      : 'bg-zinc-200/60 dark:bg-slate-600/60'
-                  }`}>
-                    {stepCounts[idx] ?? 0}
-                  </span>
                 </button>
               ))}
             </div>

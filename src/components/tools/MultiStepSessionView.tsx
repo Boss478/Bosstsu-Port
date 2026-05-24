@@ -117,6 +117,12 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
           <h2 className="text-xl font-bold text-zinc-700 dark:text-zinc-300">
             {t('waitingForTeacher')}
           </h2>
+          {session.requireStudentName && studentName && (
+            <div className="flex items-center justify-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400 mt-4">
+              <i className="fi fi-sr-user text-xs" />
+              <span>{studentName}</span>
+            </div>
+          )}
           <p className="text-zinc-500 dark:text-zinc-400 mt-6 text-sm">{t('sessionCode')}</p>
           <p className="text-zinc-400 mt-1 text-5xl font-bold tracking-[0.15em] font-mono select-all">
             {session.sessionCode}
@@ -175,6 +181,12 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
         <p className="text-center text-sm text-zinc-500 dark:text-zinc-400 mt-2">
           {t('stepOfTotal', { current: currentStep + 1, total: totalSteps })} — {step?.title}
         </p>
+        {session.requireStudentName && studentName && (
+          <div className="flex items-center justify-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+            <i className="fi fi-sr-user text-xs" />
+            <span>{studentName}</span>
+          </div>
+        )}
       </div>
 
       {session.allowStudentNavigation && (

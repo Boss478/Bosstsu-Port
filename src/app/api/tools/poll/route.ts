@@ -114,10 +114,26 @@ export async function POST(req: NextRequest) {
     const maxSubmissions = session.config?.maxSubmissions || 10;
 
     if (existingCount >= maxSubmissions) {
-      return NextResponse.json(
-        { error: getError('T07').message, code: getError('T07').code },
-        { status: 400 }
-      );
+      const result: Record<string, unknown> = {
+        error: getError('T07').message,
+        code: getError('T07').code,
+      };
+      if (body.content && typeof body.content === 'object' && 'total' in body.content) {
+        const prevAttempts = await ToolResponse.find(
+          { sessionId, studentToken },
+          'content createdAt',
+        ).sort({ createdAt: -1 }).lean();
+        const scores = prevAttempts
+          .map(a => ((a.content as Record<string, unknown>)?.score as number) ?? -1)
+          .filter(s => s >= 0);
+        result.bestScore = scores.length ? Math.max(...scores) : 0;
+        result.total = (body.content as Record<string, unknown>).total;
+        result.history = prevAttempts.map(a => ({
+          score: ((a.content as Record<string, unknown>)?.score as number) ?? 0,
+          date: a.createdAt,
+        }));
+      }
+      return NextResponse.json(result, { status: 400 });
     }
 
     const editToken = crypto.randomUUID();

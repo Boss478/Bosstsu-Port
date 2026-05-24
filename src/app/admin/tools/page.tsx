@@ -55,17 +55,18 @@ export default async function ToolsListPage({
   const totalSessions = await countSessions(search || undefined, typeFilter || undefined);
   const totalPages = Math.ceil(totalSessions / limit);
 
-  const sessions = sessionsRaw as Array<{
-    _id: string;
-    sessionCode: string;
-    title: string;
-    type: string;
-    isActive: boolean;
-    responseCount: number;
-    participantCount: number;
-    startedAt: string;
-    endedAt?: string;
-  }>;
+const sessions = sessionsRaw as Array<{
+  _id: string;
+  sessionCode: string;
+  title: string;
+  type: string;
+  isActive: boolean;
+  responseCount: number;
+  participantCount: number;
+  startedAt: string;
+  endedAt?: string;
+  steps?: Array<unknown>;
+}>;
 
   const activeSessions = sessions.filter(s => s.isActive);
   const pastSessions = sessions.filter(s => !s.isActive);
@@ -120,46 +121,52 @@ export default async function ToolsListPage({
                   className="p-5 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-emerald-200 dark:border-emerald-800/50 shadow-sm"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-mono font-bold text-xl text-blue-600 dark:text-blue-400 tracking-widest">
-                            {session.sessionCode}
-                          </span>
-                          <ToggleActive
-                            id={session._id}
-                            isActive={session.isActive}
-                            action={toggleActive}
-                          />
-                        </div>
-                        <p className="text-zinc-700 dark:text-zinc-300 font-semibold">{session.title}</p>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-zinc-400">
-                          <span className="inline-flex items-center gap-1">
-                            <i className={`fi ${TOOL_TYPE_ICONS[session.type] || 'fi-sr-tool'}`} />
-                            {TOOL_TYPE_LABELS[session.type] || session.type}
-                          </span>
+                    <div>
+                       <div className="flex items-center gap-2 mb-1">
+                         <span className="font-mono font-bold text-xl text-blue-600 dark:text-blue-400 tracking-widest">
+                           {session.sessionCode}
+                         </span>
+                         <ToggleActive
+                           id={session._id}
+                           isActive={session.isActive}
+                           action={toggleActive}
+                         />
+                       </div>
+                       <p className="text-zinc-700 dark:text-zinc-300 font-semibold">{session.title}</p>
+                       <div className="flex items-center gap-3 mt-1 text-xs text-zinc-400">
+                          {(session.steps?.length ?? 0) > 1 ? (
+                            <span className="inline-flex items-center gap-1">
+                              <i className="fi fi-sr-layer-group" />
+                              Multi-session
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1">
+                              <i className={`fi ${TOOL_TYPE_ICONS[session.type] || 'fi-sr-tool'}`} />
+                              {TOOL_TYPE_LABELS[session.type] || session.type}
+                            </span>
+                          )}
                           <span>{session.responseCount} responses</span>
-                          <span>Started {new Date(session.startedAt).toLocaleDateString('th-TH')}</span>
+
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/study/${session.sessionCode}`}
-                        target="_blank"
-                        className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-sm transition-colors"
-                      >
-                        <i className="fi fi-sr-arrow-up-right text-sm" />
-                        Try it
-                      </Link>
-                      <Link
-                        href={`/admin/tools/sessions/${session._id}`}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-colors"
-                      >
-                        <i className="fi fi-sr-eye text-sm" />
-                        View
-                      </Link>
-                    </div>
+                      <div className="flex items-center gap-3">
+                        {session.participantCount > 0 && (
+                          <Link
+                            href={`/admin/tools/sessions/${session._id}`}
+                            className="text-xs text-blue-500 hover:underline"
+                          >
+                            <i className="fi fi-sr-arrow-up-right text-sm" />
+                            Try it
+                          </Link>
+                        )}
+                        <Link
+                          href={`/admin/tools/sessions/${session._id}`}
+                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-colors"
+                        >
+                          <i className="fi fi-sr-eye text-sm" />
+                          View
+                        </Link>
+                      </div>
                   </div>
                 </div>
               ))}
@@ -198,18 +205,25 @@ export default async function ToolsListPage({
                           />
                         </div>
                         <p className="text-zinc-700 dark:text-zinc-300 font-semibold">{session.title}</p>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-zinc-400">
-                          <span className="inline-flex items-center gap-1">
-                            <i className={`fi ${TOOL_TYPE_ICONS[session.type] || 'fi-sr-tool'}`} />
-                            {TOOL_TYPE_LABELS[session.type] || session.type}
-                          </span>
-                          <span>{session.responseCount} responses</span>
-                          <span>
-                            {session.endedAt
-                              ? `Ended ${new Date(session.endedAt).toLocaleDateString('th-TH')}`
-                              : `Started ${new Date(session.startedAt).toLocaleDateString('th-TH')}`}
-                          </span>
-                        </div>
+                         <div className="flex items-center gap-3 mt-1 text-xs text-zinc-400">
+                            {(session.steps?.length ?? 0) > 1 ? (
+                             <span className="inline-flex items-center gap-1">
+                               <i className="fi fi-sr-layer-group" />
+                               Multi-session
+                             </span>
+                           ) : (
+                             <span className="inline-flex items-center gap-1">
+                               <i className={`fi ${TOOL_TYPE_ICONS[session.type] || 'fi-sr-tool'}`} />
+                               {TOOL_TYPE_LABELS[session.type] || session.type}
+                             </span>
+                           )}
+                           <span>{session.responseCount} responses</span>
+                           <span>
+                             {session.endedAt
+                               ? `Ended ${new Date(session.endedAt).toLocaleDateString('th-TH')}`
+                               : `Started ${new Date(session.startedAt).toLocaleDateString('th-TH')}`}
+                           </span>
+                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Link

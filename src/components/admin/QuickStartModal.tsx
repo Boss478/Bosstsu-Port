@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { quickStartSession, saveTemplate, getTemplates } from '@/app/admin/tools/actions';
+import { quickStartSession, updateSession, updateSessionSteps, saveTemplate, getTemplates } from '@/app/admin/tools/actions';
 import { t } from '@/lib/tool-translations';
 
 const TOOL_TYPES = [
@@ -17,13 +17,28 @@ const TOOL_TYPES = [
 
 const NAMED_TOOL_TYPES = ['padlet', 'assignment', 'exit_ticket'];
 
-interface StepConfig {
+export interface StepConfig {
   type: string;
   title: string;
   config: Record<string, unknown>;
 }
 
-export default function QuickStartModal() {
+interface QuickStartModalProps {
+  editingSession?: {
+    _id: string;
+    title: string;
+    type: string;
+    config?: Record<string, unknown>;
+    requireStudentName?: boolean;
+    steps?: StepConfig[];
+    allowStudentNavigation?: boolean;
+    description?: string;
+  };
+  onSuccess?: () => void;
+  onClose?: () => void;
+}
+
+export default function QuickStartModal({ editingSession, onSuccess, onClose }: QuickStartModalProps) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<'single' | 'multi'>('single');
   const [step, setStep] = useState<'main-title' | 'type' | 'config' | 'templates'>('type');
@@ -43,6 +58,7 @@ export default function QuickStartModal() {
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [currentEditingQuizQuestion, setCurrentEditingQuizQuestion] = useState<number | null>(null);
 
+  const [maxSubmissions, setMaxSubmissions] = useState<number>(0);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,9 +74,42 @@ export default function QuickStartModal() {
   const [mainTitle, setMainTitle] = useState('');
   const [description, setDescription] = useState('');
   const router = useRouter();
+  const isEditing = !!editingSession;
+
+  const handleDismiss = () => {
+    setOpen(false);
+    onClose?.();
+  };
 
   const handleOpen = () => {
     setOpen(true);
+    setError(null);
+    if (editingSession) {
+      const cfg = editingSession.config || {};
+      const stepsArr = editingSession.steps || [];
+      const isMulti = stepsArr.length > 1;
+      setMode(isMulti ? 'multi' : 'single');
+      setStep(isMulti ? 'main-title' : 'config');
+      setSelectedType(editingSession.type);
+      setTitle(editingSession.title);
+      setMainTitle(editingSession.title);
+      setDescription(editingSession.description || '');
+      setRequireStudentName(editingSession.requireStudentName || false);
+      setAllowStudentNavigation(editingSession.allowStudentNavigation || false);
+      setPrompt((cfg.prompt as string) || '');
+      setAllowFileUpload(cfg.allowFileUpload === true);
+      setPollMode((cfg.pollMode as 'mcq' | 'wordcloud') || 'mcq');
+      setAllowCustomChoices(cfg.allowCustomChoices === true);
+      const rawOptions = ((cfg.questions as Array<{ options?: string[] }>)?.[0]?.options as string[]) || [];
+      setPollOptions(rawOptions.length ? rawOptions : ['', '']);
+      const rawQuiz = (cfg.questions as Array<{ question?: string; options?: string[]; correctAnswer?: number }>) || [];
+      setQuizQuestions(rawQuiz.length > 0
+        ? rawQuiz.map(q => ({ question: q.question || '', options: q.options || [], correctAnswer: q.correctAnswer ?? -1 }))
+        : []);
+      setSteps(stepsArr as StepConfig[]);
+      setMaxSubmissions((cfg.maxSubmissions as number) || 0);
+      return;
+    }
     setMode('single');
     setStep('type');
     setSelectedType('');
@@ -77,8 +126,14 @@ export default function QuickStartModal() {
     setRequireStudentName(false);
     setMainTitle('');
     setDescription('');
-    setError(null);
+    setMaxSubmissions(0);
   };
+
+  useEffect(() => {
+    if (editingSession) {
+      handleOpen();
+    }
+  }, [editingSession]);
 
   const handleTypeSelect = (type: string) => {
     if (mode === 'multi') {
@@ -268,6 +323,19 @@ export default function QuickStartModal() {
           }))));
       }
     }
+    if (maxSubmissions > 0) formData.set('maxSubmissions', String(maxSubmissions));
+    if (description) formData.set('description', description);
+    if (isEditing && editingSession) {
+      const result = await updateSession(editingSession._id, formData);
+      setPending(false);
+      if (result?.error) {
+        setError(result.error);
+      } else {
+        setOpen(false);
+        onSuccess?.();
+      }
+      return;
+    }
     const result = await quickStartSession(formData);
     setPending(false);
     if (result.error) {
@@ -294,6 +362,17 @@ export default function QuickStartModal() {
     formData.set('type', steps[0].type);
     formData.set('title', mainTitle.trim() || steps[0].title);
     if (description.trim()) formData.set('description', description.trim());
+    if (isEditing && editingSession) {
+      const result = await updateSessionSteps(editingSession._id, formData);
+      setPending(false);
+      if (result?.error) {
+        setError(result.error);
+      } else {
+        setOpen(false);
+        onSuccess?.();
+      }
+      return;
+    }
     const result = await quickStartSession(formData);
     setPending(false);
     if (result.error) {
@@ -567,18 +646,45 @@ export default function QuickStartModal() {
       )}
 
       {mode === 'single' && (
-      <div className="flex items-center gap-2 pt-3 border-t border-zinc-200 dark:border-slate-700">
-        <input
-          type="checkbox"
-          id="requireStudentName"
-          checked={requireStudentName}
-          onChange={e => setRequireStudentName(e.target.checked)}
-          disabled={selectedType === 'assignment'}
-          className="accent-blue-500 w-4 h-4"
-        />
-        <label htmlFor="requireStudentName" className={`text-sm font-medium ${selectedType === 'assignment' ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-700 dark:text-zinc-300'}`}>
-          ต้องใส่ชื่อ
-        </label>
+      <div className="space-y-3 pt-3 border-t border-zinc-200 dark:border-slate-700">
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+            Description <span className="text-zinc-400 text-xs">(optional)</span>
+          </label>
+          <textarea
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            placeholder="e.g. A quick comprehension check after the grammar lesson"
+            rows={2}
+            className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="requireStudentName"
+            checked={requireStudentName}
+            onChange={e => setRequireStudentName(e.target.checked)}
+            disabled={selectedType === 'assignment'}
+            className="accent-blue-500 w-4 h-4"
+          />
+          <label htmlFor="requireStudentName" className={`text-sm font-medium ${selectedType === 'assignment' ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-700 dark:text-zinc-300'}`}>
+            ต้องใส่ชื่อ
+          </label>
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+            Max submissions per student <span className="text-zinc-400 text-xs">(0 = unlimited)</span>
+          </label>
+          <input
+            type="number"
+            min={0}
+            max={100}
+            value={maxSubmissions}
+            onChange={e => setMaxSubmissions(Math.max(0, parseInt(e.target.value) || 0))}
+            className="w-24 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
       </div>
       )}
     </>
@@ -831,21 +937,25 @@ export default function QuickStartModal() {
 
   return (
     <>
-      <button
-        onClick={handleOpen}
-        className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:-translate-y-0.5"
-      >
-        <i className="fi fi-sr-plus text-sm" />
-        Start New Session
-      </button>
+      {!isEditing && (
+        <button
+          onClick={handleOpen}
+          className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:-translate-y-0.5"
+        >
+          <i className="fi fi-sr-plus text-sm" />
+          Start New Session
+        </button>
+      )}
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/10" onClick={() => setOpen(false)} />
+          <div className="fixed inset-0 bg-black/10" onClick={handleDismiss} />
           <div className="relative w-full max-w-lg bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/50 shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-zinc-200/60 dark:border-slate-700/50">
               <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                {step === 'main-title'
+                {isEditing
+                  ? 'Edit Session'
+                  : step === 'main-title'
                   ? 'Session Title'
                   : step === 'type'
                   ? 'Select Tool Type'
@@ -854,7 +964,7 @@ export default function QuickStartModal() {
                   : (editingStepIndex >= 0 ? 'Edit Step' : 'Configure Step')}
               </h2>
               <button
-                onClick={() => setOpen(false)}
+                onClick={handleDismiss}
                 className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 transition-colors"
               >
                 <i className="fi fi-sr-cross text-lg" />
@@ -924,7 +1034,7 @@ export default function QuickStartModal() {
                     className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-all disabled:opacity-50"
                   >
                     <i className={`fi fi-sr-${mode === 'multi' ? 'plus' : 'play'} text-sm`} />
-                    {pending ? 'Starting...' : mode === 'multi' ? (editingStepIndex >= 0 ? 'Update Step' : 'Add Step') : t('startSession')}
+                    {pending ? 'Saving...' : mode === 'multi' ? (editingStepIndex >= 0 ? 'Update Step' : 'Add Step') : isEditing ? 'Save Changes' : t('startSession')}
                   </button>
                 </>
               )}
@@ -932,7 +1042,7 @@ export default function QuickStartModal() {
               {step === 'type' && mode === 'multi' && (
                 <div className="flex items-center justify-between w-full">
                   <button
-                    onClick={() => setOpen(false)}
+                    onClick={handleDismiss}
                     className="px-4 py-2 text-sm font-medium text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
                   >
                     Cancel
@@ -961,7 +1071,7 @@ export default function QuickStartModal() {
               {step === 'type' && mode === 'single' && (
                 <div className="flex items-center justify-between w-full">
                   <button
-                    onClick={() => setOpen(false)}
+                    onClick={handleDismiss}
                     className="px-4 py-2 text-sm font-medium text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
                   >
                     Cancel
@@ -1012,7 +1122,7 @@ export default function QuickStartModal() {
                     className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-all disabled:opacity-50"
                   >
                     <i className="fi fi-sr-play text-sm" />
-                    {pending ? 'Starting...' : 'Start'}
+                    {pending ? 'Saving...' : isEditing ? 'Save Changes' : 'Start'}
                   </button>
                 </div>
               )}

@@ -4,6 +4,16 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.8 (2026-05-23)
+
++ Added Teacher Controls Phase 2 — edit button on session detail, QuickStartModal edit mode (pre-populate, branching submit, onClose callback)
++ Added StudentList participants panel (remove students + all their responses)
++ Added maxSubmissions field to single-step sessions (configurable per-session cap)
+* Fixed participantCount not showing for single-step sessions — StudentList now renders outside hasSteps guard
+* Fixed session list type label for multi-step sessions — shows "Multi-session" instead of first step's tool type
+* Fixed maxSubmissions edit not persisting — updateSession now writes to config.maxSubmissions (was root-level)
+* Fixed poll results showing unfiltered data — fetchResponses uses merge strategy, preserves other steps' responses
+
 ## v1.9.7 (2026-05-23)
 
 + Added participantCount tracking — now increments on first student submission via poll or respond route (was always 0, only schema-defined but never written)

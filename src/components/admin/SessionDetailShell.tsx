@@ -2,9 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumb';
 import ResultsView from '@/components/admin/ResultsView';
 import SessionManager from '@/components/admin/SessionManager';
+import QuickStartModal, { type StepConfig } from '@/components/admin/QuickStartModal';
+import StudentList from '@/components/admin/StudentList';
 import { advanceStep } from '@/app/admin/tools/actions';
 import { t } from '@/lib/tool-translations';
 
@@ -14,8 +17,10 @@ interface SessionDetailShellProps {
 }
 
 export default function SessionDetailShell({ session, responses }: SessionDetailShellProps) {
+  const router = useRouter();
   const [codeFullScreen, setCodeFullScreen] = useState(false);
   const [advancing, setAdvancing] = useState(false);
+  const [editSessionData, setEditSessionData] = useState<Record<string, unknown> | null>(null);
 
   const steps = session.steps as Array<{ type: string; title: string }> | undefined;
   const hasSteps = steps && steps.length > 1;
@@ -104,19 +109,31 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
               </h1>
               <p className="text-zinc-500 dark:text-zinc-400 mt-1">{String(session.title)}</p>
             </div>
-            <Link
-              href="/admin/tools"
-              className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 rounded-xl shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors"
-            >
-              <i className="fi fi-sr-arrow-left" />
-              All Sessions
-            </Link>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setEditSessionData(session)}
+                className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 rounded-xl shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                <i className="fi fi-sr-pencil" />
+                Edit
+              </button>
+              <Link
+                href="/admin/tools"
+                className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 rounded-xl shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                <i className="fi fi-sr-arrow-left" />
+                All Sessions
+              </Link>
+            </div>
           </div>
 
-          <SessionManager
-            session={session}
-            onToggleCodeFullScreen={() => setCodeFullScreen(true)}
-          />
+           <SessionManager
+             session={session}
+             onToggleCodeFullScreen={() => setCodeFullScreen(true)}
+           />
+           <div className="mt-6">
+             <StudentList sessionId={String(session._id)} />
+           </div>
 
           {hasSteps && (
             <div className="mt-6 p-4 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
@@ -215,6 +232,26 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
           </div>
         </div>
       </div>
+
+      {editSessionData && (
+        <QuickStartModal
+          editingSession={{
+            _id: String(editSessionData._id),
+            title: String(editSessionData.title || ''),
+            type: String(editSessionData.type || ''),
+            config: editSessionData.config as Record<string, unknown> | undefined,
+            requireStudentName: editSessionData.requireStudentName as boolean | undefined,
+            steps: editSessionData.steps as StepConfig[] | undefined,
+            allowStudentNavigation: editSessionData.allowStudentNavigation as boolean | undefined,
+            description: String(editSessionData.description || ''),
+          }}
+          onSuccess={() => {
+            setEditSessionData(null);
+            router.refresh();
+          }}
+          onClose={() => setEditSessionData(null)}
+        />
+      )}
     </>
   );
 }

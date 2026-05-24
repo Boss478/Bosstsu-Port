@@ -106,6 +106,106 @@ export async function quickStartSession(formData: FormData) {
   }
 }
 
+export async function updateSession(sessionId: string, formData: FormData) {
+  const isAuth = await verifyAuth();
+  if (!isAuth) return { error: formatError('401') };
+
+  const raw: Record<string, unknown> = {};
+  const title = formData.get('title') as string;
+  if (title) raw.title = title.trim();
+  const description = formData.get('description') as string;
+  if (description !== null) raw.description = description;
+  raw.requireStudentName = formData.has('requireStudentName');
+  const maxSub = formData.get('maxSubmissions');
+
+  const updateSessionSchema = z.object({
+    title: z.string().trim().min(1).max(100).optional(),
+    description: z.string().optional(),
+    requireStudentName: z.boolean().optional(),
+    // maxSubmissions is handled manually below
+  }).strict();
+
+  const parsed = updateSessionSchema.safeParse(raw);
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  try {
+    await dbConnect();
+    
+    // Build update object with nested config.maxSubmissions
+    const setData: Record<string, unknown> = { ...parsed.data };
+    // Remove any root-level maxSubmissions from parsed.data if present
+    delete setData.maxSubmissions;
+    
+    // Set maxSubmissions in config if provided
+    if (maxSub !== null) {
+      setData['config.maxSubmissions'] = parseInt(maxSub as string);
+    }
+    
+    await ToolSession.findByIdAndUpdate(sessionId, { $set: setData });
+    revalidatePath('/admin/tools');
+    revalidatePath(`/admin/tools/sessions/${sessionId}`);
+    return { error: undefined };
+  } catch (err) {
+    console.error('Update session error:', err);
+    return { error: formatError('DB03') };
+  }
+}
+
+export async function updateSessionSteps(sessionId: string, formData: FormData) {
+  const isAuth = await verifyAuth();
+  if (!isAuth) return { error: formatError('401') };
+
+  const stepsRaw = formData.get('steps') as string;
+  const requireStudentName = formData.has('requireStudentName');
+  if (!stepsRaw) return { error: 'Steps required' };
+
+  try {
+    const steps = JSON.parse(stepsRaw);
+    const stepsSchema = z.array(z.object({
+      type: z.string().min(1),
+      title: z.string().min(1),
+      config: z.unknown().optional(),
+    }));
+    const parsed = stepsSchema.safeParse(steps);
+    if (!parsed.success) return { error: 'Invalid step data' };
+
+    await dbConnect();
+    await ToolSession.findByIdAndUpdate(sessionId, {
+      $set: {
+        steps: parsed.data,
+        currentStep: -1,
+        requireStudentName,
+      },
+    });
+    revalidatePath('/admin/tools');
+    revalidatePath(`/admin/tools/sessions/${sessionId}`);
+    return { error: undefined };
+  } catch {
+    return { error: 'Invalid JSON' };
+  }
+}
+
+export async function deleteStudentResponses(sessionId: string, studentToken: string) {
+  const isAuth = await verifyAuth();
+  if (!isAuth) return { error: formatError('401') };
+
+  try {
+    await dbConnect();
+    const result = await ToolResponse.deleteMany({ sessionId, studentToken });
+    if (result.deletedCount > 0) {
+      await ToolSession.findByIdAndUpdate(sessionId, {
+        $inc: { responseCount: -result.deletedCount, participantCount: -1 },
+      });
+    }
+    revalidatePath('/admin/tools');
+    revalidatePath(`/admin/tools/sessions/${sessionId}`);
+    return { error: undefined };
+  } catch (err) {
+    console.error('Delete student responses error:', err);
+    return { error: formatError('DB03') };
+  }
+}
+
 export async function endSession(formData: FormData): Promise<void> {
   const sessionId = formData.get('sessionId') as string;
   if (!sessionId) return;

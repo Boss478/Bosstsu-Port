@@ -40,7 +40,8 @@ export default function MentimeterPoll({ session, stepIndex }: MentimeterPollPro
 
   const fetchPoll = async () => {
     try {
-      const res = await fetch(`/api/tools/poll?sessionId=${session._id}`);
+      const stepParam = stepIndex !== undefined ? `&stepIndex=${stepIndex}` : '';
+      const res = await fetch(`/api/tools/poll?sessionId=${session._id}${stepParam}`);
       const data = await res.json();
       if (data.responses) {
         setResponses(data.responses);

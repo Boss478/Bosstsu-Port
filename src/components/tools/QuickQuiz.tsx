@@ -17,6 +17,10 @@ export default function QuickQuiz({ session, stepIndex, studentName }: QuickQuiz
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [maxReached, setMaxReached] = useState(false);
+  const [bestScore, setBestScore] = useState(0);
+  const [totalQuestions, setTotalQuestions] = useState(0);
+  const [history, setHistory] = useState<Array<{ score: number }>>([]);
 
   const questions = session.config?.questions || [];
   const total = questions.length;
@@ -57,7 +61,14 @@ export default function QuickQuiz({ session, stepIndex, studentName }: QuickQuiz
       });
       const data = await res.json();
       if (data.error) {
-        setError(data.error);
+        if (data.bestScore !== undefined) {
+          setBestScore(data.bestScore);
+          setTotalQuestions(data.total);
+          setHistory(data.history || []);
+          setMaxReached(true);
+        } else {
+          setError(data.error);
+        }
       } else {
         setSubmitted(true);
       }
@@ -72,6 +83,40 @@ export default function QuickQuiz({ session, stepIndex, studentName }: QuickQuiz
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-zinc-500">{t('noQuizQuestions')}</p>
+      </div>
+    );
+  }
+
+  if (maxReached) {
+    return (
+      <div className="min-h-screen flex items-start justify-center p-4 pt-12">
+        <div className="max-w-lg w-full space-y-4">
+          <div className="p-8 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-lg text-center">
+            <i className="fi fi-sr-trophy text-6xl text-amber-500 block mb-4" />
+            <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+              {t('bestScore', { score: bestScore, total: totalQuestions })}
+            </h2>
+          </div>
+          {history.length > 0 && (
+            <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
+              <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-3">
+                {t('attemptHistory')}
+              </h3>
+              <div className="space-y-2">
+                {history.map((h, i) => (
+                  <div key={i} className="flex items-center justify-between py-2 px-3 rounded-lg bg-zinc-50 dark:bg-slate-900/50">
+                    <span className="text-sm text-zinc-500 dark:text-zinc-400">
+                      {t('attemptLabel')} {history.length - i}
+                    </span>
+                    <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                      {h.score}/{totalQuestions}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -113,7 +158,7 @@ export default function QuickQuiz({ session, stepIndex, studentName }: QuickQuiz
         </div>
 
         {currentQuestion && (
-          <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-4">
+          <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-4 h-[360px] overflow-y-auto">
             <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
               {currentQuestion.question}
             </p>
