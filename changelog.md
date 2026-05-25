@@ -4,6 +4,15 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.15 (2026-05-25)
+
++ Code cleanup — dead code removal & consolidation (Round 2)
++ Added missing `@utility animate-fade-in-up` CSS animation (was referenced in 6 components but never defined)
+* Removed duplicate `createErrorResponse()` function — identical to `getError()`, migrated 4 callers to `getError()`
+* Fixed CSS typo / cleanup: removed 4 unused backdrop-blur tokens, 3 unused CSS custom props, 2 unused color vars, 1 unused `@utility` (-12 lines total)
+* Fixed Thai typo in error T09: `เซสึนหมดอายุแล้ว` → `เซสชันหมดอายุแล้ว`
+- Removed unused imports across 8 files (GalleryClient, GamesClient, PlayView, PortfolioClient, ResourcesClient, ExportButton, QuickStartModal, PhotoLightbox, tool-translations, admin resources actions)
+
 ## v1.9.14 (2026-05-25)
 
 + Phase 5 — Architecture & Code Organization (9 items)
