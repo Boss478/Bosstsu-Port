@@ -4,7 +4,6 @@ import { z } from 'zod';
 import dbConnect from '@/lib/db';
 import Learning from '@/models/Learning';
 import { saveFile } from '@/lib/upload';
-import { formatError } from '@/lib/error-code';
 import { parseTagString } from '@/lib/format';
 import { titleField, descriptionField, tagsField, optionalString } from '@/lib/validation';
 import { ROUTES } from '@/lib/routes';

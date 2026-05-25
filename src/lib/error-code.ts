@@ -40,7 +40,7 @@ const ERRORS = {
   T06: { http: 429, message: "ส่งคำตอบเร็วเกินไป กรุณารอสักครู่", translation: "Too many submissions" },
   T07: { http: 400, message: "คุณส่งคำตอบครบจำนวนที่กำหนดแล้ว", translation: "Submission limit reached" },
   T08: { http: 400, message: "ไม่สามารถแก้ไขคำตอบนี้ได้", translation: "Cannot edit this response" },
-  T09: { http: 400, message: "เซสึนหมดอายุแล้ว ไม่สามารถแก้ไขได้", translation: "Session expired, cannot edit" },
+  T09: { http: 400, message: "เซสชันหมดอายุแล้ว ไม่สามารถแก้ไขได้", translation: "Session expired, cannot edit" },
 } as const;
 
 type ErrorKey = keyof typeof ERRORS;
@@ -69,10 +69,6 @@ export function getError(key: string): ErrorResponse {
     message: err.message,
     translation: err.translation,
   };
-}
-
-export function createErrorResponse(key: string): ErrorResponse {
-  return getError(key);
 }
 
 /** Format error for display to user: "ERROR_XXX [HTTP]: message (translation)" */

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth';
 import { saveFile, isHeicFile } from '@/lib/upload';
 import { CONFIG } from '@/lib/config';
-import { createErrorResponse } from '@/lib/error-code';
+import { getError } from '@/lib/error-code';
 
 const ALLOWED_FOLDERS = [...CONFIG.UPLOAD.ALLOWED_FOLDERS] as string[];
 const FOLDERS_CONVERT_TO_WEBP = [...CONFIG.UPLOAD.FOLDERS_CONVERT_TO_WEBP] as string[];
@@ -10,7 +10,7 @@ const FOLDERS_CONVERT_TO_WEBP = [...CONFIG.UPLOAD.FOLDERS_CONVERT_TO_WEBP] as st
 export async function POST(req: NextRequest) {
   const isAuth = await verifyAuth();
   if (!isAuth) {
-    const err = createErrorResponse('401');
+    const err = getError('401');
     return NextResponse.json({ error: err }, { status: err.httpStatus });
   }
 
@@ -20,25 +20,25 @@ export async function POST(req: NextRequest) {
     const folderInput = (formData.get('folder') as string) || 'misc';
 
     if (!file) {
-      const err = createErrorResponse('400');
+      const err = getError('400');
       return NextResponse.json({ error: err }, { status: err.httpStatus });
     }
 
     if (!ALLOWED_FOLDERS.includes(folderInput)) {
-      const err = createErrorResponse('U04');
+      const err = getError('U04');
       return NextResponse.json({ error: err }, { status: err.httpStatus });
     }
 
     const maxSize = CONFIG.UPLOAD.MAX_SIZE;
     if (file.size > maxSize) {
-      const err = createErrorResponse('U01');
+      const err = getError('U01');
       return NextResponse.json({ error: err }, { status: err.httpStatus });
     }
 
     const allowedTypes = CONFIG.UPLOAD.ALLOWED_TYPES as unknown as string[];
 
     if (!isHeicFile(file) && !allowedTypes.includes(file.type)) {
-      const err = createErrorResponse('U02');
+      const err = getError('U02');
       return NextResponse.json({ error: err }, { status: err.httpStatus });
     }
 
@@ -50,10 +50,10 @@ export async function POST(req: NextRequest) {
     console.error('API Upload Error:', error);
     const msg = error instanceof Error ? error.message : '';
     if (msg.includes('ERROR_U05') || msg.includes('ERROR_U06') || msg.includes('ERROR_U07')) {
-      const err = createErrorResponse(msg.includes('U07') ? 'U07' : msg.includes('U06') ? 'U06' : 'U05');
+      const err = getError(msg.includes('U07') ? 'U07' : msg.includes('U06') ? 'U06' : 'U05');
       return NextResponse.json({ error: err }, { status: err.httpStatus });
     }
-    const err = createErrorResponse('500');
+    const err = getError('500');
     return NextResponse.json({ error: err }, { status: err.httpStatus });
   }
 }

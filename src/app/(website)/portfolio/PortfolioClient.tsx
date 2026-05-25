@@ -1,7 +1,6 @@
 "use client";
 
-import { useTransition, useState, useMemo, useEffect, useRef } from 'react';
-import { useRouter } from "next/navigation";
+import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from "next/link";
 import Image from "next/image";
 import { type PortfolioItem } from "./data";
@@ -36,7 +35,6 @@ export default function PortfolioClient({
     basePath: '/portfolio',
     filterKey: 'tag',
   });
-  const router = useRouter();
   const [localQuery, setLocalQuery] = useState(activeQuery);
   const syncTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -142,7 +140,6 @@ export default function PortfolioClient({
                 <div className="relative w-full shrink-0 overflow-hidden bg-blue-100 dark:bg-slate-800 flex items-center justify-center" style={{ height: '14rem' }}>
                   {item.cover ? (
                     <>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <Image
                         src={item.cover}
                         alt={item.title}

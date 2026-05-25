@@ -299,7 +299,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
           >
             <i className="fi fi-sr-trash text-sm" />
           </button>
-          <ExportButton session={session} responses={responses} />
+          <ExportButton session={session} />
         </div>
       </div>
 

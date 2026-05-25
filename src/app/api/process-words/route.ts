@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { createErrorResponse } from '@/lib/error-code';
+import { getError } from '@/lib/error-code';
 
 export async function GET() {
   const isAuth = await verifyAuth();
   if (!isAuth) {
-    const err = createErrorResponse('401');
+    const err = getError('401');
     return NextResponse.json({ error: err }, { status: err.httpStatus });
   }
 
@@ -197,7 +197,7 @@ export async function GET() {
     return NextResponse.json({ success: true, count: outRows.length - 1 });
   } catch {
     console.error('Process Words Error');
-    const err = createErrorResponse('500');
+    const err = getError('500');
     return NextResponse.json({ success: false, error: err });
   }
 }

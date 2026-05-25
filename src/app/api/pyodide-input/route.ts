@@ -1,5 +1,5 @@
 import { verifyAuth } from '@/lib/auth';
-import { createErrorResponse } from '@/lib/error-code';
+import { getError } from '@/lib/error-code';
 
 const pendingInputs = new Map<string, { resolve: (res: Response) => void; timer: NodeJS.Timeout }>();
 const MAX_ENTRIES = 50;
@@ -18,14 +18,14 @@ function evictOldest(): void {
 export async function GET(req: Request) {
   const isAuth = await verifyAuth();
   if (!isAuth) {
-    const err = createErrorResponse('401');
+    const err = getError('401');
     return Response.json({ error: err }, { status: err.httpStatus });
   }
 
   const url = new URL(req.url);
   const id = url.searchParams.get('id');
   if (!id || typeof id !== 'string' || id.length > 36) {
-    const err = createErrorResponse('P01');
+    const err = getError('P01');
     return Response.json({ error: err }, { status: err.httpStatus });
   }
 
@@ -46,7 +46,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const isAuth = await verifyAuth();
   if (!isAuth) {
-    const err = createErrorResponse('401');
+    const err = getError('401');
     return Response.json({ error: err }, { status: err.httpStatus });
   }
 
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
   try {
     body = await req.json();
   } catch {
-    const err = createErrorResponse('P01');
+    const err = getError('P01');
     return Response.json({ error: err }, { status: err.httpStatus });
   }
 
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
   const value = typeof body.value === 'string' ? body.value : '';
 
   if (!id || id.length > 36 || value.length > 1000) {
-    const err = createErrorResponse('P02');
+    const err = getError('P02');
     return Response.json({ error: err }, { status: err.httpStatus });
   }
 

@@ -1,4 +1,4 @@
-export const toolStrings = {
+const toolStrings = {
   anonymous: { th: 'ไม่ระบุตัวตน', en: 'Anonymous' },
   yourName: { th: 'ชื่อของคุณ', en: 'Your name' },
   yourNameOptional: { th: 'ชื่อของคุณ', en: 'Your name' },

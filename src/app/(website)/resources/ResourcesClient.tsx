@@ -1,7 +1,6 @@
 "use client";
 
-import { useTransition, useState, useMemo, useEffect, useRef } from 'react';
-import { useRouter } from "next/navigation";
+import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from "next/link";
 import Image from "next/image";
 import { ResourceItem } from './data';
@@ -37,7 +36,6 @@ export default function ResourcesClient({
     basePath: '/resources',
     filterKey: 'type',
   });
-  const router = useRouter();
   const [localQuery, setLocalQuery] = useState(activeQuery);
   const syncTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -137,7 +135,6 @@ export default function ResourcesClient({
                 >
                   <div className="relative aspect-video overflow-hidden bg-zinc-100 dark:bg-slate-800">
                     {item.cover ? (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <Image
                         src={item.cover}
                         alt={item.title}

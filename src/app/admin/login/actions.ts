@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { CONFIG } from '@/lib/config';
 import { getEnv } from '@/lib/env';
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from '@/lib/rate-limit';
-import { createErrorResponse } from '@/lib/error-code';
+import { formatError } from '@/lib/error-code';
 
 async function hmacSign(secret: string, message: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -47,22 +47,19 @@ export async function loginAdmin(
 
   const rateLimit = checkRateLimit(ip);
   if (rateLimit === 'locked') {
-    const err = createErrorResponse('A02');
-    return { error: `${err.code}: ${err.message} (${err.translation})` };
+    return { error: formatError('A02') };
   }
 
   const password = formData.get('password') as string;
   const adminPassword = getEnv().ADMIN_PASSWORD;
 
   if (!adminPassword) {
-    const err = createErrorResponse('500');
-    return { error: `${err.code}: ${err.message} (${err.translation})` };
+    return { error: formatError('500') };
   }
 
   if (password !== adminPassword) {
     recordFailedAttempt(ip);
-    const err = createErrorResponse('A01');
-    return { error: `${err.code}: ${err.message} (${err.translation})` };
+    return { error: formatError('A01') };
   }
 
   resetAttempts(ip);

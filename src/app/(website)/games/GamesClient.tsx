@@ -1,7 +1,6 @@
 "use client";
 
-import { useTransition, useState, useMemo, useEffect, useRef } from 'react';
-import { useRouter } from "next/navigation";
+import { useState, useMemo, useEffect, useRef } from 'react';
 import Image from "next/image";
 import { formatDate } from "@/lib/format";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -35,7 +34,6 @@ export default function GamesClient({
     basePath: '/games',
     filterKey: 'category',
   });
-  const router = useRouter();
   const [localQuery, setLocalQuery] = useState(activeQuery);
   const syncTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -137,7 +135,6 @@ export default function GamesClient({
                 >
                   <div className="relative aspect-video overflow-hidden">
                     {item.cover ? (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <Image
                         src={item.cover}
                         alt={item.title}

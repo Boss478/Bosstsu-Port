@@ -1,7 +1,6 @@
 "use client";
 
-import { useTransition, useState, useMemo, useEffect, useRef } from 'react';
-import { useRouter } from "next/navigation";
+import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from "next/link";
 import Image from "next/image";
 import { type GalleryAlbum } from "./data";
@@ -36,7 +35,6 @@ export default function GalleryClient({
     basePath: '/gallery',
     filterKey: 'tag',
   });
-  const router = useRouter();
   const [localQuery, setLocalQuery] = useState(activeQuery);
   const syncTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 

@@ -66,7 +66,6 @@ export default function PhotoLightbox({ photos, initialIndex, onClose }: PhotoLi
 
   useEffect(() => {
     let cancelled = false;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset when active photo changes
     setExifData(null);
     setExifLoading(true);
     setFileInfo(null);

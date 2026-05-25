@@ -5,11 +5,9 @@ import { useState } from 'react';
 interface ExportButtonProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  responses: any[];
 }
 
-export default function ExportButton({ session, responses }: ExportButtonProps) {
+export default function ExportButton({ session }: ExportButtonProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
 

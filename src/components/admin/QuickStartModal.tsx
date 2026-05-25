@@ -56,7 +56,6 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
     correctAnswer: number;
   }
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
-  const [currentEditingQuizQuestion, setCurrentEditingQuizQuestion] = useState<number | null>(null);
 
   const [maxSubmissions, setMaxSubmissions] = useState<number>(0);
   const [pending, setPending] = useState(false);

@@ -6,7 +6,7 @@ import Game from '@/models/Game';
 import { saveFile } from '@/lib/upload';
 import { formatError } from '@/lib/error-code';
 import { slugify, parseTagString } from '@/lib/format';
-import { titleField, descriptionField, tagsField, optionalString } from '@/lib/validation';
+import { titleField, descriptionField, tagsField } from '@/lib/validation';
 import { ROUTES } from '@/lib/routes';
 import { withAuth, handleDbError, sanitizeHtml, revalidateContentPaths, createTogglePublished, createDeleteItem } from '@/lib/admin-crud';
 
