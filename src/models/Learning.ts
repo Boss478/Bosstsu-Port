@@ -28,7 +28,7 @@ const LearningSchema: Schema = new Schema(
     thumbnail: { type: String },
     tags: { type: [String], default: [] },
     published: { type: Boolean, default: true },
-    content: { type: String },
+    content: { type: String, select: false },
     embedCode: { type: String },
     fileUrl: { type: String },
     youtubeId: { type: String },

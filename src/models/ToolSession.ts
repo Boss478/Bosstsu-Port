@@ -53,7 +53,7 @@ const ToolSessionSchema = new Schema(
     config: {
       prompt: { type: String },
       allowAnonymous: { type: Boolean, default: false },
-      maxSubmissions: { type: Number, default: 10 },
+      maxSubmissions: { type: Number, default: 1 },
       allowFileUpload: { type: Boolean, default: false },
       maxFileSize: { type: Number, default: 10 * 1024 * 1024 },
       pollMode: { type: String, enum: ['mcq', 'wordcloud'], default: 'mcq' },
@@ -76,7 +76,7 @@ const ToolSessionSchema = new Schema(
       config: {
         prompt: { type: String },
         allowAnonymous: { type: Boolean, default: false },
-        maxSubmissions: { type: Number, default: 10 },
+        maxSubmissions: { type: Number, default: 1 },
         allowFileUpload: { type: Boolean, default: false },
         maxFileSize: { type: Number, default: 10 * 1024 * 1024 },
         pollMode: { type: String, enum: ['mcq', 'wordcloud'], default: 'mcq' },

@@ -73,3 +73,24 @@ export function recordFailedAttempt(ip: string): void {
 export function resetAttempts(ip: string): void {
   attempts.delete(ip);
 }
+
+// Tools rate limiting (poll/respond endpoints)
+const toolsRateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+export function getClientIp(request: Request): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0].trim();
+  return request.headers.get('x-real-ip') || 'unknown';
+}
+
+export function checkToolsRateLimit(key: string): boolean {
+  const now = Date.now();
+  const entry = toolsRateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    toolsRateLimitMap.set(key, { count: 1, resetAt: now + 60000 });
+    return true;
+  }
+  if (entry.count >= CONFIG.TOOLS.RATE_LIMIT_PER_MINUTE) return false;
+  entry.count++;
+  return true;
+}

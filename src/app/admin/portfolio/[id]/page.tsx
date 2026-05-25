@@ -18,7 +18,7 @@ export default async function EditPortfolioPage({
   
   let item = null;
   try {
-     item = await Portfolio.findById(id).lean();
+     item = await Portfolio.findById(id).select('+content').lean();
   } catch {
      // Ignore invalid ID error, item remains null
   }

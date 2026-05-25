@@ -46,7 +46,7 @@ export function createTogglePublished(
     return withAuth(async () => {
       try {
         await dbConnect();
-        const item = await Model.findById(id).select('_id published');
+        const item = await Model.findById(id).select('_id published').lean();
         if (!item) return { error: formatError('404') };
         await Model.findByIdAndUpdate(id, { published: !((item as unknown) as Record<string, unknown>).published });
       } catch (error: unknown) {

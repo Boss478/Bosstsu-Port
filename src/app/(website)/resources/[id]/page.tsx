@@ -112,7 +112,7 @@ export default async function ResourceDetailPage({
     await dbConnect();
     doc = await Learning.findOne(
       { _id: id, published: { $ne: false } }
-    ).lean() as LeanLearningDoc | null;
+    ).select('+content').lean() as LeanLearningDoc | null;
   } catch {
     // DB unavailable (Docker build) — ISR populates at runtime
   }

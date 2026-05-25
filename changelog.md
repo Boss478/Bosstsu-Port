@@ -4,6 +4,27 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.14 (2026-05-25)
+
++ Added select: false on 3 Mongoose content fields (Portfolio.content, Learning.content, Game.htmlContent) — schema-level enforcement skips large fields in list queries
++ Added .select('+content') / .select('+htmlContent') to 6 detail/edit pages that need the full content
+
+## v1.9.13 (2026-05-25)
+
++ Added Performance Optimization Phase 4 — Backend & Query
++ Migrated 6 JSON.parse(JSON.stringify()) calls to serializeDoc() utility (session, poll, admin, admin/tools)
++ Added Cache-Control headers to 4 GET API routes (/api/tools/{session,poll,participants,step})
++ Extracted tools rate limiting to src/lib/rate-limit.ts (getClientIp, checkToolsRateLimit)
++ Simplified Portfolio navDocs — 2x .findOne().limit(1) replaces complex $or/$and/$ne (was fetching all docs)
++ Added .lean() to 2 queries (admin-crud, admin/tools templates)
+* Fixed dashboard counts — shows real Learning + Game counts (was hardcoded 0)
+* Fixed multi-step attempt limit — session-level maxSubmissions input + handleEditStep reload + handleMultiSubmit
+* Removed htmlContent from games list .select()
+* Changed default maxSubmissions 10→1 (ToolSession schema, QuickQuiz fallback)
+* Fixed serializeDoc type — added as unknown as T bridge for JSON round-trip type safety
+* Fixed missing CONFIG import in poll/route.ts + respond/route.ts (lost during rate limit extraction)
+* Fixed accidentally removed renderToolGrid function in QuickStartModal.tsx
+
 ## v1.9.12 (2026-05-24)
 
 + Added Performance Optimization Phase 3 — Frontend & Bundle

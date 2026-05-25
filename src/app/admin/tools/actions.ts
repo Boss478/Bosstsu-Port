@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import dbConnect from '@/lib/db';
+import dbConnect, { serializeDoc } from '@/lib/db';
 import ToolSession from '@/models/ToolSession';
 import ToolResponse from '@/models/ToolResponse';
 import ToolStepTemplate from '@/models/ToolStepTemplate';
@@ -507,7 +507,7 @@ export async function getAllSessions(options?: {
   }
 
   const sessions = await chain.lean();
-  return JSON.parse(JSON.stringify(sessions));
+  return serializeDoc(sessions);
 }
 
 export async function countSessions(search?: string, type?: string) {
@@ -534,7 +534,7 @@ export async function toggleActive(id: string) {
 
   try {
     await dbConnect();
-    const session = await ToolSession.findById(id).select('_id isActive');
+    const session = await ToolSession.findById(id).select('_id isActive').lean();
     if (!session) return { error: formatError('404') };
 
     const newIsActive = !session.isActive;
@@ -623,7 +623,7 @@ export async function getTemplates(type?: string) {
   const templates = await ToolStepTemplate.find(query)
     .sort({ updatedAt: -1 })
     .lean();
-  return JSON.parse(JSON.stringify(templates));
+  return serializeDoc(templates);
 }
 
 export async function deleteTemplate(formData: FormData) {

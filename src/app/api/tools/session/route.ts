@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
+import dbConnect, { serializeDoc } from '@/lib/db';
 import ToolSession from '@/models/ToolSession';
 
 export async function GET(req: NextRequest) {
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
       isActive: session.isActive,
     };
 
-    return NextResponse.json(JSON.parse(JSON.stringify(response)));
+    return NextResponse.json(serializeDoc(response), { headers: { 'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=60' } });
   } catch (err) {
     console.error('Session lookup error:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

@@ -1,30 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import dbConnect from '@/lib/db';
+import dbConnect, { serializeDoc } from '@/lib/db';
 import ToolSession from '@/models/ToolSession';
 import ToolResponse from '@/models/ToolResponse';
 import { getError } from '@/lib/error-code';
 import { CONFIG } from '@/lib/config';
-
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-
-function getClientIp(req: NextRequest): string {
-  const forwarded = req.headers.get('x-forwarded-for');
-  if (forwarded) return forwarded.split(',')[0].trim();
-  return req.headers.get('x-real-ip') || 'unknown';
-}
-
-function checkRateLimit(key: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(key);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(key, { count: 1, resetAt: now + 60000 });
-    return true;
-  }
-  if (entry.count >= CONFIG.TOOLS.RATE_LIMIT_PER_MINUTE) return false;
-  entry.count++;
-  return true;
-}
+import { getClientIp, checkToolsRateLimit } from '@/lib/rate-limit';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -56,10 +37,10 @@ export async function GET(req: NextRequest) {
     const count = await ToolResponse.countDocuments(query);
 
     return NextResponse.json({
-      responses: JSON.parse(JSON.stringify(responses)),
+      responses: serializeDoc(responses),
       isActive: session?.isActive ?? false,
       totalCount: count,
-    });
+    }, { headers: { 'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=60' } });
   } catch (err) {
     console.error('Poll error:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
@@ -81,7 +62,7 @@ export async function POST(req: NextRequest) {
 
   const rateKey = `${sessionId}:${getClientIp(req)}:${studentToken}`;
 
-  if (!checkRateLimit(rateKey)) {
+  if (!checkToolsRateLimit(rateKey)) {
     return NextResponse.json(
       { error: getError('T06').message, code: getError('T06').code },
       { status: 429 }
@@ -116,7 +97,7 @@ export async function POST(req: NextRequest) {
     const stepCfg = si >= 0
       ? (session.steps as Record<string, unknown>[] | undefined)?.[si]?.config as Record<string, unknown> | undefined
       : null;
-    const maxSubmissions = (stepCfg?.maxSubmissions as number | undefined) ?? (session.config?.maxSubmissions as number | undefined) ?? 10;
+    const maxSubmissions = (stepCfg?.maxSubmissions as number | undefined) ?? (session.config?.maxSubmissions as number | undefined) ?? 1;
 
     if (existingCount >= maxSubmissions) {
       const result: Record<string, unknown> = {

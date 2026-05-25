@@ -21,7 +21,7 @@ const PortfolioSchema: Schema = new Schema(
     slug: { type: String, required: true, unique: true },
     title: { type: String, required: true },
     description: { type: String, required: true },
-    content: { type: String },
+    content: { type: String, select: false },
     gallery: { type: [String], default: [] },
     tools: { type: [String], default: [] },
     cover: { type: String, required: true },

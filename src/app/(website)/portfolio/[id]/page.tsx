@@ -62,7 +62,7 @@ export default async function PortfolioDetailPage({
   let doc: IPortfolioItem | null = null;
   try {
     await dbConnect();
-    doc = await Portfolio.findOne({ slug: id, published: { $ne: false } }).lean() as IPortfolioItem | null;
+    doc = await Portfolio.findOne({ slug: id, published: { $ne: false } }).select('+content').lean() as IPortfolioItem | null;
   } catch {
     // DB unavailable (Docker build) — ISR populates at runtime
   }
@@ -85,7 +85,7 @@ export default async function PortfolioDetailPage({
 
   const projection = "_id slug title cover date";
 
-  const [recentDocs, relatedDocs, navDocs] = await Promise.all([
+  const [recentDocs, relatedDocs, olderDoc, newerDoc] = await Promise.all([
     Portfolio.find({ slug: { $ne: id }, published: { $ne: false } })
       .select(projection)
       .sort({ date: -1 })
@@ -98,15 +98,15 @@ export default async function PortfolioDetailPage({
           .limit(CONFIG.PAGINATION.PORTFOLIO_RELATED * 2)
           .lean()
       : [],
-    Portfolio.find({
-      $or: [
-        { date: { $gt: doc.date } },
-        { $and: [{ date: { $lte: doc.date } }, { slug: { $ne: id } }] },
-      ],
-      published: { $ne: false },
-    })
+    Portfolio.findOne({ date: { $lt: doc.date }, published: { $ne: false } })
+      .select("_id slug title date")
+      .sort({ date: -1 })
+      .limit(1)
+      .lean(),
+    Portfolio.findOne({ date: { $gt: doc.date }, published: { $ne: false } })
       .select("_id slug title date")
       .sort({ date: 1 })
+      .limit(1)
       .lean(),
   ]);
 
@@ -145,11 +145,8 @@ export default async function PortfolioDetailPage({
       })()
     : [];
 
-  const newerItems = navDocs.filter((d: LeanDoc) => d.slug !== id && d.date && doc.date && d.date.getTime() > doc.date.getTime());
-  const olderItems = navDocs.filter((d: LeanDoc) => d.slug !== id && d.date && doc.date && d.date.getTime() < doc.date.getTime());
-
-  const newerItem = newerItems.length > 0 ? { id: newerItems[0].slug, title: newerItems[0].title } : null;
-  const olderItem = olderItems.length > 0 ? { id: olderItems[olderItems.length - 1].slug, title: olderItems[olderItems.length - 1].title } : null;
+  const newerItem = newerDoc ? { id: newerDoc.slug, title: newerDoc.title } : null;
+  const olderItem = olderDoc ? { id: olderDoc.slug, title: olderDoc.title } : null;
 
   return (
     <div className="min-h-screen bg-blue-50 dark:bg-slate-950">

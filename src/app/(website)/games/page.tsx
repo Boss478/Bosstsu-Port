@@ -32,7 +32,7 @@ export default async function GamesPage({
 
     const results = await Promise.all([
       Game.find(match)
-        .select("slug title description category thumbnail playUrl htmlContent instructions tags createdAt")
+        .select("slug title description category thumbnail playUrl instructions tags createdAt")
         .sort({ createdAt: sort === "desc" ? -1 : 1 })
         .skip(skip)
         .limit(CONFIG.PAGINATION.GAMES_PUBLIC)
@@ -50,7 +50,7 @@ export default async function GamesPage({
   const totalPages = Math.max(1, Math.ceil(total / CONFIG.PAGINATION.GAMES_PUBLIC));
 
   const items = docs.map((doc: IGame) => {
-    const hasHtml = !!doc.htmlContent;
+    const hasHtml = !doc.playUrl;
     return {
       id: doc._id.toString(),
       slug: doc.slug,

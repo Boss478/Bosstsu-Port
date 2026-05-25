@@ -1,8 +1,10 @@
 'use server';
 
-import dbConnect from '@/lib/db';
+import dbConnect, { serializeDoc } from '@/lib/db';
 import Portfolio from '@/models/Portfolio';
 import Gallery from '@/models/Gallery';
+import Learning from '@/models/Learning';
+import Game from '@/models/Game';
 import { CONFIG } from '@/lib/config';
 import { verifyAuth } from '@/lib/auth';
 import { getEnv } from '@/lib/env';
@@ -31,9 +33,11 @@ export async function getDbStats(): Promise<DbStats> {
     const conn = await dbConnect();
     const db = conn.connection.db;
 
-    const [portfolioCount, galleryCount] = await Promise.all([
+    const [portfolioCount, galleryCount, learningCount, gameCount] = await Promise.all([
       Portfolio.countDocuments(),
       Gallery.countDocuments(),
+      Learning.countDocuments(),
+      Game.countDocuments(),
     ]);
 
     // Get server info
@@ -64,8 +68,8 @@ export async function getDbStats(): Promise<DbStats> {
       collections: [
         { name: 'Portfolio', count: portfolioCount, icon: 'fi fi-sr-briefcase' },
         { name: 'Gallery', count: galleryCount, icon: 'fi fi-sr-picture' },
-        { name: 'Resources', count: 0, icon: 'fi fi-sr-book-alt' },
-        { name: 'Game', count: 0, icon: 'fi fi-sr-gamepad' },
+        { name: 'Resources', count: learningCount, icon: 'fi fi-sr-book-alt' },
+        { name: 'Game', count: gameCount, icon: 'fi fi-sr-gamepad' },
       ],
       serverStatus,
     };
@@ -87,11 +91,15 @@ export async function getDashboardStats() {
 
   await dbConnect();
   const [portfolioItems, galleryAlbums] = await Promise.all([
-    Portfolio.find({}).sort({ updatedAt: -1 }).limit(CONFIG.PAGINATION.DASHBOARD_RECENT).lean(),
-    Gallery.find({}).sort({ updatedAt: -1 }).limit(CONFIG.PAGINATION.DASHBOARD_RECENT).lean(),
+    Portfolio.find({}).sort({ updatedAt: -1 }).limit(CONFIG.PAGINATION.DASHBOARD_RECENT)
+      .select('title slug coverImage date')
+      .lean(),
+    Gallery.find({}).sort({ updatedAt: -1 }).limit(CONFIG.PAGINATION.DASHBOARD_RECENT)
+      .select('title slug coverImage date')
+      .lean(),
   ]);
   return {
-    portfolio: JSON.parse(JSON.stringify(portfolioItems)),
-    gallery: JSON.parse(JSON.stringify(galleryAlbums)),
+    portfolio: serializeDoc(portfolioItems),
+    gallery: serializeDoc(galleryAlbums),
   };
 }

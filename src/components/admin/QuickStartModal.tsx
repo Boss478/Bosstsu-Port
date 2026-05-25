@@ -211,6 +211,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
     setAllowFileUpload(!!s.config.allowFileUpload);
     setPollMode((s.config.pollMode as 'mcq' | 'wordcloud') || 'mcq');
     setAllowCustomChoices(!!s.config.allowCustomChoices);
+    setMaxSubmissions((s.config.maxSubmissions as number) || 0);
     const questions = s.config.questions as Array<{ options: string[] }> | undefined;
     if (questions && questions[0]?.options) {
       setPollOptions([...questions[0].options, '']);
@@ -359,6 +360,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
     formData.set('steps', JSON.stringify(steps));
     if (allowStudentNavigation) formData.set('allowStudentNavigation', 'on');
     if (requireStudentName) formData.set('requireStudentName', 'on');
+    if (maxSubmissions > 0) formData.set('maxSubmissions', String(maxSubmissions));
     formData.set('type', steps[0].type);
     formData.set('title', mainTitle.trim() || steps[0].title);
     if (description.trim()) formData.set('description', description.trim());
@@ -931,6 +933,20 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
         <label htmlFor="requireStudentName" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
           ต้องใส่ชื่อ
         </label>
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+          Max submissions per student <span className="text-zinc-400 text-xs">(0 = unlimited)</span>
+        </label>
+        <input
+          type="number"
+          min={0}
+          max={100}
+          value={maxSubmissions}
+          onChange={e => setMaxSubmissions(Math.max(0, parseInt(e.target.value) || 0))}
+          className="w-24 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
       </div>
     </div>
   );

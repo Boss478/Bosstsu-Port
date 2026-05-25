@@ -8,26 +8,7 @@ import ToolSession from '@/models/ToolSession';
 import { getError } from '@/lib/error-code';
 import { saveFile, sanitizeFilename } from '@/lib/upload';
 import { CONFIG } from '@/lib/config';
-
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-
-function getClientIp(req: NextRequest): string {
-  const forwarded = req.headers.get('x-forwarded-for');
-  if (forwarded) return forwarded.split(',')[0].trim();
-  return req.headers.get('x-real-ip') || 'unknown';
-}
-
-function checkRateLimit(key: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(key);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(key, { count: 1, resetAt: now + 60000 });
-    return true;
-  }
-  if (entry.count >= CONFIG.TOOLS.RATE_LIMIT_PER_MINUTE) return false;
-  entry.count++;
-  return true;
-}
+import { getClientIp, checkToolsRateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   const studentToken = req.headers.get('student-token');
@@ -46,7 +27,7 @@ export async function POST(req: NextRequest) {
     }
 
     const rateKey = `${sessionId}:${getClientIp(req)}:${studentToken}`;
-    if (!checkRateLimit(rateKey)) {
+    if (!checkToolsRateLimit(rateKey)) {
       return NextResponse.json(
         { error: getError('T06').message },
         { status: 429 }
@@ -75,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     const siVal = stepIndex !== null ? parseInt(stepIndex, 10) : -1;
     const stepCfg = siVal >= 0 ? (session.steps as Record<string, unknown>[] | undefined)?.[siVal]?.config as Record<string, unknown> | undefined : null;
-    const maxSubmissions = (stepCfg?.maxSubmissions as number | undefined) ?? (session.config?.maxSubmissions as number | undefined) ?? 10;
+    const maxSubmissions = (stepCfg?.maxSubmissions as number | undefined) ?? (session.config?.maxSubmissions as number | undefined) ?? 1;
 
     if (existingCount >= maxSubmissions) {
       return NextResponse.json(
@@ -157,7 +138,7 @@ export async function DELETE(req: NextRequest) {
 
     const sessionId = String(response.sessionId);
     const rateKey = `${sessionId}:${getClientIp(req)}:${studentToken}`;
-    if (!checkRateLimit(rateKey)) {
+    if (!checkToolsRateLimit(rateKey)) {
       return NextResponse.json({ error: getError('T06').message }, { status: 429 });
     }
 

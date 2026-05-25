@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
       currentStep: (session as { currentStep?: number }).currentStep ?? -1,
       totalSteps: ((session as { steps?: unknown[] }).steps?.length) ?? 1,
       allowStudentNavigation: (session as { allowStudentNavigation?: boolean }).allowStudentNavigation ?? false,
-    });
+    }, { headers: { 'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=30' } });
   } catch {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }

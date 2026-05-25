@@ -18,7 +18,7 @@ export default async function EditLearningPage({
 
   let item = null;
   try {
-    item = await Learning.findById(id).lean();
+    item = await Learning.findById(id).select('+content').lean();
   } catch { }
 
   if (!item) notFound();

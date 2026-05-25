@@ -55,7 +55,7 @@ export default async function ToolsListPage({
   const totalSessions = await countSessions(search || undefined, typeFilter || undefined);
   const totalPages = Math.ceil(totalSessions / limit);
 
-const sessions = sessionsRaw as Array<{
+const sessions = sessionsRaw as unknown as Array<{
   _id: string;
   sessionCode: string;
   title: string;

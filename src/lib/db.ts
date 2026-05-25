@@ -56,7 +56,7 @@ async function dbConnect() {
 }
 
 export function serializeDoc<T>(doc: T): T {
-  return JSON.parse(JSON.stringify(doc));
+  return JSON.parse(JSON.stringify(doc)) as unknown as T;
 }
 
 export default dbConnect;

@@ -18,7 +18,7 @@ export default async function EditGamePage({
 
   let item = null;
   try {
-    item = await Game.findById(id).lean();
+    item = await Game.findById(id).select('+htmlContent').lean();
   } catch { }
 
   if (!item) notFound();

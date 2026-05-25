@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
       { $sort: { createdAt: -1 } },
     ]);
 
-    return NextResponse.json({ participants });
+    return NextResponse.json({ participants }, { headers: { 'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=30' } });
   } catch (err) {
     console.error('Participants fetch error:', err);
     return NextResponse.json({ error: 'Failed to fetch participants' }, { status: 500 });

@@ -22,7 +22,7 @@ export default async function PlayGamePage({ params }: PlayGamePageProps) {
   let doc: Record<string, unknown> | null = null;
   try {
     await dbConnect();
-    doc = await Game.findById(id).lean() as Record<string, unknown> | null;
+    doc = await Game.findById(id).select('+htmlContent').lean() as Record<string, unknown> | null;
   } catch {
     // DB unavailable (Docker build) — ISR populates at runtime
   }
