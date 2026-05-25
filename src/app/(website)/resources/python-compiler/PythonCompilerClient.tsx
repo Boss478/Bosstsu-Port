@@ -16,6 +16,7 @@ export default function PythonCompilerClient() {
     const sharedCode = params.get("code");
     if (sharedCode) {
       try {
+        if (sharedCode.length > 15000) return 'print("Hello world")';
         return window.atob(sharedCode);
       } catch (e) {
         console.error("Failed to decode shared code", e);
@@ -54,6 +55,10 @@ export default function PythonCompilerClient() {
   const overlayRef = useRef<HTMLPreElement>(null);
   const outputEndRef = useRef<HTMLDivElement>(null);
   const consoleInputRef = useRef<HTMLInputElement>(null);
+
+  function escapeHtml(text: string): string {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
 
   const appendOutput = useCallback((msg: string, isError = false) => {
     const currentMode = modeRef.current;
@@ -98,8 +103,8 @@ export default function PythonCompilerClient() {
     worker.onmessage = (e) => {
       const { type } = e.data;
       if (type === "ready") { setIsEngineReady(true); return; }
-      if (type === "stdout") { appendOutput(e.data.text); return; }
-      if (type === "stderr") { appendOutput(e.data.text, true); return; }
+      if (type === "stdout") { appendOutput(escapeHtml(e.data.text)); return; }
+      if (type === "stderr") { appendOutput(escapeHtml(e.data.text), true); return; }
       if (type === "input-request") {
         setInputPromptText(e.data.prompt || "");
         setPendingInputId(e.data.id);

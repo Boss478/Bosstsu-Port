@@ -1,5 +1,6 @@
 'use server';
 
+import crypto from 'crypto';
 import { headers, cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { CONFIG } from '@/lib/config';
@@ -57,7 +58,16 @@ export async function loginAdmin(
     return { error: formatError('500') };
   }
 
-  if (password !== adminPassword) {
+  if (!password) {
+    recordFailedAttempt(ip);
+    return { error: formatError('A01') };
+  }
+
+  const pwBuffer = Buffer.from(password.normalize('NFC'));
+  const adminBuffer = Buffer.from(adminPassword.normalize('NFC'));
+  const isMatch = pwBuffer.length === adminBuffer.length && crypto.timingSafeEqual(pwBuffer, adminBuffer);
+
+  if (!isMatch) {
     recordFailedAttempt(ip);
     return { error: formatError('A01') };
   }

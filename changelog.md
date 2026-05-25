@@ -4,6 +4,15 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.16 (2026-05-25)
+
++ Security: CRITICAL — XSS fix in Python Compiler output (PythonCompilerClient.tsx)
+  * Added `escapeHtml()` function, applied at stdout/stderr message handlers only
+  * Capped `?code=` URL parameter at 15KB to prevent oversized payloads
++ Security: HIGH — Timing-safe password comparison in admin login (actions.ts)
+  * Replaced `!==` with `crypto.timingSafeEqual()` + null guard
+- Dropped: `saveFile()` folder validation in upload.ts (would break admin uploads)
+
 ## v1.9.15 (2026-05-25)
 
 + Code cleanup — dead code removal & consolidation (Round 2)
