@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 import { CONFIG } from "./src/lib/config";
+import withBundleAnalyzer from '@next/bundle-analyzer';
 
-const nextConfig: NextConfig = {
+const nextConfig: NextConfig = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+})({
   output: "standalone",
   compress: true,
   reactCompiler: true,
@@ -78,6 +81,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-};
+});
 
 export default nextConfig;

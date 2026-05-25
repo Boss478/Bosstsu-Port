@@ -6,8 +6,18 @@
 
 ## v1.9.14 (2026-05-25)
 
++ Phase 5 — Architecture & Code Organization (9 items)
++ Added bundle-analyzer support (@next/bundle-analyzer wrapped in next.config.ts)
++ Tightened .dockerignore (added docs/, .opencode/, tasks/)
++ Removed find chmod from entrypoint.sh (cleaner Docker build layer)
++ Extracted fetchPublished helper (src/lib/fetch-published.ts) — unified ISR-safe query pattern for portfolio/gallery/resources list pages
++ Extracted ToolSession StepConfigFields to shared constant (eliminated duplicate StepConfigFields block)
++ Extracted navLinks to src/lib/nav-links.ts (shared static data for navigation)
++ Split admin layout into server wrapper (providers) + AdminLayoutShell client component (useState/usePathname)
 + Added select: false on 3 Mongoose content fields (Portfolio.content, Learning.content, Game.htmlContent) — schema-level enforcement skips large fields in list queries
 + Added .select('+content') / .select('+htmlContent') to 6 detail/edit pages that need the full content
++ React Compiler gap scan: all 22 'use client' components clean
+- Dropped: AlbumContent split (already single wrapper pattern — no action needed)
 
 ## v1.9.13 (2026-05-25)
 

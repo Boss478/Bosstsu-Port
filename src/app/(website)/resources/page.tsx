@@ -1,9 +1,9 @@
-import dbConnect from "@/lib/db";
 import Learning from "@/models/Learning";
 import Tag from "@/models/Tag";
 import ResourcesClient from "./ResourcesClient";
 import { type ResourceItem } from "./data";
 import { CONFIG } from "@/lib/config";
+import { fetchPublished } from "@/lib/fetch-published";
 import type { ILearningResource } from "@/models/Learning";
 
 export const revalidate = 60;
@@ -19,43 +19,26 @@ export default async function ResourcesPage({
   const query = params.q || "";
   const sort = params.sort === "Oldest" ? "Oldest" : "Newest";
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let docs: any[] = [];
-  let total = 0;
-  let tagDocs: string[] = [];
-  let uniqueTypes: string[] = [];
+  const skip = (page - 1) * CONFIG.PAGINATION.LEARNING_PUBLIC;
+  const match: Record<string, unknown> = { published: { $ne: false } };
+  if (type && type !== "All") match.type = type;
+  if (query) match.title = { $regex: query, $options: 'i' };
 
-  try {
-    await dbConnect();
-
-    const skip = (page - 1) * CONFIG.PAGINATION.LEARNING_PUBLIC;
-    const match: Record<string, unknown> = { published: { $ne: false } };
-    if (type && type !== "All") match.type = type;
-    if (query) match.title = { $regex: query, $options: 'i' };
-
-    const results = await Promise.all([
-      Learning.find(match)
-        .select("title description type thumbnail link createdAt")
-        .sort({ createdAt: sort === "Newest" ? -1 : 1 })
-        .skip(skip)
-        .limit(CONFIG.PAGINATION.LEARNING_PUBLIC)
-        .lean(),
-      Learning.countDocuments(match),
-      Learning.distinct("type", { published: { $ne: false } }),
-      Tag.distinct("name", { category: "learning" }),
-    ]);
-    docs = results[0] as any[];
-    total = results[1] as number;
-    uniqueTypes = results[2] as string[];
-    tagDocs = results[3] as string[];
-  } catch {
-    // DB unavailable (Docker build) — ISR populates at runtime
-  }
+  const [{ docs, total }, uniqueTypes, tagDocs] = await Promise.all([
+    fetchPublished({
+      model: Learning,
+      match,
+      select: "title description type thumbnail link createdAt",
+      sort: { createdAt: sort === "Newest" ? -1 : 1 },
+      skip,
+      limit: CONFIG.PAGINATION.LEARNING_PUBLIC,
+    }),
+    Learning.distinct("type", { published: { $ne: false } }).catch(() => [] as string[]),
+    Tag.distinct("name", { category: "learning" }).catch(() => [] as string[]),
+  ]);
 
   const uniqueTags = tagDocs.length > 0 ? tagDocs : [];
-
   const totalPages = Math.max(1, Math.ceil(total / CONFIG.PAGINATION.LEARNING_PUBLIC));
-
   const defaultFallbackDate = new Date("2024-01-01T00:00:00.000Z");
 
   const items: ResourceItem[] = docs.map((doc: ILearningResource) => ({

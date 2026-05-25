@@ -1,6 +1,6 @@
 export type Screen = "menu" | "range" | "game" | "victory";
 
-export interface VisualData {
+interface VisualData {
   emoji: string;
   count: number;
   countA?: number;

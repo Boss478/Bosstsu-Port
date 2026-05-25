@@ -1,7 +1,7 @@
 import { Schema, model, models } from 'mongoose';
 import type { ToolType } from './ToolSession';
 
-export interface IToolStepTemplate {
+interface IToolStepTemplate {
   type: ToolType;
   title: string;
   config: Record<string, unknown>;

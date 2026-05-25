@@ -32,6 +32,9 @@ dist
 
 # Project-specific (not needed in image)
 .agents
+.opencode
 scripts
+docs/
+tasks/
 public/fonts
 public/pyodide-worker.js
