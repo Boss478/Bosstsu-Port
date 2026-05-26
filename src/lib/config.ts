@@ -1,3 +1,5 @@
+import pkg from '../../package.json';
+
 export const CONFIG = {
 
   // ─── Authentication ───────────────────────────────────────────────────
@@ -6,6 +8,12 @@ export const CONFIG = {
     IDLE_TIMEOUT: 30 * 60 * 1000,           // milliseconds — countdown to logout starts after idle
     COUNTDOWN_DURATION: 60,                 // seconds — warning countdown before forced logout
     COOKIE_NAME: 'admin-token',
+  },
+
+  // ─── Private Section Auth ────────────────────────────────────────────
+  PRIVATE_AUTH: {
+    SESSION_DURATION: 24 * 60 * 60 * 1000,  // 24h — personal tool
+    COOKIE_NAME: 'private-token',
   },
 
   // ─── File Uploads ─────────────────────────────────────────────────────
@@ -113,7 +121,7 @@ export const CONFIG = {
   // ─── Site Metadata ────────────────────────────────────────────────────
   SITE: {
     NAME: 'Boss478',
-    VERSION: '1.9.12',
+    VERSION: pkg.version,
     TITLE: 'Boss478 | Portfolio',
     DESCRIPTION: 'เว็บไซต์ส่วนตัวสำหรับเก็บผลงาน กิจกรรม รูปภาพ สื่อการเรียนรู้ และเกมการศึกษา',
     EMAIL: 'bossnt45@gmail.com',

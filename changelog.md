@@ -4,6 +4,25 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.18 (2026-05-26)
+
+* Renamed all `STOCK_*` infrastructure identifiers to `PRIVATE_*` — env vars, config keys, auth lib (private-auth.ts), cookie name (`stock-token`→`private-token`), middleware imports, login function, rate-limit scope prefix
+* `.env.example` updated with `PRIVATE_PASSWORD` / `PRIVATE_TOKEN_SECRET` (legacy `STOCK_*` vars kept as commented fallback)
+* `env.ts` falls back to `STOCK_*` env vars if `PRIVATE_*` not set — backward-compatible with existing `.env.local`
+* Dashboard page: "Stock Dashboard" → "Private Dashboard" (title, sidebar, login page component name)
+
+## v1.9.17 (2026-05-26)
+
++ Stock Dashboard — new private section at `/boss478/` with separate auth (own password, cookie, rate-limiter)
+  * 4 views: Market Overview, Portfolio Tracker, Price Charts, Watchlist (all with mock data)
+  * Period selector: 1D/1W/1M/3M/1Y/ALL
+  * Responsive: desktop tabs, mobile bottom navigation bar
+  * SVG-based price charts (no external library)
++ Admin sidebar: added "Stock Dashboard" link
++ Middleware: added `/boss478/:path*` matcher for private section protection
++ Auth: separate JWT-based auth for stock dashboard (`stock-token` cookie, 24h session)
+* Login rate-limiter scoped per auth domain (`stock:` prefix for stock, raw IP for admin) — no cross-contamination
+
 ## v1.9.16 (2026-05-25)
 
 + Security: CRITICAL — XSS fix in Python Compiler output (PythonCompilerClient.tsx)

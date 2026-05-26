@@ -508,6 +508,26 @@ KVM1 VPS runs **multiple services simultaneously** — resources are shared and 
 
 ---
 
+## Custom Agents (opencode)
+
+Three Boss478-specific agents defined globally in `~/.config/opencode/agent/`. Invoke via Task tool when needed.
+
+| Agent | File | Permission | Purpose |
+|-------|------|-----------|---------|
+| **DEPLOY** | `deploy.md` | bash + read | Docker build, VPS deploy, health check, rollback, backup, SSL |
+| **VERIFY** | `verify.md` | bash + read (no edit) | Pre-done gate: build, lint, version/changelog match, post-mortem |
+| **DOC** | `doc.md` | edit `.agents/**`, changelog | Reports, memory, Obsidian vault persistence |
+
+### Usage
+
+```
+Invoke via Task tool: task -> "run deploy agent" or "run verify agent"
+```
+
+Each agent is standalone — call when needed for its specific phase.
+
+---
+
 ## Website Update Log
 
 See [changelog.md](./changelog.md) for complete version history.
