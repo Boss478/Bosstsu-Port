@@ -136,7 +136,7 @@ const sessions = sessionsRaw as unknown as Array<{
                        <div className="flex items-center gap-3 mt-1 text-xs text-zinc-400">
                           {(session.steps?.length ?? 0) > 1 ? (
                             <span className="inline-flex items-center gap-1">
-                              <i className="fi fi-sr-layer-group" />
+                              <i className="fi fi-sr-layers" />
                               Multi-session
                             </span>
                           ) : (
@@ -181,7 +181,7 @@ const sessions = sessionsRaw as unknown as Array<{
           </h2>
           {pastSessions.length === 0 && activeSessions.length === 0 ? (
             <div className="p-12 rounded-2xl bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 text-center">
-              <i className="fi fi-sr-chalkboard-teacher text-4xl text-zinc-300 dark:text-zinc-600 block mb-3" />
+              <i className="fi fi-sr-chalkboard-user text-4xl text-zinc-300 dark:text-zinc-600 block mb-3" />
               <p className="text-zinc-500 dark:text-zinc-400">No sessions yet.</p>
             </div>
           ) : (
@@ -208,7 +208,7 @@ const sessions = sessionsRaw as unknown as Array<{
                          <div className="flex items-center gap-3 mt-1 text-xs text-zinc-400">
                             {(session.steps?.length ?? 0) > 1 ? (
                              <span className="inline-flex items-center gap-1">
-                               <i className="fi fi-sr-layer-group" />
+                               <i className="fi fi-sr-layers" />
                                Multi-session
                              </span>
                            ) : (

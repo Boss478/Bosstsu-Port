@@ -3,10 +3,32 @@
 import { useStockData } from './StockDataContext';
 
 export default function MarketOverview() {
-  const { indexes, stocks } = useStockData();
+  const { stocks, indexes, portfolio, watchlist } = useStockData();
 
   const gainers = [...stocks].sort((a, b) => b.changePercent - a.changePercent).slice(0, 3);
   const losers = [...stocks].sort((a, b) => a.changePercent - b.changePercent).slice(0, 3);
+
+  const enriched = portfolio.map(h => {
+    const current = stocks.find(s => s.symbol === h.symbol);
+    const currentPrice = current?.price ?? 0;
+    const totalCost = h.shares * h.avgCost;
+    const totalValue = h.shares * currentPrice;
+    const pl = totalValue - totalCost;
+    const plPercent = totalCost > 0 ? (pl / totalCost) * 100 : 0;
+    return { ...h, currentPrice, totalCost, totalValue, pl, plPercent };
+  });
+
+  const totalValue = enriched.reduce((s, h) => s + h.totalValue, 0);
+  const totalCost = enriched.reduce((s, h) => s + h.totalCost, 0);
+  const totalPl = totalValue - totalCost;
+  const totalPlPercent = totalCost > 0 ? (totalPl / totalCost) * 100 : 0;
+
+  const bestHolding = enriched.length > 0 ? [...enriched].sort((a, b) => b.plPercent - a.plPercent)[0] : null;
+  const worstHolding = enriched.length > 0 ? [...enriched].sort((a, b) => a.plPercent - b.plPercent)[0] : null;
+
+  const followed = stocks.filter(s => watchlist.includes(s.symbol));
+  const bestWatch = followed.length > 0 ? [...followed].sort((a, b) => b.changePercent - a.changePercent)[0] : null;
+  const worstWatch = followed.length > 0 ? [...followed].sort((a, b) => a.changePercent - b.changePercent)[0] : null;
 
   return (
     <div className="space-y-6">
@@ -32,11 +54,75 @@ export default function MarketOverview() {
         ))}
       </div>
 
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="p-5 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
+          <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 mb-3 flex items-center gap-2">
+            <i className="fi fi-sr-briefcase text-blue-500" />
+            Portfolio Summary
+          </h3>
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-sm">
+              <span className="text-zinc-500 dark:text-zinc-400">Total Value</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                ${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-zinc-500 dark:text-zinc-400">Total P&L</span>
+              <span className={`font-semibold ${totalPl >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'}`}>
+                {totalPl >= 0 ? '+' : ''}${totalPl.toLocaleString(undefined, { minimumFractionDigits: 2 })} ({totalPlPercent >= 0 ? '+' : ''}{totalPlPercent.toFixed(2)}%)
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-zinc-500 dark:text-zinc-400">Holdings</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{portfolio.length}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-zinc-500 dark:text-zinc-400">Best</span>
+              <span className="font-semibold text-blue-600 dark:text-blue-400">
+                {bestHolding ? `${bestHolding.symbol} (+${bestHolding.plPercent.toFixed(1)}%)` : '-'}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-zinc-500 dark:text-zinc-400">Worst</span>
+              <span className="font-semibold text-red-600 dark:text-red-400">
+                {worstHolding ? `${worstHolding.symbol} (${worstHolding.plPercent.toFixed(1)}%)` : '-'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-5 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
+          <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 mb-3 flex items-center gap-2">
+            <i className="fi fi-sr-star text-amber-500" />
+            Following Summary
+          </h3>
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-sm">
+              <span className="text-zinc-500 dark:text-zinc-400">Following</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{followed.length} stocks</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-zinc-500 dark:text-zinc-400">Best</span>
+              <span className="font-semibold text-blue-600 dark:text-blue-400">
+                {bestWatch ? `${bestWatch.symbol} (+${bestWatch.changePercent.toFixed(2)}%)` : '-'}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-zinc-500 dark:text-zinc-400">Worst</span>
+              <span className="font-semibold text-red-600 dark:text-red-400">
+                {worstWatch ? `${worstWatch.symbol} (${worstWatch.changePercent.toFixed(2)}%)` : '-'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid gap-6 md:grid-cols-2">
         <div className="p-5 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
           <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
-            <i className="fi fi-sr-trend-up text-blue-500" />
-            ขึ้นมากที่สุด
+            <i className="fi fi-sr-arrow-trend-up text-blue-500" />
+            Top Gainers
           </h3>
           <div className="space-y-3">
             {gainers.map(stock => (
@@ -60,8 +146,8 @@ export default function MarketOverview() {
 
         <div className="p-5 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
           <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
-            <i className="fi fi-sr-trend-down text-red-500" />
-            ลงมากที่สุด
+            <i className="fi fi-sr-arrow-trend-down text-red-500" />
+            Top Losers
           </h3>
           <div className="space-y-3">
             {losers.map(stock => (

@@ -4,6 +4,20 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.19 (2026-05-26)
+
++ Integrated `yahoo-finance2` for live stock quotes and historical chart data with circuit breaker (10 consecutive failures stops auto-refresh), progressive backoff (3+ failures doubles interval), and in-memory history cache (5min for 1d/5d, 1h for others)
++ Added `StockDetailModal` — Yahoo Finance-style full stock detail view with company header, large price/change display, period selector (1D/5D/1W/1M/3M/6M/YTD/1Y/5Y/Max), price chart, and stats grid (open/high/low/prev close/mkt cap/P-E/52w range/dividend)
++ Added editable portfolio holdings — inline editing for shares, avg cost, and manual price override per holding; manual price overrides market price in calculations with blue-dot indicator
++ Row click on portfolio open StockDetailModal with real-time chart for the clicked symbol
++ Added refresh button (↻) and auto-refresh interval selector (off/1min/5min/15min/30min) with "Last updated" timestamp
++ Added smooth random walk fallback that regenerates chart history when Yahoo is unreachable
++ Added hourly intraday data generation for 1D period (HH:MM labels on chart x-axis)
++ Added Portfolio Summary and Following Summary cards to Market Overview tab
+* Converted all dashboard Thai UI text to English across all components (tabs, headers, labels, placeholders)
+* Period selector consolidated to single `PERIOD_CONFIG` source of truth with 10 periods
+* Extended stock data type with open, high, low, prev close, 52w range, P/E, dividend fields
+
 ## v1.9.18 (2026-05-26)
 
 * Renamed all `STOCK_*` infrastructure identifiers to `PRIVATE_*` — env vars, config keys, auth lib (private-auth.ts), cookie name (`stock-token`→`private-token`), middleware imports, login function, rate-limit scope prefix

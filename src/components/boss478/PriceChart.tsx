@@ -1,15 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { useStockData } from './StockDataContext';
+import { useStockData, PERIOD_CONFIG, type Period } from './StockDataContext';
 
-const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+interface PriceChartProps {
+  initialSymbol?: string;
+}
 
-export default function PriceChart() {
-  const { stocks, history } = useStockData();
-  const [selected, setSelected] = useState(stocks[0]?.symbol ?? '');
+export default function PriceChart({ initialSymbol }: PriceChartProps) {
+  const { stocks, history, period, setPeriod } = useStockData();
+  const hasInitial = initialSymbol && stocks.some(s => s.symbol === initialSymbol);
+  const [selected, setSelected] = useState(hasInitial ? initialSymbol! : (stocks[0]?.symbol ?? ''));
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
-  const data = history[selected] ?? [];
+  const displaySymbol = hasInitial ? initialSymbol! : selected;
+  const data = history[displaySymbol] ?? [];
 
   if (data.length < 2) {
     return (
@@ -23,7 +28,7 @@ export default function PriceChart() {
   const min = Math.min(...prices);
   const max = Math.max(...prices);
   const range = max - min || 1;
-  const stock = stocks.find(s => s.symbol === selected);
+  const stock = stocks.find(s => s.symbol === displaySymbol);
   const startPrice = prices[0];
   const endPrice = prices[prices.length - 1];
   const change = endPrice - startPrice;
@@ -47,7 +52,7 @@ export default function PriceChart() {
     yLabels.push(min + yStep * i);
   }
 
-  const xTicks = Math.min(data.length, 6);
+  const xTicks = Math.min(data.length, 8);
   const xStep = Math.max(1, Math.floor((data.length - 1) / (xTicks - 1)));
   const xLabels: number[] = [];
   for (let i = 0; i < xTicks; i++) {
@@ -55,28 +60,46 @@ export default function PriceChart() {
     xLabels.push(idx);
   }
 
+  const pad = (n: number) => n.toString().padStart(2, '0');
+
+  const formatXLabel = (idx: number) => {
+    const d = data[idx];
+    if (!d) return '';
+    const date = new Date(d.date);
+    if (isNaN(date.getTime())) return '';
+    const hh = date.getHours();
+    const mm = date.getMinutes();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    if (period === '1d') return `${pad(hh)}:${pad(mm)}`;
+    if (period === '5d' || period === '1w') return `${pad(month)}/${pad(day)} ${pad(hh)}:${pad(mm)}`;
+    return `${pad(month)}/${pad(day)}`;
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
-        {stocks.slice(0, 10).map((s, i) => (
-          <button
-            key={s.symbol}
-            onClick={() => setSelected(s.symbol)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-              selected === s.symbol
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-slate-700/60'
-            }`}
-          >
-            {s.symbol}
-          </button>
-        ))}
-      </div>
+      {!initialSymbol && (
+        <div className="flex flex-wrap gap-2">
+          {stocks.slice(0, 10).map((s, i) => (
+            <button
+              key={s.symbol}
+              onClick={() => setSelected(s.symbol)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                selected === s.symbol
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-slate-700/60'
+              }`}
+            >
+              {s.symbol}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="p-5 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{selected}</h3>
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{displaySymbol}</h3>
             {stock && (
               <p className="text-sm text-zinc-500 dark:text-zinc-400">{stock.name}</p>
             )}
@@ -94,39 +117,101 @@ export default function PriceChart() {
           </div>
         </div>
 
-        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
-          {yLabels.map((val, i) => (
-            <g key={i}>
-              <text x={PAD.left - 8} y={yScale(val) + 4} textAnchor="end" className="fill-zinc-400 text-[11px]">
-                ${val.toFixed(0)}
+        {!initialSymbol && (
+          <div className="flex gap-1 p-0.5 rounded-lg bg-blue-50/40 dark:bg-slate-700/40 mb-4 overflow-x-auto">
+            {PERIOD_CONFIG.map(p => (
+              <button
+                key={p.value}
+                onClick={() => setPeriod(p.value)}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
+                  period === p.value
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className={`overflow-x-auto ${!initialSymbol ? '' : ''}`}>
+          <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full h-auto min-w-[500px]" preserveAspectRatio="xMidYMid meet">
+            {yLabels.map((val, i) => (
+              <g key={i}>
+                <text x={PAD.left - 8} y={yScale(val) + 4} textAnchor="end" className="fill-zinc-400 text-[11px]">
+                  ${val.toFixed(0)}
+                </text>
+                {i > 0 && (
+                  <line
+                    x1={PAD.left} y1={yScale(val)} x2={WIDTH - PAD.right} y2={yScale(val)}
+                    className="stroke-zinc-200 dark:stroke-zinc-700"
+                    strokeWidth="1"
+                    strokeDasharray="4 4"
+                  />
+                )}
+              </g>
+            ))}
+
+            {xLabels.map(idx => (
+              <text
+                key={idx}
+                x={xScale(idx)}
+                y={HEIGHT - PAD.bottom + 18}
+                textAnchor="middle"
+                className="fill-zinc-400 text-[11px]"
+              >
+                {formatXLabel(idx)}
               </text>
-              {i > 0 && (
-                <line
-                  x1={PAD.left} y1={yScale(val)} x2={WIDTH - PAD.right} y2={yScale(val)}
-                  className="stroke-zinc-200 dark:stroke-zinc-700"
-                  strokeWidth="1"
-                  strokeDasharray="4 4"
-                />
-              )}
-            </g>
-          ))}
+            ))}
 
-          {xLabels.map(idx => (
-            <text
-              key={idx}
-              x={xScale(idx)}
-              y={HEIGHT - PAD.bottom + 18}
-              textAnchor="middle"
-              className="fill-zinc-400 text-[11px]"
-            >
-              {data[idx]?.date?.slice(5) ?? ''}
-            </text>
-          ))}
+            <path d={linePath} fill="none" stroke="#2563eb" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
 
-          <path d={linePath} fill="none" stroke="#2563eb" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+            <circle cx={xScale(data.length - 1)} cy={yScale(prices[prices.length - 1])} r="3" fill="#2563eb" />
 
-          <circle cx={xScale(data.length - 1)} cy={yScale(prices[prices.length - 1])} r="3" fill="#2563eb" />
-        </svg>
+            {hoveredIdx !== null && data[hoveredIdx] && (() => {
+              const pointY = yScale(data[hoveredIdx].price);
+              const nearTop = pointY < PAD.top + 50;
+              const tipY = nearTop ? pointY + 14 : pointY - 44;
+              const tipX = Math.max(PAD.left, Math.min(WIDTH - PAD.right - 96, xScale(hoveredIdx) - 48));
+              const tipCX = Math.max(PAD.left + 48, Math.min(WIDTH - PAD.right - 48, xScale(hoveredIdx)));
+              return (
+                <g>
+                  <line
+                    x1={xScale(hoveredIdx)} y1={PAD.top}
+                    x2={xScale(hoveredIdx)} y2={PAD.top + chartH}
+                    stroke="#2563eb" strokeWidth="1" strokeDasharray="4 4"
+                  />
+                  <circle cx={xScale(hoveredIdx)} cy={pointY} r="4" fill="#2563eb" stroke="white" strokeWidth="2" />
+                  <rect x={tipX} y={tipY} width="96" height="34" rx="4" className="fill-white dark:fill-zinc-800 stroke-zinc-200 dark:stroke-zinc-700" strokeWidth="1" />
+                  <text x={tipCX} y={tipY + 14} textAnchor="middle" className="fill-zinc-900 dark:fill-zinc-100 text-[11px] font-medium">
+                    ${data[hoveredIdx].price.toFixed(2)}
+                  </text>
+                  <text x={tipCX} y={tipY + 27} textAnchor="middle" className="fill-zinc-500 dark:fill-zinc-400 text-[10px]">
+                    {formatXLabel(hoveredIdx)}
+                  </text>
+                </g>
+              );
+            })()}
+
+            <rect
+              x={PAD.left} y={PAD.top}
+              width={chartW} height={chartH}
+              fill="transparent"
+              onMouseMove={(e) => {
+                const svgEl = e.currentTarget.closest('svg');
+                if (!svgEl) return;
+                const bbox = svgEl.getBoundingClientRect();
+                const scaleX = WIDTH / bbox.width;
+                const mouseX = (e.clientX - bbox.left) * scaleX - PAD.left;
+                const idx = Math.round((mouseX / chartW) * (data.length - 1));
+                setHoveredIdx(Math.max(0, Math.min(data.length - 1, idx)));
+              }}
+              onMouseLeave={() => setHoveredIdx(null)}
+              style={{ cursor: 'crosshair' }}
+            />
+          </svg>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

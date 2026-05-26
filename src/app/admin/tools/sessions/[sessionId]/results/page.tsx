@@ -28,7 +28,7 @@ function SessionNotFound({ sessionId }: { sessionId: string }) {
             href="/admin/tools"
             className="inline-flex items-center gap-2 px-6 py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20 transition-all"
           >
-            <i className="fi fi-sr-layer-group" />
+            <i className="fi fi-sr-layers" />
             กลับไปหน้ารายการเซสชัน
           </Link>
           <Link

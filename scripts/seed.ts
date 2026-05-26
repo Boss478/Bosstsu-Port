@@ -232,13 +232,22 @@ async function seed() {
     relatedPortfolioId: { type: String },
   }, { timestamps: true });
 
+  const StockHoldingSchema = new mongoose.Schema({
+    symbol: { type: String, required: true, unique: true, uppercase: true },
+    shares: { type: Number, required: true },
+    avgCost: { type: Number, required: true },
+    manualPrice: { type: Number },
+  }, { timestamps: true });
+
   const Portfolio = mongoose.models.Portfolio || mongoose.model('Portfolio', PortfolioSchema);
   const Gallery = mongoose.models.Gallery || mongoose.model('Gallery', GallerySchema);
+  const StockHolding = mongoose.models.StockHolding || mongoose.model('StockHolding', StockHoldingSchema);
 
   // Clear existing data
   console.log('Clearing existing data...');
   await Portfolio.deleteMany({});
   await Gallery.deleteMany({});
+  await StockHolding.deleteMany({});
 
   // Insert portfolio items
   console.log('Seeding portfolio items...');
@@ -249,6 +258,20 @@ async function seed() {
   console.log('Seeding gallery albums...');
   const insertedGallery = await Gallery.insertMany(galleryData);
   console.log(`  ✓ Inserted ${insertedGallery.length} gallery albums`);
+
+  // Seed stock holdings
+  console.log('Seeding stock holdings...');
+  const stockHoldingData = [
+    { symbol: 'TSM',   shares: 0.0240648, avgCost: 327.4490 },
+    { symbol: 'GOOGL', shares: 0.0231279, avgCost: 338.5523 },
+    { symbol: 'NVDA',  shares: 0.0300421, avgCost: 203.0486 },
+    { symbol: 'AAPL',  shares: 0.0112620, avgCost: 271.7091 },
+    { symbol: 'MSFT',  shares: 0.0060125, avgCost: 508.94 },
+    { symbol: 'META',  shares: 0.0025555, avgCost: 618.28 },
+    { symbol: 'AMD',   shares: 0.0030919, avgCost: 419.60 },
+  ];
+  await StockHolding.insertMany(stockHoldingData);
+  console.log(`  ✓ Inserted ${stockHoldingData.length} stock holdings`);
 
   console.log('\n✅ Seed complete!');
   await mongoose.disconnect();

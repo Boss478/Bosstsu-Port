@@ -16,7 +16,7 @@ const nextConfig: NextConfig = withBundleAnalyzer({
     },
     proxyClientMaxBodySize: CONFIG.UPLOAD.MAX_SIZE_MB,
   },
-  serverExternalPackages: ["sharp", "html-to-image"],
+  serverExternalPackages: ["sharp", "html-to-image", "yahoo-finance2"],
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 31536000,

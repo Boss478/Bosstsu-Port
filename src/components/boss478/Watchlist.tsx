@@ -19,12 +19,12 @@ export default function Watchlist() {
       <div className="p-5 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
         <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
           <i className="fi fi-sr-star text-amber-500" />
-          รายการที่ติดตาม
+          Watchlist
         </h3>
 
         {watched.length === 0 ? (
           <p className="text-sm text-zinc-400 dark:text-zinc-500 text-center py-8">
-            ยังไม่มีรายการที่ติดตาม — เพิ่มจากด้านขวา
+            No stocks in your watchlist yet.
           </p>
         ) : (
           <div className="space-y-2">
@@ -37,7 +37,7 @@ export default function Watchlist() {
                   <button
                     onClick={() => removeFromWatchlist(stock.symbol)}
                     className="p-1 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-zinc-400 hover:text-red-500 transition-colors cursor-pointer"
-                    title="ลบออก"
+                    title="Remove"
                   >
                     <i className="fi fi-sr-cross text-xs" />
                   </button>
@@ -65,20 +65,20 @@ export default function Watchlist() {
       <div className="p-5 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
         <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
           <i className="fi fi-sr-search text-blue-500" />
-          เพิ่มหุ้น
+          Add Stock
         </h3>
 
         <input
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="ค้นหาด้วยชื่อหรือสัญลักษณ์..."
+          placeholder="Search by name or symbol..."
           className="w-full px-3 py-2 rounded-lg text-sm border border-zinc-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 mb-3"
         />
 
         <div className="space-y-1 max-h-80 overflow-y-auto">
           {filtered.length === 0 ? (
-            <p className="text-sm text-zinc-400 dark:text-zinc-500 text-center py-4">ไม่พบหุ้นที่ค้นหา</p>
+            <p className="text-sm text-zinc-400 dark:text-zinc-500 text-center py-4">No stocks found.</p>
           ) : (
             filtered.map(stock => (
               <button
