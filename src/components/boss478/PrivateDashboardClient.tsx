@@ -3,7 +3,7 @@
 import { StockDataProvider, useStockData, PERIOD_CONFIG } from './StockDataContext';
 import MarketOverview from './MarketOverview';
 import PortfolioTracker from './PortfolioTracker';
-import PriceChart from './PriceChart';
+import ChartViews from './ChartViews';
 import Watchlist from './Watchlist';
 import BottomNavBar from './BottomNavBar';
 
@@ -102,7 +102,7 @@ function DashboardInner() {
 
       {activeTab === 'overview' && <MarketOverview />}
       {activeTab === 'portfolio' && <PortfolioTracker />}
-      {activeTab === 'charts' && <PriceChart />}
+      {activeTab === 'charts' && <ChartViews />}
       {activeTab === 'watchlist' && <Watchlist />}
 
       <BottomNavBar tabs={TABS} />
