@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import TransactionForm from './TransactionForm';
+import QuickAddBar from './QuickAddBar';
 import { CONFIG, getCategoryLabel } from '@/lib/config';
 
 interface Transaction {
@@ -105,6 +106,10 @@ export default function TransactionList({ refreshKey }: Props) {
         </div>
       </div>
 
+      {month === new Date().toISOString().slice(0, 7) && (
+        <QuickAddBar onAdd={(tx) => setTransactions((prev) => [tx, ...prev])} />
+      )}
+
       {month !== new Date().toISOString().slice(0, 7) && (
         <p className="text-xs text-zinc-400 mb-3">{monthLabel(month)}</p>
       )}
@@ -136,7 +141,7 @@ export default function TransactionList({ refreshKey }: Props) {
               <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
                 t.type === 'expense' ? 'bg-red-100 dark:bg-red-900/40' : 'bg-emerald-100 dark:bg-emerald-900/40'
               }`}>
-                <i className={`fi ${t.type === 'expense' ? 'fi-sr-shopping-cart' : 'fi-sr-trend-up'} text-xs ${
+                <i className={`fi ${t.type === 'expense' ? 'fi-sr-shopping-cart' : 'fi-sr-arrow-trend-up'} text-xs ${
                   t.type === 'expense' ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'
                 }`} />
               </div>

@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const month = searchParams.get('month');
   const type = searchParams.get('type');
+  const category = searchParams.get('category');
 
   const filter: Record<string, unknown> = {};
   if (month) {
@@ -38,6 +39,9 @@ export async function GET(request: NextRequest) {
   }
   if (type && ['income', 'expense'].includes(type)) {
     filter.type = type;
+  }
+  if (category) {
+    filter.category = category;
   }
 
   try {

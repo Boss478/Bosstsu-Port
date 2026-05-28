@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, Component, type ReactNode } from 'rea
 import FinanceSummary from './FinanceSummary';
 import TransactionList from './TransactionList';
 import SubscriptionList from './SubscriptionList';
+import BudgetList from './BudgetList';
 import { CONFIG } from '@/lib/config';
 
 const { MONTHLY_NORMALIZER } = CONFIG.FINANCE;
@@ -38,7 +39,8 @@ class FinanceErrorBoundary extends Component<
 const TABS = [
   { id: 'overview' as const, label: 'Overview', icon: 'fi-sr-apps' },
   { id: 'transactions' as const, label: 'Transactions', icon: 'fi-sr-list' },
-  { id: 'subscriptions' as const, label: 'Subscriptions', icon: 'fi-sr-repeat' },
+  { id: 'budgets' as const, label: 'Budgets', icon: 'fi-sr-budget' },
+  { id: 'subscriptions' as const, label: 'Subscriptions', icon: 'fi-sr-refresh' },
 ];
 
 export default function FinanceClient() {
@@ -48,9 +50,11 @@ export default function FinanceClient() {
     incomeTotal: number;
     expenseTotal: number;
     subscriptionTotal: number;
-    balance: number;
+    allExpense: number;
+    netRemaining: number;
     month: string;
   } | null>(null);
+  const [summaryTransactions, setSummaryTransactions] = useState<Array<Record<string, unknown>>>([]);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -67,6 +71,7 @@ export default function FinanceClient() {
       if (!txRes.ok || !subRes.ok) throw new Error('Failed to fetch summary');
 
       const { transactions } = await txRes.json();
+      setSummaryTransactions(transactions);
       const { subscriptions } = await subRes.json();
 
       const incomeTotal = transactions
@@ -84,11 +89,14 @@ export default function FinanceClient() {
           return sum + s.amount * norm;
         }, 0);
 
+      const allExpense = expenseTotal + subscriptionTotal;
+
       setSummaryData({
         incomeTotal,
         expenseTotal,
         subscriptionTotal,
-        balance: incomeTotal - expenseTotal - subscriptionTotal,
+        allExpense,
+        netRemaining: incomeTotal - allExpense,
         month,
       });
     } catch {
@@ -161,6 +169,7 @@ export default function FinanceClient() {
 
           <FinanceSummary
             data={summaryData}
+            transactions={summaryTransactions}
             loading={summaryLoading}
             error={summaryError}
           />
@@ -170,6 +179,12 @@ export default function FinanceClient() {
       {activeTab === 'transactions' && (
         <FinanceErrorBoundary tabName="Transactions">
           <TransactionList refreshKey={refreshKey} />
+        </FinanceErrorBoundary>
+      )}
+
+      {activeTab === 'budgets' && (
+        <FinanceErrorBoundary tabName="Budgets">
+          <BudgetList month={month} />
         </FinanceErrorBoundary>
       )}
 

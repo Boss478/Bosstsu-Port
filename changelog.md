@@ -4,6 +4,15 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.23 (2026-05-28)
+
++ Added Renew button on active subscriptions — creates expense transaction + advances next billing date
++ Added Cancel button on active subscriptions — deactivates subscription, moves to cancelled section
++ Added collapsible cancelled subscriptions section — collapsed by default with count badge
++ Added Budget Planner tab — per-month category budget limits with editable fields, save, and copy-from-last-month
++ Added Quick-Add inline bar in Transactions tab — rapid single-line transaction entry with local-state prepend (no full re-fetch), client-side validation, and category switching by type
+* Split expense card in summary to show total expense (xl) + subscription portion (sm)
+
 ## v1.9.22 (2026-05-28)
 
 + Added cross-domain Dashboard Summary — portfolio + budget summary cards above tool links on `/boss478/`

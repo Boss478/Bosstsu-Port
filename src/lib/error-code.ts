@@ -40,6 +40,8 @@ const ERRORS = {
   F03: { http: 404, message: "ไม่พบรายการ", translation: "Transaction not found" },
   F04: { http: 404, message: "ไม่พบสมาชิก", translation: "Subscription not found" },
   F05: { http: 400, message: "จำนวนเงินต้องมากกว่า 0", translation: "Amount must be greater than 0" },
+  F06: { http: 400, message: "ข้อมูลงบประมาณไม่ถูกต้อง", translation: "Invalid budget data" },
+  F07: { http: 404, message: "ไม่พบงบประมาณ", translation: "Budget not found" },
 
   T04: { http: 400, message: "เซสชันไม่พร้อมใช้งานหรือหมดอายุแล้ว", translation: "Session not available or expired" },
   T05: { http: 400, message: "รหัสเซสชันไม่ถูกต้อง", translation: "Invalid session code" },
