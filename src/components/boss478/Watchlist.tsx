@@ -6,6 +6,7 @@ import { useStockData } from './StockDataContext';
 export default function Watchlist() {
   const { stocks, watchlist, addToWatchlist, removeFromWatchlist } = useStockData();
   const [search, setSearch] = useState('');
+  const currency = (s: string) => s.endsWith('.BK') ? '฿' : '$';
 
   const watched = stocks.filter(s => watchlist.includes(s.symbol));
   const available = stocks.filter(s => !watchlist.includes(s.symbol));
@@ -48,7 +49,7 @@ export default function Watchlist() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                    ${stock.price.toFixed(2)}
+                    {currency(stock.symbol)}{stock.price.toFixed(2)}
                   </p>
                     <p className={`text-xs font-medium ${
                       stock.change >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
@@ -95,7 +96,7 @@ export default function Watchlist() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    ${stock.price.toFixed(2)}
+                    {currency(stock.symbol)}{stock.price.toFixed(2)}
                   </p>
                   <p className={`text-xs font-medium ${
                     stock.change >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'

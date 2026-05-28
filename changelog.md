@@ -4,6 +4,42 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.21 (2026-05-28)
+
++ Added Private Tool Dashboard — `/boss478/` restructured as tool launcher with Navbar toggle (public/private nav modes)
++ Added Finance Tracker — expense + income tracking with Transaction model, API, and form UI
++ Added Subscription Manager — Subscription model, CRUD API, monthly cost normalization, toggle active/inactive
++ Added MongoDB models: Transaction (type, amount, category, date), Subscription (name, amount, billingCycle, nextBillingDate, active)
++ Added Finance API routes — CRUD for transactions and subscriptions under `/boss478/finance/api/`
++ Added FINANCE config block — categories (income + expense), billing cycles, monthly normalizer
++ Added F01-F05 error codes for finance validation
++ Moved stock dashboard from `/boss478/` to `/boss478/stocks/`
+* Fixed subscription category validation type mismatch (record<unknown> → explicit string[])
+* Fixed subscription POST type error (unknown body fields → explicit type casts)
+* Fixed TransactionForm editing state type mismatch (number vs string for amount)
+
+
+## v1.9.20 (2026-05-27)
+
++ Added live market indices (S&P 500, NASDAQ, DJIA, SET, SET50) via batch Yahoo quotes — split response into quotes/indices
++ Added watchlist persistence — new StockWatchlist MongoDB model with GET/POST API route, auto-syncs on add/remove
++ Added shared `useEnrichedHoldings` + `usePortfolioAggregates` hook — eliminates duplicate portfolio enrichment logic across MarketOverview and PortfolioTracker
++ Added per-tab `TabErrorBoundary` — isolates crashes so one tab failure doesn't kill the entire dashboard
++ Added market state banner — separate Thai (SET) and US session open/closed indicators with 60s auto-refresh
++ Added sortable stock table — click any column header (Symbol, Name, Price, Change, Volume, Mkt Cap) to sort ascending/descending
++ Added loading skeleton pattern — nested check fixes first-render timing gap
++ Switched default symbols to 27 combined stocks (20 Thai SET + 7 US) — batch `yahooFinance.quote(symbols)` reduces Yahoo HTTP calls from 27 to 1
++ Added currency-per-row display — ฿ for Thai (.BK) stocks, $ for US stocks
++ Added CPN.BK as default portfolio holding (1 share, ฿65)
++ Added timezone labels to ChartViews and PriceChart (local · EDT/EST · UTC)
++ Added `currency` field to ExtendedStockData mapped from Yahoo response
+* Made `filterMarketHours` symbol-aware — Thai market (03:00-09:30 UTC) vs US market (13:30-20:00 UTC)
+* Fixed market-hours filter precision — uses minute-level check (13:30 UTC, not 13:00)
+* MarketOverview Portfolio Summary now respects `manualPrice` (consistent with PortfolioTracker)
+* ChartViews DEFAULT_SELECTED updated to top 7 Thai symbols
+* All dashboard dollar signs converted to per-row currency (฿/$)
+
+
 ## v1.9.19 (2026-05-26)
 
 + Integrated `yahoo-finance2` for live stock quotes and historical chart data with circuit breaker (10 consecutive failures stops auto-refresh), progressive backoff (3+ failures doubles interval), and in-memory history cache (5min for 1d/5d, 1h for others)

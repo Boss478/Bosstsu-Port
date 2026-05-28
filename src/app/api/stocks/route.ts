@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const INDEX_SYMBOLS = ['^GSPC', '^IXIC', '^DJI', '^SET.BK', '^SET50.BK'];
+
 const PERIOD_MAP: Record<string, { days: number; interval: '5m' | '30m' | '1d' | '1wk' | '1mo' }> = {
   '1d':  { days: 1,    interval: '5m' },
   '5d':  { days: 5,    interval: '30m' },
@@ -38,13 +40,11 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'symbols required' }, { status: 400 });
       }
 
-      const results = await Promise.allSettled(
-        symbols.map(s => yahooFinance.quote(s))
-      );
+      const batchResult = await yahooFinance.quote(symbols);
+      const resultsArray = Array.isArray(batchResult) ? batchResult : [batchResult];
 
-      const quotes = results
-        .filter((r: any) => r.status === 'fulfilled')
-        .map((r: any) => r.value)
+      const quotes = resultsArray
+        .filter((q: any) => q?.symbol && !INDEX_SYMBOLS.includes(q.symbol))
         .map((q: any) => ({
           symbol: q.symbol,
           name: q.shortName || q.longName || q.symbol,
@@ -63,9 +63,20 @@ export async function POST(request: NextRequest) {
           dividendAmount: safeNum(q.dividendRate),
           regularMarketDayHigh: safeNum(q.regularMarketDayHigh),
           regularMarketDayLow: safeNum(q.regularMarketDayLow),
+          currency: q.currency || 'USD',
         }));
 
-      return NextResponse.json({ quotes });
+      const indices = resultsArray
+        .filter((q: any) => q?.symbol && INDEX_SYMBOLS.includes(q.symbol))
+        .map((q: any) => ({
+          symbol: q.symbol,
+          name: q.shortName || q.symbol,
+          value: safeNum(q.regularMarketPrice ?? q.marketCap ?? q.price),
+          change: safeNum(q.regularMarketChange),
+          changePercent: safeNum(q.regularMarketChangePercent),
+        }));
+
+      return NextResponse.json({ quotes, indices });
     }
 
     if (type === 'history') {

@@ -91,6 +91,16 @@ export const CONFIG = {
     RECENT_RESOURCES: 5,                    // items — recent resources on detail page
   },
 
+  // ─── Finance Tracker (Private Section) ─────────────────────────────────
+  FINANCE: {
+    CATEGORIES: {
+      income: ['เงินเดือน', 'โบนัส', 'รายได้เสริม', 'การลงทุน', 'อื่นๆ'],
+      expense: ['อาหาร', 'เดินทาง', 'ที่อยู่อาศัย', 'สาธารณูปโภค', 'ความบันเทิง', 'สุขภาพ', 'การศึกษา', 'ช้อปปิ้ง', 'อื่นๆ'],
+    },
+    BILLING_CYCLES: ['monthly', 'yearly', 'weekly', 'quarterly'] as const,
+    MONTHLY_NORMALIZER: { weekly: 52 / 12, monthly: 1, quarterly: 1 / 3, yearly: 1 / 12 } as const,
+  } as const,
+
   // ─── Rate Limiting ────────────────────────────────────────────────────
   RATE_LIMIT: {
     MAX_ATTEMPTS: 5,                    // failed attempts before lockout

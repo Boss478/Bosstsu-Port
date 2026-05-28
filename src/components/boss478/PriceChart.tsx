@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useStockData, PERIOD_CONFIG, type Period } from './StockDataContext';
 
 interface PriceChartProps {
@@ -12,6 +12,18 @@ export default function PriceChart({ initialSymbol }: PriceChartProps) {
   const hasInitial = initialSymbol && stocks.some(s => s.symbol === initialSymbol);
   const [selected, setSelected] = useState(hasInitial ? initialSymbol! : (stocks[0]?.symbol ?? ''));
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
+  const tzLabel = useMemo(() => {
+    const offset = -(new Date().getTimezoneOffset()) / 60;
+    const local = `UTC${offset >= 0 ? '+' : ''}${offset}`;
+    const now = new Date();
+    const mar1 = new Date(now.getFullYear(), 2, 1).getDay();
+    const dstStart = new Date(now.getFullYear(), 2, mar1 === 0 ? 8 : 15 - mar1, 7);
+    const nov1 = new Date(now.getFullYear(), 10, 1).getDay();
+    const dstEnd = new Date(now.getFullYear(), 10, nov1 === 0 ? 1 : 8 - nov1, 6);
+    const et = now >= dstStart && now < dstEnd ? 'EDT (UTC-4)' : 'EST (UTC-5)';
+    return `${local} · ${et} · UTC`;
+  }, []);
 
   const displaySymbol = hasInitial ? initialSymbol! : selected;
   const data = history[displaySymbol] ?? [];
@@ -134,6 +146,10 @@ export default function PriceChart({ initialSymbol }: PriceChartProps) {
             ))}
           </div>
         )}
+
+        <div className="text-[10px] text-zinc-400 dark:text-zinc-500 text-right mb-2">
+          Times: {tzLabel}
+        </div>
 
         <div className={`overflow-x-auto ${!initialSymbol ? '' : ''}`}>
           <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full h-auto min-w-[500px]" preserveAspectRatio="xMidYMid meet">

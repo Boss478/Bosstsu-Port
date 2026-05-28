@@ -35,6 +35,12 @@ const ERRORS = {
   P01: { http: 400, message: "คำขอไม่ถูกต้อง", translation: "Invalid request" },
   P02: { http: 400, message: "คำนำเข้าไม่ถูกต้อง", translation: "Invalid input" },
 
+  F01: { http: 400, message: "ข้อมูลรายการไม่ถูกต้อง", translation: "Invalid transaction data" },
+  F02: { http: 400, message: "ข้อมูลสมาชิกไม่ถูกต้อง", translation: "Invalid subscription data" },
+  F03: { http: 404, message: "ไม่พบรายการ", translation: "Transaction not found" },
+  F04: { http: 404, message: "ไม่พบสมาชิก", translation: "Subscription not found" },
+  F05: { http: 400, message: "จำนวนเงินต้องมากกว่า 0", translation: "Amount must be greater than 0" },
+
   T04: { http: 400, message: "เซสชันไม่พร้อมใช้งานหรือหมดอายุแล้ว", translation: "Session not available or expired" },
   T05: { http: 400, message: "รหัสเซสชันไม่ถูกต้อง", translation: "Invalid session code" },
   T06: { http: 429, message: "ส่งคำตอบเร็วเกินไป กรุณารอสักครู่", translation: "Too many submissions" },

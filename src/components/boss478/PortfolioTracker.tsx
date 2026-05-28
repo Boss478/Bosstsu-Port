@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useStockData } from './StockDataContext';
+import { useEnrichedHoldings, usePortfolioAggregates } from './useEnrichedHoldings';
 import StockDetailModal from './StockDetailModal';
 
 export default function PortfolioTracker() {
@@ -18,20 +19,9 @@ export default function PortfolioTracker() {
   const [addError, setAddError] = useState('');
   const [adding, setAdding] = useState(false);
 
-  const enriched = portfolio.map(h => {
-    const current = stocks.find(s => s.symbol === h.symbol);
-    const effectivePrice = h.manualPrice ?? current?.price ?? 0;
-    const totalCost = h.shares * h.avgCost;
-    const totalValue = h.shares * effectivePrice;
-    const pl = totalValue - totalCost;
-    const plPercent = totalCost > 0 ? (pl / totalCost) * 100 : 0;
-    return { ...h, currentPrice: effectivePrice, totalCost, totalValue, pl, plPercent };
-  });
-
-  const totalCost = enriched.reduce((s, h) => s + h.totalCost, 0);
-  const totalValue = enriched.reduce((s, h) => s + h.totalValue, 0);
-  const totalPl = totalValue - totalCost;
-  const totalPlPercent = totalCost > 0 ? (totalPl / totalCost) * 100 : 0;
+  const enriched = useEnrichedHoldings(portfolio, stocks);
+  const { totalValue, totalCost, totalPl, totalPlPercent } = usePortfolioAggregates(enriched);
+  const currency = (s: string) => s.endsWith('.BK') ? '฿' : '$';
 
   const startEditing = (h: (typeof enriched)[number]) => {
     setEditSymbol(h.symbol);
@@ -83,13 +73,13 @@ export default function PortfolioTracker() {
           <div>
             <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">Total Value</p>
             <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-              ${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              ฿{totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </p>
           </div>
           <div>
             <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">Total Cost</p>
             <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-              ${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              ฿{totalCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </p>
           </div>
           <div>
@@ -98,7 +88,7 @@ export default function PortfolioTracker() {
               totalPl >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
             }`}>
               <i className={`fi ${totalPl >= 0 ? 'fi-sr-caret-up' : 'fi-sr-caret-down'}`} />
-              ${Math.abs(totalPl).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              ฿{Math.abs(totalPl).toLocaleString(undefined, { minimumFractionDigits: 2 })}
               <span className="text-sm font-medium">
                 ({totalPlPercent >= 0 ? '+' : ''}{totalPlPercent.toFixed(2)}%)
               </span>
@@ -206,7 +196,7 @@ export default function PortfolioTracker() {
                         className="w-24 text-right px-2 py-1 rounded border border-zinc-300 dark:border-slate-600 bg-white/60 dark:bg-slate-800/60 text-zinc-900 dark:text-zinc-100"
                       />
                     ) : (
-                      `$${h.avgCost.toFixed(2)}`
+                      `${currency(h.symbol)}${h.avgCost.toFixed(2)}`
                     )}
                   </td>
                   <td className="py-3 px-4 text-right text-zinc-700 dark:text-zinc-300">
@@ -223,18 +213,18 @@ export default function PortfolioTracker() {
                       </span>
                     ) : (
                       <span>
-                        ${h.currentPrice.toFixed(2)}
+                        {currency(h.symbol)}{h.currentPrice.toFixed(2)}
                         {hasManualPrice && <span className="text-blue-500 text-xs ml-0.5" title="manual">•</span>}
                       </span>
                     )}
                   </td>
                   <td className="py-3 px-4 text-right font-medium text-zinc-900 dark:text-zinc-100">
-                    ${h.totalValue.toFixed(2)}
+                    {currency(h.symbol)}{h.totalValue.toFixed(2)}
                   </td>
                   <td className={`py-3 px-4 text-right font-medium ${
                     h.pl >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
                   }`}>
-                    ${h.pl >= 0 ? '+' : ''}{h.pl.toFixed(2)}
+                    {currency(h.symbol)}{h.pl >= 0 ? '+' : ''}{h.pl.toFixed(2)}
                     <br />
                     <span className="text-xs">({h.plPercent >= 0 ? '+' : ''}{h.plPercent.toFixed(2)}%)</span>
                   </td>

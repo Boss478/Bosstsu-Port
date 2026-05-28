@@ -1,7 +1,7 @@
-import PrivateDashboardClient from '@/components/boss478/PrivateDashboardClient';
+import PrivateDashboard from '@/components/boss478/PrivateDashboard';
 
 export const dynamic = 'force-dynamic';
 
 export default function PrivateDashboardPage() {
-  return <PrivateDashboardClient />;
+  return <PrivateDashboard />;
 }

@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useStockData, PERIOD_CONFIG, type StockHistory } from './StockDataContext';
 import PriceChart from './PriceChart';
 import StockDetailModal from './StockDetailModal';
 
 type ChartViewMode = 'compact' | 'watchlist' | 'all' | 'full';
+type CompactCols = 3 | 4 | 6;
 
 const VIEW_MODES: { id: ChartViewMode; label: string }[] = [
   { id: 'compact', label: 'Compact' },
@@ -14,7 +15,10 @@ const VIEW_MODES: { id: ChartViewMode; label: string }[] = [
   { id: 'full', label: 'Full' },
 ];
 
-const DEFAULT_SELECTED = ['TSM', 'GOOGL', 'NVDA', 'AAPL', 'MSFT', 'META', 'AMD'];
+const DEFAULT_SELECTED = [
+  'PTT.BK', 'AOT.BK', 'CPALL.BK', 'ADVANC.BK', 'KBANK.BK',
+  'PTTEP.BK', 'SCB.BK',
+];
 
 export default function ChartViews() {
   const { stocks, history, period, setPeriod, watchlist } = useStockData();
@@ -22,11 +26,25 @@ export default function ChartViews() {
   const [selectedSymbols, setSelectedSymbols] = useState<string[]>(DEFAULT_SELECTED);
   const [fullSymbol, setFullSymbol] = useState(stocks[0]?.symbol ?? '');
   const [modalSymbol, setModalSymbol] = useState<string | null>(null);
+  const [compactCols, setCompactCols] = useState<CompactCols>(4);
+  const [watchlistSelected, setWatchlistSelected] = useState<string[]>(DEFAULT_SELECTED);
+
+  const tzLabel = useMemo(() => {
+    const offset = -(new Date().getTimezoneOffset()) / 60;
+    const local = `UTC${offset >= 0 ? '+' : ''}${offset}`;
+    const now = new Date();
+    const mar1 = new Date(now.getFullYear(), 2, 1).getDay();
+    const dstStart = new Date(now.getFullYear(), 2, mar1 === 0 ? 8 : 15 - mar1, 7);
+    const nov1 = new Date(now.getFullYear(), 10, 1).getDay();
+    const dstEnd = new Date(now.getFullYear(), 10, nov1 === 0 ? 1 : 8 - nov1, 6);
+    const et = now >= dstStart && now < dstEnd ? 'EDT (UTC-4)' : 'EST (UTC-5)';
+    return `${local} · ${et} · UTC`;
+  }, []);
 
   const displaySymbols = ((): string[] => {
     switch (viewMode) {
       case 'compact': return selectedSymbols;
-      case 'watchlist': return watchlist;
+      case 'watchlist': return watchlistSelected;
       case 'all': return [...new Set([...selectedSymbols, ...watchlist])];
       case 'full': return [fullSymbol];
     }
@@ -34,6 +52,14 @@ export default function ChartViews() {
 
   const toggleSelected = (symbol: string) => {
     setSelectedSymbols(prev =>
+      prev.includes(symbol)
+        ? prev.filter(s => s !== symbol)
+        : [...prev, symbol]
+    );
+  };
+
+  const toggleWatchlistSelected = (symbol: string) => {
+    setWatchlistSelected(prev =>
       prev.includes(symbol)
         ? prev.filter(s => s !== symbol)
         : [...prev, symbol]
@@ -89,22 +115,66 @@ export default function ChartViews() {
         ))}
       </div>
 
+      <div className="text-[10px] text-zinc-400 dark:text-zinc-500 text-right">
+        Times: {tzLabel}
+      </div>
+
       {viewMode === 'compact' && (
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1">
+            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Cols:</span>
+            {([3, 4, 6] as CompactCols[]).map(n => (
+              <button
+                key={n}
+                onClick={() => setCompactCols(n)}
+                className={`px-2 py-1 rounded text-xs font-medium transition-all cursor-pointer ${
+                  compactCols === n
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-slate-700/60'
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+          <span className="text-xs text-zinc-300 dark:text-zinc-600 hidden sm:inline">|</span>
+          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 self-center">Selected:</span>
+          <div className="flex flex-wrap gap-1">
+            {allSymbols.map(s => (
+              <button
+                key={s}
+                onClick={() => toggleSelected(s)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                  selectedSymbols.includes(s)
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-slate-700/60'
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {viewMode === 'watchlist' && (
         <div className="flex flex-wrap gap-2">
           <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 self-center">Selected:</span>
-          {allSymbols.map(s => (
-            <button
-              key={s}
-              onClick={() => toggleSelected(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                selectedSymbols.includes(s)
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-slate-700/60'
-              }`}
-            >
-              {s}
-            </button>
-          ))}
+          <div className="flex flex-wrap gap-1">
+            {allSymbols.map(s => (
+              <button
+                key={s}
+                onClick={() => toggleWatchlistSelected(s)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                  watchlistSelected.includes(s)
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-slate-700/60'
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -124,7 +194,7 @@ export default function ChartViews() {
         <div className="p-8 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm text-center">
           <p className="text-zinc-500 dark:text-zinc-400">
             {viewMode === 'compact' ? 'No symbols selected. Toggle symbols above to add them.' :
-             viewMode === 'watchlist' ? 'Watchlist is empty. Add stocks to your watchlist first.' :
+             viewMode === 'watchlist' ? 'No symbols selected. Toggle symbols above to add them.' :
              'No symbols to display.'}
           </p>
         </div>
@@ -132,14 +202,17 @@ export default function ChartViews() {
 
       {viewMode !== 'full' && displaySymbols.length > 0 && (
         <div className={`grid gap-4 ${
-          viewMode === 'compact' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' :
+          viewMode === 'compact'
+            ? compactCols === 6 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6' :
+              compactCols === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
+              'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' :
           viewMode === 'watchlist' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
           'grid-cols-1 sm:grid-cols-2'
         }`}>
           {displaySymbols.map(sym => {
             const stock = stocks.find(s => s.symbol === sym);
             const data = history[sym] ?? [];
-            if (!stock || data.length < 2) return null;
+            if (!stock) return null;
             return (
               <MiniChartCard
                 key={sym}
@@ -228,6 +301,12 @@ function MiniChartCard({
 
   const pad = (n: number) => n.toString().padStart(2, '0');
 
+  const formatYLabel = (price: number) => {
+    if (range >= 100) return price.toFixed(0);
+    if (range >= 10) return price.toFixed(1);
+    return price.toFixed(2);
+  };
+
   const formatHoverLabel = (idx: number) => {
     const d = data[idx];
     if (!d) return '';
@@ -276,12 +355,33 @@ function MiniChartCard({
       </div>
 
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+        {data.length >= 2 ? (
+          <>
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={strokeColor} stopOpacity="0.12" />
             <stop offset="100%" stopColor={strokeColor} stopOpacity="0" />
           </linearGradient>
         </defs>
+        {range > 0 && (
+          <g>
+            {[max, (max + min) / 2, min].map((p, i) => {
+              const y = yS(p);
+              const label = formatYLabel(p);
+              const labelX = PL + 3;
+              const labelW = label.length * 5;
+              return (
+                <g key={i}>
+                  <line x1={PL} y1={y} x2={W - PR} y2={y} stroke="currentColor" strokeOpacity="0.12" strokeWidth="0.5" strokeDasharray="2 2" />
+                  <rect x={labelX - 1} y={y - 4} width={labelW + 2} height="9" rx="1" fill="white" opacity="0.7" />
+                  <text x={labelX} y={y + 3} textAnchor="start" fill="currentColor" opacity="0.6" fontSize="7" fontFamily="monospace">
+                    {label}
+                  </text>
+                </g>
+              );
+            })}
+          </g>
+        )}
         <path d={areaPath} fill={`url(#${gradientId})`} />
         <path d={path} fill="none" stroke={strokeColor} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
         <circle cx={xS(data.length - 1)} cy={yS(prices[prices.length - 1])} r="2" fill={strokeColor} />
@@ -323,6 +423,12 @@ function MiniChartCard({
           onMouseLeave={() => setHoveredIdx(null)}
           style={{ cursor: 'crosshair' }}
         />
+        </>
+        ) : (
+          <text x={W / 2} y={H / 2} textAnchor="middle" fill="#a1a1aa" fontSize="9">
+            No chart data
+          </text>
+        )}
       </svg>
 
       <div className="grid grid-cols-3 gap-x-3 gap-y-0.5 mt-2.5 text-[11px]">

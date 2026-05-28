@@ -1,11 +1,39 @@
 'use client';
 
+import { Component, type ReactNode } from 'react';
 import { StockDataProvider, useStockData, PERIOD_CONFIG } from './StockDataContext';
 import MarketOverview from './MarketOverview';
 import PortfolioTracker from './PortfolioTracker';
 import ChartViews from './ChartViews';
 import Watchlist from './Watchlist';
 import BottomNavBar from './BottomNavBar';
+
+class TabErrorBoundary extends Component<
+  { children: ReactNode; tabName: string },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode; tabName: string }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: Error) {
+    console.error(`[${this.props.tabName}] Error:`, error);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-5 rounded-xl border border-red-200/60 dark:border-red-700/50 bg-red-50/60 dark:bg-red-900/30 text-center">
+          <p className="text-sm text-red-600 dark:text-red-400">Something went wrong in {this.props.tabName}</p>
+          <p className="text-xs text-zinc-400 mt-1">Try refreshing the page</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const INTERVAL_OPTIONS = [
   { label: 'Off', value: null },
@@ -23,7 +51,7 @@ const TABS = [
 ];
 
 function DashboardInner() {
-  const { activeTab, setActiveTab, period, setPeriod, manualRefresh, isLoading, lastUpdated, setRefreshInterval, refreshInterval, failedYahooCalls } = useStockData();
+  const { activeTab, setActiveTab, period, setPeriod, manualRefresh, isLoading, lastUpdated, setRefreshInterval, refreshInterval, failedYahooCalls, marketState } = useStockData();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
@@ -93,6 +121,23 @@ function DashboardInner() {
         )}
       </div>
 
+      <div className="mb-4 flex gap-3 text-xs">
+        <span className={`px-2 py-1 rounded font-medium ${
+          marketState.thai.open
+            ? 'text-green-600 dark:text-green-400 bg-green-50/60 dark:bg-green-900/30'
+            : 'text-zinc-500 dark:text-zinc-400 bg-zinc-100/60 dark:bg-zinc-800/60'
+        }`}>
+          SET: {marketState.thai.label}
+        </span>
+        <span className={`px-2 py-1 rounded font-medium ${
+          marketState.us.open
+            ? 'text-green-600 dark:text-green-400 bg-green-50/60 dark:bg-green-900/30'
+            : 'text-zinc-500 dark:text-zinc-400 bg-zinc-100/60 dark:bg-zinc-800/60'
+        }`}>
+          US: {marketState.us.label}
+        </span>
+      </div>
+
       {failedYahooCalls > 0 && (
         <div className="mb-4 px-4 py-2 rounded-lg bg-amber-50/80 dark:bg-amber-900/30 border border-amber-200/60 dark:border-amber-700/50 text-xs text-amber-700 dark:text-amber-300 flex items-center gap-2">
           <i className="fi fi-sr-exclamation text-amber-500" />
@@ -100,10 +145,18 @@ function DashboardInner() {
         </div>
       )}
 
-      {activeTab === 'overview' && <MarketOverview />}
-      {activeTab === 'portfolio' && <PortfolioTracker />}
-      {activeTab === 'charts' && <ChartViews />}
-      {activeTab === 'watchlist' && <Watchlist />}
+      <TabErrorBoundary tabName="Overview">
+        {activeTab === 'overview' && <MarketOverview />}
+      </TabErrorBoundary>
+      <TabErrorBoundary tabName="Portfolio">
+        {activeTab === 'portfolio' && <PortfolioTracker />}
+      </TabErrorBoundary>
+      <TabErrorBoundary tabName="Charts">
+        {activeTab === 'charts' && <ChartViews />}
+      </TabErrorBoundary>
+      <TabErrorBoundary tabName="Watchlist">
+        {activeTab === 'watchlist' && <Watchlist />}
+      </TabErrorBoundary>
 
       <BottomNavBar tabs={TABS} />
     </div>
