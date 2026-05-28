@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import DashboardSummary from './DashboardSummary';
 
 const TOOLS = [
   {
@@ -29,6 +30,8 @@ export default function PrivateDashboard() {
           Select a tool to get started
         </p>
       </div>
+
+      <DashboardSummary />
 
       <div className="grid gap-6 md:grid-cols-2">
         {TOOLS.map((tool) => (

@@ -94,8 +94,24 @@ export const CONFIG = {
   // ─── Finance Tracker (Private Section) ─────────────────────────────────
   FINANCE: {
     CATEGORIES: {
-      income: ['เงินเดือน', 'โบนัส', 'รายได้เสริม', 'การลงทุน', 'อื่นๆ'],
-      expense: ['อาหาร', 'เดินทาง', 'ที่อยู่อาศัย', 'สาธารณูปโภค', 'ความบันเทิง', 'สุขภาพ', 'การศึกษา', 'ช้อปปิ้ง', 'อื่นๆ'],
+      income: [
+        { value: 'Salary', label: 'Salary (เงินเดือน)' },
+        { value: 'Bonus', label: 'Bonus (โบนัส)' },
+        { value: 'Side Income', label: 'Side Income (รายได้เสริม)' },
+        { value: 'Investment', label: 'Investment (การลงทุน)' },
+        { value: 'Other', label: 'Other (อื่นๆ)' },
+      ] as const,
+      expense: [
+        { value: 'Food', label: 'Food (อาหาร)' },
+        { value: 'Transportation', label: 'Transportation (เดินทาง)' },
+        { value: 'Housing', label: 'Housing (ที่อยู่อาศัย)' },
+        { value: 'Utilities', label: 'Utilities (สาธารณูปโภค)' },
+        { value: 'Entertainment', label: 'Entertainment (ความบันเทิง)' },
+        { value: 'Health', label: 'Health (สุขภาพ)' },
+        { value: 'Education', label: 'Education (การศึกษา)' },
+        { value: 'Shopping', label: 'Shopping (ช้อปปิ้ง)' },
+        { value: 'Other', label: 'Other (อื่นๆ)' },
+      ] as const,
     },
     BILLING_CYCLES: ['monthly', 'yearly', 'weekly', 'quarterly'] as const,
     MONTHLY_NORMALIZER: { weekly: 52 / 12, monthly: 1, quarterly: 1 / 3, yearly: 1 / 12 } as const,
@@ -138,3 +154,11 @@ export const CONFIG = {
     GITHUB: 'https://github.com/Boss478',
   },
 } as const;
+
+export function getCategoryLabel(value: string): string {
+  const all = [...CONFIG.FINANCE.CATEGORIES.income, ...CONFIG.FINANCE.CATEGORIES.expense];
+  for (const cat of all) {
+    if (cat.value === value) return cat.label;
+  }
+  return value;
+}

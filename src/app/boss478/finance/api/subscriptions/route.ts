@@ -6,7 +6,10 @@ import { CONFIG } from '@/lib/config';
 import { formatError, getError } from '@/lib/error-code';
 import type { BillingCycle } from '@/models/Subscription';
 
-const VALID_CATEGORIES: string[] = [...CONFIG.FINANCE.CATEGORIES.expense, ...CONFIG.FINANCE.CATEGORIES.income];
+const VALID_CATEGORIES: string[] = [
+  ...CONFIG.FINANCE.CATEGORIES.expense.map((c) => c.value),
+  ...CONFIG.FINANCE.CATEGORIES.income.map((c) => c.value),
+];
 const VALID_CYCLES: string[] = [...CONFIG.FINANCE.BILLING_CYCLES];
 
 function validate(data: Record<string, unknown>): string | null {

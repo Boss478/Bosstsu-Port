@@ -5,7 +5,10 @@ import { verifyPrivateAuth } from '@/lib/private-auth';
 import { CONFIG } from '@/lib/config';
 import { formatError, getError } from '@/lib/error-code';
 
-const VALID_CATEGORIES: string[] = [...CONFIG.FINANCE.CATEGORIES.income, ...CONFIG.FINANCE.CATEGORIES.expense];
+const VALID_CATEGORIES: string[] = [
+  ...CONFIG.FINANCE.CATEGORIES.income.map((c) => c.value),
+  ...CONFIG.FINANCE.CATEGORIES.expense.map((c) => c.value),
+];
 
 function validate(data: Record<string, unknown>): string | null {
   if (data.amount !== undefined && (typeof data.amount !== 'number' || data.amount <= 0)) return formatError('F05');

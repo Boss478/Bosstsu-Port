@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import SubscriptionForm from './SubscriptionForm';
-import { CONFIG } from '@/lib/config';
+import { CONFIG, getCategoryLabel } from '@/lib/config';
 
 const { MONTHLY_NORMALIZER } = CONFIG.FINANCE;
 
@@ -158,7 +158,7 @@ export default function SubscriptionList({ refreshKey }: Props) {
                   {sub.name}
                 </p>
                 <p className="text-xs text-zinc-400">
-                  {cycleLabel(sub.billingCycle)} · {sub.category}
+                  {cycleLabel(sub.billingCycle)} · {getCategoryLabel(sub.category)}
                   {sub.description && ` · ${sub.description}`}
                 </p>
               </div>

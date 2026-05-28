@@ -4,6 +4,15 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.22 (2026-05-28)
+
++ Added cross-domain Dashboard Summary — portfolio + budget summary cards above tool links on `/boss478/`
++ Added DashboardSummary component — independent stock/budget fetch chains with partial failure handling
+* Constrained nav mode switch to private routes only — switch button hidden on public pages
+* Changed private nav active state to glassmorphic design — transparency + backdrop blur instead of solid blue
+* Removed backdrop-blur from mobile active items (nested blur caused visual muddiness)
+* Removed shadow-sm from desktop active items (redundant with nav pill shadow-lg)
+
 ## v1.9.21 (2026-05-28)
 
 + Added Private Tool Dashboard — `/boss478/` restructured as tool launcher with Navbar toggle (public/private nav modes)

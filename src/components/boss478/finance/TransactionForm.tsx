@@ -134,7 +134,7 @@ export default function TransactionForm({ editing, onClose, onSaved }: Props) {
             >
               <option value="">Select category</option>
               {categories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
+                <option key={cat.value} value={cat.value}>{cat.label}</option>
               ))}
             </select>
           </div>

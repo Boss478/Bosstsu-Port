@@ -142,7 +142,7 @@ export default function SubscriptionForm({ onClose, onSaved }: Props) {
               >
                 <option value="">Select</option>
                 {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c.value} value={c.value}>{c.label}</option>
                 ))}
               </select>
             </div>

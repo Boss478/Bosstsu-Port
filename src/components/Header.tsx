@@ -144,7 +144,7 @@ export default function Header() {
                     href={link.href}
                     className={`px-4 py-2 rounded-full text-sm transition-all duration-200 font-medium flex items-center gap-2 ${
                       isPrivateActive(link.href)
-                        ? 'bg-blue-600 text-white shadow-sm'
+                        ? 'bg-blue-500/30 dark:bg-blue-400/20 backdrop-blur-xs border border-blue-400/40 text-blue-700 dark:text-blue-300 hover:bg-blue-500/50 dark:hover:bg-blue-400/30'
                         : 'text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-300/70 dark:hover:bg-slate-400/80'
                     }`}
                   >
@@ -156,19 +156,20 @@ export default function Header() {
             </div>
 
             <div className="flex items-center gap-1">
-              {/* Nav Mode Switch */}
-              <button
-                onClick={() => setNavMode(navMode === 'public' ? 'private' : 'public')}
-                className={`px-2.5 py-2 rounded-full transition-all duration-200 flex items-center justify-center ${
-                  navMode === 'private'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'hover:bg-gray-300/70 dark:hover:bg-slate-400/80 text-zinc-500 dark:text-zinc-400'
-                }`}
-                aria-label="Switch to private tools"
-                title={navMode === 'public' ? 'Switch to private tools' : 'Switch to public nav'}
-              >
-                <i className="fi fi-sr-user-lock text-sm leading-none"></i>
-              </button>
+              {pathname.startsWith('/boss478') && (
+                <button
+                  onClick={() => setNavMode(navMode === 'public' ? 'private' : 'public')}
+                  className={`px-2.5 py-2 rounded-full transition-all duration-200 flex items-center justify-center ${
+                    navMode === 'private'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'hover:bg-gray-300/70 dark:hover:bg-slate-400/80 text-zinc-500 dark:text-zinc-400'
+                  }`}
+                  aria-label="Switch to private tools"
+                  title={navMode === 'public' ? 'Switch to private tools' : 'Switch to public nav'}
+                >
+                  <i className="fi fi-sr-user-lock text-sm leading-none"></i>
+                </button>
+              )}
 
               <button
                 onClick={toggleTheme}
@@ -219,16 +220,18 @@ export default function Header() {
               </div>
             </button>
 
-            <button
-              onClick={() => setNavMode(navMode === 'public' ? 'private' : 'public')}
-              className={`p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-all duration-200 ${
-                navMode === 'private' ? 'bg-white/85 dark:bg-slate-800/85' : ''
-              }`}
-              aria-label="Switch nav mode"
-              title={navMode === 'public' ? 'Private tools' : 'Public nav'}
-            >
-              <i className={`fi fi-sr-user-lock text-sm ${navMode === 'private' ? 'text-blue-600' : 'text-zinc-500'}`} />
-            </button>
+            {pathname.startsWith('/boss478') && (
+              <button
+                onClick={() => setNavMode(navMode === 'public' ? 'private' : 'public')}
+                className={`p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-all duration-200 ${
+                  navMode === 'private' ? 'bg-white/85 dark:bg-slate-800/85' : ''
+                }`}
+                aria-label="Switch nav mode"
+                title={navMode === 'public' ? 'Private tools' : 'Public nav'}
+              >
+                <i className={`fi fi-sr-user-lock text-sm ${navMode === 'private' ? 'text-blue-600' : 'text-zinc-500'}`} />
+              </button>
+            )}
 
             <button
               onClick={toggleMobileMenu}
@@ -299,8 +302,8 @@ export default function Header() {
                       href={link.href}
                       onClick={closeMenuWithAnimation}
                       className={`px-4 py-3 rounded-2xl transition-all duration-200 font-medium flex items-center gap-3 w-full ${
-                        isPrivateActive(link.href)
-                          ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400'
+                         isPrivateActive(link.href)
+                          ? 'bg-blue-500/20 dark:bg-blue-400/15 border border-blue-400/30 text-blue-700 dark:text-blue-300 hover:bg-blue-500/40 dark:hover:bg-blue-400/25'
                           : 'text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-slate-700/50'
                       }`}
                     >

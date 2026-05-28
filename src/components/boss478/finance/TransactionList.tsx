@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import TransactionForm from './TransactionForm';
-import { CONFIG } from '@/lib/config';
+import { CONFIG, getCategoryLabel } from '@/lib/config';
 
 interface Transaction {
   _id: string;
@@ -142,7 +142,7 @@ export default function TransactionList({ refreshKey }: Props) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
-                  {t.category}
+                  {getCategoryLabel(t.category)}
                 </p>
                 {t.description && (
                   <p className="text-xs text-zinc-400 truncate">{t.description}</p>
