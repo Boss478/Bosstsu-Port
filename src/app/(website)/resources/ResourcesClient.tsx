@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ResourceItem } from './data';
 import Breadcrumb from "@/components/Breadcrumb";
-import { formatDate } from "@/lib/format";
+import { formatShortDate } from "@/lib/format";
 import { Pagination } from "@/components/Pagination";
 import { EmptyState } from "@/components/EmptyState";
 import { useListNavigation } from "@/hooks/useListNavigation";
@@ -171,7 +171,7 @@ export default function ResourcesClient({
                     <div className="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-slate-800 mt-auto">
                       <span className="text-xs text-zinc-400 flex items-center gap-1">
                         <i className="fi fi-sr-calendar"></i>
-                        {formatDate(item.date)}
+                        {formatShortDate(item.date)}
                       </span>
 
                       <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300 shrink-0">

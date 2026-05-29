@@ -7,7 +7,7 @@ import Portfolio from "@/models/Portfolio";
 import Breadcrumb from "@/components/Breadcrumb";
 import PortfolioGallery from "@/components/PortfolioGallery";
 import { type PortfolioItem } from "../data";
-import { formatDate } from "@/lib/format";
+import { formatLongDate, formatShortDate } from "@/lib/format";
 import { CONFIG } from "@/lib/config";
 import type { IPortfolioItem } from "@/models/Portfolio";
 
@@ -191,7 +191,7 @@ export default async function PortfolioDetailPage({
                 <div className="flex flex-wrap items-center gap-6 text-zinc-500 dark:text-zinc-400 text-sm">
                   <span className="flex items-center gap-2">
                     <i className="fi fi-sr-calendar" />
-                    {formatDate(item.date)}
+                    {formatLongDate(item.date)}
                   </span>
                 </div>
               </header>
@@ -330,7 +330,7 @@ export default async function PortfolioDetailPage({
                         {item.title}
                       </h4>
                       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                        {formatDate(item.date)}
+                        {formatShortDate(item.date)}
                       </p>
                     </div>
                   </Link>
@@ -366,7 +366,7 @@ export default async function PortfolioDetailPage({
                       </div>
                       <div className="min-w-0">
                         <span className="text-xs text-zinc-400 dark:text-zinc-500 block mb-0.5">
-                          {formatDate(item.date)}
+                          {formatShortDate(item.date)}
                         </span>
                         <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
                           {item.title}

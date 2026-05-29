@@ -109,6 +109,7 @@ npm run seed     # Seed MongoDB via scripts/seed.ts (tsx)
 ```
 
 **Use `npm run dev` for development. Run `npm run build` only as final verification before marking a task done.**
+**Quick build check via dev container (no Docker rebuild):** `docker compose exec app-dev npm run build`
 
 ---
 
@@ -366,7 +367,7 @@ cp .env.production .env
 #   ADMIN_PASSWORD: choose a strong password
 
 # 5. Start services
-docker compose --profile production up -d --build
+docker compose up -d --build app
 
 # 6. Verify
 curl http://localhost
@@ -382,7 +383,7 @@ docker compose exec app npx tsx scripts/seed.ts
 ```bash
 cd /opt/boss478
 git pull
-docker compose --profile production up -d --build app
+docker compose up -d --build app
 ```
 
 ### Backup (Optional)
@@ -542,8 +543,11 @@ A Docker-based dev environment with hot reloading was added alongside the existi
 # Dev — everything in Docker with hot reload
 docker compose --profile dev up -d --build
 
-# Production
-docker compose --profile production up -d --build
+# Production (specifying service name bypasses profile filtering)
+docker compose up -d --build app
+
+# Check production build via dev container (quick, no Docker rebuild)
+docker compose exec app-dev npm run build
 
 # Local dev (unchanged)
 npm run dev
@@ -551,7 +555,7 @@ npm run dev
 
 ### Architecture
 
-- **`docker-compose.yml`** — `app` has `profiles: ["production"]`, `app-dev` has `profiles: ["dev"]` — each only starts with its respective profile
+- **`docker-compose.yml`** — `app` has `profiles: ["production"]`, `app-dev` has `profiles: ["dev"]` — explicitly naming a service (e.g. `docker compose up app`) bypasses profile filtering
 - **`dockerfile.dev`** single-stage dev Dockerfile — installs deps, runs `npm run dev`
 - Source code is volume-mounted (`.:/app`) for hot reload
 - Container `node_modules` and `.next` are isolated via anonymous volumes (never host's)

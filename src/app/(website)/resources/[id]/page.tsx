@@ -6,7 +6,7 @@ import DOMPurify from "isomorphic-dompurify";
 import dbConnect from "@/lib/db";
 import Learning from "@/models/Learning";
 import Breadcrumb from "@/components/Breadcrumb";
-import { formatDate } from "@/lib/format";
+import { formatLongDate, formatShortDate } from "@/lib/format";
 import { CONFIG } from "@/lib/config";
 
 export const revalidate = 60;
@@ -194,7 +194,7 @@ export default async function ResourceDetailPage({
               <div className="flex flex-wrap items-center gap-6 text-zinc-500 dark:text-zinc-400 text-sm">
                 <span className="flex items-center gap-2">
                   <i className="fi fi-sr-calendar" />
-                  {formatDate(docCreatedAt.toISOString())}
+                  {formatLongDate(docCreatedAt.toISOString())}
                 </span>
                 {doc.subject && (
                   <span className="flex items-center gap-2">
@@ -390,7 +390,7 @@ export default async function ResourceDetailPage({
                       </div>
                       <div className="min-w-0">
                         <span className="text-xs text-zinc-400 dark:text-zinc-500 block mb-0.5">
-                          {formatDate(
+                          {formatShortDate(
                             item.createdAt instanceof Date
                               ? item.createdAt.toISOString()
                               : new Date(item.createdAt).toISOString()

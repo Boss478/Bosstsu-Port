@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { type GalleryAlbum } from "../data";
-import { formatDate } from "@/lib/format";
+import { formatLongDate } from "@/lib/format";
 import PhotoLightbox from "@/components/PhotoLightbox";
 import Breadcrumb from "@/components/Breadcrumb";
 
@@ -38,7 +38,7 @@ export default function AlbumContent({ album }: AlbumContentProps) {
           <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
             <span className="flex items-center gap-1.5">
               <i className="fi fi-sr-calendar text-xs" />
-              {formatDate(album.date)}
+              {formatLongDate(album.date)}
             </span>
             <span className="flex items-center gap-1.5">
               <i className="fi fi-sr-picture text-xs" />

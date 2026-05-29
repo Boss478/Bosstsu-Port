@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from "next/link";
 import Image from "next/image";
 import { type PortfolioItem } from "./data";
-import { formatDate } from "@/lib/format";
+import { formatShortDate } from "@/lib/format";
 import Breadcrumb from "@/components/Breadcrumb";
 import { Pagination } from "@/components/Pagination";
 import { EmptyState } from "@/components/EmptyState";
@@ -197,7 +197,7 @@ export default function PortfolioClient({
                   <div className="mt-auto pt-6 border-t border-zinc-200 dark:border-slate-800/80 flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-xs font-medium text-zinc-400 dark:text-zinc-500">
                       <i className="fi fi-sr-calendar-lines" />
-                      {formatDate(item.date)}
+                      {formatShortDate(item.date)}
                     </span>
                     <span className="inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 dark:text-blue-400 group-hover:text-blue-500 transition-colors duration-300">
                       อ่านต่อ

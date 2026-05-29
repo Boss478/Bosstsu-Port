@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from "next/link";
 import Image from "next/image";
 import { type GalleryAlbum } from "./data";
-import { formatDate } from "@/lib/format";
+import { formatShortDate } from "@/lib/format";
 import Breadcrumb from "@/components/Breadcrumb";
 import { Pagination } from "@/components/Pagination";
 import { EmptyState } from "@/components/EmptyState";
@@ -166,7 +166,7 @@ export default function GalleryClient({
                     ))}
                     <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/30 backdrop-blur-sm border border-white/20 text-white">
                       <i className="fi fi-sr-calendar-lines text-[8px]" />
-                      {formatDate(album.date)}
+                      {formatShortDate(album.date)}
                     </span>
                   </div>
                 </div>

@@ -6,8 +6,9 @@
 
 ## v1.9.25 (2026-05-29)
 
-* Fixed Docker Compose profile conflict — `app` service now uses `profiles: ["production"]`, preventing port 3300 collision when running `--profile dev`
-* Changed production Docker command to `docker compose --profile production up -d --build`
+* Fixed Docker Compose profile conflict — `app` service now uses `profiles: ["production"]` to prevent port 3300 collision with `app-dev`
+* Changed production command to `docker compose up -d --build app` (naming service explicitly bypasses profile filtering)
++ Added `docker compose exec app-dev npm run build` as quick production build check (no Docker rebuild)
 
 ## v1.9.24 (2026-05-28)
 

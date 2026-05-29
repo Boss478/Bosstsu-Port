@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react';
 import Image from "next/image";
-import { formatDate } from "@/lib/format";
+import { formatShortDate } from "@/lib/format";
 import Breadcrumb from "@/components/Breadcrumb";
 import { Pagination } from "@/components/Pagination";
 import { EmptyState } from "@/components/EmptyState";
@@ -174,7 +174,7 @@ export default function GamesClient({
                     <div className="flex items-center justify-between pt-4 border-t border-zinc-100 dark:border-slate-800">
                       <span className="flex items-center gap-2 text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
                         <i className="fi fi-sr-calendar text-blue-400"></i>
-                        {formatDate(item.date)}
+                        {formatShortDate(item.date)}
                       </span>
                       <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
                         <i className="fi fi-sr-angle-small-right"></i>
