@@ -4,6 +4,25 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.24 (2026-05-28)
+
++ Added custom salary-aligned periods for Budget Tracker — set a pay day (gear icon next to month picker), periods auto-align to salary date (e.g., 25th → "May 25 — Jun 24")
++ Added period utility library (`src/lib/period.ts`) — period range computation, navigation, formatting
++ Added `startDate`/`endDate` params to transactions API for date-range filtering
+* Changed Budget Tracker month picker to period-aware arrow navigation when pay day is set
+* Changed DashboardSummary to respect custom pay day period for budget fetch
+* Fixed QuickAddBar visibility check for custom periods (was comparing calendar month only)
+* Fixed BudgetList period bug — was fetching with `?month=` instead of `startDate`/`endDate` when payDay set (wrong category totals/percentage bars for custom periods)
++ Added date formatting utility (`src/lib/format.ts`) — `formatShortDate`/`formatLongDate` (en-GB locale)
++ Added description input field to QuickAddBar — included in transaction POST body
++ Added period month badge in Budget Tracker header showing "MAY — JUNE" with full range tooltip
++ Added autocomplete datalist on BudgetList description input
++ Added expand/collapse all buttons for BudgetList categories
+* Changed FinanceSummary to 2-col grid (Category + Top5 sections), pie chart hover in center hole, removed text truncation
+* Changed TransactionList — description as main title, category as secondary
+* Changed DashboardSummary card padding from p-5 to p-7
+* Replaced manual date formatting across all finance components with formatShortDate
+
 ## v1.9.23 (2026-05-28)
 
 + Added Renew button on active subscriptions — creates expense transaction + advances next billing date

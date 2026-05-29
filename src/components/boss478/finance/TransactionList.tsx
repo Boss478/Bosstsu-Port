@@ -4,6 +4,15 @@ import { useState, useEffect, useCallback } from 'react';
 import TransactionForm from './TransactionForm';
 import QuickAddBar from './QuickAddBar';
 import { CONFIG, getCategoryLabel } from '@/lib/config';
+import { formatShortDate } from '@/lib/format';
+import {
+  getCurrentPeriodKey,
+  getPreviousPeriodKey,
+  getNextPeriodKey,
+  formatPeriodLabel,
+  getPeriodRange,
+  isCurrentPeriod,
+} from '@/lib/period';
 
 interface Transaction {
   _id: string;
@@ -16,22 +25,41 @@ interface Transaction {
 
 interface Props {
   refreshKey: number;
+  payDay?: number | null;
+  month?: string;
 }
 
-export default function TransactionList({ refreshKey }: Props) {
+export default function TransactionList({ refreshKey, payDay, month: externalMonth }: Props) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [month, setMonth] = useState(externalMonth || (payDay ? getCurrentPeriodKey(payDay) : new Date().toISOString().slice(0, 7)));
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<{ id: string; type: 'income' | 'expense'; amount: string; category: string; description: string; date: string } | null>(null);
+
+  useEffect(() => {
+    if (externalMonth) setMonth(externalMonth);
+  }, [externalMonth]);
+
+  useEffect(() => {
+    if (!month && payDay) {
+      setMonth(getCurrentPeriodKey(payDay));
+    }
+  }, [payDay]);
 
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ month });
+      const params = new URLSearchParams();
+      if (payDay) {
+        const range = getPeriodRange(payDay, month);
+        params.set('startDate', range.start.toISOString());
+        params.set('endDate', range.end.toISOString());
+      } else {
+        params.set('month', month);
+      }
       if (typeFilter !== 'all') params.set('type', typeFilter);
       const res = await fetch(`/boss478/finance/api/transactions?${params}`);
       if (!res.ok) throw new Error('Failed to fetch');
@@ -42,7 +70,7 @@ export default function TransactionList({ refreshKey }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [month, typeFilter]);
+  }, [month, typeFilter, payDay]);
 
   useEffect(() => {
     fetchTransactions();
@@ -80,12 +108,32 @@ export default function TransactionList({ refreshKey }: Props) {
   return (
     <div>
       <div className="flex flex-wrap items-center gap-3 mb-4">
-        <input
-          type="month"
-          value={month}
-          onChange={(e) => setMonth(e.target.value)}
-          className="px-3 py-1.5 rounded-lg text-sm bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-        />
+        {payDay ? (
+          <>
+            <button
+              onClick={() => setMonth(getPreviousPeriodKey(payDay, month))}
+              className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
+            >
+              <i className="fi fi-sr-angle-left text-xs text-zinc-600 dark:text-zinc-400" />
+            </button>
+            <span className="px-3 py-1.5 rounded-lg text-sm bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-700 dark:text-zinc-300 font-medium min-w-[200px] text-center">
+              {formatPeriodLabel(payDay, month)}
+            </span>
+            <button
+              onClick={() => setMonth(getNextPeriodKey(payDay, month))}
+              className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
+            >
+              <i className="fi fi-sr-angle-right text-xs text-zinc-600 dark:text-zinc-400" />
+            </button>
+          </>
+        ) : (
+          <input
+            type="month"
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            className="px-3 py-1.5 rounded-lg text-sm bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+          />
+        )}
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
@@ -106,12 +154,24 @@ export default function TransactionList({ refreshKey }: Props) {
         </div>
       </div>
 
-      {month === new Date().toISOString().slice(0, 7) && (
-        <QuickAddBar onAdd={(tx) => setTransactions((prev) => [tx, ...prev])} />
+      {payDay ? (
+        isCurrentPeriod(payDay, month) && (
+          <QuickAddBar onAdd={(tx) => setTransactions((prev) => [tx, ...prev])} />
+        )
+      ) : (
+        month === new Date().toISOString().slice(0, 7) && (
+          <QuickAddBar onAdd={(tx) => setTransactions((prev) => [tx, ...prev])} />
+        )
       )}
 
-      {month !== new Date().toISOString().slice(0, 7) && (
-        <p className="text-xs text-zinc-400 mb-3">{monthLabel(month)}</p>
+      {payDay ? (
+        !isCurrentPeriod(payDay, month) && (
+          <p className="text-xs text-zinc-400 mb-3">{formatPeriodLabel(payDay, month)}</p>
+        )
+      ) : (
+        month !== new Date().toISOString().slice(0, 7) && (
+          <p className="text-xs text-zinc-400 mb-3">{monthLabel(month)}</p>
+        )
       )}
 
       {error && (
@@ -147,11 +207,9 @@ export default function TransactionList({ refreshKey }: Props) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
-                  {getCategoryLabel(t.category)}
+                  {t.description || getCategoryLabel(t.category)}
                 </p>
-                {t.description && (
-                  <p className="text-xs text-zinc-400 truncate">{t.description}</p>
-                )}
+                <p className="text-xs text-zinc-400">{getCategoryLabel(t.category)}</p>
               </div>
               <div className="text-right">
                 <p className={`text-sm font-semibold ${
@@ -160,7 +218,7 @@ export default function TransactionList({ refreshKey }: Props) {
                   {t.type === 'expense' ? '-' : '+'}฿{fmt(t.amount)}
                 </p>
                 <p className="text-[10px] text-zinc-400">
-                  {new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  {formatShortDate(t.date)}
                 </p>
               </div>
               <div className="flex gap-1">

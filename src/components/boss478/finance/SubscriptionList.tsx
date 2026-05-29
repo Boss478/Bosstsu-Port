@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import SubscriptionForm from './SubscriptionForm';
 import { CONFIG, getCategoryLabel } from '@/lib/config';
+import { formatShortDate } from '@/lib/format';
 
 const { MONTHLY_NORMALIZER } = CONFIG.FINANCE;
 
@@ -37,7 +38,9 @@ export default function SubscriptionList({ refreshKey }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingSub, setEditingSub] = useState<Subscription | null>(null);
   const [renewingId, setRenewingId] = useState<string | null>(null);
+  const [renewDate, setRenewDate] = useState('');
   const [showCancelled, setShowCancelled] = useState(false);
 
   const fetchSubscriptions = useCallback(async () => {
@@ -59,16 +62,18 @@ export default function SubscriptionList({ refreshKey }: Props) {
     fetchSubscriptions();
   }, [fetchSubscriptions, refreshKey]);
 
-  async function handleRenew(sub: Subscription) {
+  function startRenew(sub: Subscription) {
     setRenewingId(sub._id);
-    setError(null);
+    setRenewDate(advanceBillingDate(new Date(sub.nextBillingDate), sub.billingCycle).toISOString().split('T')[0]);
+  }
+
+  async function handleRenew(sub: Subscription) {
     const today = new Date().toISOString().slice(0, 10);
     try {
-      const adv = advanceBillingDate(new Date(sub.nextBillingDate), sub.billingCycle);
       const patchRes = await fetch(`/boss478/finance/api/subscriptions?id=${sub._id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nextBillingDate: adv.toISOString() }),
+        body: JSON.stringify({ nextBillingDate: new Date(renewDate).toISOString() }),
       });
       if (!patchRes.ok) throw new Error('Failed to advance billing date');
 
@@ -85,12 +90,17 @@ export default function SubscriptionList({ refreshKey }: Props) {
       });
       if (!postRes.ok) throw new Error('Failed to create expense');
 
+      setRenewingId(null);
+      setRenewDate('');
       fetchSubscriptions();
     } catch {
       setError('Renew failed. Expense was not recorded.');
-    } finally {
-      setRenewingId(null);
     }
+  }
+
+  function cancelRenew() {
+    setRenewingId(null);
+    setRenewDate('');
   }
 
   async function handleCancel(id: string) {
@@ -153,7 +163,7 @@ export default function SubscriptionList({ refreshKey }: Props) {
           Active monthly total: <span className="font-semibold text-zinc-800 dark:text-zinc-200">฿{fmt(totalMonthly)}</span>
         </p>
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() => { setEditingSub(null); setShowForm(true); }}
           className="px-4 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors cursor-pointer flex items-center gap-1.5"
         >
           <i className="fi fi-sr-add text-xs" />
@@ -172,7 +182,7 @@ export default function SubscriptionList({ refreshKey }: Props) {
           <i className="fi fi-sr-refresh text-3xl text-zinc-300 dark:text-zinc-600 mb-3 block" />
           <p className="text-zinc-400 dark:text-zinc-500 text-sm">No subscriptions yet</p>
           <button
-            onClick={() => setShowForm(true)}
+            onClick={() => { setEditingSub(null); setShowForm(true); }}
             className="mt-3 px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors cursor-pointer"
           >
             Add your first subscription
@@ -202,21 +212,46 @@ export default function SubscriptionList({ refreshKey }: Props) {
                   ฿{fmt(sub.amount)}/<span className="text-[10px]">{sub.billingCycle === 'monthly' ? 'mo' : sub.billingCycle === 'yearly' ? 'yr' : sub.billingCycle === 'weekly' ? 'wk' : 'qtr'}</span>
                 </p>
                 <p className="text-[10px] text-zinc-400">
-                  Next: {new Date(sub.nextBillingDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  Next: {formatShortDate(sub.nextBillingDate)}
                 </p>
               </div>
               <div className="flex gap-1">
                 <button
-                  onClick={() => handleRenew(sub)}
-                  disabled={renewingId === sub._id}
-                  className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  onClick={() => { setEditingSub(sub); setShowForm(true); }}
+                  className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 cursor-pointer"
                 >
-                  {renewingId === sub._id ? (
-                    <i className="fi fi-sr-spinner animate-spin text-xs" />
-                  ) : (
-                    'Renew'
-                  )}
+                  <i className="fi fi-sr-pencil text-xs text-zinc-400" />
                 </button>
+                {renewingId === sub._id ? (
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="date"
+                      value={renewDate}
+                      onChange={(e) => setRenewDate(e.target.value)}
+                      className="w-28 px-2 py-1 rounded text-xs bg-white/60 dark:bg-slate-700/60 border border-zinc-200 dark:border-slate-600 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                    />
+                    <button
+                      onClick={() => handleRenew(sub)}
+                      className="px-2 py-1 rounded text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors cursor-pointer"
+                    >
+                      Confirm
+                    </button>
+                    <button
+                      onClick={cancelRenew}
+                      className="px-2 py-1 rounded text-xs font-medium bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors cursor-pointer"
+                    >
+                      Back
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => startRenew(sub)}
+                    disabled={renewingId !== null}
+                    className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  >
+                    Renew
+                  </button>
+                )}
                 <button
                   onClick={() => handleCancel(sub._id)}
                   className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors cursor-pointer"
@@ -286,8 +321,17 @@ export default function SubscriptionList({ refreshKey }: Props) {
 
       {showForm && (
         <SubscriptionForm
-          onClose={() => setShowForm(false)}
-          onSaved={() => { setShowForm(false); fetchSubscriptions(); }}
+          editing={editingSub ? {
+            id: editingSub._id,
+            name: editingSub.name,
+            amount: editingSub.amount.toString(),
+            billingCycle: editingSub.billingCycle,
+            category: editingSub.category,
+            nextBillingDate: editingSub.nextBillingDate.slice(0, 10),
+            description: editingSub.description || '',
+          } : null}
+          onClose={() => { setShowForm(false); setEditingSub(null); }}
+          onSaved={() => { setShowForm(false); setEditingSub(null); fetchSubscriptions(); }}
         />
       )}
     </div>

@@ -23,6 +23,7 @@ export default function QuickAddBar({ onAdd }: Props) {
   const [type, setType] = useState<'income' | 'expense'>('expense');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
+  const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -31,6 +32,7 @@ export default function QuickAddBar({ onAdd }: Props) {
   function reset() {
     setAmount('');
     setCategory('');
+    setDescription('');
     setError('');
   }
 
@@ -53,7 +55,7 @@ export default function QuickAddBar({ onAdd }: Props) {
       const res = await fetch('/boss478/finance/api/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, amount: num, category, date: new Date().toISOString() }),
+        body: JSON.stringify({ type, amount: num, category, description: description || undefined, date: new Date().toISOString() }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -112,6 +114,13 @@ export default function QuickAddBar({ onAdd }: Props) {
         />
       </div>
 
+      <input
+        type="text"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="Description"
+        className="flex-1 min-w-[120px] px-3 py-1.5 rounded-lg text-sm bg-white/60 dark:bg-slate-700/60 border border-zinc-200 dark:border-slate-600 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+      />
       <select
         value={category}
         onChange={(e) => setCategory(e.target.value)}

@@ -1,21 +1,17 @@
-const MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
-
-export function formatDate(iso: string): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${day} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+export function formatShortDate(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 }
 
-export function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-}
-
-export function parseTagString(tagsStr?: string | null): string[] {
-  return tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
+export function formatLongDate(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 }

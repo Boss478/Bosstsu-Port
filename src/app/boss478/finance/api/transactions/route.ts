@@ -25,11 +25,15 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = request.nextUrl;
   const month = searchParams.get('month');
+  const startDate = searchParams.get('startDate');
+  const endDate = searchParams.get('endDate');
   const type = searchParams.get('type');
   const category = searchParams.get('category');
 
   const filter: Record<string, unknown> = {};
-  if (month) {
+  if (startDate && endDate) {
+    filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+  } else if (month) {
     const [year, m] = month.split('-').map(Number);
     if (year && m) {
       const start = new Date(year, m - 1, 1);

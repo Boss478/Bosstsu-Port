@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { CONFIG } from '@/lib/config';
+import { formatShortDate } from '@/lib/format';
+import {
+  getPreviousPeriodKey,
+  getNextPeriodKey,
+  formatPeriodLabel,
+  getPeriodRange,
+} from '@/lib/period';
 
 interface BudgetEntry {
   category: string;
@@ -36,7 +43,7 @@ function monthLabel(month: string): string {
   return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
-export default function BudgetList({ month: externalMonth }: { month?: string } = {}) {
+export default function BudgetList({ month: externalMonth, payDay }: { month?: string; payDay?: number | null } = {}) {
   const [month, setMonth] = useState(externalMonth || new Date().toISOString().slice(0, 7));
   const [budgets, setBudgets] = useState<Map<string, number>>(new Map());
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
@@ -44,15 +51,40 @@ export default function BudgetList({ month: externalMonth }: { month?: string } 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+
+  function toggleCategory(cat: string) {
+    const next = new Set(expandedCategories);
+    if (next.has(cat)) next.delete(cat); else next.add(cat);
+    setExpandedCategories(next);
+  }
+
+  function expandAll() {
+    const all = new Set<string>();
+    for (const c of INCOME_CATS) all.add(c.value);
+    for (const c of EXPENSE_CATS) all.add(c.value);
+    setExpandedCategories(all);
+  }
+
+  function collapseAll() {
+    setExpandedCategories(new Set());
+  }
 
   const fetchData = async () => {
     setLoading(true);
     setError(null);
     try {
+      const budgetUrl = `/boss478/finance/api/budgets?month=${month}`;
+      let txUrl: string;
+      if (payDay) {
+        const range = getPeriodRange(payDay, month);
+        txUrl = `/boss478/finance/api/transactions?startDate=${range.start.toISOString()}&endDate=${range.end.toISOString()}`;
+      } else {
+        txUrl = `/boss478/finance/api/transactions?month=${month}`;
+      }
       const [budgetRes, txRes] = await Promise.all([
-        fetch(`/boss478/finance/api/budgets?month=${month}`),
-        fetch(`/boss478/finance/api/transactions?month=${month}`),
+        fetch(budgetUrl),
+        fetch(txUrl),
       ]);
       if (!budgetRes.ok || !txRes.ok) throw new Error('Failed to fetch');
       const budgetData: BudgetData = (await budgetRes.json()).budget;
@@ -79,7 +111,7 @@ export default function BudgetList({ month: externalMonth }: { month?: string } 
   }, [month]);
 
   useEffect(() => {
-    setExpandedCategory(null);
+    setExpandedCategories(new Set());
   }, [month]);
 
   async function handleDelete(id: string) {
@@ -150,9 +182,9 @@ export default function BudgetList({ month: externalMonth }: { month?: string } 
   const pct = (used: number, limit: number) =>
     limit > 0 ? Math.min((used / limit) * 100, 100) : 0;
 
-  function CategoryRow({ cat, type }: { cat: typeof INCOME_CATS[number]; type: 'income' | 'expense' }) {
+  function CategoryRow({ cat, type, descriptions }: { cat: { value: string; label: string }; type: 'income' | 'expense'; descriptions: string[] }) {
     const limit = budgets.get(cat.value) ?? 0;
-    const isExpanded = expandedCategory === cat.value;
+    const isExpanded = expandedCategories.has(cat.value);
     const transactions = allTransactions.filter((t) => t.category === cat.value && t.type === type);
     const total = transactions.reduce((s, t) => s + t.amount, 0);
     const usagePct = pct(total, limit);
@@ -186,10 +218,12 @@ export default function BudgetList({ month: externalMonth }: { month?: string } 
       }
     }
 
+    const inputId = `desc-${cat.value}`;
+
     return (
       <div className="space-y-1">
         <div
-          onClick={() => setExpandedCategory(isExpanded ? null : cat.value)}
+          onClick={() => toggleCategory(cat.value)}
           className="flex items-center gap-3 p-3 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
         >
           <i className={`fi fi-sr-angle-right text-xs text-zinc-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
@@ -238,13 +272,21 @@ export default function BudgetList({ month: externalMonth }: { month?: string } 
             )}
 
             <form onSubmit={handleQuickAdd} className="flex flex-wrap items-center gap-2 mb-3 p-2 rounded bg-white/40 dark:bg-slate-700/30">
-              <input
-                type="text"
-                value={addDesc}
-                onChange={(e) => setAddDesc(e.target.value)}
-                placeholder="Description"
-                className="flex-1 min-w-[120px] px-2 py-1 rounded text-xs bg-white/60 dark:bg-slate-700/60 border border-zinc-200 dark:border-slate-600 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
-              />
+              <div className="flex-1 min-w-[120px] relative">
+                <input
+                  type="text"
+                  value={addDesc}
+                  onChange={(e) => setAddDesc(e.target.value)}
+                  placeholder="Description"
+                  list={inputId}
+                  className="w-full px-2 py-1 rounded text-xs bg-white/60 dark:bg-slate-700/60 border border-zinc-200 dark:border-slate-600 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                />
+                <datalist id={inputId}>
+                  {descriptions.map((d) => (
+                    <option key={d} value={d} />
+                  ))}
+                </datalist>
+              </div>
               <div className="relative w-20">
                 <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-zinc-400">฿</span>
                 <input
@@ -280,7 +322,7 @@ export default function BudgetList({ month: externalMonth }: { month?: string } 
                 {transactions.map((tx) => (
                   <div key={tx._id} className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-white/40 dark:hover:bg-slate-700/30 group">
                     <span className="text-[10px] text-zinc-400 w-16 shrink-0">
-                      {new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      {formatShortDate(tx.date)}
                     </span>
                     <span className="text-xs text-zinc-600 dark:text-zinc-400 flex-1 truncate">
                       {tx.description || ''}
@@ -319,18 +361,52 @@ export default function BudgetList({ month: externalMonth }: { month?: string } 
   return (
     <div>
       <div className="flex flex-wrap items-center gap-3 mb-4">
-        <input
-          type="month"
-          value={month}
-          onChange={(e) => setMonth(e.target.value)}
-          className="px-3 py-1.5 rounded-lg text-sm bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-        />
+        {payDay ? (
+          <>
+            <button
+              onClick={() => setMonth(getPreviousPeriodKey(payDay, month))}
+              className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
+            >
+              <i className="fi fi-sr-angle-left text-xs text-zinc-600 dark:text-zinc-400" />
+            </button>
+            <span className="px-3 py-1.5 rounded-lg text-sm bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-700 dark:text-zinc-300 font-medium min-w-[200px] text-center">
+              {formatPeriodLabel(payDay, month)}
+            </span>
+            <button
+              onClick={() => setMonth(getNextPeriodKey(payDay, month))}
+              className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
+            >
+              <i className="fi fi-sr-angle-right text-xs text-zinc-600 dark:text-zinc-400" />
+            </button>
+          </>
+        ) : (
+          <input
+            type="month"
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            className="px-3 py-1.5 rounded-lg text-sm bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+          />
+        )}
         <button
           onClick={handleCopyFromLast}
           className="px-3 py-1.5 rounded-lg text-sm font-medium bg-amber-500/80 text-white hover:bg-amber-600 transition-colors cursor-pointer flex items-center gap-1.5"
         >
           <i className="fi fi-sr-copy text-xs" />
-          Copy from last month
+          {payDay ? 'Copy from last period' : 'Copy from last month'}
+        </button>
+        <button
+          onClick={expandAll}
+          className="px-3 py-1.5 rounded-lg text-sm font-medium bg-zinc-200/80 dark:bg-zinc-700/80 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300/80 dark:hover:bg-zinc-600/80 transition-colors cursor-pointer flex items-center gap-1.5"
+        >
+          <i className="fi fi-sr-expand text-xs" />
+          Expand
+        </button>
+        <button
+          onClick={collapseAll}
+          className="px-3 py-1.5 rounded-lg text-sm font-medium bg-zinc-200/80 dark:bg-zinc-700/80 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300/80 dark:hover:bg-zinc-600/80 transition-colors cursor-pointer flex items-center gap-1.5"
+        >
+          <i className="fi fi-sr-compress text-xs" />
+          Collapse
         </button>
         <button
           onClick={handleSave}
@@ -361,10 +437,11 @@ export default function BudgetList({ month: externalMonth }: { month?: string } 
             Income Budgets
           </h3>
           <div className="space-y-1">
-            {INCOME_CATS.map((cat) => (
-              <CategoryRow key={cat.value} cat={cat} type="income" />
-            ))}
-            {INCOME_CATS.length === 0 && (
+            {INCOME_CATS.map((cat) => {
+              const catDescs = Array.from(new Set(allTransactions.filter((t) => t.category === cat.value).map((t) => t.description || '').filter(Boolean)));
+              return <CategoryRow key={cat.value} cat={cat} type="income" descriptions={catDescs} />;
+            })}
+            {INCOME_CATS.length < 1 && (
               <p className="text-xs text-zinc-400 py-2">No income categories</p>
             )}
           </div>
@@ -376,10 +453,11 @@ export default function BudgetList({ month: externalMonth }: { month?: string } 
             Expense Budgets
           </h3>
           <div className="space-y-1">
-            {EXPENSE_CATS.map((cat) => (
-              <CategoryRow key={cat.value} cat={cat} type="expense" />
-            ))}
-            {EXPENSE_CATS.length === 0 && (
+            {EXPENSE_CATS.map((cat) => {
+              const catDescs = Array.from(new Set(allTransactions.filter((t) => t.category === cat.value).map((t) => t.description || '').filter(Boolean)));
+              return <CategoryRow key={cat.value} cat={cat} type="expense" descriptions={catDescs} />;
+            })}
+            {EXPENSE_CATS.length < 1 && (
               <p className="text-xs text-zinc-400 py-2">No expense categories</p>
             )}
           </div>

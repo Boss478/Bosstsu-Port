@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getCurrentPeriodKey, getPeriodRange, formatPeriodLabel, PAY_DAY_KEY } from '@/lib/period';
 
 interface StockSummary {
   holdingsCount: number;
@@ -16,7 +17,7 @@ interface BudgetSummary {
   expenseTotal: number;
   subscriptionTotal: number;
   balance: number;
-  month: string;
+  label: string;
 }
 
 const MONTHLY_NORMALIZER: Record<string, number> = {
@@ -33,7 +34,20 @@ const fmtPct = (n: number) =>
   (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
 
 export default function DashboardSummary() {
-  const month = new Date().toISOString().slice(0, 7);
+  const [payDay, setPayDay] = useState<number | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const raw = localStorage.getItem(PAY_DAY_KEY);
+      const pd = raw ? parseInt(raw, 10) : null;
+      setPayDay(pd && pd >= 1 && pd <= 31 ? pd : null);
+      setLoaded(true);
+    }
+  }, []);
+
+  const monthKey = payDay ? getCurrentPeriodKey(payDay) : new Date().toISOString().slice(0, 7);
+  const displayLabel = payDay ? formatPeriodLabel(payDay, monthKey) : monthKey;
 
   const [stock, setStock] = useState<StockSummary | null>(null);
   const [stockLoading, setStockLoading] = useState(true);
@@ -44,6 +58,7 @@ export default function DashboardSummary() {
   const [budgetError, setBudgetError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!loaded) return;
     let cancelled = false;
 
     async function fetchStock() {
@@ -112,12 +127,22 @@ export default function DashboardSummary() {
 
     async function fetchBudget() {
       try {
-        const [txRes, subRes] = await Promise.all([
-          fetch(`/boss478/finance/api/transactions?month=${month}`),
+        const [subRes] = await Promise.all([
           fetch('/boss478/finance/api/subscriptions'),
         ]);
 
-        if (!txRes.ok || !subRes.ok) throw new Error('Failed to fetch');
+        if (!subRes.ok) throw new Error('Failed to fetch');
+
+        let txUrl: string;
+        if (payDay) {
+          const range = getPeriodRange(payDay, monthKey);
+          txUrl = `/boss478/finance/api/transactions?startDate=${range.start.toISOString()}&endDate=${range.end.toISOString()}`;
+        } else {
+          txUrl = `/boss478/finance/api/transactions?month=${monthKey}`;
+        }
+
+        const txRes = await fetch(txUrl);
+        if (!txRes.ok) throw new Error('Failed to fetch');
 
         const { transactions } = await txRes.json();
         const { subscriptions } = await subRes.json();
@@ -141,7 +166,7 @@ export default function DashboardSummary() {
             expenseTotal,
             subscriptionTotal,
             balance: incomeTotal - expenseTotal - subscriptionTotal,
-            month,
+            label: displayLabel,
           });
         }
       } catch {
@@ -155,7 +180,7 @@ export default function DashboardSummary() {
     fetchBudget();
 
     return () => { cancelled = true; };
-  }, [month]);
+  }, [loaded, payDay, monthKey, displayLabel]);
 
   return (
     <div className="mb-8">
@@ -165,7 +190,7 @@ export default function DashboardSummary() {
       </h2>
       <div className="grid gap-4 md:grid-cols-2">
         {/* Stock / Portfolio Card */}
-        <div className="rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm p-5">
+        <div className="rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm p-7">
           <div className="flex items-center gap-2 mb-3">
             <i className="fi fi-sr-stats text-sm text-blue-500" />
             <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
@@ -203,11 +228,11 @@ export default function DashboardSummary() {
         </div>
 
         {/* Budget Card */}
-        <div className="rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm p-5">
+        <div className="rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm p-7">
           <div className="flex items-center gap-2 mb-3">
             <i className="fi fi-sr-wallet text-sm text-emerald-500" />
             <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-              Budget · {month}
+              Budget · {displayLabel}
             </span>
           </div>
           {budgetLoading ? (

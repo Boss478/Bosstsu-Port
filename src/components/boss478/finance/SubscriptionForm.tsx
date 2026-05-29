@@ -9,17 +9,26 @@ const CYCLES = CONFIG.FINANCE.BILLING_CYCLES;
 interface Props {
   onClose: () => void;
   onSaved: () => void;
+  editing?: {
+    id: string;
+    name: string;
+    amount: string;
+    billingCycle: string;
+    category: string;
+    nextBillingDate: string;
+    description: string;
+  } | null;
 }
 
-export default function SubscriptionForm({ onClose, onSaved }: Props) {
-  const [name, setName] = useState('');
-  const [amount, setAmount] = useState('');
-  const [billingCycle, setBillingCycle] = useState('monthly');
-  const [category, setCategory] = useState('');
+export default function SubscriptionForm({ onClose, onSaved, editing }: Props) {
+  const [name, setName] = useState(editing?.name || '');
+  const [amount, setAmount] = useState(editing?.amount || '');
+  const [billingCycle, setBillingCycle] = useState(editing?.billingCycle || 'monthly');
+  const [category, setCategory] = useState(editing?.category || '');
   const [nextBillingDate, setNextBillingDate] = useState(
-    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    editing?.nextBillingDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   );
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState(editing?.description || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -43,8 +52,11 @@ export default function SubscriptionForm({ onClose, onSaved }: Props) {
 
     setSaving(true);
     try {
-      const res = await fetch('/boss478/finance/api/subscriptions', {
-        method: 'POST',
+      const url = editing
+        ? `/boss478/finance/api/subscriptions?id=${editing.id}`
+        : '/boss478/finance/api/subscriptions';
+      const res = await fetch(url, {
+        method: editing ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name.trim(),
@@ -77,7 +89,7 @@ export default function SubscriptionForm({ onClose, onSaved }: Props) {
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-            Add Subscription
+            {editing ? 'Edit Subscription' : 'Add Subscription'}
           </h3>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 cursor-pointer">
             <i className="fi fi-sr-cross text-sm text-zinc-500" />
@@ -182,7 +194,7 @@ export default function SubscriptionForm({ onClose, onSaved }: Props) {
               disabled={saving}
               className="flex-1 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 cursor-pointer"
             >
-              {saving ? 'Saving...' : 'Add'}
+              {saving ? 'Saving...' : editing ? 'Update' : 'Add'}
             </button>
           </div>
         </form>
