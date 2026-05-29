@@ -21,6 +21,7 @@ services:
     restart: unless-stopped
 
   app:
+    profiles: ["production"]
     user: "1001:1001"
     build:
       context: .

@@ -366,7 +366,7 @@ cp .env.production .env
 #   ADMIN_PASSWORD: choose a strong password
 
 # 5. Start services
-docker compose up -d --build
+docker compose --profile production up -d --build
 
 # 6. Verify
 curl http://localhost
@@ -382,7 +382,7 @@ docker compose exec app npx tsx scripts/seed.ts
 ```bash
 cd /opt/boss478
 git pull
-docker compose up -d --build app
+docker compose --profile production up -d --build app
 ```
 
 ### Backup (Optional)
@@ -542,8 +542,8 @@ A Docker-based dev environment with hot reloading was added alongside the existi
 # Dev — everything in Docker with hot reload
 docker compose --profile dev up -d --build
 
-# Production (unchanged)
-docker compose up -d --build
+# Production
+docker compose --profile production up -d --build
 
 # Local dev (unchanged)
 npm run dev
@@ -551,7 +551,7 @@ npm run dev
 
 ### Architecture
 
-- **`docker-compose.yml`** added `app-dev` service with `profiles: ["dev"]` — only starts when `--profile dev` is passed
+- **`docker-compose.yml`** — `app` has `profiles: ["production"]`, `app-dev` has `profiles: ["dev"]` — each only starts with its respective profile
 - **`dockerfile.dev`** single-stage dev Dockerfile — installs deps, runs `npm run dev`
 - Source code is volume-mounted (`.:/app`) for hot reload
 - Container `node_modules` and `.next` are isolated via anonymous volumes (never host's)

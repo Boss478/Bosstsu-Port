@@ -4,6 +4,11 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.25 (2026-05-29)
+
+* Fixed Docker Compose profile conflict — `app` service now uses `profiles: ["production"]`, preventing port 3300 collision when running `--profile dev`
+* Changed production Docker command to `docker compose --profile production up -d --build`
+
 ## v1.9.24 (2026-05-28)
 
 + Added custom salary-aligned periods for Budget Tracker — set a pay day (gear icon next to month picker), periods auto-align to salary date (e.g., 25th → "May 25 — Jun 24")
