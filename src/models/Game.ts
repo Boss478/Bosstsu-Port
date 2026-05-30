@@ -22,7 +22,7 @@ const GameSchema: Schema = new Schema(
     description: { type: String, required: true },
     category: { type: String, required: true },
     playUrl: { type: String, required: true },
-    thumbnail: { type: String, required: true },
+    thumbnail: { type: String },
     instructions: { type: String },
     htmlContent: { type: String, select: false },
     tags: { type: [String], default: [] },

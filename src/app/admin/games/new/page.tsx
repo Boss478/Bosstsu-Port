@@ -1,6 +1,6 @@
 import Breadcrumb from '@/components/Breadcrumb';
 import GameForm from '@/components/admin/GameForm';
-import { createGame } from '../actions';
+import { createGame, saveGameMedia } from '../actions';
 import { getTagsByCategory } from '@/app/actions/tags';
 
 export const dynamic = 'force-dynamic';
@@ -29,7 +29,7 @@ export default async function NewGamePage() {
           </p>
         </div>
 
-        <GameForm action={createGame} availableTags={availableTags} />
+        <GameForm action={createGame} mediaAction={saveGameMedia} availableTags={availableTags} />
       </div>
     </div>
   );

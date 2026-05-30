@@ -1,6 +1,6 @@
 import Breadcrumb from '@/components/Breadcrumb';
 import PortfolioForm from '@/components/admin/PortfolioForm';
-import { createPortfolioItem } from '../actions';
+import { createPortfolioItem, savePortfolioMedia } from '../actions';
 import { getTagsByCategory } from '@/app/actions/tags';
 
 export const dynamic = 'force-dynamic';
@@ -34,6 +34,7 @@ export default async function NewPortfolioPage() {
 
         <PortfolioForm
           action={createPortfolioItem}
+          mediaAction={savePortfolioMedia}
           availableTags={availableTags}
           availableTools={availableTools}
         />

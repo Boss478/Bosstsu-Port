@@ -55,26 +55,39 @@ export async function createLearningResource(formData: FormData) {
     if (!parsed.success) return { error: parsed.error.issues[0].message };
 
     const { title, description, subject, link, content, embedCode, youtubeId, canvaEmbed, tagsStr } = parsed.data;
-    const published = formData.get('published') === 'on';
-    const thumbnailUrl = formData.get('thumbnailUrl') as string;
-    const fileUrl = formData.get('fileUrl') as string;
 
     try {
       await dbConnect();
-      await Learning.create({
+      const doc = await Learning.create({
         title, description, subject, type,
         link: link || undefined,
         tags: parseTagString(tagsStr),
-        published,
-        thumbnail: thumbnailUrl || undefined,
-        fileUrl: fileUrl || undefined,
+        published: false,
         content: sanitizeHtml(content),
         embedCode: sanitizeHtml(embedCode),
         youtubeId: youtubeId || undefined,
         canvaEmbed: canvaEmbed || undefined,
       });
+      return { id: doc._id.toString() };
     } catch (error: unknown) {
       return handleDbError(error, 'Create learning', 'DB01');
+    }
+  });
+}
+
+export async function saveResourceMedia(id: string, formData: FormData) {
+  return withAuth(async () => {
+    await dbConnect();
+    const thumbnailUrl = formData.get('thumbnailUrl') as string;
+    const fileUrl = formData.get('fileUrl') as string;
+    const published = formData.get('published') === 'on';
+    try {
+      const updateData: Record<string, unknown> = { published };
+      if (thumbnailUrl) updateData.thumbnail = thumbnailUrl;
+      if (fileUrl) updateData.fileUrl = fileUrl;
+      await Learning.findByIdAndUpdate(id, updateData);
+    } catch (error: unknown) {
+      return handleDbError(error, 'Save resource media', 'DB02');
     }
     revalidateContentPaths(ADMIN, PUBLIC);
     return { error: undefined };

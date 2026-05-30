@@ -40,26 +40,37 @@ export async function createPortfolioItem(formData: FormData) {
     if (!parsed.success) return { error: parsed.error.issues[0].message };
 
     const { title, slug, description, content, dateStr, tagsStr, toolsStr } = parsed.data;
-    const published = formData.get('published') === 'on';
-    const coverUrl = formData.get('coverUrl') as string;
-    const galleryUrls = JSON.parse((formData.get('galleryUrls') as string) || '[]');
-
-    if (!coverUrl) return { error: formatError('U03') };
 
     try {
       await dbConnect();
-      await Portfolio.create({
+      const doc = await Portfolio.create({
         title, slug, description,
         date: new Date(dateStr),
         tags: parseTagString(tagsStr),
         tools: toolsStr ? toolsStr.split(',').map(t => t.trim()).filter(Boolean) : [],
         content: sanitizeHtml(content),
-        cover: coverUrl,
-        gallery: galleryUrls,
-        published,
+        published: false,
       });
+      return { id: doc._id.toString() };
     } catch (error: unknown) {
       return handleDbError(error, 'Create portfolio', 'DB01');
+    }
+  });
+}
+
+export async function savePortfolioMedia(id: string, formData: FormData) {
+  return withAuth(async () => {
+    await dbConnect();
+    const coverUrl = formData.get('coverUrl') as string;
+    const galleryUrls = formData.get('galleryUrls') as string;
+    const published = formData.get('published') === 'on';
+    try {
+      const updateData: Record<string, unknown> = { published };
+      if (coverUrl) updateData.cover = coverUrl;
+      if (galleryUrls) updateData.gallery = JSON.parse(galleryUrls);
+      await Portfolio.findByIdAndUpdate(id, updateData);
+    } catch (error: unknown) {
+      return handleDbError(error, 'Save portfolio media', 'DB02');
     }
     revalidateContentPaths(ADMIN, PUBLIC);
     return { error: undefined };

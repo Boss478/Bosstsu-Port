@@ -19,8 +19,10 @@ const RichTextEditor = dynamic(
 interface PortfolioFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialData?: any;
-  action: (formData: FormData) => Promise<void | { error?: string }>;
+  action: (formData: FormData) => Promise<void | { error?: string; id?: string }>;
+  mediaAction: (id: string, formData: FormData) => Promise<void | { error?: string }>;
   isEdit?: boolean;
+  incompleteUpload?: boolean;
   availableTags?: string[];
   availableTools?: string[];
 }
@@ -28,7 +30,9 @@ interface PortfolioFormProps {
 export default function PortfolioForm({
   initialData,
   action,
+  mediaAction,
   isEdit,
+  incompleteUpload,
   availableTags = [],
   availableTools = [],
 }: PortfolioFormProps) {
@@ -69,59 +73,80 @@ export default function PortfolioForm({
 
     try {
       const formElement = e.currentTarget;
-      
-      // Calculate total bytes to upload out of 90% progress slice
-      const totalBytes = 
-        (coverFile ? coverFile.size : 0) + 
+      let itemId: string | undefined = initialData?._id;
+
+      // Phase 1: Save text to DB
+      setStatusText('กำลังบันทึกข้อมูล...');
+      setProgress(5);
+
+      const textFormData = new FormData(formElement);
+      textFormData.delete('cover');
+      textFormData.delete('photos');
+      textFormData.delete('coverUrl');
+      textFormData.delete('galleryUrls');
+
+      if (isEdit) {
+        const result = await action(textFormData);
+        if (result?.error) throw new Error(result.error);
+      } else {
+        const result = await action(textFormData) as { error?: string; id?: string };
+        if (result?.error) throw new Error(result.error);
+        itemId = result?.id;
+      }
+
+      if (!itemId) throw new Error('ไม่พบ ID เอกสาร');
+
+      setProgress(25);
+
+      // Phase 2: Upload files (only if new files exist)
+      const totalBytes =
+        (coverFile ? coverFile.size : 0) +
         newPhotoFiles.reduce((acc, f) => acc + f.size, 0);
-      
+
+      let finalCoverUrl = initialData?.cover || '';
+      const finalGalleryUrls = [...photos];
       let uploadedBytes = 0;
       const updateProgress = (chunkLoaded: number) => {
         if (totalBytes === 0) return;
         const currentTotalLoaded = uploadedBytes + chunkLoaded;
-        const uploadPercent = (currentTotalLoaded / totalBytes) * 90; // Upload takes up to 90%
+        const uploadPercent = 25 + (currentTotalLoaded / totalBytes) * 65;
         setProgress(uploadPercent);
       };
 
-      // 1. Upload Cover
-      let finalCoverUrl = initialData?.cover || '';
-      if (coverFile) {
-        setStatusText('กำลังอัปโหลดหน้าปก...');
-        finalCoverUrl = await uploadFileWithProgress(coverFile, 'portfolio', (loaded) => updateProgress(loaded), signal);
-        uploadedBytes += coverFile.size;
-        setProgress((uploadedBytes / totalBytes) * 90);
-      } else if (!isEdit) {
-        throw new Error('กรุณาเลือกรูปปก');
+      if (totalBytes > 0) {
+        // Upload Cover
+        if (coverFile) {
+          setStatusText('กำลังอัปโหลดหน้าปก...');
+          finalCoverUrl = await uploadFileWithProgress(coverFile, 'portfolio', (loaded) => updateProgress(loaded), signal);
+          uploadedBytes += coverFile.size;
+          setProgress(25 + (uploadedBytes / totalBytes) * 65);
+        }
+
+        // Upload Gallery
+        for (let i = 0; i < newPhotoFiles.length; i++) {
+          const file = newPhotoFiles[i];
+          setStatusText(`กำลังอัปโหลดรูปภาพที่ ${i + 1}/${newPhotoFiles.length}...`);
+          const url = await uploadFileWithRetry(file, 'portfolio/gallery', (loaded) => updateProgress(loaded), 3, signal);
+          finalGalleryUrls.push(url);
+          uploadedBytes += file.size;
+          setProgress(25 + (uploadedBytes / totalBytes) * 65);
+        }
+      } else {
+        setProgress(90);
       }
 
-      // 2. Upload Gallery (Sequential to avoid network flooding)
-      const finalGalleryUrls = [...photos];
-      for (let i = 0; i < newPhotoFiles.length; i++) {
-        const file = newPhotoFiles[i];
-        setStatusText(`กำลังอัปโหลดรูปภาพที่ ${i + 1}/${newPhotoFiles.length}...`);
-
-        const url = await uploadFileWithRetry(file, 'portfolio/gallery', (loaded) => updateProgress(loaded), 3, signal);
-        finalGalleryUrls.push(url);
-        uploadedBytes += file.size;
-        setProgress((uploadedBytes / totalBytes) * 90);
-      }
-
-      // 3. Save Data via Server Action
+      // Phase 3: Save media + publish (always runs)
       setStatusText('กำลังบันทึกข้อมูลเข้าฐานข้อมูล...');
       setProgress(95);
 
-      const finalFormData = new FormData(formElement);
-      finalFormData.set('coverUrl', finalCoverUrl);
-      finalFormData.set('galleryUrls', JSON.stringify(finalGalleryUrls));
-      // Remove File objects so we don't send huge payloads to the action
-      finalFormData.delete('cover');
-      finalFormData.delete('photos');
+      const mediaFormData = new FormData();
+      mediaFormData.set('coverUrl', finalCoverUrl);
+      mediaFormData.set('galleryUrls', JSON.stringify(finalGalleryUrls));
+      const publishedInput = formElement.querySelector<HTMLInputElement>('[name="published"]');
+      if (publishedInput?.checked) mediaFormData.set('published', 'on');
 
-      const result = await action(finalFormData);
-
-      if (result && result.error) {
-        throw new Error(result.error);
-      }
+      const mediaResult = await mediaAction(itemId, mediaFormData);
+      if (mediaResult?.error) throw new Error(mediaResult.error);
 
       setProgress(100);
       setStatusText('บันทึกข้อมูลสำเร็จ!');
@@ -184,12 +209,18 @@ export default function PortfolioForm({
 
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\s+/g, '-');
-    setAutoSlug(val);
+    setAutoSlug(val.toLowerCase());
   };
 
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-6">
+        {incompleteUpload && (
+          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50 text-sm flex items-start gap-3">
+            <i className="fi fi-sr-exclamation mt-0.5 flex shrink-0" />
+            <span>บันทึกข้อมูลสำเร็จ แต่รูปภาพยังไม่ได้อัปโหลด กรุณาเพิ่มรูปภาพและบันทึกอีกครั้ง</span>
+          </div>
+        )}
         {error && (
           <div className="p-4 rounded-xl bg-red-50 text-red-600 border border-red-200">
             {error}

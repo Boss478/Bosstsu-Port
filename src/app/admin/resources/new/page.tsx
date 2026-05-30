@@ -1,6 +1,6 @@
 import Breadcrumb from '@/components/Breadcrumb';
 import LearningForm from '@/components/admin/LearningForm';
-import { createLearningResource } from '../actions';
+import { createLearningResource, saveResourceMedia } from '../actions';
 import { getTagsByCategory } from '@/app/actions/tags';
 
 export const dynamic = 'force-dynamic';
@@ -29,7 +29,7 @@ export default async function NewLearningPage() {
           </p>
         </div>
 
-        <LearningForm action={createLearningResource} availableTags={availableTags} />
+        <LearningForm action={createLearningResource} mediaAction={saveResourceMedia} availableTags={availableTags} />
       </div>
     </div>
   );

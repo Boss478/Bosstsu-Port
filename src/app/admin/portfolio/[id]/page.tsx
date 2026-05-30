@@ -3,7 +3,7 @@ import dbConnect, { serializeDoc } from '@/lib/db';
 import Portfolio from '@/models/Portfolio';
 import Breadcrumb from '@/components/Breadcrumb';
 import PortfolioForm from '@/components/admin/PortfolioForm';
-import { updatePortfolioItem } from '../actions';
+import { updatePortfolioItem, savePortfolioMedia } from '../actions';
 import { getTagsByCategory } from '@/app/actions/tags';
 
 export const dynamic = 'force-dynamic';
@@ -34,6 +34,7 @@ export default async function EditPortfolioPage({
 
   const updateAction = updatePortfolioItem.bind(null, id);
   const serializableItem = serializeDoc(item);
+  const incompleteUpload = !serializableItem.cover && !serializableItem.published;
 
   return (
     <div className="min-h-screen bg-blue-50 dark:bg-slate-950 pt-28 pb-12 px-4">
@@ -58,8 +59,10 @@ export default async function EditPortfolioPage({
 
         <PortfolioForm 
           action={updateAction} 
+          mediaAction={savePortfolioMedia}
           initialData={serializableItem} 
           isEdit
+          incompleteUpload={incompleteUpload}
           availableTags={availableTags}
           availableTools={availableTools}
         />

@@ -19,7 +19,7 @@ const GallerySchema: Schema = new Schema(
     slug: { type: String, required: true, unique: true },
     title: { type: String, required: true },
     description: { type: String },
-    cover: { type: String, required: true },
+    cover: { type: String },
     tags: { type: [String], default: [] },
     date: { type: Date, default: Date.now },
     photos: { type: [String], default: [] },

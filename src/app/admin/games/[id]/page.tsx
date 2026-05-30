@@ -3,7 +3,7 @@ import dbConnect, { serializeDoc } from '@/lib/db';
 import Game from '@/models/Game';
 import Breadcrumb from '@/components/Breadcrumb';
 import GameForm from '@/components/admin/GameForm';
-import { updateGame } from '../actions';
+import { updateGame, saveGameMedia } from '../actions';
 import { getTagsByCategory } from '@/app/actions/tags';
 
 export const dynamic = 'force-dynamic';
@@ -26,6 +26,7 @@ export default async function EditGamePage({
   const availableTags = await getTagsByCategory('game');
   const updateAction = updateGame.bind(null, id);
   const serializableItem = serializeDoc(item);
+  const incompleteUpload = !serializableItem.thumbnail && !serializableItem.published;
 
   return (
     <div className="min-h-screen bg-blue-50 dark:bg-slate-950 pt-28 pb-12 px-4">
@@ -48,8 +49,10 @@ export default async function EditGamePage({
 
         <GameForm
           action={updateAction}
+          mediaAction={saveGameMedia}
           initialData={serializableItem}
           isEdit
+          incompleteUpload={incompleteUpload}
           availableTags={availableTags}
         />
       </div>

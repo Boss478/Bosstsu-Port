@@ -98,18 +98,24 @@ function FileUploadField({
 }
 
 // ─── Main Form ────────────────────────────────────────────────────────────────
+const THUMBNAIL_REQUIRED_TYPES = ['Presentation', 'Lesson Plan', 'Sheet', 'Worksheet', 'Scratch', 'Interactive'];
+
 interface LearningFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialData?: any;
-  action: (formData: FormData) => Promise<void | { error?: string }>;
+  action: (formData: FormData) => Promise<void | { error?: string; id?: string }>;
+  mediaAction: (id: string, formData: FormData) => Promise<void | { error?: string }>;
   isEdit?: boolean;
+  incompleteUpload?: boolean;
   availableTags?: string[];
 }
 
 export default function LearningForm({
   initialData,
   action,
+  mediaAction,
   isEdit,
+  incompleteUpload,
   availableTags = [],
 }: LearningFormProps) {
   const router = useRouter();
@@ -142,14 +148,39 @@ export default function LearningForm({
     const signal = abortRef.current.signal;
 
     try {
-      const formData = new FormData(e.currentTarget);
+      const formElement = e.currentTarget;
+      let itemId: string | undefined = initialData?._id;
 
-      const thumbnailEntry = formData.get('thumbnail');
+      // Phase 1: Save text to DB
+      setStatusText('กำลังบันทึกข้อมูล...');
+      setProgress(5);
+
+      const textFormData = new FormData(formElement);
+      textFormData.delete('thumbnail');
+      textFormData.delete('resourceFile');
+      textFormData.delete('thumbnailUrl');
+      textFormData.delete('fileUrl');
+
+      if (isEdit) {
+        const result = await action(textFormData);
+        if (result?.error) throw new Error(result.error);
+      } else {
+        const result = await action(textFormData) as { error?: string; id?: string };
+        if (result?.error) throw new Error(result.error);
+        itemId = result?.id;
+      }
+
+      if (!itemId) throw new Error('ไม่พบ ID เอกสาร');
+
+      setProgress(25);
+
+      // Phase 2: Upload files (only if new files exist)
+      const uploadFormData = new FormData(formElement);
+      const thumbnailEntry = uploadFormData.get('thumbnail');
       const thumbnailFile = (thumbnailEntry instanceof File && thumbnailEntry.size > 0) ? thumbnailEntry : null;
-      const resourceEntry = formData.get('resourceFile');
+      const resourceEntry = uploadFormData.get('resourceFile');
       const resourceFile = (resourceEntry instanceof File && resourceEntry.size > 0) ? resourceEntry : null;
 
-      // Client-side file type validation for resourceFile
       if (resourceFile && typeConfig && 'accept' in typeConfig) {
         const allowedTypes = typeConfig.accept.split(',');
         if (!clientValidateFileType(resourceFile, allowedTypes)) {
@@ -158,49 +189,45 @@ export default function LearningForm({
       }
 
       const totalBytes = (thumbnailFile?.size || 0) + (resourceFile?.size || 0);
+      let finalThumbnailUrl = initialData?.thumbnail || '';
+      let finalFileUrl = initialData?.fileUrl || '';
       let uploadedBytes = 0;
       const updateProgress = (chunkLoaded: number) => {
         if (totalBytes === 0) return;
         const currentTotal = uploadedBytes + chunkLoaded;
-        setProgress((currentTotal / totalBytes) * 90);
+        setProgress(25 + (currentTotal / totalBytes) * 65);
       };
 
-      // Upload thumbnail
-      let finalThumbnailUrl = initialData?.thumbnail || '';
-      if (thumbnailFile) {
-        setStatusText('กำลังอัปโหลดรูปหน้าปก...');
-        finalThumbnailUrl = await uploadFileWithProgress(thumbnailFile, 'learning', updateProgress, signal);
-        uploadedBytes += thumbnailFile.size;
-        setProgress((uploadedBytes / totalBytes) * 90);
+      if (totalBytes > 0) {
+        if (thumbnailFile) {
+          setStatusText('กำลังอัปโหลดรูปหน้าปก...');
+          finalThumbnailUrl = await uploadFileWithProgress(thumbnailFile, 'learning', updateProgress, signal);
+          uploadedBytes += thumbnailFile.size;
+          setProgress(25 + (uploadedBytes / totalBytes) * 65);
+        }
+
+        if (resourceFile) {
+          setStatusText('กำลังอัปโหลดไฟล์...');
+          finalFileUrl = await uploadFileWithProgress(resourceFile, 'learning', updateProgress, signal);
+          uploadedBytes += resourceFile.size;
+          setProgress(25 + (uploadedBytes / totalBytes) * 65);
+        }
+      } else {
+        setProgress(90);
       }
 
-      // Upload resource file
-      let finalFileUrl = initialData?.fileUrl || '';
-      if (resourceFile) {
-        setStatusText('กำลังอัปโหลดไฟล์...');
-        finalFileUrl = await uploadFileWithProgress(resourceFile, 'learning', updateProgress, signal);
-        uploadedBytes += resourceFile.size;
-        setProgress((uploadedBytes / totalBytes) * 90);
-      }
-
+      // Phase 3: Save media + publish (always runs)
       setStatusText('กำลังบันทึกข้อมูลเข้าฐานข้อมูล...');
       setProgress(95);
 
-      if (finalThumbnailUrl) formData.set('thumbnailUrl', finalThumbnailUrl);
-      if (finalFileUrl) formData.set('fileUrl', finalFileUrl);
-      formData.delete('thumbnail');
-      formData.delete('resourceFile');
+      const mediaFormData = new FormData();
+      if (finalThumbnailUrl) mediaFormData.set('thumbnailUrl', finalThumbnailUrl);
+      if (finalFileUrl) mediaFormData.set('fileUrl', finalFileUrl);
+      const publishedInput = formElement.querySelector<HTMLInputElement>('[name="published"]');
+      if (publishedInput?.checked) mediaFormData.set('published', 'on');
 
-      const result = await action(formData);
-
-      if (result?.error) {
-        if (result.error.includes('[401]')) {
-          setIsSubmitting(false);
-          onAuthError();
-          return;
-        }
-        throw new Error(result.error);
-      }
+      const mediaResult = await mediaAction(itemId, mediaFormData);
+      if (mediaResult?.error) throw new Error(mediaResult.error);
 
       setProgress(100);
       setStatusText('บันทึกข้อมูลสำเร็จ!');
@@ -236,6 +263,12 @@ export default function LearningForm({
     <form ref={formRef} onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* ── Left Column ── */}
       <div className="lg:col-span-2 space-y-6">
+        {incompleteUpload && (
+          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50 text-sm flex items-start gap-3">
+            <i className="fi fi-sr-exclamation mt-0.5 flex shrink-0" />
+            <span>บันทึกข้อมูลสำเร็จ แต่รูปภาพยังไม่ได้อัปโหลด กรุณาเพิ่มรูปภาพและบันทึกอีกครั้ง</span>
+          </div>
+        )}
         {error && (
           <div className="p-4 rounded-xl bg-red-50 text-red-600 border border-red-200 text-sm">
             {error}

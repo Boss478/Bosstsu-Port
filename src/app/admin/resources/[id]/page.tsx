@@ -3,7 +3,7 @@ import dbConnect, { serializeDoc } from '@/lib/db';
 import Learning from '@/models/Learning';
 import Breadcrumb from '@/components/Breadcrumb';
 import LearningForm from '@/components/admin/LearningForm';
-import { updateLearningResource } from '../actions';
+import { updateLearningResource, saveResourceMedia } from '../actions';
 import { getTagsByCategory } from '@/app/actions/tags';
 
 export const dynamic = 'force-dynamic';
@@ -48,6 +48,7 @@ export default async function EditLearningPage({
 
         <LearningForm
           action={updateAction}
+          mediaAction={saveResourceMedia}
           initialData={serializableItem}
           isEdit
           availableTags={availableTags}

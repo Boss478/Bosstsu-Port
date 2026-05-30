@@ -4,6 +4,15 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.28 (2026-05-30)
++ Restructured all 4 admin forms (Portfolio, Gallery, Games, Learning) to DB-first save flow — Phase 1 saves text/published=false (resilient), Phase 2 uploads files, Phase 3 saves URLs + published flag
++ Added `savePortfolioMedia`, `saveGalleryMedia`, `saveGameMedia`, `saveResourceMedia` Server Actions for Phase 3 media+published write
+* Changed `createPortfolioItem`, `createGalleryAlbum`, `createGame`, `createLearningResource` to save without required cover/thumbnail, return `{id}`, no revalidation on create
+- Removed `required: true` from Portfolio.cover, Gallery.cover, Game.thumbnail (models)
++ Added `mediaAction` prop + 3-phase handleSubmit to PortfolioForm, GalleryForm, GameForm, LearningForm
++ Added incomplete-upload detection banner to Portfolio, Gallery, Game edit pages (`!cover && !published` / `!thumbnail && !published`)
++ Added auto-lowercase on manual slug input in PortfolioForm and GalleryForm (`handleSlugChange` → `.toLowerCase()`)
+
 ## v1.9.27 (2026-05-30)
 + Added cancel button to SaveProgress modal — AbortController wired through XHR to all 4 admin forms (Portfolio, Gallery, Learning, Game)
 * Fixed broken spinner icon in SaveProgress (`fi-sr-spinner-third` → `fi-sr-spinner`)

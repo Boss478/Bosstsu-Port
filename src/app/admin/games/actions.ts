@@ -62,25 +62,37 @@ export async function createGame(formData: FormData) {
     if (!parsed.success) return { error: parsed.error.issues[0].message };
 
     const { title, description, category, playUrl, htmlContent, instructions, tagsStr } = parsed.data;
-    const published = formData.get('published') === 'on';
-    const thumbnailUrl = formData.get('thumbnailUrl') as string;
     const slug = slugify(title);
-
-    if (!thumbnailUrl) return { error: formatError('U03') };
 
     try {
       await dbConnect();
       const tags = parseTagString(tagsStr);
 
-      await Game.create({
+      const doc = await Game.create({
         title, slug, description, category,
         playUrl: playUrl || '',
         instructions: instructions || undefined,
         htmlContent: sanitizeHtml(htmlContent),
-        tags, published, thumbnail: thumbnailUrl,
+        tags, published: false,
       });
+      return { id: doc._id.toString() };
     } catch (error: unknown) {
       return handleDbError(error, 'Create game', 'DB01');
+    }
+  });
+}
+
+export async function saveGameMedia(id: string, formData: FormData) {
+  return withAuth(async () => {
+    await dbConnect();
+    const thumbnailUrl = formData.get('thumbnailUrl') as string;
+    const published = formData.get('published') === 'on';
+    try {
+      const updateData: Record<string, unknown> = { published };
+      if (thumbnailUrl) updateData.thumbnail = thumbnailUrl;
+      await Game.findByIdAndUpdate(id, updateData);
+    } catch (error: unknown) {
+      return handleDbError(error, 'Save game media', 'DB02');
     }
     revalidateContentPaths(ADMIN, PUBLIC);
     return { error: undefined };

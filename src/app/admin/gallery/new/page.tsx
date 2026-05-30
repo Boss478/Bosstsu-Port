@@ -1,6 +1,6 @@
 import Breadcrumb from '@/components/Breadcrumb';
 import GalleryForm from '@/components/admin/GalleryForm';
-import { createGalleryAlbum } from '../actions';
+import { createGalleryAlbum, saveGalleryMedia } from '../actions';
 import dbConnect from '@/lib/db';
 import Portfolio from '@/models/Portfolio';
 import { getTagsByCategory } from '@/app/actions/tags';
@@ -39,6 +39,7 @@ export default async function NewGalleryPage() {
 
       <GalleryForm
         action={createGalleryAlbum}
+        mediaAction={saveGalleryMedia}
         portfolios={serializablePortfolios}
         availableTags={availableTags}
       />

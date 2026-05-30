@@ -24,7 +24,7 @@ const PortfolioSchema: Schema = new Schema(
     content: { type: String, select: false },
     gallery: { type: [String], default: [] },
     tools: { type: [String], default: [] },
-    cover: { type: String, required: true },
+    cover: { type: String },
     tags: { type: [String], default: [] },
     date: { type: Date, required: true },
     published: { type: Boolean, default: true, index: true },

@@ -38,25 +38,36 @@ export async function createGalleryAlbum(formData: FormData) {
     if (!parsed.success) return { error: parsed.error.issues[0].message };
 
     const { title, slug, description, dateStr, tagsStr, relatedPortfolioId } = parsed.data;
-    const published = formData.get('published') === 'on';
-    const coverUrl = formData.get('coverUrl') as string;
-    const photoUrls = JSON.parse((formData.get('photoUrls') as string) || '[]');
-
-    if (!coverUrl) return { error: formatError('U03') };
 
     try {
       await dbConnect();
-      await Gallery.create({
+      const doc = await Gallery.create({
         title, slug, description,
         date: new Date(dateStr),
         tags: parseTagString(tagsStr),
-        cover: coverUrl,
-        photos: photoUrls,
-        published,
+        published: false,
         relatedPortfolioId: relatedPortfolioId || undefined,
       });
+      return { id: doc._id.toString() };
     } catch (error: unknown) {
       return handleDbError(error, 'Create gallery', 'DB01');
+    }
+  });
+}
+
+export async function saveGalleryMedia(id: string, formData: FormData) {
+  return withAuth(async () => {
+    await dbConnect();
+    const coverUrl = formData.get('coverUrl') as string;
+    const photoUrls = formData.get('photoUrls') as string;
+    const published = formData.get('published') === 'on';
+    try {
+      const updateData: Record<string, unknown> = { published };
+      if (coverUrl) updateData.cover = coverUrl;
+      if (photoUrls) updateData.photos = JSON.parse(photoUrls);
+      await Gallery.findByIdAndUpdate(id, updateData);
+    } catch (error: unknown) {
+      return handleDbError(error, 'Save gallery media', 'DB02');
     }
     revalidateContentPaths(ADMIN, PUBLIC);
     return { error: undefined };

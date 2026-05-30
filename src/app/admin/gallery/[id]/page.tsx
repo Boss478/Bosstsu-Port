@@ -4,7 +4,7 @@ import Gallery from '@/models/Gallery';
 import Portfolio from '@/models/Portfolio';
 import Breadcrumb from '@/components/Breadcrumb';
 import GalleryForm from '@/components/admin/GalleryForm';
-import { updateGalleryAlbum } from '../actions';
+import { updateGalleryAlbum, saveGalleryMedia } from '../actions';
 import { getTagsByCategory } from '@/app/actions/tags';
 
 export const dynamic = 'force-dynamic';
@@ -31,6 +31,7 @@ export default async function EditGalleryPage({
   const updateAction = updateGalleryAlbum.bind(null, id);
   const serializableItem = serializeDoc(item);
   const serializablePortfolios = serializeDoc(portfolios);
+  const incompleteUpload = !serializableItem.cover && !serializableItem.published;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -52,9 +53,11 @@ export default async function EditGalleryPage({
 
       <GalleryForm 
         action={updateAction} 
+        mediaAction={saveGalleryMedia}
         initialData={serializableItem} 
         portfolios={serializablePortfolios}
         isEdit
+        incompleteUpload={incompleteUpload}
         availableTags={availableTags}
       />
     </div>

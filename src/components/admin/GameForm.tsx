@@ -12,8 +12,10 @@ import SaveProgress from './SaveProgress';
 interface GameFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialData?: any;
-  action: (formData: FormData) => Promise<void | { error?: string }>;
+  action: (formData: FormData) => Promise<void | { error?: string; id?: string }>;
+  mediaAction: (id: string, formData: FormData) => Promise<void | { error?: string }>;
   isEdit?: boolean;
+  incompleteUpload?: boolean;
   availableTags?: string[];
 }
 
@@ -25,7 +27,9 @@ const GENRE_OPTIONS = [
 export default function GameForm({
   initialData,
   action,
+  mediaAction,
   isEdit,
+  incompleteUpload,
   availableTags = [],
 }: GameFormProps) {
   const router = useRouter();
@@ -55,41 +59,62 @@ export default function GameForm({
     const signal = abortRef.current.signal;
 
     try {
-      const formData = new FormData(e.currentTarget);
-      const thumbnailEntry = formData.get('thumbnail');
+      const formElement = e.currentTarget;
+      let itemId: string | undefined = initialData?._id;
+
+      // Phase 1: Save text to DB
+      setStatusText('กำลังบันทึกข้อมูล...');
+      setProgress(5);
+
+      const textFormData = new FormData(formElement);
+      textFormData.delete('thumbnail');
+      textFormData.delete('thumbnailUrl');
+
+      if (isEdit) {
+        const result = await action(textFormData);
+        if (result?.error) throw new Error(result.error);
+      } else {
+        const result = await action(textFormData) as { error?: string; id?: string };
+        if (result?.error) throw new Error(result.error);
+        itemId = result?.id;
+      }
+
+      if (!itemId) throw new Error('ไม่พบ ID เอกสาร');
+
+      setProgress(25);
+
+      // Phase 2: Upload thumbnail (only if new file exists)
+      const thumbnailFormData = new FormData(formElement);
+      const thumbnailEntry = thumbnailFormData.get('thumbnail');
       const thumbnailFile = (thumbnailEntry instanceof File && thumbnailEntry.size > 0) ? thumbnailEntry : null;
 
       let finalThumbnailUrl = initialData?.thumbnail || '';
+
       if (thumbnailFile) {
         setStatusText('กำลังอัปโหลดรูปหน้าปก...');
-        setProgress(5);
+        setProgress(30);
         const fileSize = thumbnailFile.size;
         finalThumbnailUrl = await uploadFileWithProgress(thumbnailFile, 'games', (loaded) => {
           if (fileSize > 0) {
-            setProgress(5 + (loaded / fileSize) * 85);
+            setProgress(30 + (loaded / fileSize) * 60);
           }
         }, signal);
         setProgress(90);
-      } else if (!isEdit) {
-        throw new Error('กรุณาเลือกรูปหน้าปก');
+      } else {
+        setProgress(90);
       }
 
+      // Phase 3: Save media + publish (always runs)
       setStatusText('กำลังบันทึกข้อมูลเข้าฐานข้อมูล...');
       setProgress(95);
 
-      if (finalThumbnailUrl) formData.set('thumbnailUrl', finalThumbnailUrl);
-      formData.delete('thumbnail');
+      const mediaFormData = new FormData();
+      if (finalThumbnailUrl) mediaFormData.set('thumbnailUrl', finalThumbnailUrl);
+      const publishedInput = formElement.querySelector<HTMLInputElement>('[name="published"]');
+      if (publishedInput?.checked) mediaFormData.set('published', 'on');
 
-      const result = await action(formData);
-
-      if (result?.error) {
-        if (result.error.includes('[401]')) {
-          setIsSubmitting(false);
-          onAuthError();
-          return;
-        }
-        throw new Error(result.error);
-      }
+      const mediaResult = await mediaAction(itemId, mediaFormData);
+      if (mediaResult?.error) throw new Error(mediaResult.error);
 
       setProgress(100);
       setStatusText('บันทึกข้อมูลสำเร็จ!');
@@ -131,6 +156,12 @@ export default function GameForm({
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-6">
+        {incompleteUpload && (
+          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50 text-sm flex items-start gap-3">
+            <i className="fi fi-sr-exclamation mt-0.5 flex shrink-0" />
+            <span>บันทึกข้อมูลสำเร็จ แต่รูปภาพยังไม่ได้อัปโหลด กรุณาเพิ่มรูปภาพและบันทึกอีกครั้ง</span>
+          </div>
+        )}
         {error && (
           <div className="p-4 rounded-xl bg-red-50 text-red-600 border border-red-200">
             {error}
