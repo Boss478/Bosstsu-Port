@@ -1,5 +1,7 @@
 import FlashcardClient from './FlashcardClient';
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: 'SpellChecker | Boss478 Games',
   description: 'Test your spelling skills in Thai and English (US). / ฝึกทักษะการสะกดคำภาษาไทยและภาษาอังกฤษ',

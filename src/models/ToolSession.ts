@@ -84,7 +84,6 @@ const ToolSessionSchema = new Schema(
   { timestamps: true }
 );
 
-ToolSessionSchema.index({ sessionCode: 1 });
 ToolSessionSchema.index({ isActive: 1, sessionCode: 1 });
 
 const ToolSession: Model<IToolSession> =

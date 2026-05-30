@@ -28,7 +28,6 @@ const BudgetSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-BudgetSchema.index({ month: 1 }, { unique: true });
 
 const Budget: Model<IBudget> =
   mongoose.models.Budget || mongoose.model<IBudget>('Budget', BudgetSchema);
