@@ -31,7 +31,6 @@ export default async function PlayGamePage({ params }: PlayGamePageProps) {
     redirect('/games');
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const serializableDoc = JSON.parse(JSON.stringify(doc));
 
   return (

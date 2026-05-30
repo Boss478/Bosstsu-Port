@@ -3,7 +3,7 @@ import dbConnect from '@/lib/db';
 import Budget from '@/models/Budget';
 import { verifyPrivateAuth } from '@/lib/private-auth';
 import { CONFIG } from '@/lib/config';
-import { formatError, getError } from '@/lib/error-code';
+import { formatError } from '@/lib/error-code';
 
 const VALID_CATEGORIES: string[] = [
   ...CONFIG.FINANCE.CATEGORIES.income.map((c) => c.value),
@@ -12,12 +12,6 @@ const VALID_CATEGORIES: string[] = [
 
 function isValidMonth(month: string): boolean {
   return /^\d{4}-\d{2}$/.test(month);
-}
-
-function previousMonth(month: string): string {
-  const [y, m] = month.split('-').map(Number);
-  const d = new Date(y, m - 2, 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
 export async function GET(request: NextRequest) {

@@ -60,8 +60,4 @@ export function isCurrentPeriod(payDay: number, monthKey: string): boolean {
   return current === monthKey;
 }
 
-export function isCalendarMode(payDay: number | null): payDay is null {
-  return payDay === null;
-}
-
 export const PAY_DAY_KEY = 'boss478-pay-day';
