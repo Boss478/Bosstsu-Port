@@ -4,9 +4,10 @@ interface SaveProgressProps {
   isOpen: boolean;
   progress: number;
   statusText: string;
+  onCancel?: () => void;
 }
 
-export default function SaveProgress({ isOpen, progress, statusText }: SaveProgressProps) {
+export default function SaveProgress({ isOpen, progress, statusText, onCancel }: SaveProgressProps) {
   if (!isOpen) return null;
 
   // Clamp progress between 0 and 100
@@ -24,7 +25,7 @@ export default function SaveProgress({ isOpen, progress, statusText }: SaveProgr
             </div>
           ) : (
             <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-500 rounded-full flex items-center justify-center">
-              <i className="fi fi-sr-spinner-third animate-spin text-3xl" />
+              <i className="fi fi-sr-spinner animate-spin text-3xl" />
             </div>
           )}
         </div>
@@ -36,6 +37,17 @@ export default function SaveProgress({ isOpen, progress, statusText }: SaveProgr
         <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6 h-5">
           {statusText}
         </p>
+
+        {/* Cancel Button */}
+        {onCancel && clampedProgress < 95 && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="mb-4 px-6 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-xl transition-colors"
+          >
+            ยกเลิก
+          </button>
+        )}
 
         {/* Progress Bar Container */}
         <div className="w-full bg-zinc-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden border border-zinc-200 dark:border-slate-700 relative">

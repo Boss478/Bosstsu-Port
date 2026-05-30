@@ -3,7 +3,6 @@
 import { z } from 'zod';
 import dbConnect from '@/lib/db';
 import Gallery from '@/models/Gallery';
-import { saveFile } from '@/lib/upload';
 import { formatError } from '@/lib/error-code';
 import { parseTagString } from '@/lib/format';
 import { titleField, slugField, tagsField, optionalString } from '@/lib/validation';
@@ -40,24 +39,20 @@ export async function createGalleryAlbum(formData: FormData) {
 
     const { title, slug, description, dateStr, tagsStr, relatedPortfolioId } = parsed.data;
     const published = formData.get('published') === 'on';
-    const coverFile = formData.get('cover') as File;
-    const photoFiles = formData.getAll('photos') as File[];
+    const coverUrl = formData.get('coverUrl') as string;
+    const photoUrls = JSON.parse((formData.get('photoUrls') as string) || '[]');
 
-    if (!coverFile || coverFile.size === 0) return { error: formatError('U03') };
+    if (!coverUrl) return { error: formatError('U03') };
 
     try {
       await dbConnect();
-      const coverPath = await saveFile(coverFile, 'gallery/covers');
-      const tags = parseTagString(tagsStr);
-      const photoPromises = photoFiles
-        .filter(f => f.size > 0)
-        .map(f => saveFile(f, 'gallery/albums'));
-      const photos = await Promise.all(photoPromises);
-
       await Gallery.create({
         title, slug, description,
         date: new Date(dateStr),
-        tags, cover: coverPath, photos, published,
+        tags: parseTagString(tagsStr),
+        cover: coverUrl,
+        photos: photoUrls,
+        published,
         relatedPortfolioId: relatedPortfolioId || undefined,
       });
     } catch (error: unknown) {
@@ -83,9 +78,8 @@ export async function updateGalleryAlbum(id: string, formData: FormData) {
 
     const { title, slug, description, dateStr, tagsStr, relatedPortfolioId } = parsed.data;
     const published = formData.get('published') === 'on';
-    const coverFile = formData.get('cover') as File;
-    const photoFiles = formData.getAll('photos') as File[];
-    const existingPhotosStr = formData.get('existingPhotos') as string;
+    const coverUrl = formData.get('coverUrl') as string;
+    const photoUrls = formData.get('photoUrls') as string;
 
     try {
       await dbConnect();
@@ -102,16 +96,8 @@ export async function updateGalleryAlbum(id: string, formData: FormData) {
         updateData.$unset = { relatedPortfolioId: 1 };
       }
 
-      if (coverFile && coverFile.size > 0) {
-        updateData.cover = await saveFile(coverFile, 'gallery/covers');
-      }
-
-      const photos = existingPhotosStr ? JSON.parse(existingPhotosStr) : [];
-      const newPhotos = await Promise.all(
-        photoFiles.filter(f => f.size > 0).map(f => saveFile(f, 'gallery/albums'))
-      );
-      photos.push(...newPhotos);
-      updateData.photos = photos;
+      if (coverUrl) updateData.cover = coverUrl;
+      if (photoUrls) updateData.photos = JSON.parse(photoUrls);
 
       await Gallery.findByIdAndUpdate(id, updateData);
     } catch (error: unknown) {

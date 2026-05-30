@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -9,6 +9,7 @@ import SaveProgress from './SaveProgress';
 import { useAdminSession } from './AdminSessionProvider';
 import { useToast } from './ToastProvider';
 import { slugify } from '@/lib/format';
+import { uploadFileWithProgress, uploadFileWithRetry } from '@/lib/client-upload';
 
 const RichTextEditor = dynamic(
   () => import('./RichTextEditor'),
@@ -42,6 +43,7 @@ export default function PortfolioForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState('');
+  const abortRef = useRef<AbortController | null>(null);
 
   // Form Field States
   const [coverPreview, setCoverPreview] = useState<string | null>(initialData?.cover || null);
@@ -54,41 +56,6 @@ export default function PortfolioForm({
   const [newPhotoFiles, setNewPhotoFiles] = useState<File[]>([]);
   const [newPhotoPreviews, setNewPhotoPreviews] = useState<string[]>([]);
 
-  // ---- Upload Logic ----
-  const uploadFileWithProgress = (file: File, folder: string, onProgress: (loaded: number) => void): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      const fd = new FormData();
-      fd.append('file', file);
-      fd.append('folder', folder);
-
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          onProgress(e.loaded);
-        }
-      });
-
-      xhr.addEventListener('load', () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const response = JSON.parse(xhr.responseText);
-            resolve(response.url);
-          } catch {
-            reject(new Error('Invalid response from server'));
-          }
-        } else {
-          reject(new Error(`Upload failed with status ${xhr.status}`));
-        }
-      });
-
-      xhr.addEventListener('error', () => reject(new Error('Network error during upload')));
-      xhr.addEventListener('abort', () => reject(new Error('Upload aborted')));
-
-      xhr.open('POST', '/api/upload');
-      xhr.send(fd);
-    });
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -97,6 +64,8 @@ export default function PortfolioForm({
     setIsSubmitting(true);
     setProgress(0);
     setIsUploading(true);
+    abortRef.current = new AbortController();
+    const signal = abortRef.current.signal;
 
     try {
       const formElement = e.currentTarget;
@@ -118,7 +87,7 @@ export default function PortfolioForm({
       let finalCoverUrl = initialData?.cover || '';
       if (coverFile) {
         setStatusText('กำลังอัปโหลดหน้าปก...');
-        finalCoverUrl = await uploadFileWithProgress(coverFile, 'portfolio', (loaded) => updateProgress(loaded));
+        finalCoverUrl = await uploadFileWithProgress(coverFile, 'portfolio', (loaded) => updateProgress(loaded), signal);
         uploadedBytes += coverFile.size;
         setProgress((uploadedBytes / totalBytes) * 90);
       } else if (!isEdit) {
@@ -130,21 +99,8 @@ export default function PortfolioForm({
       for (let i = 0; i < newPhotoFiles.length; i++) {
         const file = newPhotoFiles[i];
         setStatusText(`กำลังอัปโหลดรูปภาพที่ ${i + 1}/${newPhotoFiles.length}...`);
-        
-        // Wait for retry logic if needed (simplified retry wrapper)
-        const uploadWithRetry = async (retries = 3): Promise<string> => {
-          for (let attempt = 1; attempt <= retries; attempt++) {
-            try {
-              return await uploadFileWithProgress(file, 'portfolio/gallery', (loaded) => updateProgress(loaded));
-            } catch (err) {
-              if (attempt === retries) throw err;
-              await new Promise(res => setTimeout(res, attempt * 1000)); // Exponential-ish backoff
-            }
-          }
-          throw new Error('Failed to upload after max retries');
-        };
 
-        const url = await uploadWithRetry();
+        const url = await uploadFileWithRetry(file, 'portfolio/gallery', (loaded) => updateProgress(loaded), 3, signal);
         finalGalleryUrls.push(url);
         uploadedBytes += file.size;
         setProgress((uploadedBytes / totalBytes) * 90);
@@ -180,6 +136,10 @@ export default function PortfolioForm({
           onAuthError();
           setIsSubmitting(false);
           setIsUploading(false);
+          return;
+        }
+        if (err.message === 'Upload aborted') {
+          setIsSubmitting(false);
           return;
         }
         setError(err.message);
@@ -464,6 +424,7 @@ export default function PortfolioForm({
         isOpen={isSubmitting}
         progress={progress}
         statusText={statusText}
+        onCancel={() => abortRef.current?.abort()}
       />
     </form>
   );

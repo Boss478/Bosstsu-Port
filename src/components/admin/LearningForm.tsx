@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import TagPicker from './TagPicker';
 import { useAdminSession } from './AdminSessionProvider';
 import { useToast } from './ToastProvider';
+import { uploadFileWithProgress, clientValidateFileType } from '@/lib/client-upload';
+import SaveProgress from './SaveProgress';
 
 const RichTextEditor = dynamic(
   () => import('./RichTextEditor'),
@@ -38,7 +40,6 @@ const TYPE_OPTIONS = [
 type TypeMode = typeof TYPE_OPTIONS[number]['mode'];
 
 // ─── HTML Content Editor with RichTextEditor ───────────────────────────────
-// Show RichTextEditor + Link field for Article type
 function HtmlEditor({ initialValue = '' }: { initialValue?: string }) {
   return (
     <div className="space-y-4">
@@ -46,8 +47,7 @@ function HtmlEditor({ initialValue = '' }: { initialValue?: string }) {
         <i className="fi fi-sr-edit text-blue-500" />
         เนื้อหา (Content) <span className="text-red-500">*</span>
       </label>
-      
-      {/* Rich Text Editor */}
+
       <RichTextEditor
         name="content"
         defaultValue={initialValue}
@@ -113,9 +113,13 @@ export default function LearningForm({
   availableTags = [],
 }: LearningFormProps) {
   const router = useRouter();
-  const { onAuthError } = useAdminSession();
+  const { setIsUploading, onAuthError } = useAdminSession();
   const { showToast } = useToast();
-  const [pending, setPending] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [statusText, setStatusText] = useState('');
+  const abortRef = useRef<AbortController | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState(initialData?.type || '');
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(initialData?.thumbnail || null);
@@ -128,32 +132,108 @@ export default function LearningForm({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setPending(true);
+    if (isSubmitting) return;
+
     setError(null);
+    setIsSubmitting(true);
+    setProgress(0);
+    setIsUploading(true);
+    abortRef.current = new AbortController();
+    const signal = abortRef.current.signal;
+
     try {
-      const result = await action(new FormData(e.currentTarget));
+      const formData = new FormData(e.currentTarget);
+
+      const thumbnailEntry = formData.get('thumbnail');
+      const thumbnailFile = (thumbnailEntry instanceof File && thumbnailEntry.size > 0) ? thumbnailEntry : null;
+      const resourceEntry = formData.get('resourceFile');
+      const resourceFile = (resourceEntry instanceof File && resourceEntry.size > 0) ? resourceEntry : null;
+
+      // Client-side file type validation for resourceFile
+      if (resourceFile && typeConfig && 'accept' in typeConfig) {
+        const allowedTypes = typeConfig.accept.split(',');
+        if (!clientValidateFileType(resourceFile, allowedTypes)) {
+          throw new Error(`ประเภทไฟล์ไม่ถูกต้อง อนุญาต: ${allowedTypes.join(', ')}`);
+        }
+      }
+
+      const totalBytes = (thumbnailFile?.size || 0) + (resourceFile?.size || 0);
+      let uploadedBytes = 0;
+      const updateProgress = (chunkLoaded: number) => {
+        if (totalBytes === 0) return;
+        const currentTotal = uploadedBytes + chunkLoaded;
+        setProgress((currentTotal / totalBytes) * 90);
+      };
+
+      // Upload thumbnail
+      let finalThumbnailUrl = initialData?.thumbnail || '';
+      if (thumbnailFile) {
+        setStatusText('กำลังอัปโหลดรูปหน้าปก...');
+        finalThumbnailUrl = await uploadFileWithProgress(thumbnailFile, 'learning', updateProgress, signal);
+        uploadedBytes += thumbnailFile.size;
+        setProgress((uploadedBytes / totalBytes) * 90);
+      }
+
+      // Upload resource file
+      let finalFileUrl = initialData?.fileUrl || '';
+      if (resourceFile) {
+        setStatusText('กำลังอัปโหลดไฟล์...');
+        finalFileUrl = await uploadFileWithProgress(resourceFile, 'learning', updateProgress, signal);
+        uploadedBytes += resourceFile.size;
+        setProgress((uploadedBytes / totalBytes) * 90);
+      }
+
+      setStatusText('กำลังบันทึกข้อมูลเข้าฐานข้อมูล...');
+      setProgress(95);
+
+      if (finalThumbnailUrl) formData.set('thumbnailUrl', finalThumbnailUrl);
+      if (finalFileUrl) formData.set('fileUrl', finalFileUrl);
+      formData.delete('thumbnail');
+      formData.delete('resourceFile');
+
+      const result = await action(formData);
+
       if (result?.error) {
         if (result.error.includes('[401]')) {
-          setPending(false);
+          setIsSubmitting(false);
           onAuthError();
           return;
         }
-        setError(result.error);
-        showToast(result.error, 'error');
-      } else {
-        showToast('บันทึกข้อมูลสำเร็จ');
-        router.push('/admin/resources');
+        throw new Error(result.error);
       }
-    } catch {
-      setError('เกิดข้อผิดพลาด กรุณาลองใหม่');
-      showToast('เกิดข้อผิดพลาด กรุณาลองใหม่', 'error');
+
+      setProgress(100);
+      setStatusText('บันทึกข้อมูลสำเร็จ!');
+
+      setTimeout(() => {
+        router.push('/admin/resources');
+      }, 500);
+
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        if (err.message.includes('[401]')) {
+          setIsSubmitting(false);
+          onAuthError();
+          return;
+        }
+        if (err.message === 'Upload aborted') {
+          setIsSubmitting(false);
+          return;
+        }
+        setError(err.message);
+        showToast(err.message, 'error');
+      } else {
+        setError('เกิดข้อผิดพลาดที่ไม่คาดคิด');
+        showToast('เกิดข้อผิดพลาดที่ไม่คาดคิด', 'error');
+      }
+      setIsSubmitting(false);
     } finally {
-      setPending(false);
+      setIsUploading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <form ref={formRef} onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* ── Left Column ── */}
       <div className="lg:col-span-2 space-y-6">
         {error && (
@@ -396,12 +476,19 @@ export default function LearningForm({
 
         <button
           type="submit"
-          disabled={pending}
+          disabled={isSubmitting}
           className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {pending ? 'กำลังบันทึก...' : isEdit ? 'อัปเดตข้อมูล' : 'สร้างสื่อการเรียนรู้'}
+          {isSubmitting ? 'กำลังบันทึก...' : isEdit ? 'อัปเดตข้อมูล' : 'สร้างสื่อการเรียนรู้'}
         </button>
       </div>
+
+      <SaveProgress
+        isOpen={isSubmitting}
+        progress={progress}
+        statusText={statusText}
+        onCancel={() => abortRef.current?.abort()}
+      />
     </form>
   );
 }

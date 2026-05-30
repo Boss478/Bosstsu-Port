@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import ImageCropper from './ImageCropper';
 import TagPicker from './TagPicker';
 import { slugify } from '@/lib/format';
+import { uploadFileWithProgress, uploadFileWithRetry } from '@/lib/client-upload';
 import { useAdminSession } from './AdminSessionProvider';
 import { useToast } from './ToastProvider';
+import SaveProgress from './SaveProgress';
 
 interface GalleryFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,9 +22,12 @@ interface GalleryFormProps {
 
 export default function GalleryForm({ initialData, portfolios, action, isEdit, availableTags = [] }: GalleryFormProps) {
   const router = useRouter();
-  const { onAuthError } = useAdminSession();
+  const { setIsUploading, onAuthError } = useAdminSession();
   const { showToast } = useToast();
-  const [pending, setPending] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [statusText, setStatusText] = useState('');
+  const abortRef = useRef<AbortController | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(initialData?.cover || null);
   const [photos, setPhotos] = useState<string[]>(initialData?.photos || []);
@@ -35,40 +40,103 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setPending(true);
+    if (isSubmitting) return;
+
     setError(null);
-
-    const formData = new FormData(e.currentTarget);
-    formData.append('existingPhotos', JSON.stringify(photos));
-
-    // Append stored File objects for new photos
-    newPhotoFiles.forEach((file) => {
-      formData.append('photos', file);
-    });
-
-    if (croppedCoverBlob) {
-      formData.set('cover', croppedCoverBlob, 'cropped_cover.jpg');
-    }
+    setIsSubmitting(true);
+    setProgress(0);
+    setIsUploading(true);
+    abortRef.current = new AbortController();
+    const signal = abortRef.current.signal;
 
     try {
-      const result = await action(formData);
+      const formElement = e.currentTarget;
+
+      // Calculate total bytes to upload out of 90% progress slice
+      const coverFile = croppedCoverBlob ? new File([croppedCoverBlob], 'cover.jpg', { type: 'image/jpeg' }) : null;
+      const totalBytes =
+        (coverFile ? coverFile.size : 0) +
+        newPhotoFiles.reduce((acc, f) => acc + f.size, 0);
+
+      let uploadedBytes = 0;
+      const updateProgress = (chunkLoaded: number) => {
+        if (totalBytes === 0) return;
+        const currentTotalLoaded = uploadedBytes + chunkLoaded;
+        const uploadPercent = (currentTotalLoaded / totalBytes) * 90;
+        setProgress(uploadPercent);
+      };
+
+      // 1. Upload Cover
+      let finalCoverUrl = initialData?.cover || '';
+      if (coverFile) {
+        setStatusText('กำลังอัปโหลดหน้าปก...');
+        finalCoverUrl = await uploadFileWithProgress(coverFile, 'gallery', (loaded) => updateProgress(loaded), signal);
+        uploadedBytes += coverFile.size;
+        setProgress((uploadedBytes / totalBytes) * 90);
+      } else if (!isEdit) {
+        throw new Error('กรุณาเลือกรูปปก');
+      }
+
+      // 2. Upload New Photos (Sequential)
+      const finalPhotoUrls = [...photos];
+      for (let i = 0; i < newPhotoFiles.length; i++) {
+        const file = newPhotoFiles[i];
+        setStatusText(`กำลังอัปโหลดรูปภาพที่ ${i + 1}/${newPhotoFiles.length}...`);
+
+        const url = await uploadFileWithRetry(file, 'gallery', (loaded) => updateProgress(loaded), 3, signal);
+        finalPhotoUrls.push(url);
+        uploadedBytes += file.size;
+        setProgress((uploadedBytes / totalBytes) * 90);
+      }
+
+      // 3. Save Data via Server Action
+      setStatusText('กำลังบันทึกข้อมูลเข้าฐานข้อมูล...');
+      setProgress(95);
+
+      const finalFormData = new FormData(formElement);
+      finalFormData.set('coverUrl', finalCoverUrl);
+      finalFormData.set('photoUrls', JSON.stringify(finalPhotoUrls));
+      finalFormData.delete('cover');
+      finalFormData.delete('photos');
+
+      const result = await action(finalFormData);
+
       if (result && result.error) {
         if (result.error.includes('[401]')) {
-          setPending(false);
+          setIsSubmitting(false);
           onAuthError();
           return;
         }
-        setError(result.error);
-        showToast(result.error, 'error');
-      } else {
-        showToast('บันทึกข้อมูลสำเร็จ');
-        router.push('/admin/gallery');
+        throw new Error(result.error);
       }
-    } catch {
-      setError('เกิดข้อผิดพลาด กรุณาลองใหม่');
-      showToast('เกิดข้อผิดพลาด กรุณาลองใหม่', 'error');
+
+      setProgress(100);
+      setStatusText('บันทึกข้อมูลสำเร็จ!');
+
+      setTimeout(() => {
+        router.push('/admin/gallery');
+      }, 500);
+
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        if (err.message.includes('[401]')) {
+          setIsSubmitting(false);
+          onAuthError();
+          return;
+        }
+        if (err.message === 'Upload aborted') {
+          setIsSubmitting(false);
+          return;
+        }
+        setError(err.message);
+        showToast(err.message, 'error');
+      } else {
+        setError('เกิดข้อผิดพลาดที่ไม่คาดคิด');
+        showToast('เกิดข้อผิดพลาดที่ไม่คาดคิด', 'error');
+      }
+      setIsSubmitting(false);
     } finally {
-      setPending(false);
+      setIsUploading(false);
     }
   };
 
@@ -378,10 +446,10 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
 
         <button
           type="submit"
-          disabled={pending}
+          disabled={isSubmitting}
           className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {pending ? 'กำลังบันทึก...' : (isEdit ? 'อัปเดตข้อมูล' : 'สร้างอัลบั้ม')}
+          {isSubmitting ? 'กำลังบันทึก...' : (isEdit ? 'อัปเดตข้อมูล' : 'สร้างอัลบั้ม')}
         </button>
       </div>
 
@@ -393,6 +461,13 @@ export default function GalleryForm({ initialData, portfolios, action, isEdit, a
           aspectRatio={16 / 9}
         />
       )}
+
+      <SaveProgress
+        isOpen={isSubmitting}
+        progress={progress}
+        statusText={statusText}
+        onCancel={() => abortRef.current?.abort()}
+      />
 
       {previewModalSrc && (
         <div 

@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import TagPicker from './TagPicker';
 import { useAdminSession } from './AdminSessionProvider';
 import { useToast } from './ToastProvider';
+import { uploadFileWithProgress } from '@/lib/client-upload';
+import SaveProgress from './SaveProgress';
 
 interface GameFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,9 +29,12 @@ export default function GameForm({
   availableTags = [],
 }: GameFormProps) {
   const router = useRouter();
-  const { onAuthError } = useAdminSession();
+  const { setIsUploading, onAuthError } = useAdminSession();
   const { showToast } = useToast();
-  const [pending, setPending] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [statusText, setStatusText] = useState('');
+  const abortRef = useRef<AbortController | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [gameType, setGameType] = useState<'url' | 'html'>(
     initialData?.htmlContent ? 'html' : 'url'
@@ -40,30 +45,79 @@ export default function GameForm({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setPending(true);
-    setError(null);
+    if (isSubmitting) return;
 
-    const formData = new FormData(e.currentTarget);
+    setError(null);
+    setIsSubmitting(true);
+    setProgress(0);
+    setIsUploading(true);
+    abortRef.current = new AbortController();
+    const signal = abortRef.current.signal;
 
     try {
+      const formData = new FormData(e.currentTarget);
+      const thumbnailEntry = formData.get('thumbnail');
+      const thumbnailFile = (thumbnailEntry instanceof File && thumbnailEntry.size > 0) ? thumbnailEntry : null;
+
+      let finalThumbnailUrl = initialData?.thumbnail || '';
+      if (thumbnailFile) {
+        setStatusText('กำลังอัปโหลดรูปหน้าปก...');
+        setProgress(5);
+        const fileSize = thumbnailFile.size;
+        finalThumbnailUrl = await uploadFileWithProgress(thumbnailFile, 'games', (loaded) => {
+          if (fileSize > 0) {
+            setProgress(5 + (loaded / fileSize) * 85);
+          }
+        }, signal);
+        setProgress(90);
+      } else if (!isEdit) {
+        throw new Error('กรุณาเลือกรูปหน้าปก');
+      }
+
+      setStatusText('กำลังบันทึกข้อมูลเข้าฐานข้อมูล...');
+      setProgress(95);
+
+      if (finalThumbnailUrl) formData.set('thumbnailUrl', finalThumbnailUrl);
+      formData.delete('thumbnail');
+
       const result = await action(formData);
-      if (result && result.error) {
+
+      if (result?.error) {
         if (result.error.includes('[401]')) {
-          setPending(false);
+          setIsSubmitting(false);
           onAuthError();
           return;
         }
-        setError(result.error);
-        showToast(result.error, 'error');
-      } else {
-        showToast('บันทึกข้อมูลสำเร็จ');
-        router.push('/admin/games');
+        throw new Error(result.error);
       }
-    } catch {
-      setError('เกิดข้อผิดพลาด กรุณาลองใหม่');
-      showToast('เกิดข้อผิดพลาด กรุณาลองใหม่', 'error');
+
+      setProgress(100);
+      setStatusText('บันทึกข้อมูลสำเร็จ!');
+
+      setTimeout(() => {
+        router.push('/admin/games');
+      }, 500);
+
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        if (err.message.includes('[401]')) {
+          setIsSubmitting(false);
+          onAuthError();
+          return;
+        }
+        if (err.message === 'Upload aborted') {
+          setIsSubmitting(false);
+          return;
+        }
+        setError(err.message);
+        showToast(err.message, 'error');
+      } else {
+        setError('เกิดข้อผิดพลาดที่ไม่คาดคิด');
+        showToast('เกิดข้อผิดพลาดที่ไม่คาดคิด', 'error');
+      }
+      setIsSubmitting(false);
     } finally {
-      setPending(false);
+      setIsUploading(false);
     }
   };
 
@@ -292,12 +346,19 @@ export default function GameForm({
 
         <button
           type="submit"
-          disabled={pending}
+          disabled={isSubmitting}
           className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {pending ? 'กำลังบันทึก...' : (isEdit ? 'อัปเดตข้อมูล' : 'สร้างเกม')}
+          {isSubmitting ? 'กำลังบันทึก...' : (isEdit ? 'อัปเดตข้อมูล' : 'สร้างเกม')}
         </button>
       </div>
+
+      <SaveProgress
+        isOpen={isSubmitting}
+        progress={progress}
+        statusText={statusText}
+        onCancel={() => abortRef.current?.abort()}
+      />
     </form>
   );
 }

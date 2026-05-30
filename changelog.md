@@ -4,6 +4,16 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.27 (2026-05-30)
++ Added cancel button to SaveProgress modal — AbortController wired through XHR to all 4 admin forms (Portfolio, Gallery, Learning, Game)
+* Fixed broken spinner icon in SaveProgress (`fi-sr-spinner-third` → `fi-sr-spinner`)
+
+## v1.9.26 (2026-05-30)
++ Added SaveProgress modal with XHR upload progress to Gallery, Learning, and Game admin forms (matching Portfolio)
++ Created shared `src/lib/client-upload.ts` — centralized uploadFileWithProgress + clientValidateFileType + uploadFileWithRetry
+* Changed Gallery, Learning, and Game server actions to accept pre-uploaded URL strings instead of raw File objects
+* Extracted inline uploadFileWithProgress from PortfolioForm into shared utility
+
 ## v1.9.25 (2026-05-29)
 
 * Fixed Docker Compose profile conflict — `app` service now uses `profiles: ["production"]` to prevent port 3300 collision with `app-dev`

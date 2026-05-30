@@ -3,7 +3,6 @@
 import { z } from 'zod';
 import dbConnect from '@/lib/db';
 import Game from '@/models/Game';
-import { saveFile } from '@/lib/upload';
 import { formatError } from '@/lib/error-code';
 import { slugify, parseTagString } from '@/lib/format';
 import { titleField, descriptionField, tagsField } from '@/lib/validation';
@@ -64,22 +63,21 @@ export async function createGame(formData: FormData) {
 
     const { title, description, category, playUrl, htmlContent, instructions, tagsStr } = parsed.data;
     const published = formData.get('published') === 'on';
-    const thumbnailFile = formData.get('thumbnail') as File;
+    const thumbnailUrl = formData.get('thumbnailUrl') as string;
     const slug = slugify(title);
 
-    if (!thumbnailFile || thumbnailFile.size === 0) return { error: formatError('U03') };
+    if (!thumbnailUrl) return { error: formatError('U03') };
 
     try {
       await dbConnect();
       const tags = parseTagString(tagsStr);
-      const thumbnail = await saveFile(thumbnailFile, 'games');
 
       await Game.create({
         title, slug, description, category,
         playUrl: playUrl || '',
         instructions: instructions || undefined,
         htmlContent: sanitizeHtml(htmlContent),
-        tags, published, thumbnail,
+        tags, published, thumbnail: thumbnailUrl,
       });
     } catch (error: unknown) {
       return handleDbError(error, 'Create game', 'DB01');
@@ -106,7 +104,7 @@ export async function updateGame(id: string, formData: FormData) {
 
     const { title, description, category, playUrl, htmlContent, instructions, tagsStr } = parsed.data;
     const published = formData.get('published') === 'on';
-    const thumbnailFile = formData.get('thumbnail') as File;
+    const thumbnailUrl = formData.get('thumbnailUrl') as string;
 
     try {
       await dbConnect();
@@ -119,9 +117,7 @@ export async function updateGame(id: string, formData: FormData) {
         published,
       };
 
-      if (thumbnailFile && thumbnailFile.size > 0) {
-        updateData.thumbnail = await saveFile(thumbnailFile, 'games');
-      }
+      if (thumbnailUrl) updateData.thumbnail = thumbnailUrl;
 
       await Game.findByIdAndUpdate(id, updateData);
     } catch (error: unknown) {
