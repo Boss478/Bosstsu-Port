@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import "@flaticon/flaticon-uicons/css/solid/rounded.css";
+import "../fonts/flaticon-subset.css";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CONFIG } from "@/lib/config";

@@ -4,6 +4,12 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.29 (2026-05-31)
++ Subset Flaticon icon font from 314KB to 9.2KB (97% reduction) — only 117 of 131 used icons extracted via pyftsubset
++ Created `src/fonts/flaticon-subset.css` with 117 icon class rules pointing to subset woff2
+- Removed 4 unused Mali `.ttf` font files (~2.8MB dead files from repo)
+* Changed layout import from full `@flaticon/flaticon-uicons` CSS to local subset CSS
+
 ## v1.9.28 (2026-05-30)
 + Restructured all 4 admin forms (Portfolio, Gallery, Games, Learning) to DB-first save flow — Phase 1 saves text/published=false (resilient), Phase 2 uploads files, Phase 3 saves URLs + published flag
 + Added `savePortfolioMedia`, `saveGalleryMedia`, `saveGameMedia`, `saveResourceMedia` Server Actions for Phase 3 media+published write
