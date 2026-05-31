@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 // Run: MONGODB_URI="mongodb://..." npx tsx scripts/seed.ts
+// Or: npm run seed
 
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) {
@@ -202,10 +203,445 @@ const galleryData = [
   },
 ];
 
+const gameData = [
+  {
+    slug: "spellchecker",
+    title: "SpellChecker",
+    description: "ฝึกทักษะการสะกดคำภาษาไทยและภาษาอังกฤษ ผ่านเกมสนุก ๆ",
+    category: "ภาษาอังกฤษ",
+    playUrl: "/games/spellchecker",
+    thumbnail: PLACEHOLDER_COVER,
+    instructions: "เลือกระดับความยาก แล้วพิมพ์คำให้ถูกต้องก่อนหมดเวลา",
+    tags: ["ภาษาอังกฤษ", "สะกดคำ", "G.1"],
+    published: true,
+  },
+  {
+    slug: "number-game",
+    title: "ผจญภัยโลกตัวเลข",
+    description: "เรียนรู้ตัวเลขภาษาอังกฤษ 1-100 แสนสนุก พร้อมความท้าทายหลายระดับ",
+    category: "คณิตศาสตร์",
+    playUrl: "/games/number-game",
+    thumbnail: PLACEHOLDER_COVER,
+    instructions: "เลือกเลเวลแล้วคลิกเลขที่ถูกต้องตามคำถาม",
+    tags: ["คณิตศาสตร์", "ตัวเลข", "G.1"],
+    published: true,
+  },
+  {
+    slug: "alphabet-adventure",
+    title: "Alphabet Adventure",
+    description: "ผจญภัยโลกตัวอักษร เรียนรู้ A-Z ผ่าน 4 เกมสนุก",
+    category: "ภาษาอังกฤษ",
+    playUrl: "/games/alphabet-adventure",
+    thumbnail: PLACEHOLDER_COVER,
+    instructions: "Letter Match, Missing Caps, Missing Lowercase, และ Typing Challenge",
+    tags: ["ภาษาอังกฤษ", "ตัวอักษร", "G.1"],
+    published: true,
+  },
+  {
+    slug: "word-scramble",
+    title: "Word Scramble",
+    description: "เกมจัดเรียงตัวอักษรภาษาอังกฤษให้ถูกต้อง ฝึกคำศัพท์และความจำ",
+    category: "ภาษาอังกฤษ",
+    playUrl: "https://wordwall.net/play/word-scramble",
+    thumbnail: PLACEHOLDER_COVER,
+    instructions: "ลากสลับตัวอักษรให้เรียงกันเป็นคำที่ถูกต้อง",
+    tags: ["ภาษาอังกฤษ", "คำศัพท์"],
+    published: true,
+  },
+  {
+    slug: "color-match",
+    title: "Color Match",
+    description: "เกมจับคู่สี ฝึกจำชื่อสีภาษาอังกฤษ สำหรับนักเรียนชั้น G.1",
+    category: "ทั่วไป",
+    playUrl: "https://wordwall.net/play/color-match",
+    thumbnail: PLACEHOLDER_COVER,
+    instructions: "จับคู่สีที่เหมือนกันก่อนหมดเวลา",
+    tags: ["ทั่วไป", "สี", "G.1"],
+    published: true,
+  },
+  {
+    slug: "math-addition",
+    title: "บวกเลขสนุก",
+    description: "เกมฝึกบวกเลขหลักเดียวสำหรับนักเรียนชั้นป.1",
+    category: "คณิตศาสตร์",
+    playUrl: "https://wordwall.net/play/math-addition",
+    thumbnail: PLACEHOLDER_COVER,
+    instructions: "เลือกคำตอบที่ถูกต้องจากโจทย์บวกเลข",
+    tags: ["คณิตศาสตร์", "บวกเลข", "G.1"],
+    published: true,
+  },
+  {
+    slug: "thai-tone-game",
+    title: "เกมวรรณยุกต์ไทย",
+    description: "ฝึกทักษะการอ่านวรรณยุกต์ไทยผ่านเกมinteractive",
+    category: "ภาษาไทย",
+    playUrl: "https://wordwall.net/play/thai-tone",
+    thumbnail: PLACEHOLDER_COVER,
+    instructions: "ฟังเสียงแล้วเลือกวรรณยุกต์ที่ถูกต้อง",
+    tags: ["ภาษาไทย", "วรรณยุกต์"],
+    published: true,
+  },
+  {
+    slug: "memory-cards",
+    title: "Memory Cards",
+    description: "เกมจับคู่การ์ด ฝึกความจำและสมาธิ จับคู่คำศัพท์กับรูปภาพ",
+    category: "ทั่วไป",
+    playUrl: "https://wordwall.net/play/memory-cards",
+    thumbnail: PLACEHOLDER_COVER,
+    instructions: "พลิกการ์ดแล้วจับคู่คำศัพท์กับรูปภาพที่ตรงกัน",
+    tags: ["ทั่วไป", "ความจำ", "คำศัพท์"],
+    published: true,
+  },
+];
+
+const learningData = [
+  {
+    title: "แผนการสอนคณิตศาสตร์ เรื่อง การบวกลบ",
+    description: "แผนการสอนรายสัปดาห์สำหรับวิชาคณิตศาสตร์ ชั้น ป.1 เรื่องการบวกและการลบ numbers 1-20",
+    subject: "คณิตศาสตร์",
+    type: "แผนการสอน",
+    tags: ["คณิตศาสตร์", "ป.1", "แผนการสอน"],
+    published: true,
+    content: `<h3>วัตถุประสงค์</h3>
+      <ul>
+        <li>นักเรียนสามารถบวกและลบ numbers 1-20 ได้ถูกต้อง</li>
+        <li>นักเรียนสามารถนำความรู้ไปใช้ในชีวิตประจำวันได้</li>
+      </ul>
+      <h3>กิจกรรม</h3>
+      <ol>
+        <li>กิจกรรมเริ่มบทเรียน: นับ number together</li>
+        <li>กิจกรรมกลางบทเรียน: ฝึกทำโจทย์บวกลบ</li>
+        <li>กิจกรรมส่งท้าย: เล่นเกมคณิตศาสตร์</li>
+      </ol>`,
+  },
+  {
+    title: "สื่อการสอนภาษาไทย วรรณยุกต์ 5 เสียง",
+    description: "สื่อการสอนภาษาไทย เรื่องวรรณยุกต์ 5 เสียง พร้อมแบบฝึกหัด",
+    subject: "ภาษาไทย",
+    type: "สื่อการสอน",
+    tags: ["ภาษาไทย", "วรรณยุกต์", "สื่อการสอน"],
+    published: true,
+    content: `<h3>วรรณยุกต์ 5 เสียง</h3>
+      <ul>
+        <li><strong>สามัญ:</strong> มา กา ซา รา วา</li>
+        <li><strong>เอก:</strong> มา กา ซา รา วา</li>
+        <li><strong>โท:</strong> มา กา ซา รา วา</li>
+        <li><strong>ตรี:</strong> มา กา ซา รา วา</li>
+        <li><strong>จัตวา:</strong> มา กา ซา รา วา</li>
+      </ul>`,
+  },
+  {
+    title: "แบบฝึกหัดคำศัพท์ภาษาอังกฤษ หน่วยที่ 1-3",
+    description: "รวมแบบฝึกหัดคำศัพท์ภาษาอังกฤษ สำหรับนักเรียนชั้น ป.1",
+    subject: "ภาษาอังกฤษ",
+    type: "ใบงาน",
+    tags: ["ภาษาอังกฤษ", "คำศัพท์", "ใบงาน"],
+    published: true,
+    content: `<h3>Vocabulary Worksheet</h3>
+      <p>จับคู่รูปกับคำศัพท์ที่ถูกต้อง</p>
+      <ul>
+        <li>Apple - 🍎</li>
+        <li>Banana - 🍌</li>
+        <li>Cat - 🐱</li>
+        <li>Dog - 🐶</li>
+      </ul>`,
+  },
+  {
+    title: "Video สอนเขียนตัวอักษร A-Z",
+    description: "วิดีโอสอนเขียนตัวอักษรภาษาอังกฤษ A-Z สำหรับนักเรียนชั้น G.1",
+    subject: "ภาษาอังกฤษ",
+    type: "วิดีโอ",
+    tags: ["ภาษาอังกฤษ", "ตัวอักษร", "วิดีโอ"],
+    published: true,
+    youtubeId: "dQw4w9WgXcQ",
+    link: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  },
+  {
+    title: "Canva: บัตรคำศัพท์ภาษาอังกฤษ",
+    description: "Flashcards ภาษาอังกฤษ-ไทย จำนวน 50 คำ สำหรับพิมพ์เป็นบัตรคำใช้ในห้องเรียน",
+    subject: "ภาษาอังกฤษ",
+    type: "สื่อการสอน",
+    tags: ["ภาษาอังกฤษ", "Flashcards", "Canva"],
+    published: true,
+    canvaEmbed: "https://www.canva.com/design/example",
+  },
+  {
+    title: "ใบงานวิทยาศาสตร์ เรื่อง วงจรชีวิต",
+    description: "ใบงานวิทยาศาสตร์สำหรับนักเรียน ป.1 เรื่องวงจรชีวิตของผีเสื้อ",
+    subject: "วิทยาศาสตร์",
+    type: "ใบงาน",
+    tags: ["วิทยาศาสตร์", "วงจรชีวิต", "ใบงาน"],
+    published: true,
+    content: `<h3>วงจรชีวิตของผีเสื้อ</h3>
+      <ol>
+        <li><strong>ไข่ (Egg):</strong> ตัวเมียวางไข่บนใบไม้</li>
+        <li><strong>หนอน (Larva):</strong> ไข่ฟักเป็นหนอน กินใบไม้เป็นอาหาร</li>
+        <li><strong>ดักแด้ (Pupa):</strong> หนอนสร้างรังหุ้มตัว</li>
+        <li><strong>ผีเสื้อ (Adult):</strong> ผีเสื้อออกจากดักแด้</li>
+      </ol>`,
+  },
+  {
+    title: "แผนการสอนสังคมศึกษา เรื่อง ชุมชนของเรา",
+    description: "แผนการสอนสังคมศึกษาสำหรับนักเรียน ป.1 เรื่องหน้าที่พลเมืองและชุมชน",
+    subject: "สังคมศึกษา",
+    type: "แผนการสอน",
+    tags: ["สังคมศึกษา", "ป.1", "แผนการสอน"],
+    published: true,
+    content: `<h3>ชุมชนของเรา</h3>
+      <p>เรียนรู้เกี่ยวกับบุคคลในชุมชน อาชีพ และสถานที่สำคัญ</p>
+      <h3>กิจกรรม</h3>
+      <ul>
+        <li>ระบายสีแผนที่ชุมชน</li>
+        <li>สัมภาษณ์ผู้ใหญ่บ้าน</li>
+        <li>ทำบอร์ดแสดงอาชีพในชุมชน</li>
+      </ul>`,
+  },
+  {
+    title: "แบบฝึกหัดคณิตศาสตร์ การวัด",
+    description: "ใบงานฝึกอ่านเข็มนาฬิกาและวัดอุณหภูมิ สำหรับนักเรียน ป.1",
+    subject: "คณิตศาสตร์",
+    type: "ใบงาน",
+    tags: ["คณิตศาสตร์", "การวัด", "ใบงาน"],
+    published: true,
+    content: `<h3>ฝึกอ่านนาฬิกา</h3>
+      <p>บอกเวลาระบุชั่วโมงและนาทีจากภาพนาฬิกา</p>
+      <h3>ฝึกวัดอุณหภูมิ</h3>
+      <p>อ่านค่าจากเทอร์โมมิเตอร์</p>`,
+  },
+];
+
+const toolSessionData = [
+  {
+    sessionCode: "POLL2025",
+    type: "poll",
+    title: "โพลความคิดเห็น สัปดาห์ที่ 1",
+    config: {
+      prompt: "วิชาที่ชอบมากที่สุดคือวิชาอะไร?",
+      allowAnonymous: true,
+      maxSubmissions: 1,
+      pollMode: "mcq",
+      allowCustomChoices: false,
+      questions: [{
+        question: "วิชาที่ชอบมากที่สุด?",
+        options: ["คณิตศาสตร์", "ภาษาไทย", "ภาษาอังกฤษ", "วิทยาศาสตร์", "ศิลปะ"],
+      }],
+    },
+    requireStudentName: false,
+    isActive: false,
+    startedAt: new Date("2025-06-01"),
+    endedAt: new Date("2025-06-01"),
+    participantCount: 25,
+    responseCount: 25,
+    currentStep: -1,
+    lastActiveStep: -1,
+    allowStudentNavigation: false,
+  },
+  {
+    sessionCode: "QA001",
+    type: "qa_board",
+    title: "กระดานถาม-ตอบ วิชาวิทยาศาสตร์",
+    config: {
+      prompt: "มีคำถามเกี่ยวกับบทเรียนวงจรชีวิต ถามมาได้เลย!",
+      allowAnonymous: true,
+      maxSubmissions: 5,
+    },
+    requireStudentName: false,
+    isActive: false,
+    startedAt: new Date("2025-05-20"),
+    endedAt: new Date("2025-05-20"),
+    participantCount: 18,
+    responseCount: 42,
+    currentStep: -1,
+    lastActiveStep: -1,
+    allowStudentNavigation: false,
+  },
+  {
+    sessionCode: "ASSIGN01",
+    type: "assignment",
+    title: "ใบงาน ป.1 บทที่ 3 - ส่งรูปภาพ",
+    config: {
+      prompt: "ถ่ายรูปสัตว์ที่พบในชุมชนของคุณ 1 รูป พร้อมบอกชื่อสัตว์",
+      allowAnonymous: false,
+      maxSubmissions: 1,
+      allowFileUpload: true,
+      maxFileSize: 5242880,
+    },
+    requireStudentName: true,
+    isActive: false,
+    startedAt: new Date("2025-04-15"),
+    endedAt: new Date("2025-04-20"),
+    participantCount: 30,
+    responseCount: 28,
+    currentStep: -1,
+    lastActiveStep: -1,
+    allowStudentNavigation: false,
+  },
+  {
+    sessionCode: "EXITWK5",
+    type: "exit_ticket",
+    title: "Exit Ticket สัปดาห์ที่ 5",
+    config: {
+      prompt: "วันนี้เรียนอะไรไปบ้าง? สิ่งที่ชอบที่สุดคืออะไร?",
+      allowAnonymous: false,
+      maxSubmissions: 1,
+    },
+    requireStudentName: true,
+    isActive: false,
+    startedAt: new Date("2025-06-05"),
+    endedAt: new Date("2025-06-05"),
+    participantCount: 28,
+    responseCount: 26,
+    currentStep: -1,
+    lastActiveStep: -1,
+    allowStudentNavigation: false,
+  },
+  {
+    sessionCode: "QUIZ01",
+    type: "quiz",
+    title: "แบบทดสอบบทที่ 2 - คณิตศาสตร์",
+    config: {
+      prompt: "ทำแบบทดสอบคณิตศาสตร์ 10 ข้อ",
+      allowAnonymous: false,
+      maxSubmissions: 1,
+      questions: [
+        { question: "2 + 3 = ?", options: ["4", "5", "6", "7"], correctAnswer: 1 },
+        { question: "10 - 4 = ?", options: ["5", "6", "7", "8"], correctAnswer: 1 },
+        { question: "3 + 7 = ?", options: ["8", "9", "10", "11"], correctAnswer: 2 },
+        { question: "15 - 8 = ?", options: ["5", "6", "7", "8"], correctAnswer: 2 },
+        { question: "6 + 6 = ?", options: ["10", "11", "12", "13"], correctAnswer: 2 },
+      ],
+    },
+    requireStudentName: true,
+    isActive: false,
+    startedAt: new Date("2025-06-10"),
+    endedAt: new Date("2025-06-10"),
+    participantCount: 30,
+    responseCount: 29,
+    currentStep: -1,
+    lastActiveStep: -1,
+    allowStudentNavigation: false,
+  },
+  {
+    sessionCode: "PADLET1",
+    type: "padlet",
+    title: "Padlet - ภาพบรรยากาศวันเด็ก",
+    config: {
+      prompt: "แชร์ภาพบรรยากาศวันเด็กแห่งชาติที่.school",
+      allowAnonymous: false,
+      maxSubmissions: 3,
+      allowFileUpload: true,
+      maxFileSize: 10485760,
+    },
+    requireStudentName: true,
+    isActive: false,
+    startedAt: new Date("2025-01-10"),
+    endedAt: new Date("2025-01-12"),
+    participantCount: 20,
+    responseCount: 35,
+    currentStep: -1,
+    lastActiveStep: -1,
+    allowStudentNavigation: false,
+  },
+  {
+    sessionCode: "POLLWK8",
+    type: "poll",
+    title: "โพลท้ายคาบ - สิ่งที่อยากเรียนเพิ่ม",
+    config: {
+      prompt: "อยากเรียนรู้เพิ่มเติมเรื่องอะไร?",
+      allowAnonymous: true,
+      maxSubmissions: 1,
+      pollMode: "wordcloud",
+    },
+    requireStudentName: false,
+    isActive: true,
+    startedAt: new Date("2025-06-20"),
+    participantCount: 0,
+    responseCount: 0,
+    currentStep: -1,
+    lastActiveStep: -1,
+    allowStudentNavigation: false,
+  },
+];
+
+const toolStepTemplateData = [
+  {
+    type: "poll",
+    title: "โพลเลือกตอบ",
+    config: {
+      prompt: "คำถามของคุณ?",
+      allowAnonymous: true,
+      maxSubmissions: 1,
+      pollMode: "mcq",
+      allowCustomChoices: false,
+      questions: [{
+        question: "",
+        options: ["ตัวเลือก 1", "ตัวเลือก 2", "ตัวเลือก 3", "ตัวเลือก 4"],
+      }],
+    },
+  },
+  {
+    type: "qa_board",
+    title: "กระดานถาม-ตอบ",
+    config: {
+      prompt: "พิมพ์คำถามของคุณที่นี่",
+      allowAnonymous: true,
+      maxSubmissions: 5,
+    },
+  },
+  {
+    type: "assignment",
+    title: "ใบงาน ส่งรูปภาพ",
+    config: {
+      prompt: "ถ่ายรูปสิ่งที่พบ แล้วอัปโหลด",
+      allowAnonymous: false,
+      maxSubmissions: 1,
+      allowFileUpload: true,
+      maxFileSize: 5242880,
+    },
+  },
+  {
+    type: "quiz",
+    title: "แบบทดสอบ เลือกตอบ",
+    config: {
+      prompt: "ทำแบบทดสอบ",
+      allowAnonymous: false,
+      maxSubmissions: 1,
+      questions: [],
+    },
+  },
+  {
+    type: "exit_ticket",
+    title: "Exit Ticket ท้ายคาบ",
+    config: {
+      prompt: "วันนี้เรียนรู้อะไรบ้าง?",
+      allowAnonymous: false,
+      maxSubmissions: 1,
+    },
+  },
+];
+
+const tagData = [
+  { name: "Web", category: "portfolio" },
+  { name: "ผลงาน", category: "portfolio" },
+  { name: "App", category: "portfolio" },
+  { name: "Game", category: "portfolio" },
+  { name: "กิจกรรม", category: "learning" },
+];
+
+const stockHoldingData = [
+  { symbol: 'TSM',   shares: 0.0240648, avgCost: 327.4490 },
+  { symbol: 'GOOGL', shares: 0.0231279, avgCost: 338.5523 },
+  { symbol: 'NVDA',  shares: 0.0300421, avgCost: 203.0486 },
+  { symbol: 'AAPL',  shares: 0.0112620, avgCost: 271.7091 },
+  { symbol: 'MSFT',  shares: 0.0060125, avgCost: 508.94 },
+  { symbol: 'META',  shares: 0.0025555, avgCost: 618.28 },
+  { symbol: 'AMD',   shares: 0.0030919, avgCost: 419.60 },
+];
+
 async function seed() {
   console.log('Connecting to MongoDB...');
   await mongoose.connect(MONGODB_URI!);
-  console.log('Connected!');
+  console.log('Connected!\n');
 
   // Define schemas inline (to avoid import path issues in scripts)
   const PortfolioSchema = new mongoose.Schema({
@@ -215,9 +651,10 @@ async function seed() {
     content: { type: String },
     gallery: { type: [String], default: [] },
     tools: { type: [String], default: [] },
-    cover: { type: String, required: true },
+    cover: { type: String },
     tags: { type: [String], default: [] },
     date: { type: Date, required: true },
+    published: { type: Boolean, default: true },
     relatedGalleryId: { type: String },
   }, { timestamps: true });
 
@@ -232,6 +669,80 @@ async function seed() {
     relatedPortfolioId: { type: String },
   }, { timestamps: true });
 
+  const GameSchema = new mongoose.Schema({
+    slug: { type: String, required: true, unique: true },
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    category: { type: String, required: true },
+    playUrl: { type: String, required: true },
+    thumbnail: { type: String },
+    instructions: { type: String },
+    htmlContent: { type: String },
+    tags: { type: [String], default: [] },
+    published: { type: Boolean, default: true },
+  }, { timestamps: true });
+
+  const LearningSchema = new mongoose.Schema({
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    subject: { type: String, required: true },
+    type: { type: String, required: true },
+    link: { type: String },
+    thumbnail: { type: String },
+    tags: { type: [String], default: [] },
+    published: { type: Boolean, default: true },
+    content: { type: String },
+    embedCode: { type: String },
+    fileUrl: { type: String },
+    youtubeId: { type: String },
+    canvaEmbed: { type: String },
+  }, { timestamps: true });
+
+  const ToolSessionSchema = new mongoose.Schema({
+    sessionCode: { type: String, required: true, unique: true },
+    type: { type: String, required: true, enum: ['padlet', 'poll', 'assignment', 'qa_board', 'quiz', 'exit_ticket'] },
+    title: { type: String, required: true },
+    config: {
+      prompt: { type: String },
+      allowAnonymous: { type: Boolean, default: false },
+      maxSubmissions: { type: Number, default: 1 },
+      allowFileUpload: { type: Boolean, default: false },
+      maxFileSize: { type: Number, default: 10 * 1024 * 1024 },
+      pollMode: { type: String, enum: ['mcq', 'wordcloud'], default: 'mcq' },
+      allowCustomChoices: { type: Boolean, default: false },
+      questions: [{
+        question: { type: String },
+        options: [String],
+        correctAnswer: { type: Number },
+      }],
+    },
+    requireStudentName: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
+    startedAt: { type: Date, default: Date.now },
+    endedAt: { type: Date },
+    participantCount: { type: Number, default: 0 },
+    responseCount: { type: Number, default: 0 },
+    steps: [{
+      type: { type: String, required: true },
+      title: { type: String, required: true },
+      config: { type: mongoose.Schema.Types.Mixed },
+    }],
+    currentStep: { type: Number, default: -1 },
+    lastActiveStep: { type: Number, default: -1 },
+    allowStudentNavigation: { type: Boolean, default: false },
+  }, { timestamps: true });
+
+  const ToolStepTemplateSchema = new mongoose.Schema({
+    type: { type: String, required: true, enum: ['padlet', 'poll', 'assignment', 'qa_board', 'quiz', 'exit_ticket'] },
+    title: { type: String, required: true },
+    config: { type: mongoose.Schema.Types.Mixed, default: {} },
+  }, { timestamps: true });
+
+  const TagSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    category: { type: String, required: true },
+  }, { timestamps: true });
+
   const StockHoldingSchema = new mongoose.Schema({
     symbol: { type: String, required: true, unique: true, uppercase: true },
     shares: { type: Number, required: true },
@@ -239,41 +750,77 @@ async function seed() {
     manualPrice: { type: Number },
   }, { timestamps: true });
 
+  // Use existing models or create new ones
   const Portfolio = mongoose.models.Portfolio || mongoose.model('Portfolio', PortfolioSchema);
   const Gallery = mongoose.models.Gallery || mongoose.model('Gallery', GallerySchema);
+  const Game = mongoose.models.Game || mongoose.model('Game', GameSchema);
+  const Learning = mongoose.models.Learning || mongoose.model('Learning', LearningSchema);
+  const ToolSession = mongoose.models.ToolSession || mongoose.model('ToolSession', ToolSessionSchema);
+  const ToolStepTemplate = mongoose.models.ToolStepTemplate || mongoose.model('ToolStepTemplate', ToolStepTemplateSchema);
+  const Tag = mongoose.models.Tag || mongoose.model('Tag', TagSchema);
   const StockHolding = mongoose.models.StockHolding || mongoose.model('StockHolding', StockHoldingSchema);
 
   // Clear existing data
   console.log('Clearing existing data...');
   await Portfolio.deleteMany({});
   await Gallery.deleteMany({});
+  await Game.deleteMany({});
+  await Learning.deleteMany({});
+  await ToolSession.deleteMany({});
+  await ToolStepTemplate.deleteMany({});
+  await Tag.deleteMany({});
   await StockHolding.deleteMany({});
 
-  // Insert portfolio items
+  // Seed portfolio items
   console.log('Seeding portfolio items...');
   const insertedPortfolio = await Portfolio.insertMany(portfolioData);
   console.log(`  ✓ Inserted ${insertedPortfolio.length} portfolio items`);
 
-  // Insert gallery albums
+  // Seed gallery albums
   console.log('Seeding gallery albums...');
   const insertedGallery = await Gallery.insertMany(galleryData);
   console.log(`  ✓ Inserted ${insertedGallery.length} gallery albums`);
 
+  // Seed games
+  console.log('Seeding games...');
+  const insertedGames = await Game.insertMany(gameData);
+  console.log(`  ✓ Inserted ${insertedGames.length} games`);
+
+  // Seed learning resources
+  console.log('Seeding learning resources...');
+  const insertedLearning = await Learning.insertMany(learningData);
+  console.log(`  ✓ Inserted ${insertedLearning.length} learning resources`);
+
+  // Seed tool sessions
+  console.log('Seeding tool sessions...');
+  const insertedSessions = await ToolSession.insertMany(toolSessionData);
+  console.log(`  ✓ Inserted ${insertedSessions.length} tool sessions`);
+
+  // Seed tool step templates
+  console.log('Seeding tool step templates...');
+  const insertedTemplates = await ToolStepTemplate.insertMany(toolStepTemplateData);
+  console.log(`  ✓ Inserted ${insertedTemplates.length} tool step templates`);
+
+  // Seed tags
+  console.log('Seeding tags...');
+  const insertedTags = await Tag.insertMany(tagData);
+  console.log(`  ✓ Inserted ${insertedTags.length} tags`);
+
   // Seed stock holdings
   console.log('Seeding stock holdings...');
-  const stockHoldingData = [
-    { symbol: 'TSM',   shares: 0.0240648, avgCost: 327.4490 },
-    { symbol: 'GOOGL', shares: 0.0231279, avgCost: 338.5523 },
-    { symbol: 'NVDA',  shares: 0.0300421, avgCost: 203.0486 },
-    { symbol: 'AAPL',  shares: 0.0112620, avgCost: 271.7091 },
-    { symbol: 'MSFT',  shares: 0.0060125, avgCost: 508.94 },
-    { symbol: 'META',  shares: 0.0025555, avgCost: 618.28 },
-    { symbol: 'AMD',   shares: 0.0030919, avgCost: 419.60 },
-  ];
   await StockHolding.insertMany(stockHoldingData);
   console.log(`  ✓ Inserted ${stockHoldingData.length} stock holdings`);
 
   console.log('\n✅ Seed complete!');
+  console.log(`   Portfolios: ${insertedPortfolio.length}`);
+  console.log(`   Galleries: ${insertedGallery.length}`);
+  console.log(`   Games: ${insertedGames.length}`);
+  console.log(`   Learning: ${insertedLearning.length}`);
+  console.log(`   Tool Sessions: ${insertedSessions.length}`);
+  console.log(`   Tool Step Templates: ${insertedTemplates.length}`);
+  console.log(`   Tags: ${insertedTags.length}`);
+  console.log(`   Stock Holdings: ${stockHoldingData.length}`);
+
   await mongoose.disconnect();
 }
 

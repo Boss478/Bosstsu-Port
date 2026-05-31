@@ -1,0 +1,43 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "lsp": true,
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "gh_grep": {
+      "type": "remote",
+      "url": "https://mcp.grep.app"
+    }
+  },
+  "permission": {
+    "read": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "webfetch": "allow",
+    "websearch": "allow",
+    "todowrite": "allow",
+    "question": "allow",
+    "task": "allow",
+    "skill": "allow",
+    "edit": "ask",
+    "external_directory": {
+      "~/obsidian-vault/**": "allow"
+    },
+    "bash": {
+      "*": "ask",
+      "rm -rf *": "ask",
+      "rm -r *": "ask",
+      "sudo *": "ask",
+      "npm run dev": "allow",
+      "npm run build": "allow",
+      "npm run lint": "allow",
+      "git status": "allow",
+      "git diff": "allow",
+      "git log*": "allow",
+      "docker compose ps": "allow",
+      "curl *": "allow"
+    }
+  }
+}

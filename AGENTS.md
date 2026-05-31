@@ -26,7 +26,8 @@ Check `.agents/plans/` and `.agents/report/` for current tasks.
 
 ### 3. Check memory
 
-Read `.agents/memory.md` for bugs, errors, and context from previous sessions.
+Read `.agents/memory.md` for bugs, errors, and context from previous sessions (condensed version table).
+Full post-mortems are in the Obsidian vault (`boss-project/` subfolder).
 
 ### 4. Read Obsidian Vault
 
@@ -158,6 +159,13 @@ KVM1 VPS runs multiple services (1 vCPU, 4GB RAM). DB pool: 3 (do not raise). Av
 - Plans → `.agents/plans/{name}.md` (start with version + date; long, detailed, technical)
 - Reports → `.agents/report/` | Memory → `.agents/memory.md` | Tasks → `.agents/tasks/todo.md`
 - Always create a plan first; verify before implementing; mark items as you go
+
+---
+
+## MCP Tools
+
+- Use `context7` to look up documentation for Next.js, React, TailwindCSS, MongoDB
+- Use `gh_grep` to search code examples on GitHub when unsure about implementation patterns
 
 ---
 
