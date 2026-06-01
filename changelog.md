@@ -4,6 +4,28 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.31 (2026-06-01)
++ Phase 2: Full lang system with ~300 strings, Student/Advanced modes, TH/EN — helper `t()` function
++ Phase 2: Web Audio API chiptune engine — 8 SFX, 7 music tracks (singleton AudioEngine)
++ Phase 2: Save/load system (localStorage) with sequential unlock logic + versioning
++ Phase 2: BIOS POST boot screen simulation with line-by-line POST reveal
++ Phase 2: GameContext provider + `useGame()` hook wiring screens to settings/save/audio
++ Phase 2: Wire TopBar with functional lang/mode/quality/mute/fullscreen toggles
++ Phase 2: All 7 screen shells updated with unlocked states, star display, locked stages
+* Removed unused `handleResetProgress` + unused `resetSave` import; fixed `GameSettings` type import
++ Phase 4: Professor Pixel Robot — animated guide (idle/blink/wave/sign frames) with coat palette swap and stage hints
++ Phase 4: Lab Coat Customization — 6 color options (white/blue/green/red/purple/black) persisted to save
++ Phase 4: Certificate Generation — canvas-rendered completion cert with player name, date, stars, PNG download
++ Phase 4: Daily Challenge — date-hash deterministic scenario from Stages 3-5 with completion tracking
++ Phase 4: Guided Tour — first-time overlay with highlight circles + tooltips across 5 tutorial steps
++ Phase 4: Lab Tools — magnifier (2x zoom), checklist (requirements panel), guide arrow (pulsing target)
++ Phase 4: Room Evolution — CSS gradient backgrounds evolving retro→modern with stage completion ratio
++ Phase 4: Window Day/Night — time-of-day CSS gradient overlay (dawn/noon/dusk/night)
++ Phase 4: Easter Eggs — Konami code (↑↑↓↓←→←→BA) → Pong mini-game, Cat sprite walk, Professor Pixel 10-click unlock
++ Phase 4: Pong Screen — full Canvas 2D Pong with W/S + AI, ball physics, CRT scanline, first-to-5 scoring
++ Phase 4: 11 new pixel sprites — Professor Pixel frames, Pong sprites, Cat, Lab Tools icons, Certificate border
++ Phase 4: MenuScreen overhaul — all Phase 4 features integrated into main menu with progress display
+
 ## v1.9.30 (2026-06-01)
 + Moved Private Dashboard from sidebar nav items to bottom action bar — icon-only (`fi-sr-stats`) between theme toggle and public page link
 + Added Private Dashboard icon-only entry to mobile bottom nav

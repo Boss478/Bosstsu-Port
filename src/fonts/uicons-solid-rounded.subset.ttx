@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ttFont sfntVersion="\x00\x01\x00\x00" ttLibVersion="4.63">
+
+  <cmap>
+    <tableVersion version="0"/>
+    <cmap_format_4 platformID="0" platEncID="3" language="0">
+      <map code="0xf119" name="uniF119"/><!-- ???? -->
+      <map code="0xf11a" name="uniF11A"/><!-- ???? -->
+      <map code="0xf13b" name="uniF13B"/><!-- ???? -->
+      <map code="0xf13c" name="uniF13C"/><!-- ???? -->
+      <map code="0xf13d" name="uniF13D"/><!-- ???? -->
+      <map code="0xf152" name="uniF152"/><!-- ???? -->
+      <map code="0xf153" name="uniF153"/><!-- ???? -->
+      <map code="0xf154" name="uniF154"/><!-- ???? -->
+      <map code="0xf156" name="uniF156"/><!-- ???? -->
+      <map code="0xf165" name="uniF165"/><!-- ???? -->
+      <map code="0xf16d" name="uniF16D"/><!-- ???? -->
+      <map code="0xf190" name="uniF190"/><!-- ???? -->
+      <map code="0xf198" name="uniF198"/><!-- ???? -->
+      <map code="0xf19c" name="uniF19C"/><!-- ???? -->
+      <map code="0xf1a0" name="uniF1A0"/><!-- ???? -->
+      <map code="0xf1a9" name="uniF1A9"/><!-- ???? -->
+      <map code="0xf1aa" name="uniF1AA"/><!-- ???? -->
+      <map code="0xf1b5" name="uniF1B5"/><!-- ???? -->
+      <map code="0xf1ba" name="uniF1BA"/><!-- ???? -->
+      <map code="0xf267" name="uniF267"/><!-- ???? -->
+      <map code="0xf26a" name="uniF26A"/><!-- ???? -->
+      <map code="0xf272" name="uniF272"/><!-- ???? -->
+      <map code="0xf27e" name="uniF27E"/><!-- ???? -->
+      <map code="0xf2e7" name="uniF2E7"/><!-- ???? -->
+      <map code="0xf2e9" name="uniF2E9"/><!-- ???? -->
+      <map code="0xf31c" name="uniF31C"/><!-- ???? -->
+      <map code="0xf32b" name="uniF32B"/><!-- ???? -->
+      <map code="0xf336" name="uniF336"/><!-- ???? -->
+      <map code="0xf345" name="uniF345"/><!-- ???? -->
+      <map code="0xf394" name="uniF394"/><!-- ???? -->
+      <map code="0xf395" name="uniF395"/><!-- ???? -->
+      <map code="0xf3aa" name="uniF3AA"/><!-- ???? -->
+      <map code="0xf3bc" name="uniF3BC"/><!-- ???? -->
+      <map code="0xf3c0" name="uniF3C0"/><!-- ???? -->
+      <map code="0xf3c1" name="uniF3C1"/><!-- ???? -->
+      <map code="0xf425" name="uniF425"/><!-- ???? -->
+      <map code="0xf432" name="uniF432"/><!-- ???? -->
+      <map code="0xf452" name="uniF452"/><!-- ???? -->
+      <map code="0xf470" name="uniF470"/><!-- ???? -->
+      <map code="0xf4c0" name="uniF4C0"/><!-- ???? -->
+      <map code="0xf4d5" name="uniF4D5"/><!-- ???? -->
+      <map code="0xf4ea" name="uniF4EA"/><!-- ???? -->
+      <map code="0xf4ed" name="uniF4ED"/><!-- ???? -->
+      <map code="0xf51b" name="uniF51B"/><!-- ???? -->
+      <map code="0xf55e" name="uniF55E"/><!-- ???? -->
+      <map code="0xf585" name="uniF585"/><!-- ???? -->
+      <map code="0xf58c" name="uniF58C"/><!-- ???? -->
+      <map code="0xf5b5" name="uniF5B5"/><!-- ???? -->
+      <map code="0xf5d1" name="uniF5D1"/><!-- ???? -->
+      <map code="0xf5d6" name="uniF5D6"/><!-- ???? -->
+      <map code="0xf5df" name="uniF5DF"/><!-- ???? -->
+      <map code="0xf5e4" name="uniF5E4"/><!-- ???? -->
+      <map code="0xf5eb" name="uniF5EB"/><!-- ???? -->
+      <map code="0xf64f" name="uniF64F"/><!-- ???? -->
+      <map code="0xf663" name="uniF663"/><!-- ???? -->
+      <map code="0xf668" name="uniF668"/><!-- ???? -->
+      <map code="0xf688" name="uniF688"/><!-- ???? -->
+      <map code="0xf689" name="uniF689"/><!-- ???? -->
+      <map code="0xf6d2" name="uniF6D2"/><!-- ???? -->
+      <map code="0xf704" name="uniF704"/><!-- ???? -->
+      <map code="0xf711" name="uniF711"/><!-- ???? -->
+      <map code="0xf794" name="uniF794"/><!-- ???? -->
+      <map code="0xf7ad" name="uniF7AD"/><!-- ???? -->
+      <map code="0xf7c1" name="uniF7C1"/><!-- ???? -->
+      <map code="0xf7f0" name="uniF7F0"/><!-- ???? -->
+      <map code="0xf7f5" name="uniF7F5"/><!-- ???? -->
+      <map code="0xf7f9" name="uniF7F9"/><!-- ???? -->
+      <map code="0xf7fd" name="uniF7FD"/><!-- ???? -->
+      <map code="0xf7ff" name="uniF7FF"/><!-- ???? -->
+      <map code="0xf812" name="uniF812"/><!-- ???? -->
+      <map code="0xf81e" name="uniF81E"/><!-- ???? -->
+      <map code="0xf823" name="uniF823"/><!-- ???? -->
+      <map code="0xf86e" name="uniF86E"/><!-- ???? -->
+      <map code="0xf86f" name="uniF86F"/><!-- ???? -->
+      <map code="0xf8a8" name="uniF8A8"/><!-- ???? -->
+      <map code="0xf8ad" name="uniF8AD"/><!-- ???? -->
+      <map code="0xf8b7" name="uniF8B7"/><!-- ???? -->
+      <map code="0xf8c8" name="uniF8C8"/><!-- ???? -->
+      <map code="0xf901" name="uniF901"/><!-- CJK COMPATIBILITY IDEOGRAPH-F901 -->
+      <map code="0xf916" name="uniF916"/><!-- CJK COMPATIBILITY IDEOGRAPH-F916 -->
+      <map code="0xf93e" name="uniF93E"/><!-- CJK COMPATIBILITY IDEOGRAPH-F93E -->
+      <map code="0xf962" name="uniF962"/><!-- CJK COMPATIBILITY IDEOGRAPH-F962 -->
+      <map code="0xf9cd" name="uniF9CD"/><!-- CJK COMPATIBILITY IDEOGRAPH-F9CD -->
+      <map code="0xf9dc" name="uniF9DC"/><!-- CJK COMPATIBILITY IDEOGRAPH-F9DC -->
+      <map code="0xf9fc" name="uniF9FC"/><!-- CJK COMPATIBILITY IDEOGRAPH-F9FC -->
+      <map code="0xfa17" name="uniFA17"/><!-- CJK COMPATIBILITY IDEOGRAPH-FA17 -->
+      <map code="0xfa5a" name="uniFA5A"/><!-- CJK COMPATIBILITY IDEOGRAPH-FA5A -->
+      <map code="0xfa7f" name="uniFA7F"/><!-- CJK COMPATIBILITY IDEOGRAPH-FA7F -->
+      <map code="0xfa8c" name="uniFA8C"/><!-- CJK COMPATIBILITY IDEOGRAPH-FA8C -->
+      <map code="0xfb12" name="uniFB12"/><!-- ???? -->
+      <map code="0xfb45" name="uniFB45"/><!-- ???? -->
+      <map code="0xfb94" name="uniFB94"/><!-- ARABIC LETTER GAF INITIAL FORM -->
+      <map code="0xfb98" name="uniFB98"/><!-- ARABIC LETTER GUEH INITIAL FORM -->
+      <map code="0xfbac" name="uniFBAC"/><!-- ARABIC LETTER HEH DOACHASHMEE INITIAL FORM -->
+      <map code="0xfbb5" name="uniFBB5"/><!-- ARABIC SYMBOL TWO DOTS BELOW -->
+      <map code="0xfbd6" name="uniFBD6"/><!-- ARABIC LETTER NG MEDIAL FORM -->
+      <map code="0xfbe5" name="uniFBE5"/><!-- ARABIC LETTER E FINAL FORM -->
+      <map code="0xfbe6" name="uniFBE6"/><!-- ARABIC LETTER E INITIAL FORM -->
+      <map code="0xfc68" name="uniFC68"/><!-- ARABIC LIGATURE YEH WITH HAMZA ABOVE WITH ALEF MAKSURA FINAL FORM -->
+      <map code="0xfcc1" name="uniFCC1"/><!-- ARABIC LIGATURE FEH WITH MEEM INITIAL FORM -->
+      <map code="0xfcc6" name="uniFCC6"/><!-- ARABIC LIGATURE KAF WITH KHAH INITIAL FORM -->
+      <map code="0xfcd2" name="uniFCD2"/><!-- ARABIC LIGATURE NOON WITH JEEM INITIAL FORM -->
+      <map code="0xfcd3" name="uniFCD3"/><!-- ARABIC LIGATURE NOON WITH HAH INITIAL FORM -->
+      <map code="0xfcdf" name="uniFCDF"/><!-- ARABIC LIGATURE YEH WITH HAMZA ABOVE WITH MEEM MEDIAL FORM -->
+      <map code="0xfcef" name="uniFCEF"/><!-- ARABIC LIGATURE NOON WITH HEH MEDIAL FORM -->
+      <map code="0xfd46" name="uniFD46"/><!-- ARABIC LIGATURE SALLALLAAHU ALAYHI WA-AALIH -->
+      <map code="0xfd75" name="uniFD75"/><!-- ARABIC LIGATURE AIN WITH JEEM WITH MEEM FINAL FORM -->
+      <map code="0xfd82" name="uniFD82"/><!-- ARABIC LIGATURE LAM WITH HAH WITH ALEF MAKSURA FINAL FORM -->
+      <map code="0xfda3" name="uniFDA3"/><!-- ARABIC LIGATURE TEH WITH MEEM WITH YEH FINAL FORM -->
+      <map code="0xfddf" name="uniFDDF"/><!-- ???? -->
+      <map code="0xfdf1" name="uniFDF1"/><!-- ARABIC LIGATURE QALA USED AS KORANIC STOP SIGN ISOLATED FORM -->
+      <map code="0xfe41" name="uniFE41"/><!-- PRESENTATION FORM FOR VERTICAL LEFT CORNER BRACKET -->
+      <map code="0xfe61" name="uniFE61"/><!-- SMALL ASTERISK -->
+      <map code="0xfe78" name="uniFE78"/><!-- ARABIC DAMMA ISOLATED FORM -->
+      <map code="0xfea5" name="uniFEA5"/><!-- ARABIC LETTER KHAH ISOLATED FORM -->
+      <map code="0xfea8" name="uniFEA8"/><!-- ARABIC LETTER KHAH MEDIAL FORM -->
+      <map code="0xfeb4" name="uniFEB4"/><!-- ARABIC LETTER SEEN MEDIAL FORM -->
+      <map code="0xfef6" name="uniFEF6"/><!-- ARABIC LIGATURE LAM WITH ALEF WITH MADDA ABOVE FINAL FORM -->
+    </cmap_format_4>
+    <cmap_format_4 platformID="3" platEncID="1" language="0">
+      <map code="0xf119" name="uniF119"/><!-- ???? -->
+      <map code="0xf11a" name="uniF11A"/><!-- ???? -->
+      <map code="0xf13b" name="uniF13B"/><!-- ???? -->
+      <map code="0xf13c" name="uniF13C"/><!-- ???? -->
+      <map code="0xf13d" name="uniF13D"/><!-- ???? -->
+      <map code="0xf152" name="uniF152"/><!-- ???? -->
+      <map code="0xf153" name="uniF153"/><!-- ???? -->
+      <map code="0xf154" name="uniF154"/><!-- ???? -->
+      <map code="0xf156" name="uniF156"/><!-- ???? -->
+      <map code="0xf165" name="uniF165"/><!-- ???? -->
+      <map code="0xf16d" name="uniF16D"/><!-- ???? -->
+      <map code="0xf190" name="uniF190"/><!-- ???? -->
+      <map code="0xf198" name="uniF198"/><!-- ???? -->
+      <map code="0xf19c" name="uniF19C"/><!-- ???? -->
+      <map code="0xf1a0" name="uniF1A0"/><!-- ???? -->
+      <map code="0xf1a9" name="uniF1A9"/><!-- ???? -->
+      <map code="0xf1aa" name="uniF1AA"/><!-- ???? -->
+      <map code="0xf1b5" name="uniF1B5"/><!-- ???? -->
+      <map code="0xf1ba" name="uniF1BA"/><!-- ???? -->
+      <map code="0xf267" name="uniF267"/><!-- ???? -->
+      <map code="0xf26a" name="uniF26A"/><!-- ???? -->
+      <map code="0xf272" name="uniF272"/><!-- ???? -->
+      <map code="0xf27e" name="uniF27E"/><!-- ???? -->
+      <map code="0xf2e7" name="uniF2E7"/><!-- ???? -->
+      <map code="0xf2e9" name="uniF2E9"/><!-- ???? -->
+      <map code="0xf31c" name="uniF31C"/><!-- ???? -->
+      <map code="0xf32b" name="uniF32B"/><!-- ???? -->
+      <map code="0xf336" name="uniF336"/><!-- ???? -->
+      <map code="0xf345" name="uniF345"/><!-- ???? -->
+      <map code="0xf394" name="uniF394"/><!-- ???? -->
+      <map code="0xf395" name="uniF395"/><!-- ???? -->
+      <map code="0xf3aa" name="uniF3AA"/><!-- ???? -->
+      <map code="0xf3bc" name="uniF3BC"/><!-- ???? -->
+      <map code="0xf3c0" name="uniF3C0"/><!-- ???? -->
+      <map code="0xf3c1" name="uniF3C1"/><!-- ???? -->
+      <map code="0xf425" name="uniF425"/><!-- ???? -->
+      <map code="0xf432" name="uniF432"/><!-- ???? -->
+      <map code="0xf452" name="uniF452"/><!-- ???? -->
+      <map code="0xf470" name="uniF470"/><!-- ???? -->
+      <map code="0xf4c0" name="uniF4C0"/><!-- ???? -->
+      <map code="0xf4d5" name="uniF4D5"/><!-- ???? -->
+      <map code="0xf4ea" name="uniF4EA"/><!-- ???? -->
+      <map code="0xf4ed" name="uniF4ED"/><!-- ???? -->
+      <map code="0xf51b" name="uniF51B"/><!-- ???? -->
+      <map code="0xf55e" name="uniF55E"/><!-- ???? -->
+      <map code="0xf585" name="uniF585"/><!-- ???? -->
+      <map code="0xf58c" name="uniF58C"/><!-- ???? -->
+      <map code="0xf5b5" name="uniF5B5"/><!-- ???? -->
+      <map code="0xf5d1" name="uniF5D1"/><!-- ???? -->
+      <map code="0xf5d6" name="uniF5D6"/><!-- ???? -->
+      <map code="0xf5df" name="uniF5DF"/><!-- ???? -->
+      <map code="0xf5e4" name="uniF5E4"/><!-- ???? -->
+      <map code="0xf5eb" name="uniF5EB"/><!-- ???? -->
+      <map code="0xf64f" name="uniF64F"/><!-- ???? -->
+      <map code="0xf663" name="uniF663"/><!-- ???? -->
+      <map code="0xf668" name="uniF668"/><!-- ???? -->
+      <map code="0xf688" name="uniF688"/><!-- ???? -->
+      <map code="0xf689" name="uniF689"/><!-- ???? -->
+      <map code="0xf6d2" name="uniF6D2"/><!-- ???? -->
+      <map code="0xf704" name="uniF704"/><!-- ???? -->
+      <map code="0xf711" name="uniF711"/><!-- ???? -->
+      <map code="0xf794" name="uniF794"/><!-- ???? -->
+      <map code="0xf7ad" name="uniF7AD"/><!-- ???? -->
+      <map code="0xf7c1" name="uniF7C1"/><!-- ???? -->
+      <map code="0xf7f0" name="uniF7F0"/><!-- ???? -->
+      <map code="0xf7f5" name="uniF7F5"/><!-- ???? -->
+      <map code="0xf7f9" name="uniF7F9"/><!-- ???? -->
+      <map code="0xf7fd" name="uniF7FD"/><!-- ???? -->
+      <map code="0xf7ff" name="uniF7FF"/><!-- ???? -->
+      <map code="0xf812" name="uniF812"/><!-- ???? -->
+      <map code="0xf81e" name="uniF81E"/><!-- ???? -->
+      <map code="0xf823" name="uniF823"/><!-- ???? -->
+      <map code="0xf86e" name="uniF86E"/><!-- ???? -->
+      <map code="0xf86f" name="uniF86F"/><!-- ???? -->
+      <map code="0xf8a8" name="uniF8A8"/><!-- ???? -->
+      <map code="0xf8ad" name="uniF8AD"/><!-- ???? -->
+      <map code="0xf8b7" name="uniF8B7"/><!-- ???? -->
+      <map code="0xf8c8" name="uniF8C8"/><!-- ???? -->
+      <map code="0xf901" name="uniF901"/><!-- CJK COMPATIBILITY IDEOGRAPH-F901 -->
+      <map code="0xf916" name="uniF916"/><!-- CJK COMPATIBILITY IDEOGRAPH-F916 -->
+      <map code="0xf93e" name="uniF93E"/><!-- CJK COMPATIBILITY IDEOGRAPH-F93E -->
+      <map code="0xf962" name="uniF962"/><!-- CJK COMPATIBILITY IDEOGRAPH-F962 -->
+      <map code="0xf9cd" name="uniF9CD"/><!-- CJK COMPATIBILITY IDEOGRAPH-F9CD -->
+      <map code="0xf9dc" name="uniF9DC"/><!-- CJK COMPATIBILITY IDEOGRAPH-F9DC -->
+      <map code="0xf9fc" name="uniF9FC"/><!-- CJK COMPATIBILITY IDEOGRAPH-F9FC -->
+      <map code="0xfa17" name="uniFA17"/><!-- CJK COMPATIBILITY IDEOGRAPH-FA17 -->
+      <map code="0xfa5a" name="uniFA5A"/><!-- CJK COMPATIBILITY IDEOGRAPH-FA5A -->
+      <map code="0xfa7f" name="uniFA7F"/><!-- CJK COMPATIBILITY IDEOGRAPH-FA7F -->
+      <map code="0xfa8c" name="uniFA8C"/><!-- CJK COMPATIBILITY IDEOGRAPH-FA8C -->
+      <map code="0xfb12" name="uniFB12"/><!-- ???? -->
+      <map code="0xfb45" name="uniFB45"/><!-- ???? -->
+      <map code="0xfb94" name="uniFB94"/><!-- ARABIC LETTER GAF INITIAL FORM -->
+      <map code="0xfb98" name="uniFB98"/><!-- ARABIC LETTER GUEH INITIAL FORM -->
+      <map code="0xfbac" name="uniFBAC"/><!-- ARABIC LETTER HEH DOACHASHMEE INITIAL FORM -->
+      <map code="0xfbb5" name="uniFBB5"/><!-- ARABIC SYMBOL TWO DOTS BELOW -->
+      <map code="0xfbd6" name="uniFBD6"/><!-- ARABIC LETTER NG MEDIAL FORM -->
+      <map code="0xfbe5" name="uniFBE5"/><!-- ARABIC LETTER E FINAL FORM -->
+      <map code="0xfbe6" name="uniFBE6"/><!-- ARABIC LETTER E INITIAL FORM -->
+      <map code="0xfc68" name="uniFC68"/><!-- ARABIC LIGATURE YEH WITH HAMZA ABOVE WITH ALEF MAKSURA FINAL FORM -->
+      <map code="0xfcc1" name="uniFCC1"/><!-- ARABIC LIGATURE FEH WITH MEEM INITIAL FORM -->
+      <map code="0xfcc6" name="uniFCC6"/><!-- ARABIC LIGATURE KAF WITH KHAH INITIAL FORM -->
+      <map code="0xfcd2" name="uniFCD2"/><!-- ARABIC LIGATURE NOON WITH JEEM INITIAL FORM -->
+      <map code="0xfcd3" name="uniFCD3"/><!-- ARABIC LIGATURE NOON WITH HAH INITIAL FORM -->
+      <map code="0xfcdf" name="uniFCDF"/><!-- ARABIC LIGATURE YEH WITH HAMZA ABOVE WITH MEEM MEDIAL FORM -->
+      <map code="0xfcef" name="uniFCEF"/><!-- ARABIC LIGATURE NOON WITH HEH MEDIAL FORM -->
+      <map code="0xfd46" name="uniFD46"/><!-- ARABIC LIGATURE SALLALLAAHU ALAYHI WA-AALIH -->
+      <map code="0xfd75" name="uniFD75"/><!-- ARABIC LIGATURE AIN WITH JEEM WITH MEEM FINAL FORM -->
+      <map code="0xfd82" name="uniFD82"/><!-- ARABIC LIGATURE LAM WITH HAH WITH ALEF MAKSURA FINAL FORM -->
+      <map code="0xfda3" name="uniFDA3"/><!-- ARABIC LIGATURE TEH WITH MEEM WITH YEH FINAL FORM -->
+      <map code="0xfddf" name="uniFDDF"/><!-- ???? -->
+      <map code="0xfdf1" name="uniFDF1"/><!-- ARABIC LIGATURE QALA USED AS KORANIC STOP SIGN ISOLATED FORM -->
+      <map code="0xfe41" name="uniFE41"/><!-- PRESENTATION FORM FOR VERTICAL LEFT CORNER BRACKET -->
+      <map code="0xfe61" name="uniFE61"/><!-- SMALL ASTERISK -->
+      <map code="0xfe78" name="uniFE78"/><!-- ARABIC DAMMA ISOLATED FORM -->
+      <map code="0xfea5" name="uniFEA5"/><!-- ARABIC LETTER KHAH ISOLATED FORM -->
+      <map code="0xfea8" name="uniFEA8"/><!-- ARABIC LETTER KHAH MEDIAL FORM -->
+      <map code="0xfeb4" name="uniFEB4"/><!-- ARABIC LETTER SEEN MEDIAL FORM -->
+      <map code="0xfef6" name="uniFEF6"/><!-- ARABIC LIGATURE LAM WITH ALEF WITH MADDA ABOVE FINAL FORM -->
+    </cmap_format_4>
+  </cmap>
+
+</ttFont>

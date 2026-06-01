@@ -255,6 +255,8 @@ span[class*=" fi-sr-"]:before {
 .fi-sr-user:before { content: "\fe78"; }
 /* volume */
 .fi-sr-volume:before { content: "\fea8"; }
+/* volume-mute */
+.fi-sr-volume-mute:before { content: "\fea5"; }
 /* wallet */
 .fi-sr-wallet:before { content: "\feb4"; }
 /* world */
