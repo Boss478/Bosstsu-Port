@@ -73,6 +73,18 @@ Quick build check via Docker: `docker compose exec app-dev npm run build`
 
 ---
 
+## Database Rules (CRITICAL)
+
+> **Violating these rules will cause permanent data loss. Read every time.**
+
+1. **ADD/EDIT/REMOVE data in database: ASK USER FIRST** — no exceptions. Tell them exactly which collections, what data, and the impact.
+2. **REMOVE PERMISSION IS DENIED** — never execute `deleteMany()`, `findByIdAndDelete()`, or any destructive DB operation without explicit user confirmation.
+3. **Tell the user EVERYTHING** before touching the database: what collections, what data fields, how many documents will be affected, and any side effects.
+4. **Seed scripts must NEVER use `deleteMany` without user approval.** Prefer individually inserting/updating.
+5. **Previous incident:** seed script's `deleteMany({})` wiped user-created gallery data. This MUST NEVER happen again.
+
+---
+
 ## Mandatory on Every Task Completion
 
 > **No exceptions.**

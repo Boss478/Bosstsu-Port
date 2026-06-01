@@ -9,6 +9,7 @@ const navItems = [
   { label: 'แกลเลอรี', href: '/admin/gallery', icon: 'fi-sr-picture' },
   { label: 'สื่อฯ', href: '/admin/resources', icon: 'fi-sr-book-alt' },
   { label: 'เกม', href: '/admin/games', icon: 'fi-sr-gamepad' },
+  { label: '', href: '/boss478', icon: 'fi-sr-stats' },
 ];
 
 export default function AdminMobileNav() {
@@ -22,6 +23,7 @@ export default function AdminMobileNav() {
           <Link
             key={item.href}
             href={item.href}
+            title={item.label || 'Private Dashboard'}
             className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
               isActive
                 ? 'text-blue-600 dark:text-blue-400'
@@ -29,7 +31,7 @@ export default function AdminMobileNav() {
             }`}
           >
             <i className={`fi ${item.icon} text-xl mb-0.5`} />
-            <span className="text-[10px] font-medium">{item.label}</span>
+            {item.label && <span className="text-[10px] font-medium">{item.label}</span>}
           </Link>
         );
       })}

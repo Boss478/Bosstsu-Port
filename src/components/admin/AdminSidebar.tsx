@@ -13,7 +13,6 @@ const navItems = [
   { label: 'สื่อการเรียนรู้ (Resources)', href: '/admin/resources', icon: 'fi-sr-book-alt' },
   { label: 'เกม (Games)', href: '/admin/games', icon: 'fi-sr-gamepad' },
   { label: 'เครื่องมือในชั้นเรียน (Class Tools)', href: '/admin/tools', icon: 'fi-sr-chalkboard' },
-  { label: 'Private Dashboard', href: '/boss478', icon: 'fi-sr-stats' },
 ];
 
 export default function AdminSidebar({
@@ -117,6 +116,15 @@ export default function AdminSidebar({
           >
             <i suppressHydrationWarning className={`fi ${mounted && theme === 'dark' ? 'fi-sr-sun text-amber-400' : 'fi-sr-moon text-indigo-400'} text-lg flex`} />
           </button>
+
+          <Link
+            href="/boss478"
+            target="_blank"
+            title="Private Dashboard"
+            className="p-2 rounded-xl bg-zinc-100 dark:bg-slate-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-slate-700 transition-colors"
+          >
+            <i className="fi fi-sr-stats text-lg flex" />
+          </Link>
 
           <Link
             href="/"

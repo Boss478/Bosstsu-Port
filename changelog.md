@@ -4,6 +4,11 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.30 (2026-06-01)
++ Moved Private Dashboard from sidebar nav items to bottom action bar — icon-only (`fi-sr-stats`) between theme toggle and public page link
++ Added Private Dashboard icon-only entry to mobile bottom nav
+- Removed Private Dashboard text label from desktop sidebar nav list
+
 ## v1.9.29 (2026-05-31)
 + Subset Flaticon icon font from 314KB to 9.2KB (97% reduction) — only 117 of 131 used icons extracted via pyftsubset
 + Created `src/fonts/flaticon-subset.css` with 117 icon class rules pointing to subset woff2
