@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+
+const PHOTOS_PER_PAGE = 30;
 import { type GalleryAlbum } from "../data";
 import { formatLongDate } from "@/lib/format";
 import PhotoLightbox from "@/components/PhotoLightbox";
@@ -13,6 +15,8 @@ interface AlbumContentProps {
 
 export default function AlbumContent({ album }: AlbumContentProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [visibleCount, setVisibleCount] = useState(PHOTOS_PER_PAGE);
+  const hasMore = visibleCount < album.photos.length;
 
 
   return (
@@ -74,7 +78,7 @@ export default function AlbumContent({ album }: AlbumContentProps) {
       <section id="album-photos" className="pb-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {album.photos.map((photo, idx) => (
+            {album.photos.slice(0, visibleCount).map((photo, idx) => (
               <button
                 key={idx}
                 onClick={() => setLightboxIndex(idx)}
@@ -90,6 +94,17 @@ export default function AlbumContent({ album }: AlbumContentProps) {
               </button>
             ))}
           </div>
+
+          {hasMore && (
+            <div className="flex justify-center mt-8">
+              <button
+                onClick={() => setVisibleCount(prev => prev + PHOTOS_PER_PAGE)}
+                className="px-8 py-3 rounded-xl bg-white/70 dark:bg-slate-800/70 border border-white/60 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-700 shadow-sm hover:shadow-md transition-all text-zinc-700 dark:text-zinc-200 font-medium"
+              >
+                ดูเพิ่มเติม ({visibleCount}/{album.photos.length})
+              </button>
+            </div>
+          )}
         </div>
       </section>
 

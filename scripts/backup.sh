@@ -28,6 +28,12 @@ echo "Archiving uploads..."
 docker run --rm -v uploads:/uploads -v "$BACKUP_DIR/$TIMESTAMP":/backup alpine \
     tar czf /backup/uploads.tar.gz -C /uploads . 2>/dev/null || echo "Uploads archive failed, continuing..."
 
+# Clean stale temp uploads (>24h)
+echo "Cleaning stale temp uploads..."
+docker exec $(docker ps -qf "name=app") sh -c \
+    'find /app/public/uploads/_tmp -maxdepth 1 -type d -mtime +1 -exec rm -rf {} \; 2>/dev/null' \
+    || echo "Temp cleanup skipped or failed"
+
 # Rotate: keep last 7 days
 echo "Rotating old backups..."
 find "$BACKUP_DIR" -maxdepth 1 -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true

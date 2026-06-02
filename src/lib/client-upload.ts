@@ -4,13 +4,15 @@ export const uploadFileWithProgress = (
   file: File,
   folder: string,
   onProgress: (loaded: number) => void,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  batchId?: string
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const fd = new FormData();
     fd.append('file', file);
     fd.append('folder', folder);
+    if (batchId) fd.append('batchId', batchId);
 
     if (signal) {
       if (signal.aborted) {
@@ -52,11 +54,12 @@ export const uploadFileWithRetry = async (
   folder: string,
   onProgress: (loaded: number) => void,
   retries = 3,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  batchId?: string
 ): Promise<string> => {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      return await uploadFileWithProgress(file, folder, onProgress, signal);
+      return await uploadFileWithProgress(file, folder, onProgress, signal, batchId);
     } catch (err) {
       if (err instanceof Error && err.message === 'Upload aborted') throw err;
       if (attempt === retries) throw err;
@@ -69,4 +72,27 @@ export const uploadFileWithRetry = async (
 export function clientValidateFileType(file: File, allowedTypes: string[]): boolean {
   if (!file || file.size === 0) return true;
   return allowedTypes.includes(file.type);
+}
+
+export async function uploadFilesInBatches(
+  files: File[],
+  folder: string,
+  onBatchProgress: (completed: number, total: number) => void,
+  concurrency = 3,
+  signal?: AbortSignal,
+  batchId?: string
+): Promise<string[]> {
+  const urls: string[] = [];
+  for (let i = 0; i < files.length; i += concurrency) {
+    if (signal?.aborted) throw new Error('Upload aborted');
+    const batch = files.slice(i, i + concurrency);
+    const batchResults = await Promise.all(
+      batch.map(file =>
+        uploadFileWithRetry(file, folder, () => {}, 3, signal, batchId)
+      )
+    );
+    urls.push(...batchResults);
+    onBatchProgress(urls.length, files.length);
+  }
+  return urls;
 }

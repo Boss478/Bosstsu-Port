@@ -26,7 +26,7 @@ export function isHeicFile(file: File | { name?: string; type?: string }): boole
   return extMatch || typeLC === 'image/heic' || typeLC === 'image/heif';
 }
 
-export async function saveFile(file: File, folder: string = 'misc', asWebP?: boolean, filenamePrefix?: string, allowedTypes?: readonly string[]): Promise<string> {
+export async function saveFile(file: File, folder: string = 'misc', asWebP?: boolean, filenamePrefix?: string, allowedTypes?: readonly string[], batchId?: string): Promise<string> {
   const types = allowedTypes ?? (CONFIG.UPLOAD.ALLOWED_TYPES as readonly string[]);
   const imageTypes = CONFIG.UPLOAD.ALLOWED_TYPES as readonly string[];
   const maxSize = CONFIG.UPLOAD.MAX_SIZE;
@@ -45,7 +45,9 @@ export async function saveFile(file: File, folder: string = 'misc', asWebP?: boo
   const year = date.getFullYear().toString();
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
 
-  const uploadDir = path.join(process.cwd(), CONFIG.UPLOAD.ROOT_DIR, folder, year, month);
+  const uploadDir = batchId
+    ? path.join(process.cwd(), CONFIG.UPLOAD.ROOT_DIR, '_tmp', batchId)
+    : path.join(process.cwd(), CONFIG.UPLOAD.ROOT_DIR, folder, year, month);
 
   try {
     await fs.mkdir(uploadDir, { recursive: true });
@@ -78,7 +80,9 @@ export async function saveFile(file: File, folder: string = 'misc', asWebP?: boo
       }
       throw new Error(formatError('U06'));
     }
-    return `/uploads/${folder}/${year}/${month}/${filename}`;
+    return batchId
+      ? `/uploads/_tmp/${batchId}/${filename}`
+      : `/uploads/${folder}/${year}/${month}/${filename}`;
   }
 
   if (isHeic && CONFIG.HEIC.ENABLED) {
@@ -134,5 +138,83 @@ export async function saveFile(file: File, folder: string = 'misc', asWebP?: boo
     throw new Error(formatError('U06'));
   }
 
-  return `/uploads/${folder}/${year}/${month}/${filename}`;
+  return batchId
+    ? `/uploads/_tmp/${batchId}/${filename}`
+    : `/uploads/${folder}/${year}/${month}/${filename}`;
+}
+
+export async function finalizeUploads(
+  urls: string[],
+  targetFolder: string
+): Promise<string[]> {
+  const tmpUrls = urls.filter(u => u.startsWith('/uploads/_tmp/'));
+  const finalUrls = urls.filter(u => !u.startsWith('/uploads/_tmp/'));
+
+  if (tmpUrls.length === 0) return urls;
+
+  const firstBatchId = tmpUrls[0].split('/')[3];
+  const date = new Date();
+  const year = date.getFullYear().toString();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const targetDir = path.join(process.cwd(), CONFIG.UPLOAD.ROOT_DIR, targetFolder, year, month);
+  await fs.mkdir(targetDir, { recursive: true });
+
+  const result: string[] = [...finalUrls];
+  for (const url of tmpUrls) {
+    const tempPath = path.join(process.cwd(), 'public', url);
+    const filename = path.basename(tempPath);
+    const finalPath = path.join(targetDir, filename);
+
+    try {
+      await fs.rename(tempPath, finalPath);
+    } catch (err) {
+      const nodeErr = err as NodeJS.ErrnoException;
+      if (nodeErr.code === 'EXDEV') {
+        await fs.copyFile(tempPath, finalPath);
+        await fs.unlink(tempPath);
+      } else if (nodeErr.code === 'ENOENT') {
+        throw new Error(`Upload file missing before finalization: ${filename}`);
+      } else {
+        throw err;
+      }
+    }
+
+    result.push(`/uploads/${targetFolder}/${year}/${month}/${filename}`);
+  }
+
+  try {
+    const batchDir = path.join(process.cwd(), CONFIG.UPLOAD.ROOT_DIR, '_tmp', firstBatchId);
+    const remaining = await fs.readdir(batchDir);
+    if (remaining.length === 0) {
+      await fs.rmdir(batchDir);
+    }
+  } catch {
+    // ignore cleanup errors
+  }
+
+  return result;
+}
+
+export async function cleanupStaleTempUploads(maxAgeMs = 24 * 60 * 60 * 1000): Promise<number> {
+  const tmpDir = path.join(process.cwd(), CONFIG.UPLOAD.ROOT_DIR, '_tmp');
+  let cleaned = 0;
+
+  try {
+    const entries = await fs.readdir(tmpDir, { withFileTypes: true });
+    const now = Date.now();
+
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      const dirPath = path.join(tmpDir, entry.name);
+      const stat = await fs.stat(dirPath);
+      if (now - stat.mtimeMs > maxAgeMs) {
+        await fs.rm(dirPath, { recursive: true, force: true });
+        cleaned++;
+      }
+    }
+  } catch {
+    // tmp dir may not exist
+  }
+
+  return cleaned;
 }

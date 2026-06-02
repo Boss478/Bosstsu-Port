@@ -3,17 +3,21 @@
 import { useState } from "react";
 import PhotoLightbox from "@/components/PhotoLightbox";
 
+const IMAGES_PER_PAGE = 30;
+
 interface PortfolioGalleryProps {
   images: string[];
 }
 
 export default function PortfolioGallery({ images }: PortfolioGalleryProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [visibleCount, setVisibleCount] = useState(IMAGES_PER_PAGE);
+  const hasMore = visibleCount < images.length;
 
   return (
     <>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        {images.map((img, idx) => (
+        {images.slice(0, visibleCount).map((img, idx) => (
           <button
             key={idx}
             onClick={() => setLightboxIndex(idx)}
@@ -28,6 +32,17 @@ export default function PortfolioGallery({ images }: PortfolioGalleryProps) {
           </button>
         ))}
       </div>
+
+      {hasMore && (
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={() => setVisibleCount(prev => prev + IMAGES_PER_PAGE)}
+            className="px-8 py-3 rounded-xl bg-white/70 dark:bg-slate-800/70 border border-white/60 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-700 shadow-sm hover:shadow-md transition-all text-zinc-700 dark:text-zinc-200 font-medium"
+          >
+            ดูเพิ่มเติม ({visibleCount}/{images.length})
+          </button>
+        </div>
+      )}
 
       {lightboxIndex !== null && (
         <PhotoLightbox

@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { v4 as uuidv4 } from 'uuid';
 import dynamic from 'next/dynamic';
 import TagPicker from './TagPicker';
 import { useAdminSession } from './AdminSessionProvider';
@@ -129,6 +130,7 @@ export default function LearningForm({
   const [error, setError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState(initialData?.type || '');
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(initialData?.thumbnail || null);
+  const batchIdRef = useRef(uuidv4());
 
   const typeConfig = useMemo(
     () => TYPE_OPTIONS.find(t => t.value === selectedType),
@@ -201,14 +203,14 @@ export default function LearningForm({
       if (totalBytes > 0) {
         if (thumbnailFile) {
           setStatusText('กำลังอัปโหลดรูปหน้าปก...');
-          finalThumbnailUrl = await uploadFileWithProgress(thumbnailFile, 'learning', updateProgress, signal);
+          finalThumbnailUrl = await uploadFileWithProgress(thumbnailFile, 'learning', updateProgress, signal, batchIdRef.current);
           uploadedBytes += thumbnailFile.size;
           setProgress(25 + (uploadedBytes / totalBytes) * 65);
         }
 
         if (resourceFile) {
           setStatusText('กำลังอัปโหลดไฟล์...');
-          finalFileUrl = await uploadFileWithProgress(resourceFile, 'learning', updateProgress, signal);
+          finalFileUrl = await uploadFileWithProgress(resourceFile, 'learning', updateProgress, signal, batchIdRef.current);
           uploadedBytes += resourceFile.size;
           setProgress(25 + (uploadedBytes / totalBytes) * 65);
         }
@@ -231,6 +233,7 @@ export default function LearningForm({
 
       setProgress(100);
       setStatusText('บันทึกข้อมูลสำเร็จ!');
+      batchIdRef.current = uuidv4();
 
       setTimeout(() => {
         router.push('/admin/resources');

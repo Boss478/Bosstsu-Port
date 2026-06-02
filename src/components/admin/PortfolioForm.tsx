@@ -3,13 +3,16 @@
 import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { v4 as uuidv4 } from 'uuid';
 import dynamic from 'next/dynamic';
 import TagPicker from './TagPicker';
 import SaveProgress from './SaveProgress';
 import { useAdminSession } from './AdminSessionProvider';
 import { useToast } from './ToastProvider';
 import { slugify } from '@/lib/format';
-import { uploadFileWithProgress, uploadFileWithRetry } from '@/lib/client-upload';
+import { uploadFileWithProgress, uploadFilesInBatches } from '@/lib/client-upload';
+
+const PREVIEW_CAP = 20;
 
 const RichTextEditor = dynamic(
   () => import('./RichTextEditor'),
@@ -59,6 +62,8 @@ export default function PortfolioForm({
   // Gallery files
   const [newPhotoFiles, setNewPhotoFiles] = useState<File[]>([]);
   const [newPhotoPreviews, setNewPhotoPreviews] = useState<string[]>([]);
+  const [excessFiles, setExcessFiles] = useState(0);
+  const batchIdRef = useRef(uuidv4());
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -103,34 +108,45 @@ export default function PortfolioForm({
         (coverFile ? coverFile.size : 0) +
         newPhotoFiles.reduce((acc, f) => acc + f.size, 0);
 
+      // Size warning
+      const totalMB = totalBytes / (1024 * 1024);
+      if (totalMB > 500 && !window.confirm(
+        `⚠️ ขนาดไฟล์รวม ${totalMB.toFixed(0)} MB (${newPhotoFiles.length} รูป)\n\n` +
+        `การอัปโหลดไฟล์ที่มีขนาดใหญ่อาจใช้เวลานาน\nต้องการดำเนินการต่อหรือไม่?`
+      )) {
+        setIsSubmitting(false);
+        setIsUploading(false);
+        return;
+      }
+
       let finalCoverUrl = initialData?.cover || '';
       const finalGalleryUrls = [...photos];
-      let uploadedBytes = 0;
-      const updateProgress = (chunkLoaded: number) => {
-        if (totalBytes === 0) return;
-        const currentTotalLoaded = uploadedBytes + chunkLoaded;
-        const uploadPercent = 25 + (currentTotalLoaded / totalBytes) * 65;
-        setProgress(uploadPercent);
-      };
+      const batchId = batchIdRef.current;
 
       if (totalBytes > 0) {
         // Upload Cover
         if (coverFile) {
           setStatusText('กำลังอัปโหลดหน้าปก...');
-          finalCoverUrl = await uploadFileWithProgress(coverFile, 'portfolio', (loaded) => updateProgress(loaded), signal);
-          uploadedBytes += coverFile.size;
-          setProgress(25 + (uploadedBytes / totalBytes) * 65);
+          setProgress(30);
+          finalCoverUrl = await uploadFileWithProgress(coverFile, 'portfolio', () => {}, signal, batchId);
         }
 
-        // Upload Gallery
-        for (let i = 0; i < newPhotoFiles.length; i++) {
-          const file = newPhotoFiles[i];
-          setStatusText(`กำลังอัปโหลดรูปภาพที่ ${i + 1}/${newPhotoFiles.length}...`);
-          const url = await uploadFileWithRetry(file, 'portfolio/gallery', (loaded) => updateProgress(loaded), 3, signal);
-          finalGalleryUrls.push(url);
-          uploadedBytes += file.size;
-          setProgress(25 + (uploadedBytes / totalBytes) * 65);
+        // Upload Gallery Photos (Parallel batches of 3)
+        if (newPhotoFiles.length > 0) {
+          setStatusText(`กำลังอัปโหลดรูปภาพ (0/${newPhotoFiles.length})...`);
+          const urls = await uploadFilesInBatches(
+            newPhotoFiles, 'portfolio/gallery',
+            (completed, total) => {
+              setStatusText(`กำลังอัปโหลดรูปภาพ (${completed}/${total})...`);
+              const uploadedBytes = newPhotoFiles.slice(0, completed).reduce((a, f) => a + f.size, 0);
+              setProgress(25 + (uploadedBytes / totalBytes) * 65);
+            },
+            3, signal, batchId
+          );
+          finalGalleryUrls.push(...urls);
         }
+
+        setProgress(90);
       } else {
         setProgress(90);
       }
@@ -150,6 +166,8 @@ export default function PortfolioForm({
 
       setProgress(100);
       setStatusText('บันทึกข้อมูลสำเร็จ!');
+      batchIdRef.current = uuidv4();
+      setExcessFiles(0);
       
       setTimeout(() => {
         router.push('/admin/portfolio');
@@ -190,10 +208,15 @@ export default function PortfolioForm({
   const handlePhotosChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      const newFiles = Array.from(files);
-      setNewPhotoFiles(prev => [...prev, ...newFiles]);
-      const previews = newFiles.map(file => URL.createObjectURL(file));
-      setNewPhotoPreviews(prev => [...prev, ...previews]);
+      const fileArray = Array.from(files);
+      setNewPhotoFiles(prev => [...prev, ...fileArray]);
+      const excessCount = Math.max(0, fileArray.length - PREVIEW_CAP);
+      if (excessCount > 0) {
+        setExcessFiles(prev => prev + excessCount);
+      }
+      const previewFiles = excessCount > 0 ? fileArray.slice(0, PREVIEW_CAP) : fileArray;
+      const newPreviews = previewFiles.map(file => URL.createObjectURL(file));
+      setNewPhotoPreviews(prev => [...prev, ...newPreviews]);
     }
   };
 
@@ -320,6 +343,17 @@ export default function PortfolioForm({
                 </div>
               </div>
             ))}
+
+            {excessFiles > 0 && (
+              <div className="relative aspect-square rounded-lg border-2 border-dashed border-amber-300 dark:border-amber-700 flex items-center justify-center bg-amber-50/50 dark:bg-amber-900/20">
+                <div className="text-center">
+                  <i className="fi fi-sr-plus text-xl text-amber-500" />
+                  <p className="text-xs font-bold text-amber-600 dark:text-amber-400 mt-1">
+                    +{excessFiles} more
+                  </p>
+                </div>
+              </div>
+            )}
             <label
               htmlFor="gallery-upload-input"
               className="relative aspect-square rounded-lg border-2 border-dashed border-zinc-300 dark:border-slate-700 flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors bg-zinc-50 dark:bg-slate-900"

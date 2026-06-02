@@ -4,6 +4,7 @@ import { z } from 'zod';
 import dbConnect from '@/lib/db';
 import Learning from '@/models/Learning';
 import { parseTagString } from '@/lib/format';
+import { finalizeUploads } from '@/lib/upload';
 import { titleField, descriptionField, tagsField, optionalString } from '@/lib/validation';
 import { ROUTES } from '@/lib/routes';
 import { withAuth, handleDbError, sanitizeHtml, revalidateContentPaths, createTogglePublished, createDeleteItem } from '@/lib/admin-crud';
@@ -78,10 +79,12 @@ export async function createLearningResource(formData: FormData) {
 export async function saveResourceMedia(id: string, formData: FormData) {
   return withAuth(async () => {
     await dbConnect();
-    const thumbnailUrl = formData.get('thumbnailUrl') as string;
-    const fileUrl = formData.get('fileUrl') as string;
+    const rawThumbnailUrl = formData.get('thumbnailUrl') as string;
+    const rawFileUrl = formData.get('fileUrl') as string;
     const published = formData.get('published') === 'on';
     try {
+      const [thumbnailUrl] = rawThumbnailUrl ? await finalizeUploads([rawThumbnailUrl], 'learning') : [''];
+      const [fileUrl] = rawFileUrl ? await finalizeUploads([rawFileUrl], 'learning') : [''];
       const updateData: Record<string, unknown> = { published };
       if (thumbnailUrl) updateData.thumbnail = thumbnailUrl;
       if (fileUrl) updateData.fileUrl = fileUrl;
@@ -118,11 +121,14 @@ export async function updateLearningResource(id: string, formData: FormData) {
 
     const { title, description, subject, link, content, embedCode, youtubeId, canvaEmbed, tagsStr } = parsed.data;
     const published = formData.get('published') === 'on';
-    const thumbnailUrl = formData.get('thumbnailUrl') as string;
-    const fileUrl = formData.get('fileUrl') as string;
+    const rawThumbnailUrl = formData.get('thumbnailUrl') as string;
+    const rawFileUrl = formData.get('fileUrl') as string;
 
     try {
       await dbConnect();
+      const [thumbnailUrl] = rawThumbnailUrl ? await finalizeUploads([rawThumbnailUrl], 'learning') : [''];
+      const [fileUrl] = rawFileUrl ? await finalizeUploads([rawFileUrl], 'learning') : [''];
+
       const updateData: Record<string, unknown> = {
         title, description, subject, type,
         link: link || undefined,

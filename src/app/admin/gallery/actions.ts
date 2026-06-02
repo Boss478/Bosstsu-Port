@@ -3,8 +3,8 @@
 import { z } from 'zod';
 import dbConnect from '@/lib/db';
 import Gallery from '@/models/Gallery';
-import { formatError } from '@/lib/error-code';
 import { parseTagString } from '@/lib/format';
+import { finalizeUploads } from '@/lib/upload';
 import { titleField, slugField, tagsField, optionalString } from '@/lib/validation';
 import { ROUTES } from '@/lib/routes';
 import { withAuth, handleDbError, revalidateContentPaths, createTogglePublished, createDeleteItem } from '@/lib/admin-crud';
@@ -58,13 +58,17 @@ export async function createGalleryAlbum(formData: FormData) {
 export async function saveGalleryMedia(id: string, formData: FormData) {
   return withAuth(async () => {
     await dbConnect();
-    const coverUrl = formData.get('coverUrl') as string;
-    const photoUrls = formData.get('photoUrls') as string;
+    const rawCoverUrl = formData.get('coverUrl') as string;
+    const rawPhotoUrls = formData.get('photoUrls') as string;
     const published = formData.get('published') === 'on';
     try {
+      const [coverUrl] = rawCoverUrl ? await finalizeUploads([rawCoverUrl], 'gallery') : [''];
+      const photoUrls = rawPhotoUrls
+        ? await finalizeUploads(JSON.parse(rawPhotoUrls) as string[], 'gallery')
+        : [];
       const updateData: Record<string, unknown> = { published };
       if (coverUrl) updateData.cover = coverUrl;
-      if (photoUrls) updateData.photos = JSON.parse(photoUrls);
+      if (photoUrls.length > 0) updateData.photos = photoUrls;
       await Gallery.findByIdAndUpdate(id, updateData);
     } catch (error: unknown) {
       return handleDbError(error, 'Save gallery media', 'DB02');
@@ -89,11 +93,16 @@ export async function updateGalleryAlbum(id: string, formData: FormData) {
 
     const { title, slug, description, dateStr, tagsStr, relatedPortfolioId } = parsed.data;
     const published = formData.get('published') === 'on';
-    const coverUrl = formData.get('coverUrl') as string;
-    const photoUrls = formData.get('photoUrls') as string;
+    const rawCoverUrl = formData.get('coverUrl') as string;
+    const rawPhotoUrls = formData.get('photoUrls') as string;
 
     try {
       await dbConnect();
+      const [coverUrl] = rawCoverUrl ? await finalizeUploads([rawCoverUrl], 'gallery') : [''];
+      const photoUrls = rawPhotoUrls
+        ? await finalizeUploads(JSON.parse(rawPhotoUrls) as string[], 'gallery')
+        : [];
+
       const updateData: Record<string, unknown> = {
         title, slug, description,
         date: new Date(dateStr),
@@ -108,7 +117,7 @@ export async function updateGalleryAlbum(id: string, formData: FormData) {
       }
 
       if (coverUrl) updateData.cover = coverUrl;
-      if (photoUrls) updateData.photos = JSON.parse(photoUrls);
+      if (photoUrls.length > 0) updateData.photos = photoUrls;
 
       await Gallery.findByIdAndUpdate(id, updateData);
     } catch (error: unknown) {

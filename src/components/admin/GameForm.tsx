@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { v4 as uuidv4 } from 'uuid';
 import TagPicker from './TagPicker';
 import { useAdminSession } from './AdminSessionProvider';
 import { useToast } from './ToastProvider';
@@ -46,6 +47,7 @@ export default function GameForm({
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(
     initialData?.thumbnail || null
   );
+  const batchIdRef = useRef(uuidv4());
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -98,7 +100,7 @@ export default function GameForm({
           if (fileSize > 0) {
             setProgress(30 + (loaded / fileSize) * 60);
           }
-        }, signal);
+        }, signal, batchIdRef.current);
         setProgress(90);
       } else {
         setProgress(90);
@@ -118,6 +120,7 @@ export default function GameForm({
 
       setProgress(100);
       setStatusText('บันทึกข้อมูลสำเร็จ!');
+      batchIdRef.current = uuidv4();
 
       setTimeout(() => {
         router.push('/admin/games');

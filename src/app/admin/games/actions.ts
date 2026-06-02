@@ -3,8 +3,8 @@
 import { z } from 'zod';
 import dbConnect from '@/lib/db';
 import Game from '@/models/Game';
-import { formatError } from '@/lib/error-code';
 import { slugify, parseTagString } from '@/lib/format';
+import { finalizeUploads } from '@/lib/upload';
 import { titleField, descriptionField, tagsField } from '@/lib/validation';
 import { ROUTES } from '@/lib/routes';
 import { withAuth, handleDbError, sanitizeHtml, revalidateContentPaths, createTogglePublished, createDeleteItem } from '@/lib/admin-crud';
@@ -85,9 +85,10 @@ export async function createGame(formData: FormData) {
 export async function saveGameMedia(id: string, formData: FormData) {
   return withAuth(async () => {
     await dbConnect();
-    const thumbnailUrl = formData.get('thumbnailUrl') as string;
+    const rawThumbnailUrl = formData.get('thumbnailUrl') as string;
     const published = formData.get('published') === 'on';
     try {
+      const [thumbnailUrl] = rawThumbnailUrl ? await finalizeUploads([rawThumbnailUrl], 'games') : [''];
       const updateData: Record<string, unknown> = { published };
       if (thumbnailUrl) updateData.thumbnail = thumbnailUrl;
       await Game.findByIdAndUpdate(id, updateData);
@@ -116,10 +117,12 @@ export async function updateGame(id: string, formData: FormData) {
 
     const { title, description, category, playUrl, htmlContent, instructions, tagsStr } = parsed.data;
     const published = formData.get('published') === 'on';
-    const thumbnailUrl = formData.get('thumbnailUrl') as string;
+    const rawThumbnailUrl = formData.get('thumbnailUrl') as string;
 
     try {
       await dbConnect();
+      const [thumbnailUrl] = rawThumbnailUrl ? await finalizeUploads([rawThumbnailUrl], 'games') : [''];
+
       const updateData: Record<string, unknown> = {
         title, description, category,
         playUrl: playUrl || '',

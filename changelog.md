@@ -4,6 +4,41 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.34 (2026-06-02)
++ Image upload overhaul: batchId temp prefix (`_tmp/{batchId}/`) with `finalizeUploads()` rename on media save
++ Client-side preview cap at 20 files with excess counter badge
++ Parallel batch uploads (concurrency 3) via `uploadFilesInBatches()`
++ Client-side size warning (>500MB confirm dialog)
++ Gallery/Portfolio detail photo pagination (30 per page + load more)
+* Server semaphore removed (redundant — concurrency handled client-side)
+* EXDEV fallback in finalizeUploads (cross-filesystem rename → copy+unlink)
+* ENOENT throw in finalizeUploads (fail-fast on missing uploads)
+* Stale temp cleanup in backup.sh (24h TTL)
+- Removed unused `formatError` imports from gallery/games/portfolio actions
+
+## v1.9.33 (2026-06-02)
++ Phase A: Simulation framework — types, 5 focused hooks (useComponentState, useDataFlow, useBottleneckDetector, useSimulationSpeed, useFaultInjector), state machine, component positions, bus paths
++ Phase A: SimDeskView — interactive computer desk layout with monitor, PC tower (clickable interior), keyboard, mouse, animated data packet dots along cable paths
++ Phase B: SimControls — text input, Send button, speed selector (0.5x/1x/2x), data size selector
++ Phase B: SimMonitor — CRT terminal with green phosphor scanline effect, typing animation, scrollable output history
++ Phase B: SimTaskManager — animated resource utilization bars with color thresholds (green/amber/red), bottleneck indicator
++ Phase B: SimComputerInterior — zoomed PC case view with all 12 components, clickable for popup info
++ Phase B: SimComponentPopup — per-component info panel with adjust sliders (CPU cores/clock, GPU cores/VRAM/type, RAM sticks/capacity/type/speed, SSD/HDD config, fan RPM) + internal architecture visualization
++ Phase B: SimScenarioPanel — 7 performance scenarios + 5 crash scenarios with auto-apply simulation state
++ Phase B: Rewrote WorkflowScreen — fully wired to all hooks and components, integrated desktop view
++ Phase B: Added CRT scanline, packet-glow, and data-flow animations to globals.css
++ Phase B: Added 40+ new translations in lang.ts for controls, scenarios, and components
++ Phase C: SimBuildDesk — click-part-to-slot assembly game with difficulty levels (4/6/8 parts), correct/wrong feedback, post-build boot demo
++ Phase C: Rewrote BuildScreen — difficulty selection → SimDeskView backdrop → SimBuildDesk assembly → victory screen
++ Phase C: Rewrote MenuScreen — desktop theme with SimDeskView background, 5 stage buttons on monitor, professor on desk, gear settings panel, all 17 menu features preserved
++ Phase D: Rewrote DiagnosisScreen — SimDeskView backdrop, 5 lives, 3 hints, 20 fault scenarios, game over/victory states
++ Phase E: Rewrote HardwareScreen — desktop theme with SimDeskView backdrop, 20 components, 4 category buttons
++ Phase E: Rewrote SoftwareScreen — desktop theme with SimDeskView backdrop, 25 OS/App items, fact toast overlay
++ * All 5 game stages + menu now use unified computer desk visual theme
+
+## v1.9.32 (2026-06-01)
++ Refreshed YouTube, Roblox, and Spotify software icons — play triangle, R logo, and sound wave bars added to pixel sprites
+
 ## v1.9.31 (2026-06-01)
 + Phase 2: Full lang system with ~300 strings, Student/Advanced modes, TH/EN — helper `t()` function
 + Phase 2: Web Audio API chiptune engine — 8 SFX, 7 music tracks (singleton AudioEngine)

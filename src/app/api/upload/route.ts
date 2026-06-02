@@ -43,7 +43,8 @@ export async function POST(req: NextRequest) {
     }
 
     const convertToWebP = FOLDERS_CONVERT_TO_WEBP.includes(folderInput);
-    const filePath = await saveFile(file, folderInput, convertToWebP);
+    const batchId = (formData.get('batchId') as string) || undefined;
+    const filePath = await saveFile(file, folderInput, convertToWebP, undefined, undefined, batchId);
 
     return NextResponse.json({ url: filePath }, { status: 200 });
   } catch (error: unknown) {
