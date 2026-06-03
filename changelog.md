@@ -4,6 +4,9 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.35 (2026-06-03)
+* Fixed email in Footer: `boss478@example.com`/`test@test.com` → `BossNT45@gmail.com`
+
 ## v1.9.34 (2026-06-02)
 + Image upload overhaul: batchId temp prefix (`_tmp/{batchId}/`) with `finalizeUploads()` rename on media save
 + Client-side preview cap at 20 files with excess counter badge
