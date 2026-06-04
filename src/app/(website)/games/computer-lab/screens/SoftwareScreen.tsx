@@ -1,15 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import type { Screen } from "../types";
+import type { ScreenShellProps } from "../types";
 import { useGame } from "../context";
 import { t } from "../lang";
 import PixelSprite from "../components/PixelSprite";
+import SimDeskView from "../components/SimDeskView";
 import { SPRITE_MAP } from "../sprites";
-
-interface Props {
-  onNavigate: (screen: Screen) => void;
-}
 
 interface SoftwareItem {
   id: string;
@@ -61,7 +58,7 @@ function shuffle<T>(arr: T[]): T[] {
 
 type ToastState = { type: "correct" | "wrong"; message: string } | null;
 
-export default function SoftwareScreen({ onNavigate }: Props) {
+export default function SoftwareScreen({ onNavigate }: ScreenShellProps) {
   const { lang, mode, playSfx, onStageComplete } = useGame();
 
   const [items] = useState(() => shuffle(ITEMS));
@@ -122,16 +119,9 @@ export default function SoftwareScreen({ onNavigate }: Props) {
       if (newCorrect === 8) {
         const isLast = currentIndex + 1 >= items.length;
         if (isLast) {
-          safeSetTimeout(() => {
-            setToast(null);
-            setFinished(true);
-          }, 1800);
+          safeSetTimeout(() => { setToast(null); setFinished(true); }, 1800);
         } else {
-          safeSetTimeout(() => {
-            setToast(null);
-            setShowContinue(true);
-            setLocked(false);
-          }, 1800);
+          safeSetTimeout(() => { setToast(null); setShowContinue(true); setLocked(false); }, 1800);
         }
         return;
       }
@@ -141,10 +131,7 @@ export default function SoftwareScreen({ onNavigate }: Props) {
       setToast({ type: "wrong", message: t("stage2.wrong", lang, mode) });
     }
 
-    safeSetTimeout(() => {
-      setToast(null);
-      advance();
-    }, answer === item.category ? 1800 : 1200);
+    safeSetTimeout(() => { setToast(null); advance(); }, answer === item.category ? 1800 : 1200);
   }, [currentIndex, correctCount, finished, items, lang, locked, mode, playSfx, showContinue, safeSetTimeout, advance]);
 
   const handleContinue = useCallback(() => {
@@ -169,86 +156,76 @@ export default function SoftwareScreen({ onNavigate }: Props) {
   const displayName = lang === "th" ? item.nameTh : item.nameEn;
 
   return (
-    <div className="flex flex-col items-center p-4 space-y-5 min-h-screen bg-black font-mono">
-      <h2 className="text-xl font-black text-emerald-400 tracking-wide">
-        {t("stage2.title", lang, mode)}
-      </h2>
-
-      <div className="w-full max-w-xs text-center">
-        <p className="text-zinc-500 text-xs">{t("stage2.instruction", lang, mode)}</p>
+    <div className="flex flex-col min-h-full">
+      <div className="flex items-center justify-between px-3 py-2 z-10">
+        <h2 className="text-lg sm:text-xl font-black text-emerald-400">{t("stage2.title", lang, mode)}</h2>
+        <button onClick={() => onNavigate("menu")} className="px-2 py-1 rounded bg-zinc-800 text-zinc-400 hover:text-emerald-400 text-[10px] transition-colors">
+          {t("topbar.back", lang, mode)}
+        </button>
       </div>
 
-      <div className="text-zinc-500 text-xs">
-        {correctCount} / 25 {t("stage2.correct", lang, mode)}
-      </div>
-
-      <div className="w-full max-w-sm bg-zinc-900/80 border border-zinc-800 rounded-2xl p-4 flex flex-col items-center gap-4 justify-center relative min-h-[200px]">
-        <div className="flex flex-col items-center gap-3">
-          <PixelSprite data={SPRITE_MAP[item.sprite]} size={spriteSize} />
-          <p className={`text-lg font-bold text-center ${item.colorClass}`}>{displayName}</p>
+      <div className="flex-1 px-3 pb-3 overflow-y-auto z-10 space-y-3">
+        <div className="opacity-30 mb-4 pointer-events-none">
+          <SimDeskView />
         </div>
 
-        {toast && (
-          <div
-            className={`absolute inset-0 rounded-2xl flex items-center justify-center p-4 text-center text-sm font-bold transition-opacity duration-300 break-words ${
+        <div className="text-zinc-500 text-xs text-center">
+          {correctCount} / 25 {t("stage2.correct", lang, mode)}
+        </div>
+
+        <div className="w-full max-w-sm mx-auto bg-zinc-900/80 border border-zinc-800 rounded-2xl p-4 flex flex-col items-center gap-4 justify-center relative min-h-[200px]">
+          <div className="flex flex-col items-center gap-3">
+            <PixelSprite data={SPRITE_MAP[item.sprite]} size={spriteSize} />
+            <p className={`text-lg font-bold text-center ${item.colorClass}`}>{displayName}</p>
+          </div>
+
+          {toast && (
+            <div className={`absolute inset-0 rounded-2xl flex items-center justify-center p-4 text-center text-sm font-bold transition-opacity duration-300 break-words ${
               toast.type === "correct"
                 ? "bg-emerald-900/90 text-emerald-200 border-2 border-emerald-500"
                 : "bg-red-900/90 text-red-200 border-2 border-red-500"
-            }`}
+            }`}>
+              {toast.message}
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-sm mx-auto">
+          <button
+            onClick={() => handleAnswer("os")}
+            disabled={locked || showContinue}
+            className="w-full sm:w-auto px-8 py-4 rounded-xl bg-zinc-800 border border-zinc-700 text-emerald-400 font-bold text-lg hover:bg-emerald-900/30 hover:border-emerald-600 disabled:opacity-30 disabled:pointer-events-none transition-colors flex items-center justify-center gap-2"
           >
-            {toast.message}
+            <PixelSprite data={SPRITE_MAP.os_icon} size={16} />
+            {t("software.os", lang, mode)}
+          </button>
+          <button
+            onClick={() => handleAnswer("app")}
+            disabled={locked || showContinue}
+            className="w-full sm:w-auto px-8 py-4 rounded-xl bg-zinc-800 border border-zinc-700 text-sky-400 font-bold text-lg hover:bg-sky-900/30 hover:border-sky-600 disabled:opacity-30 disabled:pointer-events-none transition-colors flex items-center justify-center gap-2"
+          >
+            <PixelSprite data={SPRITE_MAP.app_icon} size={16} />
+            {t("software.app", lang, mode)}
+          </button>
+        </div>
+
+        {showContinue && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+            <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-8 max-w-xs w-full mx-4 text-center space-y-5">
+              <p className="text-emerald-400 text-lg font-bold">{t("stage2.correct", lang, mode)}</p>
+              <p className="text-zinc-300 text-sm">{t("stage2.continue", lang, mode)}</p>
+              <div className="flex gap-3 justify-center">
+                <button onClick={handleContinue} className="px-6 py-3 rounded-xl bg-emerald-700 text-white font-bold hover:bg-emerald-600 transition-colors">
+                  {t("ui.ok", lang, mode)}
+                </button>
+                <button onClick={() => onNavigate("menu")} className="px-6 py-3 rounded-xl bg-zinc-800 text-zinc-400 font-bold hover:text-white transition-colors">
+                  {t("topbar.back", lang, mode)}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
-
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-sm">
-        <button
-          onClick={() => handleAnswer("os")}
-          disabled={locked || showContinue}
-          className="w-full sm:w-auto px-8 py-4 rounded-xl bg-zinc-800 border border-zinc-700 text-emerald-400 font-bold text-lg hover:bg-emerald-900/30 hover:border-emerald-600 disabled:opacity-30 disabled:pointer-events-none transition-colors flex items-center justify-center gap-2"
-        >
-          <PixelSprite data={SPRITE_MAP.os_icon} size={16} />
-          {t("software.os", lang, mode)}
-        </button>
-        <button
-          onClick={() => handleAnswer("app")}
-          disabled={locked || showContinue}
-          className="w-full sm:w-auto px-8 py-4 rounded-xl bg-zinc-800 border border-zinc-700 text-sky-400 font-bold text-lg hover:bg-sky-900/30 hover:border-sky-600 disabled:opacity-30 disabled:pointer-events-none transition-colors flex items-center justify-center gap-2"
-        >
-          <PixelSprite data={SPRITE_MAP.app_icon} size={16} />
-          {t("software.app", lang, mode)}
-        </button>
-      </div>
-
-      <button
-        onClick={() => onNavigate("menu")}
-        className="px-4 py-2 rounded bg-zinc-800 text-zinc-500 hover:text-emerald-400 text-xs transition-colors"
-      >
-        ← {t("topbar.back", lang, mode)}
-      </button>
-
-      {showContinue && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-8 max-w-xs w-full mx-4 text-center space-y-5">
-            <p className="text-emerald-400 text-lg font-bold">{t("stage2.correct", lang, mode)}</p>
-            <p className="text-zinc-300 text-sm">{t("stage2.continue", lang, mode)}</p>
-            <div className="flex gap-3 justify-center">
-              <button
-                onClick={handleContinue}
-                className="px-6 py-3 rounded-xl bg-emerald-700 text-white font-bold hover:bg-emerald-600 transition-colors"
-              >
-                {t("ui.ok", lang, mode)}
-              </button>
-              <button
-                onClick={() => onNavigate("menu")}
-                className="px-6 py-3 rounded-xl bg-zinc-800 text-zinc-400 font-bold hover:text-white transition-colors"
-              >
-                {t("topbar.back", lang, mode)}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

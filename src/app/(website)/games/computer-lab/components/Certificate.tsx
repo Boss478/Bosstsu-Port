@@ -25,11 +25,15 @@ export default function Certificate() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    const dpr = window.devicePixelRatio || 1;
     const W = 600;
     const H = 400;
-    canvas.width = W;
-    canvas.height = H;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = `${W}px`;
+    canvas.style.height = `${H}px`;
     ctx.imageSmoothingEnabled = false;
+    ctx.scale(dpr, dpr);
 
     const bg = SPRITE_MAP.certificate_bg;
     const scaleX = Math.floor(W / bg.width);
@@ -149,7 +153,7 @@ export default function Certificate() {
       <canvas
         ref={canvasRef}
         className="border-2 border-zinc-600 rounded-lg shadow-lg"
-        style={{ imageRendering: "pixelated", width: 600, height: 400 }}
+        style={{ imageRendering: "pixelated" }}
       />
       <button
         onClick={handleDownload}

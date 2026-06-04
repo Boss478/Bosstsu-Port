@@ -82,7 +82,8 @@ class AudioEngine {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private currentTrack: string | null = null;
-  private scheduledNodes: OscillatorNode[] = [];
+  private sfxNodes: OscillatorNode[] = [];
+  private musicNodes: OscillatorNode[] = [];
   private timeoutIds: ReturnType<typeof setTimeout>[] = [];
   private _muted = false;
   private _volume = 0.7;
@@ -128,6 +129,7 @@ class AudioEngine {
     type: OscType,
     startTime: number,
     vol: number,
+    category: "sfx" | "music" = "sfx",
   ): void {
     const ctx = this.getCtx();
     if (!ctx || !this.masterGain) return;
@@ -136,12 +138,21 @@ class AudioEngine {
     osc.type = type;
     osc.frequency.value = freq;
     gain.gain.setValueAtTime(vol, startTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+    if (vol > 0) {
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+    } else {
+      gain.gain.setValueAtTime(0, startTime);
+    }
     osc.connect(gain);
     gain.connect(this.masterGain);
     osc.start(startTime);
     osc.stop(startTime + duration + 0.05);
-    this.scheduledNodes.push(osc);
+    const arr = category === "music" ? this.musicNodes : this.sfxNodes;
+    arr.push(osc);
+    osc.onended = () => {
+      const idx = arr.indexOf(osc);
+      if (idx !== -1) arr.splice(idx, 1);
+    };
   }
 
   playSfx(name: string): void {
@@ -176,7 +187,7 @@ class AudioEngine {
       for (const [note, dur] of track.notes) {
         const freq = NOTES[note];
         if (freq) {
-          this.playNote(freq, dur * beatDuration, "square", now + offset, 0.15);
+          this.playNote(freq, dur * beatDuration, "square", now + offset, 0.15, "music");
         }
         offset += dur * beatDuration;
       }
@@ -191,10 +202,10 @@ class AudioEngine {
     this.currentTrack = null;
     for (const tid of this.timeoutIds) clearTimeout(tid);
     this.timeoutIds = [];
-    for (const osc of this.scheduledNodes) {
+    for (const osc of this.musicNodes) {
       try { osc.stop(); } catch { }
     }
-    this.scheduledNodes = [];
+    this.musicNodes = [];
   }
 
   dispose(): void {

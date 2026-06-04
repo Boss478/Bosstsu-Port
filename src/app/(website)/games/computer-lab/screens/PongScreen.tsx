@@ -5,8 +5,8 @@ import type { ScreenShellProps } from "../types";
 import { useGame } from "../context";
 import { PALETTE, PONG_PADDLE, PONG_BALL } from "../sprites";
 
-const W = 600;
-const H = 400;
+const CANVAS_W = 600;
+const CANVAS_H = 400;
 const PADDLE_W = 16;
 const PADDLE_H = 64;
 const BALL_SIZE = 8;
@@ -33,8 +33,8 @@ function createBall(speed: number) {
   const angle = (Math.random() - 0.5) * Math.PI * 0.5;
   const dir = Math.random() > 0.5 ? 1 : -1;
   return {
-    x: W / 2 - BALL_SIZE / 2,
-    y: H / 2 - BALL_SIZE / 2,
+    x: CANVAS_W / 2 - BALL_SIZE / 2,
+    y: CANVAS_H / 2 - BALL_SIZE / 2,
     vx: Math.cos(angle) * speed * dir,
     vy: Math.sin(angle) * speed,
   };
@@ -44,8 +44,8 @@ function initialData(): GameData {
   return {
     state: "start",
     ball: createBall(INITIAL_SPEED),
-    leftY: H / 2 - PADDLE_H / 2,
-    rightY: H / 2 - PADDLE_H / 2,
+    leftY: CANVAS_H / 2 - PADDLE_H / 2,
+    rightY: CANVAS_H / 2 - PADDLE_H / 2,
     leftScore: 0,
     rightScore: 0,
     winner: null,
@@ -103,7 +103,7 @@ export default function PongScreen({ onNavigate }: ScreenShellProps) {
     if (!ctx) return;
 
     ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, W, H);
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
     const d = dRef.current;
 
@@ -111,21 +111,21 @@ export default function PongScreen({ onNavigate }: ScreenShellProps) {
     ctx.lineWidth = 2;
     ctx.setLineDash([8, 8]);
     ctx.beginPath();
-    ctx.moveTo(W / 2, 0);
-    ctx.lineTo(W / 2, H);
+    ctx.moveTo(CANVAS_W / 2, 0);
+    ctx.lineTo(CANVAS_W / 2, CANVAS_H);
     ctx.stroke();
     ctx.setLineDash([]);
 
     drawSprite(ctx, PONG_PADDLE, PADDLE_MARGIN, d.leftY, 4);
-    drawSprite(ctx, PONG_PADDLE, W - PADDLE_MARGIN - PADDLE_W, d.rightY, 4);
+    drawSprite(ctx, PONG_PADDLE, CANVAS_W - PADDLE_MARGIN - PADDLE_W, d.rightY, 4);
     drawSprite(ctx, PONG_BALL, d.ball.x, d.ball.y, 2);
 
     ctx.fillStyle = "#444";
     ctx.font = "bold 40px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
-    ctx.fillText(String(d.leftScore), W / 2 - 50, 12);
-    ctx.fillText(String(d.rightScore), W / 2 + 50, 12);
+    ctx.fillText(String(d.leftScore), CANVAS_W / 2 - 50, 12);
+    ctx.fillText(String(d.rightScore), CANVAS_W / 2 + 50, 12);
   }
 
   useEffect(() => {
@@ -137,7 +137,7 @@ export default function PongScreen({ onNavigate }: ScreenShellProps) {
       const k = keys.current;
 
       if (k.has("w") || k.has("W")) d.leftY = Math.max(0, d.leftY - PADDLE_SPEED);
-      if (k.has("s") || k.has("S")) d.leftY = Math.min(H - PADDLE_H, d.leftY + PADDLE_SPEED);
+      if (k.has("s") || k.has("S")) d.leftY = Math.min(CANVAS_H - PADDLE_H, d.leftY + PADDLE_SPEED);
 
       const aiTarget = d.ball.y + BALL_SIZE / 2 - PADDLE_H / 2;
       const aiDiff = aiTarget - d.rightY;
@@ -145,13 +145,13 @@ export default function PongScreen({ onNavigate }: ScreenShellProps) {
       if (Math.abs(aiDiff) > aiMove) {
         d.rightY += Math.sign(aiDiff) * aiMove;
       }
-      d.rightY = Math.max(0, Math.min(H - PADDLE_H, d.rightY));
+      d.rightY = Math.max(0, Math.min(CANVAS_H - PADDLE_H, d.rightY));
 
       d.ball.x += d.ball.vx;
       d.ball.y += d.ball.vy;
 
       if (d.ball.y <= 0) { d.ball.y = 0; d.ball.vy = Math.abs(d.ball.vy); }
-      if (d.ball.y >= H - BALL_SIZE) { d.ball.y = H - BALL_SIZE; d.ball.vy = -Math.abs(d.ball.vy); }
+      if (d.ball.y >= CANVAS_H - BALL_SIZE) { d.ball.y = CANVAS_H - BALL_SIZE; d.ball.vy = -Math.abs(d.ball.vy); }
 
       if (
         d.ball.vx < 0 &&
@@ -171,12 +171,12 @@ export default function PongScreen({ onNavigate }: ScreenShellProps) {
 
       if (
         d.ball.vx > 0 &&
-        d.ball.x + BALL_SIZE >= W - PADDLE_MARGIN - PADDLE_W &&
-        d.ball.x + BALL_SIZE < W - PADDLE_MARGIN &&
+        d.ball.x + BALL_SIZE >= CANVAS_W - PADDLE_MARGIN - PADDLE_W &&
+        d.ball.x + BALL_SIZE < CANVAS_W - PADDLE_MARGIN &&
         d.ball.y + BALL_SIZE > d.rightY &&
         d.ball.y < d.rightY + PADDLE_H
       ) {
-        d.ball.x = W - PADDLE_MARGIN - PADDLE_W - BALL_SIZE;
+        d.ball.x = CANVAS_W - PADDLE_MARGIN - PADDLE_W - BALL_SIZE;
         const hitPos = (d.ball.y + BALL_SIZE / 2 - (d.rightY + PADDLE_H / 2)) / (PADDLE_H / 2);
         const angle = hitPos * Math.PI * 0.4;
         d.speed *= 1.05;
@@ -200,7 +200,7 @@ export default function PongScreen({ onNavigate }: ScreenShellProps) {
         d.ball = createBall(INITIAL_SPEED);
         setScore({ l: d.leftScore, r: d.rightScore });
       }
-      if (d.ball.x > W) {
+      if (d.ball.x > CANVAS_W) {
         d.leftScore++;
         playSfxRef.current("victory");
         if (d.leftScore >= WIN_SCORE) {
@@ -252,18 +252,21 @@ export default function PongScreen({ onNavigate }: ScreenShellProps) {
     const d = dRef.current;
     if (d.state !== "playing") return;
     const rect = (e.target as HTMLElement).getBoundingClientRect();
-    const y = e.touches[0].clientY - rect.top;
-    d.leftY = Math.max(0, Math.min(H - PADDLE_H, y - PADDLE_H / 2));
+    const y = (e.touches[0].clientY - rect.top) * (CANVAS_H / rect.height);
+    d.leftY = Math.max(0, Math.min(CANVAS_H - PADDLE_H, y - PADDLE_H / 2));
   }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-full p-4 space-y-4">
-      <div className="relative" style={{ width: W, height: H }}>
+      <div
+        className="relative w-full max-w-[600px] mx-auto"
+        style={{ aspectRatio: "600 / 400" }}
+      >
         <canvas
           ref={canvasRef}
-          width={W}
-          height={H}
-          className="border-2 border-green-500/30 rounded-lg block"
+          width={CANVAS_W}
+          height={CANVAS_H}
+          className="border-2 border-green-500/30 rounded-lg block absolute inset-0 w-full h-full"
           style={{ imageRendering: "pixelated" }}
           onTouchMove={handleTouch}
           onTouchStart={handleTouch}

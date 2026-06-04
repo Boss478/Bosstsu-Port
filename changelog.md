@@ -4,6 +4,23 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.36 (2026-06-04)
++ **2 new levels**: Thai Match (จับคู่ภาษาไทย) + Phonics Match (จับคู่เสียงอ่าน) — reordered 6 levels total
++ **Sound button**: First 3 levels — click letter card to hear pronunciation via speech synthesis
++ **Score in feedback**: Praise messages now show score delta (e.g., "Great job! +5")
++ **Streak tracking**: Consecutive correct answers tracked + displayed in HUD + feedback
++ **Auto-next after 2 wrongs**: Shows correct answer, then auto-advances after 1s
++ **Progress persistence**: Auto-saves to localStorage; "Continue" button on menu to resume
++ **Victory confetti**: CSS particle animation on completion
++ **Activated showCorrect**: Dead code for showing correct answer on wrong is now live
+* Unified match architecture via `dataPool` field (lowercase/thai/phonics) on LevelConfig
+* Fixed ESLint ref-during-render error (moved stateRef sync to useEffect)
+
+## v1.9.37 (2026-06-04)
++ **Sound button per-level**: Speaks Thai names (Level 1) / phonics text (Level 2) / letter names (Level 3) instead of always letter name
++ **Easy Mode (KG) toggle**: 2 choices per match round, 15 rounds per level (vs 34), typing level skipped — menu toggle button
++ **Per-letter error tracking**: Wrong answers track target letter; "Letters to Practice" list on victory screen with deduplicated sorted display
+
 ## v1.9.35 (2026-06-03)
 * Fixed email in Footer: `boss478@example.com`/`test@test.com` → `BossNT45@gmail.com`
 

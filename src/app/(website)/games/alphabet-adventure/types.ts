@@ -1,6 +1,7 @@
 export type Screen = "menu" | "game" | "victory";
 
 export type LevelType = "match" | "fill-upper" | "fill-lower" | "typing";
+export type DataPool = "lowercase" | "thai" | "phonics";
 
 export interface LevelConfig {
   name: string;
@@ -8,6 +9,7 @@ export interface LevelConfig {
   target: number;
   type: LevelType;
   hideCount?: number;
+  dataPool?: DataPool;
 }
 
 export interface GameState {
@@ -19,6 +21,11 @@ export interface GameState {
   consecutiveErrors: number;
   levelCorrect: number;
   levelTotal: number;
+  currentStreak: number;
+  bestStreak: number;
+  wrongAttempts: number;
+  wrongLetters: string[];
+  easyMode: boolean;
 }
 
 export interface GridCell {
@@ -54,6 +61,11 @@ export function initialGameState(): GameState {
     consecutiveErrors: 0,
     levelCorrect: 0,
     levelTotal: 0,
+    currentStreak: 0,
+    bestStreak: 0,
+    wrongAttempts: 0,
+    wrongLetters: [],
+    easyMode: false,
   };
 }
 

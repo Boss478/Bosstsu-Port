@@ -6,9 +6,13 @@ import { HIGH_SCORE_KEY } from "../constants";
 
 interface Props {
   onStart: () => void;
+  onContinue?: () => void;
+  hasProgress?: boolean;
+  easyMode?: boolean;
+  onToggleEasy?: () => void;
 }
 
-export default function MenuScreen({ onStart }: Props) {
+export default function MenuScreen({ onStart, onContinue, hasProgress, easyMode, onToggleEasy }: Props) {
   const router = useRouter();
   const [highScore] = useState<number>(() => {
     if (typeof window !== 'undefined') {
@@ -42,7 +46,7 @@ export default function MenuScreen({ onStart }: Props) {
       </div>
 
       <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-md mx-auto leading-relaxed">
-        Prepare for an exciting journey through the A-Z islands! Learn and challenge yourself with 4 fun levels designed for Grade 1 students.
+        Prepare for an exciting journey through the A-Z islands! Learn and challenge yourself with 6 fun levels designed for Grade 1 students.
       </p>
       <p className="text-base text-zinc-500 dark:text-zinc-500 max-w-md mx-auto">
         เตรียมพร้อมสำหรับการเดินทางแสนสนุกผ่านเกาะตัวอักษร A-Z เรียนรู้และท้าทายตัวเองไปพร้อมกัน!
@@ -59,20 +63,44 @@ export default function MenuScreen({ onStart }: Props) {
         </div>
       )}
 
-      <div className="pt-4">
+      <div className="flex items-center justify-center gap-3 pt-2">
+        <button
+          onClick={onToggleEasy}
+          className={`px-5 py-2 rounded-2xl text-sm font-black transition-all border-2 ${
+            easyMode
+              ? "bg-emerald-100 dark:bg-emerald-900/30 border-emerald-400 text-emerald-700 dark:text-emerald-400"
+              : "bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400"
+          }`}
+        >
+          {easyMode ? "🐣 Easy Mode (KG)" : "Easy Mode (KG)"}
+        </button>
+      </div>
+
+      <div className="pt-4 space-y-4">
+        {hasProgress && onContinue && (
+          <button
+            onClick={onContinue}
+            className="group relative px-12 py-5 bg-emerald-600 text-white text-2xl font-black rounded-3xl shadow-[0_12px_0_0_rgba(5,150,105,1)] active:shadow-none active:translate-y-3 transition-all duration-150 overflow-hidden"
+          >
+            <span className="relative z-10 flex items-center gap-3">
+              Continue <i className="fi fi-sr-play mt-1 transition-transform group-hover:translate-x-1"></i>
+            </span>
+            <div className="absolute inset-0 bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          </button>
+        )}
         <button
           onClick={onStart}
           className="group relative px-12 py-5 bg-violet-600 text-white text-2xl font-black rounded-3xl shadow-[0_12px_0_0_rgba(109,40,217,1)] active:shadow-none active:translate-y-3 transition-all duration-150 overflow-hidden"
         >
           <span className="relative z-10 flex items-center gap-3">
-            Start Game <i className="fi fi-sr-play mt-1 transition-transform group-hover:translate-x-1"></i>
+            {hasProgress ? "New Game" : "Start Game"} <i className="fi fi-sr-play mt-1 transition-transform group-hover:translate-x-1"></i>
           </span>
           <div className="absolute inset-0 bg-violet-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
         </button>
       </div>
 
       <p className="text-sm font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-        Grade 1 • 4 Levels
+        Grade 1 • {easyMode ? "5 Levels" : "6 Levels"}
       </p>
     </div>
   );

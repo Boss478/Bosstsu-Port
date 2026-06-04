@@ -3,28 +3,57 @@ import type { LevelConfig } from "./types";
 const ALPHABET_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const ALPHABET_LOWER = "abcdefghijklmnopqrstuvwxyz".split("");
 
+export const THAI_NAMES = [
+  "เอ", "บี", "ซี", "ดี", "อี", "เอฟ", "จี", "เอช", "ไอ", "เจ",
+  "เค", "แอล", "เอ็ม", "เอ็น", "โอ", "พี", "คิว", "อาร์", "เอส", "ที",
+  "ยู", "วี", "ดับเบิลยู", "เอกซ์", "วาย", "แซด",
+];
+
+export const PHONICS_SOUNDS = [
+  "แอะ /a/", "เบอะ /b/", "เคอะ /k/", "ดึ /d/", "เอะ /e/", "เฟอะ /f/",
+  "เกอะ /g/", "เฮอะ /h/", "อิ /i/", "เจอะ /j/", "เคอะ /k/", "เลอะ /l/",
+  "เมอะ /m/", "เนอะ /n/", "เอาะ /o/", "เพอะ /p/", "เควอะ /kw/", "เรอะ /r/",
+  "เซอะ /s/", "เทอะ /t/", "อะ /u/", "เวอะ /v/", "เวอะ /w/", "ซ /ks/",
+  "เยอะ /j/", "ซี /z/",
+];
+
 export const LEVELS: Record<number, LevelConfig> = {
   1: {
+    name: "Thai Match",
+    subtitle: "จับคู่ภาษาไทย",
+    target: 34,
+    type: "match",
+    dataPool: "thai",
+  },
+  2: {
+    name: "Phonics Match",
+    subtitle: "จับคู่เสียงอ่าน",
+    target: 34,
+    type: "match",
+    dataPool: "phonics",
+  },
+  3: {
     name: "Letter Match",
     subtitle: "จับคู่ตัวอักษร",
     target: 35,
     type: "match",
+    dataPool: "lowercase",
   },
-  2: {
+  4: {
     name: "Missing Capitals",
     subtitle: "เติมตัวพิมพ์ใหญ่ที่หายไป",
     target: 10,
     type: "fill-upper",
     hideCount: 2,
   },
-  3: {
+  5: {
     name: "Missing Lowercase",
     subtitle: "เติมตัวพิมพ์เล็กที่หายไป",
     target: 10,
     type: "fill-lower",
     hideCount: 3,
   },
-  4: {
+  6: {
     name: "Typing Challenge",
     subtitle: "พิมพ์ตัวอักษร (ท้าทาย)",
     target: 10,
@@ -44,7 +73,16 @@ export const GAME_CONFIG = {
   FEEDBACK_DURATION: 1000,
   STAR_THREE: 90,
   STAR_TWO: 70,
+  WRONG_LIMIT: 2,
 } as const;
+
+const STREAK_PRAISE = [
+  "Keep going!",
+  "On fire!",
+  "Unstoppable!",
+  "Legendary!",
+  "Perfect streak!",
+];
 
 const PRAISE = {
   correct: [
@@ -67,6 +105,7 @@ const PRAISE = {
 } as const;
 
 export const HIGH_SCORE_KEY = "alphabet-adventure-highscore";
+export const PROGRESS_KEY = "alphabet-adventure-progress";
 
 export function calcStars(accuracy: number): number {
   if (accuracy >= GAME_CONFIG.STAR_THREE) return 3;
@@ -79,6 +118,12 @@ export function randomPraise(type: "correct" | "wrong"): string {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+export function streakPraise(streak: number): string {
+  if (streak < 3) return `${streak} in a row!`;
+  const idx = Math.min(streak - 3, STREAK_PRAISE.length - 1);
+  return `${streak} in a row! ${STREAK_PRAISE[idx]}`;
+}
+
 function fisherYatesShuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -88,23 +133,19 @@ function fisherYatesShuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-export function generateMatchRound(round: number) {
-  const usePool = round > 26;
-  const pool = usePool ? fisherYatesShuffle([...Array(26).keys()]) : [];
-  let poolIndex = 0;
+function getLetterIndex(round: number): number {
+  if (round <= 26) return round - 1;
+  const pool = fisherYatesShuffle([...Array(26).keys()]);
+  return pool[(round - 27) % 26];
+}
 
-  const getLetterIndex = () => {
-    if (round <= 26) return round - 1;
-    if (poolIndex < pool.length) return pool[poolIndex++];
-    return Math.floor(Math.random() * 26);
-  };
-
-  const targetIndex = getLetterIndex();
+export function generateMatchRound(round: number, numChoices = 3) {
+  const targetIndex = getLetterIndex(round);
   const upper = ALPHABET_UPPER[targetIndex];
   const correctLower = ALPHABET_LOWER[targetIndex];
 
   const choices = [correctLower];
-  while (choices.length < 3) {
+  while (choices.length < numChoices) {
     const r = ALPHABET_LOWER[Math.floor(Math.random() * 26)];
     if (!choices.includes(r)) choices.push(r);
   }
@@ -116,7 +157,43 @@ export function generateMatchRound(round: number) {
   };
 }
 
-export function generateFillRound(type: "fill-upper" | "fill-lower") {
+export function generateThaiRound(round: number, numChoices = 3) {
+  const targetIndex = getLetterIndex(round);
+  const upper = ALPHABET_UPPER[targetIndex];
+  const correct = THAI_NAMES[targetIndex];
+
+  const choices = [correct];
+  while (choices.length < numChoices) {
+    const r = Math.floor(Math.random() * 26);
+    if (!choices.includes(THAI_NAMES[r])) choices.push(THAI_NAMES[r]);
+  }
+
+  return {
+    targetLetter: upper,
+    correctChar: correct,
+    choices: fisherYatesShuffle(choices),
+  };
+}
+
+export function generatePhonicsRound(round: number, numChoices = 3) {
+  const targetIndex = getLetterIndex(round);
+  const upper = ALPHABET_UPPER[targetIndex];
+  const correct = PHONICS_SOUNDS[targetIndex];
+
+  const choices = [correct];
+  while (choices.length < numChoices) {
+    const r = Math.floor(Math.random() * 26);
+    if (!choices.includes(PHONICS_SOUNDS[r])) choices.push(PHONICS_SOUNDS[r]);
+  }
+
+  return {
+    targetLetter: upper,
+    correctChar: correct,
+    choices: fisherYatesShuffle(choices),
+  };
+}
+
+export function generateFillRound(type: "fill-upper" | "fill-lower", numChoices = 4) {
   const isUpper = type === "fill-upper";
   const alphabet = isUpper ? ALPHABET_UPPER : ALPHABET_LOWER;
   const hideCount = isUpper ? 2 : 3;
@@ -135,7 +212,7 @@ export function generateFillRound(type: "fill-upper" | "fill-lower") {
 
   const correct = alphabet[missing[0]];
   const choices = [correct];
-  while (choices.length < 4) {
+  while (choices.length < numChoices) {
     const r = alphabet[Math.floor(Math.random() * 26)];
     if (!choices.includes(r)) choices.push(r);
   }
@@ -170,4 +247,3 @@ export function generateTypingRound(difficulty: number) {
     activeIndex: -1,
   };
 }
-

@@ -10,6 +10,7 @@ export interface GameCtx {
   settings: GameSettings;
   save: SaveData;
   updateSettings: (partial: Partial<GameSettings>) => void;
+  updateSave: (partial: Partial<SaveData>) => void;
   navigate: (screen: Screen) => void;
   playSfx: (name: string) => void;
   isMuted: boolean;

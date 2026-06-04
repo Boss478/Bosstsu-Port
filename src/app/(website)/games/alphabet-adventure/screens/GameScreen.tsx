@@ -6,6 +6,7 @@ import type {
   RoundData,
   FeedbackState,
   LevelType,
+  DataPool,
 } from "../types";
 import { LEVELS } from "../constants";
 
@@ -23,6 +24,7 @@ interface Props {
   onToggleMute: () => void;
   onSelectCell?: (index: number) => void;
   onTypingInput?: (index: number, value: string) => void;
+  onSpeak: (text: string, lang?: string) => void;
 }
 
 export default function GameScreen({
@@ -39,15 +41,19 @@ export default function GameScreen({
   onToggleMute,
   onSelectCell,
   onTypingInput,
+  onSpeak,
 }: Props) {
   const choiceRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const isFeedbackVisible = feedback.text !== "";
   const levelConfig = LEVELS[gameState.level];
   const levelType = levelConfig?.type as LevelType;
+  const dataPool = levelConfig?.dataPool as DataPool | undefined;
+  const isThaiText = dataPool === "thai" || dataPool === "phonics";
 
+  const effectiveTarget = levelType === "match" && gameState.easyMode ? 15 : levelConfig.target;
   const progress =
     levelType === "match" ? gameState.round : gameState.winsInLevel;
-  const progressPct = Math.min(100, (progress / levelConfig.target) * 100);
+  const progressPct = Math.min(100, (progress / effectiveTarget) * 100);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -133,6 +139,14 @@ export default function GameScreen({
             </div>
           </div>
           <div className="flex items-center gap-4">
+            {gameState.currentStreak >= 2 && (
+              <div className="text-right">
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">STREAK</p>
+                <p className="text-2xl font-black text-amber-500 tracking-tighter whitespace-nowrap">
+                  🔥 {gameState.currentStreak}
+                </p>
+              </div>
+            )}
             <div className="text-right">
               <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">SCORE</p>
               <p className="text-3xl font-black text-fuchsia-500 tracking-tighter">
@@ -168,7 +182,7 @@ export default function GameScreen({
           <div className="flex justify-between text-[11px] font-black text-zinc-400 uppercase tracking-wider">
             <span>PROGRESS</span>
             <span>
-              {Math.min(progress, levelConfig.target)} / {levelConfig.target}
+              {Math.min(progress, effectiveTarget)} / {effectiveTarget}
             </span>
           </div>
         </div>
@@ -180,8 +194,20 @@ export default function GameScreen({
 
         {levelType === "match" && (
           <div className="flex flex-col items-center animate-in zoom-in duration-300">
-            <div className="w-48 h-48 md:w-56 md:h-56 rounded-[3rem] bg-violet-50 dark:bg-violet-900/10 border-8 border-violet-100 dark:border-violet-900/30 flex items-center justify-center text-9xl font-black leading-none text-violet-600 dark:text-violet-400 shadow-2xl mb-12 transform hover:rotate-2 transition-transform">
-              {roundData.targetLetter}
+            <div className="relative mb-12">
+              <div className="w-48 h-48 md:w-56 md:h-56 rounded-[3rem] bg-violet-50 dark:bg-violet-900/10 border-8 border-violet-100 dark:border-violet-900/30 flex items-center justify-center text-9xl font-black leading-none text-violet-600 dark:text-violet-400 shadow-2xl transform hover:rotate-2 transition-transform">
+                {roundData.targetLetter}
+              </div>
+              <button
+                onClick={() => {
+                  const text = isThaiText ? (roundData.correctChar || roundData.targetLetter) : roundData.targetLetter;
+                  onSpeak(text || "", isThaiText ? "th-TH" : "en-US");
+                }}
+                className="absolute -bottom-3 left-1/2 -translate-x-1/2 p-3 rounded-xl bg-violet-100 dark:bg-violet-900/40 hover:bg-violet-200 dark:hover:bg-violet-800/60 text-violet-600 dark:text-violet-400 shadow-lg hover:scale-110 transition-all"
+                title="Listen"
+              >
+                <i className="fi fi-sr-volume text-xl"></i>
+              </button>
             </div>
             <div className="flex flex-wrap justify-center gap-6">
               {roundData.choices.map((choice, i) => (
@@ -190,7 +216,11 @@ ref={(el) => { choiceRefs.current[i] = el; }}
                   key={i}
                   onClick={() => !isTransitioning && !isFeedbackVisible && onAnswer(choice)}
                   disabled={isTransitioning || isFeedbackVisible}
-                  className="w-24 h-24 md:w-28 md:h-28 rounded-3xl bg-white dark:bg-zinc-800 text-5xl font-black text-zinc-700 dark:text-zinc-200 shadow-[0_8px_0_0_#e4e4e7] dark:shadow-[0_8px_0_0_#27272a] active:shadow-none active:translate-y-2 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all duration-150 border-2 border-zinc-100 dark:border-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`rounded-3xl bg-white dark:bg-zinc-800 font-black text-zinc-700 dark:text-zinc-200 shadow-[0_8px_0_0_#e4e4e7] dark:shadow-[0_8px_0_0_#27272a] active:shadow-none active:translate-y-2 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all duration-150 border-2 border-zinc-100 dark:border-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    isThaiText
+                      ? "min-w-[7rem] px-4 py-3 text-xl md:text-2xl"
+                      : "w-24 h-24 md:w-28 md:h-28 text-5xl"
+                  }`}
                 >
                   {choice}
                 </button>

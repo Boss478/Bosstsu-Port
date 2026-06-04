@@ -261,6 +261,53 @@ export const LANG: Record<string, LangEntry> = {
   "card.turbo.desc": entry("โอเวอร์คล็อกทำให้ CPU เร็วขึ้นแต่ร้อนขึ้น!", "Overclocking makes CPUs faster but generates more heat!"),
   "card.context": entry("🔄 ราชาแห่งการสลับ", "🔄 Context King"),
   "card.context.desc": entry("CPU สลับงาน 1000 ครั้งต่อวินาที!", "Your CPU switches between tasks 1000 times per second!"),
+  "card.ssd": entry("💨 SSD vs HDD", "💨 SSD vs HDD"),
+  "card.ssd.desc": entry("SSD เร็วกว่า HDD ถึง 100 เท่า!", "SSD is 100x faster than HDD!"),
+  "card.freeze": entry("❄️ ระบบค้าง", "❄️ System Freeze"),
+  "card.freeze.desc": entry("CPU หรือ RAM ทำงานหนักเกินไป ทำให้เครื่องค้าง!", "Overloaded CPU or RAM causes the system to freeze!"),
+  "card.bsod": entry("💀 จอฟ้าแห่งความตาย", "💀 Blue Screen of Death"),
+  "card.bsod.desc": entry("BSOD เกิดจากฮาร์ดแวร์หรือซอฟต์แวร์ทำงานผิดพลาดร้ายแรง!", "BSOD occurs from critical hardware or software failures!"),
+  "card.overheat": entry("🌡️ เครื่องร้อนเกินไป", "🌡️ Overheating"),
+  "card.overheat.desc": entry("CPU ร้อนเกิน 85°C ทำให้ระบบปิดตัวเองเพื่อป้องกัน!", "CPU over 85°C triggers automatic shutdown to prevent damage!"),
+  "card.memleak": entry("🕳️ หน่วยความจำรั่ว", "🕳️ Memory Leak"),
+  "card.memleak.desc": entry("โปรแกรมใช้ RAM แล้วไม่คืน ทำให้ RAM เต็ม!", "Programs that don't release RAM cause memory leaks!"),
+  "card.slowpc": entry("🐢 คอมพิวเตอร์ช้า", "🐢 Slow PC"),
+  "card.slowpc.desc": entry("HDD ช้า, RAM น้อย, CPU แก่ — สามสาเหตุหลักของคอมช้า!", "Slow HDD, low RAM, old CPU — three main causes of a slow PC!"),
+
+  /* === SIMULATION UI KEYS (Phase B) === */
+  "sim.send": entry("ส่ง", "Send"),
+  "sim.reset": entry("รีเซ็ต", "Reset"),
+  "sim.shape.circle": entry("ข้อความ", "Text"),
+  "sim.shape.square": entry("ไฟล์", "File"),
+  "sim.shape.diamond": entry("คำสั่ง", "Cmd"),
+  "sim.input.placeholder": entry("พิมพ์ข้อความแล้วกดส่ง...", "Type text and press Send..."),
+  "sim.concurrent": entry("พร้อมกัน", "Concurrent"),
+  "sim.performance": entry("ประสิทธิภาพ", "Performance"),
+  "sim.crash": entry("ขัดข้อง", "Crash"),
+  "sim.ssd": entry("SSD", "SSD"),
+  "sim.hdd": entry("HDD", "HDD"),
+  "sim.interior": entry("ภายในเคส", "Inside Case"),
+  "sim.interior.close": entry("ปิด", "Close"),
+  "sim.desk": entry("โต๊ะทำงาน", "Desk View"),
+  "sim.crash.title": entry("ระบบขัดข้อง!", "System Crash!"),
+  "sim.crash.desc": entry("ตรวจพบความผิดปกติของระบบ", "System anomaly detected"),
+  "sim.crash.fix": entry("คำแนะนำการแก้ไข", "Fix Tip"),
+
+  /* Crash scenarios */
+  "crash.freeze": entry("ระบบค้าง", "System Freeze"),
+  "crash.freeze.desc": entry("CPU โอเวอร์โหลดและ RAM เต็ม—ระบบไม่ตอบสนอง", "CPU overload and full RAM—system becomes unresponsive"),
+  "crash.bsod": entry("จอฟ้า (BSOD)", "Blue Screen"),
+  "crash.bsod.desc": entry("RAM เสียหายหรือไม่มี—ระบบหยุดทำงาน", "Corrupted or missing RAM—system halts"),
+  "crash.overheat": entry("ปิดเครื่องเพราะร้อน", "Overheat Shutdown"),
+  "crash.overheat.desc": entry("CPU ร้อนเกินขีดจำกัด—ปิดเครื่องอัตโนมัติ", "CPU exceeds temperature limit—auto shutdown"),
+  "crash.memleak": entry("หน่วยความจำรั่ว", "Memory Leak"),
+  "crash.memleak.desc": entry("RAM ค่อยๆ เต็ม—ระบบช้าลงเรื่อยๆ", "RAM fills up gradually—system slows progressively"),
+  "crash.slow": entry("เครื่องช้ามาก", "Extreme Slowness"),
+  "crash.slow.desc": entry("HDD ช้ามาก—การดำเนินการแต่ละครั้งใช้เวลาหลายวินาที", "Very slow HDD—every operation takes seconds"),
+
+  /* SSD vs HDD scenario */
+  "scenario.ssd": entry("SSD vs HDD", "SSD vs HDD"),
+  "scenario.ssd.desc": entry("เปรียบเทียบความเร็ว SSD และ HDD", "Compare SSD and HDD speed difference"),
 
   /* === COMPONENT MUSEUM === */
   "museum.title": entry("พิพิธภัณฑ์ส่วนประกอบ", "Component Museum"),
@@ -302,6 +349,69 @@ export const LANG: Record<string, LangEntry> = {
   "ui.retry": entry("ลองอีกครั้ง", "Retry"),
   "ui.skip": entry("ข้าม", "Skip"),
   "ui.next": entry("ถัดไป", "Next"),
+
+  /* === WORKLOAD DESIGNER === */
+  "workload.title": entry("ปริมาณงาน", "Workload"),
+  "workload.add": entry("เพิ่มข้อมูล", "Add Data"),
+  "workload.remove": entry("ลบ", "Remove"),
+  "workload.concurrency": entry("ต่อวินาที", "/sec"),
+  "workload.gpu": entry("ต้องใช้ GPU", "GPU"),
+  "workload.apps": entry("แอปพลิเคชัน", "Apps"),
+  "workload.app.add": entry("เปิด", "Open"),
+  "workload.app.close": entry("ปิด", "Close"),
+  "workload.ram": entry("RAM", "RAM"),
+  "workload.apps.running": entry("แอปที่เปิดอยู่", "Running Apps"),
+  "workload.datasets": entry("ชุดข้อมูล", "Datasets"),
+
+  "workload.calculation": entry("คำนวณ", "Calculation"),
+  "workload.text": entry("ข้อความ", "Text"),
+  "workload.image": entry("รูปภาพ", "Image"),
+  "workload.video": entry("วิดีโอ", "Video"),
+  "workload.database": entry("ฐานข้อมูล", "Database"),
+  "workload.web": entry("เว็บ", "Web"),
+  "workload.ml": entry("ML", "ML"),
+  "workload.compression": entry("บีบอัด", "Compression"),
+
+  "app.vscode": entry("VS Code", "VS Code"),
+  "app.chrome": entry("Chrome", "Chrome"),
+  "app.photoshop": entry("Photoshop", "Photoshop"),
+  "app.youtube": entry("YouTube", "YouTube"),
+  "app.discord": entry("Discord", "Discord"),
+  "app.spotify": entry("Spotify", "Spotify"),
+  "app.calculator": entry("เครื่องคิดเลข", "Calculator"),
+  "app.minecraft": entry("Minecraft", "Minecraft"),
+
+  /* === SETTINGS PANEL === */
+  "settings.title": entry("ตั้งค่า", "Settings"),
+  "settings.concurrency": entry("ทำพร้อมกัน", "Concurrency"),
+  "settings.resource": entry("ทรัพยากร", "Resource"),
+  "settings.resource.light": entry("น้อย (<1GB)", "Light (<1GB)"),
+  "settings.resource.medium": entry("ปานกลาง (1-3GB)", "Medium (1-3GB)"),
+  "settings.resource.heavy": entry("หนัก (>3GB)", "Heavy (>3GB)"),
+  "settings.workload": entry("ปริมาณงาน", "Workload"),
+  "settings.datasize": entry("ขนาดข้อมูล", "Data Size"),
+
+  /* === SPECS PANEL === */
+  "specs.title": entry("ปรับสเปค", "Spec Adjustments"),
+  "specs.cpu.cores": entry("CPU Cores", "CPU Cores"),
+  "specs.cpu.clock": entry("CPU Clock", "CPU Clock"),
+  "specs.ram.sticks": entry("RAM Sticks", "RAM Sticks"),
+  "specs.ram.capacity": entry("RAM Capacity (GB)", "RAM Capacity (GB)"),
+  "specs.gpu.cores": entry("GPU Cores", "GPU Cores"),
+  "specs.gpu.vram": entry("GPU VRAM (GB)", "GPU VRAM (GB)"),
+  "specs.ssd.read": entry("SSD Read (MB/s)", "SSD Read (MB/s)"),
+  "specs.hdd.read": entry("HDD Read (MB/s)", "HDD Read (MB/s)"),
+
+  /* === WIRE LABELS === */
+  "wire.label.kbd": entry("KBD", "KBD"),
+  "wire.label.hdmi": entry("HDMI", "HDMI"),
+
+  /* === EMERGENT CRASH === */
+  "crash.emergent.thermal": entry("ร้อนเกินไป—ลดภาระ CPU หรือเพิ่มพัดลม", "Overheating—reduce CPU load or increase fan"),
+  "crash.emergent.ram": entry("RAM เต็ม—ปิดแอปหรืออัปเกรด RAM", "RAM full—close apps or upgrade RAM"),
+  "crash.emergent.disk": entry("พื้นที่เต็ม—ล้างไฟล์ที่ไม่ใช้", "Storage full—clean up files"),
+  "crash.emergent.oom": entry("หน่วยความจำไม่พอ—แอปต้องการ RAM มากกว่าที่มี", "Out of memory—app needs more RAM than installed"),
+  "crash.emergent.bottleneck": entry("คอขวดรุนแรง—อัปเกรดส่วนประกอบที่ช้าที่สุด", "Severe bottleneck—upgrade the slowest component"),
 };
 
 export function t(key: string, lang: "th" | "en", mode: "student" | "advanced"): string {

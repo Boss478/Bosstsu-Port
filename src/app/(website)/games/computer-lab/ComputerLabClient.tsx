@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
-import type { Screen, LangCode, GameMode, SpriteQuality, GameSettings } from "./types";
+import type { Screen, LangCode, GameMode, SpriteQuality, GameSettings, SaveData } from "./types";
 import { CRT_CLASS } from "./constants";
 import { loadSave, saveSave, unlockNextStages, getDefaultSave } from "./save";
 import { audioEngine } from "./audio";
@@ -51,6 +51,14 @@ export default function ComputerLabClient() {
       const next = { ...prev, settings: { ...prev.settings, ...partial } };
       saveSave(next);
       return next;
+    });
+  }, []);
+
+  const updateSave = useCallback((partial: Partial<SaveData>) => {
+    setSaveData((prev) => {
+      const next = { ...prev, ...partial };
+      saveSave(next as SaveData);
+      return next as SaveData;
     });
   }, []);
 
@@ -181,12 +189,13 @@ export default function ComputerLabClient() {
     settings: saveData.settings,
     save: saveData,
     updateSettings,
+    updateSave,
     navigate,
     playSfx,
     isMuted: muted,
     onStageComplete: handleStageComplete,
     devMode,
-  }), [lang, mode, quality, saveData, updateSettings, navigate, playSfx, muted, handleStageComplete, devMode]);
+  }), [lang, mode, quality, saveData, updateSettings, updateSave, navigate, playSfx, muted, handleStageComplete, devMode]);
 
   const CurrentScreen = SCREEN_MAP[screen];
   const showTopBar = screen !== "boot";

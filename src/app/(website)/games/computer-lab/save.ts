@@ -57,7 +57,14 @@ export function loadSave(): SaveData {
       data.cards = data.cards ?? [];
       data.version = 2;
     }
-    if (data.version !== CURRENT_VERSION) return getDefaultSave();
+    if (data.version > CURRENT_VERSION) return getDefaultSave();
+
+    const defaults = getDefaultSave();
+    for (const key of Object.keys(defaults.progress)) {
+      if (!data.progress[key as keyof typeof data.progress]) {
+        (data.progress as Record<string, unknown>)[key] = defaults.progress[key as keyof typeof defaults.progress];
+      }
+    }
     return data;
   } catch {
     return getDefaultSave();

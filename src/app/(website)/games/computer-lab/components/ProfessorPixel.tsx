@@ -98,10 +98,14 @@ export default function ProfessorPixel() {
 
     if (coatIdx === 2) return base;
 
+    const COAT_START_Y = 17;
+
     return {
       width: base.width,
       height: base.height,
-      pixels: base.pixels.map((row) => row.map((p) => (p === 2 ? coatIdx : p))),
+      pixels: base.pixels.map((row, y) =>
+        row.map((p) => (p === 2 && y >= COAT_START_Y ? coatIdx : p)),
+      ),
     };
   }, [frame, save.labCoatColor]);
 

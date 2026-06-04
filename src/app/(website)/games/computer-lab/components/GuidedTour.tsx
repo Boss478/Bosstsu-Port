@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useGame } from "../context";
-import { saveSave } from "../save";
 import { t } from "../lang";
 interface Step {
   selector: string;
@@ -29,7 +28,7 @@ function getStepStyle(selector: string) {
 }
 
 export default function GuidedTour({ steps, onComplete }: GuidedTourProps) {
-  const { lang, mode, save, updateSettings } = useGame();
+  const { lang, mode, save, updateSave } = useGame();
   const [currentStep, setCurrentStep] = useState(0);
   const [visible, setVisible] = useState(false);
 
@@ -42,11 +41,9 @@ export default function GuidedTour({ steps, onComplete }: GuidedTourProps) {
 
   const finish = useCallback(() => {
     setVisible(false);
-    const updated = { ...save, tourCompleted: true };
-    updateSettings({ ...save.settings });
-    saveSave(updated);
+    updateSave({ tourCompleted: true });
     onComplete?.();
-  }, [save, updateSettings, onComplete]);
+  }, [updateSave, onComplete]);
 
   if (!visible || save.tourCompleted || steps.length === 0) return null;
 

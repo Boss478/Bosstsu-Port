@@ -5,6 +5,7 @@ import type { ScreenShellProps } from "../types";
 import { useGame } from "../context";
 import { t } from "../lang";
 import PixelSprite from "../components/PixelSprite";
+import SimDeskView from "../components/SimDeskView";
 import { SPRITE_MAP } from "../sprites";
 
 interface ComponentDef {
@@ -118,57 +119,51 @@ export default function HardwareScreen({ onNavigate }: ScreenShellProps) {
   }
 
   return (
-    <div className="flex flex-col items-center p-4 space-y-6 min-h-full">
-      <div className="text-center space-y-1">
-        <h2 className="text-2xl font-black text-green-400">
-          {t("stage1.title", lang, mode)}
-        </h2>
-        <p className="text-zinc-500 text-xs">
-          {t("stage1.instruction", lang, mode)}
-        </p>
+    <div className="flex flex-col min-h-full">
+      <div className="flex items-center justify-between px-3 py-2 z-10">
+        <h2 className="text-lg sm:text-xl font-black text-green-400">{t("stage1.title", lang, mode)}</h2>
+        <button onClick={() => onNavigate("menu")} className="px-2 py-1 rounded bg-zinc-800 text-zinc-400 hover:text-green-400 text-[10px] transition-colors">
+          {t("topbar.back", lang, mode)}
+        </button>
       </div>
 
-      <div className="flex items-center gap-2 text-sm text-zinc-600">
-        <span>{currentIndex + 1} / {total}</span>
-        {mistakes > 0 && (
-          <span className="text-red-400">✗ {mistakes}</span>
-        )}
-      </div>
-
-      <div className="flex flex-col items-center space-y-3">
-        <PixelSprite data={SPRITE_MAP[current.spriteKey]} size={spriteSize} />
-        <p className="text-xl font-bold text-amber-400">
-          {t(current.nameKey, lang, mode)}
-        </p>
-      </div>
-
-      <p className="text-xs text-zinc-600 -mt-3">
-        {t("stage1.instruction.tap", lang, mode)}
-      </p>
-
-      {feedback && (
-        <div
-          className={`text-lg font-bold animate-pulse ${
-            feedback === "correct" ? "text-green-400" : "text-red-400"
-          }`}
-        >
-          {feedback === "correct"
-            ? t("stage1.correct", lang, mode)
-            : t("stage1.wrong", lang, mode)}
+      <div className="flex-1 px-3 pb-3 overflow-y-auto z-10 space-y-3">
+        <div className="opacity-30 mb-4 pointer-events-none">
+          <SimDeskView />
         </div>
-      )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-sm">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => handleCategoryPick(cat.id)}
-            disabled={!!feedback}
-            className="px-4 py-6 rounded-xl bg-zinc-900 border-2 border-dashed border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800 transition-all text-sm font-bold text-zinc-400 hover:text-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {t(cat.key, lang, mode)}
-          </button>
-        ))}
+        <div className="flex items-center justify-center gap-2 text-sm text-zinc-600">
+          <span>{currentIndex + 1} / {total}</span>
+          {mistakes > 0 && <span className="text-red-400">✗ {mistakes}</span>}
+        </div>
+
+        <div className="flex flex-col items-center space-y-3">
+          <PixelSprite data={SPRITE_MAP[current.spriteKey]} size={spriteSize} />
+          <p className="text-xl font-bold text-amber-400">{t(current.nameKey, lang, mode)}</p>
+        </div>
+
+        <p className="text-xs text-zinc-600 text-center -mt-2">{t("stage1.instruction.tap", lang, mode)}</p>
+
+        {feedback && (
+          <div className={`text-lg font-bold animate-pulse text-center ${
+            feedback === "correct" ? "text-green-400" : "text-red-400"
+          }`}>
+            {feedback === "correct" ? t("stage1.correct", lang, mode) : t("stage1.wrong", lang, mode)}
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-sm mx-auto">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => handleCategoryPick(cat.id)}
+              disabled={!!feedback}
+              className="px-4 py-6 rounded-xl bg-zinc-900/80 backdrop-blur-sm border-2 border-dashed border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800 transition-all text-sm font-bold text-zinc-400 hover:text-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {t(cat.key, lang, mode)}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

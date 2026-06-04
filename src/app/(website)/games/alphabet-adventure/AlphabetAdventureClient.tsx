@@ -8,15 +8,40 @@ import {
   LEVELS,
   GAME_CONFIG,
   randomPraise,
+  streakPraise,
   calcStars,
   generateMatchRound,
+  generateThaiRound,
+  generatePhonicsRound,
   generateFillRound,
   generateTypingRound,
+  PROGRESS_KEY,
 } from "./constants";
 
 import MenuScreen from "./screens/MenuScreen";
 import GameScreen from "./screens/GameScreen";
 import VictoryScreen from "./screens/VictoryScreen";
+
+function saveProgress(state: GameState, stars: number[]) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(PROGRESS_KEY, JSON.stringify({ gameState: state, stageStars: stars }));
+}
+
+function clearProgress() {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(PROGRESS_KEY);
+}
+
+function loadSavedProgress(): { gameState: GameState; stageStars: number[] } | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
 
 export default function AlphabetAdventureClient() {
   const [screen, setScreen] = useState<Screen>("menu");
@@ -26,12 +51,21 @@ export default function AlphabetAdventureClient() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [stageStars, setStageStars] = useState<number[]>([]);
+  const [hasSavedProgress, setHasSavedProgress] = useState(false);
+  const [easyMode, setEasyMode] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const { playSound, muted, toggleMute } = useAudio();
+  const { playSound, speak, muted, toggleMute } = useAudio();
 
   const stateRef = useRef(gameState);
-  stateRef.current = gameState;
+
+  useEffect(() => {
+    stateRef.current = gameState;
+  });
+
+  useEffect(() => {
+    setHasSavedProgress(!!loadSavedProgress());
+  }, []);
 
   useEffect(() => {
     const header = document.getElementById("site-header");
@@ -65,20 +99,30 @@ export default function AlphabetAdventureClient() {
     return () => document.removeEventListener("fullscreenchange", handleFsChange);
   }, []);
 
-  const showFeedback = useCallback((text: string, type: "correct" | "wrong") => {
-    setFeedback({ text, type });
+  const showFeedback = useCallback((text: string, type: "correct" | "wrong", showCorrect?: string) => {
+    setFeedback({ text, type, showCorrect });
     setTimeout(() => setFeedback({ text: "", type: "" }), GAME_CONFIG.FEEDBACK_DURATION);
   }, []);
 
   const generateRound = useCallback((state: GameState): RoundData => {
     const config = LEVELS[state.level];
     if (!config) return emptyRoundData();
+    const numChoices = state.easyMode ? 2 : 3;
 
     if (config.type === "match") {
-      const { targetLetter, correctChar, choices } = generateMatchRound(state.round);
+      if (config.dataPool === "thai") {
+        const { targetLetter, correctChar, choices } = generateThaiRound(state.round, numChoices);
+        return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1 };
+      }
+      if (config.dataPool === "phonics") {
+        const { targetLetter, correctChar, choices } = generatePhonicsRound(state.round, numChoices);
+        return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1 };
+      }
+      const { targetLetter, correctChar, choices } = generateMatchRound(state.round, numChoices);
       return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1 };
     } else if (config.type === 'fill-upper' || config.type === 'fill-lower') {
-      const { grid, missingIndices, activeIndex, choices } = generateFillRound(config.type);
+      const numFillChoices = state.easyMode ? 3 : 4;
+      const { grid, missingIndices, activeIndex, choices } = generateFillRound(config.type, numFillChoices);
       return { choices, grid, missingIndices, activeIndex };
     } else if (config.type === "typing") {
       const { grid, missingIndices } = generateTypingRound(state.difficulty);
@@ -87,16 +131,28 @@ export default function AlphabetAdventureClient() {
     return emptyRoundData();
   }, []);
 
-  const startGame = useCallback(() => {
-    const initialState = initialGameState();
+  const startGame = useCallback((savedState?: GameState, savedStars?: number[], easyMode = false) => {
+    clearProgress();
+    const initialState = savedState || { ...initialGameState(), easyMode };
     setGameState(initialState);
     setScreen("game");
     setRoundData(generateRound(initialState));
-    setStageStars([]);
+    setStageStars(savedStars || []);
+  }, [generateRound]);
+
+  const continueGame = useCallback(() => {
+    const saved = loadSavedProgress();
+    if (saved) {
+      setGameState(saved.gameState);
+      setStageStars(saved.stageStars);
+      setScreen("game");
+      setRoundData(generateRound(saved.gameState));
+    }
   }, [generateRound]);
 
   const finishGame = useCallback((score: number) => {
     playSound("win");
+    clearProgress();
     setGameState(prev => ({ ...prev, score }));
     setScreen("victory");
   }, [playSound]);
@@ -109,7 +165,8 @@ export default function AlphabetAdventureClient() {
     showFeedback("Level Complete!", "correct");
 
     const nextLevel = stateRef.current.level + 1;
-    if (nextLevel > 4) {
+    const maxLevel = stateRef.current.easyMode ? 5 : 6;
+    if (nextLevel > maxLevel) {
       setTimeout(() => finishGame(score), GAME_CONFIG.FEEDBACK_DURATION + 500);
     } else {
       const nextState: GameState = {
@@ -122,15 +179,40 @@ export default function AlphabetAdventureClient() {
         consecutiveErrors: 0,
         levelCorrect: 0,
         levelTotal: 0,
+        currentStreak: 0,
+        bestStreak: stateRef.current.bestStreak,
+        wrongAttempts: 0,
       };
       setIsTransitioning(true);
       setGameState(nextState);
+      saveProgress(nextState, [...stageStars, stars]);
       setTimeout(() => {
         setRoundData(generateRound(nextState));
         setIsTransitioning(false);
       }, GAME_CONFIG.FEEDBACK_DURATION + 500);
     }
-  }, [playSound, showFeedback, generateRound, finishGame]);
+  }, [playSound, showFeedback, generateRound, finishGame, stageStars]);
+
+  const advanceMatchRound = useCallback((currentState: GameState, newScore: number, newLevelCorrect: number, newLevelTotal: number) => {
+    const nextRound = currentState.round + 1;
+    const newState = {
+      ...currentState,
+      score: newScore,
+      round: nextRound,
+      levelCorrect: newLevelCorrect,
+      levelTotal: newLevelTotal,
+      wrongAttempts: 0,
+    };
+
+    const matchTarget = currentState.easyMode ? 15 : (LEVELS[currentState.level]?.target ?? 35);
+    if (nextRound > matchTarget) {
+      handleLevelComplete(newScore, newLevelCorrect, newLevelTotal);
+    } else {
+      setGameState(newState);
+      saveProgress(newState, stageStars);
+      setRoundData(generateRound(newState));
+    }
+  }, [generateRound, handleLevelComplete, stageStars]);
 
   const handleAnswer = useCallback((selected: string) => {
     if (isTransitioning) return;
@@ -145,21 +227,21 @@ export default function AlphabetAdventureClient() {
     if (selected === correct) {
       playSound("correct");
       const points = config.type === "typing" ? GAME_CONFIG.SCORE_TYPING_CORRECT : GAME_CONFIG.SCORE_CORRECT;
+      const newStreak = stateRef.current.currentStreak + 1;
       const newScore = stateRef.current.score + points;
-      const newState = { ...stateRef.current, score: newScore };
+      const newState = {
+        ...stateRef.current,
+        score: newScore,
+        currentStreak: newStreak,
+        bestStreak: Math.max(newStreak, stateRef.current.bestStreak),
+        wrongAttempts: 0,
+      };
+
+      const streakText = newStreak >= 2 ? ` ${streakPraise(newStreak)}` : "";
+      showFeedback(`${randomPraise("correct")} +${points}${streakText}`, "correct");
 
       if (isMatch) {
-        const nextRound = stateRef.current.round + 1;
-        newState.round = nextRound;
-        newState.levelCorrect += 1;
-        newState.levelTotal += 1;
-        showFeedback(randomPraise("correct"), "correct");
-        if (nextRound > config.target) {
-          handleLevelComplete(newScore, newState.levelCorrect, newState.levelTotal);
-        } else {
-          setGameState(newState);
-          setRoundData(generateRound(newState));
-        }
+        advanceMatchRound(newState, newScore, newState.levelCorrect + 1, newState.levelTotal + 1);
       } else {
         const newGrid = [...roundData.grid];
         newGrid[roundData.activeIndex] = { ...newGrid[roundData.activeIndex], isHidden: false, isCorrect: true };
@@ -172,9 +254,11 @@ export default function AlphabetAdventureClient() {
           newState.winsInLevel = newWins;
           if (newWins >= config.target) {
             handleLevelComplete(newScore, newState.levelCorrect, newState.levelTotal);
+            saveProgress(newState, stageStars);
           } else {
             setIsTransitioning(true);
             setGameState(newState);
+            saveProgress(newState, stageStars);
             showFeedback(randomPraise("correct"), "correct");
             setTimeout(() => {
               setRoundData(generateRound(newState));
@@ -183,7 +267,9 @@ export default function AlphabetAdventureClient() {
           }
         } else {
           const isUpper = config.type === "fill-upper";
-          const alphabet = isUpper ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("") : "abcdefghijklmnopqrstuvwxyz".split("");
+          const alphabet = isUpper
+            ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
+            : "abcdefghijklmnopqrstuvwxyz".split("");
           const nextActive = nextMissing[0];
           const nextCorrect = alphabet[nextActive];
           const choices = [nextCorrect];
@@ -199,24 +285,44 @@ export default function AlphabetAdventureClient() {
             choices: shuffleArray(choices),
           });
           setGameState(newState);
+          saveProgress(newState, stageStars);
         }
       }
     } else {
       playSound("wrong");
       const points = config.type === "typing" ? GAME_CONFIG.SCORE_TYPING_WRONG : GAME_CONFIG.SCORE_WRONG;
+      const newWrong = stateRef.current.wrongAttempts + 1;
+      const newWrongLetters = isMatch && roundData.targetLetter
+        ? [...stateRef.current.wrongLetters, roundData.targetLetter]
+        : stateRef.current.wrongLetters;
       const newState = {
         ...stateRef.current,
         score: Math.max(0, stateRef.current.score - points),
         levelTotal: stateRef.current.levelTotal + 1,
+        currentStreak: 0,
+        wrongAttempts: newWrong,
+        wrongLetters: newWrongLetters,
       };
-      setGameState(newState);
-      showFeedback(randomPraise("wrong"), "wrong");
+
+      if (isMatch && newWrong >= GAME_CONFIG.WRONG_LIMIT) {
+        const correctAnswer = roundData.correctChar || "";
+        setFeedback({ text: `${correctAnswer}!`, type: "correct", showCorrect: correctAnswer });
+        setIsTransitioning(true);
+        setTimeout(() => {
+          advanceMatchRound(newState, newState.score, newState.levelCorrect, newState.levelTotal);
+          setFeedback({ text: "", type: "" });
+          setIsTransitioning(false);
+        }, GAME_CONFIG.FEEDBACK_DURATION);
+      } else {
+        setGameState(newState);
+        showFeedback(`${randomPraise("wrong")} -${points}`, "wrong", correct);
+      }
     }
-  }, [isTransitioning, roundData, generateRound, playSound, showFeedback, handleLevelComplete]);
+  }, [isTransitioning, roundData, generateRound, playSound, showFeedback, handleLevelComplete, advanceMatchRound, stageStars]);
 
   const checkTyping = useCallback(() => {
     if (isTransitioning) return;
-    const config = LEVELS[4];
+    const config = LEVELS[6];
     if (!config) return;
 
     let allCorrect = true;
@@ -234,6 +340,7 @@ export default function AlphabetAdventureClient() {
       const newScore = stateRef.current.score + GAME_CONFIG.SCORE_TYPING_CORRECT;
       const newWins = stateRef.current.winsInLevel + 1;
       const newDifficulty = Math.min(GAME_CONFIG.MAX_DIFFICULTY, stateRef.current.difficulty + GAME_CONFIG.DIFFICULTY_INCREASE);
+      const newStreak = stateRef.current.currentStreak + 1;
       const newState: GameState = {
         ...stateRef.current,
         score: newScore,
@@ -242,14 +349,21 @@ export default function AlphabetAdventureClient() {
         consecutiveErrors: 0,
         levelCorrect: stateRef.current.levelCorrect + stateRef.current.difficulty,
         levelTotal: stateRef.current.levelTotal + stateRef.current.difficulty,
+        currentStreak: newStreak,
+        bestStreak: Math.max(newStreak, stateRef.current.bestStreak),
+        wrongAttempts: 0,
       };
+
+      const streakText = newStreak >= 2 ? ` ${streakPraise(newStreak)}` : "";
+      showFeedback(`${randomPraise("correct")} +${GAME_CONFIG.SCORE_TYPING_CORRECT}${streakText}`, "correct");
 
       if (newWins >= config.target) {
         handleLevelComplete(newScore, newState.levelCorrect, newState.levelTotal);
+        saveProgress(newState, stageStars);
       } else {
         setIsTransitioning(true);
         setGameState(newState);
-        showFeedback(randomPraise("correct"), "correct");
+        saveProgress(newState, stageStars);
         setTimeout(() => {
           const round = generateTypingRound(newDifficulty);
           setRoundData({ choices: [], ...round });
@@ -264,6 +378,8 @@ export default function AlphabetAdventureClient() {
         score: Math.max(0, stateRef.current.score - GAME_CONFIG.SCORE_TYPING_WRONG),
         consecutiveErrors: newErrors,
         levelTotal: stateRef.current.levelTotal + stateRef.current.difficulty,
+        currentStreak: 0,
+        wrongAttempts: stateRef.current.wrongAttempts + 1,
       };
 
       if (newErrors >= GAME_CONFIG.ERROR_THRESHOLD) {
@@ -274,6 +390,7 @@ export default function AlphabetAdventureClient() {
           consecutiveErrors: 0,
         };
         setGameState(easierState);
+        saveProgress(easierState, stageStars);
         setIsTransitioning(true);
         setTimeout(() => {
           const round = generateTypingRound(easierState.difficulty);
@@ -293,7 +410,7 @@ export default function AlphabetAdventureClient() {
         }, 800);
       }
     }
-  }, [isTransitioning, roundData, playSound, showFeedback, handleLevelComplete]);
+  }, [isTransitioning, roundData, playSound, showFeedback, handleLevelComplete, stageStars]);
 
   const handleSelectCell = useCallback((index: number) => {
     setRoundData(prev => ({ ...prev, activeIndex: index }));
@@ -318,7 +435,15 @@ export default function AlphabetAdventureClient() {
       style={{ fontFamily: "'Mali', sans-serif" }}
     >
       <div className="w-full max-w-3xl mx-auto relative">
-        {screen === "menu" && <MenuScreen onStart={startGame} />}
+        {screen === "menu" && (
+          <MenuScreen
+            onStart={() => startGame(undefined, undefined, easyMode)}
+            onContinue={continueGame}
+            hasProgress={hasSavedProgress}
+            easyMode={easyMode}
+            onToggleEasy={() => setEasyMode(v => !v)}
+          />
+        )}
 
         {screen === "game" && (
           <GameScreen
@@ -335,11 +460,12 @@ export default function AlphabetAdventureClient() {
             onToggleMute={toggleMute}
             onSelectCell={handleSelectCell}
             onTypingInput={handleTypingInput}
+            onSpeak={speak}
           />
         )}
 
         {screen === "victory" && (
-          <VictoryScreen score={gameState.score} stageStars={stageStars} />
+          <VictoryScreen score={gameState.score} stageStars={stageStars} wrongLetters={gameState.wrongLetters} />
         )}
       </div>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import type { ScreenShellProps, StageId, LabCoatColor } from "../types";
 import { useGame } from "../context";
 import { t } from "../lang";
@@ -10,6 +10,7 @@ import ProfessorPixel from "../components/ProfessorPixel";
 import Certificate from "../components/Certificate";
 import DailyChallenge from "../components/DailyChallenge";
 import CatEasterEgg from "../components/CatEasterEgg";
+import SimDeskView from "../components/SimDeskView";
 import { useKonamiCode } from "../hooks/useKonamiCode";
 import { SPRITE_MAP } from "../sprites";
 
@@ -30,29 +31,20 @@ const LAB_COLORS: { color: LabCoatColor; label: string; className: string }[] = 
   { color: "black", label: "Black", className: "bg-zinc-900 border-zinc-600" },
 ];
 
-function getRoomBg(completedCount: number, totalStages: number): string {
-  const ratio = completedCount / totalStages;
-  if (ratio === 0) return "from-zinc-950 via-zinc-900 to-zinc-950";
-  if (ratio <= 0.25) return "from-zinc-950 via-zinc-800 to-zinc-950";
-  if (ratio <= 0.5) return "from-zinc-900 via-blue-950 to-zinc-900";
-  if (ratio <= 0.75) return "from-zinc-900 via-slate-900 to-zinc-900";
-  return "from-zinc-900 via-emerald-950 to-zinc-900";
-}
-
-function getWindowOverlay(): string | null {
-  const hour = new Date().getHours();
-  if (hour >= 6 && hour < 12) return "bg-gradient-to-b from-amber-900/10 to-transparent";
-  if (hour >= 12 && hour < 18) return "bg-gradient-to-b from-sky-900/5 to-transparent";
-  if (hour >= 18 && hour < 21) return "bg-gradient-to-b from-orange-900/20 to-purple-900/10";
-  return "bg-gradient-to-b from-indigo-950/40 to-blue-950/20";
-}
+const STAGE_COLORS = [
+  "from-blue-500/20 to-blue-600/10",
+  "from-green-500/20 to-green-600/10",
+  "from-amber-500/20 to-amber-600/10",
+  "from-purple-500/20 to-purple-600/10",
+  "from-red-500/20 to-red-600/10",
+];
 
 export default function MenuScreen({ onNavigate }: ScreenShellProps) {
-  const { lang, mode, save, devMode, navigate } = useGame();
+  const { lang, mode, save, devMode, navigate, onStageComplete } = useGame();
+  const [showSoftwareWarning, setShowSoftwareWarning] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
-  useKonamiCode(() => {
-    navigate("pong");
-  });
+  useKonamiCode(() => navigate("pong"));
 
   const completedCount = useMemo(() =>
     STAGES.filter((s) => save.progress[s.id]?.completed).length,
@@ -64,116 +56,178 @@ export default function MenuScreen({ onNavigate }: ScreenShellProps) {
     [save.progress]
   );
 
-  const roomBg = getRoomBg(completedCount, STAGES.length);
-  const windowOverlay = getWindowOverlay();
+  const [coatColor, setCoatColor] = useState(save.labCoatColor);
 
-  const handleCoatChange = (color: LabCoatColor) => {
+  const handleCoatChange = useCallback((color: LabCoatColor) => {
+    setCoatColor(color);
     const next = { ...save, labCoatColor: color };
     saveSave(next);
-    Object.assign(save, next);
-  };
+  }, [save]);
 
   return (
-    <div className={`relative min-h-full bg-gradient-to-b ${roomBg} transition-all duration-700`}>
-      <div className={`fixed inset-0 pointer-events-none ${windowOverlay} transition-all duration-1000`} />
-
+    <div className="relative min-h-full bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950">
       <CatEasterEgg />
 
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-full p-6 text-center space-y-6">
-        <div className="flex gap-3">
-          <PixelSprite data={SPRITE_MAP.monitor} size={32} />
-          <PixelSprite data={SPRITE_MAP.cpu} size={32} />
-          <PixelSprite data={SPRITE_MAP.keyboard} size={32} />
-        </div>
+      {/* Desktop background */}
+      <div className="relative w-full h-full min-h-[80vh]">
+        <SimDeskView
+          monitorScreen={
+            <div className="w-full h-full flex flex-col p-1.5 gap-1 font-mono">
+              <div className="flex items-center justify-between text-[7px] text-green-600/70 mb-0.5">
+                <span>{t("menu.title", lang, mode)}</span>
+                <span>{completedCount}/{STAGES.length} {totalStars}/15 ★</span>
+              </div>
+              {STAGES.map((stage, i) => {
+                const progress = save.progress[stage.id];
+                const isUnlocked = progress?.unlocked ?? false;
+                const isCompleted = progress?.completed ?? false;
+                const stars = progress?.stars ?? 0;
 
-        <h1 className="text-4xl font-black text-green-400 tracking-tight">
-          {t("menu.title", lang, mode)}
-        </h1>
-        <p className="text-zinc-400 text-lg">
-          {t("menu.subtitle", lang, mode)}
-        </p>
+                if (!isUnlocked && !devMode) {
+                  return (
+                    <div
+                      key={stage.id}
+                      className="flex items-center gap-1 px-1.5 py-1 rounded bg-green-950/30 border border-green-900/40 text-green-800 text-[8px] font-bold opacity-50 cursor-not-allowed"
+                    >
+                      <PixelSprite data={SPRITE_MAP.lock} size={16} className="shrink-0 w-3 h-3" />
+                      <span className="truncate">{t(stage.labelKey, lang, mode)}</span>
+                    </div>
+                  );
+                }
 
-        <div className="text-zinc-500 text-xs space-x-4">
-          <span>Stages: {completedCount}/{STAGES.length}</span>
-          <span>Stars: {totalStars}/15</span>
-        </div>
+                return (
+                  <button
+                    key={stage.id}
+                    onClick={() => stage.id === "software" ? setShowSoftwareWarning(true) : onNavigate(stage.id)}
+                    className={`flex items-center gap-1 px-1.5 py-1 rounded text-[8px] font-bold text-left transition-all border ${
+                      isCompleted ? "border-green-600/50 bg-green-950/20" : "border-green-900/40 hover:bg-green-950/30 hover:border-green-600/50"
+                    }`}
+                  >
+                    <div className="w-4 h-4 flex items-center justify-center rounded bg-black/40">
+                      <PixelSprite data={SPRITE_MAP[stage.sprite]} size={16} className="w-3 h-3" />
+                    </div>
+                    <span className="flex-1 text-green-400 truncate">{t(stage.labelKey, lang, mode)}</span>
+                    {isCompleted && (
+                      <span className="flex gap-px shrink-0">
+                        {[0, 1, 2].map((si) => (
+                          <PixelSprite key={si} data={si < stars ? SPRITE_MAP.star_filled : SPRITE_MAP.star_empty} size={16} className="w-2.5 h-2.5" />
+                        ))}
+                      </span>
+                    )}
+                    {stage.id === "software" && !isCompleted && (
+                      <span className="text-amber-500/70 text-[6px]">DEV</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          }
+        />
 
-        <div className="flex items-center justify-center gap-2">
-          {LAB_COLORS.map(({ color, className }) => (
-            <button
-              key={color}
-              onClick={() => handleCoatChange(color)}
-              className={`w-6 h-6 rounded-full border-2 transition-all ${
-                className} ${
-                save.labCoatColor === color
-                  ? "ring-2 ring-green-400 scale-110"
-                  : "opacity-60 hover:opacity-100"
-              }`}
-              title={LAB_COLORS.find(c => c.color === color)?.label}
-            />
-          ))}
-        </div>
+        {/* Settings gear */}
+        <button
+          onClick={() => setShowSettings((s) => !s)}
+          className="absolute top-2 right-2 z-30 px-2 py-1 rounded-lg bg-zinc-800/80 text-zinc-400 text-[10px] font-bold hover:text-white hover:bg-zinc-700 transition-all border border-zinc-700"
+        >
+          ⚙ {t("topbar.settings", lang, mode)}
+        </button>
 
-        <div className="grid grid-cols-2 gap-3 w-full max-w-md">
-          {STAGES.map((stage) => {
-            const progress = save.progress[stage.id];
-            const isUnlocked = progress?.unlocked ?? false;
-            const isCompleted = progress?.completed ?? false;
-            const stars = progress?.stars ?? 0;
-
-            if (!isUnlocked && !devMode) {
-              return (
-                <div
-                  key={stage.id}
-                  className="px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-700 font-bold text-sm flex flex-col items-center gap-1 opacity-60"
-                  title={t("menu.locked", lang, mode)}
-                >
-                  <PixelSprite data={SPRITE_MAP.lock} size={16} className="inline-block" />
-                  <span>{t(stage.labelKey, lang, mode)}</span>
-                </div>
-              );
-            }
-
-            return (
-              <button
-                key={stage.id}
-                onClick={() => onNavigate(stage.id)}
-                className="px-4 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-green-500 transition-all text-zinc-300 hover:text-green-400 font-bold text-sm flex flex-col items-center gap-1"
-              >
-                <span>{t(stage.labelKey, lang, mode)}</span>
-                {isCompleted && (
-                  <span className="inline-flex gap-0.5">
-                    {[0,1,2].map((i) => (
-                      <PixelSprite key={i} data={i < stars ? SPRITE_MAP.star_filled : SPRITE_MAP.star_empty} size={16} className="inline-block" />
-                    ))}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {save.pongUnlocked && (
-          <button
-            onClick={() => navigate("pong")}
-            className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-purple-500 text-purple-400 hover:text-purple-300 font-bold text-sm transition-all"
-          >
-            Play Pong
-          </button>
-        )}
-
-        {completedCount === STAGES.length && (
-          <div className="w-full max-w-md mt-4">
-            <DailyChallenge />
-          </div>
-        )}
-
-        <div className="w-full max-w-lg mt-6">
-          <Certificate />
+        {/* Bottom-left: progress info */}
+        <div className="absolute bottom-2 left-2 z-20 flex items-center gap-3 px-2 py-1 rounded bg-zinc-900/80 border border-zinc-800 text-[8px] text-zinc-500">
+          <span>{completedCount}/{STAGES.length} {lang === "th" ? "ด่าน" : "stages"}</span>
+          <span>★ {totalStars}/15</span>
         </div>
       </div>
 
-      <ProfessorPixel />
+      {/* Pong button */}
+      {save.pongUnlocked && (
+        <div className="absolute bottom-2 right-2 z-20">
+          <button
+            onClick={() => navigate("pong")}
+            className="px-2 py-1 rounded-lg bg-purple-900/60 border border-purple-700/50 text-purple-400 text-[9px] font-bold hover:bg-purple-800/60 transition-all"
+          >
+            PONG
+          </button>
+        </div>
+      )}
+
+      {/* Professor on desk */}
+      <div className="absolute left-[5%] bottom-[18%] z-20">
+        <ProfessorPixel />
+      </div>
+
+      {/* Daily challenge (all stages complete) */}
+      {completedCount === STAGES.length && (
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20">
+          <DailyChallenge />
+        </div>
+      )}
+
+      {/* Certificate */}
+      {completedCount === STAGES.length && (
+        <div className="px-4 py-2 mb-4">
+          <Certificate />
+        </div>
+      )}
+
+      {/* Settings panel */}
+      {showSettings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowSettings(false)}>
+          <div
+            className="bg-zinc-900 border border-zinc-700 rounded-xl max-w-xs w-full mx-3 p-4 animate-popup-enter"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-bold text-zinc-200">{t("topbar.settings", lang, mode)}</span>
+              <button onClick={() => setShowSettings(false)} className="text-zinc-500 hover:text-zinc-300">✕</button>
+            </div>
+
+            {/* Coat colors */}
+            <div className="mb-3">
+              <div className="text-[10px] text-zinc-500 mb-1.5 font-bold uppercase tracking-wider">
+                {lang === "th" ? "สีเสื้อคลุม" : "Lab Coat"}
+              </div>
+              <div className="flex gap-2">
+                {LAB_COLORS.map(({ color, className }) => (
+                  <button
+                    key={color}
+                    onClick={() => handleCoatChange(color)}
+                    className={`w-7 h-7 rounded-full border-2 transition-all ${className} ${
+                      coatColor === color ? "ring-2 ring-green-400 scale-110" : "opacity-60 hover:opacity-100"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Software warning */}
+      {showSoftwareWarning && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 max-w-xs w-full mx-4 text-center space-y-4">
+            <p className="text-amber-400 text-base font-bold">Software Stage Under Development</p>
+            <p className="text-zinc-300 text-sm">
+              Some icons in this stage may not be completed yet. You can still play, or skip to unlock the next stage.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => { setShowSoftwareWarning(false); onNavigate("software"); }}
+                className="px-5 py-2.5 rounded-xl bg-zinc-800 text-zinc-300 font-bold text-sm hover:bg-zinc-700 transition-colors"
+              >
+                Enter Stage
+              </button>
+              <button
+                onClick={() => { setShowSoftwareWarning(false); onStageComplete("software", 0, 0); }}
+                className="px-5 py-2.5 rounded-xl bg-emerald-700 text-white font-bold text-sm hover:bg-emerald-600 transition-colors"
+              >
+                Skip & Unlock Next
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
