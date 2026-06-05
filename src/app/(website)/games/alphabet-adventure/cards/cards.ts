@@ -118,12 +118,12 @@ export function addCard(letter: string, tier: CardTier): { collection: CardColle
 }
 
 const DROP_RATES: Array<{ tier: CardTier | null; base: number; max: number }> = [
-  { tier: null, base: 85, max: 70 },
-  { tier: "common", base: 8.0, max: 4.0 },
-  { tier: "uncommon", base: 4.0, max: 10.0 },
-  { tier: "rare", base: 2.0, max: 8.0 },
-  { tier: "ultra-rare", base: 0.7, max: 5.0 },
-  { tier: "legendary", base: 0.3, max: 3.0 },
+  { tier: null, base: 90, max: 80 },
+  { tier: "common", base: 5.5, max: 5.0 },
+  { tier: "uncommon", base: 2.7, max: 6.4 },
+  { tier: "rare", base: 1.2, max: 5.4 },
+  { tier: "ultra-rare", base: 0.5, max: 2.2 },
+  { tier: "legendary", base: 0.1, max: 1.0 },
 ];
 
 function interpolateRate(base: number, max: number, streak: number): number {
@@ -138,7 +138,8 @@ export function getDropRate(tier: CardTier, streak: number): number {
 }
 
 export function getNoneDropRate(streak: number): number {
-  return interpolateRate(90, 80, streak);
+  const entry = DROP_RATES.find(r => r.tier === null);
+  return interpolateRate(entry!.base, entry!.max, streak);
 }
 
 export function getEffectiveStreak(dropStreak: number, dropPower: number): number {

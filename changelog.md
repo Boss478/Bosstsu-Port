@@ -4,6 +4,11 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.43 (2026-06-05)
+* **Alphabet Adventure drop rate rebalance**:
+  * Adjusted base rates: No Card 90, Common 5.5, Uncommon 2.7, Rare 1.2, Ultra-Rare 0.5, Legendary 0.1 — interpolating to max-at-20 values: 80, 5.0, 6.4, 5.4, 2.2, 1.0 respectively. All rows sum to 100% at both ends
+  * Fixed `getNoneDropRate` stale hardcode — now derives from `DROP_RATES` to stay in sync automatically
+
 ## v1.9.42 (2026-06-05)
 * **Alphabet Adventure refactoring (non-breaking)**:
   + *Phase A — Consolidation*: extracted shared Fisher-Yates shuffle to `src/lib/shuffle.ts`; added `isHolographicTier` helper to `cards.ts`; collapsed duplicate tier color maps in CardScreen
