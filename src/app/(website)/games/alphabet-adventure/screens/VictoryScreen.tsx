@@ -7,6 +7,8 @@ interface Props {
   score: number;
   stageStars: number[];
   wrongLetters?: string[];
+  onRestart: () => void;
+  onBackToMenu: () => void;
 }
 
 function StarDisplay({ count }: { count: number }) {
@@ -57,7 +59,7 @@ function Confetti() {
   );
 }
 
-export default function VictoryScreen({ score, stageStars, wrongLetters }: Props) {
+export default function VictoryScreen({ score, stageStars, wrongLetters, onRestart, onBackToMenu }: Props) {
   const [isNewBest] = useState(() => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(PROGRESS_KEY);
@@ -158,13 +160,13 @@ export default function VictoryScreen({ score, stageStars, wrongLetters }: Props
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 pt-8">
           <button
-            onClick={() => window.location.reload()}
+            onClick={onRestart}
             className="px-12 py-5 bg-emerald-600 text-white text-2xl font-black rounded-3xl shadow-[0_12px_0_0_#065f46] active:shadow-none active:translate-y-3 transition-all"
           >
             Play Again
           </button>
           <button
-            onClick={() => window.location.href = '/games/alphabet-adventure'}
+            onClick={onBackToMenu}
             className="text-zinc-400 hover:text-violet-500 font-bold transition-colors"
           >
             Back to Menu

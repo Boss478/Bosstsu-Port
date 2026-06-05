@@ -4,6 +4,12 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.42 (2026-06-05)
+* **Alphabet Adventure refactoring (non-breaking)**:
+  + *Phase A — Consolidation*: extracted shared Fisher-Yates shuffle to `src/lib/shuffle.ts`; added `isHolographicTier` helper to `cards.ts`; collapsed duplicate tier color maps in CardScreen
+  * *Phase B — Component Extraction*: extracted MatchLevel, FillLevel, TypingLevel from GameScreen (415→295 lines); extracted beta overlays + card toasts into GameOverlays component
+  * *Phase C — Hook Extraction*: extracted game logic + card drop system into `useGameActions` hook (20 return values); AA Client dropped from 774→180 lines
+
 ## v1.9.40 (2026-06-04)
 + **Teacher review fixes — sound per-level, KG mode, error tracking, Thai reverse (BETA), voice picker**:
   + Sound button now speaks content matching each level's dataPool (Thai text / phonics / letter name)

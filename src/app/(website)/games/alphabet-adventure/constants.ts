@@ -1,4 +1,5 @@
 import type { LevelConfig } from "./types";
+import { shuffleArray } from "@/lib/shuffle";
 
 const ALPHABET_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const ALPHABET_LOWER = "abcdefghijklmnopqrstuvwxyz".split("");
@@ -124,19 +125,16 @@ export function streakPraise(streak: number): string {
   return `${streak} in a row! ${STREAK_PRAISE[idx]}`;
 }
 
-function fisherYatesShuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
+const fisherYatesShuffle = shuffleArray;
+
+let roundSeed: number[] | null = null;
 
 function getLetterIndex(round: number): number {
   if (round <= 26) return round - 1;
-  const pool = fisherYatesShuffle([...Array(26).keys()]);
-  return pool[(round - 27) % 26];
+  if (!roundSeed) {
+    roundSeed = fisherYatesShuffle([...Array(26).keys()]);
+  }
+  return roundSeed[(round - 27) % 26];
 }
 
 export function generateMatchRound(round: number, numChoices = 3) {
@@ -229,6 +227,16 @@ export function generatePhonicsRevertRound(round: number, numChoices = 3) {
   };
 }
 
+export function generateFillChoices(correctChar: string, numChoices: number, isUpper: boolean): string[] {
+  const alphabet = isUpper ? ALPHABET_UPPER : ALPHABET_LOWER;
+  const choices = [correctChar];
+  while (choices.length < numChoices) {
+    const r = alphabet[Math.floor(Math.random() * 26)];
+    if (!choices.includes(r)) choices.push(r);
+  }
+  return fisherYatesShuffle(choices);
+}
+
 export function generateFillRound(type: "fill-upper" | "fill-lower", numChoices = 4) {
   const isUpper = type === "fill-upper";
   const alphabet = isUpper ? ALPHABET_UPPER : ALPHABET_LOWER;
@@ -247,17 +255,13 @@ export function generateFillRound(type: "fill-upper" | "fill-lower", numChoices 
   }));
 
   const correct = alphabet[missing[0]];
-  const choices = [correct];
-  while (choices.length < numChoices) {
-    const r = alphabet[Math.floor(Math.random() * 26)];
-    if (!choices.includes(r)) choices.push(r);
-  }
+  const choices = generateFillChoices(correct, numChoices, isUpper);
 
   return {
     grid,
     missingIndices: missing,
     activeIndex: missing[0],
-    choices: fisherYatesShuffle(choices),
+    choices,
   };
 }
 

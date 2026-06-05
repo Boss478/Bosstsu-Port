@@ -52,7 +52,9 @@ export default function MenuScreen({ onStart, onContinue, hasProgress, easyMode,
         {isBeta && (
           <button
             onClick={() => {
-              localStorage.removeItem(CARD_STORAGE_KEY);
+              if (window.confirm("Delete all collected cards? This cannot be undone.")) {
+                localStorage.removeItem(CARD_STORAGE_KEY);
+              }
             }}
             className="p-2 rounded-xl bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800/40 text-red-500 hover:text-red-600 text-xs transition-all hover:scale-105"
             title="Reset Cards (Debug)"
@@ -94,7 +96,7 @@ export default function MenuScreen({ onStart, onContinue, hasProgress, easyMode,
         {!isBeta && (
           <button
             onClick={() => router.push("/games/alphabet-adventure/beta")}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white text-xs font-black uppercase tracking-widest shadow-lg hover:shadow-xl transition-all hover:scale-105"
+            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-xs font-black uppercase tracking-widest shadow-lg hover:shadow-xl transition-all hover:scale-105"
             title="Try BETA Features"
           >
             BETA

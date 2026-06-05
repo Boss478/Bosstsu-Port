@@ -7,15 +7,18 @@ import {
   TIER_LABELS,
   TIER_LETTERS,
   loadCollection,
-  CARD_EMOJIS,
   CARD_WORDS,
+  isHolographicTier,
 } from "../../cards/cards";
+import { CardIllustration } from "../../cards/CardIllustrations";
+import { CardFrame } from "../../cards/CardFrame";
 import CaptainAlph from "../../characters/CaptainAlph";
 import Mermaid from "../../characters/Mermaid";
 import TreasureMonster from "../../characters/TreasureMonster";
 
 interface Props {
   onBack: () => void;
+  playSequence?: (frequencies: number[], noteDuration?: number, gainVal?: number) => void;
 }
 
 type SortMode = "tier" | "recent" | "all" | "stats";
@@ -34,53 +37,7 @@ const TIER_GLOW: Record<CardTier, string> = {
   legendary: "rgba(245,158,11,0.4)",
 };
 
-const TIER_BORDER: Record<CardTier, string> = {
-  common: "border-zinc-300 dark:border-zinc-600",
-  uncommon: "border-green-300 dark:border-green-700",
-  rare: "border-blue-300 dark:border-blue-700",
-  "ultra-rare": "border-purple-300 dark:border-purple-700",
-  legendary: "border-amber-300 dark:border-amber-700",
-};
 
-const TIER_BG: Record<CardTier, string> = {
-  common: "bg-white dark:bg-zinc-800",
-  uncommon: "bg-green-50 dark:bg-green-900/20",
-  rare: "bg-blue-50 dark:bg-blue-900/20",
-  "ultra-rare": "bg-purple-50 dark:bg-purple-900/20",
-  legendary: "bg-amber-50 dark:bg-amber-900/20",
-};
-
-const TIER_RIBBON: Record<CardTier, string> = {
-  common: "bg-zinc-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400",
-  uncommon: "bg-green-200 dark:bg-green-800 text-green-700 dark:text-green-300",
-  rare: "bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-300",
-  "ultra-rare": "bg-purple-200 dark:bg-purple-800 text-purple-700 dark:text-purple-300",
-  legendary: "bg-amber-200 dark:bg-amber-800 text-amber-700 dark:text-amber-300",
-};
-
-const TIER_BACK_BORDER: Record<CardTier, string> = {
-  common: "border-zinc-300 dark:border-zinc-500",
-  uncommon: "border-green-300 dark:border-green-500",
-  rare: "border-blue-300 dark:border-blue-500",
-  "ultra-rare": "border-purple-300 dark:border-purple-500",
-  legendary: "border-amber-300 dark:border-amber-500",
-};
-
-const TIER_BACK_BG: Record<CardTier, string> = {
-  common: "bg-zinc-100 dark:bg-zinc-800",
-  uncommon: "bg-green-50 dark:bg-green-900/20",
-  rare: "bg-blue-50 dark:bg-blue-900/20",
-  "ultra-rare": "bg-purple-50 dark:bg-purple-900/20",
-  legendary: "bg-amber-50 dark:bg-amber-900/20",
-};
-
-const TIER_DOT: Record<CardTier, string> = {
-  common: "bg-zinc-400",
-  uncommon: "bg-green-500",
-  rare: "bg-blue-500",
-  "ultra-rare": "bg-purple-500",
-  legendary: "bg-amber-500",
-};
 
 const TIER_BG_FILL: Record<CardTier, string> = {
   common: "bg-zinc-400",
@@ -91,31 +48,26 @@ const TIER_BG_FILL: Record<CardTier, string> = {
 };
 
 function CollectedCardFace({ letter, tier, count, isRarest }: { letter: string; tier: CardTier; count: number; isRarest?: boolean }) {
+  const isHolo = isHolographicTier(tier);
   return (
-    <div
-      className={`relative w-full aspect-[4/5] rounded-3xl border-[3px] flex flex-col items-center justify-center gap-1.5 p-3 shadow-lg hover:-translate-y-2 hover:scale-[1.04] hover:shadow-2xl transition-all duration-200 cursor-default ${TIER_BORDER[tier]} ${TIER_BG[tier]}`}
-      style={{ boxShadow: `0 0 16px ${TIER_GLOW[tier]}` }}
-    >
-      {isRarest && (
-        <span className="absolute -top-3 -left-3 text-2xl z-10 drop-shadow-lg animate-pulse" title="Rarest card!">
-          👑
+    <div className="relative w-full aspect-[5/7] cursor-default transition-all duration-200 hover:-translate-y-2 hover:scale-[1.04] hover:drop-shadow-2xl">
+      <CardFrame
+        tier={tier}
+        namePlate={`${CARD_WORDS[letter] || ""} · ${TIER_LABELS[tier]}`}
+        holographic={isHolo}
+      >
+        <div className="-mt-8 -mb-8">
+          <CardIllustration letter={letter} size={125} />
+        </div>
+        <span className="text-4xl font-black leading-none text-zinc-800 drop-shadow-[0_2px_3px_rgba(255,255,255,0.9)]">
+          {letter}
         </span>
-      )}
+      </CardFrame>
       {isRarest && (
-        <div className="absolute -inset-1 rounded-[1.3rem] border-2 border-amber-400/40 pointer-events-none" />
+        <span className="absolute -top-1.5 -right-1.5 text-lg z-10 animate-pulse drop-shadow-lg">👑</span>
       )}
-      <span className="text-3xl md:text-4xl leading-none">{CARD_EMOJIS[letter] || "\u{1F0CF}"}</span>
-      <span className="text-4xl md:text-5xl font-black leading-none text-zinc-800 dark:text-zinc-100">
-        {letter}
-      </span>
-      <span className="text-xs md:text-sm font-bold text-zinc-500 dark:text-zinc-400 leading-tight">
-        {CARD_WORDS[letter] || ""}
-      </span>
-      <div className={`absolute bottom-0 left-0 right-0 py-1.5 rounded-b-3xl text-[10px] font-black uppercase tracking-widest ${TIER_RIBBON[tier]}`}>
-        {TIER_LABELS[tier]}
-      </div>
       {count > 1 && (
-        <span className="absolute -top-2.5 -right-2.5 w-7 h-7 rounded-full bg-zinc-800 dark:bg-zinc-700 text-white text-xs font-black flex items-center justify-center shadow-lg border-2 border-white dark:border-zinc-900">
+        <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-zinc-800 text-white text-[10px] font-black flex items-center justify-center shadow-lg border-2 border-white">
           {count}
         </span>
       )}
@@ -123,33 +75,15 @@ function CollectedCardFace({ letter, tier, count, isRarest }: { letter: string; 
   );
 }
 
-const TIER_BACK_PATTERN: Record<CardTier, { bg: string; dot: string; pattern: string }> = {
-  common: { bg: "#e4e4e7", dot: "#a1a1aa", pattern: "M12 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" },
-  uncommon: { bg: "#bbf7d0", dot: "#22c55e", pattern: "M12 2L22 12L12 22L2 12Z" },
-  rare: { bg: "#bfdbfe", dot: "#3b82f6", pattern: "M12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21Z" },
-  "ultra-rare": { bg: "#d8b4fe", dot: "#a855f7", pattern: "M12 1L14 8L21 8L15.5 12.5L17.5 19.5L12 15L6.5 19.5L8.5 12.5L3 8L10 8Z" },
-  legendary: { bg: "#fde68a", dot: "#f59e0b", pattern: "M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26Z" },
-};
-
 function UncollectedCardBack({ tier }: { tier: CardTier }) {
-  const pat = TIER_BACK_PATTERN[tier];
   return (
-    <div className={`relative w-full aspect-[4/5] rounded-3xl border-[3px] flex items-center justify-center shadow-lg overflow-hidden ${TIER_BACK_BORDER[tier]} ${TIER_BACK_BG[tier]}`}>
-      <svg className="absolute inset-0 w-full h-full opacity-15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        {[...Array(3)].map((_, row) => (
-          [...Array(3)].map((_, col) => (
-            <g key={`${row}-${col}`} transform={`translate(${col * 8 + 2}, ${row * 8 + 2}) scale(0.18)`}>
-              <path d={pat.pattern} fill={pat.dot} />
-            </g>
-          ))
-        ))}
-      </svg>
-      <span className="text-5xl md:text-6xl text-zinc-300 dark:text-zinc-600 select-none relative z-10 drop-shadow-lg">?</span>
+    <div className="relative w-full aspect-[5/7]">
+      <CardFrame tier={tier} showBack />
     </div>
   );
 }
 
-export default function CardScreen({ onBack }: Props) {
+export default function CardScreen({ onBack, playSequence }: Props) {
   const [collection, setCollection] = useState<CardCollection>({
     cards: [], totalPoints: 0, dropPower: 0,
   });
@@ -161,6 +95,7 @@ export default function CardScreen({ onBack }: Props) {
   useEffect(() => {
     setCollection(loadCollection());
     setMounted(true);
+    playSequence?.([523, 659, 784], 0.12, 0.08);
   }, []);
 
   useEffect(() => {
@@ -335,10 +270,15 @@ export default function CardScreen({ onBack }: Props) {
           {/* Sort tabs */}
           {totalCollected > 0 && (
             <div className="flex justify-center gap-2">
-              {(["tier", "recent", "all", "stats"] as SortMode[]).map((mode) => (
+                  {(["tier", "recent", "all", "stats"] as SortMode[]).map((mode) => (
                 <button
                   key={mode}
-                  onClick={() => setSortMode(mode)}
+                  onClick={() => {
+                    if (mode !== sortMode) {
+                      playSequence?.([600, 800], 0.08, 0.06);
+                      setSortMode(mode);
+                    }
+                  }}
                   className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
                     sortMode === mode
                       ? "bg-violet-600 text-white shadow-lg"
@@ -366,7 +306,7 @@ export default function CardScreen({ onBack }: Props) {
                 return (
                   <div key={tier}>
                     <div className="flex items-center justify-center gap-3 mb-5">
-                      <div className={`h-5 w-1.5 rounded-full ${TIER_DOT[tier]}`} />
+                      <div className={`h-5 w-1.5 rounded-full ${TIER_BG_FILL[tier]}`} />
                       <span className="text-xl font-black tracking-wider text-zinc-700 dark:text-zinc-200">{TIER_LABELS[tier]}</span>
                       <span className="text-sm font-bold text-zinc-400">{collected.length}/{letters.length}</span>
                     </div>
@@ -408,7 +348,7 @@ export default function CardScreen({ onBack }: Props) {
                     const pct = total > 0 ? (collected / total) * 100 : 0;
                     return (
                       <div key={tier} className="flex items-center gap-2">
-                        <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${TIER_DOT[tier]}`} />
+                        <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${TIER_BG_FILL[tier]}`} />
                         <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 w-20 text-left">{TIER_LABELS[tier]}</span>
                         <div className="flex-1 h-2.5 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden">
                           <div className={`h-full rounded-full transition-all duration-700 ${TIER_BG_FILL[tier]}`} style={{ width: `${pct}%` }} />

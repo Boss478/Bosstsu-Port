@@ -1,3 +1,5 @@
+import { shuffleArray } from "@/lib/shuffle";
+
 export type CardTier = "common" | "uncommon" | "rare" | "ultra-rare" | "legendary";
 
 export const TIER_ORDER: CardTier[] = [
@@ -31,6 +33,12 @@ export const TIER_LABELS: Record<CardTier, string> = {
   "ultra-rare": "Ultra Rare",
   legendary: "Legendary",
 };
+
+const HOLOGRAPHIC_TIERS: CardTier[] = ["rare", "ultra-rare", "legendary"];
+
+export function isHolographicTier(tier: CardTier): boolean {
+  return HOLOGRAPHIC_TIERS.includes(tier);
+}
 
 export const TIER_COLORS: Record<CardTier, string> = {
   common: "text-zinc-500 bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700",
@@ -110,12 +118,12 @@ export function addCard(letter: string, tier: CardTier): { collection: CardColle
 }
 
 const DROP_RATES: Array<{ tier: CardTier | null; base: number; max: number }> = [
-  { tier: null, base: 90.9, max: 82 },
-  { tier: "common", base: 5, max: 3 },
-  { tier: "uncommon", base: 2.5, max: 6 },
-  { tier: "rare", base: 1, max: 5.5 },
-  { tier: "ultra-rare", base: 0.5, max: 2.5 },
-  { tier: "legendary", base: 0.1, max: 1 },
+  { tier: null, base: 85, max: 70 },
+  { tier: "common", base: 8.0, max: 4.0 },
+  { tier: "uncommon", base: 4.0, max: 10.0 },
+  { tier: "rare", base: 2.0, max: 8.0 },
+  { tier: "ultra-rare", base: 0.7, max: 5.0 },
+  { tier: "legendary", base: 0.3, max: 3.0 },
 ];
 
 function interpolateRate(base: number, max: number, streak: number): number {
@@ -130,7 +138,7 @@ export function getDropRate(tier: CardTier, streak: number): number {
 }
 
 export function getNoneDropRate(streak: number): number {
-  return interpolateRate(90.9, 82, streak);
+  return interpolateRate(90, 80, streak);
 }
 
 export function getEffectiveStreak(dropStreak: number, dropPower: number): number {
@@ -138,8 +146,7 @@ export function getEffectiveStreak(dropStreak: number, dropPower: number): numbe
 }
 
 export function rollCardDrop(dropStreak: number, dropPower: number): CardTier | null {
-  const effective = getEffectiveStreak(dropStreak, dropPower);
-  const clamped = Math.min(Math.max(effective, 0), 20);
+  const clamped = getEffectiveStreak(dropStreak, dropPower);
   const roll = Math.random() * 100;
   let cumulative = 0;
 
@@ -150,8 +157,13 @@ export function rollCardDrop(dropStreak: number, dropPower: number): CardTier | 
 
   return null;
 }
+const tierLetterPools = new Map<CardTier, string[]>();
 
 export function pickLetter(tier: CardTier): string {
-  const letters = TIER_LETTERS[tier];
-  return letters[Math.floor(Math.random() * letters.length)];
+  let pool = tierLetterPools.get(tier);
+  if (!pool || pool.length === 0) {
+    pool = shuffleArray(TIER_LETTERS[tier]);
+    tierLetterPools.set(tier, pool);
+  }
+  return pool.pop()!;
 }
