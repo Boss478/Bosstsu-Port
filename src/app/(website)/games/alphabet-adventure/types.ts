@@ -10,6 +10,7 @@ export interface LevelConfig {
   type: LevelType;
   hideCount?: number;
   dataPool?: DataPool;
+  revert?: boolean;
 }
 
 export interface GameState {
@@ -43,6 +44,7 @@ export interface RoundData {
   grid: GridCell[];
   missingIndices: number[];
   activeIndex: number;
+  revert?: boolean;
 }
 
 export interface FeedbackState {

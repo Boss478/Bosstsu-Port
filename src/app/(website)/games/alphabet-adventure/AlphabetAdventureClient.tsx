@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import type { CardTier } from "./cards/cards";
+import { rollCardDrop, pickLetter, addCard, getDropRate, getNoneDropRate, getEffectiveStreak, loadCollection, saveCollection, TIER_ORDER, TIER_LABELS, CARD_EMOJIS, CARD_WORDS } from "./cards/cards";
 import { useAudio } from "@/hooks/useAudio";
 import type { Screen, GameState, RoundData, FeedbackState, GridCell } from "./types";
 import { initialGameState, emptyRoundData } from "./types";
@@ -12,7 +14,9 @@ import {
   calcStars,
   generateMatchRound,
   generateThaiRound,
+  generateThaiRevertRound,
   generatePhonicsRound,
+  generatePhonicsRevertRound,
   generateFillRound,
   generateTypingRound,
   PROGRESS_KEY,
@@ -21,6 +25,8 @@ import {
 import MenuScreen from "./screens/MenuScreen";
 import GameScreen from "./screens/GameScreen";
 import VictoryScreen from "./screens/VictoryScreen";
+import CardScreen from "./beta/screens/CardScreen";
+import CardRevealModal from "./beta/screens/CardRevealModal";
 
 function saveProgress(state: GameState, stars: number[]) {
   if (typeof window === "undefined") return;
@@ -43,7 +49,11 @@ function loadSavedProgress(): { gameState: GameState; stageStars: number[] } | n
   }
 }
 
-export default function AlphabetAdventureClient() {
+interface Props {
+  beta?: boolean;
+}
+
+export default function AlphabetAdventureClient({ beta = false }: Props) {
   const [screen, setScreen] = useState<Screen>("menu");
   const [gameState, setGameState] = useState<GameState>(initialGameState());
   const [roundData, setRoundData] = useState<RoundData>(emptyRoundData());
@@ -53,19 +63,48 @@ export default function AlphabetAdventureClient() {
   const [stageStars, setStageStars] = useState<number[]>([]);
   const [hasSavedProgress, setHasSavedProgress] = useState(false);
   const [easyMode, setEasyMode] = useState(false);
+  const [showCards, setShowCards] = useState(false);
+  const [lastCardDropped, setLastCardDropped] = useState<{ letter: string; tier: CardTier; isNew: boolean } | null>(null);
+  const [streakToast, setStreakToast] = useState("");
+  const [cardReveal, setCardReveal] = useState<{ letter: string; tier: CardTier; isNew: boolean } | null>(null);
+  const [showDebug, setShowDebug] = useState(false);
+  const [showCollectionOverlay, setShowCollectionOverlay] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const { playSound, speak, muted, toggleMute } = useAudio();
+  const { playSound, speak, muted, toggleMute, playSequence, voiceURI, setVoiceURI } = useAudio();
 
   const stateRef = useRef(gameState);
+  const betaRef = useRef(beta);
+  const dropStreakRef = useRef(0);
+  const dropPowerRef = useRef(0);
+  const cardToastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const streakToastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cardRevealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const CARD_TIER_SOUNDS: Record<CardTier, number[]> = {
+    common: [500],
+    uncommon: [500, 700],
+    rare: [500, 700, 900],
+    "ultra-rare": [500, 800, 1100, 1300],
+    legendary: [523, 659, 784, 1047],
+  };
 
   useEffect(() => {
     stateRef.current = gameState;
   });
 
   useEffect(() => {
+    betaRef.current = beta;
+  }, [beta]);
+
+  useEffect(() => {
     setHasSavedProgress(!!loadSavedProgress());
-  }, []);
+    if (beta) {
+      dropPowerRef.current = loadCollection().dropPower || 0;
+    }
+    const savedVoice = localStorage.getItem("alphabet-adventure-voice");
+    if (savedVoice) setVoiceURI(savedVoice);
+  }, [beta, setVoiceURI]);
 
   useEffect(() => {
     const header = document.getElementById("site-header");
@@ -111,12 +150,16 @@ export default function AlphabetAdventureClient() {
 
     if (config.type === "match") {
       if (config.dataPool === "thai") {
-        const { targetLetter, correctChar, choices } = generateThaiRound(state.round, numChoices);
-        return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1 };
+        const isRevert = betaRef.current;
+        const gen = isRevert ? generateThaiRevertRound : generateThaiRound;
+        const { targetLetter, correctChar, choices } = gen(state.round, numChoices);
+        return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1, revert: isRevert };
       }
       if (config.dataPool === "phonics") {
-        const { targetLetter, correctChar, choices } = generatePhonicsRound(state.round, numChoices);
-        return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1 };
+        const isRevert = betaRef.current;
+        const gen = isRevert ? generatePhonicsRevertRound : generatePhonicsRound;
+        const { targetLetter, correctChar, choices } = gen(state.round, numChoices);
+        return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1, revert: isRevert };
       }
       const { targetLetter, correctChar, choices } = generateMatchRound(state.round, numChoices);
       return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1 };
@@ -225,7 +268,39 @@ export default function AlphabetAdventureClient() {
       : roundData.grid[roundData.activeIndex]?.char;
 
     if (selected === correct) {
-      playSound("correct");
+      let cardDropped = false;
+
+      if (beta) {
+        dropStreakRef.current += 1;
+        const tier = rollCardDrop(dropStreakRef.current, dropPowerRef.current);
+        if (tier) {
+          cardDropped = true;
+          playSequence(CARD_TIER_SOUNDS[tier]);
+          dropStreakRef.current = 0;
+          const newPower = Math.min(10, dropPowerRef.current + 1);
+          dropPowerRef.current = newPower;
+          const collection = loadCollection();
+          collection.dropPower = newPower;
+          saveCollection(collection);
+          const letter = pickLetter(tier);
+          const { isNew } = addCard(letter, tier);
+          if (stateRef.current.easyMode) {
+            if (cardToastRef.current) clearTimeout(cardToastRef.current);
+            setLastCardDropped({ letter, tier, isNew });
+            cardToastRef.current = setTimeout(() => setLastCardDropped(null), 2500);
+          } else {
+            if (cardRevealTimerRef.current) clearTimeout(cardRevealTimerRef.current);
+            cardRevealTimerRef.current = setTimeout(() => {
+              setCardReveal({ letter, tier, isNew });
+            }, 1000);
+          }
+        }
+      }
+
+      if (!cardDropped) {
+        playSound("correct");
+      }
+
       const points = config.type === "typing" ? GAME_CONFIG.SCORE_TYPING_CORRECT : GAME_CONFIG.SCORE_CORRECT;
       const newStreak = stateRef.current.currentStreak + 1;
       const newScore = stateRef.current.score + points;
@@ -237,8 +312,12 @@ export default function AlphabetAdventureClient() {
         wrongAttempts: 0,
       };
 
-      const streakText = newStreak >= 2 ? ` ${streakPraise(newStreak)}` : "";
-      showFeedback(`${randomPraise("correct")} +${points}${streakText}`, "correct");
+      if (newStreak === 3 || newStreak === 5 || (newStreak >= 10 && newStreak % 5 === 0)) {
+        if (streakToastRef.current) clearTimeout(streakToastRef.current);
+        setStreakToast(streakPraise(newStreak));
+        streakToastRef.current = setTimeout(() => setStreakToast(""), 1500);
+      }
+      showFeedback(`${randomPraise("correct")} +${points}`, "correct");
 
       if (isMatch) {
         advanceMatchRound(newState, newScore, newState.levelCorrect + 1, newState.levelTotal + 1);
@@ -289,6 +368,9 @@ export default function AlphabetAdventureClient() {
         }
       }
     } else {
+      dropStreakRef.current = 0;
+      setStreakToast("");
+      if (cardRevealTimerRef.current) { clearTimeout(cardRevealTimerRef.current); cardRevealTimerRef.current = null; }
       playSound("wrong");
       const points = config.type === "typing" ? GAME_CONFIG.SCORE_TYPING_WRONG : GAME_CONFIG.SCORE_WRONG;
       const newWrong = stateRef.current.wrongAttempts + 1;
@@ -354,8 +436,12 @@ export default function AlphabetAdventureClient() {
         wrongAttempts: 0,
       };
 
-      const streakText = newStreak >= 2 ? ` ${streakPraise(newStreak)}` : "";
-      showFeedback(`${randomPraise("correct")} +${GAME_CONFIG.SCORE_TYPING_CORRECT}${streakText}`, "correct");
+      if (newStreak === 3 || newStreak === 5 || (newStreak >= 10 && newStreak % 5 === 0)) {
+        if (streakToastRef.current) clearTimeout(streakToastRef.current);
+        setStreakToast(streakPraise(newStreak));
+        streakToastRef.current = setTimeout(() => setStreakToast(""), 1500);
+      }
+      showFeedback(`${randomPraise("correct")} +${GAME_CONFIG.SCORE_TYPING_CORRECT}`, "correct");
 
       if (newWins >= config.target) {
         handleLevelComplete(newScore, newState.levelCorrect, newState.levelTotal);
@@ -371,6 +457,9 @@ export default function AlphabetAdventureClient() {
         }, GAME_CONFIG.FEEDBACK_DURATION);
       }
     } else {
+      dropStreakRef.current = 0;
+      setStreakToast("");
+      if (cardRevealTimerRef.current) { clearTimeout(cardRevealTimerRef.current); cardRevealTimerRef.current = null; }
       playSound("wrong");
       const newErrors = stateRef.current.consecutiveErrors + 1;
       const newState: GameState = {
@@ -424,6 +513,18 @@ export default function AlphabetAdventureClient() {
     });
   }, []);
 
+  const handleVoiceChange = useCallback((uri: string) => {
+    setVoiceURI(uri);
+    if (typeof window !== "undefined") {
+      if (uri) localStorage.setItem("alphabet-adventure-voice", uri);
+      else localStorage.removeItem("alphabet-adventure-voice");
+    }
+  }, [setVoiceURI]);
+
+  const handleCardKeep = useCallback(() => {
+    setCardReveal(null);
+  }, []);
+
   return (
     <div
       ref={containerRef}
@@ -435,36 +536,240 @@ export default function AlphabetAdventureClient() {
       style={{ fontFamily: "'Mali', sans-serif" }}
     >
       <div className="w-full max-w-3xl mx-auto relative">
-        {screen === "menu" && (
+        {showCards && (
+          <CardScreen onBack={() => setShowCards(false)} />
+        )}
+
+        {!showCards && screen === "menu" && (
           <MenuScreen
             onStart={() => startGame(undefined, undefined, easyMode)}
             onContinue={continueGame}
             hasProgress={hasSavedProgress}
             easyMode={easyMode}
             onToggleEasy={() => setEasyMode(v => !v)}
+            isBeta={beta}
+            onShowCards={() => setShowCards(true)}
+            voiceURI={voiceURI}
+            onVoiceChange={handleVoiceChange}
           />
         )}
 
-        {screen === "game" && (
-          <GameScreen
-            gameState={gameState}
-            roundData={roundData}
-            feedback={feedback}
-            isTransitioning={isTransitioning}
-            isFullscreen={isFullscreen}
-            muted={muted}
-            onAnswer={handleAnswer}
-            onCheckTyping={checkTyping}
-            onBack={() => setScreen("menu")}
-            onToggleFullscreen={toggleFullscreen}
-            onToggleMute={toggleMute}
-            onSelectCell={handleSelectCell}
-            onTypingInput={handleTypingInput}
-            onSpeak={speak}
-          />
+        {!showCards && screen === "game" && (
+          <>
+            {beta && (
+              <>
+                <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+                  <span className="inline-block px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg animate-pulse">
+                    BETA
+                  </span>
+                  <button
+                    onClick={() => setShowCollectionOverlay(v => !v)}
+                    className="p-1.5 rounded-lg bg-zinc-800/80 border border-zinc-700 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-all"
+                    title="Collection"
+                  >
+                    <i className="fi fi-sr-template text-xs"></i>
+                  </button>
+                  <button
+                    onClick={() => setShowDebug((v) => !v)}
+                    className="p-1.5 rounded-lg bg-zinc-800/80 border border-zinc-700 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-all"
+                    title="Toggle debug panel"
+                  >
+                    <i className="fi fi-sr-eye text-xs"></i>
+                  </button>
+                </div>
+                {showDebug && (
+                <div className="fixed top-4 left-4 z-50 animate-in fade-in duration-300">
+                  <div className="bg-black/80 backdrop-blur-md px-3 py-2 rounded-xl border border-zinc-700 shadow-2xl min-w-[140px]">
+                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1.5">
+                      Eff {getEffectiveStreak(dropStreakRef.current, dropPowerRef.current)} | Drop {dropStreakRef.current} | Pwr {dropPowerRef.current}
+                    </p>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+                      <div className="flex justify-between text-[10px] font-bold">
+                        <span className="text-zinc-500">None</span>
+                        <span className="text-zinc-500 tabular-nums">{getNoneDropRate(getEffectiveStreak(dropStreakRef.current, dropPowerRef.current)).toFixed(0)}%</span>
+                      </div>
+                      {(() => {
+                        const eff = getEffectiveStreak(dropStreakRef.current, dropPowerRef.current);
+                        return TIER_ORDER.map((tier) => {
+                          const rate = getDropRate(tier, eff);
+                          return (
+                            <div key={tier} className="flex justify-between text-[10px] font-bold">
+                              <span className="text-zinc-400">{TIER_LABELS[tier]}</span>
+                              <span className="text-amber-400 tabular-nums">{rate.toFixed(1)}%</span>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {showCollectionOverlay && (
+                <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="bg-black/85 backdrop-blur-xl px-5 py-4 rounded-2xl border border-zinc-700 shadow-2xl min-w-[260px]">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Collection</p>
+                      <button
+                        onClick={() => setShowCollectionOverlay(false)}
+                        className="text-zinc-500 hover:text-zinc-300 transition-colors"
+                      >
+                        <i className="fi fi-sr-cross text-xs"></i>
+                      </button>
+                    </div>
+                    {(() => {
+                      const col = loadCollection();
+                      const total = col.cards.length;
+                      const recent = [...col.cards].sort((a, b) => (b.lastCollected ?? 0) - (a.lastCollected ?? 0)).slice(0, 3);
+                      return (
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-zinc-300">{total} / 26 cards</span>
+                            <span className="text-xs font-bold text-amber-400">{col.totalPoints} pts</span>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-zinc-700 overflow-hidden">
+                            <div className="h-full rounded-full bg-violet-500 transition-all" style={{ width: `${(total / 26) * 100}%` }} />
+                          </div>
+                          {recent.length > 0 && (
+                            <div>
+                              <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Recent</p>
+                              <div className="flex gap-2">
+                                {recent.map(card => (
+                                  <div key={`${card.letter}-${card.tier}`} className="flex items-center gap-1.5 bg-zinc-800/60 px-2 py-1 rounded-lg">
+                                    <span className="text-base">{CARD_EMOJIS[card.letter] || "🃏"}</span>
+                                    <span className="text-xs font-bold text-zinc-300">{card.letter}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          <button
+                            onClick={() => { setShowCollectionOverlay(false); setShowCards(true); }}
+                            className="w-full py-1.5 rounded-lg bg-violet-600/80 hover:bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest transition-all"
+                          >
+                            View Full Collection
+                          </button>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              )}
+              </>
+            )}
+            {streakToast && (
+              <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50">
+                <div className="animate-in slide-in-from-top-2 duration-300">
+                  <div className="bg-white/95 dark:bg-zinc-800/95 backdrop-blur-md px-6 py-3 rounded-2xl shadow-2xl border-2 border-orange-400 flex items-center gap-3">
+                    <span className="text-lg">🔥</span>
+                    <span className="text-sm font-black text-orange-600 dark:text-orange-400 whitespace-nowrap">
+                      {streakToast}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+            {lastCardDropped && (() => {
+                  const emojiKey = lastCardDropped.letter.toUpperCase();
+                  const emoji = CARD_EMOJIS[emojiKey] || "🃏";
+                  const word = CARD_WORDS[emojiKey] || "";
+                  const tierColors: Record<string, string> = {
+                    common: "border-zinc-300 dark:border-zinc-600 shadow-zinc-400/30",
+                    uncommon: "border-green-300 dark:border-green-600 shadow-green-400/30",
+                    rare: "border-blue-300 dark:border-blue-600 shadow-blue-400/30",
+                    "ultra-rare": "border-purple-300 dark:border-purple-600 shadow-purple-400/30",
+                    legendary: "border-amber-300 dark:border-amber-500 shadow-amber-400/40",
+                  };
+                  const tierBg: Record<string, string> = {
+                    common: "bg-zinc-50 dark:bg-zinc-800",
+                    uncommon: "bg-green-50 dark:bg-green-900/20",
+                    rare: "bg-blue-50 dark:bg-blue-900/20",
+                    "ultra-rare": "bg-purple-50 dark:bg-purple-900/20",
+                    legendary: "bg-amber-50 dark:bg-amber-900/20",
+                  };
+                  const borderColor = tierColors[lastCardDropped.tier] || tierColors.common;
+                  const bgColor = tierBg[lastCardDropped.tier] || tierBg.common;
+                  const label = TIER_LABELS[lastCardDropped.tier] || lastCardDropped.tier;
+                  const tierSparkleColor: Record<string, string> = {
+                    common: "#a1a1aa",
+                    uncommon: "#4ade80",
+                    rare: "#60a5fa",
+                    "ultra-rare": "#c084fc",
+                    legendary: "#fbbf24",
+                  };
+                  const sparkleColor = tierSparkleColor[lastCardDropped.tier] || "#a1a1aa";
+                  return (
+                    <>
+                      <div className="animate-in zoom-in duration-300 relative">
+                        <div className="absolute -top-1 -left-1 w-1.5 h-1.5 rounded-full pointer-events-none opacity-0" style={{ backgroundColor: sparkleColor, animation: "sparkle-pop 1s ease-out forwards", animationDelay: "0s" }} />
+                        <div className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full pointer-events-none opacity-0" style={{ backgroundColor: sparkleColor, animation: "sparkle-pop 1s ease-out forwards", animationDelay: "0.15s" }} />
+                        <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 rounded-full pointer-events-none opacity-0" style={{ backgroundColor: sparkleColor, animation: "sparkle-pop 1s ease-out forwards", animationDelay: "0.3s" }} />
+                        <div className="absolute -bottom-1 -right-1 w-1.5 h-1.5 rounded-full pointer-events-none opacity-0" style={{ backgroundColor: sparkleColor, animation: "sparkle-pop 1s ease-out forwards", animationDelay: "0.45s" }} />
+                        <div className={`w-44 rounded-2xl border-2 ${borderColor} ${bgColor} shadow-2xl shadow-[0_0_20px_var(--tw-shadow-color)] p-4 flex flex-col items-center gap-1 relative overflow-hidden`}>
+                          <div className="flex items-center justify-between w-full mb-1">
+                            <span className="text-2xl">{emoji}</span>
+                            {lastCardDropped.isNew && (
+                              <span className="text-[9px] font-black text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 px-1.5 py-0.5 rounded animate-pulse">
+                                NEW!
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-4xl font-black text-zinc-800 dark:text-zinc-100 leading-none">
+                            {lastCardDropped.letter}
+                          </span>
+                          {word && (
+                            <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">
+                              {word}
+                            </span>
+                          )}
+                          <span className={`text-[9px] font-black uppercase tracking-wider mt-1 px-2 py-0.5 rounded-full ${
+                            lastCardDropped.tier === "legendary"
+                              ? "text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30"
+                              : lastCardDropped.tier === "ultra-rare"
+                              ? "text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30"
+                              : lastCardDropped.tier === "rare"
+                              ? "text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30"
+                              : lastCardDropped.tier === "uncommon"
+                              ? "text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30"
+                              : "text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800"
+                          }`}>
+                            {label}
+                          </span>
+                        </div>
+                      </div>
+                      <style>{`@keyframes sparkle-pop{0%{transform:scale(0);opacity:0}40%{transform:scale(1.2);opacity:1}100%{transform:scale(0.3);opacity:0}}`}</style>
+                    </>
+                  );
+                })()}
+            {cardReveal && (
+              <CardRevealModal
+                letter={cardReveal.letter}
+                tier={cardReveal.tier}
+                isNew={cardReveal.isNew}
+                onKeep={handleCardKeep}
+                onPlaySound={playSequence}
+              />
+            )}
+            <GameScreen
+              gameState={gameState}
+              roundData={roundData}
+              feedback={feedback}
+              isTransitioning={isTransitioning}
+              isFullscreen={isFullscreen}
+              muted={muted}
+              onAnswer={handleAnswer}
+              onCheckTyping={checkTyping}
+              onBack={() => setScreen("menu")}
+              onToggleFullscreen={toggleFullscreen}
+              onToggleMute={toggleMute}
+              onSelectCell={handleSelectCell}
+              onTypingInput={handleTypingInput}
+              onSpeak={speak}
+              onShowCards={beta ? () => setShowCards(true) : undefined}
+            />
+          </>
         )}
 
-        {screen === "victory" && (
+        {!showCards && screen === "victory" && (
           <VictoryScreen score={gameState.score} stageStars={stageStars} wrongLetters={gameState.wrongLetters} />
         )}
       </div>

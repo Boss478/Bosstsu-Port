@@ -1,7 +1,5 @@
 "use client";
 
-import { useGame } from "../context";
-import { t } from "../lang";
 import { SPRITE_MAP } from "../sprites";
 import PixelSprite from "./PixelSprite";
 import type { CpuState, GpuState, RamState, StorageState, FanState, RamType, VramType } from "../simulation/types";
@@ -37,12 +35,9 @@ export default function SimComponentPopup({
   onUpdateGpuVramType, onUpdateGpuLoad, onUpdateRamConfig,
   onUpdateSsdConfig, onUpdateHddConfig, onUpdateFanRpm, onClose,
 }: SimComponentPopupProps) {
-  const { lang, mode, playSfx } = useGame();
-
   if (!componentId) return null;
 
   const sprite = SPRITE_MAP[componentId];
-  const isAdvanced = true; // Popup always shows advanced controls
 
   function Slider({ label, value, min, max, step = 1, onChange, unit = "" }: {
     label: string; value: number; min: number; max: number; step?: number;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import type { FlowPacket, DataSize, CpuState, GpuState, RamState, StorageState, RouteType, Bottleneck, ResourceLevel } from "../simulation/types";
 import { BUS_PATHS } from "../simulation/positions";
 import { STREAM_THEMES, MONITOR_APPS } from "../simulation/types";
@@ -21,7 +21,6 @@ interface UseDataFlowProps {
   concurrency: number;
   dataSize: DataSize;
   resourceLevel: ResourceLevel;
-  bottleneck: Bottleneck | null;
   ramTotal: number;
 }
 
@@ -47,6 +46,118 @@ interface UseDataFlowReturn {
   cpuTemp: number;
   crashEvent: CrashEvent | null;
   dismissCrash: () => void;
+  componentUtilization: Record<string, number>;
+  bottleneck: Bottleneck | null;
+}
+
+function computeUtilization(
+  cpuState: CpuState,
+  gpuState: GpuState,
+  ramState: RamState,
+  ssdState: StorageState,
+  hddState: StorageState,
+  packets: FlowPacket[],
+  runningApps: AppConfig[]
+): Record<string, number> {
+  const activePacketsCount = packets.filter(p => p.status !== "done").length;
+  
+  // 1. CPU Utilization
+  const appCpuCost: Record<string, number> = {
+    vscode: 8,
+    chrome: 12,
+    photoshop: 20,
+    youtube: 8,
+    discord: 4,
+    spotify: 3,
+    calculator: 1,
+    minecraft: 25,
+  };
+  const baseCpuLoad = runningApps.reduce((sum, app) => sum + (app.active ? (appCpuCost[app.id] ?? 5) : 0), 0);
+  const packetsLoad = activePacketsCount * 6;
+  const totalRawCpuLoad = baseCpuLoad + packetsLoad;
+  const cpuCapacity = cpuState.cores * cpuState.clock;
+  const scaledCpuUtil = Math.round((totalRawCpuLoad * 12) / cpuCapacity);
+  
+  const cpuJitter = Math.floor(Math.sin(activePacketsCount + baseCpuLoad) * 3);
+  const cpuUtil = Math.max(2, Math.min(100, (activePacketsCount > 0 || baseCpuLoad > 0) ? (scaledCpuUtil + cpuJitter) : 2));
+
+  // 2. GPU Utilization
+  const appGpuCost: Record<string, number> = {
+    photoshop: 25,
+    minecraft: 45,
+  };
+  const baseGpuLoad = runningApps.reduce((sum, app) => sum + (app.active ? (appGpuCost[app.id] ?? 0) : 0), 0);
+  const graphicsPackets = packets.filter(p => p.status !== "done" && p.route === "graphics").length;
+  const gpuPacketsLoad = graphicsPackets * 12;
+  const totalRawGpuLoad = baseGpuLoad + gpuPacketsLoad;
+  const gpuCapacity = gpuState.cores;
+  const scaledGpuUtil = Math.round((totalRawGpuLoad * 4) / gpuCapacity);
+  const gpuJitter = Math.floor(Math.cos(graphicsPackets + baseGpuLoad) * 3);
+  const gpuUtil = Math.max(0, Math.min(100, (graphicsPackets > 0 || baseGpuLoad > 0) ? (scaledGpuUtil + gpuJitter) : 0));
+
+  // 3. RAM Utilization
+  const systemBaseRam = 2048; // 2GB base OS
+  const appsRam = runningApps.reduce((sum, app) => sum + (app.active ? app.ramCost : 0), 0);
+  const totalRamUsedMb = systemBaseRam + appsRam;
+  const totalRamCapacityMb = ramState.sticks * ramState.capacityPerStick * 1024;
+  const ramUtilPercent = Math.round((totalRamUsedMb / totalRamCapacityMb) * 100);
+  const ramJitter = Math.floor(Math.sin(appsRam) * 1.5);
+  const ramUtil = Math.max(5, Math.min(100, ramUtilPercent + ramJitter));
+
+  // 4. Storage Utilization (SSD / HDD I/O Channel utilization)
+  const activeSsdPackets = packets.filter(p => p.status !== "done" && (p.toId === "ssd" || p.fromId === "ssd" || p.busId === "bus_cpu_ssd")).length;
+  const activeHddPackets = packets.filter(p => p.status !== "done" && (p.toId === "hdd" || p.fromId === "hdd" || p.busId === "bus_cpu_hdd")).length;
+  
+  const ssdSpeedFactor = 500 / ssdState.rwSpeed;
+  const ssdUtilPercent = activeSsdPackets * 25 * ssdSpeedFactor;
+  const ssdJitter = Math.floor(Math.sin(activeSsdPackets) * 2);
+  const ssdUtil = Math.max(0, Math.min(100, activeSsdPackets > 0 ? Math.round(ssdUtilPercent + ssdJitter) : 0));
+
+  const hddSpeedFactor = 100 / hddState.rwSpeed;
+  const hddUtilPercent = activeHddPackets * 40 * hddSpeedFactor;
+  const hddJitter = Math.floor(Math.cos(activeHddPackets) * 2);
+  const hddUtil = Math.max(0, Math.min(100, activeHddPackets > 0 ? Math.round(hddUtilPercent + hddJitter) : 0));
+
+  return {
+    cpu: cpuUtil,
+    gpu: gpuUtil,
+    ram: ramUtil,
+    ssd: ssdUtil,
+    hdd: hddUtil,
+  };
+}
+
+function detectBottleneck(util: Record<string, number>, cpuTemp: number): Bottleneck | null {
+  if (cpuTemp > 85) {
+    return { type: "thermal", severity: "severe", utilPercent: cpuTemp };
+  }
+
+  const threshold = 85;
+  const entries = Object.entries(util).filter(([k]) => k !== "hdd");
+  const high = entries.filter(([, v]) => v >= threshold);
+  const low = entries.filter(([, v]) => v < 50);
+
+  if (high.length === 1 && low.length >= 2) {
+    const [comp, val] = high[0];
+    const severity = val >= 95 ? "severe" : val >= 80 ? "moderate" : "mild";
+    return {
+      type: comp === "ssd" || comp === "hdd" ? "storage_io" : (comp as "cpu" | "gpu" | "ram"),
+      severity,
+      utilPercent: val,
+    };
+  }
+
+  const maxComp = entries.reduce((a, b) => (a[1] > b[1] ? a : b));
+  if (maxComp[1] >= threshold) {
+    const comp = maxComp[0];
+    return {
+      type: comp === "ssd" || comp === "hdd" ? "storage_io" : (comp as "cpu" | "gpu" | "ram"),
+      severity: maxComp[1] >= 95 ? "severe" : "moderate",
+      utilPercent: maxComp[1],
+    };
+  }
+
+  return null;
 }
 
 let packetCounter = 0;
@@ -77,8 +188,7 @@ const ROUTE_DISTRIBUTION: { route: RouteType; weight: number }[] = [
   { route: "graphics", weight: 30 },
 ];
 
-const BASE_TRAVEL_MS = 300;
-const PROCESSING_MS = 300;
+const BASE_TRAVEL_MS = 5000;
 
 function pickRoute(): RouteType {
   const total = ROUTE_DISTRIBUTION.reduce((s, r) => s + r.weight, 0);
@@ -112,11 +222,26 @@ const RESOURCE_MULTIPLIER: Record<ResourceLevel, number> = {
 export function useDataFlow({
   cpuState, gpuState, ramState, ssdState, hddState,
   speed, isPaused, fanRpm, workloads, runningApps,
-  concurrency, dataSize, resourceLevel, bottleneck, ramTotal,
+  concurrency, dataSize, resourceLevel, ramTotal,
 }: UseDataFlowProps): UseDataFlowReturn {
   const [packets, setPackets] = useState<FlowPacket[]>([]);
   const [lastAppArrivals, setLastAppArrivals] = useState<AppArrival[]>([]);
   const [crashEvent, setCrashEvent] = useState<CrashEvent | null>(null);
+
+  const cpuTemp = useMemo(
+    () => computeCpuTemp(cpuState.cores, cpuState.clock, fanRpm),
+    [cpuState.cores, cpuState.clock, fanRpm]
+  );
+
+  const componentUtilization = useMemo(
+    () => computeUtilization(cpuState, gpuState, ramState, ssdState, hddState, packets, runningApps),
+    [cpuState, gpuState, ramState, ssdState, hddState, packets, runningApps]
+  );
+
+  const bottleneck = useMemo(
+    () => detectBottleneck(componentUtilization, cpuTemp),
+    [componentUtilization, cpuTemp]
+  );
 
   const packetsRef = useRef<FlowPacket[]>([]);
   const frameRef = useRef<number>(0);
@@ -136,7 +261,7 @@ export function useDataFlow({
   const routeTypeCountersRef = useRef<Record<RouteType, number>>({ compute: 0, storage: 0, graphics: 0 });
   const workloadsRef = useRef<WorkloadConfig[]>(workloads);
   const runningAppsRef = useRef<AppConfig[]>(runningApps);
-  const bottleneckRef = useRef<Bottleneck | null>(bottleneck);
+  const bottleneckRef = useRef<Bottleneck | null>(null);
   const crashTimersRef = useRef<Record<string, number>>({});
   const crashActiveRef = useRef(false);
 
@@ -323,7 +448,7 @@ export function useDataFlow({
         }
       }
 
-      const componentProcessed: Record<string, number> = {};
+
       const updatedPackets = currentPackets.map((pkt) => {
         if (pkt.status === "done") return pkt;
 
@@ -384,10 +509,51 @@ export function useDataFlow({
 
         const remaining: FlowPacket[] = [];
         for (const pkt of queue) {
-          if (pkt.status !== "comp_queued" && pkt.status !== "swapping") {
-            remaining.push(pkt);
+          if (pkt.status === "processing") {
+            const nextProgress = pkt.progress + dt / 1000; // 1 second processing time
+            if (nextProgress >= 1) {
+              if (compId === "ram" && ramUsageRef.current >= 95) {
+                const swapPkt = { ...pkt, status: "swapping" as const, progress: 0 };
+                const ssdQueue = componentQueuesRef.current["ssd"] ?? [];
+                componentQueuesRef.current["ssd"] = [...ssdQueue, swapPkt];
+                continue;
+              }
+
+              if ((compId === "ssd" && ssdUsageRef.current >= 100) || (compId === "hdd" && hddUsageRef.current >= 100)) {
+                continue;
+              }
+
+              const hops = getHopsForRoute(pkt.route, pkt.fromId, pkt.toId, ssdUsageRef.current, hddUsageRef.current);
+              const currentHopIdx = hops.findIndex(h => h.from === pkt.fromId && h.to === pkt.toId);
+              const nextHop = hops[currentHopIdx + 1];
+              if (nextHop) {
+                const busConfig = BUS_PATHS.find(b => b.id === nextHop.busId);
+                if (busConfig) {
+                  const occupancy = busOccupancyRef.current[nextHop.busId] ?? 0;
+                  if (occupancy >= busConfig.laneCount) {
+                    remaining.push({ ...pkt, status: "bus_queued" as const, fromId: nextHop.from, toId: nextHop.to, busId: nextHop.busId, progress: 0 });
+                    continue;
+                  }
+                }
+                busOccupancyRef.current[nextHop.busId] = (busOccupancyRef.current[nextHop.busId] ?? 0) + 1;
+                const hopPkt = {
+                  ...pkt,
+                  id: pkt.id.replace(/^q_/, ""),
+                  fromId: nextHop.from,
+                  toId: nextHop.to,
+                  busId: nextHop.busId,
+                  progress: 0,
+                  status: "traveling" as const,
+                  queueStartTime: now,
+                };
+                updatedPackets.push(hopPkt);
+              }
+            } else {
+              remaining.push({ ...pkt, progress: nextProgress });
+            }
             continue;
           }
+
           if (pkt.status === "swapping") {
             if (processed >= bytesToProcess) {
               remaining.push(pkt);
@@ -396,54 +562,20 @@ export function useDataFlow({
             processed += pkt.byteValue;
             continue;
           }
+
+          if (pkt.status !== "comp_queued") {
+            remaining.push(pkt);
+            continue;
+          }
+
           if (processed >= bytesToProcess) {
             remaining.push(pkt);
             continue;
           }
 
-          const pktBytes = pkt.byteValue;
-          if (processed + pktBytes <= bytesToProcess) {
-            processed += pktBytes;
-
-            if (compId === "ram" && ramUsageRef.current >= 95) {
-              const swapPkt = { ...pkt, status: "swapping" as const };
-              const ssdQueue = componentQueuesRef.current["ssd"] ?? [];
-              componentQueuesRef.current["ssd"] = [...ssdQueue, swapPkt];
-              continue;
-            }
-
-            if ((compId === "ssd" && ssdUsageRef.current >= 100) || (compId === "hdd" && hddUsageRef.current >= 100)) {
-              continue;
-            }
-
-            const hops = getHopsForRoute(pkt.route, pkt.fromId, pkt.toId, ssdUsageRef.current, hddUsageRef.current);
-            const currentHopIdx = hops.findIndex(h => h.from === pkt.fromId && h.to === pkt.toId);
-            const nextHop = hops[currentHopIdx + 1];
-            if (nextHop) {
-              const busConfig = BUS_PATHS.find(b => b.id === nextHop.busId);
-              if (busConfig) {
-                const occupancy = busOccupancyRef.current[nextHop.busId] ?? 0;
-                if (occupancy >= busConfig.laneCount) {
-                  remaining.push({ ...pkt, status: "bus_queued" as const, fromId: nextHop.from, toId: nextHop.to, busId: nextHop.busId });
-                  continue;
-                }
-              }
-              busOccupancyRef.current[nextHop.busId] = (busOccupancyRef.current[nextHop.busId] ?? 0) + 1;
-              const hopPkt = {
-                ...pkt,
-                id: pkt.id.replace(/^q_/, ""),
-                fromId: nextHop.from,
-                toId: nextHop.to,
-                busId: nextHop.busId,
-                progress: 0,
-                status: "traveling" as const,
-                queueStartTime: now,
-              };
-              updatedPackets.push(hopPkt);
-            }
-          } else {
-            remaining.push(pkt);
-          }
+          // Start processing this packet!
+          remaining.push({ ...pkt, status: "processing" as const, progress: 0 });
+          processed += pkt.byteValue;
         }
         componentQueuesRef.current[compId] = remaining;
       }
@@ -475,16 +607,15 @@ export function useDataFlow({
         componentQueuesRef.current[compId] = remaining;
       }
 
-      const qFilter = (p: FlowPacket) => !p.id.startsWith("q_");
       const finalPackets = [
         ...newPackets,
         ...updatedPackets.filter(p => p.status === "traveling" || p.status === "processing"),
         ...busQueuedToTravel,
-        ...(componentQueuesRef.current["cpu"] ?? []).filter(qFilter).map(p => ({ ...p })),
-        ...(componentQueuesRef.current["ram"] ?? []).filter(qFilter).map(p => ({ ...p })),
-        ...(componentQueuesRef.current["gpu"] ?? []).filter(qFilter).map(p => ({ ...p })),
-        ...(componentQueuesRef.current["ssd"] ?? []).filter(qFilter).map(p => ({ ...p })),
-        ...(componentQueuesRef.current["hdd"] ?? []).filter(qFilter).map(p => ({ ...p })),
+        ...(componentQueuesRef.current["cpu"] ?? []).map(p => ({ ...p })),
+        ...(componentQueuesRef.current["ram"] ?? []).map(p => ({ ...p })),
+        ...(componentQueuesRef.current["gpu"] ?? []).map(p => ({ ...p })),
+        ...(componentQueuesRef.current["ssd"] ?? []).map(p => ({ ...p })),
+        ...(componentQueuesRef.current["hdd"] ?? []).map(p => ({ ...p })),
       ];
 
       setPackets(finalPackets as FlowPacket[]);
@@ -561,8 +692,6 @@ export function useDataFlow({
     };
   }, [isPaused, speed, concurrency, dataSize, resourceLevel, cpuState.cores, cpuState.clock, ramState.usage, ssdState.usage, hddState.usage, ramTotal]);
 
-  const cpuTemp = computeCpuTemp(cpuState.cores, cpuState.clock, fanRpm);
-
   function getHopsForRoute(route: RouteType, fromId: string, toId: string, ssdUsage: number, hddUsage: number): { from: string; to: string; busId: string }[] {
     if (route === "storage") {
       const target = pickStorageComponent(ssdUsage, hddUsage);
@@ -613,5 +742,7 @@ export function useDataFlow({
     cpuTemp,
     crashEvent,
     dismissCrash,
+    componentUtilization,
+    bottleneck,
   };
 }

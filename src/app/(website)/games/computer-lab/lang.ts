@@ -412,6 +412,14 @@ export const LANG: Record<string, LangEntry> = {
   "crash.emergent.disk": entry("พื้นที่เต็ม—ล้างไฟล์ที่ไม่ใช้", "Storage full—clean up files"),
   "crash.emergent.oom": entry("หน่วยความจำไม่พอ—แอปต้องการ RAM มากกว่าที่มี", "Out of memory—app needs more RAM than installed"),
   "crash.emergent.bottleneck": entry("คอขวดรุนแรง—อัปเกรดส่วนประกอบที่ช้าที่สุด", "Severe bottleneck—upgrade the slowest component"),
+
+  /* === EDUCATIONAL INSIGHTS / BOTTLENECK TIPS === */
+  "tip.title": entry("คำแนะนำแก้ไขคอขวด", "Bottleneck Solution Tips"),
+  "tip.cpu": entry("CPU ทำงานหนัก! แนะนำให้เพิ่มจำนวนคอร์ (Cores) หรือความเร็วนาฬิกา (Clock Speed) ในเมนูฮาร์ดแวร์", "CPU is overloaded! Tip: Upgrade CPU cores or clock speed in the Hardware tab."),
+  "tip.ram": entry("หน่วยความจำ (RAM) เต็ม! แนะนำให้ปิดบางแอปพลิเคชัน หรืออัปเกรดความจุ RAM ในเมนูฮาร์ดแวร์", "RAM is exhausted! Tip: Close some apps or upgrade RAM capacity in the Hardware tab."),
+  "tip.gpu": entry("การ์ดจอ (GPU) รับงานหนัก! แนะนำให้เพิ่มจํานวนคอร์ GPU หรือ VRAM ในเมนูฮาร์ดแวร์", "GPU is bottlenecked! Tip: Upgrade GPU cores or VRAM in the Hardware tab."),
+  "tip.storage_io": entry("การอ่านเขียนดิสก์ช้า! แนะนำให้เพิ่มความเร็ว SSD/HDD ในเมนูฮาร์ดแวร์", "Disk I/O is slow! Tip: Upgrade SSD or HDD speed in the Hardware tab."),
+  "tip.thermal": entry("CPU ร้อนจัด! แนะนำให้ลดสเปก CPU ลง หรือเพิ่มความเร็วพัดลม (Fan RPM)", "CPU is overheating! Tip: Reduce CPU load/clock or increase Fan RPM."),
 };
 
 export function t(key: string, lang: "th" | "en", mode: "student" | "advanced"): string {

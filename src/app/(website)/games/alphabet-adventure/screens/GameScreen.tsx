@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import type {
   GameState,
   RoundData,
@@ -22,6 +22,7 @@ interface Props {
   onBack: () => void;
   onToggleFullscreen: () => void;
   onToggleMute: () => void;
+  onShowCards?: () => void;
   onSelectCell?: (index: number) => void;
   onTypingInput?: (index: number, value: string) => void;
   onSpeak: (text: string, lang?: string) => void;
@@ -42,13 +43,24 @@ export default function GameScreen({
   onSelectCell,
   onTypingInput,
   onSpeak,
+  onShowCards,
 }: Props) {
   const choiceRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const didAutoSpeak = useRef(false);
   const isFeedbackVisible = feedback.text !== "";
   const levelConfig = LEVELS[gameState.level];
   const levelType = levelConfig?.type as LevelType;
   const dataPool = levelConfig?.dataPool as DataPool | undefined;
-  const isThaiText = dataPool === "thai" || dataPool === "phonics";
+  const isThaiText = (dataPool === "thai" || dataPool === "phonics") && !roundData.revert;
+
+  useEffect(() => {
+    if (roundData.revert && roundData.targetLetter && !didAutoSpeak.current) {
+      didAutoSpeak.current = true;
+      const t = setTimeout(() => onSpeak(roundData.targetLetter!, "th-TH"), 400);
+      return () => clearTimeout(t);
+    }
+    if (!roundData.revert) didAutoSpeak.current = false;
+  }, [roundData.targetLetter, roundData.revert, onSpeak]);
 
   const effectiveTarget = levelType === "match" && gameState.easyMode ? 15 : levelConfig.target;
   const progress =
@@ -153,6 +165,15 @@ export default function GameScreen({
                 {gameState.score}
               </p>
             </div>
+            {onShowCards && (
+              <button
+                onClick={onShowCards}
+                className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 hover:scale-110 transition-all"
+                title="Card Collection"
+              >
+                <i className="fi fi-sr-template text-violet-600 dark:text-violet-400 text-lg"></i>
+              </button>
+            )}
             <button
               onClick={onToggleMute}
               className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/30 hover:scale-110 transition-all"
@@ -195,19 +216,38 @@ export default function GameScreen({
         {levelType === "match" && (
           <div className="flex flex-col items-center animate-in zoom-in duration-300">
             <div className="relative mb-12">
-              <div className="w-48 h-48 md:w-56 md:h-56 rounded-[3rem] bg-violet-50 dark:bg-violet-900/10 border-8 border-violet-100 dark:border-violet-900/30 flex items-center justify-center text-9xl font-black leading-none text-violet-600 dark:text-violet-400 shadow-2xl transform hover:rotate-2 transition-transform">
-                {roundData.targetLetter}
-              </div>
-              <button
-                onClick={() => {
-                  const text = isThaiText ? (roundData.correctChar || roundData.targetLetter) : roundData.targetLetter;
-                  onSpeak(text || "", isThaiText ? "th-TH" : "en-US");
-                }}
-                className="absolute -bottom-3 left-1/2 -translate-x-1/2 p-3 rounded-xl bg-violet-100 dark:bg-violet-900/40 hover:bg-violet-200 dark:hover:bg-violet-800/60 text-violet-600 dark:text-violet-400 shadow-lg hover:scale-110 transition-all"
-                title="Listen"
-              >
-                <i className="fi fi-sr-volume text-xl"></i>
-              </button>
+              {roundData.revert ? (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-48 h-48 md:w-56 md:h-56 rounded-[3rem] bg-amber-50 dark:bg-amber-900/10 border-8 border-amber-100 dark:border-amber-900/30 flex flex-col items-center justify-center gap-2 shadow-2xl px-4">
+                    <i className="fi fi-sr-volume text-5xl text-amber-500 animate-pulse"></i>
+                    <span className="text-xl md:text-2xl font-black text-amber-700 dark:text-amber-300 text-center leading-snug">
+                      {roundData.targetLetter}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => onSpeak(roundData.targetLetter || "", "th-TH")}
+                    className="px-6 py-2 rounded-xl bg-amber-100 dark:bg-amber-900/40 hover:bg-amber-200 dark:hover:bg-amber-800/60 text-amber-600 dark:text-amber-400 text-sm font-black shadow-lg hover:scale-105 transition-all"
+                  >
+                    Listen again
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="w-48 h-48 md:w-56 md:h-56 rounded-[3rem] bg-violet-50 dark:bg-violet-900/10 border-8 border-violet-100 dark:border-violet-900/30 flex items-center justify-center text-9xl font-black leading-none text-violet-600 dark:text-violet-400 shadow-2xl transform hover:rotate-2 transition-transform">
+                    {roundData.targetLetter}
+                  </div>
+                  <button
+                    onClick={() => {
+                      const text = isThaiText ? (roundData.correctChar || roundData.targetLetter) : roundData.targetLetter;
+                      onSpeak(text || "", isThaiText ? "th-TH" : "en-US");
+                    }}
+                    className="absolute -bottom-3 left-1/2 -translate-x-1/2 p-3 rounded-xl bg-violet-100 dark:bg-violet-900/40 hover:bg-violet-200 dark:hover:bg-violet-800/60 text-violet-600 dark:text-violet-400 shadow-lg hover:scale-110 transition-all"
+                    title="Listen"
+                  >
+                    <i className="fi fi-sr-volume text-xl"></i>
+                  </button>
+                </>
+              )}
             </div>
             <div className="flex flex-wrap justify-center gap-6">
               {roundData.choices.map((choice, i) => (

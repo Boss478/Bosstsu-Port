@@ -28,13 +28,21 @@ export default function SimMonitor({ history, currentOutput, isTyping, className
 
   useEffect(() => {
     if (cleanupRef.current) cleanupRef.current();
-    if (currentOutput && isTyping) {
-      setTypedText("");
-      cleanupRef.current = typewrite(currentOutput, setTypedText);
-    } else if (currentOutput) {
-      setTypedText(currentOutput);
-    }
-    return () => { if (cleanupRef.current) cleanupRef.current(); };
+
+    const run = () => {
+      if (currentOutput && isTyping) {
+        setTypedText("");
+        cleanupRef.current = typewrite(currentOutput, setTypedText);
+      } else if (currentOutput) {
+        setTypedText(currentOutput);
+      }
+    };
+
+    const timeoutId = setTimeout(run, 0);
+    return () => {
+      clearTimeout(timeoutId);
+      if (cleanupRef.current) cleanupRef.current();
+    };
   }, [currentOutput, isTyping]);
 
   useEffect(() => {

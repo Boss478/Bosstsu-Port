@@ -31,14 +31,6 @@ const LAB_COLORS: { color: LabCoatColor; label: string; className: string }[] = 
   { color: "black", label: "Black", className: "bg-zinc-900 border-zinc-600" },
 ];
 
-const STAGE_COLORS = [
-  "from-blue-500/20 to-blue-600/10",
-  "from-green-500/20 to-green-600/10",
-  "from-amber-500/20 to-amber-600/10",
-  "from-purple-500/20 to-purple-600/10",
-  "from-red-500/20 to-red-600/10",
-];
-
 export default function MenuScreen({ onNavigate }: ScreenShellProps) {
   const { lang, mode, save, devMode, navigate, onStageComplete } = useGame();
   const [showSoftwareWarning, setShowSoftwareWarning] = useState(false);
@@ -77,7 +69,7 @@ export default function MenuScreen({ onNavigate }: ScreenShellProps) {
                 <span>{t("menu.title", lang, mode)}</span>
                 <span>{completedCount}/{STAGES.length} {totalStars}/15 ★</span>
               </div>
-              {STAGES.map((stage, i) => {
+              {STAGES.map((stage) => {
                 const progress = save.progress[stage.id];
                 const isUnlocked = progress?.unlocked ?? false;
                 const isCompleted = progress?.completed ?? false;

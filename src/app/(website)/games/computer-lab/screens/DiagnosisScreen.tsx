@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import type { ScreenShellProps } from "../types";
 import { useGame } from "../context";
 import { t } from "../lang";
@@ -60,7 +60,9 @@ export default function DiagnosisScreen({ onNavigate }: ScreenShellProps) {
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
   const wrongCountRef = useRef(wrongCount);
-  wrongCountRef.current = wrongCount;
+  useEffect(() => {
+    wrongCountRef.current = wrongCount;
+  }, [wrongCount]);
   const [locked, setLocked] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);

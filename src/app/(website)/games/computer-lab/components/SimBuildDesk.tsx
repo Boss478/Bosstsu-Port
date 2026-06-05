@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useGame } from "../context";
 import { t } from "../lang";
 import PixelSprite from "./PixelSprite";
 import { SPRITE_MAP } from "../sprites";
-import SimDeskView from "./SimDeskView";
 
 type Difficulty = "easy" | "medium" | "hard";
 
@@ -155,7 +154,6 @@ export default function SimBuildDesk({ difficulty, onComplete }: SimBuildDeskPro
             let borderClass = isEmpty ? "border-dashed border-zinc-700" : "border-green-600/50";
             let bgClass = isEmpty ? "bg-zinc-800/50" : "bg-zinc-800";
             let glowClass = "";
-            let shakeClass = "";
 
             if (isFeedbackSlot && feedbackType === "correct") {
               glowClass = "shadow-[0_0_15px_rgba(34,197,94,0.5)] border-green-400";

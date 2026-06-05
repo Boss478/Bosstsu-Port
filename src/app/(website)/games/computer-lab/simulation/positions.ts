@@ -22,12 +22,12 @@ export const BUS_PATHS: BusPath[] = [
     id: "bus_keyboard_cpu",
     fromId: "keyboard",
     toId: "cpu",
-    waypoints: [{ x: 5, y: 55 }, { x: 14, y: 55 }],
+    waypoints: [{ x: 16, y: 68 }, { x: 16, y: 23 }],
     bidirectional: false,
     color: "#4A90D9",
     laneCount: 1,
     bandwidthPerLane: 10,
-    caseBoundaryProgress: 0.67,
+    caseBoundaryProgress: 0.20,
   },
   {
     id: "bus_cpu_ram",
@@ -77,23 +77,23 @@ export const BUS_PATHS: BusPath[] = [
     id: "bus_monitor_output",
     fromId: "cpu",
     toId: "monitor",
-    waypoints: [{ x: 46, y: 23 }],
+    waypoints: [{ x: 46, y: 23 }, { x: 80, y: 23 }],
     bidirectional: false,
     color: "#D0021B",
     laneCount: 2,
     bandwidthPerLane: 40,
-    caseBoundaryProgress: 0.35,
+    caseBoundaryProgress: 0.33,
   },
   {
     id: "bus_gpu_monitor",
     fromId: "gpu",
     toId: "monitor",
-    waypoints: [{ x: 46, y: 34 }],
+    waypoints: [{ x: 46, y: 34 }, { x: 80, y: 34 }],
     bidirectional: false,
     color: "#7ED321",
     laneCount: 1,
     bandwidthPerLane: 50,
-    caseBoundaryProgress: 0.35,
+    caseBoundaryProgress: 0.33,
   },
 ];
 
@@ -118,43 +118,7 @@ export function getBusCornerPoints(bus: BusPath): { x: number; y: number }[] {
   return bus.waypoints;
 }
 
-export function getOutsideLanePaths(bus: BusPath): string[] {
-  const from = getComponentCenter(bus.fromId);
-  const allPoints = [from, ...bus.waypoints];
-  if (allPoints.length < 2) return [];
 
-  const spacing = 0.6;
-  const lanes: string[] = [];
-
-  for (let li = 0; li < 3; li++) {
-    const off = (li - 1) * spacing;
-    const parts: string[] = [];
-
-    for (let i = 0; i < allPoints.length; i++) {
-      const p = allPoints[i];
-      let dx = 0, dy = 0;
-      if (i < allPoints.length - 1) {
-        dx = allPoints[i + 1].x - p.x;
-        dy = allPoints[i + 1].y - p.y;
-      } else if (i > 0) {
-        dx = p.x - allPoints[i - 1].x;
-        dy = p.y - allPoints[i - 1].y;
-      }
-      const len = Math.sqrt(dx * dx + dy * dy);
-      let px = 0, py = 0;
-      if (len > 0) {
-        px = (-dy / len) * off;
-        py = (dx / len) * off;
-      }
-
-      parts.push(`${i === 0 ? "M" : "L"}${(p.x + px).toFixed(1)} ${(p.y + py).toFixed(1)}`);
-    }
-
-    lanes.push(parts.join(" "));
-  }
-
-  return lanes;
-}
 
 export function getBusEffectiveBandwidth(bus: BusPath, srcIO: number, dstIO: number): number {
   const raw = bus.laneCount * bus.bandwidthPerLane;

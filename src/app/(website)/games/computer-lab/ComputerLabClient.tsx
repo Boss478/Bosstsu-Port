@@ -40,8 +40,11 @@ export default function ComputerLabClient() {
 
   useEffect(() => {
     const saved = loadSave();
-    setSaveData(saved);
-    if (saved.biosSeen) setScreen("menu");
+    const timer = setTimeout(() => {
+      setSaveData(saved);
+      if (saved.biosSeen) setScreen("menu");
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const { lang, mode, quality, muted } = saveData.settings;

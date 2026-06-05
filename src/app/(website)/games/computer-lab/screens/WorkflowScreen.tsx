@@ -1,19 +1,18 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
 import type { ScreenShellProps } from "../types";
 import { useGame } from "../context";
 import { t } from "../lang";
 import { useComponentState } from "../hooks/useComponentState";
 import { useDataFlow } from "../hooks/useDataFlow";
-import { useBottleneckDetector } from "../hooks/useBottleneckDetector";
+
 import SimDeskView from "../components/SimDeskView";
 import SimControls from "../components/SimControls";
 import SimMonitor from "../components/SimMonitor";
 import SimTaskManager from "../components/SimTaskManager";
 import SimComponentPopup from "../components/SimComponentPopup";
 import SimComponentDrillDown from "../components/SimComponentDrillDown";
-import SimSpecsPanel from "../components/SimSpecsPanel";
 import type { Speed } from "../hooks/useSimulationSpeed";
 import type { WorkloadType, WorkloadConfig, AppConfig } from "../simulation/workloads";
 import { WORKLOAD_PRESETS, SIM_APPS } from "../simulation/workloads";
@@ -21,9 +20,7 @@ import type { DataSize, ResourceLevel } from "../simulation/types";
 
 let workloadCounter = 0;
 
-function computeCpuTemp(cores: number, clock: number, fanRpm: number): number {
-  return Math.min(100, Math.round(30 + cores * 2.5 + clock * 4 - fanRpm * 0.3));
-}
+
 
 export default function WorkflowScreen({ onNavigate }: ScreenShellProps) {
   const { lang, mode, playSfx } = useGame();
@@ -51,26 +48,19 @@ export default function WorkflowScreen({ onNavigate }: ScreenShellProps) {
   const appRamTotal = runningApps.reduce((s, a) => s + (a.active ? a.ramCost : 0), 0);
   const resourceLevel: ResourceLevel = appRamTotal >= 3072 ? "heavy" : appRamTotal >= 1024 ? "medium" : "light";
 
-  const cpuTempLocal = useMemo(
-    () => computeCpuTemp(cpuState.cores, cpuState.clock, fanState.rpm),
-    [cpuState.cores, cpuState.clock, fanState.rpm],
-  );
 
-  const { bottleneck, componentUtilization } = useBottleneckDetector({
-    cpuState, gpuState, ramState, ssdState, hddState, cpuTemp: cpuTempLocal,
-  });
 
   const dataFlow = useDataFlow({
     cpuState, gpuState, ramState, ssdState, hddState,
     speed, isPaused, fanRpm: fanState.rpm,
     workloads, runningApps,
     concurrency, dataSize, resourceLevel,
-    bottleneck,
     ramTotal: ramTotal * 1024,
   });
   const {
     packets, lastAppArrivals,
     resetFlow, cpuTemp, crashEvent, dismissCrash,
+    bottleneck, componentUtilization,
   } = dataFlow;
 
   /* View state */
@@ -100,10 +90,6 @@ export default function WorkflowScreen({ onNavigate }: ScreenShellProps) {
     setWorkloads((prev) => prev.filter((w) => w.id !== id));
   }, []);
 
-  const handleUpdateWorkload = useCallback((id: string, updates: Partial<WorkloadConfig>) => {
-    setWorkloads((prev) => prev.map((w) => (w.id === id ? { ...w, ...updates } : w)));
-  }, []);
-
   const handleToggleApp = useCallback((appId: string) => {
     setRunningApps((prev) => {
       const existing = prev.find((a) => a.id === appId);
@@ -122,13 +108,6 @@ export default function WorkflowScreen({ onNavigate }: ScreenShellProps) {
     setActiveComponent(id);
     setDrillDownComponent(id);
   }, [playSfx]);
-
-  const handleDrillDownEdit = useCallback(() => {
-    if (drillDownComponent) {
-      setPopupComponent(drillDownComponent);
-      setDrillDownComponent(null);
-    }
-  }, [drillDownComponent]);
 
   const handleToggleInterior = useCallback(() => {
     playSfx("click");
@@ -177,26 +156,13 @@ export default function WorkflowScreen({ onNavigate }: ScreenShellProps) {
         </div>
 
         {/* Right panel */}
-        <div className="w-52 shrink-0 flex flex-col gap-2 overflow-y-auto">
-          <SimControls
-            onReset={handleReset}
-            speed={speed}
-            onSpeedChange={setSpeed}
-            isPaused={isPaused}
-            onTogglePause={togglePause}
-            concurrency={concurrency}
-            onConcurrencyChange={setConcurrency}
-            dataSize={dataSize}
-            onDataSizeChange={setDataSize}
-            workloads={workloads}
-            onAddWorkload={handleAddWorkload}
-            onRemoveWorkload={handleRemoveWorkload}
-            onUpdateWorkload={handleUpdateWorkload}
-            runningApps={runningApps}
-            onToggleApp={handleToggleApp}
-            ramTotal={ramTotal}
-            ramUsed={ramUsed}
-            resourceLevel={resourceLevel}
+        <div className="w-80 lg:w-96 shrink-0 flex flex-col gap-2 overflow-y-auto">
+          <SimTaskManager
+            util={componentUtilization}
+            bottleneck={bottleneck}
+            cpuTemp={cpuTemp}
+            swapActive={packets.some(p => p.status === "swapping")}
+            diskFull={packets.some(p => p.status === "disk_full")}
           />
 
           <SimMonitor
@@ -213,15 +179,24 @@ export default function WorkflowScreen({ onNavigate }: ScreenShellProps) {
             className="h-36 shrink-0"
           />
 
-          <SimTaskManager
-            util={componentUtilization}
-            bottleneck={bottleneck}
-            cpuTemp={cpuTemp}
-            swapActive={packets.some(p => p.status === "swapping")}
-            diskFull={packets.some(p => p.status === "disk_full")}
-          />
-
-          <SimSpecsPanel
+          <SimControls
+            onReset={handleReset}
+            speed={speed}
+            onSpeedChange={setSpeed}
+            isPaused={isPaused}
+            onTogglePause={togglePause}
+            concurrency={concurrency}
+            onConcurrencyChange={setConcurrency}
+            dataSize={dataSize}
+            onDataSizeChange={setDataSize}
+            workloads={workloads}
+            onAddWorkload={handleAddWorkload}
+            onRemoveWorkload={handleRemoveWorkload}
+            runningApps={runningApps}
+            onToggleApp={handleToggleApp}
+            ramTotal={ramTotal}
+            ramUsed={ramUsed}
+            resourceLevel={resourceLevel}
             cpuState={cpuState}
             gpuState={gpuState}
             ramState={ramState}

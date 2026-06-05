@@ -78,6 +78,28 @@ export function useAudio() {
     [muted, getCtx]
   );
 
+  const playSequence = useCallback(
+    (frequencies: number[], noteDuration = 0.15, gainVal = 0.12) => {
+      if (muted) return;
+      const ctx = getCtx();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      frequencies.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(gainVal, now + i * noteDuration);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + i * noteDuration + noteDuration);
+        osc.start(now + i * noteDuration);
+        osc.stop(now + i * noteDuration + noteDuration);
+      });
+    },
+    [muted, getCtx]
+  );
+
   const speak = useCallback(
     (text: string, lang = "en-US") => {
       if (muted) return;
@@ -86,10 +108,23 @@ export function useAudio() {
       utterance.lang = lang;
       utterance.rate = 0.85;
       utterance.pitch = 1.0;
+      const stored = storedVoiceRef.current;
+      if (stored) {
+        const voices = window.speechSynthesis.getVoices();
+        const match = voices.find(v => v.voiceURI === stored);
+        if (match) utterance.voice = match;
+      }
       window.speechSynthesis.speak(utterance);
     },
     [muted]
   );
 
-  return { playSound, speak, muted, toggleMute } as const;
+  const [voiceURI, setVoiceURI] = useState("");
+  const storedVoiceRef = useRef("");
+
+  useEffect(() => {
+    storedVoiceRef.current = voiceURI;
+  }, [voiceURI]);
+
+  return { playSound, speak, muted, toggleMute, playSequence, voiceURI, setVoiceURI } as const;
 }

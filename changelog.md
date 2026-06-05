@@ -4,6 +4,51 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.40 (2026-06-04)
++ **Teacher review fixes — sound per-level, KG mode, error tracking, Thai reverse (BETA), voice picker**:
+  + Sound button now speaks content matching each level's dataPool (Thai text / phonics / letter name)
+  + Easy Mode (KG) toggle: 15 rounds, 2 choices, skips typing level — mode saved in game state
+  + Per-letter error tracking: `wrongLetters` tracked in GameState, "Letters to Practice" on victory screen
+  + Thai Match reverse (BETA only): shows Thai name → pick English letter
+  + Voice picker (BETA only): system TTS voice dropdown from game menu, stored in localStorage
++ **Card features (all BETA-only)**:
+  + Rarest crown: 👑 badge + amber glow on rarest tier cards in album
+  + Card backs: tier-specific SVG pattern backgrounds (dots, diamonds, stars, waves, circles)
+  + In-game collection overlay: floating mini panel with total, progress bar, recent 3 cards
+  + Achievements: 7 computed on-the-fly in Stats tab (First Card, Tier Complete, Legendary Hunter, etc.)
+  + Stats page: SVG ring progress, per-tier mini bars, total/duplicate counts, best tier, drop power, points
+  + Collection button moved to GameScreen header (between score and sound)
++ **Card animation polish (BETA-only)**:
+  + Glow ring on reveal flip: tier-colored pulsing ring behind card
+  + Sparkle dots on toast: 4 tier-colored dots at card corners with staggered pop animation
++ **CardScreen polish**:
+  + Sort tabs (By Tier / Recent / All A-Z / Stats) with active state styling
+  + Hover effects on collected cards (translate+scale+shadow) and card backs (scale+shadow)
+  + Background diamond pattern
+  + 4-column grid layout (sm:grid-cols-4)
+  + BETA menu buttons side-by-side (Continue + New Game in flex row)
++ **Phonics revert (BETA-only)**: Level 2 converted to "hear sound → pick letter" — auto-plays TTS, speaker icon with pulse, "Listen again" button
++ **Drop rate adjustment**: NoDrop 90.9→82, Common 5→3, Uncommon 2.5→6, Rare 1→5.5, UR 0.5→2.5, Legendary 0.1→1
++ **Streak toast improvement**: Shows only at thresholds (3, 5, 10, 15, 20, 25...)
+
+## v1.9.39 (2026-06-04)
++ **6 card collection improvements (BETA)**: 2 more SVG mascots (Mermaid + Treasure Monster), per-letter timestamps for recently-earned carousel, progress bar, back-to-top button
++ **Recently Earned carousel**: Horizontal row showing last 5 cards earned (new + duplicates) on CardScreen
++ **Progress bar**: Segmented tier bar showing total collection progress with filled portions per tier
++ **Card reveal modal sound**: Tier-specific synthesized tones play when card flips
++ **Debug toggle**: Eye icon button to show/hide debug panel on BETA game screen
++ **Mermaid mascot**: SVG character (pink hair, star tiara, shell top, teal tail with scales) — unlocks at 10 points
++ **Treasure Monster mascot**: SVG character (green round body, gold crown, grin) — unlocks at 20 points
++ **Stage 3 Simulation Redesign & Polish (Computer Lab)**:
+  + Casing boundary split (external cables terminate at edge, motherboard traces inside case)
+  + CPU cooling fan blade rotation animation (`animate-spin-blade`) when case interior is open
+  + Motherboard copper traces pulse animation (`animate-pulse`) when active data packet flows
+  + Stacking z-index depth layering (motherboard under cables/packets, chips on top)
+  + 1.0s processing duration inside chip body with pulsing indicator overlay
+  + Expanded right panel (w-80 lg:w-96) and tabbed inputs (Software/Hardware) with Retro Pixel OS double border theme
+  + Dynamically rendered bilingual educational bottleneck tips in Task Manager
+  + Linter cleanup (resolved React warnings, removed unused variables, imports, and callbacks)
+
 ## v1.9.36 (2026-06-04)
 + **2 new levels**: Thai Match (จับคู่ภาษาไทย) + Phonics Match (จับคู่เสียงอ่าน) — reordered 6 levels total
 + **Sound button**: First 3 levels — click letter card to hear pronunciation via speech synthesis
@@ -15,6 +60,17 @@
 + **Activated showCorrect**: Dead code for showing correct answer on wrong is now live
 * Unified match architecture via `dataPool` field (lowercase/thai/phonics) on LevelConfig
 * Fixed ESLint ref-during-render error (moved stateRef sync to useEffect)
+
+## v1.9.38 (2026-06-04)
++ **Card collection system (BETA)**: 5-tier letter cards (Common→Legendary) with streak-scaled independent drop rolls on correct answers — auto-collect to localStorage
++ **BETA route**: `/games/alphabet-adventure/beta` — isolated BETA version with card mechanics enabled, separate page + metadata
++ **BETA badge**: Amber gradient pill on BETA game screen, animated pulse
++ **Card drop notification**: Brief toast on each card drop showing which letter was collected
++ **BETA menu button**: On stable menu → amber gradient pill linking to `/beta/`; on BETA menu → "Cards" button to access collection
++ **CardScreen**: Collection album showing cards grouped by tier with count badges, total points, and mascot unlock progress
++ **Captain Alph**: SVG character mascot (starter character, 60px–80px) with hat, face, and star badge
++ **Card tier config**: Letters assigned by English difficulty for Thai learners (Common=E,T,A,O,I,S through Legendary=J,X,Q,Z)
++ Drop rates: `rollCardDrop(streak)` with linear interpolation over streak 1→20; each tier rolls independently; highest winning tier taken
 
 ## v1.9.37 (2026-06-04)
 + **Sound button per-level**: Speaks Thai names (Level 1) / phonics text (Level 2) / letter names (Level 3) instead of always letter name

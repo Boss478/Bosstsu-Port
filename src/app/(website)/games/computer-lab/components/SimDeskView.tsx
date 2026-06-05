@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from "react";
 import PixelSprite from "./PixelSprite";
 import { SPRITE_MAP } from "../sprites";
-import { COMPONENT_LAYOUT, BUS_PATHS, DESK_COLORS, getBusPathPoints, getBusCornerPoints, getOutsideLanePaths } from "../simulation/positions";
+import { COMPONENT_LAYOUT, BUS_PATHS, getBusPathPoints, getBusCornerPoints } from "../simulation/positions";
 import type { FlowPacket, DataSize } from "../simulation/types";
 import { useGame } from "../context";
 import { t } from "../lang";
@@ -49,61 +49,303 @@ function getDotSize(dataSize: DataSize): number {
   return 7;
 }
 
-function laneOffset(busIdx: number, laneCount: number, isOutsideCase: boolean = false): { dx: number; dy: number } {
-  if (!isOutsideCase) return { dx: 0, dy: 0 };
-  const spread = 1.5;
-  const mid = (laneCount - 1) / 2;
-  const n = busIdx - mid;
-  const angle = Math.PI / 4;
-  return { dx: Math.cos(angle) * n * spread, dy: Math.sin(angle) * n * spread };
+function getBusParamsAtPoint(bus: typeof BUS_PATHS[0], p: { x: number; y: number }) {
+  const isExternal = ["keyboard", "mouse", "monitor"].includes(bus.fromId) ||
+                     ["keyboard", "mouse", "monitor"].includes(bus.toId);
+  if (!isExternal) {
+    return { laneCount: bus.laneCount, spacing: 0.4, isExternal: false };
+  }
+  const isOutside = p.x < 14.5 || p.x > 45.5 || p.y < 12.5 || p.y > 67.5;
+  if (isOutside) {
+    return { laneCount: 3, spacing: 0.65, isExternal: true };
+  } else {
+    return { laneCount: bus.laneCount, spacing: 0.4, isExternal: true };
+  }
 }
 
-function OutsideSubLanes({ bus }: { bus: typeof BUS_PATHS[0] }) {
-  const outsidePaths = getOutsideLanePaths(bus);
-  if (outsidePaths.length === 0) return null;
+function splitSegmentAtBoundaries(
+  p1: { x: number; y: number },
+  p2: { x: number; y: number }
+): { x: number; y: number }[] {
+  const boundaries = {
+    xMin: 14.5,
+    xMax: 45.5,
+    yMin: 12.5,
+    yMax: 67.5,
+  };
 
-  return (
-    <svg className="absolute inset-0 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: "100%", height: "100%" }}>
-      {outsidePaths.map((d, li) => (
-        <path
-          key={li}
-          d={d}
-          fill="none"
-          stroke="#9ca3af"
-          strokeWidth="0.8"
-          strokeLinecap="round"
-          opacity={0.3}
-        />
-      ))}
-    </svg>
-  );
+  const intersections: { t: number; p: { x: number; y: number } }[] = [];
+
+  // Check vertical boundary lines (x = C)
+  for (const C of [boundaries.xMin, boundaries.xMax]) {
+    const dx = p2.x - p1.x;
+    if (Math.abs(dx) > 1e-6) {
+      const t = (C - p1.x) / dx;
+      if (t > 0 && t < 1) {
+        intersections.push({
+          t,
+          p: { x: C, y: p1.y + t * (p2.y - p1.y) },
+        });
+      }
+    }
+  }
+
+  // Check horizontal boundary lines (y = C)
+  for (const C of [boundaries.yMin, boundaries.yMax]) {
+    const dy = p2.y - p1.y;
+    if (Math.abs(dy) > 1e-6) {
+      const t = (C - p1.y) / dy;
+      if (t > 0 && t < 1) {
+        intersections.push({
+          t,
+          p: { x: p1.x + t * (p2.x - p1.x), y: C },
+        });
+      }
+    }
+  }
+
+  // Sort intersections by t
+  intersections.sort((a, b) => a.t - b.t);
+
+  return [p1, ...intersections.map((item) => item.p), p2];
 }
 
-function CableBusLine({ bus, isActive, occupancy }: { bus: typeof BUS_PATHS[0]; isActive: boolean; occupancy?: number }) {
+function getRefinedBusPathPoints(bus: typeof BUS_PATHS[0]): { x: number; y: number }[] {
   const points = getBusPathPoints(bus);
-  if (points.length < 2) return null;
+  if (points.length < 2) return points;
+  const refined: { x: number; y: number }[] = [points[0]];
+  for (let i = 0; i < points.length - 1; i++) {
+    const segmentPoints = splitSegmentAtBoundaries(points[i], points[i + 1]);
+    refined.push(...segmentPoints.slice(1));
+  }
+  return refined;
+}
 
-  const lanes = bus.laneCount;
+function isSegmentOutside(p1: { x: number; y: number }, p2: { x: number; y: number }): boolean {
+  const midX = (p1.x + p2.x) / 2;
+  const midY = (p1.y + p2.y) / 2;
+  return midX < 14.5 || midX > 45.5 || midY < 12.5 || midY > 67.5;
+}
+
+function getPathOffsets(bus: typeof BUS_PATHS[0], laneIndex: number): { dx: number; dy: number }[] {
+  const points = getRefinedBusPathPoints(bus);
+  if (points.length < 2) return points.map(() => ({ dx: 0, dy: 0 }));
+
+  const offsets: { dx: number; dy: number }[] = [];
+
+  for (let i = 0; i < points.length; i++) {
+    const p = points[i];
+    const { laneCount, spacing } = getBusParamsAtPoint(bus, p);
+    const targetLaneIndex = laneIndex % laneCount;
+    const mid = (laneCount - 1) / 2;
+    const off = (targetLaneIndex - mid) * spacing;
+
+    let nx = 0;
+    let ny = 0;
+
+    if (i === 0) {
+      const dx = points[1].x - p.x;
+      const dy = points[1].y - p.y;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      if (len > 0) {
+        nx = -dy / len;
+        ny = dx / len;
+      }
+    } else if (i === points.length - 1) {
+      const dx = p.x - points[i - 1].x;
+      const dy = p.y - points[i - 1].y;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      if (len > 0) {
+        nx = -dy / len;
+        ny = dx / len;
+      }
+    } else {
+      const dx1 = p.x - points[i - 1].x;
+      const dy1 = p.y - points[i - 1].y;
+      const len1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+      let nx1 = 0, ny1 = 0;
+      if (len1 > 0) {
+        nx1 = -dy1 / len1;
+        ny1 = dx1 / len1;
+      }
+
+      const dx2 = points[i + 1].x - p.x;
+      const dy2 = points[i + 1].y - p.y;
+      const len2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+      let nx2 = 0, ny2 = 0;
+      if (len2 > 0) {
+        nx2 = -dy2 / len2;
+        ny2 = dx2 / len2;
+      }
+
+      const sx = nx1 + nx2;
+      const sy = ny1 + ny2;
+      const slen = Math.sqrt(sx * sx + sy * sy);
+      if (slen > 0) {
+        const factor = 2 / (slen * slen);
+        const miterFactor = Math.min(factor, 2.0);
+        nx = sx * miterFactor;
+        ny = sy * miterFactor;
+      }
+    }
+
+    offsets.push({ dx: nx * off, dy: ny * off });
+  }
+
+  return offsets;
+}
+
+function getCableBusPaths(bus: typeof BUS_PATHS[0]): { d: string; color: string; isCasing?: boolean }[] {
+  const points = getRefinedBusPathPoints(bus);
+  if (points.length < 2) return [];
+
+  const isExternal = ["keyboard", "mouse", "monitor"].includes(bus.fromId) ||
+                     ["keyboard", "mouse", "monitor"].includes(bus.toId);
+
+  const paths: { d: string; color: string; isCasing?: boolean }[] = [];
+
+  // If external, render casings for outside segments only
+  if (isExternal) {
+    let currentCasingPath: string[] = [];
+    for (let i = 0; i < points.length - 1; i++) {
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      if (isSegmentOutside(p1, p2)) {
+        if (currentCasingPath.length === 0) {
+          currentCasingPath.push(`M${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`);
+        }
+        currentCasingPath.push(`L${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`);
+      } else {
+        if (currentCasingPath.length > 0) {
+          paths.push({
+            d: currentCasingPath.join(" "),
+            color: "#1e293b",
+            isCasing: true,
+          });
+          currentCasingPath = [];
+        }
+      }
+    }
+    if (currentCasingPath.length > 0) {
+      paths.push({
+        d: currentCasingPath.join(" "),
+        color: "#1e293b",
+        isCasing: true,
+      });
+    }
+  }
+
+  // Draw the lanes
+  const maxLanes = isExternal ? 3 : bus.laneCount;
+
+  for (let li = 0; li < maxLanes; li++) {
+    const parts: string[] = [];
+
+    for (let i = 0; i < points.length; i++) {
+      const p = points[i];
+      const { laneCount, spacing } = getBusParamsAtPoint(bus, p);
+      const targetLaneIndex = li % laneCount;
+      const mid = (laneCount - 1) / 2;
+      const off = (targetLaneIndex - mid) * spacing;
+
+      let nx = 0;
+      let ny = 0;
+
+      if (i === 0) {
+        const dx = points[1].x - p.x;
+        const dy = points[1].y - p.y;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        if (len > 0) {
+          nx = -dy / len;
+          ny = dx / len;
+        }
+      } else if (i === points.length - 1) {
+        const dx = p.x - points[i - 1].x;
+        const dy = p.y - points[i - 1].y;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        if (len > 0) {
+          nx = -dy / len;
+          ny = dx / len;
+        }
+      } else {
+        const dx1 = p.x - points[i - 1].x;
+        const dy1 = p.y - points[i - 1].y;
+        const len1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+        let nx1 = 0, ny1 = 0;
+        if (len1 > 0) {
+          nx1 = -dy1 / len1;
+          ny1 = dx1 / len1;
+        }
+
+        const dx2 = points[i + 1].x - p.x;
+        const dy2 = points[i + 1].y - p.y;
+        const len2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+        let nx2 = 0, ny2 = 0;
+        if (len2 > 0) {
+          nx2 = -dy2 / len2;
+          ny2 = dx2 / len2;
+        }
+
+        const sx = nx1 + nx2;
+        const sy = ny1 + ny2;
+        const slen = Math.sqrt(sx * sx + sy * sy);
+        if (slen > 0) {
+          const factor = 2 / (slen * slen);
+          const miterFactor = Math.min(factor, 2.0);
+          nx = sx * miterFactor;
+          ny = sy * miterFactor;
+        }
+      }
+
+      const px = p.x + nx * off;
+      const py = p.y + ny * off;
+      parts.push(`${i === 0 ? "M" : "L"}${px.toFixed(2)} ${py.toFixed(2)}`);
+    }
+
+    paths.push({
+      d: parts.join(" "),
+      color: bus.color,
+    });
+  }
+
+  return paths;
+}
+
+function CableBusLine({ bus, isActive }: { bus: typeof BUS_PATHS[0]; isActive: boolean; occupancy?: number }) {
+  const paths = getCableBusPaths(bus);
+  if (paths.length === 0) return null;
+
+  const isExternal = ["keyboard", "mouse", "monitor"].includes(bus.fromId) ||
+                     ["keyboard", "mouse", "monitor"].includes(bus.toId);
 
   return (
     <svg className="absolute inset-0 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: "100%", height: "100%" }}>
-      {Array.from({ length: lanes }).map((_, li) => {
-        const d = points
-          .map((p, i) => {
-            const off = laneOffset(li, lanes, false);
-            return `${i === 0 ? "M" : "L"}${(p.x + off.dx).toFixed(1)} ${(p.y + off.dy).toFixed(1)}`;
-          })
-          .join(" ");
+      {paths.map((p, idx) => {
+        if (p.isCasing) {
+          return (
+            <path
+              key={`casing_${idx}`}
+              d={p.d}
+              fill="none"
+              stroke={p.color}
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              opacity={0.85}
+            />
+          );
+        }
 
         return (
           <path
-            key={li}
-            d={d}
+            key={`lane_${idx}`}
+            d={p.d}
             fill="none"
-            stroke="#9ca3af"
-            strokeWidth="1.5"
+            stroke={p.color}
+            strokeWidth="0.15"
             strokeLinecap="round"
-            opacity={0.4}
+            opacity={isActive ? 0.95 : isExternal ? 0.65 : 0.4}
+            filter={isActive ? `url(#${GLOW_FILTER_ID})` : undefined}
+            className={isActive ? "animate-pulse" : undefined}
           />
         );
       })}
@@ -116,20 +358,35 @@ function DataPacketDot({ packet, waypoints, bus }: { packet: FlowPacket; waypoin
 
   const progress = Math.min(packet.progress, 1);
   const totalLen = waypoints.length - 1;
-  const pos = progress * totalLen;
-  const segIdx = Math.min(Math.floor(pos), totalLen - 1);
-  const t = pos - segIdx;
-
-  const from = waypoints[segIdx];
-  const to = waypoints[segIdx + 1];
-  if (!from || !to) return null;
-
-  const isOutsideCase = progress < bus.caseBoundaryProgress;
   const laneIndex = packet.laneIndex ?? 0;
-  const off = laneOffset(laneIndex, 3, isOutsideCase);
 
-  const x = from.x + (to.x - from.x) * t + off.dx;
-  const y = from.y + (to.y - from.y) * t + off.dy;
+  const getInterpolatedPos = (pVal: number) => {
+    const pPos = pVal * totalLen;
+    const pSegIdx = Math.min(Math.floor(pPos), totalLen - 1);
+    const pt = pPos - pSegIdx;
+
+    const pFrom = waypoints[pSegIdx];
+    const pTo = waypoints[pSegIdx + 1];
+    if (!pFrom || !pTo) return { x: 50, y: 50 };
+
+    const baseX = pFrom.x + (pTo.x - pFrom.x) * pt;
+    const baseY = pFrom.y + (pTo.y - pFrom.y) * pt;
+
+    const offsets = getPathOffsets(bus, laneIndex);
+    const offStart = offsets[pSegIdx];
+    const offEnd = offsets[pSegIdx + 1];
+
+    if (!offStart || !offEnd) return { x: baseX, y: baseY };
+
+    const dx = offStart.dx + (offEnd.dx - offStart.dx) * pt;
+    const dy = offStart.dy + (offEnd.dy - offStart.dy) * pt;
+
+    return { x: baseX + dx, y: baseY + dy };
+  };
+
+  const currentPos = getInterpolatedPos(progress);
+  const x = currentPos.x;
+  const y = currentPos.y;
 
   const size = getDotSize(packet.dataSize);
 
@@ -141,15 +398,10 @@ function DataPacketDot({ packet, waypoints, bus }: { packet: FlowPacket; waypoin
   for (let i = 1; i <= trailSteps; i++) {
     const tp = Math.max(0, progress - i * 0.06);
     if (tp >= 1) continue;
-    const tPos = tp * totalLen;
-    const tSegIdx = Math.min(Math.floor(tPos), totalLen - 1);
-    const tt = tPos - tSegIdx;
-    const tFrom = waypoints[tSegIdx];
-    const tTo = waypoints[tSegIdx + 1];
-    if (!tFrom || !tTo) continue;
+    const tPos = getInterpolatedPos(tp);
     trail.push({
-      x: tFrom.x + (tTo.x - tFrom.x) * tt + off.dx,
-      y: tFrom.y + (tTo.y - tFrom.y) * tt + off.dy,
+      x: tPos.x,
+      y: tPos.y,
       op: 0.3 - i * 0.06,
     });
   }
@@ -159,7 +411,7 @@ function DataPacketDot({ packet, waypoints, bus }: { packet: FlowPacket; waypoin
       {trail.map((t, i) => (
         <div
           key={`trail_${packet.id}_${i}`}
-          className="absolute rounded-full z-10"
+          className="absolute rounded-full"
           style={{
             left: `${t.x}%`,
             top: `${t.y}%`,
@@ -169,11 +421,12 @@ function DataPacketDot({ packet, waypoints, bus }: { packet: FlowPacket; waypoin
             opacity: t.op,
             transform: "translate(-50%, -50%)",
             borderRadius: "50%",
+            zIndex: 3,
           }}
         />
       ))}
       <div
-        className="absolute rounded-full z-10 group/dot cursor-pointer"
+        className="absolute rounded-full group/dot cursor-pointer"
         style={{
           left: `${x}%`,
           top: `${y}%`,
@@ -184,6 +437,7 @@ function DataPacketDot({ packet, waypoints, bus }: { packet: FlowPacket; waypoin
           transform: "translate(-50%, -50%)",
           borderRadius: "50%",
           transition: "left 0.08s linear, top 0.08s linear",
+          zIndex: 3,
         }}
       >
         <div
@@ -217,11 +471,12 @@ function QueueCluster({ packets, compPos, maxCount = 8 }: { packets: FlowPacket[
 
   return (
     <div
-      className="absolute z-10 flex flex-wrap gap-0.5"
+      className="absolute flex flex-wrap gap-0.5"
       style={{
         left: `${compPos.x + 2}%`,
         top: `${compPos.y - 2}%`,
         width: `${Math.min(show.length * 4, 20)}px`,
+        zIndex: 3,
       }}
     >
       {show.map((pkt) => {
@@ -310,13 +565,14 @@ function CornerChips() {
           return (
             <div
               key={`corner_${bus.id}_${i}`}
-              className="absolute z-10 w-1.5 h-1.5 rounded-full"
+              className="absolute w-1.5 h-1.5 rounded-full"
               style={{
                 left: `${wp.x}%`,
                 top: `${wp.y}%`,
                 backgroundColor: "#555",
                 transform: "translate(-50%, -50%)",
                 opacity: 0.5,
+                zIndex: 3,
               }}
             />
           );
@@ -405,10 +661,7 @@ export default function SimDeskView({
         <CableGlowFilter />
       </svg>
 
-      {/* Outside-case sub-lanes (keyboard→cpu) */}
-      {BUS_PATHS.filter((b) => b.id === "bus_keyboard_cpu").map((bus) => (
-        <OutsideSubLanes key={`outsidelanes_${bus.id}`} bus={bus} />
-      ))}
+
 
       {/* Wire labels */}
       <WireLabels />
@@ -434,6 +687,7 @@ export default function SimDeskView({
               top: `${comp.y}%`,
               width: `${comp.w}%`,
               height: `${comp.h}%`,
+              zIndex: (comp.id === "keyboard" || comp.id === "mouse" || comp.id === "monitor") ? 4 : undefined,
             }}
           >
             <div
@@ -479,10 +733,16 @@ export default function SimDeskView({
                   )}
                   {showInterior && (
                     <>
-                      <div className="absolute inset-0 bg-black/70 rounded-lg" />
+                      <div className="absolute inset-0 bg-zinc-950 rounded-lg" style={{ zIndex: 1 }} />
                       {internalComponents.map((ic) => {
                         const icSprite = SPRITE_MAP[ic.spriteKey];
                         if (!icSprite) return null;
+
+                        // Find active packets currently processing on this chip
+                        const processingPackets = packets.filter(
+                          (p) => p.status === "processing" && p.toId === ic.id
+                        );
+
                         return (
                           <div
                             key={ic.id}
@@ -498,11 +758,30 @@ export default function SimDeskView({
                               top: `${((ic.y - comp.y) / comp.h) * 100}%`,
                               width: `${ic.w}%`,
                               height: `${ic.h}%`,
+                              zIndex: ic.id === "motherboard" ? 1 : 4,
                             }}
                           >
-                            <PixelSprite data={icSprite} size={48} className="w-full h-full object-contain max-w-[64px] max-h-[64px]" />
+                            <PixelSprite
+                              data={icSprite}
+                              size={48}
+                              className={`w-full h-full object-contain max-w-[64px] max-h-[64px] ${
+                                ic.id === "fan" ? "animate-spin-blade" : ""
+                              }`}
+                            />
+                            {processingPackets.length > 0 && (
+                              <div
+                                className="absolute inset-0 m-auto rounded-full animate-ping opacity-75"
+                                style={{
+                                  width: "12px",
+                                  height: "12px",
+                                  backgroundColor: processingPackets[0].color,
+                                  boxShadow: `0 0 8px ${processingPackets[0].color}`,
+                                  zIndex: 10,
+                                }}
+                              />
+                            )}
                             {hoveredComponent === ic.id && (
-                              <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[6px] px-1.5 py-0.5 rounded whitespace-nowrap border border-zinc-600">
+                              <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[6px] px-1.5 py-0.5 rounded whitespace-nowrap border border-zinc-600" style={{ zIndex: 20 }}>
                                 {t(ic.labelKey, lang, mode)}
                                 <div className="text-[5px] opacity-60 text-center mt-0.5">Click</div>
                               </div>
@@ -517,7 +796,7 @@ export default function SimDeskView({
               {comp.id === "monitor" && (
                 <div className="w-full h-full flex flex-col">
                   <div className="flex-[5] border-2 border-gray-700 rounded overflow-hidden bg-black shadow-lg shadow-blue-500/10 relative">
-                    <MonitorScreen content={monitorContent} packets={packets} lastAppArrivals={lastAppArrivals} children={monitorScreen} />
+                     <MonitorScreen content={monitorContent} packets={packets} lastAppArrivals={lastAppArrivals}>{monitorScreen}</MonitorScreen>
                     {/* CRT scanline overlay */}
                     <div className="absolute inset-0 pointer-events-none z-10 opacity-[0.03]">
                       <div className="w-full h-px bg-green-500 animate-crt-scanline" />
@@ -535,11 +814,11 @@ export default function SimDeskView({
       })}
 
       {/* Inside-case cable lines (above dark overlay) */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 2 }}>
         {BUS_PATHS.filter((bus) => {
           const isExternal = ["keyboard", "mouse", "monitor"].includes(bus.fromId) ||
                              ["keyboard", "mouse", "monitor"].includes(bus.toId);
-          return showInterior ? !isExternal : isExternal;
+          return isExternal || showInterior;
         }).map((bus) => (
           <CableBusLine
             key={bus.id}
@@ -564,10 +843,10 @@ export default function SimDeskView({
         if (!bus) return false;
         const isExternal = ["keyboard", "mouse", "monitor"].includes(bus.fromId) ||
                            ["keyboard", "mouse", "monitor"].includes(bus.toId);
-        return showInterior ? !isExternal : isExternal;
+        return isExternal || showInterior;
       }).map((pkt) => {
         const bus = BUS_PATHS.find((b) => b.fromId === pkt.fromId && b.toId === pkt.toId)!;
-        return <DataPacketDot key={pkt.id} packet={pkt} waypoints={getBusPathPoints(bus)} bus={bus} />;
+        return <DataPacketDot key={pkt.id} packet={pkt} waypoints={getRefinedBusPathPoints(bus)} bus={bus} />;
       })}
 
       {children && <div className="absolute inset-0 z-20">{children}</div>}

@@ -157,6 +157,24 @@ export function generateMatchRound(round: number, numChoices = 3) {
   };
 }
 
+export function generateThaiRevertRound(round: number, numChoices = 3) {
+  const targetIndex = getLetterIndex(round);
+  const correctLetter = ALPHABET_UPPER[targetIndex];
+  const thaiName = THAI_NAMES[targetIndex];
+
+  const choices = [correctLetter];
+  while (choices.length < numChoices) {
+    const r = ALPHABET_UPPER[Math.floor(Math.random() * 26)];
+    if (!choices.includes(r)) choices.push(r);
+  }
+
+  return {
+    targetLetter: thaiName,
+    correctChar: correctLetter,
+    choices: fisherYatesShuffle(choices),
+  };
+}
+
 export function generateThaiRound(round: number, numChoices = 3) {
   const targetIndex = getLetterIndex(round);
   const upper = ALPHABET_UPPER[targetIndex];
@@ -189,6 +207,24 @@ export function generatePhonicsRound(round: number, numChoices = 3) {
   return {
     targetLetter: upper,
     correctChar: correct,
+    choices: fisherYatesShuffle(choices),
+  };
+}
+
+export function generatePhonicsRevertRound(round: number, numChoices = 3) {
+  const targetIndex = getLetterIndex(round);
+  const correct = PHONICS_SOUNDS[targetIndex];
+  const correctLetter = ALPHABET_UPPER[targetIndex];
+
+  const choices = [correctLetter];
+  while (choices.length < numChoices) {
+    const r = ALPHABET_UPPER[Math.floor(Math.random() * 26)];
+    if (!choices.includes(r)) choices.push(r);
+  }
+
+  return {
+    targetLetter: correct,
+    correctChar: correctLetter,
     choices: fisherYatesShuffle(choices),
   };
 }
