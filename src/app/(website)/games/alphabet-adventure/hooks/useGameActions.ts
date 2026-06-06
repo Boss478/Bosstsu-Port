@@ -44,12 +44,10 @@ function loadSavedProgress(): { gameState: GameState; stageStars: number[] } | n
 }
 
 export function useGameActions({
-  beta,
   playSound,
   playSequence,
   setScreen,
 }: {
-  beta: boolean;
   playSound: (type: "correct" | "wrong" | "win") => void;
   playSequence: (freqs: number[], duration?: number, gainVal?: number) => void;
   setScreen: Dispatch<SetStateAction<Screen>>;
@@ -68,7 +66,6 @@ export function useGameActions({
   const [showCollectionOverlay, setShowCollectionOverlay] = useState(false);
 
   const stateRef = useRef(gameState);
-  const betaRef = useRef(beta);
   const dropStreakRef = useRef(0);
   const dropPowerRef = useRef(0);
   const cardToastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -84,14 +81,11 @@ export function useGameActions({
   };
 
   useEffect(() => { stateRef.current = gameState; });
-  useEffect(() => { betaRef.current = beta; }, [beta]);
 
   useEffect(() => {
     setHasSavedProgress(!!loadSavedProgress());
-    if (beta) {
-      dropPowerRef.current = loadCollection().dropPower || 0;
-    }
-  }, [beta]);
+    dropPowerRef.current = loadCollection().dropPower || 0;
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -113,16 +107,12 @@ export function useGameActions({
 
     if (config.type === "match") {
       if (config.dataPool === "thai") {
-        const isRevert = betaRef.current;
-        const gen = isRevert ? generateThaiRevertRound : generateThaiRound;
-        const { targetLetter, correctChar, choices } = gen(state.round, numChoices);
-        return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1, revert: isRevert };
+        const { targetLetter, correctChar, choices } = generateThaiRevertRound(state.round, numChoices);
+        return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1, revert: true };
       }
       if (config.dataPool === "phonics") {
-        const isRevert = betaRef.current;
-        const gen = isRevert ? generatePhonicsRevertRound : generatePhonicsRound;
-        const { targetLetter, correctChar, choices } = gen(state.round, numChoices);
-        return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1, revert: isRevert };
+        const { targetLetter, correctChar, choices } = generatePhonicsRevertRound(state.round, numChoices);
+        return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1, revert: true };
       }
       const { targetLetter, correctChar, choices } = generateMatchRound(state.round, numChoices);
       return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1 };
@@ -233,10 +223,9 @@ export function useGameActions({
     if (selected === correct) {
       let cardDropped = false;
 
-      if (beta) {
-        dropStreakRef.current += 1;
-        const tier = rollCardDrop(dropStreakRef.current, dropPowerRef.current);
-        if (tier) {
+      dropStreakRef.current += 1;
+      const tier = rollCardDrop(dropStreakRef.current, dropPowerRef.current);
+      if (tier) {
           cardDropped = true;
           playSequence(CARD_TIER_SOUNDS[tier]);
           dropStreakRef.current = 0;
@@ -258,11 +247,10 @@ export function useGameActions({
             }, 1000);
           }
         }
-      }
 
-      if (!cardDropped) {
-        playSound("correct");
-      }
+        if (!cardDropped) {
+          playSound("correct");
+        }
 
       const points = config.type === "typing" ? GAME_CONFIG.SCORE_TYPING_CORRECT : GAME_CONFIG.SCORE_CORRECT;
       const newStreak = stateRef.current.currentStreak + 1;
@@ -328,7 +316,7 @@ export function useGameActions({
         }
       }
     } else {
-      if (beta) dropStreakRef.current = 0;
+      dropStreakRef.current = 0;
       setStreakToast("");
       if (cardRevealTimerRef.current) { clearTimeout(cardRevealTimerRef.current); cardRevealTimerRef.current = null; }
       if (streakToastRef.current) { clearTimeout(streakToastRef.current); streakToastRef.current = null; }
@@ -361,7 +349,7 @@ export function useGameActions({
         showFeedback(`${randomPraise("wrong")} -${points}`, "wrong", correct);
       }
     }
-  }, [isTransitioning, roundData, generateRound, playSound, showFeedback, handleLevelComplete, advanceMatchRound, stageStars, beta, playSequence]);
+  }, [isTransitioning, roundData, generateRound, playSound, showFeedback, handleLevelComplete, advanceMatchRound, stageStars, playSequence]);
 
   const checkTyping = useCallback(() => {
     if (isTransitioning) return;
@@ -418,7 +406,7 @@ export function useGameActions({
         }, GAME_CONFIG.FEEDBACK_DURATION);
       }
     } else {
-      if (beta) dropStreakRef.current = 0;
+      dropStreakRef.current = 0;
       setStreakToast("");
       if (cardRevealTimerRef.current) { clearTimeout(cardRevealTimerRef.current); cardRevealTimerRef.current = null; }
       if (streakToastRef.current) { clearTimeout(streakToastRef.current); streakToastRef.current = null; }
@@ -461,7 +449,7 @@ export function useGameActions({
         }, 800);
       }
     }
-  }, [isTransitioning, roundData, playSound, showFeedback, handleLevelComplete, stageStars, beta]);
+  }, [isTransitioning, roundData, playSound, showFeedback, handleLevelComplete, stageStars]);
 
   const handleSelectCell = useCallback((index: number) => {
     setRoundData(prev => ({ ...prev, activeIndex: index }));

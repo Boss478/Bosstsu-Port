@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { HIGH_SCORE_KEY } from "../constants";
+import { HIGH_SCORE_KEY, PROGRESS_KEY } from "../constants";
 import { CARD_STORAGE_KEY } from "../cards/cards";
 
 interface Props {
@@ -40,28 +40,6 @@ export default function MenuScreen({ onStart, onContinue, hasProgress, easyMode,
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 relative">
       <div className="absolute top-6 right-6 flex items-center gap-2">
-        {isBeta && onShowCards && (
-          <button
-            onClick={onShowCards}
-            className="px-4 py-2.5 rounded-xl bg-amber-100 dark:bg-amber-900/30 hover:bg-amber-200 dark:hover:bg-amber-800/40 text-amber-700 dark:text-amber-400 text-xs font-black uppercase tracking-widest transition-all hover:scale-105"
-            title="View Card Collection"
-          >
-            Cards
-          </button>
-        )}
-        {isBeta && (
-          <button
-            onClick={() => {
-              if (window.confirm("Delete all collected cards? This cannot be undone.")) {
-                localStorage.removeItem(CARD_STORAGE_KEY);
-              }
-            }}
-            className="p-2 rounded-xl bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800/40 text-red-500 hover:text-red-600 text-xs transition-all hover:scale-105"
-            title="Reset Cards (Debug)"
-          >
-            <i className="fi fi-sr-refresh text-sm"></i>
-          </button>
-        )}
         {isBeta && (
           <div className="relative">
             <button
@@ -95,7 +73,11 @@ export default function MenuScreen({ onStart, onContinue, hasProgress, easyMode,
         )}
         {!isBeta && (
           <button
-            onClick={() => router.push("/games/alphabet-adventure/beta")}
+            onClick={() => {
+              if (window.confirm("Open BETA test area with card collection and experimental features? Progress carries over.\nเปิดพื้นที่ทดสอบ BETA? ความคืบหน้าจะถูกบันทึก")) {
+                router.push("/games/alphabet-adventure/beta");
+              }
+            }}
             className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-xs font-black uppercase tracking-widest shadow-lg hover:shadow-xl transition-all hover:scale-105"
             title="Try BETA Features"
           >
@@ -175,6 +157,39 @@ export default function MenuScreen({ onStart, onContinue, hasProgress, easyMode,
             {hasProgress ? "New Game" : "Start Game"} <i className="fi fi-sr-play mt-1 transition-transform group-hover:translate-x-1"></i>
           </span>
           <div className="absolute inset-0 bg-violet-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        </button>
+      </div>
+
+      {onShowCards && (
+        <div className="pt-4 flex items-center justify-center">
+          <button
+            onClick={onShowCards}
+            className="group relative px-8 py-4 bg-amber-500 text-white text-xl font-black rounded-3xl shadow-[0_10px_0_0_rgba(217,119,6,1)] active:shadow-none active:translate-y-2 transition-all duration-150 overflow-hidden"
+            title="View Card Collection"
+          >
+            <span className="relative z-10 flex items-center gap-3">
+              <i className="fi fi-sr-template mt-1"></i> Card Collection
+            </span>
+            <div className="absolute inset-0 bg-amber-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          </button>
+        </div>
+      )}
+
+      <div className="pt-4 flex items-center justify-center">
+        <button
+          onClick={() => {
+            if (window.confirm("Reset all game progress? This will clear cards, scores, and settings.\nลบข้อมูลทั้งหมด? การดำเนินการนี้ไม่สามารถยกเลิกได้")) {
+              localStorage.removeItem(CARD_STORAGE_KEY);
+              localStorage.removeItem(PROGRESS_KEY);
+              localStorage.removeItem(HIGH_SCORE_KEY);
+              localStorage.removeItem("alphabet-adventure-voice");
+              window.location.reload();
+            }
+          }}
+          className="px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 border border-red-500/20"
+        >
+          <i className="fi fi-sr-refresh mr-1.5 text-xs"></i>
+          RESET PROGRESS
         </button>
       </div>
 

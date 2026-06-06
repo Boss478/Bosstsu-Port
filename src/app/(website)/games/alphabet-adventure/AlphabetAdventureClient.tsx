@@ -48,7 +48,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
     checkTyping,
     handleSelectCell,
     handleTypingInput,
-  } = useGameActions({ beta, playSound, playSequence, setScreen });
+  } = useGameActions({ playSound, playSequence, setScreen });
 
   useEffect(() => {
     const header = document.getElementById("site-header");
@@ -127,7 +127,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
         {!showCards && screen === "game" && (
           <>
             <GameOverlays
-              beta={beta}
+              isBeta={beta}
               showDebug={showDebug}
               showCollectionOverlay={showCollectionOverlay}
               streakToast={streakToast}

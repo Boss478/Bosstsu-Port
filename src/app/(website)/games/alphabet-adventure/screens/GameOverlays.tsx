@@ -1,13 +1,13 @@
 "use client";
 
 import type { CardTier } from "../cards/cards";
-import { getDropRate, getNoneDropRate, getEffectiveStreak, loadCollection, TIER_ORDER, TIER_LABELS, CARD_WORDS, isHolographicTier } from "../cards/cards";
+import { getDropRate, getNoneDropRate, loadCollection, TIER_ORDER, TIER_LABELS, CARD_WORDS, isHolographicTier } from "../cards/cards";
 import { CardFrame } from "../cards/CardFrame";
 import { CardIllustration } from "../cards/CardIllustrations";
 import CardRevealModal from "../beta/screens/CardRevealModal";
 
 interface Props {
-  beta: boolean;
+  isBeta?: boolean;
   showDebug: boolean;
   showCollectionOverlay: boolean;
   streakToast: string;
@@ -25,7 +25,7 @@ interface Props {
 }
 
 export default function GameOverlays({
-  beta,
+  isBeta,
   showDebug,
   showCollectionOverlay,
   streakToast,
@@ -43,11 +43,11 @@ export default function GameOverlays({
 }: Props) {
   return (
     <>
-      {beta && (
-        <>
-          <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+        {isBeta && (
+          <>
             <span className="inline-block px-3 py-1.5 rounded-lg bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg animate-pulse">
-              BETA
+              CARDS
             </span>
             <button
               onClick={onToggleCollection}
@@ -56,90 +56,93 @@ export default function GameOverlays({
             >
               <i className="fi fi-sr-template text-xs"></i>
             </button>
-            <button
-              onClick={onToggleDebug}
-              className="p-1.5 rounded-lg bg-zinc-800/80 border border-zinc-700 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-all"
-              title="Toggle debug panel"
-            >
-              <i className="fi fi-sr-eye text-xs"></i>
-            </button>
-          </div>
-          {showDebug && (
-            <div className="fixed top-4 left-4 z-50 animate-in fade-in duration-300">
-              <div className="bg-black/80 backdrop-blur-md px-3 py-2 rounded-xl border border-zinc-700 shadow-2xl min-w-[140px]">
-                <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1.5">
-                  Eff {effectiveStreak} | Drop {dropStreak} | Pwr {dropPower}
-                </p>
-                <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
-                  <div className="flex justify-between text-[10px] font-bold">
-                    <span className="text-zinc-500">None</span>
-                    <span className="text-zinc-500 tabular-nums">{getNoneDropRate(effectiveStreak).toFixed(0)}%</span>
-                  </div>
-                  {TIER_ORDER.map((tier) => {
-                    const rate = getDropRate(tier, effectiveStreak);
-                    return (
-                      <div key={tier} className="flex justify-between text-[10px] font-bold">
-                        <span className="text-zinc-400">{TIER_LABELS[tier]}</span>
-                        <span className="text-amber-400 tabular-nums">{rate.toFixed(1)}%</span>
-                      </div>
-                    );
-                  })}
-                </div>
+          </>
+        )}
+        <button
+          onClick={onToggleDebug}
+          className="p-1.5 rounded-lg bg-zinc-800/80 border border-zinc-700 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-all"
+          title="Toggle debug panel"
+        >
+          <i className="fi fi-sr-eye text-xs"></i>
+        </button>
+      </div>
+
+      {showDebug && (
+        <div className="fixed top-4 left-4 z-50 animate-in fade-in duration-300">
+          <div className="bg-black/80 backdrop-blur-md px-3 py-2 rounded-xl border border-zinc-700 shadow-2xl min-w-[140px]">
+            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1.5">
+              Eff {effectiveStreak} | Drop {dropStreak} | Pwr {dropPower}
+            </p>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+              <div className="flex justify-between text-[10px] font-bold">
+                <span className="text-zinc-500">None</span>
+                <span className="text-zinc-500 tabular-nums">{getNoneDropRate(effectiveStreak).toFixed(0)}%</span>
               </div>
+              {TIER_ORDER.map((tier) => {
+                const rate = getDropRate(tier, effectiveStreak);
+                return (
+                  <div key={tier} className="flex justify-between text-[10px] font-bold">
+                    <span className="text-zinc-400">{TIER_LABELS[tier]}</span>
+                    <span className="text-amber-400 tabular-nums">{rate.toFixed(1)}%</span>
+                  </div>
+                );
+              })}
             </div>
-          )}
-          {showCollectionOverlay && (
-            <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
-              <div className="bg-black/85 backdrop-blur-xl px-5 py-4 rounded-2xl border border-zinc-700 shadow-2xl min-w-[260px]">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Collection</p>
+          </div>
+        </div>
+      )}
+
+      {isBeta && showCollectionOverlay && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="bg-black/85 backdrop-blur-xl px-5 py-4 rounded-2xl border border-zinc-700 shadow-2xl min-w-[260px]">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Collection</p>
+              <button
+                onClick={onCloseCollection}
+                className="text-zinc-500 hover:text-zinc-300 transition-colors"
+              >
+                <i className="fi fi-sr-cross text-xs"></i>
+              </button>
+            </div>
+            {(() => {
+              const col = loadCollection();
+              const total = col.cards.length;
+              const recent = [...col.cards].sort((a, b) => (b.lastCollected ?? 0) - (a.lastCollected ?? 0)).slice(0, 3);
+              return (
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-zinc-300">{total} / 26 cards</span>
+                    <span className="text-xs font-bold text-amber-400">{col.totalPoints} pts</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-zinc-700 overflow-hidden">
+                    <div className="h-full rounded-full bg-violet-500 transition-all" style={{ width: `${(total / 26) * 100}%` }} />
+                  </div>
+                  {recent.length > 0 && (
+                    <div>
+                      <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Recent</p>
+                      <div className="flex gap-2">
+                        {recent.map(card => (
+                          <div key={`${card.letter}-${card.tier}`} className="flex items-center gap-1.5 bg-zinc-800/60 px-2 py-1 rounded-lg">
+                            <CardIllustration letter={card.letter} size={20} />
+                            <span className="text-xs font-bold text-zinc-300">{card.letter}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <button
-                    onClick={onCloseCollection}
-                    className="text-zinc-500 hover:text-zinc-300 transition-colors"
+                    onClick={() => { onCloseCollection(); onViewFullCollection(); }}
+                    className="w-full py-1.5 rounded-lg bg-violet-600/80 hover:bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest transition-all"
                   >
-                    <i className="fi fi-sr-cross text-xs"></i>
+                    View Full Collection
                   </button>
                 </div>
-                {(() => {
-                  const col = loadCollection();
-                  const total = col.cards.length;
-                  const recent = [...col.cards].sort((a, b) => (b.lastCollected ?? 0) - (a.lastCollected ?? 0)).slice(0, 3);
-                  return (
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-zinc-300">{total} / 26 cards</span>
-                        <span className="text-xs font-bold text-amber-400">{col.totalPoints} pts</span>
-                      </div>
-                      <div className="h-1.5 rounded-full bg-zinc-700 overflow-hidden">
-                        <div className="h-full rounded-full bg-violet-500 transition-all" style={{ width: `${(total / 26) * 100}%` }} />
-                      </div>
-                      {recent.length > 0 && (
-                        <div>
-                          <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Recent</p>
-                          <div className="flex gap-2">
-                            {recent.map(card => (
-                              <div key={`${card.letter}-${card.tier}`} className="flex items-center gap-1.5 bg-zinc-800/60 px-2 py-1 rounded-lg">
-                                <CardIllustration letter={card.letter} size={20} />
-                                <span className="text-xs font-bold text-zinc-300">{card.letter}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      <button
-                        onClick={() => { onCloseCollection(); onViewFullCollection(); }}
-                        className="w-full py-1.5 rounded-lg bg-violet-600/80 hover:bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest transition-all"
-                      >
-                        View Full Collection
-                      </button>
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-          )}
-        </>
+              );
+            })()}
+          </div>
+        </div>
       )}
+
       {streakToast && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50">
           <div className="animate-in slide-in-from-top-2 duration-300">
@@ -152,6 +155,7 @@ export default function GameOverlays({
           </div>
         </div>
       )}
+
       {lastCardDropped && (
         <>
           <div className="fixed inset-x-0 bottom-[15%] z-50 pointer-events-none flex justify-center">
@@ -205,7 +209,8 @@ export default function GameOverlays({
           <style>{`@keyframes sparkle-pop{0%{transform:scale(0);opacity:0}40%{transform:scale(1.2);opacity:1}100%{transform:scale(0.3);opacity:0}}`}</style>
         </>
       )}
-      {cardReveal && (
+
+      {isBeta && cardReveal && (
         <CardRevealModal
           letter={cardReveal.letter}
           tier={cardReveal.tier}
