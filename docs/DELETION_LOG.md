@@ -1,5 +1,62 @@
 # Code Deletion Log
 
+## [2026-06-06] Dead Code Cleanup
+
+### Unused Files Deleted
+| File | Reason |
+|------|--------|
+| src/app/(website)/games/computer-lab/components/GuidedTour.tsx | No imports found in codebase |
+| src/app/(website)/games/computer-lab/components/LabTools.tsx | No imports found in codebase |
+| src/app/(website)/games/computer-lab/hooks/useFaultInjector.ts | No imports found in codebase |
+| src/app/(website)/games/computer-lab/simulation/state-machine.ts | No imports found in codebase |
+
+### Unused Exports Made Private
+| File | Export | Reason |
+|------|--------|--------|
+| src/app/(website)/games/computer-lab/constants.ts | SCREENS | Never imported anywhere |
+| src/app/(website)/games/computer-lab/constants.ts | SPRITE_SIZE | Never imported anywhere |
+| src/app/(website)/games/computer-lab/save.ts | resetSave | Never called anywhere |
+| src/app/(website)/games/computer-lab/lang.ts | LANG | Only referenced within lang.ts |
+| src/app/(website)/games/computer-lab/simulation/positions.ts | getComponentCenter | Only used internally in positions.ts |
+| src/app/(website)/games/computer-lab/simulation/positions.ts | getComponentMaxIO | Never imported anywhere |
+| src/app/(website)/games/computer-lab/simulation/positions.ts | getBusEffectiveBandwidth | Never imported anywhere |
+| src/app/(website)/games/computer-lab/simulation/positions.ts | CRT_COLORS | Never imported anywhere |
+| src/app/(website)/games/computer-lab/simulation/positions.ts | DESK_COLORS | Never imported anywhere |
+| src/app/(website)/games/computer-lab/hooks/useSimulationSpeed.ts | useSimulationSpeed | Hook function never called; Speed type still exported |
+| src/lib/upload.ts | cleanupStaleTempUploads | Never called anywhere |
+
+### Unused Dependencies Removed
+| Package | Type | Reason |
+|---------|------|--------|
+| @flaticon/flaticon-uicons | dependency | Icons subsetted into local CSS font file; package not imported |
+
+### Unused CSS Removed
+| Rule | Reason |
+|------|--------|
+| @keyframes scaleIn + @utility animate-scale-in | 0 uses in codebase |
+| @keyframes flow-right + @utility animate-flow-right | 0 uses in codebase |
+| @keyframes flow-bidi + @utility animate-flow-bidi | 0 uses in codebase |
+| @keyframes packet-pulse + @utility animate-packet-pulse | 0 uses in codebase |
+| @keyframes glow-pulse + @utility animate-glow-pulse | 0 uses in codebase |
+| @keyframes type-char | 0 uses in codebase |
+| @keyframes bar-fill | 0 uses in codebase |
+
+### Kept (Manual Review)
+| File | Reason |
+|------|--------|
+| lighthouserc.js | Potential future use for Lighthouse CI audits |
+
+### Impact
+- Files deleted: 4
+- Files modified: 7 (save.ts, lang.ts, constants.ts, positions.ts, useSimulationSpeed.ts, upload.ts, globals.css, package.json)
+- Dependencies removed: 1 (@flaticon/flaticon-uicons)
+- CSS rules removed: 10 (7 @keyframes + 3 @utility)
+- Total dead code removed: ~580 lines estimated
+
+### Testing
+- Build succeeds (exit code 0)
+- All routes generate correctly
+
 ## 2026-05-17 - Refactor Session
 
 ### Unused Files Deleted

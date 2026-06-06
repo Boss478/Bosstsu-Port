@@ -79,14 +79,6 @@ export function saveSave(data: SaveData): void {
   }
 }
 
-export function resetSave(): SaveData {
-  try {
-    localStorage.removeItem(SAVE_KEY);
-  } catch {
-  }
-  return getDefaultSave();
-}
-
 export function canUnlockStage(stage: StageId, progress: Record<StageId, { completed: boolean; stars: number; bestScore: number; unlocked: boolean }>): boolean {
   const order: StageId[] = ["hardware", "software", "workflow", "build", "diagnosis"];
   const idx = order.indexOf(stage);

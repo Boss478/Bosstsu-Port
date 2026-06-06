@@ -63,35 +63,35 @@ function computeUtilization(
   
   // 1. CPU Utilization
   const appCpuCost: Record<string, number> = {
-    vscode: 8,
-    chrome: 12,
-    photoshop: 20,
-    youtube: 8,
-    discord: 4,
-    spotify: 3,
-    calculator: 1,
-    minecraft: 25,
+    vscode: 15,
+    chrome: 20,
+    photoshop: 40,
+    youtube: 15,
+    discord: 10,
+    spotify: 5,
+    calculator: 2,
+    minecraft: 50,
   };
   const baseCpuLoad = runningApps.reduce((sum, app) => sum + (app.active ? (appCpuCost[app.id] ?? 5) : 0), 0);
-  const packetsLoad = activePacketsCount * 6;
+  const packetsLoad = activePacketsCount * 2.5; // Reduced from 6 to 2.5 to avoid immediate bottlenecks
   const totalRawCpuLoad = baseCpuLoad + packetsLoad;
   const cpuCapacity = cpuState.cores * cpuState.clock;
-  const scaledCpuUtil = Math.round((totalRawCpuLoad * 12) / cpuCapacity);
+  const scaledCpuUtil = Math.round((totalRawCpuLoad * 8) / cpuCapacity); // Reduced multiplier from 12 to 8 for smoother scaling
   
   const cpuJitter = Math.floor(Math.sin(activePacketsCount + baseCpuLoad) * 3);
   const cpuUtil = Math.max(2, Math.min(100, (activePacketsCount > 0 || baseCpuLoad > 0) ? (scaledCpuUtil + cpuJitter) : 2));
 
   // 2. GPU Utilization
   const appGpuCost: Record<string, number> = {
-    photoshop: 25,
-    minecraft: 45,
+    photoshop: 35,
+    minecraft: 65,
   };
   const baseGpuLoad = runningApps.reduce((sum, app) => sum + (app.active ? (appGpuCost[app.id] ?? 0) : 0), 0);
   const graphicsPackets = packets.filter(p => p.status !== "done" && p.route === "graphics").length;
-  const gpuPacketsLoad = graphicsPackets * 12;
+  const gpuPacketsLoad = graphicsPackets * 5; // Reduced from 12 to 5 to avoid immediate bottlenecks
   const totalRawGpuLoad = baseGpuLoad + gpuPacketsLoad;
   const gpuCapacity = gpuState.cores;
-  const scaledGpuUtil = Math.round((totalRawGpuLoad * 4) / gpuCapacity);
+  const scaledGpuUtil = Math.round((totalRawGpuLoad * 2.5) / gpuCapacity); // Reduced multiplier from 4 to 2.5 for smoother scaling
   const gpuJitter = Math.floor(Math.cos(graphicsPackets + baseGpuLoad) * 3);
   const gpuUtil = Math.max(0, Math.min(100, (graphicsPackets > 0 || baseGpuLoad > 0) ? (scaledGpuUtil + gpuJitter) : 0));
 
@@ -219,6 +219,17 @@ const RESOURCE_MULTIPLIER: Record<ResourceLevel, number> = {
   heavy: 3,
 };
 
+const APP_PACKET_CONFIGS: Record<string, { routes: RouteType[]; color: string }> = {
+  vscode: { routes: ["compute", "storage"], color: "#3b82f6" },
+  chrome: { routes: ["compute", "graphics", "storage"], color: "#10b981" },
+  photoshop: { routes: ["graphics", "compute", "storage"], color: "#a855f7" },
+  youtube: { routes: ["graphics", "compute", "storage"], color: "#ef4444" },
+  discord: { routes: ["compute", "graphics"], color: "#6366f1" },
+  spotify: { routes: ["compute", "storage"], color: "#22c55e" },
+  calculator: { routes: ["compute"], color: "#6b7280" },
+  minecraft: { routes: ["graphics", "compute", "storage"], color: "#f59e0b" },
+};
+
 export function useDataFlow({
   cpuState, gpuState, ramState, ssdState, hddState,
   speed, isPaused, fanRpm, workloads, runningApps,
@@ -262,6 +273,8 @@ export function useDataFlow({
   const workloadsRef = useRef<WorkloadConfig[]>(workloads);
   const runningAppsRef = useRef<AppConfig[]>(runningApps);
   const bottleneckRef = useRef<Bottleneck | null>(null);
+  // Track linger frames so trailing queue dots can drain before a done packet is removed
+  const lingerRef = useRef<Record<string, number>>({});
   const crashTimersRef = useRef<Record<string, number>>({});
   const crashActiveRef = useRef(false);
 
@@ -346,7 +359,8 @@ export function useDataFlow({
       const activeCount = currentPackets.filter(p => p.status !== "done").length;
       const spawnBudget = maxActive - activeCount;
 
-      if (spawnBudget > 0 && !crashActiveRef.current) {
+      if (spawnBudget > 0) {
+        // 1. Spawning from Workloads
         if (activeWorkloads.length > 0) {
           for (const wl of activeWorkloads) {
             if (newPackets.length >= spawnBudget) break;
@@ -397,8 +411,70 @@ export function useDataFlow({
               newPackets.push(pkt);
             }
           }
-        } else {
-          for (let i = 0; i < spawnBudget; i++) {
+        }
+
+        // 2. Spawning from Running Apps
+        const activeApps = runningAppsRef.current.filter((a) => a.active);
+        if (activeApps.length > 0 && newPackets.length < spawnBudget) {
+          const perAppBudget = Math.max(1, Math.floor((spawnBudget - newPackets.length) / activeApps.length));
+          for (const app of activeApps) {
+            if (newPackets.length >= spawnBudget) break;
+            const appConfig = APP_PACKET_CONFIGS[app.id];
+            if (!appConfig) continue;
+
+            const remainingBudget = spawnBudget - newPackets.length;
+            const appSpawnCount = Math.min(perAppBudget, remainingBudget);
+            for (let i = 0; i < appSpawnCount; i++) {
+              const route = appConfig.routes[Math.floor(Math.random() * appConfig.routes.length)];
+              let targetStorage = "";
+              if (route === "storage") {
+                targetStorage = pickStorageComponent(ssdUsageRef.current, hddUsageRef.current);
+              }
+              const hops = route === "storage" && targetStorage === "hdd"
+                ? [
+                    { from: "keyboard", to: "cpu", busId: "bus_keyboard_cpu" },
+                    { from: "cpu", to: "hdd", busId: "bus_cpu_hdd" },
+                    { from: "hdd", to: "cpu", busId: "bus_cpu_hdd" },
+                    { from: "cpu", to: "monitor", busId: "bus_monitor_output" },
+                  ]
+                : ROUTE_HOPS[route];
+              const firstHop = hops[0];
+              const busConfig = BUS_PATHS.find(b => b.id === firstHop.busId);
+              if (!busConfig) continue;
+              const occupancy = busOccupancyRef.current[firstHop.busId] ?? 0;
+              if (occupancy >= busConfig.laneCount) continue;
+
+              packetCounter++;
+              routeTypeCountersRef.current[route]++;
+              const pkt: FlowPacket = {
+                id: `pkt_app_${app.id}_${packetCounter}`,
+                fromId: firstHop.from,
+                toId: firstHop.to,
+                progress: 0,
+                status: "traveling",
+                route,
+                busId: firstHop.busId,
+                byteValue: dataSizeRef.current === "mb" ? 1048576 : dataSizeRef.current === "kb" ? 1024 : 1,
+                dataSize: dataSizeRef.current,
+                color: appConfig.color,
+                shape: "circle",
+                streamId: `app_${app.id}`,
+                sourceInput: app.id.toUpperCase(),
+                isAuto: true,
+                queueStartTime: now,
+                arrivalTime: 0,
+                laneIndex: Math.floor(Math.random() * 3),
+              };
+              busOccupancyRef.current[firstHop.busId] = (busOccupancyRef.current[firstHop.busId] ?? 0) + 1;
+              newPackets.push(pkt);
+            }
+          }
+        }
+
+        // 3. Fallback: If no workloads AND no apps are running, spawn random background tasks
+        if (activeWorkloads.length === 0 && activeApps.length === 0 && newPackets.length < spawnBudget) {
+          const remainingBudget = spawnBudget - newPackets.length;
+          for (let i = 0; i < remainingBudget; i++) {
             const route = pickRoute();
             let targetStorage = "";
             if (route === "storage") {
@@ -459,27 +535,43 @@ export function useDataFlow({
 
           const progress = pkt.progress + dt / BASE_TRAVEL_MS;
           if (progress >= 1) {
-            busOccupancyRef.current[pkt.busId] = Math.max(0, (busOccupancyRef.current[pkt.busId] ?? 1) - 1);
+            // Check if we've already done the arrival logic for this packet
+            const alreadyArrived = (lingerRef.current[pkt.id] ?? -1) >= 0;
 
-            if (pkt.toId === "monitor") {
-              const appIdx = routeTypeCountersRef.current[pkt.route] % 5;
-              const app = MONITOR_APPS[pkt.route][appIdx];
-              const arrival: AppArrival = {
-                route: pkt.route,
-                index: appIdx,
-                icon: app.icon,
-                name: app.name,
-                time: now,
-              };
-              appArrivalsRef.current = [...appArrivalsRef.current.slice(-9), arrival];
+            if (!alreadyArrived) {
+              // First time crossing the finish line — do arrival business logic once
+              busOccupancyRef.current[pkt.busId] = Math.max(0, (busOccupancyRef.current[pkt.busId] ?? 1) - 1);
 
-              return { ...pkt, progress: 1, status: "done" as const };
+              if (pkt.toId === "monitor") {
+                const appIdx = routeTypeCountersRef.current[pkt.route] % 5;
+                const app = MONITOR_APPS[pkt.route][appIdx];
+                const arrival: AppArrival = {
+                  route: pkt.route,
+                  index: appIdx,
+                  icon: app.icon,
+                  name: app.name,
+                  time: now,
+                };
+                appArrivalsRef.current = [...appArrivalsRef.current.slice(-9), arrival];
+                // Monitor packets don't need to drain queue dots — remove immediately
+                delete lingerRef.current[pkt.id];
+                return { ...pkt, progress: 1, status: "done" as const };
+              }
+
+              const existingQueue = componentQueuesRef.current[pkt.toId] ?? [];
+              componentQueuesRef.current[pkt.toId] = [...existingQueue, { ...pkt, id: `q_${pkt.id}`, progress: 0, status: "comp_queued" as const }];
+              // Start linger countdown: 8 frames so trailing dots drain before disappearing
+              lingerRef.current[pkt.id] = 8;
             }
 
-            const existingQueue = componentQueuesRef.current[pkt.toId] ?? [];
-            componentQueuesRef.current[pkt.toId] = [...existingQueue, { ...pkt, id: `q_${pkt.id}`, progress: 0, status: "comp_queued" as const }];
-
-            return { ...pkt, progress: 1, status: "done" as const };
+            const framesLeft = lingerRef.current[pkt.id] ?? 0;
+            if (framesLeft <= 0) {
+              delete lingerRef.current[pkt.id];
+              return { ...pkt, progress: 1, status: "done" as const };
+            }
+            lingerRef.current[pkt.id] = framesLeft - 1;
+            // Stay visible as traveling at progress=1 so trailing queue dots can drain
+            return { ...pkt, progress: 1 };
           }
 
           return { ...pkt, progress };
@@ -559,7 +651,7 @@ export function useDataFlow({
               remaining.push(pkt);
               continue;
             }
-            processed += pkt.byteValue;
+            processed += 1; // Count each packet as 1 unit in the queue to avoid KB/MB blockages
             continue;
           }
 
@@ -575,7 +667,7 @@ export function useDataFlow({
 
           // Start processing this packet!
           remaining.push({ ...pkt, status: "processing" as const, progress: 0 });
-          processed += pkt.byteValue;
+          processed += 1; // Count each packet as 1 unit in the queue to avoid KB/MB blockages
         }
         componentQueuesRef.current[compId] = remaining;
       }
@@ -655,16 +747,26 @@ export function useDataFlow({
 
         // Storage full: SSD+HDD both >= 100
         if (ssdUsageRef.current >= 100 && hddUsageRef.current >= 100) {
-          setCrashEvent({ type: "disk_full", title: "Storage Full", desc: "Both SSD and HDD are full — cannot write data", fix: "Clean up files or add more storage" });
-          crashActiveRef.current = true;
+          timers.storage = (timers.storage ?? 0) + 2000;
+          if (timers.storage >= 2000) {
+            setCrashEvent({ type: "disk_full", title: "Storage Full", desc: "Both SSD and HDD are full — cannot write data", fix: "Clean up files or add more storage" });
+            crashActiveRef.current = true;
+          }
+        } else {
+          timers.storage = 0;
         }
 
         // OOM: app RAM demand > total RAM
         if (ramTotal > 0) {
           const appRamTotal = runningAppsRef.current.reduce((s, a) => s + (a.active ? a.ramCost : 0), 0);
           if (appRamTotal > ramTotal) {
-            setCrashEvent({ type: "bsod", title: "Out of Memory (BSOD)", desc: "Running apps demand more RAM than installed — critical error", fix: "Close memory-heavy apps or install more RAM" });
-            crashActiveRef.current = true;
+            timers.oom = (timers.oom ?? 0) + 2000;
+            if (timers.oom >= 2000) {
+              setCrashEvent({ type: "bsod", title: "Out of Memory (BSOD)", desc: "Running apps demand more RAM than installed — critical error", fix: "Close memory-heavy apps or install more RAM" });
+              crashActiveRef.current = true;
+            }
+          } else {
+            timers.oom = 0;
           }
         }
 
@@ -713,6 +815,7 @@ export function useDataFlow({
     packetCounter = 0;
     componentQueuesRef.current = {};
     busOccupancyRef.current = {};
+    lingerRef.current = {};
     appArrivalsRef.current = [];
     setLastAppArrivals([]);
     setCrashEvent(null);
@@ -725,9 +828,14 @@ export function useDataFlow({
   const dismissCrash = useCallback(() => {
     setCrashEvent(null);
     crashActiveRef.current = false;
-    crashTimersRef.current = {};
-    resetFlow();
-  }, [resetFlow]);
+    crashTimersRef.current = {
+      thermal: -10000,
+      ram: -10000,
+      storage: -10000,
+      oom: -10000,
+      bottleneck: -10000,
+    };
+  }, []);
 
   useEffect(() => {
     return () => {

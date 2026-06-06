@@ -195,7 +195,7 @@ export async function finalizeUploads(
   return result;
 }
 
-export async function cleanupStaleTempUploads(maxAgeMs = 24 * 60 * 60 * 1000): Promise<number> {
+async function _cleanupStaleTempUploads(maxAgeMs = 24 * 60 * 60 * 1000): Promise<number> {
   const tmpDir = path.join(process.cwd(), CONFIG.UPLOAD.ROOT_DIR, '_tmp');
   let cleaned = 0;
 

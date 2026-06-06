@@ -97,7 +97,7 @@ export const BUS_PATHS: BusPath[] = [
   },
 ];
 
-export function getComponentCenter(id: string): { x: number; y: number } {
+function getComponentCenter(id: string): { x: number; y: number } {
   const comp = COMPONENT_LAYOUT.find((c) => c.id === id);
   if (!comp) return { x: 50, y: 50 };
   return { x: comp.x + comp.w / 2, y: comp.y + comp.h / 2 };
@@ -109,33 +109,6 @@ export function getBusPathPoints(bus: BusPath): { x: number; y: number }[] {
   return [from, ...bus.waypoints, to];
 }
 
-export function getComponentMaxIO(id: string): number {
-  const comp = COMPONENT_LAYOUT.find((c) => c.id === id);
-  return comp?.maxIO ?? 0;
-}
-
 export function getBusCornerPoints(bus: BusPath): { x: number; y: number }[] {
   return bus.waypoints;
 }
-
-
-
-export function getBusEffectiveBandwidth(bus: BusPath, srcIO: number, dstIO: number): number {
-  const raw = bus.laneCount * bus.bandwidthPerLane;
-  return Math.min(raw, srcIO, dstIO);
-}
-
-export const CRT_COLORS = {
-  screen: "#00ff41",
-  scanline: "rgba(0, 255, 65, 0.03)",
-  border: "#222222",
-  glow: "rgba(0, 255, 65, 0.15)",
-};
-
-export const DESK_COLORS = {
-  surface: "#8B5E3C",
-  surfaceDark: "#5C3A1E",
-  edge: "#A0724E",
-  cable: "#333333",
-  cableGlow: "#4A90D9",
-};

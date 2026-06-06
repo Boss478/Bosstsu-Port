@@ -14,7 +14,7 @@ interface UseSpeedReturn {
   togglePause: () => void;
 }
 
-export function useSimulationSpeed(): UseSpeedReturn {
+function _useSimulationSpeed(): UseSpeedReturn {
   const [speed, setSpeedState] = useState<Speed>(1);
   const [isPaused, setIsPaused] = useState(false);
 

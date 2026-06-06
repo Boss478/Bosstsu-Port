@@ -3,9 +3,10 @@
 interface LoadingScreenProps {
   visible: boolean;
   message?: string;
+  progress?: number;
 }
 
-export default function LoadingScreen({ visible, message = "Preparing the lab..." }: LoadingScreenProps) {
+export default function LoadingScreen({ visible, message = "Preparing the lab...", progress }: LoadingScreenProps) {
   if (!visible) return null;
 
   return (
@@ -16,14 +17,13 @@ export default function LoadingScreen({ visible, message = "Preparing the lab...
         </p>
         <div className="w-64 h-3 bg-zinc-800 rounded-full overflow-hidden border border-zinc-700">
           <div
-            className="h-full bg-green-500 rounded-full animate-[loadingBar_2s_ease-in-out_infinite]"
+            className={`h-full bg-green-500 rounded-full ${progress === undefined ? "animate-[loadingBar_2s_ease-in-out_infinite]" : "transition-all duration-300"}`}
             style={{
-              width: "0%",
-              animation: "loadingBar 2s ease-in-out infinite",
+              width: progress !== undefined ? `${Math.max(0, Math.min(100, progress))}%` : "0%",
             }}
           />
         </div>
-        <p className="text-zinc-500 text-sm">{message}</p>
+        <p className="text-zinc-500 text-sm">{message} {progress !== undefined && `(${Math.round(progress)}%)`}</p>
       </div>
       <style>{`
         @keyframes loadingBar {

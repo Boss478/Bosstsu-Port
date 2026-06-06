@@ -213,27 +213,39 @@ export default function WorkflowScreen({ onNavigate }: ScreenShellProps) {
         </div>
       </div>
 
-      {/* Crash overlay */}
+      {/* Crash warning toast */}
       {crashEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={dismissCrash}>
-          <div
-            className="bg-zinc-900 border-2 border-red-500/50 rounded-xl max-w-sm w-full mx-3 p-5 animate-popup-enter"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="text-red-500 text-lg font-black mb-2">{t("sim.crash.title", lang, mode)}</div>
-            <div className="text-zinc-300 text-sm font-bold mb-1">{crashEvent.title}</div>
-            <div className="text-zinc-400 text-xs mb-4 leading-relaxed">{crashEvent.desc}</div>
-            <div className="bg-zinc-800/60 rounded-lg p-3 mb-4">
-              <div className="text-[9px] uppercase tracking-wider text-amber-400 mb-1 font-bold">{t("sim.crash.fix", lang, mode)}</div>
-              <div className="text-zinc-300 text-xs leading-relaxed">{crashEvent.fix}</div>
-            </div>
+        <div
+          className="fixed top-4 right-4 z-50 bg-zinc-950/95 border-2 border-red-500 rounded-md p-4 shadow-2xl shadow-red-950/30 max-w-xs w-72"
+          style={{
+            animation: "slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+          }}
+        >
+          <div className="flex items-center justify-between text-red-500 font-extrabold text-xs mb-1.5 uppercase tracking-wider">
+            <span className="flex items-center gap-1.5">
+              <i className="fi fi-sr-warning text-red-500 text-[10px]" /> {t("sim.crash.title", lang, mode) || "Warning"}
+            </span>
             <button
               onClick={() => { dismissCrash(); playSfx("click"); }}
-              className="w-full px-4 py-2 rounded-lg bg-red-600 text-white text-xs font-bold hover:bg-red-500 transition-colors"
+              className="text-zinc-500 hover:text-zinc-200 text-base font-bold leading-none select-none transition-colors cursor-pointer"
             >
-              {t("ui.ok", lang, mode)}
+              &times;
             </button>
           </div>
+          <div className="text-zinc-200 text-xs font-black mb-1">{crashEvent.title}</div>
+          <div className="text-zinc-400 text-[10px] mb-3 leading-tight">{crashEvent.desc}</div>
+          <div className="bg-zinc-900 border border-zinc-800 rounded p-2">
+            <div className="text-[8px] uppercase tracking-wider text-amber-500 mb-0.5 font-bold">
+              {t("sim.crash.fix", lang, mode) || "Solution"}
+            </div>
+            <div className="text-zinc-300 text-[10px] leading-snug">{crashEvent.fix}</div>
+          </div>
+          <style>{`
+            @keyframes slideIn {
+              from { transform: translateX(120%); opacity: 0; }
+              to { transform: translateX(0); opacity: 1; }
+            }
+          `}</style>
         </div>
       )}
 

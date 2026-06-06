@@ -4,6 +4,14 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.45 (2026-06-06)
+- **Dead code cleanup**:
+  - Removed 4 unused files: GuidedTour.tsx, LabTools.tsx, useFaultInjector.ts, state-machine.ts (~580 lines)
+  - Made 10 unused exports private across 7 files
+  - Removed `@flaticon/flaticon-uicons` dependency (icons use local subset CSS)
+  - Removed 7 unused `@keyframes` + 3 unused `@utility` CSS rules
+  - No functional changes; build passes with all 28+ routes intact
+
 ## v1.9.44 (2026-06-06)
 + **Alphabet Adventure: BETA features promoted to production**:
   + Card drops + drop streak + drop power now active on production route for all players (was BETA-only)

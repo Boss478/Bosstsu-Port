@@ -15,7 +15,7 @@ function entry(
   };
 }
 
-export const LANG: Record<string, LangEntry> = {
+const LANG: Record<string, LangEntry> = {
   /* === BOOT / BIOS === */
   "boot.title": entry("COMPUTER LAB BIOS v1.0", "COMPUTER LAB BIOS v1.0"),
   "boot.cpu": entry("CPU: PixelCore @ 1MHz", "CPU: PixelCore @ 1MHz"),

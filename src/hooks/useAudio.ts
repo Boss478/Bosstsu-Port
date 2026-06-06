@@ -114,6 +114,7 @@ export function useAudio() {
         const match = voices.find(v => v.voiceURI === stored);
         if (match) utterance.voice = match;
       }
+      window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);
     },
     [muted]

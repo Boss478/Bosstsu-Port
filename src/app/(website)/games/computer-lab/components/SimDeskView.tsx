@@ -44,9 +44,9 @@ function CableGlowFilter() {
 }
 
 function getDotSize(dataSize: DataSize): number {
-  if (dataSize === "mb") return 18;
-  if (dataSize === "kb") return 12;
-  return 7;
+  if (dataSize === "mb") return 54;
+  if (dataSize === "kb") return 36;
+  return 21;
 }
 
 function getBusParamsAtPoint(bus: typeof BUS_PATHS[0], p: { x: number; y: number }) {
@@ -195,7 +195,7 @@ function getPathOffsets(bus: typeof BUS_PATHS[0], laneIndex: number): { dx: numb
   return offsets;
 }
 
-function getCableBusPaths(bus: typeof BUS_PATHS[0]): { d: string; color: string; isCasing?: boolean }[] {
+function getCableBusPaths(bus: typeof BUS_PATHS[0], showInterior: boolean): { d: string; color: string; isCasing?: boolean }[] {
   const points = getRefinedBusPathPoints(bus);
   if (points.length < 2) return [];
 
@@ -239,8 +239,7 @@ function getCableBusPaths(bus: typeof BUS_PATHS[0]): { d: string; color: string;
   const maxLanes = isExternal ? 3 : bus.laneCount;
 
   for (let li = 0; li < maxLanes; li++) {
-    const parts: string[] = [];
-
+    const lanePoints: { x: number; y: number }[] = [];
     for (let i = 0; i < points.length; i++) {
       const p = points[i];
       const { laneCount, spacing } = getBusParamsAtPoint(bus, p);
@@ -299,20 +298,44 @@ function getCableBusPaths(bus: typeof BUS_PATHS[0]): { d: string; color: string;
 
       const px = p.x + nx * off;
       const py = p.y + ny * off;
-      parts.push(`${i === 0 ? "M" : "L"}${px.toFixed(2)} ${py.toFixed(2)}`);
+      lanePoints.push({ x: px, y: py });
     }
 
-    paths.push({
-      d: parts.join(" "),
-      color: bus.color,
-    });
+    let currentLanePath: string[] = [];
+    for (let i = 0; i < points.length - 1; i++) {
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const outside = isSegmentOutside(p1, p2);
+      if (showInterior || outside) {
+        const pt1 = lanePoints[i];
+        const pt2 = lanePoints[i + 1];
+        if (currentLanePath.length === 0) {
+          currentLanePath.push(`M${pt1.x.toFixed(2)} ${pt1.y.toFixed(2)}`);
+        }
+        currentLanePath.push(`L${pt2.x.toFixed(2)} ${pt2.y.toFixed(2)}`);
+      } else {
+        if (currentLanePath.length > 0) {
+          paths.push({
+            d: currentLanePath.join(" "),
+            color: bus.color,
+          });
+          currentLanePath = [];
+        }
+      }
+    }
+    if (currentLanePath.length > 0) {
+      paths.push({
+        d: currentLanePath.join(" "),
+        color: bus.color,
+      });
+    }
   }
 
   return paths;
 }
 
-function CableBusLine({ bus, isActive }: { bus: typeof BUS_PATHS[0]; isActive: boolean; occupancy?: number }) {
-  const paths = getCableBusPaths(bus);
+function CableBusLine({ bus, isActive, showInterior }: { bus: typeof BUS_PATHS[0]; isActive: boolean; occupancy?: number; showInterior: boolean }) {
+  const paths = getCableBusPaths(bus, showInterior);
   if (paths.length === 0) return null;
 
   const isExternal = ["keyboard", "mouse", "monitor"].includes(bus.fromId) ||
@@ -341,7 +364,7 @@ function CableBusLine({ bus, isActive }: { bus: typeof BUS_PATHS[0]; isActive: b
             d={p.d}
             fill="none"
             stroke={p.color}
-            strokeWidth="0.15"
+            strokeWidth="0.45"
             strokeLinecap="round"
             opacity={isActive ? 0.95 : isExternal ? 0.65 : 0.4}
             filter={isActive ? `url(#${GLOW_FILTER_ID})` : undefined}
@@ -353,7 +376,7 @@ function CableBusLine({ bus, isActive }: { bus: typeof BUS_PATHS[0]; isActive: b
   );
 }
 
-function DataPacketDot({ packet, waypoints, bus }: { packet: FlowPacket; waypoints: { x: number; y: number }[]; bus: typeof BUS_PATHS[0] }) {
+function DataPacketDot({ packet, waypoints, bus, showInterior }: { packet: FlowPacket; waypoints: { x: number; y: number }[]; bus: typeof BUS_PATHS[0]; showInterior: boolean }) {
   if (waypoints.length < 2) return null;
 
   const progress = Math.min(packet.progress, 1);
@@ -375,7 +398,6 @@ function DataPacketDot({ packet, waypoints, bus }: { packet: FlowPacket; waypoin
     const offsets = getPathOffsets(bus, laneIndex);
     const offStart = offsets[pSegIdx];
     const offEnd = offsets[pSegIdx + 1];
-
     if (!offStart || !offEnd) return { x: baseX, y: baseY };
 
     const dx = offStart.dx + (offEnd.dx - offStart.dx) * pt;
@@ -384,86 +406,81 @@ function DataPacketDot({ packet, waypoints, bus }: { packet: FlowPacket; waypoin
     return { x: baseX + dx, y: baseY + dy };
   };
 
-  const currentPos = getInterpolatedPos(progress);
-  const x = currentPos.x;
-  const y = currentPos.y;
-
   const size = getDotSize(packet.dataSize);
-
   const routeLabel = packet.route === "compute" ? "C" : packet.route === "storage" ? "S" : "G";
-  const pulseSize = size * 2.5;
 
-  const trailSteps = 4;
-  const trail: { x: number; y: number; op: number }[] = [];
-  for (let i = 1; i <= trailSteps; i++) {
-    const tp = Math.max(0, progress - i * 0.06);
-    if (tp >= 1) continue;
-    const tPos = getInterpolatedPos(tp);
-    trail.push({
-      x: tPos.x,
-      y: tPos.y,
-      op: 0.3 - i * 0.06,
-    });
+  // Render a queue of equally-spaced, same-size dots — like bytes marching in line to the CPU
+  const QUEUE_COUNT = 8;
+  const SPACING = 0.055; // distance between each dot in progress units
+
+  const allDots: { x: number; y: number; isLead: boolean }[] = [];
+  for (let i = 0; i <= QUEUE_COUNT; i++) {
+    const tp = progress - i * SPACING;
+    if (tp < 0 || tp > 1) continue;
+    const pos = getInterpolatedPos(tp);
+    allDots.push({ x: pos.x, y: pos.y, isLead: i === 0 });
   }
 
   return (
     <>
-      {trail.map((t, i) => (
-        <div
-          key={`trail_${packet.id}_${i}`}
-          className="absolute rounded-full"
-          style={{
-            left: `${t.x}%`,
-            top: `${t.y}%`,
-            width: size * 0.5,
-            height: size * 0.5,
-            backgroundColor: packet.color,
-            opacity: t.op,
-            transform: "translate(-50%, -50%)",
-            borderRadius: "50%",
-            zIndex: 3,
-          }}
-        />
-      ))}
-      <div
-        className="absolute rounded-full group/dot cursor-pointer"
-        style={{
-          left: `${x}%`,
-          top: `${y}%`,
-          width: size,
-          height: size,
-          backgroundColor: packet.color,
-          boxShadow: `0 0 ${size * 0.8}px ${packet.color}`,
-          transform: "translate(-50%, -50%)",
-          borderRadius: "50%",
-          transition: "left 0.08s linear, top 0.08s linear",
-          zIndex: 3,
-        }}
-      >
-        <div
-          className="absolute inset-0 rounded-full animate-ping opacity-30"
-          style={{
-            width: pulseSize,
-            height: pulseSize,
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            backgroundColor: packet.color,
-          }}
-        />
-        <span className="absolute inset-0 flex items-center justify-center text-white font-bold"
-          style={{ fontSize: `${size * 0.45}px`, lineHeight: 1, textShadow: "0 0 2px rgba(0,0,0,0.8)" }}
-        >
-          {routeLabel}
-        </span>
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover/dot:block bg-zinc-900 text-white text-[8px] px-1.5 py-0.5 rounded whitespace-nowrap z-50 border border-zinc-600">
-          {packet.route} | {packet.status} | {Math.round(packet.progress * 100)}%
-          {packet.sourceInput && <> | &quot;{packet.sourceInput.slice(0, 10)}&quot;</>}
-        </div>
-      </div>
+      {allDots.map((dot, i) => {
+        const dotInside = dot.x >= 14.5 && dot.x <= 45.5 && dot.y >= 12.5 && dot.y <= 67.5;
+        if (dotInside && !showInterior) return null;
+
+        if (dot.isLead) {
+          return (
+            <div
+              key={`lead_${packet.id}`}
+              className="absolute rounded-full group/dot cursor-pointer"
+              style={{
+                left: `${dot.x}%`,
+                top: `${dot.y}%`,
+                width: size,
+                height: size,
+                backgroundColor: packet.color,
+                opacity: 0.95,
+                transform: "translate(-50%, -50%)",
+                borderRadius: "50%",
+                zIndex: 3,
+              }}
+            >
+              <span
+                className="absolute inset-0 flex items-center justify-center text-white font-bold pointer-events-none"
+                style={{ fontSize: `${size * 0.45}px`, lineHeight: 1, textShadow: "0 0 2px rgba(0,0,0,0.8)" }}
+              >
+                {routeLabel}
+              </span>
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover/dot:block bg-zinc-900 text-white text-[8px] px-1.5 py-0.5 rounded whitespace-nowrap z-50 border border-zinc-600">
+                {packet.route} | {packet.status} | {Math.round(packet.progress * 100)}%
+                {packet.sourceInput && <> | &quot;{packet.sourceInput.slice(0, 10)}&quot;</>}
+              </div>
+            </div>
+          );
+        }
+
+        // Follower dots — same size, same opacity, no glow
+        return (
+          <div
+            key={`queue_${packet.id}_${i}`}
+            className="absolute rounded-full pointer-events-none"
+            style={{
+              left: `${dot.x}%`,
+              top: `${dot.y}%`,
+              width: size,
+              height: size,
+              backgroundColor: packet.color,
+              opacity: 0.72,
+              transform: "translate(-50%, -50%)",
+              borderRadius: "50%",
+              zIndex: 3,
+            }}
+          />
+        );
+      })}
     </>
   );
 }
+
 
 function QueueCluster({ packets, compPos, maxCount = 8 }: { packets: FlowPacket[]; compPos: { x: number; y: number }; maxCount?: number }) {
   if (packets.length === 0) return null;
@@ -666,6 +683,43 @@ export default function SimDeskView({
       {/* Wire labels */}
       <WireLabels />
 
+      {/* Inside-case cable lines (above dark overlay) */}
+      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 2 }}>
+        {BUS_PATHS.filter((bus) => {
+          const isExternal = ["keyboard", "mouse", "monitor"].includes(bus.fromId) ||
+                             ["keyboard", "mouse", "monitor"].includes(bus.toId);
+          return isExternal || showInterior;
+        }).map((bus) => (
+          <CableBusLine
+            key={bus.id}
+            bus={bus}
+            isActive={activePackets.some((p) => p.fromId === bus.fromId && p.toId === bus.toId)}
+            occupancy={Math.min(busOccupancy[bus.id] ?? 0, bus.laneCount)}
+            showInterior={showInterior}
+          />
+        ))}
+      </div>
+
+      {/* Corner elbow chips */}
+      <CornerChips />
+
+      {/* Queue clusters at component entrances */}
+      {Object.entries(packetsAtComponent).map(([compId, compPackets]) => {
+        const pos = getComponentEntrance(compId);
+        return <QueueCluster key={compId} packets={compPackets} compPos={pos} />;
+      })}
+
+      {activePackets.filter((pkt) => {
+        const bus = BUS_PATHS.find((b) => b.fromId === pkt.fromId && b.toId === pkt.toId);
+        if (!bus) return false;
+        const isExternal = ["keyboard", "mouse", "monitor"].includes(bus.fromId) ||
+                           ["keyboard", "mouse", "monitor"].includes(bus.toId);
+        return isExternal || showInterior;
+      }).map((pkt) => {
+        const bus = BUS_PATHS.find((b) => b.fromId === pkt.fromId && b.toId === pkt.toId)!;
+        return <DataPacketDot key={pkt.id} packet={pkt} waypoints={getRefinedBusPathPoints(bus)} bus={bus} showInterior={showInterior} />;
+      })}
+
       {COMPONENT_LAYOUT.map((comp) => {
         const sprite = SPRITE_MAP[comp.spriteKey];
         if (!sprite) return null;
@@ -756,15 +810,17 @@ export default function SimDeskView({
                             style={{
                               left: `${((ic.x - comp.x) / comp.w) * 100}%`,
                               top: `${((ic.y - comp.y) / comp.h) * 100}%`,
-                              width: `${ic.w}%`,
-                              height: `${ic.h}%`,
+                              width: `${(ic.w / comp.w) * 100}%`,
+                              height: `${(ic.h / comp.h) * 100}%`,
                               zIndex: ic.id === "motherboard" ? 1 : 4,
                             }}
                           >
                             <PixelSprite
                               data={icSprite}
-                              size={48}
-                              className={`w-full h-full object-contain max-w-[64px] max-h-[64px] ${
+                              size={ic.id === "motherboard" ? 128 : 64}
+                              className={`w-full h-full object-contain ${
+                                ic.id === "motherboard" ? "" : "max-w-[80px] max-h-[80px]"
+                              } ${
                                 ic.id === "fan" ? "animate-spin-blade" : ""
                               }`}
                             />
@@ -772,8 +828,8 @@ export default function SimDeskView({
                               <div
                                 className="absolute inset-0 m-auto rounded-full animate-ping opacity-75"
                                 style={{
-                                  width: "12px",
-                                  height: "12px",
+                                  width: "18px",
+                                  height: "18px",
                                   backgroundColor: processingPackets[0].color,
                                   boxShadow: `0 0 8px ${processingPackets[0].color}`,
                                   zIndex: 10,
@@ -811,42 +867,6 @@ export default function SimDeskView({
             </div>
           </div>
         );
-      })}
-
-      {/* Inside-case cable lines (above dark overlay) */}
-      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 2 }}>
-        {BUS_PATHS.filter((bus) => {
-          const isExternal = ["keyboard", "mouse", "monitor"].includes(bus.fromId) ||
-                             ["keyboard", "mouse", "monitor"].includes(bus.toId);
-          return isExternal || showInterior;
-        }).map((bus) => (
-          <CableBusLine
-            key={bus.id}
-            bus={bus}
-            isActive={activePackets.some((p) => p.fromId === bus.fromId && p.toId === bus.toId)}
-            occupancy={Math.min(busOccupancy[bus.id] ?? 0, bus.laneCount)}
-          />
-        ))}
-      </div>
-
-      {/* Corner elbow chips */}
-      <CornerChips />
-
-      {/* Queue clusters at component entrances */}
-      {Object.entries(packetsAtComponent).map(([compId, compPackets]) => {
-        const pos = getComponentEntrance(compId);
-        return <QueueCluster key={compId} packets={compPackets} compPos={pos} />;
-      })}
-
-      {activePackets.filter((pkt) => {
-        const bus = BUS_PATHS.find((b) => b.fromId === pkt.fromId && b.toId === pkt.toId);
-        if (!bus) return false;
-        const isExternal = ["keyboard", "mouse", "monitor"].includes(bus.fromId) ||
-                           ["keyboard", "mouse", "monitor"].includes(bus.toId);
-        return isExternal || showInterior;
-      }).map((pkt) => {
-        const bus = BUS_PATHS.find((b) => b.fromId === pkt.fromId && b.toId === pkt.toId)!;
-        return <DataPacketDot key={pkt.id} packet={pkt} waypoints={getRefinedBusPathPoints(bus)} bus={bus} />;
       })}
 
       {children && <div className="absolute inset-0 z-20">{children}</div>}
