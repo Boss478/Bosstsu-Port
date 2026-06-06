@@ -1,4 +1,4 @@
-const BASE_URL = "https://bosstsu.com";
+const BASE_URL = "https://srv1676702.hstgr.cloud";
 
 export default async function sitemap() {
   const staticRoutes = [
