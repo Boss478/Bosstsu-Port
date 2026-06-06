@@ -1,9 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { addStage, editStage, deleteStage } from '@/app/admin/tools/actions';
-import { type StepConfig } from '@/components/admin/QuickStartModal';
 
 const TOOL_TYPES = [
   { value: 'padlet', label: 'Padlet (Idea Board)', icon: 'fi-sr-grid' },
@@ -13,8 +11,6 @@ const TOOL_TYPES = [
   { value: 'quiz', label: 'Quick Quiz', icon: 'fi-sr-graduation-cap' },
   { value: 'exit_ticket', label: 'Exit Ticket', icon: 'fi-sr-ticket' },
 ];
-
-const NAMED_TOOL_TYPES = ['padlet', 'assignment', 'exit_ticket'];
 
 interface StageManagerModalProps {
   sessionId: string;
@@ -43,8 +39,6 @@ export default function StageManagerModal({
   onSuccess,
   onClose,
 }: StageManagerModalProps) {
-  const router = useRouter();
-
   const [view, setView] = useState<ViewState>('list');
   const [editingIndex, setEditingIndex] = useState(-1);
   const [selectedType, setSelectedType] = useState('');
@@ -221,7 +215,7 @@ export default function StageManagerModal({
   if (view === 'delete-confirm') {
     const deletingStep = initialSteps[deletingIndex];
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4" role="dialog" aria-modal="true">
         <div
           className="w-full max-w-md rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl overflow-hidden"
           onClick={(e) => e.stopPropagation()}
@@ -229,7 +223,7 @@ export default function StageManagerModal({
           <div className="p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                <i className="fi fi-sr-exclamation text-red-500 text-lg" />
+                <i aria-hidden="true" className="fi fi-sr-exclamation text-red-500 text-lg" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Delete Stage</h3>
@@ -273,7 +267,7 @@ export default function StageManagerModal({
 
     if (showTypeSelection) {
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4" role="dialog" aria-modal="true">
           <div
             className="w-full max-w-2xl rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
@@ -285,7 +279,7 @@ export default function StageManagerModal({
                   onClick={onClose}
                   className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
                 >
-                  <i className="fi fi-sr-cross text-lg" />
+                  <i aria-hidden="true" className="fi fi-sr-cross text-lg" />
                 </button>
               </div>
 
@@ -317,7 +311,7 @@ export default function StageManagerModal({
     }
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4" role="dialog" aria-modal="true">
         <div
           className="w-full max-w-2xl rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl overflow-hidden"
           onClick={(e) => e.stopPropagation()}
@@ -331,7 +325,7 @@ export default function StageManagerModal({
                 onClick={onClose}
                 className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
               >
-                <i className="fi fi-sr-cross text-lg" />
+                <i aria-hidden="true" className="fi fi-sr-cross text-lg" />
               </button>
             </div>
 
@@ -474,7 +468,7 @@ export default function StageManagerModal({
                                 onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))}
                                 className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                               >
-                                <i className="fi fi-sr-cross text-sm" />
+                                <i aria-hidden="true" className="fi fi-sr-cross text-sm" />
                               </button>
                             )}
                           </div>
@@ -485,7 +479,7 @@ export default function StageManagerModal({
                         onClick={() => setPollOptions([...pollOptions, ''])}
                         className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                       >
-                        <i className="fi fi-sr-plus text-xs" />
+                        <i aria-hidden="true" className="fi fi-sr-plus text-xs" />
                         Add Option
                       </button>
                     </div>
@@ -518,7 +512,7 @@ export default function StageManagerModal({
                           onClick={() => setQuizQuestions(quizQuestions.filter((_, i) => i !== qi))}
                           className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                         >
-                          <i className="fi fi-sr-cross text-sm" />
+                          <i aria-hidden="true" className="fi fi-sr-cross text-sm" />
                         </button>
                       </div>
                       <div className="pl-4 space-y-1.5">
@@ -561,7 +555,7 @@ export default function StageManagerModal({
                                   }}
                                   className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
                                 >
-                                  <i className="fi fi-sr-cross text-xs" />
+                                  <i aria-hidden="true" className="fi fi-sr-cross text-xs" />
                                 </button>
                               )}
                             </label>
@@ -576,7 +570,7 @@ export default function StageManagerModal({
                           }}
                           className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors ml-7"
                         >
-                          <i className="fi fi-sr-plus text-xs" />
+                          <i aria-hidden="true" className="fi fi-sr-plus text-xs" />
                           Add Option
                         </button>
                       </div>
@@ -588,7 +582,7 @@ export default function StageManagerModal({
                   onClick={() => setQuizQuestions([...quizQuestions, { question: '', options: ['', ''], correctAnswer: -1 }])}
                   className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                 >
-                  <i className="fi fi-sr-plus text-xs" />
+                  <i aria-hidden="true" className="fi fi-sr-plus text-xs" />
                   Add Question
                 </button>
               </div>
@@ -626,7 +620,7 @@ export default function StageManagerModal({
                 disabled={pending}
                 className="px-6 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2"
               >
-                {pending && <i className="fi fi-sr-spinner animate-spin text-sm" />}
+                {pending && <i aria-hidden="true" className="fi fi-sr-spinner animate-spin text-sm" />}
                 {isAdding ? 'Add Stage' : 'Save'}
               </button>
             </div>
@@ -637,7 +631,7 @@ export default function StageManagerModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4" role="dialog" aria-modal="true">
       <div
         className="w-full max-w-2xl rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
@@ -649,7 +643,7 @@ export default function StageManagerModal({
               onClick={onClose}
               className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
             >
-              <i className="fi fi-sr-cross text-lg" />
+              <i aria-hidden="true" className="fi fi-sr-cross text-lg" />
             </button>
           </div>
 
@@ -697,14 +691,14 @@ export default function StageManagerModal({
                         className="p-2 text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                         title="Edit stage"
                       >
-                        <i className="fi fi-sr-pencil text-sm" />
+                        <i aria-hidden="true" className="fi fi-sr-pencil text-sm" />
                       </button>
                       <button
                         onClick={() => { setDeletingIndex(idx); setView('delete-confirm'); }}
                         className="p-2 text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                         title="Delete stage"
                       >
-                        <i className="fi fi-sr-trash text-sm" />
+                        <i aria-hidden="true" className="fi fi-sr-trash text-sm" />
                       </button>
                     </div>
                   </div>
@@ -722,7 +716,7 @@ export default function StageManagerModal({
               onClick={handleAddNew}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
             >
-              <i className="fi fi-sr-plus text-sm" />
+              <i aria-hidden="true" className="fi fi-sr-plus text-sm" />
               Add Stage
             </button>
             <button

@@ -162,6 +162,8 @@ export default function PhotoLightbox({ photos, initialIndex, onClose }: PhotoLi
   return (
     <div
       className="fixed inset-0 z-100 flex items-center justify-center bg-black/10"
+      role="dialog"
+      aria-modal="true"
       onClick={onClose}
     >
 
@@ -179,7 +181,7 @@ export default function PhotoLightbox({ photos, initialIndex, onClose }: PhotoLi
           aria-label="Toggle info"
           title="แสดง/ซ่อนข้อมูลรูป (I)"
         >
-          <i className="fi fi-sr-info text-lg" />
+          <i aria-hidden="true" className="fi fi-sr-info text-lg" />
         </button>
 
         <a
@@ -190,7 +192,7 @@ export default function PhotoLightbox({ photos, initialIndex, onClose }: PhotoLi
           aria-label="Download"
           title="ดาวน์โหลดรูป"
         >
-          <i className="fi fi-sr-download text-lg" />
+          <i aria-hidden="true" className="fi fi-sr-download text-lg" />
         </a>
 
         <button
@@ -199,7 +201,7 @@ export default function PhotoLightbox({ photos, initialIndex, onClose }: PhotoLi
           aria-label="Close"
           title="ปิด (Esc)"
         >
-          <i className="fi fi-sr-cross text-lg" />
+          <i aria-hidden="true" className="fi fi-sr-cross text-lg" />
         </button>
       </div>
 
@@ -213,7 +215,7 @@ export default function PhotoLightbox({ photos, initialIndex, onClose }: PhotoLi
           className="absolute left-2 sm:left-4 md:left-8 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/20 hover:bg-white/20 text-white flex items-center justify-center transition-all duration-200 z-30 backdrop-blur-md border border-white/10"
           aria-label="Previous image"
         >
-          <i className="fi fi-sr-angle-left text-lg md:text-xl" />
+          <i aria-hidden="true" className="fi fi-sr-angle-left text-lg md:text-xl" />
         </button>
       )}
 
@@ -275,7 +277,7 @@ export default function PhotoLightbox({ photos, initialIndex, onClose }: PhotoLi
           className="absolute right-2 sm:right-4 md:right-8 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/20 hover:bg-white/20 text-white flex items-center justify-center transition-all duration-200 z-30 backdrop-blur-md border border-white/10"
           aria-label="Next image"
         >
-          <i className="fi fi-sr-angle-right text-lg md:text-xl" />
+          <i aria-hidden="true" className="fi fi-sr-angle-right text-lg md:text-xl" />
         </button>
       )}
 

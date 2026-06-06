@@ -29,7 +29,7 @@ export default function PlayView({ htmlContent, title }: PlayViewProps) {
           href="/games"
           className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
         >
-          <i className="fi fi-sr-angle-left" />
+          <i aria-hidden="true" className="fi fi-sr-angle-left" />
           กลับสู่หน้าเกม
         </Link>
 
@@ -42,7 +42,7 @@ export default function PlayView({ htmlContent, title }: PlayViewProps) {
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-sm font-medium transition-colors border border-slate-700/50"
           title="Full Screen"
         >
-          <i className="fi fi-sr-expand" />
+          <i aria-hidden="true" className="fi fi-sr-expand" />
           <span className="hidden sm:inline">เต็มจอ</span>
         </button>
       </header>

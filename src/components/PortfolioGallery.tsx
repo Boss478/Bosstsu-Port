@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import PhotoLightbox from "@/components/PhotoLightbox";
+import dynamic from "next/dynamic";
+const PhotoLightbox = dynamic(() => import("@/components/PhotoLightbox"));
 
 const IMAGES_PER_PAGE = 30;
 

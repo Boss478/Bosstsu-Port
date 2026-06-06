@@ -1,5 +1,4 @@
 import Link from "next/link";
-import React from "react";
 
 interface BreadcrumbItem {
   label: string;
@@ -20,13 +19,13 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
             href="/"
             className="flex items-center text-zinc-500 hover:text-blue-600 dark:text-zinc-400 dark:hover:text-blue-400 transition-colors"
           >
-            <i className="fi fi-sr-home text-xs" />
+            <i aria-hidden="true" className="fi fi-sr-home text-xs" />
           </Link>
         </li>
         
         {items.map((item, index) => (
           <li key={index} className="flex items-center gap-1.5">
-            <i className="fi fi-sr-angle-small-right text-[10px] text-zinc-400 dark:text-zinc-500" />
+            <i aria-hidden="true" className="fi fi-sr-angle-small-right text-[10px] text-zinc-400 dark:text-zinc-500" />
             {item.href ? (
               <Link
                 href={item.href}

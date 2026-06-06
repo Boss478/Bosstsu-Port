@@ -54,7 +54,7 @@ export default function GameOverlays({
               className="p-1.5 rounded-lg bg-zinc-800/80 border border-zinc-700 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-all"
               title="Collection"
             >
-              <i className="fi fi-sr-template text-xs"></i>
+              <i aria-hidden="true" className="fi fi-sr-template text-xs"></i>
             </button>
           </>
         )}
@@ -63,7 +63,7 @@ export default function GameOverlays({
           className="p-1.5 rounded-lg bg-zinc-800/80 border border-zinc-700 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-all"
           title="Toggle debug panel"
         >
-          <i className="fi fi-sr-eye text-xs"></i>
+          <i aria-hidden="true" className="fi fi-sr-eye text-xs"></i>
         </button>
       </div>
 
@@ -101,7 +101,7 @@ export default function GameOverlays({
                 onClick={onCloseCollection}
                 className="text-zinc-500 hover:text-zinc-300 transition-colors"
               >
-                <i className="fi fi-sr-cross text-xs"></i>
+                <i aria-hidden="true" className="fi fi-sr-cross text-xs"></i>
               </button>
             </div>
             {(() => {

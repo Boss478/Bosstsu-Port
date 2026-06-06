@@ -130,7 +130,7 @@ export default function QuickQuiz({ session, stepIndex, studentName }: QuickQuiz
                 <span className="ml-2">· {t('attemptsRemaining', { n: maxSubmissions - existingAttempts })}</span>
               )}
             </p>
-            <i className="fi fi-sr-trophy text-6xl text-amber-500 block mb-4" />
+            <i aria-hidden="true" className="fi fi-sr-trophy text-6xl text-amber-500 block mb-4" />
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
               {t('bestScore', { score: bestScore, total: totalQuestions })}
             </h2>
@@ -173,7 +173,7 @@ export default function QuickQuiz({ session, stepIndex, studentName }: QuickQuiz
               <span className="ml-2">· {t('attemptsRemaining', { n: maxSubmissions - existingAttempts - 1 })}</span>
             )}
           </p>
-          <i className="fi fi-sr-trophy text-6xl text-amber-500 block mb-4" />
+          <i aria-hidden="true" className="fi fi-sr-trophy text-6xl text-amber-500 block mb-4" />
           <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
             {t('scoreOfTotal', { score, total })}
           </h2>

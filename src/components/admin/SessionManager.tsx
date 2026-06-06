@@ -54,7 +54,7 @@ export default function SessionManager({ session, onToggleCodeFullScreen }: Sess
             disabled={pending}
             className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 font-medium rounded-xl border border-red-200 dark:border-red-800 transition-colors disabled:opacity-50"
           >
-            <i className="fi fi-sr-stop text-sm" />
+            <i aria-hidden="true" className="fi fi-sr-stop text-sm" />
             End Session
           </button>
         )}
@@ -68,7 +68,7 @@ export default function SessionManager({ session, onToggleCodeFullScreen }: Sess
               className="absolute top-4 right-4 p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500 transition-colors"
               title="Full Screen"
             >
-              <i className="fi fi-sr-expand text-sm" />
+              <i aria-hidden="true" className="fi fi-sr-expand text-sm" />
             </button>
           )}
           <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">
@@ -86,7 +86,7 @@ export default function SessionManager({ session, onToggleCodeFullScreen }: Sess
                 className="inline-flex items-center gap-2 font-mono text-blue-600 dark:text-blue-400 hover:underline text-sm"
               >
                 {origin}/study/{session.sessionCode}
-                <i className="fi fi-sr-arrow-up-right text-xs" />
+                <i aria-hidden="true" className="fi fi-sr-arrow-up-right text-xs" />
               </Link>
             ) : (
               <span className="font-mono text-blue-600 dark:text-blue-400 text-sm">

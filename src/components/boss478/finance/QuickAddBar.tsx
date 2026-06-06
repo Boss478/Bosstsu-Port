@@ -137,7 +137,7 @@ export default function QuickAddBar({ onAdd }: Props) {
         disabled={saving}
         className="px-4 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 cursor-pointer flex items-center gap-1.5 shrink-0"
       >
-        <i className="fi fi-sr-add text-xs" />
+        <i aria-hidden="true" className="fi fi-sr-add text-xs" />
         {saving ? 'Adding...' : 'Add'}
       </button>
 

@@ -83,7 +83,7 @@ export default function TagPicker({
                 }`}
               >
                 {isSelected && (
-                  <i className="fi fi-sr-check mr-1 text-[10px]" />
+                  <i aria-hidden="true" className="fi fi-sr-check mr-1 text-[10px]" />
                 )}
                 {tag}
               </button>
@@ -92,7 +92,7 @@ export default function TagPicker({
         </div>
       ) : (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-zinc-50 dark:bg-slate-900/50 border border-zinc-100 dark:border-slate-800 text-sm text-zinc-400 dark:text-zinc-500">
-          <i className="fi fi-sr-info" />
+          <i aria-hidden="true" className="fi fi-sr-info" />
           ไม่มี tag ให้เพิ่มก่อน
         </div>
       )}
@@ -133,7 +133,7 @@ export default function TagPicker({
                 onClick={() => toggleTag(tag)}
                 className="hover:text-blue-200"
               >
-                <i className="fi fi-sr-cross text-[8px]" />
+                <i aria-hidden="true" className="fi fi-sr-cross text-[8px]" />
               </button>
             </span>
           ))}

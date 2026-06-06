@@ -41,7 +41,7 @@ export default function Card({
 
 
             <div className="absolute bottom-6 right-6 w-10 h-10 rounded-full bg-blue-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:bg-blue-500 dark:group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
-                <i className="fi fi-sr-arrow-right text-lg leading-none"></i>
+                <i aria-hidden="true" className="fi fi-sr-arrow-right text-lg leading-none"></i>
             </div>
         </Link>
     );

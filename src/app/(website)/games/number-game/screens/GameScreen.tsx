@@ -101,7 +101,7 @@ export default function GameScreen({
             onClick={onBack}
             className="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/30 text-zinc-500 hover:text-fuchsia-500 transition-colors"
           >
-            <i className="fi fi-sr-angle-left text-xs"></i>
+            <i aria-hidden="true" className="fi fi-sr-angle-left text-xs"></i>
             <span className="text-xs font-black uppercase tracking-widest">Menu</span>
           </button>
           <div className="w-12 h-12 rounded-2xl bg-fuchsia-100 dark:bg-fuchsia-900/30 flex items-center justify-center text-fuchsia-600 dark:text-fuchsia-400 text-xl font-black">
@@ -172,7 +172,7 @@ export default function GameScreen({
               className="p-2 rounded-xl bg-fuchsia-50 dark:bg-fuchsia-900/10 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/30 text-fuchsia-500 transition-colors"
               title="Listen"
             >
-              <i className="fi fi-sr-volume text-lg"></i>
+              <i aria-hidden="true" className="fi fi-sr-volume text-lg"></i>
             </button>
           </div>
 

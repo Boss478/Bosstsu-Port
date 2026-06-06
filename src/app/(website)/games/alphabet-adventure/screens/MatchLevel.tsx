@@ -28,7 +28,7 @@ export default function MatchLevel({
         {roundData.revert ? (
           <div className="flex flex-col items-center gap-3">
             <div className="w-48 h-48 md:w-56 md:h-56 rounded-[3rem] bg-amber-50 dark:bg-amber-900/10 border-8 border-amber-100 dark:border-amber-900/30 flex flex-col items-center justify-center gap-2 shadow-2xl px-4">
-              <i className="fi fi-sr-volume text-5xl text-amber-500 animate-pulse"></i>
+              <i aria-hidden="true" className="fi fi-sr-volume text-5xl text-amber-500 animate-pulse"></i>
               <span className="text-xl md:text-2xl font-black text-amber-700 dark:text-amber-300 text-center leading-snug">
                 {roundData.targetLetter}
               </span>
@@ -53,7 +53,7 @@ export default function MatchLevel({
               className="absolute -bottom-3 left-1/2 -translate-x-1/2 p-3 rounded-xl bg-violet-100 dark:bg-violet-900/40 hover:bg-violet-200 dark:hover:bg-violet-800/60 text-violet-600 dark:text-violet-400 shadow-lg hover:scale-110 transition-all"
               title="Listen"
             >
-              <i className="fi fi-sr-volume text-xl"></i>
+              <i aria-hidden="true" className="fi fi-sr-volume text-xl"></i>
             </button>
           </>
         )}

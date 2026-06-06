@@ -65,7 +65,7 @@ export default function VictoryScreen({
       )}
 
       <div className="text-[8rem] drop-shadow-2xl py-2">
-        <i className="fi fi-sr-medal text-amber-500 dark:text-amber-400"></i>
+        <i aria-hidden="true" className="fi fi-sr-medal text-amber-500 dark:text-amber-400"></i>
       </div>
 
       <StarDisplay count={totalStars} />
@@ -96,7 +96,7 @@ export default function VictoryScreen({
           onClick={() => router.push("/games")}
           className="px-10 py-5 bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 text-xl font-black rounded-3xl hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-fuchsia-500 transition-colors"
         >
-          <i className="fi fi-sr-gamepad mr-2"></i>เกมอื่นๆ
+          <i aria-hidden="true" className="fi fi-sr-gamepad mr-2"></i>เกมอื่นๆ
         </button>
         <button
           onClick={onChangeRange}

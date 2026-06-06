@@ -78,7 +78,7 @@ export default function GamesClient({
       <section className="px-4 pb-6">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-3">
           <div className="relative w-64">
-            <i className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-sm" />
+            <i aria-hidden="true" className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-sm" />
             <input
               type="text"
               placeholder="ค้นหา..."
@@ -144,7 +144,7 @@ export default function GamesClient({
                       />
                     ) : (
                       <div className="w-full h-full bg-blue-500 flex items-center justify-center">
-                        <i className="fi fi-sr-gamepad text-6xl text-white/50" />
+                        <i aria-hidden="true" className="fi fi-sr-gamepad text-6xl text-white/50" />
                       </div>
                     )}
 
@@ -161,23 +161,23 @@ export default function GamesClient({
 
                   <div className="p-8 relative">
                     <div className="absolute -top-10 right-8 w-16 h-16 rounded-3xl bg-blue-500 text-white flex items-center justify-center text-3xl shadow-2xl shadow-blue-500/50 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 z-30">
-                      <i className="fi fi-sr-play"></i>
+                      <i aria-hidden="true" className="fi fi-sr-play"></i>
                     </div>
 
-                    <h3 className="text-2xl font-black text-zinc-800 dark:text-zinc-100 mb-3 group-hover:text-blue-500 transition-colors leading-tight">
+                    <h2 className="text-2xl font-black text-zinc-800 dark:text-zinc-100 mb-3 group-hover:text-blue-500 transition-colors leading-tight">
                       {item.title}
-                    </h3>
+                    </h2>
                     <p className="text-zinc-500 dark:text-zinc-400 mb-6 line-clamp-2 text-sm leading-relaxed">
                       {item.description}
                     </p>
 
                     <div className="flex items-center justify-between pt-4 border-t border-zinc-100 dark:border-slate-800">
                       <span className="flex items-center gap-2 text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-                        <i className="fi fi-sr-calendar text-blue-400"></i>
+                        <i aria-hidden="true" className="fi fi-sr-calendar text-blue-400"></i>
                         {formatShortDate(item.date)}
                       </span>
                       <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
-                        <i className="fi fi-sr-angle-small-right"></i>
+                        <i aria-hidden="true" className="fi fi-sr-angle-small-right"></i>
                       </div>
                     </div>
                   </div>

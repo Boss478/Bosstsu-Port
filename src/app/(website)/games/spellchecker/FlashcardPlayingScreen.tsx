@@ -53,21 +53,21 @@ export default function FlashcardPlayingScreen() {
         <div className="w-full flex justify-between items-center mb-4 px-4 h-10 shrink-0">
           <div className="flex items-center gap-4 text-zinc-500 dark:text-zinc-400 font-bold">
             <button onClick={endGame} className="text-zinc-400 hover:text-red-500 transition-colors">
-              <i className="fi fi-sr-cross-circle text-2xl"></i>
+              <i aria-hidden="true" className="fi fi-sr-cross-circle text-2xl"></i>
             </button>
             <button onClick={() => router.push('/games')} className="text-zinc-400 hover:text-zinc-500 transition-colors" title="Back to Games">
-              <i className="fi fi-sr-home text-2xl"></i>
+              <i aria-hidden="true" className="fi fi-sr-home text-2xl"></i>
             </button>
           </div>
           <div className="flex items-center gap-4 font-bold">
             {mode === "TIMER" && (
               <div className={`flex items-center gap-2 ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-zinc-800 dark:text-zinc-200'}`}>
-                <i className="fi fi-sr-clock"></i> {timeLeft}s
+                <i aria-hidden="true" className="fi fi-sr-clock"></i> {timeLeft}s
               </div>
             )}
             {mode !== "TIMER" && (
               <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
-                <i className="fi fi-sr-stopwatch"></i> {formatTime(elapsedSeconds)}
+                <i aria-hidden="true" className="fi fi-sr-stopwatch"></i> {formatTime(elapsedSeconds)}
               </div>
             )}
             {mode === "LIFE" && (
@@ -79,7 +79,7 @@ export default function FlashcardPlayingScreen() {
             )}
             {mode === "HARDCORE" && (
               <div className="flex gap-1 text-red-500">
-                <i className="fi fi-sr-heart"></i>
+                <i aria-hidden="true" className="fi fi-sr-heart"></i>
               </div>
             )}
           </div>
@@ -89,7 +89,7 @@ export default function FlashcardPlayingScreen() {
         {showStreakToast !== null && (
           <div className="absolute top-16 z-50 animate-in slide-in-from-top fade-in duration-300">
             <div className="bg-amber-500 text-white px-6 py-2 rounded-full font-bold shadow-lg shadow-amber-500/20 flex items-center gap-2 border-2 border-amber-400">
-              <i className="fi fi-sr-flame animate-pulse"></i> 
+              <i aria-hidden="true" className="fi fi-sr-flame animate-pulse"></i> 
               {showStreakToast} IN A ROW!
             </div>
           </div>
@@ -102,12 +102,12 @@ export default function FlashcardPlayingScreen() {
               <div className={`text-3xl sm:text-4xl font-bold font-sans tracking-wide animate-float-up-fade drop-shadow-lg flex items-center gap-2 whitespace-nowrap ${feedback === "CORRECT" ? "text-emerald-500" : "text-rose-500"}`}>
                 {feedback === "CORRECT" ? (
                   <>
-                    <i className="fi fi-sr-check-circle drop-shadow-sm"></i>
+                    <i aria-hidden="true" className="fi fi-sr-check-circle drop-shadow-sm"></i>
                     <span>Correct</span>
                   </>
                 ) : (
                   <>
-                    <i className="fi fi-sr-cross-circle drop-shadow-sm"></i>
+                    <i aria-hidden="true" className="fi fi-sr-cross-circle drop-shadow-sm"></i>
                     <span>Wrong</span>
                   </>
                 )}
@@ -170,7 +170,7 @@ export default function FlashcardPlayingScreen() {
               {/* Hint Modal Overlay (Practice mode only) */}
               {feedbackHint && (
                 <div className="absolute inset-0 bg-white/90 dark:bg-slate-900/95 rounded-2xl flex flex-col items-center justify-center p-6 animate-in fade-in">
-                  <i className="fi fi-sr-cross-circle text-5xl text-rose-500 mb-4 drop-shadow-sm"></i>
+                  <i aria-hidden="true" className="fi fi-sr-cross-circle text-5xl text-rose-500 mb-4 drop-shadow-sm"></i>
                   <p className="text-zinc-500 dark:text-zinc-400 font-bold mb-2">Incorrect. The answer is:</p>
                   <div className="flex flex-col items-center gap-2">
                     <p className="text-2xl font-bold text-zinc-800 dark:text-zinc-100 bg-zinc-100 dark:bg-zinc-800 px-4 py-2 rounded-lg">
@@ -208,7 +208,7 @@ export default function FlashcardPlayingScreen() {
               disabled={isAnimating || feedbackHint !== null}
               className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all card-hover font-bold border-2 border-emerald-500 disabled:opacity-50"
             >
-              <i className="fi fi-sr-arrow-left text-2xl"></i>
+              <i aria-hidden="true" className="fi fi-sr-arrow-left text-2xl"></i>
               <span>Correct Spelling</span>
             </button>
             
@@ -217,7 +217,7 @@ export default function FlashcardPlayingScreen() {
               disabled={isAnimating || feedbackHint !== null}
               className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white transition-all card-hover font-bold border-2 border-rose-500 disabled:opacity-50"
             >
-              <i className="fi fi-sr-arrow-right text-2xl"></i>
+              <i aria-hidden="true" className="fi fi-sr-arrow-right text-2xl"></i>
               <span>Incorrect Spelling</span>
             </button>
           </div>

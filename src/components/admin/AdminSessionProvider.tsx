@@ -152,7 +152,7 @@ export default function AdminSessionProvider({ children }: { children: ReactNode
             </svg>
             <span className="absolute inset-0 flex items-center justify-center font-bold text-sm text-red-500">
               {isLoggingOut ? (
-                <i className="fi fi-sr-spinner animate-spin text-xs" />
+                <i aria-hidden="true" className="fi fi-sr-spinner animate-spin text-xs" />
               ) : (
                 countdown
               )}

@@ -92,7 +92,7 @@ export default function SubscriptionForm({ onClose, onSaved, editing }: Props) {
             {editing ? 'Edit Subscription' : 'Add Subscription'}
           </h3>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 cursor-pointer">
-            <i className="fi fi-sr-cross text-sm text-zinc-500" />
+            <i aria-hidden="true" className="fi fi-sr-cross text-sm text-zinc-500" />
           </button>
         </div>
 

@@ -16,7 +16,7 @@ export default function MenuScreen({ onStart }: Props) {
         className="absolute top-6 right-6 p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/30 text-zinc-500 hover:text-fuchsia-500 transition-colors"
         title="Back to Games"
       >
-        <i className="fi fi-sr-home text-lg"></i>
+        <i aria-hidden="true" className="fi fi-sr-home text-lg"></i>
       </button>
       <div className="space-y-2">
         <h1 className="text-4xl md:text-6xl font-black text-fuchsia-600 dark:text-fuchsia-400 tracking-tight">
@@ -28,7 +28,7 @@ export default function MenuScreen({ onStart }: Props) {
       </div>
 
       <div className="text-8xl animate-bounce py-4 transform hover:scale-110 duration-500 cursor-default">
-        <i className="fi fi-sr-calculator text-fuchsia-600 dark:text-fuchsia-400"></i>
+        <i aria-hidden="true" className="fi fi-sr-calculator text-fuchsia-600 dark:text-fuchsia-400"></i>
       </div>
 
       <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-md mx-auto">

@@ -14,7 +14,7 @@ function SessionNotFound({ sessionId }: { sessionId: string }) {
   return (
     <div className="flex items-center justify-center min-h-[60vh] p-4">
       <div className="max-w-md w-full p-8 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-lg text-center">
-        <i className="fi fi-sr-search-alt text-6xl text-zinc-300 dark:text-zinc-600 block mb-4" />
+        <i aria-hidden="true" className="fi fi-sr-search-alt text-6xl text-zinc-300 dark:text-zinc-600 block mb-4" />
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
           ไม่พบข้อมูล
         </h1>
@@ -28,14 +28,14 @@ function SessionNotFound({ sessionId }: { sessionId: string }) {
             href="/admin/tools"
             className="inline-flex items-center gap-2 px-6 py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20 transition-all"
           >
-            <i className="fi fi-sr-layers" />
+            <i aria-hidden="true" className="fi fi-sr-layers" />
             กลับไปหน้ารายการเซสชัน
           </Link>
           <Link
             href="/admin"
             className="inline-flex items-center gap-2 px-6 py-2.5 bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-700 dark:text-zinc-200 font-bold rounded-xl transition-all"
           >
-            <i className="fi fi-sr-home" />
+            <i aria-hidden="true" className="fi fi-sr-home" />
             แดชบอร์ด
           </Link>
         </div>

@@ -195,26 +195,4 @@ export async function finalizeUploads(
   return result;
 }
 
-async function _cleanupStaleTempUploads(maxAgeMs = 24 * 60 * 60 * 1000): Promise<number> {
-  const tmpDir = path.join(process.cwd(), CONFIG.UPLOAD.ROOT_DIR, '_tmp');
-  let cleaned = 0;
 
-  try {
-    const entries = await fs.readdir(tmpDir, { withFileTypes: true });
-    const now = Date.now();
-
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue;
-      const dirPath = path.join(tmpDir, entry.name);
-      const stat = await fs.stat(dirPath);
-      if (now - stat.mtimeMs > maxAgeMs) {
-        await fs.rm(dirPath, { recursive: true, force: true });
-        cleaned++;
-      }
-    }
-  } catch {
-    // tmp dir may not exist
-  }
-
-  return cleaned;
-}

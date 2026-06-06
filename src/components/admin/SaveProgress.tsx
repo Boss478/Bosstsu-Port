@@ -21,11 +21,11 @@ export default function SaveProgress({ isOpen, progress, statusText, onCancel }:
         <div className="mb-6 flex justify-center">
           {clampedProgress === 100 ? (
             <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-500 rounded-full flex items-center justify-center">
-              <i className="fi fi-sr-check-circle text-3xl" />
+              <i aria-hidden="true" className="fi fi-sr-check-circle text-3xl" />
             </div>
           ) : (
             <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-500 rounded-full flex items-center justify-center">
-              <i className="fi fi-sr-spinner animate-spin text-3xl" />
+              <i aria-hidden="true" className="fi fi-sr-spinner animate-spin text-3xl" />
             </div>
           )}
         </div>

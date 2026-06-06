@@ -193,12 +193,12 @@ export default async function ResourceDetailPage({
               </h1>
               <div className="flex flex-wrap items-center gap-6 text-zinc-500 dark:text-zinc-400 text-sm">
                 <span className="flex items-center gap-2">
-                  <i className="fi fi-sr-calendar" />
+                  <i aria-hidden="true" className="fi fi-sr-calendar" />
                   {formatLongDate(docCreatedAt.toISOString())}
                 </span>
                 {doc.subject && (
                   <span className="flex items-center gap-2">
-                    <i className="fi fi-sr-book-alt" />
+                    <i aria-hidden="true" className="fi fi-sr-book-alt" />
                     {doc.subject}
                   </span>
                 )}
@@ -208,7 +208,7 @@ export default async function ResourceDetailPage({
             {doc.description && (
               <div className="mb-8 p-6 bg-blue-50 dark:bg-slate-800/50 rounded-2xl border border-blue-100 dark:border-slate-700/50">
                 <h3 className="text-sm font-bold text-blue-800 dark:text-blue-300 mb-2 uppercase tracking-wider flex items-center gap-2">
-                  <i className="fi fi-sr-info" />
+                  <i aria-hidden="true" className="fi fi-sr-info" />
                   รายละเอียด
                 </h3>
                 <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed">
@@ -279,7 +279,7 @@ export default async function ResourceDetailPage({
                     download
                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-colors"
                   >
-                    <i className="fi fi-sr-download" />
+                    <i aria-hidden="true" className="fi fi-sr-download" />
                     ดาวน์โหลด
                   </a>
                 </div>
@@ -320,7 +320,7 @@ export default async function ResourceDetailPage({
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-colors"
                 >
-                  <i className="fi fi-sr-arrow-up-right" />
+                  <i aria-hidden="true" className="fi fi-sr-arrow-up-right" />
                   เปิดสื่อการเรียนรู้
                 </a>
               )}
@@ -334,7 +334,7 @@ export default async function ResourceDetailPage({
                 className="group p-6 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300"
               >
                 <div className="flex items-center gap-2 text-xs text-zinc-400 dark:text-zinc-500 mb-2">
-                  <i className="fi fi-sr-arrow-left transition-transform group-hover:-translate-x-1" />
+                  <i aria-hidden="true" className="fi fi-sr-arrow-left transition-transform group-hover:-translate-x-1" />
                   สื่อก่อนหน้า
                 </div>
                 <div className="font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
@@ -350,7 +350,7 @@ export default async function ResourceDetailPage({
               >
                 <div className="flex items-center justify-end gap-2 text-xs text-zinc-400 dark:text-zinc-500 mb-2">
                   สื่อถัดไป
-                  <i className="fi fi-sr-arrow-right transition-transform group-hover:translate-x-1" />
+                  <i aria-hidden="true" className="fi fi-sr-arrow-right transition-transform group-hover:translate-x-1" />
                 </div>
                 <div className="font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                   {newerDoc.title}
@@ -364,7 +364,7 @@ export default async function ResourceDetailPage({
           <div className="sticky top-28 space-y-6">
             <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm p-6 rounded-3xl border border-white/60 dark:border-slate-700/50 shadow-sm">
               <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
-                <i className="fi fi-sr-time-past text-blue-500" />
+                <i aria-hidden="true" className="fi fi-sr-time-past text-blue-500" />
                 สื่อล่าสุด
               </h3>
               <ul className="space-y-5">
@@ -384,7 +384,7 @@ export default async function ResourceDetailPage({
                           />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <i className="fi fi-sr-book-alt text-zinc-400 text-lg" />
+                            <i aria-hidden="true" className="fi fi-sr-book-alt text-zinc-400 text-lg" />
                           </div>
                         )}
                       </div>

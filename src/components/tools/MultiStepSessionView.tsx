@@ -69,7 +69,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
     return (
       <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950">
         <div className="text-center max-w-md w-full p-6">
-          <i className="fi fi-sr-user text-4xl text-blue-400 block mb-4" />
+          <i aria-hidden="true" className="fi fi-sr-user text-4xl text-blue-400 block mb-4" />
           <h2 className="text-xl font-bold text-zinc-700 dark:text-zinc-300">
             {t('yourName')}
           </h2>
@@ -109,7 +109,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
     return (
       <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950">
         <div className="text-center max-w-md w-full p-6">
-          <i className="fi fi-sr-hourglass text-4xl text-blue-400 animate-pulse block mb-4" />
+          <i aria-hidden="true" className="fi fi-sr-hourglass text-4xl text-blue-400 animate-pulse block mb-4" />
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{session.title}</h1>
           {session.description && (
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">{session.description}</p>
@@ -119,7 +119,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
           </h2>
           {session.requireStudentName && studentName && (
             <div className="flex items-center justify-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400 mt-4">
-              <i className="fi fi-sr-user text-xs" />
+              <i aria-hidden="true" className="fi fi-sr-user text-xs" />
               <span>{studentName}</span>
             </div>
           )}
@@ -183,7 +183,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
         </p>
         {session.requireStudentName && studentName && (
           <div className="flex items-center justify-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-            <i className="fi fi-sr-user text-xs" />
+            <i aria-hidden="true" className="fi fi-sr-user text-xs" />
             <span>{studentName}</span>
           </div>
         )}

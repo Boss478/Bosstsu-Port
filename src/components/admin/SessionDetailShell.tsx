@@ -69,7 +69,7 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
               onClick={() => setCodeFullScreen(false)}
               className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 rounded-xl shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors"
             >
-              <i className="fi fi-sr-compress text-sm" />
+              <i aria-hidden="true" className="fi fi-sr-compress text-sm" />
               Exit
             </button>
 
@@ -88,7 +88,7 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
                 className="inline-flex items-center gap-2 font-mono text-blue-600 dark:text-blue-400 hover:underline text-lg"
               >
                 /study/{String(session.sessionCode)}
-                <i className="fi fi-sr-arrow-up-right text-sm" />
+                <i aria-hidden="true" className="fi fi-sr-arrow-up-right text-sm" />
               </a>
             </div>
           </div>
@@ -106,7 +106,7 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
-                <i className="fi fi-sr-play text-blue-500" />
+                <i aria-hidden="true" className="fi fi-sr-play text-blue-500" />
                 Session <span className="font-mono tracking-widest text-blue-600 dark:text-blue-400">{String(session.sessionCode)}</span>
               </h1>
               <p className="text-zinc-500 dark:text-zinc-400 mt-1">{String(session.title)}</p>
@@ -117,7 +117,7 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
                   onClick={() => setShowStageManager(true)}
                   className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 rounded-xl shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors"
                 >
-                  <i className="fi fi-sr-list" />
+                  <i aria-hidden="true" className="fi fi-sr-list" />
                   Manage Stages
                 </button>
               )}
@@ -125,14 +125,14 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
                 onClick={() => setEditSessionData(session)}
                 className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 rounded-xl shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors"
               >
-                <i className="fi fi-sr-pencil" />
+                <i aria-hidden="true" className="fi fi-sr-pencil" />
                 Edit
               </button>
               <Link
                 href="/admin/tools"
                 className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 rounded-xl shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors"
               >
-                <i className="fi fi-sr-arrow-left" />
+                <i aria-hidden="true" className="fi fi-sr-arrow-left" />
                 All Sessions
               </Link>
             </div>
@@ -157,7 +157,7 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
                       disabled={advancing}
                       className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50"
                     >
-                      <i className="fi fi-sr-play text-xs" />
+                      <i aria-hidden="true" className="fi fi-sr-play text-xs" />
                       {t('startSession')}
                     </button>
                   )}
@@ -167,7 +167,7 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
                       disabled={advancing}
                       className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50"
                     >
-                      <i className="fi fi-sr-play text-xs" />
+                      <i aria-hidden="true" className="fi fi-sr-play text-xs" />
                       Resume
                     </button>
                   )}
@@ -177,7 +177,7 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
                       disabled={advancing}
                       className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50"
                     >
-                      <i className="fi fi-sr-pause text-xs" />
+                      <i aria-hidden="true" className="fi fi-sr-pause text-xs" />
                       Waiting
                     </button>
                   )}
@@ -188,7 +188,7 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
                       className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50"
                     >
                       {t('nextStep')}
-                      <i className="fi fi-sr-arrow-right text-xs" />
+                      <i aria-hidden="true" className="fi fi-sr-arrow-right text-xs" />
                     </button>
                   )}
                 </div>

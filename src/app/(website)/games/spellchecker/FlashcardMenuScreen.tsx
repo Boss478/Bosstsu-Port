@@ -13,18 +13,18 @@ export default function FlashcardMenuScreen() {
       <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl shadow-blue-100/50 dark:shadow-black/40 text-center space-y-8 animate-float relative overflow-hidden">
         <div className="absolute top-4 right-4 flex gap-2">
           <button onClick={() => router.push('/games')} className="p-2 text-zinc-400 hover:text-zinc-500 transition-colors" title="Back to Games">
-            <i className="fi fi-sr-home text-xl"></i>
+            <i aria-hidden="true" className="fi fi-sr-home text-xl"></i>
           </button>
           <button onClick={() => setShowChangelog(true)} className="p-2 text-zinc-400 hover:text-blue-500 transition-colors" title="Changelog">
-            <i className="fi fi-sr-time-past text-xl"></i>
+            <i aria-hidden="true" className="fi fi-sr-time-past text-xl"></i>
           </button>
           <button onClick={() => setShowHelp(true)} className="p-2 text-zinc-400 hover:text-amber-500 transition-colors" title="How to play">
-            <i className="fi fi-sr-interrogation text-xl"></i>
+            <i aria-hidden="true" className="fi fi-sr-interrogation text-xl"></i>
           </button>
         </div>
 
         <div className="mb-6 pt-4">
-          <i className="fi fi-sr-graduation-cap text-6xl text-blue-500 mb-4 inline-block"></i>
+          <i aria-hidden="true" className="fi fi-sr-graduation-cap text-6xl text-blue-500 mb-4 inline-block"></i>
           <h1 className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
             SpellChecker
           </h1>
@@ -43,7 +43,7 @@ export default function FlashcardMenuScreen() {
             className="card-hover bg-blue-500 hover:bg-blue-600 text-white rounded-2xl p-6 font-bold text-xl flex flex-col items-center gap-2 transition-colors relative overflow-hidden group"
           >
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform"></div>
-            <i className="fi fi-sr-flag text-3xl z-10"></i>
+            <i aria-hidden="true" className="fi fi-sr-flag text-3xl z-10"></i>
             <span className="z-10">ภาษาไทย</span>
           </button>
           <button
@@ -51,7 +51,7 @@ export default function FlashcardMenuScreen() {
             className="card-hover bg-gray-500 hover:bg-gray-600 text-white rounded-2xl p-6 font-bold text-xl flex flex-col items-center gap-2 transition-colors relative overflow-hidden group"
           >
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform"></div>
-            <i className="fi fi-sr-world text-3xl z-10"></i>
+            <i aria-hidden="true" className="fi fi-sr-world text-3xl z-10"></i>
             <span className="z-10">English (US)</span>
             <span className="text-xs">(In Progress)</span>
           </button>
@@ -61,10 +61,10 @@ export default function FlashcardMenuScreen() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/10 animate-in fade-in">
             <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-800 rounded-3xl p-8 max-w-lg w-full shadow-2xl text-left relative overflow-y-auto max-h-[90vh]">
               <button onClick={() => setShowHelp(false)} className="absolute top-6 right-6 text-zinc-400 hover:text-rose-500">
-                <i className="fi fi-sr-cross-circle text-2xl"></i>
+                <i aria-hidden="true" className="fi fi-sr-cross-circle text-2xl"></i>
               </button>
               <h3 className="text-2xl font-bold text-zinc-800 dark:text-zinc-100 mb-6 flex items-center gap-3">
-                <i className="fi fi-sr-interrogation text-amber-500"></i> How to Play
+                <i aria-hidden="true" className="fi fi-sr-interrogation text-amber-500"></i> How to Play
               </h3>
               
               <div className="space-y-6">
@@ -93,10 +93,10 @@ export default function FlashcardMenuScreen() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/10 animate-in fade-in">
             <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-800 rounded-3xl p-8 max-w-lg w-full shadow-2xl text-left relative overflow-y-auto max-h-[90vh]">
               <button onClick={() => setShowChangelog(false)} className="absolute top-6 right-6 text-zinc-400 hover:text-rose-500">
-                <i className="fi fi-sr-cross-circle text-2xl"></i>
+                <i aria-hidden="true" className="fi fi-sr-cross-circle text-2xl"></i>
               </button>
               <h3 className="text-2xl font-bold text-zinc-800 dark:text-zinc-100 mb-6 flex items-center gap-3">
-                <i className="fi fi-sr-time-past text-blue-500"></i> Update History
+                <i aria-hidden="true" className="fi fi-sr-time-past text-blue-500"></i> Update History
               </h3>
               
               <div className="space-y-6">
@@ -130,23 +130,23 @@ export default function FlashcardMenuScreen() {
     <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl shadow-blue-100/50 dark:shadow-black/40 text-center animate-float relative overflow-hidden">
       {isLoading && (
         <div className="absolute inset-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in">
-          <i className="fi fi-sr-spinner animate-spin text-5xl text-blue-500 mb-4"></i>
+          <i aria-hidden="true" className="fi fi-sr-spinner animate-spin text-5xl text-blue-500 mb-4"></i>
           <p className="text-zinc-800 dark:text-zinc-200 font-bold text-lg animate-pulse">Loading Vocabulary...</p>
         </div>
       )}
 
       <button onClick={() => setLanguage(null)} className="absolute top-6 left-6 text-zinc-400 hover:text-blue-500 transition-colors">
-        <i className="fi fi-sr-arrow-left text-2xl"></i>
+        <i aria-hidden="true" className="fi fi-sr-arrow-left text-2xl"></i>
       </button>
       <button onClick={() => router.push('/games')} className="absolute top-6 right-6 text-zinc-400 hover:text-zinc-500 transition-colors" title="Back to Games">
-        <i className="fi fi-sr-home text-2xl"></i>
+        <i aria-hidden="true" className="fi fi-sr-home text-2xl"></i>
       </button>
       <h2 className="text-3xl font-bold text-zinc-800 dark:text-zinc-100 mb-8">Select Game Mode</h2>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         <button onClick={() => startGame("PRACTICE")} className="card-hover bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl p-6 text-left border-2 border-transparent hover:border-blue-400 transition-colors">
           <div className="flex items-center gap-3 mb-2">
-            <i className="fi fi-sr-book-alt text-2xl text-blue-500"></i>
+            <i aria-hidden="true" className="fi fi-sr-book-alt text-2xl text-blue-500"></i>
             <h3 className="text-xl font-bold text-zinc-800 dark:text-zinc-100">Practice</h3>
           </div>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Shows answer on mistake. Adapts to weaknesses.</p>
@@ -154,7 +154,7 @@ export default function FlashcardMenuScreen() {
         
         <button onClick={() => startGame("ENDLESS")} className="card-hover bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl p-6 text-left border-2 border-transparent hover:border-blue-400 transition-colors">
           <div className="flex items-center gap-3 mb-2">
-            <i className="fi fi-sr-infinity text-2xl text-blue-500"></i>
+            <i aria-hidden="true" className="fi fi-sr-infinity text-2xl text-blue-500"></i>
             <h3 className="text-xl font-bold text-zinc-800 dark:text-zinc-100">Endless</h3>
           </div>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Play continuously. Blind feedback.</p>
@@ -162,7 +162,7 @@ export default function FlashcardMenuScreen() {
         
         <button onClick={() => startGame("TEST")} className="card-hover bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl p-6 text-left border-2 border-transparent hover:border-emerald-400 transition-colors">
           <div className="flex items-center gap-3 mb-2">
-            <i className="fi fi-sr-clipboard-list-check text-2xl text-emerald-500"></i>
+            <i aria-hidden="true" className="fi fi-sr-clipboard-list-check text-2xl text-emerald-500"></i>
             <h3 className="text-xl font-bold text-zinc-800 dark:text-zinc-100">Test</h3>
           </div>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Must answer each word 2x. Blind feedback.</p>
@@ -170,7 +170,7 @@ export default function FlashcardMenuScreen() {
 
         <button onClick={() => startGame("LIFE")} className="card-hover bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl p-6 text-left border-2 border-transparent hover:border-amber-400 transition-colors">
           <div className="flex items-center gap-3 mb-2">
-            <i className="fi fi-sr-heart text-2xl text-amber-500"></i>
+            <i aria-hidden="true" className="fi fi-sr-heart text-2xl text-amber-500"></i>
             <h3 className="text-xl font-bold text-zinc-800 dark:text-zinc-100">Life Mode</h3>
           </div>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">3 Lives. Blind feedback.</p>
@@ -178,7 +178,7 @@ export default function FlashcardMenuScreen() {
 
         <button onClick={() => startGame("HARDCORE")} className="card-hover bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl p-6 text-left border-2 border-transparent hover:border-rose-400 transition-colors sm:col-span-2">
           <div className="flex items-center gap-3 mb-2">
-            <i className="fi fi-sr-flame text-2xl text-rose-500"></i>
+            <i aria-hidden="true" className="fi fi-sr-flame text-2xl text-rose-500"></i>
             <h3 className="text-xl font-bold text-zinc-800 dark:text-zinc-100">Hardcore</h3>
           </div>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">1 Life. No room for error. Blind feedback.</p>
@@ -187,7 +187,7 @@ export default function FlashcardMenuScreen() {
 
       <div className="bg-zinc-50 dark:bg-zinc-900 rounded-2xl p-6 text-left border border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-3 mb-4">
-          <i className="fi fi-sr-stopwatch text-2xl text-violet-500"></i>
+          <i aria-hidden="true" className="fi fi-sr-stopwatch text-2xl text-violet-500"></i>
           <h3 className="text-xl font-bold text-zinc-800 dark:text-zinc-100">Timer Mode</h3>
         </div>
         <div className="flex flex-wrap gap-3">

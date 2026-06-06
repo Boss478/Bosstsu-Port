@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { CONFIG } from '@/lib/config';
 import { formatShortDate } from '@/lib/format';
 
-const { MONTHLY_NORMALIZER } = CONFIG.FINANCE;
 const EXPENSE_CATS = CONFIG.FINANCE.CATEGORIES.expense;
 
 interface SummaryData {
@@ -222,7 +221,7 @@ export default function FinanceSummary({ data, transactions, loading, error }: P
       {expenseTransactions.length > 0 && (
         <div className="rounded-xl bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 p-4">
           <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mb-3 flex items-center gap-2">
-            <i className="fi fi-sr-chart-pie text-xs text-zinc-500" />
+            <i aria-hidden="true" className="fi fi-sr-chart-pie text-xs text-zinc-500" />
             Expense Breakdown
           </h3>
           <DonutChart

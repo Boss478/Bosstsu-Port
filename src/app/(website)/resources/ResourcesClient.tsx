@@ -80,7 +80,7 @@ export default function ResourcesClient({
       <section className="px-4 pb-8">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-3">
           <div className="relative w-64">
-            <i className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-sm" />
+            <i aria-hidden="true" className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-sm" />
             <input
               type="text"
               placeholder="ค้นหา..."
@@ -144,7 +144,7 @@ export default function ResourcesClient({
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <i className="fi fi-sr-book-alt text-3xl text-zinc-400" />
+                        <i aria-hidden="true" className="fi fi-sr-book-alt text-3xl text-zinc-400" />
                       </div>
                     )}
 
@@ -161,21 +161,21 @@ export default function ResourcesClient({
                   </div>
 
                   <div className="p-4 flex flex-col flex-1">
-                    <h3 className="font-bold text-zinc-800 dark:text-zinc-200 line-clamp-1 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    <h2 className="font-bold text-zinc-800 dark:text-zinc-200 line-clamp-1 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                       {item.title}
-                    </h3>
+                    </h2>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400 line-clamp-2 mb-4 flex-1">
                       {item.description}
                     </p>
 
                     <div className="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-slate-800 mt-auto">
                       <span className="text-xs text-zinc-400 flex items-center gap-1">
-                        <i className="fi fi-sr-calendar"></i>
+                        <i aria-hidden="true" className="fi fi-sr-calendar"></i>
                         {formatShortDate(item.date)}
                       </span>
 
                       <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300 shrink-0">
-                        <i className="fi fi-sr-arrow-up-right text-xs"></i>
+                        <i aria-hidden="true" className="fi fi-sr-arrow-up-right text-xs"></i>
                       </div>
                     </div>
                  </div>

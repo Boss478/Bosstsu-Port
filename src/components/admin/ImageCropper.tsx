@@ -66,7 +66,7 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel, aspec
         <div className="p-4 border-b border-zinc-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900">
           <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100">ครอปรอปรูป (Crop Image)</h3>
           <button type="button" onClick={onCancel} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white">
-            <i className="fi fi-sr-cross" />
+            <i aria-hidden="true" className="fi fi-sr-cross" />
           </button>
         </div>
         

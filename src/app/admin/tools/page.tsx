@@ -87,7 +87,7 @@ const sessions = sessionsRaw as unknown as Array<{
 
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
-            <i className="fi fi-sr-chalkboard text-blue-500" />
+            <i aria-hidden="true" className="fi fi-sr-chalkboard text-blue-500" />
             Class Tools
           </h1>
           <div className="flex items-center gap-3">
@@ -95,7 +95,7 @@ const sessions = sessionsRaw as unknown as Array<{
               href="/admin/tools/templates"
               className="flex items-center gap-2 px-6 py-2.5 bg-white dark:bg-slate-800 text-zinc-700 dark:text-zinc-300 font-bold rounded-xl border border-zinc-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all hover:-translate-y-0.5"
             >
-              <i className="fi fi-sr-template text-sm" />
+              <i aria-hidden="true" className="fi fi-sr-template text-sm" />
               Templates
             </Link>
             <QuickStartModal />
@@ -136,7 +136,7 @@ const sessions = sessionsRaw as unknown as Array<{
                        <div className="flex items-center gap-3 mt-1 text-xs text-zinc-400">
                           {(session.steps?.length ?? 0) > 1 ? (
                             <span className="inline-flex items-center gap-1">
-                              <i className="fi fi-sr-layers" />
+                              <i aria-hidden="true" className="fi fi-sr-layers" />
                               Multi-session
                             </span>
                           ) : (
@@ -156,14 +156,14 @@ const sessions = sessionsRaw as unknown as Array<{
                           rel="noopener noreferrer"
                           className="text-xs text-blue-500 hover:underline"
                         >
-                          <i className="fi fi-sr-arrow-up-right text-sm" />
+                          <i aria-hidden="true" className="fi fi-sr-arrow-up-right text-sm" />
                           Try it
                         </Link>
                         <Link
                           href={`/admin/tools/sessions/${session._id}`}
                           className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-colors"
                         >
-                          <i className="fi fi-sr-eye text-sm" />
+                          <i aria-hidden="true" className="fi fi-sr-eye text-sm" />
                           View
                         </Link>
                       </div>
@@ -181,7 +181,7 @@ const sessions = sessionsRaw as unknown as Array<{
           </h2>
           {pastSessions.length === 0 && activeSessions.length === 0 ? (
             <div className="p-12 rounded-2xl bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 text-center">
-              <i className="fi fi-sr-chalkboard-user text-4xl text-zinc-300 dark:text-zinc-600 block mb-3" />
+              <i aria-hidden="true" className="fi fi-sr-chalkboard-user text-4xl text-zinc-300 dark:text-zinc-600 block mb-3" />
               <p className="text-zinc-500 dark:text-zinc-400">No sessions yet.</p>
             </div>
           ) : (
@@ -208,7 +208,7 @@ const sessions = sessionsRaw as unknown as Array<{
                          <div className="flex items-center gap-3 mt-1 text-xs text-zinc-400">
                             {(session.steps?.length ?? 0) > 1 ? (
                              <span className="inline-flex items-center gap-1">
-                               <i className="fi fi-sr-layers" />
+                               <i aria-hidden="true" className="fi fi-sr-layers" />
                                Multi-session
                              </span>
                            ) : (
@@ -230,7 +230,7 @@ const sessions = sessionsRaw as unknown as Array<{
                           href={`/admin/tools/sessions/${session._id}`}
                           className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-700/60 hover:bg-zinc-50 dark:hover:bg-slate-700 text-zinc-600 dark:text-zinc-300 font-medium rounded-xl border border-zinc-200 dark:border-slate-600 transition-colors"
                         >
-                          <i className="fi fi-sr-eye text-sm" />
+                          <i aria-hidden="true" className="fi fi-sr-eye text-sm" />
                           View Results
                         </Link>
                         <DeleteButton id={session._id} action={deleteSession} />
@@ -251,7 +251,7 @@ const sessions = sessionsRaw as unknown as Array<{
                         : 'bg-white dark:bg-slate-800 border-zinc-200 dark:border-slate-700 hover:bg-zinc-50'
                     }`}
                   >
-                    <i className="fi fi-sr-angle-left" />
+                    <i aria-hidden="true" className="fi fi-sr-angle-left" />
                   </Link>
                   <span className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-300">
                     Page {page} of {totalPages}
@@ -264,7 +264,7 @@ const sessions = sessionsRaw as unknown as Array<{
                         : 'bg-white dark:bg-slate-800 border-zinc-200 dark:border-slate-700 hover:bg-zinc-50'
                     }`}
                   >
-                    <i className="fi fi-sr-angle-right" />
+                    <i aria-hidden="true" className="fi fi-sr-angle-right" />
                   </Link>
                 </div>
               )}

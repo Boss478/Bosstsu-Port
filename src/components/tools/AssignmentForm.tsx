@@ -179,7 +179,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
           <div className="text-center mb-6">
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{session.title}</h1>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm font-mono">
-              <i className="fi fi-sr-check-circle" />
+              <i aria-hidden="true" className="fi fi-sr-check-circle" />
               {t('submitted')}
             </div>
           </div>
@@ -204,7 +204,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
                   onClick={() => handlePreviewFile(fileUrl)}
                   className="flex items-center gap-2 text-blue-600 hover:underline"
                 >
-                  <i className="fi fi-sr-eye" />
+                  <i aria-hidden="true" className="fi fi-sr-eye" />
                   {t('previewFile')}
                 </button>
               </div>
@@ -215,7 +215,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
             onClick={() => setIsEditing(true)}
             className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all"
           >
-            <i className="fi fi-sr-pencil mr-2" />
+            <i aria-hidden="true" className="fi fi-sr-pencil mr-2" />
             {t('editMyAnswer')}
           </button>
         </div>
@@ -233,7 +233,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
                 setPreviewFileUrl(null);
               }}
             >
-              <i className="fi fi-sr-cross text-xl flex" />
+              <i aria-hidden="true" className="fi fi-sr-cross text-xl flex" />
             </button>
             <div 
               className="relative w-full h-full max-w-4xl max-h-[90vh] flex items-center justify-center"
@@ -255,7 +255,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
               )}
               {previewFileType === 'other' && (
                 <div className="text-center p-8 bg-white dark:bg-slate-800 rounded-lg">
-                  <i className="fi fi-sr-file text-6xl text-zinc-300 dark:text-zinc-600 mb-4 block" />
+                  <i aria-hidden="true" className="fi fi-sr-file text-6xl text-zinc-300 dark:text-zinc-600 mb-4 block" />
                   <p className="text-zinc-500 dark:text-zinc-400">{t('noPreviewAvailable')}</p>
                 </div>
               )}
@@ -272,7 +272,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{session.title}</h1>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm font-mono">
-            <i className="fi fi-sr-file-upload" />
+            <i aria-hidden="true" className="fi fi-sr-file-upload" />
             {session.sessionCode}
           </div>
         </div>
@@ -320,7 +320,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
                     </label>
                     <div className="flex items-center justify-between p-4 rounded-xl bg-zinc-50 dark:bg-slate-900 border border-zinc-200 dark:border-slate-700">
                       <div className="flex items-center gap-3">
-                        <i className="fi fi-sr-file text-xl text-blue-600 dark:text-blue-400" />
+                        <i aria-hidden="true" className="fi fi-sr-file text-xl text-blue-600 dark:text-blue-400" />
                         <span className="text-sm text-zinc-700 dark:text-zinc-300 truncate max-w-[200px]">
                           {existingFileUrl.split('/').pop()}
                         </span>
@@ -360,7 +360,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
                 )}
                 {(!isEditing || !existingFileUrl || removeCurrentFile) && (
                   <label className="flex items-center gap-3 w-full px-4 py-5 rounded-xl bg-white dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors cursor-pointer">
-                    <i className="fi fi-sr-cloud-upload text-xl text-zinc-400" />
+                    <i aria-hidden="true" className="fi fi-sr-cloud-upload text-xl text-zinc-400" />
                     <span className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
                       {fileName || t('clickToUploadFile')}
                     </span>
@@ -418,7 +418,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
                 setPreviewFileUrl(null);
               }}
             >
-              <i className="fi fi-sr-cross text-xl flex" />
+              <i aria-hidden="true" className="fi fi-sr-cross text-xl flex" />
             </button>
             <div 
               className="relative w-full h-full max-w-4xl max-h-[90vh] flex items-center justify-center"
@@ -440,7 +440,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
               )}
               {previewFileType === 'other' && (
                 <div className="text-center p-8 bg-white dark:bg-slate-800 rounded-lg">
-                  <i className="fi fi-sr-file text-6xl text-zinc-300 dark:text-zinc-600 mb-4 block" />
+                  <i aria-hidden="true" className="fi fi-sr-file text-6xl text-zinc-300 dark:text-zinc-600 mb-4 block" />
                   <p className="text-zinc-500 dark:text-zinc-400">{t('noPreviewAvailable')}</p>
                 </div>
               )}

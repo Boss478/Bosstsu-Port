@@ -161,7 +161,7 @@ export default function GameForm({
       <div className="lg:col-span-2 space-y-6">
         {incompleteUpload && (
           <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50 text-sm flex items-start gap-3">
-            <i className="fi fi-sr-exclamation mt-0.5 flex shrink-0" />
+            <i aria-hidden="true" className="fi fi-sr-exclamation mt-0.5 flex shrink-0" />
             <span>บันทึกข้อมูลสำเร็จ แต่รูปภาพยังไม่ได้อัปโหลด กรุณาเพิ่มรูปภาพและบันทึกอีกครั้ง</span>
           </div>
         )}
@@ -177,12 +177,13 @@ export default function GameForm({
           </h3>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label htmlFor="title" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               ชื่อเกม (Title) <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               name="title"
+              id="title"
               defaultValue={initialData?.title}
               required
               placeholder="เกมจับคู่คำศัพท์"
@@ -191,11 +192,12 @@ export default function GameForm({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label htmlFor="description" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               รายละเอียด (Description) <span className="text-red-500">*</span>
             </label>
             <textarea
               name="description"
+              id="description"
               defaultValue={initialData?.description}
               required
               rows={3}
@@ -240,12 +242,13 @@ export default function GameForm({
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label htmlFor="category" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 แนวเกม (Genre) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <select
                   name="category"
+                  id="category"
                   defaultValue={initialData?.category || ''}
                   required
                   className="appearance-none w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
@@ -255,18 +258,19 @@ export default function GameForm({
                     <option key={g} value={g}>{g}</option>
                   ))}
                 </select>
-                <i className="fi fi-sr-angle-small-down absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+                <i aria-hidden="true" className="fi fi-sr-angle-small-down absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
               </div>
             </div>
 
             {gameType === 'url' ? (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <label htmlFor="playUrl" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                   ลิงก์เล่นเกม (Play URL) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="playUrl"
+                  id="playUrl"
                   defaultValue={initialData?.playUrl}
                   required
                   placeholder="https://example.com/play"
@@ -284,11 +288,12 @@ export default function GameForm({
 
           {gameType === 'html' && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label htmlFor="htmlContent" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 HTML Content <span className="text-red-500">*</span>
               </label>
               <textarea
                 name="htmlContent"
+                id="htmlContent"
                 defaultValue={initialData?.htmlContent || ''}
                 required={gameType === 'html'}
                 rows={10}
@@ -302,11 +307,12 @@ export default function GameForm({
           )}
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label htmlFor="instructions" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               วิธีเล่น (Instructions)
             </label>
             <textarea
               name="instructions"
+              id="instructions"
               defaultValue={initialData?.instructions}
               rows={4}
               placeholder="อธิบายวิธีเล่นเกมแบบสั้นๆ..."
@@ -338,7 +344,7 @@ export default function GameForm({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label htmlFor="thumbnail" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               รูปปก (Thumbnail) <span className="text-red-500">*</span>
             </label>
             <div className="relative aspect-4/3 rounded-xl overflow-hidden bg-zinc-100 dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors group">
@@ -351,12 +357,13 @@ export default function GameForm({
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-zinc-400">
-                  <i className="fi fi-sr-image text-3xl" />
+                  <i aria-hidden="true" className="fi fi-sr-image text-3xl" />
                 </div>
               )}
               <input
                 type="file"
                 name="thumbnail"
+                id="thumbnail"
                 accept="image/*"
                 onChange={handleThumbnailChange}
                 required={!isEdit}

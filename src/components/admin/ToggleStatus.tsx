@@ -49,7 +49,7 @@ export default function ToggleStatus({ id, currentStatus, action }: ToggleStatus
       title={currentStatus ? 'คลิกเพื่อเปลี่ยนเป็น Draft' : 'คลิกเพื่อเปลี่ยนเป็น Public'}
     >
       {isPending ? (
-        <i className="fi fi-sr-spinner animate-spin text-[8px]" />
+        <i aria-hidden="true" className="fi fi-sr-spinner animate-spin text-[8px]" />
       ) : (
         <>
           <i className={`fi ${currentStatus ? 'fi-sr-eye' : 'fi-sr-eye-crossed'}`} />

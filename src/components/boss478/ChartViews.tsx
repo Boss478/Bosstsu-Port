@@ -335,7 +335,7 @@ function MiniChartCard({
         className="absolute top-3 right-3 p-1.5 rounded-lg bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm hover:bg-white/80 dark:hover:bg-slate-700/80 transition-all cursor-pointer z-10"
         title="View details"
       >
-        <i className="fi fi-sr-expand text-xs text-zinc-600 dark:text-zinc-400" />
+        <i aria-hidden="true" className="fi fi-sr-expand text-xs text-zinc-600 dark:text-zinc-400" />
       </button>
 
       <div className="flex items-center justify-between mb-2 pr-8">

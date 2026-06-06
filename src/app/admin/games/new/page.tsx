@@ -21,7 +21,7 @@ export default async function NewGamePage() {
 
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
-            <i className="fi fi-sr-plus text-blue-500" />
+            <i aria-hidden="true" className="fi fi-sr-plus text-blue-500" />
             เพิ่มเกมใหม่ (New Game)
           </h1>
           <p className="text-zinc-500 dark:text-zinc-400 mt-2">

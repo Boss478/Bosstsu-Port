@@ -36,7 +36,7 @@ export default function AdminLayoutShell({ children }: { children: ReactNode }) 
     )}
 
     <div className={`${!isMinimalLayout ? (sidebarCollapsed ? 'md:pl-0' : 'md:pl-64') : ''} min-h-screen flex flex-col transition-all duration-300`}>
-      <main className={`flex-1 ${!isMinimalLayout ? 'p-4 pb-24 md:p-8 md:pb-8' : ''} overflow-x-hidden`}>
+      <main id="admin-main" className={`flex-1 ${!isMinimalLayout ? 'p-4 pb-24 md:p-8 md:pb-8' : ''} overflow-x-hidden`}>
         {children}
       </main>
     </div>

@@ -57,7 +57,7 @@ export default function TypingLevel({
           disabled={isTransitioning || isFeedbackVisible}
           className="px-10 py-4 bg-fuchsia-600 text-white text-xl font-black rounded-2xl shadow-[0_8px_0_0_#9d174d] active:shadow-none active:translate-y-2 transition-all flex items-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Check Answers <i className="fi fi-sr-checkbox"></i>
+          Check Answers <i aria-hidden="true" className="fi fi-sr-checkbox"></i>
         </button>
       </div>
     </div>

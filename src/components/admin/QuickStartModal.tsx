@@ -411,7 +411,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                 onClick={() => applyTemplate(t)}
                 className="px-3 py-1.5 text-sm rounded-lg bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
               >
-                <i className="fi fi-sr-template text-xs mr-1" />
+                <i aria-hidden="true" className="fi fi-sr-template text-xs mr-1" />
                 {t.title}
               </button>
             ))}
@@ -419,11 +419,12 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
         </div>
       )}
       <div className="space-y-2">
-        <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+        <label htmlFor="qs-title" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
           Title <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
+          id="qs-title"
           value={title}
           onChange={e => setTitle(e.target.value)}
           placeholder="e.g. Week 5 Brainstorm"
@@ -433,10 +434,11 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+        <label htmlFor="qs-prompt" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
           Prompt / Instructions
         </label>
         <textarea
+          id="qs-prompt"
           value={prompt}
           onChange={e => setPrompt(e.target.value)}
           placeholder={selectedType === 'padlet' ? 'Share your ideas about...' : selectedType === 'poll' ? 'Vote for the best option!' : 'Enter any instructions for students...'}
@@ -511,7 +513,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                           onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))}
                           className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                         >
-                          <i className="fi fi-sr-cross text-sm" />
+                          <i aria-hidden="true" className="fi fi-sr-cross text-sm" />
                         </button>
                       )}
                     </div>
@@ -522,7 +524,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                   onClick={() => setPollOptions([...pollOptions, ''])}
                   className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                 >
-                  <i className="fi fi-sr-plus text-xs" />
+                  <i aria-hidden="true" className="fi fi-sr-plus text-xs" />
                   Add Option
                 </button>
               </div>
@@ -555,7 +557,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                     onClick={() => setQuizQuestions(quizQuestions.filter((_, i) => i !== qi))}
                     className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                   >
-                    <i className="fi fi-sr-cross text-sm" />
+                    <i aria-hidden="true" className="fi fi-sr-cross text-sm" />
                   </button>
                 </div>
                 <div className="pl-4 space-y-1.5">
@@ -598,7 +600,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                             }}
                             className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
                           >
-                            <i className="fi fi-sr-cross text-xs" />
+                            <i aria-hidden="true" className="fi fi-sr-cross text-xs" />
                           </button>
                         )}
                       </label>
@@ -613,7 +615,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                     }}
                     className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors ml-7"
                   >
-                    <i className="fi fi-sr-plus text-xs" />
+                    <i aria-hidden="true" className="fi fi-sr-plus text-xs" />
                     Add Option
                   </button>
                 </div>
@@ -625,7 +627,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
             onClick={() => setQuizQuestions([...quizQuestions, { question: '', options: ['', ''], correctAnswer: -1 }])}
             className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
           >
-            <i className="fi fi-sr-plus text-xs" />
+            <i aria-hidden="true" className="fi fi-sr-plus text-xs" />
             Add Question
           </button>
         </div>
@@ -649,10 +651,11 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
       {mode === 'single' && (
       <div className="space-y-3 pt-3 border-t border-zinc-200 dark:border-slate-700">
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+          <label htmlFor="qs-description" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
             Description <span className="text-zinc-400 text-xs">(optional)</span>
           </label>
           <textarea
+            id="qs-description"
             value={description}
             onChange={e => setDescription(e.target.value)}
             placeholder="e.g. A quick comprehension check after the grammar lesson"
@@ -674,11 +677,12 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
           </label>
         </div>
         <div className="space-y-1">
-          <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+          <label htmlFor="qs-maxSubmissions" className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
             Max submissions per student <span className="text-zinc-400 text-xs">(0 = unlimited)</span>
           </label>
           <input
             type="number"
+            id="qs-maxSubmissions"
             min={0}
             max={100}
             value={maxSubmissions}
@@ -739,33 +743,33 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
               disabled={idx === 0}
               className="p-1 text-zinc-400 hover:text-blue-500 disabled:opacity-30 transition-colors"
             >
-              <i className="fi fi-sr-arrow-up text-xs" />
+              <i aria-hidden="true" className="fi fi-sr-arrow-up text-xs" />
             </button>
             <button
               onClick={() => handleMoveStep(idx, 'down')}
               disabled={idx === steps.length - 1}
               className="p-1 text-zinc-400 hover:text-blue-500 disabled:opacity-30 transition-colors"
             >
-              <i className="fi fi-sr-arrow-down text-xs" />
+              <i aria-hidden="true" className="fi fi-sr-arrow-down text-xs" />
             </button>
             <button
               onClick={() => handleSaveTemplate(idx)}
               className="p-1 text-zinc-400 hover:text-emerald-500 transition-colors"
               title="บันทึกเป็นแม่แบบ"
             >
-              <i className="fi fi-sr-disk text-xs" />
+              <i aria-hidden="true" className="fi fi-sr-disk text-xs" />
             </button>
             <button
               onClick={() => handleEditStep(idx)}
               className="p-1 text-zinc-400 hover:text-blue-500 transition-colors"
             >
-              <i className="fi fi-sr-pencil text-xs" />
+              <i aria-hidden="true" className="fi fi-sr-pencil text-xs" />
             </button>
             <button
               onClick={() => handleRemoveStep(idx)}
               className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
             >
-              <i className="fi fi-sr-trash text-xs" />
+              <i aria-hidden="true" className="fi fi-sr-trash text-xs" />
             </button>
           </div>
         </div>
@@ -776,7 +780,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
   const renderStepSummary = () => (
     <div className="space-y-2 mb-4 bg-zinc-50 dark:bg-slate-900 rounded-xl p-4 border border-zinc-200 dark:border-slate-700">
       <p className="text-xs font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-3 flex items-center gap-1">
-        <i className="fi fi-sr-list" />
+        <i aria-hidden="true" className="fi fi-sr-list" />
         Steps ({steps.length})
       </p>
       {steps.map((s, idx) => (
@@ -837,7 +841,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
       <div className="space-y-4">
         {pickerTemplates.length === 0 && !loadingPicker ? (
           <div className="text-center py-8 text-zinc-500 dark:text-zinc-400">
-            <i className="fi fi-sr-drawer text-3xl mb-3 block text-zinc-300 dark:text-zinc-600" />
+            <i aria-hidden="true" className="fi fi-sr-drawer text-3xl mb-3 block text-zinc-300 dark:text-zinc-600" />
             <p className="text-sm">No saved templates.</p>
             <p className="text-xs mt-1">Save a step as a template using the 💾 icon in the step builder.</p>
           </div>
@@ -848,7 +852,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
         ) : (
           <>
             <div className="relative">
-              <i className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm" />
+              <i aria-hidden="true" className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm" />
               <input
                 type="text"
                 value={pickerSearch}
@@ -892,15 +896,16 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
     <div className="space-y-4">
       {renderStepSummary()}
       <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-sm text-blue-700 dark:text-blue-400">
-        <i className="fi fi-sr-info-circle mr-1" />
+        <i aria-hidden="true" className="fi fi-sr-info-circle mr-1" />
         Enter a name and optional description for your multi-step session
       </div>
       <div className="space-y-2">
-        <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+        <label htmlFor="qs-mainTitle" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
           Session Title <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
+          id="qs-mainTitle"
           value={mainTitle}
           onChange={e => setMainTitle(e.target.value)}
           placeholder="e.g. Week 5 Review Activities"
@@ -909,10 +914,11 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
         />
       </div>
       <div className="space-y-2">
-        <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+        <label htmlFor="qs-multi-description" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
           Description <span className="text-zinc-400 text-xs">(optional)</span>
         </label>
         <textarea
+          id="qs-multi-description"
           value={description}
           onChange={e => setDescription(e.target.value)}
           placeholder="e.g. A set of warm-up activities before the main lesson"
@@ -935,11 +941,12 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
       </div>
 
       <div className="space-y-1">
-        <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+        <label htmlFor="qs-multi-maxSubmissions" className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
           Max submissions per student <span className="text-zinc-400 text-xs">(0 = unlimited)</span>
         </label>
         <input
           type="number"
+          id="qs-multi-maxSubmissions"
           min={0}
           max={100}
           value={maxSubmissions}
@@ -957,13 +964,13 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
           onClick={handleOpen}
           className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:-translate-y-0.5"
         >
-          <i className="fi fi-sr-plus text-sm" />
+          <i aria-hidden="true" className="fi fi-sr-plus text-sm" />
           Start New Session
         </button>
       )}
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
           <div className="fixed inset-0 bg-black/10" onClick={handleDismiss} />
           <div className="relative w-full max-w-lg bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/50 shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-zinc-200/60 dark:border-slate-700/50">
@@ -982,7 +989,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                 onClick={handleDismiss}
                 className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 transition-colors"
               >
-                <i className="fi fi-sr-cross text-lg" />
+                <i aria-hidden="true" className="fi fi-sr-cross text-lg" />
               </button>
             </div>
 
@@ -1004,7 +1011,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                     onClick={openTemplatePicker}
                     className="w-full flex items-center justify-center gap-2 p-3 mb-3 rounded-xl border-2 border-dashed border-zinc-300 dark:border-slate-600 text-zinc-500 dark:text-zinc-400 hover:border-blue-400 hover:text-blue-600 dark:hover:border-blue-500 dark:hover:text-blue-400 transition-all text-sm font-semibold"
                   >
-                    <i className="fi fi-sr-layer-plus" />
+                    <i aria-hidden="true" className="fi fi-sr-layer-plus" />
                     From Template
                   </button>
                   {renderToolGrid()}
@@ -1016,7 +1023,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
               {step === 'config' && (
                 <div className="space-y-4">
                   <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-sm text-blue-700 dark:text-blue-400">
-                    <i className="fi fi-sr-info-circle mr-1" />
+                    <i aria-hidden="true" className="fi fi-sr-info-circle mr-1" />
                     {TOOL_TYPES.find(tt => tt.value === selectedType)?.label}
                   </div>
                   {renderConfigFields()}
@@ -1040,7 +1047,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                     onClick={() => { setStep('type'); setEditingStepIndex(-1); }}
                     className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
                   >
-                    <i className="fi fi-sr-arrow-left mr-1" />
+                    <i aria-hidden="true" className="fi fi-sr-arrow-left mr-1" />
                     Back
                   </button>
                   <button
@@ -1077,7 +1084,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                       className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-all"
                     >
                       Next
-                      <i className="fi fi-sr-arrow-right text-sm" />
+                      <i aria-hidden="true" className="fi fi-sr-arrow-right text-sm" />
                     </button>
                   </div>
                 </div>
@@ -1097,7 +1104,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                     className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-all disabled:opacity-50"
                   >
                     Next
-                    <i className="fi fi-sr-arrow-right text-sm" />
+                    <i aria-hidden="true" className="fi fi-sr-arrow-right text-sm" />
                   </button>
                 </div>
               )}
@@ -1108,7 +1115,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                     onClick={() => setStep('type')}
                     className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
                   >
-                    <i className="fi fi-sr-arrow-left mr-1" />
+                    <i aria-hidden="true" className="fi fi-sr-arrow-left mr-1" />
                     Back
                   </button>
                   <Link
@@ -1116,7 +1123,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                     onClick={() => setOpen(false)}
                     className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium flex items-center gap-1"
                   >
-                    <i className="fi fi-sr-pencil text-xs" />
+                    <i aria-hidden="true" className="fi fi-sr-pencil text-xs" />
                     Go to Edit Page
                   </Link>
                 </div>
@@ -1128,7 +1135,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                     onClick={() => setStep('type')}
                     className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
                   >
-                    <i className="fi fi-sr-arrow-left mr-1" />
+                    <i aria-hidden="true" className="fi fi-sr-arrow-left mr-1" />
                     Back
                   </button>
                   <button
@@ -1136,7 +1143,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                     disabled={pending || !mainTitle.trim()}
                     className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-all disabled:opacity-50"
                   >
-                    <i className="fi fi-sr-play text-sm" />
+                    <i aria-hidden="true" className="fi fi-sr-play text-sm" />
                     {pending ? 'Saving...' : isEditing ? 'Save Changes' : 'Start'}
                   </button>
                 </div>

@@ -139,10 +139,6 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
     setRefreshing(false);
   };
 
-  const forceRefresh = async () => {
-    await fetchResponses();
-  };
-
   const displayedResponses = useMemo(() => hasSteps && activeStepTab >= 0
     ? responses.filter((r: { stepIndex?: number }) => r.stepIndex === activeStepTab)
     : responses,
@@ -202,7 +198,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
                     <td className="p-4 hidden md:table-cell">
                       {r.fileUrl && (
                         <button onClick={() => handlePreviewFile(r.fileUrl)} className="text-xs text-blue-600 hover:underline flex items-center gap-1">
-                          <i className="fi fi-sr-eye text-xs" />
+                          <i aria-hidden="true" className="fi fi-sr-eye text-xs" />
                           {t('previewFile')}
                         </button>
                       )}
@@ -238,7 +234,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
                         <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-400 font-medium">Answered</span>
                       )}
                       <button onClick={() => handleToggleAnswered(r._id, !!r.content?.isAnswered)} className="p-1.5 text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors" title="Toggle answered">
-                        <i className="fi fi-sr-check text-sm" />
+                        <i aria-hidden="true" className="fi fi-sr-check text-sm" />
                       </button>
                       <DeleteButton id={r._id} action={deleteResponse} />
                     </div>
@@ -297,7 +293,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
             className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-400 hover:text-red-600 transition-colors"
             title={t('removeAllResults')}
           >
-            <i className="fi fi-sr-trash text-sm" />
+            <i aria-hidden="true" className="fi fi-sr-trash text-sm" />
           </button>
           <ExportButton session={session} />
         </div>
@@ -366,7 +362,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
             disabled={sizePercent <= 50}
             className="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 disabled:opacity-30 transition-colors"
           >
-            <i className="fi fi-sr-minus text-xs" />
+            <i aria-hidden="true" className="fi fi-sr-minus text-xs" />
           </button>
           <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 min-w-[3ch] text-center">
             {sizePercent}%
@@ -376,7 +372,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
             disabled={sizePercent >= 250}
             className="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 disabled:opacity-30 transition-colors"
           >
-            <i className="fi fi-sr-plus text-xs" />
+            <i aria-hidden="true" className="fi fi-sr-plus text-xs" />
           </button>
         </div>
       </div>
@@ -385,7 +381,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
         <div style={{ zoom: `${sizePercent}%` }}>
           {displayedResponses.length === 0 ? (
           <div className="p-12 rounded-2xl bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 text-center">
-            <i className="fi fi-sr-inbox text-4xl text-zinc-300 dark:text-zinc-600 block mb-3" />
+            <i aria-hidden="true" className="fi fi-sr-inbox text-4xl text-zinc-300 dark:text-zinc-600 block mb-3" />
           <p className="text-zinc-500 dark:text-zinc-400">No responses yet. Share the session code with students!</p>
         </div>
       ) : (
@@ -430,7 +426,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
                 setPreviewFileUrl(null);
               }}
             >
-              <i className="fi fi-sr-cross text-xl flex" />
+              <i aria-hidden="true" className="fi fi-sr-cross text-xl flex" />
             </button>
             <div 
               className="relative w-full h-full max-w-4xl max-h-[90vh] flex items-center justify-center"
@@ -452,7 +448,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
               )}
               {previewFileType === 'other' && (
                 <div className="text-center p-8 bg-white dark:bg-slate-800 rounded-lg">
-                  <i className="fi fi-sr-file text-6xl text-zinc-300 dark:text-zinc-600 mb-4 block" />
+                  <i aria-hidden="true" className="fi fi-sr-file text-6xl text-zinc-300 dark:text-zinc-600 mb-4 block" />
                   <p className="text-zinc-500 dark:text-zinc-400">{t('noPreviewAvailable')}</p>
                   <a 
                     href={previewFileUrl} 
@@ -460,7 +456,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
                     rel="noopener noreferrer"
                     className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
                   >
-                    <i className="fi fi-sr-download" />
+                    <i aria-hidden="true" className="fi fi-sr-download" />
                     {t('downloadAttachedFile')}
                   </a>
                 </div>

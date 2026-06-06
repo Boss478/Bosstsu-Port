@@ -14,7 +14,7 @@ export default function AdminLoginPage() {
 
           <div className="text-center mb-8">
             <div className="w-16 h-16 rounded-2xl bg-blue-500 dark:bg-blue-600 flex items-center justify-center text-white mx-auto mb-4">
-              <i className="fi fi-sr-lock text-2xl" />
+              <i aria-hidden="true" className="fi fi-sr-lock text-2xl" />
             </div>
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
               Admin Login
@@ -45,7 +45,7 @@ export default function AdminLoginPage() {
 
             {state?.error && (
               <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40">
-                <i className="fi fi-sr-exclamation text-red-500 text-sm" />
+                <i aria-hidden="true" className="fi fi-sr-exclamation text-red-500 text-sm" />
                 <p className="text-red-600 dark:text-red-400 text-sm">{state.error}</p>
               </div>
             )}
@@ -62,7 +62,7 @@ export default function AdminLoginPage() {
                 </>
               ) : (
                 <>
-                  <i className="fi fi-sr-sign-in-alt text-sm" />
+                  <i aria-hidden="true" className="fi fi-sr-sign-in-alt text-sm" />
                   เข้าสู่ระบบ
                 </>
               )}
@@ -74,7 +74,7 @@ export default function AdminLoginPage() {
               href="/" 
               className="inline-flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
-              <i className="fi fi-sr-arrow-left text-xs" />
+              <i aria-hidden="true" className="fi fi-sr-arrow-left text-xs" />
               กลับสู่หน้าเว็บไซต์
             </Link>
           </div>

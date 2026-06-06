@@ -6,7 +6,6 @@ import TransactionList from './TransactionList';
 import SubscriptionList from './SubscriptionList';
 import BudgetList from './BudgetList';
 import { CONFIG } from '@/lib/config';
-import { formatShortDate } from '@/lib/format';
 import {
   getCurrentPeriodKey,
   getPreviousPeriodKey,
@@ -202,7 +201,7 @@ export default function FinanceClient() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-8">
       <h1 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6 flex items-center gap-3">
-        <i className="fi fi-sr-wallet text-emerald-500" />
+        <i aria-hidden="true" className="fi fi-sr-wallet text-emerald-500" />
         Budget Tracker
       </h1>
 
@@ -248,7 +247,7 @@ export default function FinanceClient() {
                   onClick={goPrev}
                   className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
                 >
-                  <i className="fi fi-sr-angle-left text-xs text-zinc-600 dark:text-zinc-400" />
+                  <i aria-hidden="true" className="fi fi-sr-angle-left text-xs text-zinc-600 dark:text-zinc-400" />
                 </button>
                 <span className="px-3 py-1.5 rounded-lg text-sm bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-700 dark:text-zinc-300 font-medium min-w-[200px] text-center" title={formatPeriodLabel(payDay, month)}>
                   {(() => {
@@ -260,7 +259,7 @@ export default function FinanceClient() {
                   onClick={goNext}
                   className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
                 >
-                  <i className="fi fi-sr-angle-right text-xs text-zinc-600 dark:text-zinc-400" />
+                  <i aria-hidden="true" className="fi fi-sr-angle-right text-xs text-zinc-600 dark:text-zinc-400" />
                 </button>
               </>
             ) : (
@@ -275,7 +274,7 @@ export default function FinanceClient() {
               onClick={() => { setRefreshKey((k) => k + 1); }}
               className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
             >
-              <i className="fi fi-sr-rotate-left text-xs text-zinc-600 dark:text-zinc-400" />
+              <i aria-hidden="true" className="fi fi-sr-rotate-left text-xs text-zinc-600 dark:text-zinc-400" />
             </button>
             <div className="relative">
               <button
@@ -283,7 +282,7 @@ export default function FinanceClient() {
                 className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
                 title="Period settings"
               >
-                <i className="fi fi-sr-settings text-xs text-zinc-600 dark:text-zinc-400" />
+                <i aria-hidden="true" className="fi fi-sr-settings text-xs text-zinc-600 dark:text-zinc-400" />
               </button>
               {showPayDayEditor && (
                 <div className="absolute top-full right-0 mt-2 z-50 w-64 p-4 rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl">

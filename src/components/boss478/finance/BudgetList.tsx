@@ -336,7 +336,7 @@ export default function BudgetList({ month: externalMonth, payDay }: { month?: s
                       onClick={(e) => { e.stopPropagation(); handleDelete(tx._id); }}
                       className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-red-100 dark:hover:bg-red-900/40 transition-opacity cursor-pointer"
                     >
-                      <i className="fi fi-sr-trash text-[10px] text-red-400" />
+                      <i aria-hidden="true" className="fi fi-sr-trash text-[10px] text-red-400" />
                     </button>
                   </div>
                 ))}
@@ -367,7 +367,7 @@ export default function BudgetList({ month: externalMonth, payDay }: { month?: s
               onClick={() => setMonth(getPreviousPeriodKey(payDay, month))}
               className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
             >
-              <i className="fi fi-sr-angle-left text-xs text-zinc-600 dark:text-zinc-400" />
+              <i aria-hidden="true" className="fi fi-sr-angle-left text-xs text-zinc-600 dark:text-zinc-400" />
             </button>
             <span className="px-3 py-1.5 rounded-lg text-sm bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-700 dark:text-zinc-300 font-medium min-w-[200px] text-center">
               {formatPeriodLabel(payDay, month)}
@@ -376,7 +376,7 @@ export default function BudgetList({ month: externalMonth, payDay }: { month?: s
               onClick={() => setMonth(getNextPeriodKey(payDay, month))}
               className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
             >
-              <i className="fi fi-sr-angle-right text-xs text-zinc-600 dark:text-zinc-400" />
+              <i aria-hidden="true" className="fi fi-sr-angle-right text-xs text-zinc-600 dark:text-zinc-400" />
             </button>
           </>
         ) : (
@@ -391,21 +391,21 @@ export default function BudgetList({ month: externalMonth, payDay }: { month?: s
           onClick={handleCopyFromLast}
           className="px-3 py-1.5 rounded-lg text-sm font-medium bg-amber-500/80 text-white hover:bg-amber-600 transition-colors cursor-pointer flex items-center gap-1.5"
         >
-          <i className="fi fi-sr-copy text-xs" />
+          <i aria-hidden="true" className="fi fi-sr-copy text-xs" />
           {payDay ? 'Copy from last period' : 'Copy from last month'}
         </button>
         <button
           onClick={expandAll}
           className="px-3 py-1.5 rounded-lg text-sm font-medium bg-zinc-200/80 dark:bg-zinc-700/80 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300/80 dark:hover:bg-zinc-600/80 transition-colors cursor-pointer flex items-center gap-1.5"
         >
-          <i className="fi fi-sr-expand text-xs" />
+          <i aria-hidden="true" className="fi fi-sr-expand text-xs" />
           Expand
         </button>
         <button
           onClick={collapseAll}
           className="px-3 py-1.5 rounded-lg text-sm font-medium bg-zinc-200/80 dark:bg-zinc-700/80 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300/80 dark:hover:bg-zinc-600/80 transition-colors cursor-pointer flex items-center gap-1.5"
         >
-          <i className="fi fi-sr-compress text-xs" />
+          <i aria-hidden="true" className="fi fi-sr-compress text-xs" />
           Collapse
         </button>
         <button
@@ -413,7 +413,7 @@ export default function BudgetList({ month: externalMonth, payDay }: { month?: s
           disabled={saving}
           className="ml-auto px-4 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
         >
-          <i className="fi fi-sr-floppy-disk text-xs" />
+          <i aria-hidden="true" className="fi fi-sr-floppy-disk text-xs" />
           {saving ? 'Saving...' : 'Save'}
         </button>
       </div>
@@ -433,7 +433,7 @@ export default function BudgetList({ month: externalMonth, payDay }: { month?: s
       <div className="space-y-4">
         <div>
           <h3 className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 mb-2 flex items-center gap-2">
-            <i className="fi fi-sr-arrow-trend-up text-xs" />
+            <i aria-hidden="true" className="fi fi-sr-arrow-trend-up text-xs" />
             Income Budgets
           </h3>
           <div className="space-y-1">
@@ -449,7 +449,7 @@ export default function BudgetList({ month: externalMonth, payDay }: { month?: s
 
         <div>
           <h3 className="text-sm font-semibold text-red-600 dark:text-red-400 mb-2 flex items-center gap-2">
-            <i className="fi fi-sr-shopping-cart text-xs" />
+            <i aria-hidden="true" className="fi fi-sr-shopping-cart text-xs" />
             Expense Budgets
           </h3>
           <div className="space-y-1">

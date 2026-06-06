@@ -93,7 +93,7 @@ export default function VictoryScreen({ score, stageStars, wrongLetters, onResta
         </p>
 
         <div className="text-9xl rotate-12 py-6 drop-shadow-2xl">
-          <i className="fi fi-sr-trophy text-amber-500 dark:text-amber-400"></i>
+          <i aria-hidden="true" className="fi fi-sr-trophy text-amber-500 dark:text-amber-400"></i>
         </div>
 
         {isNewBest && (

@@ -60,14 +60,14 @@ export default async function PortfolioListPage({
 
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
-            <i className="fi fi-sr-briefcase text-blue-500" />
+            <i aria-hidden="true" className="fi fi-sr-briefcase text-blue-500" />
             จัดการผลงาน (Portfolio)
           </h1>
           <Link
             href="/admin/portfolio/new"
             className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:-translate-y-0.5"
           >
-            <i className="fi fi-sr-plus text-sm" />
+            <i aria-hidden="true" className="fi fi-sr-plus text-sm" />
             เพิ่มผลงานใหม่
           </Link>
         </div>
@@ -151,7 +151,7 @@ export default async function PortfolioListPage({
                           className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                           title="Edit"
                         >
-                          <i className="fi fi-sr-pencil" />
+                          <i aria-hidden="true" className="fi fi-sr-pencil" />
                         </Link>
                         <DeleteButton id={item._id.toString()} action={deletePortfolioItem} />
                       </div>
@@ -174,7 +174,7 @@ export default async function PortfolioListPage({
                   : 'bg-white dark:bg-slate-800 border-zinc-200 dark:border-slate-700 hover:bg-zinc-50'
               }`}
             >
-              <i className="fi fi-sr-angle-left" />
+              <i aria-hidden="true" className="fi fi-sr-angle-left" />
             </Link>
             <span className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-300">
               Page {page} of {totalPages}
@@ -187,7 +187,7 @@ export default async function PortfolioListPage({
                   : 'bg-white dark:bg-slate-800 border-zinc-200 dark:border-slate-700 hover:bg-zinc-50'
               }`}
             >
-              <i className="fi fi-sr-angle-right" />
+              <i aria-hidden="true" className="fi fi-sr-angle-right" />
             </Link>
           </div>
         )}

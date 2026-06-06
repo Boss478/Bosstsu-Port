@@ -57,7 +57,7 @@ function DashboardInner() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-          <i className="fi fi-sr-stats text-blue-500 mr-3" />
+          <i aria-hidden="true" className="fi fi-sr-stats text-blue-500 mr-3" />
           Private Dashboard
         </h1>
         <div className="flex items-center gap-2">
@@ -140,7 +140,7 @@ function DashboardInner() {
 
       {failedYahooCalls > 0 && (
         <div className="mb-4 px-4 py-2 rounded-lg bg-amber-50/80 dark:bg-amber-900/30 border border-amber-200/60 dark:border-amber-700/50 text-xs text-amber-700 dark:text-amber-300 flex items-center gap-2">
-          <i className="fi fi-sr-exclamation text-amber-500" />
+          <i aria-hidden="true" className="fi fi-sr-exclamation text-amber-500" />
           Showing estimated data — Yahoo Finance unavailable ({failedYahooCalls} failed attempt{failedYahooCalls > 1 ? 's' : ''})
         </div>
       )}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useStockData, PERIOD_CONFIG, type Period } from './StockDataContext';
+import { useStockData, PERIOD_CONFIG } from './StockDataContext';
 import PriceChart from './PriceChart';
 import { useEffect } from 'react';
 
@@ -40,14 +40,14 @@ export default function StockDetailModal({ symbol, onClose }: StockDetailModalPr
               onClick={onClose}
               className="flex items-center gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors cursor-pointer"
             >
-              <i className="fi fi-sr-arrow-left" />
+              <i aria-hidden="true" className="fi fi-sr-arrow-left" />
               Back
             </button>
             <button
               onClick={onClose}
               className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer"
             >
-              <i className="fi fi-sr-cross text-lg" />
+              <i aria-hidden="true" className="fi fi-sr-cross text-lg" />
             </button>
           </div>
 

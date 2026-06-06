@@ -99,8 +99,9 @@ export default function Header() {
                       <Link
                         href={link.href}
                         className="px-4 py-2 rounded-full text-sm text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-300/70 dark:hover:bg-slate-400/80 transition-all duration-200 font-medium flex items-center gap-2"
+                        aria-current={pathname === link.href ? "page" : undefined}
                       >
-                        <i className={link.icon}></i>
+                        <i aria-hidden="true" className={link.icon}></i>
                         {link.label}
                       </Link>
                     ) : (
@@ -125,8 +126,9 @@ export default function Header() {
                                 href={subItem.href}
                                 onClick={() => setDesktopExpanded(null)}
                                 className="px-4 py-2.5 rounded-xl text-sm text-zinc-600 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-200 font-medium flex items-center gap-2 whitespace-nowrap"
+                                aria-current={pathname === subItem.href ? "page" : undefined}
                               >
-                                <i className={subItem.icon}></i>
+                                <i aria-hidden="true" className={subItem.icon}></i>
                                 {subItem.label}
                               </Link>
                             ))}
@@ -147,8 +149,9 @@ export default function Header() {
                         ? 'bg-blue-500/30 dark:bg-blue-400/20 backdrop-blur-xs border border-blue-400/40 text-blue-700 dark:text-blue-300 hover:bg-blue-500/50 dark:hover:bg-blue-400/30'
                         : 'text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-300/70 dark:hover:bg-slate-400/80'
                     }`}
+                    aria-current={isPrivateActive(link.href) ? "page" : undefined}
                   >
-                    <i className={link.icon}></i>
+                    <i aria-hidden="true" className={link.icon}></i>
                     {link.label}
                   </Link>
                 ))
@@ -167,7 +170,7 @@ export default function Header() {
                   aria-label="Switch to private tools"
                   title={navMode === 'public' ? 'Switch to private tools' : 'Switch to public nav'}
                 >
-                  <i className="fi fi-sr-user-lock text-sm leading-none"></i>
+                  <i aria-hidden="true" className="fi fi-sr-user-lock text-sm leading-none"></i>
                 </button>
               )}
 
@@ -239,9 +242,9 @@ export default function Header() {
               aria-label="Toggle menu"
             >
               {isOpen ? (
-                <i className="fi fi-sr-cross text-xl"></i>
+                <i aria-hidden="true" className="fi fi-sr-cross text-xl"></i>
               ) : (
-                <i className="fi fi-sr-menu-burger text-xl"></i>
+                <i aria-hidden="true" className="fi fi-sr-menu-burger text-xl"></i>
               )}
             </button>
           </div>
@@ -259,8 +262,9 @@ export default function Header() {
                           href={link.href}
                           onClick={closeMenuWithAnimation}
                           className="px-4 py-3 rounded-2xl text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-slate-700/50 transition-all duration-200 font-medium flex items-center gap-3 w-full"
+                          aria-current={pathname === link.href ? "page" : undefined}
                         >
-                          <i className={link.icon}></i>
+                          <i aria-hidden="true" className={link.icon}></i>
                           {link.label}
                         </Link>
                       ) : (
@@ -284,8 +288,9 @@ export default function Header() {
                                   href={subItem.href}
                                   onClick={closeMenuWithAnimation}
                                   className="px-4 py-2 rounded-xl text-sm text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-300 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-200 flex items-center gap-2"
+                                  aria-current={pathname === subItem.href ? "page" : undefined}
                                 >
-                                  <i className={subItem.icon}></i>
+                                  <i aria-hidden="true" className={subItem.icon}></i>
                                   {subItem.label}
                                 </Link>
                               ))}
@@ -301,15 +306,16 @@ export default function Header() {
                       key={link.href}
                       href={link.href}
                       onClick={closeMenuWithAnimation}
-                      className={`px-4 py-3 rounded-2xl transition-all duration-200 font-medium flex items-center gap-3 w-full ${
+                       className={`px-4 py-3 rounded-2xl transition-all duration-200 font-medium flex items-center gap-3 w-full ${
                          isPrivateActive(link.href)
-                          ? 'bg-blue-500/20 dark:bg-blue-400/15 border border-blue-400/30 text-blue-700 dark:text-blue-300 hover:bg-blue-500/40 dark:hover:bg-blue-400/25'
-                          : 'text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-slate-700/50'
-                      }`}
-                    >
-                      <i className={link.icon}></i>
-                      {link.label}
-                    </Link>
+                           ? 'bg-blue-500/20 dark:bg-blue-400/15 border border-blue-400/30 text-blue-700 dark:text-blue-300 hover:bg-blue-500/40 dark:hover:bg-blue-400/25'
+                           : 'text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-slate-700/50'
+                       }`}
+                       aria-current={isPrivateActive(link.href) ? "page" : undefined}
+                     >
+                       <i aria-hidden="true" className={link.icon}></i>
+                       {link.label}
+                     </Link>
                   ))
                 ))}
               </div>

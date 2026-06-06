@@ -55,8 +55,12 @@ async function dbConnect() {
   return cached.conn;
 }
 
-export function serializeDoc<T>(doc: T): T {
-  return JSON.parse(JSON.stringify(doc)) as unknown as T;
+export type SerializedDoc<T> = {
+  [K in keyof T]: T[K] extends Date ? string : T[K] extends object ? SerializedDoc<T[K]> : T[K];
+};
+
+export function serializeDoc<T>(doc: T): SerializedDoc<T> {
+  return JSON.parse(JSON.stringify(doc)) as unknown as SerializedDoc<T>;
 }
 
 export default dbConnect;

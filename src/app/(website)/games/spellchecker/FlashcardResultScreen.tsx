@@ -100,7 +100,7 @@ export default function FlashcardResultScreen() {
                       </td>
                       <td className="px-6 py-3 text-right">
                         {item.wrong === 0 ? (
-                          <i className="fi fi-sr-check-circle text-emerald-500"></i>
+                          <i aria-hidden="true" className="fi fi-sr-check-circle text-emerald-500"></i>
                         ) : (
                           <span className="text-rose-500 font-bold bg-rose-100 dark:bg-rose-900/40 px-2 py-0.5 rounded text-xs">
                             {item.wrong} missed

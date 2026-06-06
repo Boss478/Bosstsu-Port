@@ -52,7 +52,7 @@ export default function StudyEnterPage() {
           </p>
           {error && (
             <div className="mb-4 p-3 bg-red-50/80 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-2 text-red-700 dark:text-red-300 text-sm">
-              <i className="fi fi-sr-exclamation" />
+              <i aria-hidden="true" className="fi fi-sr-exclamation" />
               {error}
             </div>
           )}

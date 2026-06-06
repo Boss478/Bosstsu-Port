@@ -137,7 +137,7 @@ export default function PortfolioTracker() {
             disabled={adding}
             className="px-4 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors cursor-pointer"
           >
-            <i className="fi fi-sr-add mr-1.5" />
+            <i aria-hidden="true" className="fi fi-sr-add mr-1.5" />
             Add
           </button>
           {addError && <p className="text-xs text-red-500">{addError}</p>}
@@ -247,14 +247,14 @@ export default function PortfolioTracker() {
                           className="p-1 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer"
                           title="Save"
                         >
-                          <i className="fi fi-sr-disk" />
+                          <i aria-hidden="true" className="fi fi-sr-disk" />
                         </button>
                         <button
                           onClick={cancelEdit}
                           className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-pointer"
                           title="Cancel"
                         >
-                          <i className="fi fi-sr-cross" />
+                          <i aria-hidden="true" className="fi fi-sr-cross" />
                         </button>
                       </div>
                     ) : (
@@ -264,7 +264,7 @@ export default function PortfolioTracker() {
                           className="p-1 text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
                           title="Edit"
                         >
-                          <i className="fi fi-sr-pencil" />
+                          <i aria-hidden="true" className="fi fi-sr-pencil" />
                         </button>
                         {removeConfirm === h.symbol ? (
                           <div className="flex items-center gap-1">
@@ -273,14 +273,14 @@ export default function PortfolioTracker() {
                               className="p-1 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 cursor-pointer"
                               title="Confirm remove"
                             >
-                              <i className="fi fi-sr-check" />
+                              <i aria-hidden="true" className="fi fi-sr-check" />
                             </button>
                             <button
                               onClick={() => setRemoveConfirm(null)}
                               className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-pointer"
                               title="Cancel"
                             >
-                              <i className="fi fi-sr-cross" />
+                              <i aria-hidden="true" className="fi fi-sr-cross" />
                             </button>
                           </div>
                         ) : (
@@ -289,7 +289,7 @@ export default function PortfolioTracker() {
                             className="p-1 text-zinc-400 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer"
                             title="Remove"
                           >
-                            <i className="fi fi-sr-trash" />
+                            <i aria-hidden="true" className="fi fi-sr-trash" />
                           </button>
                         )}
                       </div>

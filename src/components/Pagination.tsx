@@ -29,7 +29,7 @@ export function Pagination({
         disabled={currentPage === 1 || isPending}
         className="p-2 rounded-xl text-sm text-zinc-500 dark:text-zinc-400 hover:bg-blue-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
       >
-        <i className="fi fi-sr-angle-left" />
+        <i aria-hidden="true" className="fi fi-sr-angle-left" />
       </button>
 
       {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -52,7 +52,7 @@ export function Pagination({
         disabled={currentPage === totalPages || isPending}
         className="p-2 rounded-xl text-sm text-zinc-500 dark:text-zinc-400 hover:bg-blue-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
       >
-        <i className="fi fi-sr-angle-right" />
+        <i aria-hidden="true" className="fi fi-sr-angle-right" />
       </button>
     </div>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
@@ -64,6 +64,14 @@ export default function PortfolioForm({
   const [newPhotoPreviews, setNewPhotoPreviews] = useState<string[]>([]);
   const [excessFiles, setExcessFiles] = useState(0);
   const batchIdRef = useRef(uuidv4());
+  const blobUrlsRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    const urls = blobUrlsRef.current;
+    return () => {
+      urls.forEach(URL.revokeObjectURL);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -201,7 +209,10 @@ export default function PortfolioForm({
     const file = e.target.files?.[0];
     if (file) {
       setCoverFile(file);
-      setCoverPreview(URL.createObjectURL(file));
+      if (coverPreview?.startsWith('blob:')) URL.revokeObjectURL(coverPreview);
+      const url = URL.createObjectURL(file);
+      blobUrlsRef.current.push(url);
+      setCoverPreview(url);
     }
   };
 
@@ -215,7 +226,11 @@ export default function PortfolioForm({
         setExcessFiles(prev => prev + excessCount);
       }
       const previewFiles = excessCount > 0 ? fileArray.slice(0, PREVIEW_CAP) : fileArray;
-      const newPreviews = previewFiles.map(file => URL.createObjectURL(file));
+      const newPreviews = previewFiles.map(file => {
+        const url = URL.createObjectURL(file);
+        blobUrlsRef.current.push(url);
+        return url;
+      });
       setNewPhotoPreviews(prev => [...prev, ...newPreviews]);
     }
   };
@@ -240,7 +255,7 @@ export default function PortfolioForm({
       <div className="lg:col-span-2 space-y-6">
         {incompleteUpload && (
           <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50 text-sm flex items-start gap-3">
-            <i className="fi fi-sr-exclamation mt-0.5 flex shrink-0" />
+            <i aria-hidden="true" className="fi fi-sr-exclamation mt-0.5 flex shrink-0" />
             <span>บันทึกข้อมูลสำเร็จ แต่รูปภาพยังไม่ได้อัปโหลด กรุณาเพิ่มรูปภาพและบันทึกอีกครั้ง</span>
           </div>
         )}
@@ -257,12 +272,13 @@ export default function PortfolioForm({
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label htmlFor="title" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 ชื่อผลงาน (Title) <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="title"
+                id="title"
                 defaultValue={initialData?.title}
                 required
                 onChange={handleTitleChange}
@@ -272,12 +288,13 @@ export default function PortfolioForm({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label htmlFor="slug" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 Slug (URL) <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="slug"
+                id="slug"
                 value={autoSlug}
                 onChange={handleSlugChange}
                 required
@@ -288,11 +305,12 @@ export default function PortfolioForm({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label htmlFor="description" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               รายละเอียดแบบย่อ (Short Description) <span className="text-red-500">*</span>
             </label>
             <textarea
               name="description"
+              id="description"
               defaultValue={initialData?.description}
               required
               rows={3}
@@ -330,7 +348,7 @@ export default function PortfolioForm({
                     className="p-2 bg-red-500/80 hover:bg-red-600 text-white rounded-lg backdrop-blur-md transition-colors"
                     title="ลบรูปนี้"
                   >
-                    <i className="fi fi-sr-trash flex" />
+                    <i aria-hidden="true" className="fi fi-sr-trash flex" />
                   </button>
                 </div>
               </div>
@@ -347,7 +365,7 @@ export default function PortfolioForm({
             {excessFiles > 0 && (
               <div className="relative aspect-square rounded-lg border-2 border-dashed border-amber-300 dark:border-amber-700 flex items-center justify-center bg-amber-50/50 dark:bg-amber-900/20">
                 <div className="text-center">
-                  <i className="fi fi-sr-plus text-xl text-amber-500" />
+                  <i aria-hidden="true" className="fi fi-sr-plus text-xl text-amber-500" />
                   <p className="text-xs font-bold text-amber-600 dark:text-amber-400 mt-1">
                     +{excessFiles} more
                   </p>
@@ -359,7 +377,7 @@ export default function PortfolioForm({
               className="relative aspect-square rounded-lg border-2 border-dashed border-zinc-300 dark:border-slate-700 flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors bg-zinc-50 dark:bg-slate-900"
             >
               <div className="text-center pointer-events-none">
-                <i className="fi fi-sr-add text-2xl text-zinc-400" />
+                <i aria-hidden="true" className="fi fi-sr-add text-2xl text-zinc-400" />
                 <p className="text-xs text-zinc-500 mt-1">เพิ่มรูป</p>
               </div>
             </label>
@@ -398,7 +416,7 @@ export default function PortfolioForm({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label htmlFor="cover" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               รูปปก (Cover Image) <span className="text-red-500">*</span>
             </label>
             <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-100 dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors group">
@@ -411,12 +429,13 @@ export default function PortfolioForm({
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-zinc-400">
-                  <i className="fi fi-sr-image text-3xl" />
+                  <i aria-hidden="true" className="fi fi-sr-image text-3xl" />
                 </div>
               )}
               <input
                 type="file"
                 name="cover"
+                id="cover"
                 accept="image/*"
                 onChange={handleCoverChange}
                 required={!isEdit}
@@ -429,12 +448,13 @@ export default function PortfolioForm({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label htmlFor="date" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               วันที่ (Date) <span className="text-red-500">*</span>
             </label>
             <input
               type="date"
               name="date"
+              id="date"
               defaultValue={
                 initialData?.date
                   ? new Date(initialData.date).toISOString().split('T')[0]

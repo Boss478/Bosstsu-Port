@@ -19,14 +19,14 @@ export default async function ToolTemplatesPage() {
 
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
-            <i className="fi fi-sr-template text-blue-500" />
+            <i aria-hidden="true" className="fi fi-sr-template text-blue-500" />
             Step Templates
           </h1>
           <Link
             href="/admin/tools"
             className="flex items-center gap-2 px-4 py-2 bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-300 font-medium rounded-xl border border-zinc-200 dark:border-slate-700 transition-all"
           >
-            <i className="fi fi-sr-arrow-left text-sm" />
+            <i aria-hidden="true" className="fi fi-sr-arrow-left text-sm" />
             Back to Tools
           </Link>
         </div>

@@ -185,14 +185,14 @@ export default function DashboardSummary() {
   return (
     <div className="mb-8">
       <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
-        <i className="fi fi-sr-apps text-blue-500" />
+        <i aria-hidden="true" className="fi fi-sr-apps text-blue-500" />
         Summary
       </h2>
       <div className="grid gap-4 md:grid-cols-2">
         {/* Stock / Portfolio Card */}
         <div className="rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm p-7">
           <div className="flex items-center gap-2 mb-3">
-            <i className="fi fi-sr-stats text-sm text-blue-500" />
+            <i aria-hidden="true" className="fi fi-sr-stats text-sm text-blue-500" />
             <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               Portfolio
             </span>
@@ -230,7 +230,7 @@ export default function DashboardSummary() {
         {/* Budget Card */}
         <div className="rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm p-7">
           <div className="flex items-center gap-2 mb-3">
-            <i className="fi fi-sr-wallet text-sm text-emerald-500" />
+            <i aria-hidden="true" className="fi fi-sr-wallet text-sm text-emerald-500" />
             <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               Budget · {displayLabel}
             </span>

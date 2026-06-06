@@ -29,16 +29,6 @@ const LETTER_TIER: Record<string, CardTier> = {};
 TIER_ORDER.forEach((t) => TIER_LETTERS[t].forEach((l) => (LETTER_TIER[l] = t)));
 const ALL_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-const TIER_GLOW: Record<CardTier, string> = {
-  common: "rgba(161,161,170,0.4)",
-  uncommon: "rgba(34,197,94,0.4)",
-  rare: "rgba(59,130,246,0.4)",
-  "ultra-rare": "rgba(168,85,247,0.4)",
-  legendary: "rgba(245,158,11,0.4)",
-};
-
-
-
 const TIER_BG_FILL: Record<CardTier, string> = {
   common: "bg-zinc-400",
   uncommon: "bg-green-500",
@@ -195,7 +185,7 @@ export default function CardScreen({ onBack, playSequence }: Props) {
               onClick={onBack}
               className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-500 hover:text-violet-500 transition-colors"
             >
-              <i className="fi fi-sr-angle-left text-lg"></i>
+              <i aria-hidden="true" className="fi fi-sr-angle-left text-lg"></i>
             </button>
             <h1 className="text-3xl md:text-4xl font-black text-violet-600 dark:text-violet-400">
               Card Collection
@@ -454,7 +444,7 @@ export default function CardScreen({ onBack, playSequence }: Props) {
             onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" })}
             className="fixed bottom-6 right-6 z-20 w-12 h-12 rounded-full bg-violet-600 text-white shadow-2xl flex items-center justify-center hover:bg-violet-500 transition-all animate-in slide-in-from-bottom-2 duration-300"
           >
-            <i className="fi fi-sr-angle-up text-lg"></i>
+            <i aria-hidden="true" className="fi fi-sr-angle-up text-lg"></i>
           </button>
         )}
       </div>

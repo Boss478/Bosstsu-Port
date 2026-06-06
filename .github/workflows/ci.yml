@@ -1,0 +1,37 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        env:
+          MONGO_INITDB_ROOT_USERNAME: root
+          MONGO_INITDB_ROOT_PASSWORD: test
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.version()'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+        env:
+          MONGODB_URI: mongodb://root:test@localhost:27017/boss478?authSource=admin
+      - run: npm run build
+        env:
+          ADMIN_PASSWORD: ci-test-password
+          ADMIN_TOKEN_SECRET: ci-test-secret-change-in-production
+          MONGODB_URI: mongodb://root:test@localhost:27017/boss478?authSource=admin
+          NEXT_PUBLIC_SITE_URL: http://localhost:3300

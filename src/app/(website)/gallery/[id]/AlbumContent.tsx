@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 
 const PHOTOS_PER_PAGE = 30;
 import { type GalleryAlbum } from "../data";
 import { formatLongDate } from "@/lib/format";
-import PhotoLightbox from "@/components/PhotoLightbox";
+import dynamic from "next/dynamic";
+const PhotoLightbox = dynamic(() => import("@/components/PhotoLightbox"));
 import Breadcrumb from "@/components/Breadcrumb";
 
 interface AlbumContentProps {
@@ -41,11 +43,11 @@ export default function AlbumContent({ album }: AlbumContentProps) {
 
           <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
             <span className="flex items-center gap-1.5">
-              <i className="fi fi-sr-calendar text-xs" />
+              <i aria-hidden="true" className="fi fi-sr-calendar text-xs" />
               {formatLongDate(album.date)}
             </span>
             <span className="flex items-center gap-1.5">
-              <i className="fi fi-sr-picture text-xs" />
+              <i aria-hidden="true" className="fi fi-sr-picture text-xs" />
               {album.photos.length} รูป
             </span>
           </div>
@@ -66,9 +68,9 @@ export default function AlbumContent({ album }: AlbumContentProps) {
               href={`/portfolio/${album.relatedPortfolioId}`}
               className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/60 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-700 shadow-sm transition-all duration-300 text-zinc-700 dark:text-zinc-200 font-medium text-sm group"
             >
-              <i className="fi fi-sr-briefcase text-blue-500"></i>
+              <i aria-hidden="true" className="fi fi-sr-briefcase text-blue-500"></i>
               ดูรายละเอียดโครงการ
-              <i className="fi fi-sr-arrow-right text-xs opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"></i>
+              <i aria-hidden="true" className="fi fi-sr-arrow-right text-xs opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"></i>
             </Link>
           )}
         </div>
@@ -84,12 +86,12 @@ export default function AlbumContent({ album }: AlbumContentProps) {
                 onClick={() => setLightboxIndex(idx)}
                 className="relative h-60 rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-zoom-in group"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={photo}
                   alt={`${album.title} ${idx + 1}`}
-                  loading="lazy"
-                  className="absolute inset-0 w-full h-full object-cover group-hover:brightness-90 transition-all duration-300"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                  className="object-cover group-hover:brightness-90 transition-all duration-300"
                 />
               </button>
             ))}

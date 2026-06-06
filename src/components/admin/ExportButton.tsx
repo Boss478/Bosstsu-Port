@@ -88,7 +88,7 @@ export default function ExportButton({ session }: ExportButtonProps) {
         disabled={!!loading}
         className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 rounded-xl shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
       >
-        <i className="fi fi-sr-download text-sm" />
+        <i aria-hidden="true" className="fi fi-sr-download text-sm" />
         Export {loading && `(${loading})`}
         <i className={`fi fi-sr-angle-small-down text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -102,7 +102,7 @@ export default function ExportButton({ session }: ExportButtonProps) {
               disabled={!!loading}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50"
             >
-              <i className="fi fi-sr-file-csv text-emerald-500 w-4" />
+              <i aria-hidden="true" className="fi fi-sr-file-csv text-emerald-500 w-4" />
               Export as CSV
             </button>
 
@@ -112,7 +112,7 @@ export default function ExportButton({ session }: ExportButtonProps) {
                 disabled={!!loading}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50"
               >
-                <i className="fi fi-sr-file-archive text-indigo-500 w-4" />
+                <i aria-hidden="true" className="fi fi-sr-file-archive text-indigo-500 w-4" />
                 Download Files (ZIP)
               </button>
             )}
@@ -124,7 +124,7 @@ export default function ExportButton({ session }: ExportButtonProps) {
               disabled={!!loading}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50"
             >
-              <i className="fi fi-sr-image text-blue-500 w-4" />
+              <i aria-hidden="true" className="fi fi-sr-image text-blue-500 w-4" />
               Save as Image — Results Only
             </button>
 
@@ -133,7 +133,7 @@ export default function ExportButton({ session }: ExportButtonProps) {
               disabled={!!loading}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50"
             >
-              <i className="fi fi-sr-picture text-purple-500 w-4" />
+              <i aria-hidden="true" className="fi fi-sr-picture text-purple-500 w-4" />
               Save as Image — Full View
             </button>
           </div>

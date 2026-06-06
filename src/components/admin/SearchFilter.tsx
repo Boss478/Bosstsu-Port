@@ -38,7 +38,7 @@ export default function SearchFilter({ toolTypes }: SearchFilterProps) {
   return (
     <>
       <div className="relative flex-1 min-w-[200px]">
-        <i className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+        <i aria-hidden="true" className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
         <input
           type="text"
           placeholder="ค้นหา..."
@@ -70,7 +70,7 @@ export default function SearchFilter({ toolTypes }: SearchFilterProps) {
           <option value="name_asc">ชื่อ A-Z</option>
           <option value="name_desc">ชื่อ Z-A</option>
         </select>
-        <i className="fi fi-sr-angle-small-down absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+        <i aria-hidden="true" className="fi fi-sr-angle-small-down absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
       </div>
       {toolTypes && (
         <div className="relative">
@@ -84,7 +84,7 @@ export default function SearchFilter({ toolTypes }: SearchFilterProps) {
               <option key={key} value={key}>{label}</option>
             ))}
           </select>
-          <i className="fi fi-sr-angle-small-down absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+          <i aria-hidden="true" className="fi fi-sr-angle-small-down absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
         </div>
       )}
     </>

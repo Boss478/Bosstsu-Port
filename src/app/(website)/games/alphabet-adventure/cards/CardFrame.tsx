@@ -75,8 +75,6 @@ export function CardFrame({ tier, children, namePlate, size = "album", showBack,
   const frame = TIER_FRAME[tier];
   const back = showBack ? TIER_BACK[tier] : null;
 
-  const childSize = size === "toast" ? "text-sm" : size === "modal" ? "text-lg" : "text-base";
-  const gemSize = size === "toast" ? "r-1.5" : size === "modal" ? "r-3" : "r-2";
   const gemCx = size === "toast" ? "15" : size === "modal" ? "20" : "17";
   const gemCy = size === "toast" ? "15" : size === "modal" ? "20" : "17";
 

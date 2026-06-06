@@ -157,7 +157,7 @@ export default function MentimeterPoll({ session, stepIndex }: MentimeterPollPro
       <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
         {submitted ? (
           <div className="text-center py-8">
-            <i className="fi fi-sr-check-circle text-5xl text-emerald-500 block mb-3" />
+            <i aria-hidden="true" className="fi fi-sr-check-circle text-5xl text-emerald-500 block mb-3" />
             <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{t('voteSubmitted')}</p>
             <p className="text-sm text-zinc-400 mt-1">{t('resultsAutoUpdate')}</p>
           </div>

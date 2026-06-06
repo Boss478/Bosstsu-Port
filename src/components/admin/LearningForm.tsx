@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
@@ -45,7 +45,7 @@ function HtmlEditor({ initialValue = '' }: { initialValue?: string }) {
   return (
     <div className="space-y-4">
       <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
-        <i className="fi fi-sr-edit text-blue-500" />
+        <i aria-hidden="true" className="fi fi-sr-edit text-blue-500" />
         เนื้อหา (Content) <span className="text-red-500">*</span>
       </label>
 
@@ -82,7 +82,7 @@ function FileUploadField({
         </p>
       )}
       <label className="flex items-center gap-3 w-full px-4 py-5 rounded-xl bg-white dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors cursor-pointer">
-        <i className="fi fi-sr-cloud-upload text-xl text-zinc-400" />
+        <i aria-hidden="true" className="fi fi-sr-cloud-upload text-xl text-zinc-400" />
         <span className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
           {fileName || 'คลิกเพื่ออัปโหลดไฟล์'}
         </span>
@@ -99,7 +99,6 @@ function FileUploadField({
 }
 
 // ─── Main Form ────────────────────────────────────────────────────────────────
-const THUMBNAIL_REQUIRED_TYPES = ['Presentation', 'Lesson Plan', 'Sheet', 'Worksheet', 'Scratch', 'Interactive'];
 
 interface LearningFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -131,6 +130,14 @@ export default function LearningForm({
   const [selectedType, setSelectedType] = useState(initialData?.type || '');
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(initialData?.thumbnail || null);
   const batchIdRef = useRef(uuidv4());
+  const blobUrlsRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    const urls = blobUrlsRef.current;
+    return () => {
+      urls.forEach(URL.revokeObjectURL);
+    };
+  }, []);
 
   const typeConfig = useMemo(
     () => TYPE_OPTIONS.find(t => t.value === selectedType),
@@ -268,7 +275,7 @@ export default function LearningForm({
       <div className="lg:col-span-2 space-y-6">
         {incompleteUpload && (
           <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50 text-sm flex items-start gap-3">
-            <i className="fi fi-sr-exclamation mt-0.5 flex shrink-0" />
+            <i aria-hidden="true" className="fi fi-sr-exclamation mt-0.5 flex shrink-0" />
             <span>บันทึกข้อมูลสำเร็จ แต่รูปภาพยังไม่ได้อัปโหลด กรุณาเพิ่มรูปภาพและบันทึกอีกครั้ง</span>
           </div>
         )}
@@ -286,12 +293,13 @@ export default function LearningForm({
 
           {/* Title */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label htmlFor="title" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               ชื่อสื่อ (Title) <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               name="title"
+              id="title"
               defaultValue={initialData?.title}
               required
               placeholder="บทเรียนออนไลน์เรื่องเศษส่วน"
@@ -301,11 +309,12 @@ export default function LearningForm({
 
           {/* Description */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label htmlFor="description" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               รายละเอียด (Description) <span className="text-red-500">*</span>
             </label>
             <textarea
               name="description"
+              id="description"
               defaultValue={initialData?.description}
               required
               rows={3}
@@ -317,12 +326,13 @@ export default function LearningForm({
           {/* Subject + Type */}
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label htmlFor="subject" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 วิชา (Subject) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <select
                   name="subject"
+                  id="subject"
                   defaultValue={initialData?.subject || ''}
                   required
                   className="appearance-none w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
@@ -332,17 +342,18 @@ export default function LearningForm({
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
-                <i className="fi fi-sr-angle-small-down absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+                <i aria-hidden="true" className="fi fi-sr-angle-small-down absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label htmlFor="type" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 ประเภท (Type) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <select
                   name="type"
+                  id="type"
                   value={selectedType}
                   onChange={e => setSelectedType(e.target.value)}
                   required
@@ -353,7 +364,7 @@ export default function LearningForm({
                     <option key={t.value} value={t.value}>{t.label}</option>
                   ))}
                 </select>
-                <i className="fi fi-sr-angle-small-down absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+                <i aria-hidden="true" className="fi fi-sr-angle-small-down absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
               </div>
             </div>
           </div>
@@ -371,12 +382,13 @@ export default function LearningForm({
               <div className="space-y-4">
                 <HtmlEditor initialValue={initialData?.content} />
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  <label htmlFor="link" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                     ลิงก์เพิ่มเติม / PDF URL (Link)
                   </label>
                   <input
                     type="url"
                     name="link"
+                    id="link"
                     defaultValue={initialData?.link || ''}
                     placeholder="https://example.com/article หรือ /uploads/learning/doc.pdf"
                     className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
@@ -389,12 +401,13 @@ export default function LearningForm({
             {mode === 'presentation' && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  <label htmlFor="canvaEmbed" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                     Canva Embed URL
                   </label>
                   <input
                     type="url"
                     name="canvaEmbed"
+                    id="canvaEmbed"
                     defaultValue={initialData?.canvaEmbed || ''}
                     placeholder="https://www.canva.com/design/xxxxx/view?embed"
                     className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
@@ -410,12 +423,13 @@ export default function LearningForm({
             {/* Video: YouTube URL */}
             {mode === 'youtube' && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <label htmlFor="youtubeId" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                   YouTube URL <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="url"
                   name="youtubeId"
+                  id="youtubeId"
                   defaultValue={initialData?.youtubeId || initialData?.link || ''}
                   required
                   placeholder="https://youtube.com/watch?v=xxxxx หรือ https://youtu.be/xxxxx"
@@ -436,11 +450,12 @@ export default function LearningForm({
             {/* Scratch / Interactive: embed code */}
             {mode === 'embed' && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <label htmlFor="embedCode" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                   Embed Code <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   name="embedCode"
+                  id="embedCode"
                   defaultValue={initialData?.embedCode || ''}
                   rows={5}
                   required
@@ -472,7 +487,7 @@ export default function LearningForm({
 
           {/* Thumbnail */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label htmlFor="thumbnail" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               รูปปก (Thumbnail)
             </label>
             <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-100 dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors">
@@ -480,16 +495,22 @@ export default function LearningForm({
                 <Image src={thumbnailPreview} alt="Thumbnail Preview" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-zinc-400">
-                  <i className="fi fi-sr-image text-3xl" />
+                  <i aria-hidden="true" className="fi fi-sr-image text-3xl" />
                 </div>
               )}
               <input
                 type="file"
                 name="thumbnail"
+                id="thumbnail"
                 accept="image/*"
                 onChange={e => {
                   const file = e.target.files?.[0];
-                  if (file) setThumbnailPreview(URL.createObjectURL(file));
+                  if (file) {
+                    if (thumbnailPreview?.startsWith('blob:')) URL.revokeObjectURL(thumbnailPreview);
+                    const url = URL.createObjectURL(file);
+                    blobUrlsRef.current.push(url);
+                    setThumbnailPreview(url);
+                  }
                 }}
                 className="absolute inset-0 opacity-0 cursor-pointer"
               />

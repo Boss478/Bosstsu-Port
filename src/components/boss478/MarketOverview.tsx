@@ -43,7 +43,7 @@ export default function MarketOverview() {
   const losers = [...stocks].sort((a, b) => a.changePercent - b.changePercent).slice(0, 3);
 
   const enriched = useEnrichedHoldings(portfolio, stocks);
-  const { totalValue, totalCost, totalPl, totalPlPercent, bestHolding, worstHolding } = usePortfolioAggregates(enriched);
+  const { totalValue, totalPl, totalPlPercent, bestHolding, worstHolding } = usePortfolioAggregates(enriched);
 
   const followed = stocks.filter(s => watchlist.includes(s.symbol));
   const bestWatch = followed.length > 0 ? [...followed].sort((a, b) => b.changePercent - a.changePercent)[0] : null;
@@ -88,7 +88,7 @@ export default function MarketOverview() {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="p-5 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
           <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 mb-3 flex items-center gap-2">
-            <i className="fi fi-sr-briefcase text-blue-500" />
+            <i aria-hidden="true" className="fi fi-sr-briefcase text-blue-500" />
             Portfolio Summary
           </h3>
           <div className="space-y-1.5">
@@ -125,7 +125,7 @@ export default function MarketOverview() {
 
         <div className="p-5 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
           <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 mb-3 flex items-center gap-2">
-            <i className="fi fi-sr-star text-amber-500" />
+            <i aria-hidden="true" className="fi fi-sr-star text-amber-500" />
             Following Summary
           </h3>
           <div className="space-y-1.5">
@@ -152,7 +152,7 @@ export default function MarketOverview() {
       <div className="grid gap-6 md:grid-cols-2">
         <div className="p-5 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
           <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
-            <i className="fi fi-sr-arrow-trend-up text-blue-500" />
+            <i aria-hidden="true" className="fi fi-sr-arrow-trend-up text-blue-500" />
             Top Gainers
           </h3>
           <div className="space-y-3">
@@ -177,7 +177,7 @@ export default function MarketOverview() {
 
         <div className="p-5 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
           <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
-            <i className="fi fi-sr-arrow-trend-down text-red-500" />
+            <i aria-hidden="true" className="fi fi-sr-arrow-trend-down text-red-500" />
             Top Losers
           </h3>
           <div className="space-y-3">

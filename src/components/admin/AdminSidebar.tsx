@@ -35,7 +35,7 @@ export default function AdminSidebar({
           onClick={onToggle}
           className="fixed top-4 left-4 z-[60] w-10 h-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-blue-100 dark:border-slate-800 rounded-xl flex items-center justify-center shadow-md hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors"
         >
-          <i className="fi fi-sr-menu-burger text-sm text-zinc-500" />
+          <i aria-hidden="true" className="fi fi-sr-menu-burger text-sm text-zinc-500" />
         </button>
       )}
 
@@ -53,7 +53,7 @@ export default function AdminSidebar({
                 href="/admin"
                 className="text-xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2"
               >
-                <i className="fi fi-sr-shield-check text-blue-600 text-lg" />
+                <i aria-hidden="true" className="fi fi-sr-shield-check text-blue-600 text-lg" />
                 Boss478 <span className="text-zinc-400 text-xs font-medium">Admin</span>
               </Link>
               <p className="text-zinc-500 text-[10px] font-mono">v{pkg.version}</p>
@@ -73,7 +73,7 @@ export default function AdminSidebar({
             onClick={onClose}
             className="md:hidden p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
           >
-            <i className="fi fi-sr-cross text-xs" />
+            <i aria-hidden="true" className="fi fi-sr-cross text-xs" />
           </button>
         </div>
 
@@ -123,7 +123,7 @@ export default function AdminSidebar({
             title="Private Dashboard"
             className="p-2 rounded-xl bg-zinc-100 dark:bg-slate-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-slate-700 transition-colors"
           >
-            <i className="fi fi-sr-stats text-lg flex" />
+            <i aria-hidden="true" className="fi fi-sr-stats text-lg flex" />
           </Link>
 
           <Link
@@ -132,7 +132,7 @@ export default function AdminSidebar({
             title="เปิดหน้าเว็บ (Website)"
             className="p-2 rounded-xl bg-zinc-100 dark:bg-slate-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-slate-700 transition-colors"
           >
-            <i className="fi fi-sr-arrow-up-right text-lg flex" />
+            <i aria-hidden="true" className="fi fi-sr-arrow-up-right text-lg flex" />
           </Link>
 
           <form action={logoutAdmin}>
@@ -141,7 +141,7 @@ export default function AdminSidebar({
               title="ออกจากระบบ (Sign Out)"
               className="p-2 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
             >
-              <i className="fi fi-sr-sign-out-alt text-lg flex" />
+              <i aria-hidden="true" className="fi fi-sr-sign-out-alt text-lg flex" />
             </button>
           </form>
           </div>

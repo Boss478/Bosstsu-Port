@@ -49,7 +49,7 @@ export default function ToggleActive({ id, isActive, action }: ToggleActiveProps
       title={isActive ? 'คลิกเพื่อปิด session' : 'คลิกเพื่อเปิด session ใหม่'}
     >
       {isPending ? (
-        <i className="fi fi-sr-spinner animate-spin text-[8px]" />
+        <i aria-hidden="true" className="fi fi-sr-spinner animate-spin text-[8px]" />
       ) : (
         <>
           <i className={`fi ${isActive ? 'fi-sr-signal-stream' : 'fi-sr-stop'}`} />

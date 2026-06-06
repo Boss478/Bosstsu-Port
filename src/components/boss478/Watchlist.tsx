@@ -19,7 +19,7 @@ export default function Watchlist() {
     <div className="grid gap-6 md:grid-cols-2">
       <div className="p-5 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
         <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
-          <i className="fi fi-sr-star text-amber-500" />
+          <i aria-hidden="true" className="fi fi-sr-star text-amber-500" />
           Watchlist
         </h3>
 
@@ -40,7 +40,7 @@ export default function Watchlist() {
                     className="p-1 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-zinc-400 hover:text-red-500 transition-colors cursor-pointer"
                     title="Remove"
                   >
-                    <i className="fi fi-sr-cross text-xs" />
+                    <i aria-hidden="true" className="fi fi-sr-cross text-xs" />
                   </button>
                   <div>
                     <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{stock.symbol}</p>
@@ -65,7 +65,7 @@ export default function Watchlist() {
 
       <div className="p-5 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
         <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
-          <i className="fi fi-sr-search text-blue-500" />
+          <i aria-hidden="true" className="fi fi-sr-search text-blue-500" />
           Add Stock
         </h3>
 

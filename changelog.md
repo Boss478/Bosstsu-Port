@@ -4,6 +4,21 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.47 (2026-06-06)
++ **Phase 1 (Tooling)**: GitHub Actions CI, Husky + lint-staged, Prettier + EditorConfig, Sentry error monitoring, `noUnusedLocals` strict TS, `.nvmrc`, bundle analyzer script, Sentry CSP `connect-src`
++ **Phase 2 (Accessibility)**: `aria-hidden="true"` on 427 Flaticon icons, `htmlFor`+`id` on 32 form inputs, `useFocusTrap` hook, `aria-current="page"` on nav links, `role="dialog"`+`aria-modal` on 3 overlays, heading h3→h2 fix on 4 listing pages, skip links in admin layout
++ **Phase 3 (Performance)**: Dynamic imports for Computer Lab + Alphabet Adventure + PhotoLightbox, gallery album photos → `next/image` with WebP/AVIF output (`fill`+`sizes`), removed 4 dead `.ttf` fonts
++ **Phase 4a (Architecture)**: `useFormSubmit` hook (3-phase strategy pattern), 5 shared admin field components, `FormState<T>`+`ApiResponse<T>` domain types, `SerializedDoc<T>` type fix, blob URL leak fixes in 3 forms, dead code cleanup
++ **Phase 4b (Auth)**: Auth smoke test (5 tests), `auth-base.ts` extraction eliminating 95% duplication between `auth.ts` (43→17 lines) and `private-auth.ts` (41→17 lines)
++ **Phase 5 (SEO)**: `sitemap.ts`, `robots.txt`
+
+## v1.9.46 (2026-06-06)
++ **Phonics Island Game Integration**:
+  + Added Phonics game core files: `PhonicsClient.tsx`, `types.ts`, `constants.ts`, `save.ts`, `context.ts`, `sprites.ts`, `PixelSprite.tsx`, and `words.ts`.
+  + Added screens: `SaveSlotScreen.tsx`, `MapScreen.tsx`, `GameScreen.tsx`, `VictoryScreen.tsx`, `SettingsScreen.tsx`, and `ModeSelectModal.tsx`.
+  + Configured vocabulary database with phonetic transcriptions, stress patterns, audio speak helper mappings, and targeted spelling distractors for Thai EFL learners.
+  + Cleaned up type warnings, missing effect dependencies, and state-setting warnings.
+
 ## v1.9.45 (2026-06-06)
 - **Dead code cleanup**:
   - Removed 4 unused files: GuidedTour.tsx, LabTools.tsx, useFaultInjector.ts, state-machine.ts (~580 lines)

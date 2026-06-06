@@ -3,7 +3,6 @@ import ToolSession from '@/models/ToolSession';
 import { CONFIG } from '@/lib/config';
 
 const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const CODE_LENGTH = 5;
 
 function generateSessionCode(): string {
   let code = '';

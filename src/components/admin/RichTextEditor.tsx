@@ -250,7 +250,7 @@ export default function RichTextEditor({
                   title="รูปแบบข้อความ"
                 >
                   <span className="flex-1 text-left">ย่อหน้า</span>
-                  <i className="fi fi-sr-angle-small-down flex text-[10px]" />
+                  <i aria-hidden="true" className="fi fi-sr-angle-small-down flex text-[10px]" />
                 </button>
                 {openPanel === 'blockFormat' && (
                   <div className="absolute top-full left-0 z-50 mt-1 py-1 min-w-[168px] rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl">
@@ -282,7 +282,7 @@ export default function RichTextEditor({
                   title="ขนาดตัวอักษร"
                 >
                   <span className="flex-1 text-left">ขนาด</span>
-                  <i className="fi fi-sr-angle-small-down flex text-[10px]" />
+                  <i aria-hidden="true" className="fi fi-sr-angle-small-down flex text-[10px]" />
                 </button>
                 {openPanel === 'fontSize' && (
                   <div className="absolute top-full left-0 z-50 mt-1 py-1 min-w-[120px] rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl">
@@ -310,7 +310,7 @@ export default function RichTextEditor({
                 className={btnCls(formats.bold)}
                 title="ตัวหนา (Ctrl+B)"
               >
-                <i className="fi fi-sr-bold text-sm flex" />
+                <i aria-hidden="true" className="fi fi-sr-bold text-sm flex" />
               </button>
               {/* Italic */}
               <button
@@ -319,7 +319,7 @@ export default function RichTextEditor({
                 className={btnCls(formats.italic)}
                 title="ตัวเอียง (Ctrl+I)"
               >
-                <i className="fi fi-sr-italic text-sm flex" />
+                <i aria-hidden="true" className="fi fi-sr-italic text-sm flex" />
               </button>
               {/* Underline */}
               <button
@@ -328,7 +328,7 @@ export default function RichTextEditor({
                 className={btnCls(formats.underline)}
                 title="ขีดเส้นใต้ (Ctrl+U)"
               >
-                <i className="fi fi-sr-underline text-sm flex" />
+                <i aria-hidden="true" className="fi fi-sr-underline text-sm flex" />
               </button>
               {/* Strikethrough */}
               <button
@@ -337,7 +337,7 @@ export default function RichTextEditor({
                 className={btnCls(formats.strikeThrough)}
                 title="ขีดทับ"
               >
-                <i className="fi fi-sr-strikethrough text-sm flex" />
+                <i aria-hidden="true" className="fi fi-sr-strikethrough text-sm flex" />
               </button>
 
               <ToolbarDivider />
@@ -353,7 +353,7 @@ export default function RichTextEditor({
                   className={btnCls(openPanel === 'color')}
                   title="สีข้อความ"
                 >
-                  <i className="fi fi-sr-paint-brush text-sm flex" />
+                  <i aria-hidden="true" className="fi fi-sr-paint-brush text-sm flex" />
                 </button>
                 {openPanel === 'color' && (
                   <div className="absolute top-full left-0 z-50 mt-1 p-2 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl grid grid-cols-4 gap-1.5">
@@ -380,7 +380,7 @@ export default function RichTextEditor({
                 className={btnCls(formats.justifyLeft)}
                 title="ชิดซ้าย"
               >
-                <i className="fi fi-sr-align-left text-sm flex" />
+                <i aria-hidden="true" className="fi fi-sr-align-left text-sm flex" />
               </button>
               <button
                 type="button"
@@ -388,7 +388,7 @@ export default function RichTextEditor({
                 className={btnCls(formats.justifyCenter)}
                 title="กึ่งกลาง"
               >
-                <i className="fi fi-sr-align-center text-sm flex" />
+                <i aria-hidden="true" className="fi fi-sr-align-center text-sm flex" />
               </button>
               <button
                 type="button"
@@ -396,7 +396,7 @@ export default function RichTextEditor({
                 className={btnCls(formats.justifyRight)}
                 title="ชิดขวา"
               >
-                <i className="fi fi-sr-align-right text-sm flex" />
+                <i aria-hidden="true" className="fi fi-sr-align-right text-sm flex" />
               </button>
               <button
                 type="button"
@@ -404,7 +404,7 @@ export default function RichTextEditor({
                 className={btnCls(formats.justifyFull)}
                 title="จัดเต็ม"
               >
-                <i className="fi fi-sr-align-justify text-sm flex" />
+                <i aria-hidden="true" className="fi fi-sr-align-justify text-sm flex" />
               </button>
             </>
           )}
@@ -421,9 +421,9 @@ export default function RichTextEditor({
             title={viewMode === 'wysiwyg' ? 'ดูและแก้ไข HTML โดยตรง' : 'กลับไปยัง Visual Editor'}
           >
             {viewMode === 'wysiwyg' ? (
-              <><i className="fi fi-sr-code flex" /><span>HTML</span></>
+              <><i aria-hidden="true" className="fi fi-sr-code flex" /><span>HTML</span></>
             ) : (
-              <><i className="fi fi-sr-pencil flex" /><span>Editor</span></>
+              <><i aria-hidden="true" className="fi fi-sr-pencil flex" /><span>Editor</span></>
             )}
           </button>
         </div>
@@ -441,7 +441,7 @@ export default function RichTextEditor({
             className={btnCls(formats.insertUnorderedList)}
             title="รายการหัวข้อ (Bullet List)"
           >
-            <i className="fi fi-sr-list text-sm flex" />
+            <i aria-hidden="true" className="fi fi-sr-list text-sm flex" />
           </button>
           {/* Ordered List */}
           <button
@@ -450,7 +450,7 @@ export default function RichTextEditor({
             className={btnCls(formats.insertOrderedList)}
             title="รายการลำดับ (Numbered List)"
           >
-            <i className="fi fi-sr-list-ol text-sm flex" />
+            <i aria-hidden="true" className="fi fi-sr-list-ol text-sm flex" />
           </button>
 
           <ToolbarDivider />
@@ -462,7 +462,7 @@ export default function RichTextEditor({
             className={btnCls(false)}
             title="เพิ่มย่อหน้า (Indent)"
           >
-            <i className="fi fi-sr-indent text-sm flex" />
+            <i aria-hidden="true" className="fi fi-sr-indent text-sm flex" />
           </button>
           {/* Outdent */}
           <button
@@ -471,7 +471,7 @@ export default function RichTextEditor({
             className={btnCls(false)}
             title="ลดย่อหน้า (Outdent)"
           >
-            <i className="fi fi-sr-outdent text-sm flex" />
+            <i aria-hidden="true" className="fi fi-sr-outdent text-sm flex" />
           </button>
 
           <ToolbarDivider />
@@ -483,7 +483,7 @@ export default function RichTextEditor({
             className={btnCls(openPanel === 'link')}
             title="แทรกลิงก์"
           >
-            <i className="fi fi-sr-link text-sm flex" />
+            <i aria-hidden="true" className="fi fi-sr-link text-sm flex" />
           </button>
           {/* Unlink */}
           <button
@@ -492,7 +492,7 @@ export default function RichTextEditor({
             className={btnCls(false)}
             title="ลบลิงก์"
           >
-            <i className="fi fi-sr-unlink text-sm flex" />
+            <i aria-hidden="true" className="fi fi-sr-unlink text-sm flex" />
           </button>
 
           <ToolbarDivider />
@@ -504,7 +504,7 @@ export default function RichTextEditor({
             className={btnCls(openPanel === 'image')}
             title="แทรกรูปภาพ (URL)"
           >
-            <i className="fi fi-sr-picture text-sm flex" />
+            <i aria-hidden="true" className="fi fi-sr-picture text-sm flex" />
           </button>
 
           <ToolbarDivider />
@@ -516,7 +516,7 @@ export default function RichTextEditor({
             className={btnCls(false)}
             title="เส้นแบ่ง (Horizontal Rule)"
           >
-            <i className="fi fi-sr-minus text-sm flex" />
+            <i aria-hidden="true" className="fi fi-sr-minus text-sm flex" />
           </button>
           {/* Remove Formatting */}
           <button
@@ -525,14 +525,14 @@ export default function RichTextEditor({
             className={btnCls(false)}
             title="ล้างการจัดรูปแบบ"
           >
-            <i className="fi fi-sr-eraser text-sm flex" />
+            <i aria-hidden="true" className="fi fi-sr-eraser text-sm flex" />
           </button>
         </div>
 
         {/* Link Inline Dialog */}
         {openPanel === 'link' && (
           <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-950/30 border-t border-zinc-200 dark:border-slate-700">
-            <i className="fi fi-sr-link text-blue-500 text-sm flex shrink-0" />
+            <i aria-hidden="true" className="fi fi-sr-link text-blue-500 text-sm flex shrink-0" />
             <input
               type="url"
               value={linkUrl}
@@ -557,7 +557,7 @@ export default function RichTextEditor({
               onMouseDown={e => { e.preventDefault(); setOpenPanel('none'); }}
               className="p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
             >
-              <i className="fi fi-sr-cross text-xs flex" />
+              <i aria-hidden="true" className="fi fi-sr-cross text-xs flex" />
             </button>
           </div>
         )}
@@ -565,7 +565,7 @@ export default function RichTextEditor({
         {/* Image Inline Dialog */}
         {openPanel === 'image' && (
           <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-950/30 border-t border-zinc-200 dark:border-slate-700">
-            <i className="fi fi-sr-picture text-blue-500 text-sm flex shrink-0" />
+            <i aria-hidden="true" className="fi fi-sr-picture text-blue-500 text-sm flex shrink-0" />
             <input
               type="url"
               value={imageUrl}
@@ -590,7 +590,7 @@ export default function RichTextEditor({
               onMouseDown={e => { e.preventDefault(); setOpenPanel('none'); }}
               className="p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
             >
-              <i className="fi fi-sr-cross text-xs flex" />
+              <i aria-hidden="true" className="fi fi-sr-cross text-xs flex" />
             </button>
           </div>
         )}

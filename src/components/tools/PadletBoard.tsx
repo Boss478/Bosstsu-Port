@@ -165,7 +165,7 @@ export default function PadletBoard({ session, stepIndex, studentName: propName 
       <div className="text-center py-6">
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{session.title}</h1>
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm font-mono">
-          <i className="fi fi-sr-grid" />
+          <i aria-hidden="true" className="fi fi-sr-grid" />
           {session.sessionCode}
         </div>
       </div>
@@ -228,7 +228,7 @@ export default function PadletBoard({ session, stepIndex, studentName: propName 
                       className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
                       title={t('delete')}
                     >
-                      <i className="fi fi-sr-trash text-xs" />
+                      <i aria-hidden="true" className="fi fi-sr-trash text-xs" />
                     </button>
                   )}
                   <span className="text-[10px] text-zinc-400">

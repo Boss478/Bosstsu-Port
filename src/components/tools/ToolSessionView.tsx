@@ -47,7 +47,7 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
     return (
       <div className="min-h-screen bg-blue-50 dark:bg-slate-950 flex items-center justify-center p-4">
         <div className="max-w-md w-full p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-lg text-center space-y-4">
-          <i className="fi fi-sr-user text-4xl text-blue-400 block" />
+          <i aria-hidden="true" className="fi fi-sr-user text-4xl text-blue-400 block" />
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
             {t('yourName')}
           </h2>
@@ -97,7 +97,7 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
       return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="p-8 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 text-center">
-            <i className="fi fi-sr-tool text-4xl text-zinc-400 block mb-3" />
+            <i aria-hidden="true" className="fi fi-sr-tool text-4xl text-zinc-400 block mb-3" />
             <p className="text-zinc-500">{t('toolTypeNotFound')}</p>
           </div>
         </div>

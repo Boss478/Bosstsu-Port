@@ -82,7 +82,7 @@ export default function PortfolioClient({
       <section id="portfolio-filter-bar" className="px-4 pb-6">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-3">
           <div className="relative w-64">
-            <i className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-sm" />
+            <i aria-hidden="true" className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-sm" />
             <input
               type="text"
               placeholder="ค้นหา..."
@@ -151,23 +151,23 @@ export default function PortfolioClient({
                         }}
                       />
                       <div className="absolute inset-0 flex items-center justify-center bg-blue-50 dark:bg-slate-800 z-0">
-                         <i className="fi fi-sr-briefcase text-4xl text-blue-200 dark:text-slate-600 group-hover:scale-110 transition-transform duration-500" />
+                         <i aria-hidden="true" className="fi fi-sr-briefcase text-4xl text-blue-200 dark:text-slate-600 group-hover:scale-110 transition-transform duration-500" />
                       </div>
                     </>
                   ) : (
-                    <i className="fi fi-sr-briefcase text-4xl text-blue-200 dark:text-slate-600 group-hover:scale-110 transition-transform duration-500" />
+                    <i aria-hidden="true" className="fi fi-sr-briefcase text-4xl text-blue-200 dark:text-slate-600 group-hover:scale-110 transition-transform duration-500" />
                   )}
 
                   {item.gallery && item.gallery.length > 0 && (
                     <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/50 dark:bg-black/60 text-zinc-900 dark:text-zinc-100 text-[10px] font-semibold backdrop-blur-3xs shadow-sm">
-                      <i className="fi fi-sr-picture text-blue-500 text-[10px]" />
+                      <i aria-hidden="true" className="fi fi-sr-picture text-blue-500 text-[10px]" />
                       {item.gallery.length}
                     </div>
                   )}
 
                   {item.tools && item.tools.length > 0 && (
                     <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/50 dark:bg-black/60 text-zinc-900 dark:text-zinc-100 text-[10px] font-semibold backdrop-blur-xs shadow-sm">
-                      <i className="fi fi-sr-tools text-blue-500 text-[10px]" />
+                      <i aria-hidden="true" className="fi fi-sr-tools text-blue-500 text-[10px]" />
                       {item.tools.length}
                     </div>
                   )}
@@ -185,9 +185,9 @@ export default function PortfolioClient({
                         </span>
                       ))}
                     </div>
-                    <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 line-clamp-2 leading-snug">
+                    <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 line-clamp-2 leading-snug">
                       {item.title}
-                    </h3>
+                    </h2>
                   </header>
 
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 mb-8">
@@ -196,12 +196,12 @@ export default function PortfolioClient({
 
                   <div className="mt-auto pt-6 border-t border-zinc-200 dark:border-slate-800/80 flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-xs font-medium text-zinc-400 dark:text-zinc-500">
-                      <i className="fi fi-sr-calendar-lines" />
+                      <i aria-hidden="true" className="fi fi-sr-calendar-lines" />
                       {formatShortDate(item.date)}
                     </span>
                     <span className="inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 dark:text-blue-400 group-hover:text-blue-500 transition-colors duration-300">
                       อ่านต่อ
-                      <i className="fi fi-sr-arrow-right text-[10px] transition-transform duration-300 group-hover:translate-x-1" />
+                      <i aria-hidden="true" className="fi fi-sr-arrow-right text-[10px] transition-transform duration-300 group-hover:translate-x-1" />
                     </span>
                   </div>
                 </div>

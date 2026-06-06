@@ -223,7 +223,7 @@ export default function WorkflowScreen({ onNavigate }: ScreenShellProps) {
         >
           <div className="flex items-center justify-between text-red-500 font-extrabold text-xs mb-1.5 uppercase tracking-wider">
             <span className="flex items-center gap-1.5">
-              <i className="fi fi-sr-warning text-red-500 text-[10px]" /> {t("sim.crash.title", lang, mode) || "Warning"}
+              <i aria-hidden="true" className="fi fi-sr-warning text-red-500 text-[10px]" /> {t("sim.crash.title", lang, mode) || "Warning"}
             </span>
             <button
               onClick={() => { dismissCrash(); playSfx("click"); }}

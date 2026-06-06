@@ -18,7 +18,7 @@ export default async function AdminPage() {
 
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-zinc-100">
-              <i className="fi fi-sr-settings text-blue-500 mr-3" />
+              <i aria-hidden="true" className="fi fi-sr-settings text-blue-500 mr-3" />
               Backend Dashboard
             </h1>
             <LogoutButton />
@@ -44,7 +44,7 @@ export default async function AdminPage() {
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
               <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40">
-                <i className="fi fi-sr-database text-blue-500" />
+                <i aria-hidden="true" className="fi fi-sr-database text-blue-500" />
                 <div>
                   <p className="text-zinc-400 dark:text-zinc-500 text-xs">Database</p>
                   <p className="font-semibold text-zinc-800 dark:text-zinc-200">
@@ -54,7 +54,7 @@ export default async function AdminPage() {
               </div>
 
               <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40">
-                <i className="fi fi-sr-link-alt text-blue-500" />
+                <i aria-hidden="true" className="fi fi-sr-link-alt text-blue-500" />
                 <div>
                   <p className="text-zinc-400 dark:text-zinc-500 text-xs">URI</p>
                   <p className="font-mono font-semibold text-zinc-800 dark:text-zinc-200 text-xs break-all">
@@ -64,7 +64,7 @@ export default async function AdminPage() {
               </div>
 
               <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40">
-                <i className="fi fi-sr-server text-blue-500" />
+                <i aria-hidden="true" className="fi fi-sr-server text-blue-500" />
                 <div>
                   <p className="text-zinc-400 dark:text-zinc-500 text-xs">Host</p>
                   <p className="font-semibold text-zinc-800 dark:text-zinc-200">
@@ -76,7 +76,7 @@ export default async function AdminPage() {
               {stats.serverStatus && (
                 <>
                   <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40">
-                    <i className="fi fi-sr-info text-blue-500" />
+                    <i aria-hidden="true" className="fi fi-sr-info text-blue-500" />
                     <div>
                       <p className="text-zinc-400 dark:text-zinc-500 text-xs">
                         MongoDB Version
@@ -88,7 +88,7 @@ export default async function AdminPage() {
                   </div>
 
                   <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40">
-                    <i className="fi fi-sr-time-past text-blue-500" />
+                    <i aria-hidden="true" className="fi fi-sr-time-past text-blue-500" />
                     <div>
                       <p className="text-zinc-400 dark:text-zinc-500 text-xs">Uptime</p>
                       <p className="font-semibold text-zinc-800 dark:text-zinc-200">
@@ -108,7 +108,7 @@ export default async function AdminPage() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/10 border border-emerald-500/30 dark:border-emerald-500/20 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/20 transition-all group"
               >
-                <i className="fi fi-sr-database text-emerald-500 text-lg" />
+                <i aria-hidden="true" className="fi fi-sr-database text-emerald-500 text-lg" />
                 <div>
                   <p className="font-semibold text-emerald-700 dark:text-emerald-400 text-sm">
                     Mongo Express
@@ -117,14 +117,14 @@ export default async function AdminPage() {
                     {mongoExpressUrl.replace(/^https?:\/\//, '')}
                   </p>
                 </div>
-                <i className="fi fi-sr-arrow-up-right text-emerald-500 text-xs ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <i aria-hidden="true" className="fi fi-sr-arrow-up-right text-emerald-500 text-xs ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
               </a>
             </div>
           </div>
 
           {/* Collection Stats */}
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-            <i className="fi fi-sr-layers text-blue-500 mr-2" />
+            <i aria-hidden="true" className="fi fi-sr-layers text-blue-500 mr-2" />
             Collections
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
@@ -151,7 +151,7 @@ export default async function AdminPage() {
 
           {/* Recent Portfolio Items */}
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-            <i className="fi fi-sr-time-past text-blue-500 mr-2" />
+            <i aria-hidden="true" className="fi fi-sr-time-past text-blue-500 mr-2" />
             รายการล่าสุด — Portfolio
           </h2>
           <div className="mb-10 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm overflow-hidden">
@@ -206,7 +206,7 @@ export default async function AdminPage() {
 
           {/* Recent Gallery Albums */}
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-            <i className="fi fi-sr-picture text-blue-500 mr-2" />
+            <i aria-hidden="true" className="fi fi-sr-picture text-blue-500 mr-2" />
             รายการล่าสุด — Gallery
           </h2>
           <div className="mb-10 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm overflow-hidden">
@@ -253,7 +253,7 @@ export default async function AdminPage() {
           {/* System Info & Tools */}
           <div className="mb-8 p-6 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
             <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
-              <i className="fi fi-sr-info text-blue-500" />
+              <i aria-hidden="true" className="fi fi-sr-info text-blue-500" />
               ข้อมูลระบบ (System Info)
             </h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 text-sm">
@@ -304,7 +304,7 @@ export default async function AdminPage() {
 
           {/* Quick Actions */}
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-            <i className="fi fi-sr-bolt text-blue-500 mr-2" />
+            <i aria-hidden="true" className="fi fi-sr-bolt text-blue-500 mr-2" />
             เมนูลัด (Quick Links)
           </h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -312,41 +312,41 @@ export default async function AdminPage() {
               href="/admin/portfolio"
               className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
             >
-              <i className="fi fi-sr-briefcase text-blue-500" />
+              <i aria-hidden="true" className="fi fi-sr-briefcase text-blue-500" />
               <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
                 จัดการผลงาน
               </span>
-              <i className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+              <i aria-hidden="true" className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
             <Link
               href="/admin/gallery"
               className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
             >
-              <i className="fi fi-sr-picture text-blue-500" />
+              <i aria-hidden="true" className="fi fi-sr-picture text-blue-500" />
               <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
                 จัดการแกลเลอรี
               </span>
-              <i className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+              <i aria-hidden="true" className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
             <Link
               href="/admin/resources"
               className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
             >
-              <i className="fi fi-sr-book-alt text-blue-500" />
+              <i aria-hidden="true" className="fi fi-sr-book-alt text-blue-500" />
               <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
                 จัดการสื่อการเรียนรู้
               </span>
-              <i className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+              <i aria-hidden="true" className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
             <Link
               href="/admin/games"
               className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
             >
-              <i className="fi fi-sr-gamepad text-blue-500" />
+              <i aria-hidden="true" className="fi fi-sr-gamepad text-blue-500" />
               <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
                 จัดการเกม
               </span>
-              <i className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+              <i aria-hidden="true" className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
           </div>
         </div>

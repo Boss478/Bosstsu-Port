@@ -166,7 +166,7 @@ export default function SubscriptionList({ refreshKey }: Props) {
           onClick={() => { setEditingSub(null); setShowForm(true); }}
           className="px-4 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors cursor-pointer flex items-center gap-1.5"
         >
-          <i className="fi fi-sr-add text-xs" />
+          <i aria-hidden="true" className="fi fi-sr-add text-xs" />
           Add
         </button>
       </div>
@@ -179,7 +179,7 @@ export default function SubscriptionList({ refreshKey }: Props) {
 
       {!loading && subscriptions.length === 0 ? (
         <div className="py-12 text-center">
-          <i className="fi fi-sr-refresh text-3xl text-zinc-300 dark:text-zinc-600 mb-3 block" />
+          <i aria-hidden="true" className="fi fi-sr-refresh text-3xl text-zinc-300 dark:text-zinc-600 mb-3 block" />
           <p className="text-zinc-400 dark:text-zinc-500 text-sm">No subscriptions yet</p>
           <button
             onClick={() => { setEditingSub(null); setShowForm(true); }}
@@ -196,7 +196,7 @@ export default function SubscriptionList({ refreshKey }: Props) {
               className="flex items-center gap-3 p-3 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 transition-colors"
             >
               <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-amber-100 dark:bg-amber-900/40">
-                <i className="fi fi-sr-refresh text-xs text-amber-600 dark:text-amber-400" />
+                <i aria-hidden="true" className="fi fi-sr-refresh text-xs text-amber-600 dark:text-amber-400" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
@@ -220,7 +220,7 @@ export default function SubscriptionList({ refreshKey }: Props) {
                   onClick={() => { setEditingSub(sub); setShowForm(true); }}
                   className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 cursor-pointer"
                 >
-                  <i className="fi fi-sr-pencil text-xs text-zinc-400" />
+                  <i aria-hidden="true" className="fi fi-sr-pencil text-xs text-zinc-400" />
                 </button>
                 {renewingId === sub._id ? (
                   <div className="flex items-center gap-1.5">
@@ -262,7 +262,7 @@ export default function SubscriptionList({ refreshKey }: Props) {
                   onClick={() => handleDelete(sub._id)}
                   className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 cursor-pointer"
                 >
-                  <i className="fi fi-sr-trash text-xs text-red-400" />
+                  <i aria-hidden="true" className="fi fi-sr-trash text-xs text-red-400" />
                 </button>
               </div>
             </div>
@@ -286,7 +286,7 @@ export default function SubscriptionList({ refreshKey }: Props) {
                       className="flex items-center gap-3 p-3 rounded-lg bg-white/30 dark:bg-slate-800/30 border border-zinc-200/40 dark:border-slate-700/30 opacity-60"
                     >
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-zinc-100 dark:bg-zinc-800">
-                        <i className="fi fi-sr-refresh text-xs text-zinc-400" />
+                        <i aria-hidden="true" className="fi fi-sr-refresh text-xs text-zinc-400" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 truncate">
@@ -308,7 +308,7 @@ export default function SubscriptionList({ refreshKey }: Props) {
                         onClick={() => handleDelete(sub._id)}
                         className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 cursor-pointer"
                       >
-                        <i className="fi fi-sr-trash text-xs text-red-400" />
+                        <i aria-hidden="true" className="fi fi-sr-trash text-xs text-red-400" />
                       </button>
                     </div>
                   ))}

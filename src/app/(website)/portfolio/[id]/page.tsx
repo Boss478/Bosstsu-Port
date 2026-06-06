@@ -190,7 +190,7 @@ export default async function PortfolioDetailPage({
                 </h1>
                 <div className="flex flex-wrap items-center gap-6 text-zinc-500 dark:text-zinc-400 text-sm">
                   <span className="flex items-center gap-2">
-                    <i className="fi fi-sr-calendar" />
+                    <i aria-hidden="true" className="fi fi-sr-calendar" />
                     {formatLongDate(item.date)}
                   </span>
                 </div>
@@ -199,7 +199,7 @@ export default async function PortfolioDetailPage({
               {item.description && (
                 <div className="mb-8 p-6 bg-blue-50 dark:bg-slate-800/50 rounded-2xl border border-blue-100 dark:border-slate-700/50">
                   <h3 className="text-sm font-bold text-blue-800 dark:text-blue-300 mb-2 uppercase tracking-wider flex items-center gap-2">
-                    <i className="fi fi-sr-info" />
+                    <i aria-hidden="true" className="fi fi-sr-info" />
                     TL;DR
                   </h3>
                   <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed">
@@ -216,7 +216,7 @@ export default async function PortfolioDetailPage({
               {item.tools && item.tools.length > 0 && (
                 <div className="mt-20 pt-12 border-t border-zinc-100 dark:border-slate-800">
                   <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-200 mb-4 flex items-center gap-2">
-                    <i className="fi fi-sr-tools text-blue-500" /> Tools used
+                    <i aria-hidden="true" className="fi fi-sr-tools text-blue-500" /> Tools used
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {item.tools.map((tool) => (
@@ -244,7 +244,7 @@ export default async function PortfolioDetailPage({
                       className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
                     >
                       ดูรูปทั้งหมด
-                      <i className="fi fi-sr-arrow-right text-xs mt-0.5"></i>
+                      <i aria-hidden="true" className="fi fi-sr-arrow-right text-xs mt-0.5"></i>
                     </Link>
                   )}
                 </div>
@@ -254,7 +254,7 @@ export default async function PortfolioDetailPage({
                 ) : (
                   <div className="flex flex-col items-center justify-center p-8 rounded-2xl bg-blue-50 dark:bg-slate-900/50 border border-blue-100 dark:border-slate-800 text-center">
                      <div className="w-16 h-16 bg-blue-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
-                        <i className="fi fi-sr-picture text-2xl text-blue-500"></i>
+                        <i aria-hidden="true" className="fi fi-sr-picture text-2xl text-blue-500"></i>
                      </div>
                      <p className="text-zinc-600 dark:text-zinc-400 mb-4">
                        ดูรูปภาพเพิ่มเติมได้ในอัลบั้มแกลเลอรี่
@@ -278,7 +278,7 @@ export default async function PortfolioDetailPage({
                 className="group p-6 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300"
               >
                 <div className="flex items-center gap-2 text-xs text-zinc-400 dark:text-zinc-500 mb-2">
-                  <i className="fi fi-sr-arrow-left transition-transform group-hover:-translate-x-1" />
+                  <i aria-hidden="true" className="fi fi-sr-arrow-left transition-transform group-hover:-translate-x-1" />
                   ผลงานก่อนหน้า
                 </div>
                 <div className="font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
@@ -294,7 +294,7 @@ export default async function PortfolioDetailPage({
               >
                 <div className="flex items-center justify-end gap-2 text-xs text-zinc-400 dark:text-zinc-500 mb-2">
                   ผลงานถัดไป
-                  <i className="fi fi-sr-arrow-right transition-transform group-hover:translate-x-1" />
+                  <i aria-hidden="true" className="fi fi-sr-arrow-right transition-transform group-hover:translate-x-1" />
                 </div>
                 <div className="font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                   {newerItem.title}
@@ -306,7 +306,7 @@ export default async function PortfolioDetailPage({
           {relatedItems.length > 0 && (
             <section id="portfolio-related" className="pt-16 border-t border-zinc-200 dark:border-slate-800">
               <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6 flex items-center gap-2">
-                <i className="fi fi-sr-apps text-blue-500" />
+                <i aria-hidden="true" className="fi fi-sr-apps text-blue-500" />
                 ผลงานอื่น ๆ
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -344,7 +344,7 @@ export default async function PortfolioDetailPage({
           <div className="sticky top-28 space-y-6">
             <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm p-6 rounded-3xl border border-white/60 dark:border-slate-700/50 shadow-sm">
               <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
-                <i className="fi fi-sr-time-past text-blue-500" />
+                <i aria-hidden="true" className="fi fi-sr-time-past text-blue-500" />
                 ผลงานล่าสุด
               </h3>
               <ul className="space-y-5">

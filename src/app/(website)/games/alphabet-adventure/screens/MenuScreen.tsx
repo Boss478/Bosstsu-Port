@@ -47,7 +47,7 @@ export default function MenuScreen({ onStart, onContinue, hasProgress, easyMode,
               className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-500 hover:text-violet-500 transition-all"
               title="Voice Settings"
             >
-              <i className="fi fi-sr-volume text-sm"></i>
+              <i aria-hidden="true" className="fi fi-sr-volume text-sm"></i>
             </button>
             {showVoicePicker && (
               <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl border-2 border-zinc-200 dark:border-zinc-700 p-3 z-50 max-h-64 overflow-y-auto">
@@ -89,7 +89,7 @@ export default function MenuScreen({ onStart, onContinue, hasProgress, easyMode,
           className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-500 hover:text-violet-500 transition-colors"
           title="Back to Games"
         >
-          <i className="fi fi-sr-home text-lg"></i>
+          <i aria-hidden="true" className="fi fi-sr-home text-lg"></i>
         </button>
       </div>
 
@@ -103,7 +103,7 @@ export default function MenuScreen({ onStart, onContinue, hasProgress, easyMode,
       </div>
 
       <div className="text-8xl animate-bounce py-4 transition-all hover:scale-125 duration-500 cursor-default">
-        <i className="fi fi-sr-island-tropical text-violet-600 dark:text-violet-400"></i>
+        <i aria-hidden="true" className="fi fi-sr-island-tropical text-violet-600 dark:text-violet-400"></i>
       </div>
 
       <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-md mx-auto leading-relaxed">
@@ -144,7 +144,7 @@ export default function MenuScreen({ onStart, onContinue, hasProgress, easyMode,
             className="group relative px-8 py-4 bg-emerald-600 text-white text-xl font-black rounded-3xl shadow-[0_10px_0_0_rgba(5,150,105,1)] active:shadow-none active:translate-y-2 transition-all duration-150 overflow-hidden"
           >
             <span className="relative z-10 flex items-center gap-3">
-              Continue <i className="fi fi-sr-play mt-1 transition-transform group-hover:translate-x-1"></i>
+              Continue <i aria-hidden="true" className="fi fi-sr-play mt-1 transition-transform group-hover:translate-x-1"></i>
             </span>
             <div className="absolute inset-0 bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
           </button>
@@ -154,7 +154,7 @@ export default function MenuScreen({ onStart, onContinue, hasProgress, easyMode,
           className="group relative px-8 py-4 bg-violet-600 text-white text-xl font-black rounded-3xl shadow-[0_10px_0_0_rgba(109,40,217,1)] active:shadow-none active:translate-y-2 transition-all duration-150 overflow-hidden"
         >
           <span className="relative z-10 flex items-center gap-3">
-            {hasProgress ? "New Game" : "Start Game"} <i className="fi fi-sr-play mt-1 transition-transform group-hover:translate-x-1"></i>
+            {hasProgress ? "New Game" : "Start Game"} <i aria-hidden="true" className="fi fi-sr-play mt-1 transition-transform group-hover:translate-x-1"></i>
           </span>
           <div className="absolute inset-0 bg-violet-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
         </button>
@@ -168,7 +168,7 @@ export default function MenuScreen({ onStart, onContinue, hasProgress, easyMode,
             title="View Card Collection"
           >
             <span className="relative z-10 flex items-center gap-3">
-              <i className="fi fi-sr-template mt-1"></i> Card Collection
+              <i aria-hidden="true" className="fi fi-sr-template mt-1"></i> Card Collection
             </span>
             <div className="absolute inset-0 bg-amber-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
           </button>
@@ -188,7 +188,7 @@ export default function MenuScreen({ onStart, onContinue, hasProgress, easyMode,
           }}
           className="px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 border border-red-500/20"
         >
-          <i className="fi fi-sr-refresh mr-1.5 text-xs"></i>
+          <i aria-hidden="true" className="fi fi-sr-refresh mr-1.5 text-xs"></i>
           RESET PROGRESS
         </button>
       </div>

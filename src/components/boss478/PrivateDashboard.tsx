@@ -23,7 +23,7 @@ export default function PrivateDashboard() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-10">
         <h1 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
-          <i className="fi fi-sr-apps text-blue-500" />
+          <i aria-hidden="true" className="fi fi-sr-apps text-blue-500" />
           Private Tools
         </h1>
         <p className="mt-2 text-zinc-500 dark:text-zinc-400">
@@ -51,7 +51,7 @@ export default function PrivateDashboard() {
             </p>
             <div className="mt-4 flex items-center gap-1.5 text-sm font-medium text-blue-600 dark:text-blue-400">
               <span>Open</span>
-              <i className="fi fi-sr-arrow-right text-xs transition-transform group-hover:translate-x-0.5" />
+              <i aria-hidden="true" className="fi fi-sr-arrow-right text-xs transition-transform group-hover:translate-x-0.5" />
             </div>
           </Link>
         ))}

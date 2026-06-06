@@ -35,7 +35,7 @@ export default function TopBar({
           onClick={onBack}
           className="flex items-center gap-1 px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600 transition-colors"
         >
-          <i className="fi fi-sr-angle-left text-sm" />
+          <i aria-hidden="true" className="fi fi-sr-angle-left text-sm" />
           <span className="hidden sm:inline">
             {t("topbar.back", lang, mode)}
           </span>
@@ -56,7 +56,7 @@ export default function TopBar({
           className="px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600 transition-colors"
           title={t("topbar.mode", lang, mode)}
         >
-          <i className="fi fi-sr-graduation-cap" />
+          <i aria-hidden="true" className="fi fi-sr-graduation-cap" />
         </button>
 
         <button
@@ -80,7 +80,7 @@ export default function TopBar({
           className="hidden sm:flex px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600 transition-colors"
           title={t("topbar.fullscreen", lang, mode)}
         >
-          <i className="fi fi-sr-expand" />
+          <i aria-hidden="true" className="fi fi-sr-expand" />
         </button>
       </div>
     </div>

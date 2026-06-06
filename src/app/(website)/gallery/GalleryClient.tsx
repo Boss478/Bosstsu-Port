@@ -82,7 +82,7 @@ export default function GalleryClient({
       <section id="gallery-filter-bar" className="px-4 pb-6">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-3">
           <div className="relative w-64">
-            <i className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-sm" />
+            <i aria-hidden="true" className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-sm" />
             <input
               type="text"
               placeholder="ค้นหา..."
@@ -146,14 +146,14 @@ export default function GalleryClient({
                 />
 
                 <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/15 dark:bg-black/30 text-white text-[10px] font-semibold backdrop-blur-md border border-white/25 dark:border-white/15 shadow-lg shadow-black/10 dark:shadow-black/30">
-                  <i className="fi fi-sr-picture text-[10px]" />
+                  <i aria-hidden="true" className="fi fi-sr-picture text-[10px]" />
                   {album.photos.length}
                 </div>
 
                 <div className="absolute left-0 right-0 bottom-0 w-full z-20 bg-black/40 backdrop-blur-3xs px-4 py-3 border-t border-white/10">
-                  <h3 className="text-sm font-bold text-white mb-1.5 line-clamp-1 group-hover:text-blue-300 transition-colors duration-300">
+                  <h2 className="text-sm font-bold text-white mb-1.5 line-clamp-1 group-hover:text-blue-300 transition-colors duration-300">
                     {album.title}
-                  </h3>
+                  </h2>
 
                   <div className="flex flex-wrap items-center gap-1.5">
                     {album.tags.map((tag) => (
@@ -165,7 +165,7 @@ export default function GalleryClient({
                       </span>
                     ))}
                     <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/30 backdrop-blur-sm border border-white/20 text-white">
-                      <i className="fi fi-sr-calendar-lines text-[8px]" />
+                      <i aria-hidden="true" className="fi fi-sr-calendar-lines text-[8px]" />
                       {formatShortDate(album.date)}
                     </span>
                   </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useStockData, PERIOD_CONFIG, type Period } from './StockDataContext';
+import { useStockData, PERIOD_CONFIG } from './StockDataContext';
 
 interface PriceChartProps {
   initialSymbol?: string;

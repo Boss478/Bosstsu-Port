@@ -84,7 +84,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
         className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
         aria-label="Dismiss"
       >
-        <i className="fi fi-sr-times text-sm" />
+        <i aria-hidden="true" className="fi fi-sr-times text-sm" />
       </button>
     </div>
   );

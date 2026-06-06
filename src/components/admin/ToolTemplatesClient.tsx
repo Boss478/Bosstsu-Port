@@ -76,7 +76,7 @@ export default function ToolTemplatesClient({ templates }: { templates: Template
 
       {filtered.length === 0 && (
         <div className="text-center py-16 text-zinc-600 dark:text-zinc-400">
-          <i className="fi fi-sr-template text-5xl block mb-4 opacity-30" />
+          <i aria-hidden="true" className="fi fi-sr-template text-5xl block mb-4 opacity-30" />
           <p>ยังไม่มีแม่แบบ</p>
           <p className="text-sm mt-1">สร้างแม่แบบได้จากหน้า Quick Start เมื่อสร้าง Multi-Step Session</p>
         </div>

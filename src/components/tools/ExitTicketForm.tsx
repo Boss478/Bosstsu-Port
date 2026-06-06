@@ -66,7 +66,7 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-lg w-full p-8 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-lg text-center">
-          <i className="fi fi-sr-check-circle text-6xl text-emerald-500 block mb-4" />
+          <i aria-hidden="true" className="fi fi-sr-check-circle text-6xl text-emerald-500 block mb-4" />
           <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{t('submittedTitle')}</h2>
           <p className="text-zinc-500 dark:text-zinc-400">{t('thankYouReflection')}</p>
         </div>
@@ -80,7 +80,7 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{session.title}</h1>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm font-mono">
-            <i className="fi fi-sr-ticket" />
+            <i aria-hidden="true" className="fi fi-sr-ticket" />
             {session.sessionCode}
           </div>
         </div>
@@ -104,7 +104,7 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
 
             <div className="space-y-2">
               <label className="text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-                <i className="fi fi-sr-lightbulb text-emerald-500" />
+                <i aria-hidden="true" className="fi fi-sr-lightbulb text-emerald-500" />
                 {t('learnedToday')}
               </label>
               <textarea
@@ -119,7 +119,7 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
 
             <div className="space-y-2">
               <label className="text-sm font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                <i className="fi fi-sr-interrogation text-blue-500" />
+                <i aria-hidden="true" className="fi fi-sr-interrogation text-blue-500" />
                 {t('questionStillHave')}
               </label>
               <textarea
@@ -134,7 +134,7 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
 
             <div className="space-y-2">
               <label className="text-sm font-bold text-purple-600 dark:text-purple-400 flex items-center gap-2">
-                <i className="fi fi-sr-search text-purple-500" />
+                <i aria-hidden="true" className="fi fi-sr-search text-purple-500" />
                 {t('wantToKnowMore')}
               </label>
               <textarea

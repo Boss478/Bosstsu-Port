@@ -67,7 +67,7 @@ export default function StudentList({ sessionId }: StudentListProps) {
       </div>
       {loading ? (
         <div className="text-center text-zinc-400 py-8">
-          <i className="fi fi-sr-spinner animate-spin text-xl" />
+          <i aria-hidden="true" className="fi fi-sr-spinner animate-spin text-xl" />
         </div>
       ) : participants.length === 0 ? (
         <p className="text-center text-zinc-400 py-8">No participants yet</p>
@@ -90,7 +90,7 @@ export default function StudentList({ sessionId }: StudentListProps) {
                 >
                   <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">
                     <div className="flex items-center gap-2">
-                      <i className="fi fi-sr-user text-xs text-zinc-400" />
+                      <i aria-hidden="true" className="fi fi-sr-user text-xs text-zinc-400" />
                       <span>{p.studentName || 'Anonymous'}</span>
                     </div>
                   </td>
@@ -105,7 +105,7 @@ export default function StudentList({ sessionId }: StudentListProps) {
                       className="text-red-500 hover:text-red-700 disabled:opacity-30 text-xs px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                     >
                       {removing === p.studentToken ? (
-                        <i className="fi fi-sr-spinner animate-spin" />
+                        <i aria-hidden="true" className="fi fi-sr-spinner animate-spin" />
                       ) : (
                         'Remove'
                       )}
