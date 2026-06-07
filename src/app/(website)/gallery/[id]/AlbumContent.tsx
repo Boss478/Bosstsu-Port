@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
-const PHOTOS_PER_PAGE = 30;
+const PHOTOS_PER_PAGE = 12;
 import { type GalleryAlbum } from '../data';
 import { formatLongDate } from '@/lib/format';
 import dynamic from 'next/dynamic';
@@ -19,6 +19,35 @@ export default function AlbumContent({ album }: AlbumContentProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(PHOTOS_PER_PAGE);
   const hasMore = visibleCount < album.photos.length;
+  const isLoadingRef = useRef(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!hasMore) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isLoadingRef.current) {
+          isLoadingRef.current = true;
+          setVisibleCount((prev) => prev + PHOTOS_PER_PAGE);
+        }
+      },
+      { rootMargin: '200px' },
+    );
+    const sentinel = sentinelRef.current;
+    if (sentinel) observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, visibleCount]);
+
+  useEffect(() => {
+    isLoadingRef.current = false;
+  });
+
+  const handleLoadMore = () => {
+    if (!isLoadingRef.current) {
+      isLoadingRef.current = true;
+      setVisibleCount((prev) => prev + PHOTOS_PER_PAGE);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
@@ -77,7 +106,7 @@ export default function AlbumContent({ album }: AlbumContentProps) {
               <button
                 key={idx}
                 onClick={() => setLightboxIndex(idx)}
-                className="relative h-60 rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-zoom-in group"
+                className="relative h-60 rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-zoom-in group skeleton"
               >
                 <Image
                   src={photo}
@@ -90,10 +119,12 @@ export default function AlbumContent({ album }: AlbumContentProps) {
             ))}
           </div>
 
+          <div ref={sentinelRef} className="h-4" />
+
           {hasMore && (
             <div className="flex justify-center mt-8">
               <button
-                onClick={() => setVisibleCount((prev) => prev + PHOTOS_PER_PAGE)}
+                onClick={handleLoadMore}
                 className="px-8 py-3 rounded-xl bg-white/70 dark:bg-slate-800/70 border border-white/60 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-700 shadow-sm hover:shadow-md transition-all text-zinc-700 dark:text-zinc-200 font-medium"
               >
                 ดูเพิ่มเติม ({visibleCount}/{album.photos.length})

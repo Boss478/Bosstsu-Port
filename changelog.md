@@ -4,6 +4,12 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.50 (2026-06-07)
++ **Gallery image loading optimization**: Batch 12 initial / +12 load-more with infinite scroll (IntersectionObserver + loading guard) on album detail and portfolio gallery pages — reduces initial payload 60% vs previous 30-image batch
++ **Performance**: PortfolioGallery (`src/components/PortfolioGallery.tsx`) switched from native `<img>` to Next.js `<Image>` with `fill` + `sizes` — enables WebP/AVIF optimization and native lazy loading
++ **Bandwidth**: Gallery album photos (`gallery`, `portfolio/gallery` folders) now saved as WebP on upload via `FOLDERS_CONVERT_TO_WEBP` config — 30-50% smaller files for new uploads
+* **Visual feedback**: CSS shimmer placeholder (`skeleton` class) on all gallery image wrappers — animated gradient while images resolve, zero JS overhead
+
 ## v1.9.49 (2026-06-07)
 + **Scrolling Animation System**: ScrollReveal now supports `variant` prop (fade-up/left/right/scale-up) with `prefers-reduced-motion` check — StatsBar fades up, Spotlight slides from left, Categories scale in
 + **Card Stagger**: Per-card staggered entrances in Spotlight (`stagger-fade-left`) and Categories (`stagger-scale-up`) with 80ms intervals via CSS `nth-child` utilities
