@@ -1,13 +1,13 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import type { Metadata } from "next";
-import mongoose from "mongoose";
-import DOMPurify from "isomorphic-dompurify";
-import dbConnect from "@/lib/db";
-import Learning from "@/models/Learning";
-import Breadcrumb from "@/components/Breadcrumb";
-import { formatLongDate, formatShortDate } from "@/lib/format";
-import { CONFIG } from "@/lib/config";
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
+import mongoose from 'mongoose';
+import DOMPurify from 'isomorphic-dompurify';
+import dbConnect from '@/lib/db';
+import Learning from '@/models/Learning';
+import Breadcrumb from '@/components/Breadcrumb';
+import { formatLongDate, formatShortDate } from '@/lib/format';
+import { CONFIG } from '@/lib/config';
 
 export const revalidate = 60;
 
@@ -40,30 +40,30 @@ type LeanRecentDoc = {
 };
 
 const TYPE_COLORS: Record<string, string> = {
-  Article:      "bg-orange-500/80 text-white",
-  Video:        "bg-red-500/80 text-white",
-  Presentation: "bg-blue-500/80 text-white",
-  "Lesson Plan":"bg-teal-500/80 text-white",
-  Sheet:        "bg-indigo-500/80 text-white",
-  Worksheet:    "bg-green-500/80 text-white",
-  Scratch:      "bg-yellow-500/80 text-slate-900",
-  Interactive:  "bg-purple-500/80 text-white",
+  Article: 'bg-orange-500/80 text-white',
+  Video: 'bg-red-500/80 text-white',
+  Presentation: 'bg-blue-500/80 text-white',
+  'Lesson Plan': 'bg-teal-500/80 text-white',
+  Sheet: 'bg-indigo-500/80 text-white',
+  Worksheet: 'bg-green-500/80 text-white',
+  Scratch: 'bg-yellow-500/80 text-slate-900',
+  Interactive: 'bg-purple-500/80 text-white',
 };
 
-function getFileType(url: string): "pdf" | "image" | "other" {
+function getFileType(url: string): 'pdf' | 'image' | 'other' {
   const lower = url.toLowerCase();
-  if (lower.endsWith(".pdf")) return "pdf";
-  if (/\.(jpe?g|png|webp|gif|svg)(\?|$)/.test(lower)) return "image";
-  return "other";
+  if (lower.endsWith('.pdf')) return 'pdf';
+  if (/\.(jpe?g|png|webp|gif|svg)(\?|$)/.test(lower)) return 'image';
+  return 'other';
 }
 
 function hasPrimaryContent(doc: LeanLearningDoc): boolean {
-  if (doc.type === "Article" && doc.content) return true;
-  if (doc.type === "Video" && doc.youtubeId) return true;
-  if (doc.type === "Presentation" && (doc.canvaEmbed || doc.fileUrl)) return true;
-  if (doc.type === "Lesson Plan" && doc.fileUrl) return true;
-  if ((doc.type === "Sheet" || doc.type === "Worksheet") && doc.fileUrl) return true;
-  if ((doc.type === "Scratch" || doc.type === "Interactive") && doc.embedCode) return true;
+  if (doc.type === 'Article' && doc.content) return true;
+  if (doc.type === 'Video' && doc.youtubeId) return true;
+  if (doc.type === 'Presentation' && (doc.canvaEmbed || doc.fileUrl)) return true;
+  if (doc.type === 'Lesson Plan' && doc.fileUrl) return true;
+  if ((doc.type === 'Sheet' || doc.type === 'Worksheet') && doc.fileUrl) return true;
+  if ((doc.type === 'Scratch' || doc.type === 'Interactive') && doc.embedCode) return true;
   return false;
 }
 
@@ -74,15 +74,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   try {
     const { id } = await params;
-    if (!mongoose.isValidObjectId(id)) return { title: "Not Found" };
+    if (!mongoose.isValidObjectId(id)) return { title: 'Not Found' };
 
     await dbConnect();
-    const doc = await Learning.findOne(
+    const doc = (await Learning.findOne(
       { _id: id, published: { $ne: false } },
-      "title description thumbnail"
-    ).lean() as LeanLearningDoc | null;
+      'title description thumbnail',
+    ).lean()) as LeanLearningDoc | null;
 
-    if (!doc) return { title: "Not Found" };
+    if (!doc) return { title: 'Not Found' };
 
     return {
       title: `${doc.title} | Boss478`,
@@ -91,39 +91,34 @@ export async function generateMetadata({
         title: doc.title,
         description: doc.description || undefined,
         images: doc.thumbnail ? [{ url: doc.thumbnail }] : [],
-        type: "article",
+        type: 'article',
       },
     };
   } catch {
-    return { title: "Boss478" };
+    return { title: 'Boss478' };
   }
 }
 
-export default async function ResourceDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function ResourceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!mongoose.isValidObjectId(id)) notFound();
 
   let doc: LeanLearningDoc | null = null;
   try {
     await dbConnect();
-    doc = await Learning.findOne(
-      { _id: id, published: { $ne: false } }
-    ).select('+content').lean() as LeanLearningDoc | null;
+    doc = (await Learning.findOne({ _id: id, published: { $ne: false } })
+      .select('+content')
+      .lean()) as LeanLearningDoc | null;
   } catch {
     // DB unavailable (Docker build) — ISR populates at runtime
   }
   if (!doc) notFound();
 
-  const docCreatedAt =
-    doc.createdAt instanceof Date ? doc.createdAt : new Date(doc.createdAt);
+  const docCreatedAt = doc.createdAt instanceof Date ? doc.createdAt : new Date(doc.createdAt);
 
   const [recentDocs, olderDoc, newerDoc] = await Promise.all([
     Learning.find({ _id: { $ne: doc._id }, published: { $ne: false } })
-      .select("_id title thumbnail type createdAt")
+      .select('_id title thumbnail type createdAt')
       .sort({ createdAt: -1 })
       .limit(CONFIG.PAGINATION.RECENT_RESOURCES)
       .lean() as Promise<LeanRecentDoc[]>,
@@ -131,29 +126,26 @@ export default async function ResourceDetailPage({
       createdAt: { $lt: docCreatedAt },
       published: { $ne: false },
     })
-      .select("_id title")
+      .select('_id title')
       .sort({ createdAt: -1 })
       .lean() as Promise<LeanNavDoc | null>,
     Learning.findOne({
       createdAt: { $gt: docCreatedAt },
       published: { $ne: false },
     })
-      .select("_id title")
+      .select('_id title')
       .sort({ createdAt: 1 })
       .lean() as Promise<LeanNavDoc | null>,
   ]);
 
-  const badgeColor = TYPE_COLORS[doc.type] ?? "bg-blue-500/80 text-white";
+  const badgeColor = TYPE_COLORS[doc.type] ?? 'bg-blue-500/80 text-white';
 
   return (
     <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
       <section className="pt-28 pb-8 px-4">
         <div className="max-w-7xl mx-auto">
           <Breadcrumb
-            items={[
-              { label: "สื่อการเรียนรู้", href: "/resources" },
-              { label: doc.title },
-            ]}
+            items={[{ label: 'สื่อการเรียนรู้', href: '/resources' }, { label: doc.title }]}
           />
         </div>
       </section>
@@ -188,7 +180,7 @@ export default async function ResourceDetailPage({
                   </span>
                 ))}
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold leading-snug text-zinc-900 dark:text-zinc-100 mb-4">
+              <h1 className="text-3xl md:text-4xl font-bold leading-normal text-zinc-900 dark:text-zinc-100 mb-4">
                 {doc.title}
               </h1>
               <div className="flex flex-wrap items-center gap-6 text-zinc-500 dark:text-zinc-400 text-sm">
@@ -218,14 +210,14 @@ export default async function ResourceDetailPage({
             )}
 
             <div className="space-y-6">
-              {doc.type === "Article" && doc.content && (
+              {doc.type === 'Article' && doc.content && (
                 <div
                   className="article-content"
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(doc.content) }}
                 />
               )}
 
-              {doc.type === "Video" && doc.youtubeId && (
+              {doc.type === 'Video' && doc.youtubeId && (
                 <div className="aspect-video rounded-2xl overflow-hidden shadow-md">
                   <iframe
                     src={`https://www.youtube.com/embed/${doc.youtubeId}`}
@@ -237,7 +229,7 @@ export default async function ResourceDetailPage({
                 </div>
               )}
 
-              {doc.type === "Presentation" && (
+              {doc.type === 'Presentation' && (
                 <>
                   {doc.canvaEmbed ? (
                     <div
@@ -246,27 +238,19 @@ export default async function ResourceDetailPage({
                     />
                   ) : doc.fileUrl ? (
                     <div className="aspect-video rounded-2xl overflow-hidden shadow-md border border-zinc-200 dark:border-slate-700">
-                      <iframe
-                        src={doc.fileUrl}
-                        title={doc.title}
-                        className="w-full h-full"
-                      />
+                      <iframe src={doc.fileUrl} title={doc.title} className="w-full h-full" />
                     </div>
                   ) : null}
                 </>
               )}
 
-              {doc.type === "Lesson Plan" && doc.fileUrl && (
+              {doc.type === 'Lesson Plan' && doc.fileUrl && (
                 <div className="space-y-4">
-                  {getFileType(doc.fileUrl) === "pdf" ? (
+                  {getFileType(doc.fileUrl) === 'pdf' ? (
                     <div className="h-[600px] rounded-2xl overflow-hidden shadow-md border border-zinc-200 dark:border-slate-700">
-                      <iframe
-                        src={doc.fileUrl}
-                        title={doc.title}
-                        className="w-full h-full"
-                      />
+                      <iframe src={doc.fileUrl} title={doc.title} className="w-full h-full" />
                     </div>
-                  ) : getFileType(doc.fileUrl) === "image" ? (
+                  ) : getFileType(doc.fileUrl) === 'image' ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={doc.fileUrl}
@@ -285,17 +269,13 @@ export default async function ResourceDetailPage({
                 </div>
               )}
 
-              {(doc.type === "Sheet" || doc.type === "Worksheet") && doc.fileUrl && (
+              {(doc.type === 'Sheet' || doc.type === 'Worksheet') && doc.fileUrl && (
                 <>
-                  {getFileType(doc.fileUrl) === "pdf" ? (
+                  {getFileType(doc.fileUrl) === 'pdf' ? (
                     <div className="h-[600px] rounded-2xl overflow-hidden shadow-md border border-zinc-200 dark:border-slate-700">
-                      <iframe
-                        src={doc.fileUrl}
-                        title={doc.title}
-                        className="w-full h-full"
-                      />
+                      <iframe src={doc.fileUrl} title={doc.title} className="w-full h-full" />
                     </div>
-                  ) : getFileType(doc.fileUrl) === "image" ? (
+                  ) : getFileType(doc.fileUrl) === 'image' ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={doc.fileUrl}
@@ -306,14 +286,14 @@ export default async function ResourceDetailPage({
                 </>
               )}
 
-              {(doc.type === "Scratch" || doc.type === "Interactive") && doc.embedCode && (
+              {(doc.type === 'Scratch' || doc.type === 'Interactive') && doc.embedCode && (
                 <div
                   className="rounded-2xl overflow-hidden shadow-md"
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(doc.embedCode) }}
                 />
               )}
 
-              {!hasPrimaryContent(doc) && doc.link && doc.link !== "#" && (
+              {!hasPrimaryContent(doc) && doc.link && doc.link !== '#' && (
                 <a
                   href={doc.link}
                   target="_blank"
@@ -334,7 +314,10 @@ export default async function ResourceDetailPage({
                 className="group p-6 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300"
               >
                 <div className="flex items-center gap-2 text-xs text-zinc-400 dark:text-zinc-500 mb-2">
-                  <i aria-hidden="true" className="fi fi-sr-arrow-left transition-transform group-hover:-translate-x-1" />
+                  <i
+                    aria-hidden="true"
+                    className="fi fi-sr-arrow-left transition-transform group-hover:-translate-x-1"
+                  />
                   สื่อก่อนหน้า
                 </div>
                 <div className="font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
@@ -346,11 +329,14 @@ export default async function ResourceDetailPage({
             {newerDoc && (
               <Link
                 href={`/resources/${newerDoc._id.toString()}`}
-                className={`group p-6 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 text-right ${!olderDoc ? "col-start-2" : ""}`}
+                className={`group p-6 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 text-right ${!olderDoc ? 'col-start-2' : ''}`}
               >
                 <div className="flex items-center justify-end gap-2 text-xs text-zinc-400 dark:text-zinc-500 mb-2">
                   สื่อถัดไป
-                  <i aria-hidden="true" className="fi fi-sr-arrow-right transition-transform group-hover:translate-x-1" />
+                  <i
+                    aria-hidden="true"
+                    className="fi fi-sr-arrow-right transition-transform group-hover:translate-x-1"
+                  />
                 </div>
                 <div className="font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                   {newerDoc.title}
@@ -384,7 +370,10 @@ export default async function ResourceDetailPage({
                           />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <i aria-hidden="true" className="fi fi-sr-book-alt text-zinc-400 text-lg" />
+                            <i
+                              aria-hidden="true"
+                              className="fi fi-sr-book-alt text-zinc-400 text-lg"
+                            />
                           </div>
                         )}
                       </div>
@@ -393,7 +382,7 @@ export default async function ResourceDetailPage({
                           {formatShortDate(
                             item.createdAt instanceof Date
                               ? item.createdAt.toISOString()
-                              : new Date(item.createdAt).toISOString()
+                              : new Date(item.createdAt).toISOString(),
                           )}
                         </span>
                         <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">

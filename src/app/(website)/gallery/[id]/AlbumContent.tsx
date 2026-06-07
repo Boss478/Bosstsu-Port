@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import Image from "next/image";
-import { useState } from "react";
+import Link from 'next/link';
+import Image from 'next/image';
+import { useState } from 'react';
 
 const PHOTOS_PER_PAGE = 30;
-import { type GalleryAlbum } from "../data";
-import { formatLongDate } from "@/lib/format";
-import dynamic from "next/dynamic";
-const PhotoLightbox = dynamic(() => import("@/components/PhotoLightbox"));
-import Breadcrumb from "@/components/Breadcrumb";
+import { type GalleryAlbum } from '../data';
+import { formatLongDate } from '@/lib/format';
+import dynamic from 'next/dynamic';
+const PhotoLightbox = dynamic(() => import('@/components/PhotoLightbox'));
+import Breadcrumb from '@/components/Breadcrumb';
 
 interface AlbumContentProps {
   album: GalleryAlbum;
@@ -20,26 +20,17 @@ export default function AlbumContent({ album }: AlbumContentProps) {
   const [visibleCount, setVisibleCount] = useState(PHOTOS_PER_PAGE);
   const hasMore = visibleCount < album.photos.length;
 
-
   return (
     <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
-
       <section className="pt-28 pb-8 px-4">
         <div className="max-w-7xl mx-auto">
-          <Breadcrumb
-            items={[
-              { label: "แกลเลอรี่", href: "/gallery" },
-              { label: album.title },
-            ]}
-          />
+          <Breadcrumb items={[{ label: 'แกลเลอรี่', href: '/gallery' }, { label: album.title }]} />
 
-          <h1 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-3">
+          <h1 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-3 leading-relaxed">
             {album.title}
           </h1>
 
-          <p className="text-zinc-600 dark:text-zinc-400 mb-4 max-w-2xl">
-            {album.description}
-          </p>
+          <p className="text-zinc-600 dark:text-zinc-400 mb-4 max-w-2xl">{album.description}</p>
 
           <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
             <span className="flex items-center gap-1.5">
@@ -70,12 +61,14 @@ export default function AlbumContent({ album }: AlbumContentProps) {
             >
               <i aria-hidden="true" className="fi fi-sr-briefcase text-blue-500"></i>
               ดูรายละเอียดโครงการ
-              <i aria-hidden="true" className="fi fi-sr-arrow-right text-xs opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"></i>
+              <i
+                aria-hidden="true"
+                className="fi fi-sr-arrow-right text-xs opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
+              ></i>
             </Link>
           )}
         </div>
       </section>
-
 
       <section id="album-photos" className="pb-20 px-4">
         <div className="max-w-7xl mx-auto">
@@ -100,7 +93,7 @@ export default function AlbumContent({ album }: AlbumContentProps) {
           {hasMore && (
             <div className="flex justify-center mt-8">
               <button
-                onClick={() => setVisibleCount(prev => prev + PHOTOS_PER_PAGE)}
+                onClick={() => setVisibleCount((prev) => prev + PHOTOS_PER_PAGE)}
                 className="px-8 py-3 rounded-xl bg-white/70 dark:bg-slate-800/70 border border-white/60 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-700 shadow-sm hover:shadow-md transition-all text-zinc-700 dark:text-zinc-200 font-medium"
               >
                 ดูเพิ่มเติม ({visibleCount}/{album.photos.length})
@@ -109,7 +102,6 @@ export default function AlbumContent({ album }: AlbumContentProps) {
           )}
         </div>
       </section>
-
 
       {lightboxIndex !== null && (
         <PhotoLightbox

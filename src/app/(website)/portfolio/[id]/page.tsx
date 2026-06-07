@@ -1,15 +1,15 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import type { Metadata } from "next";
-import DOMPurify from "isomorphic-dompurify";
-import dbConnect from "@/lib/db";
-import Portfolio from "@/models/Portfolio";
-import Breadcrumb from "@/components/Breadcrumb";
-import PortfolioGallery from "@/components/PortfolioGallery";
-import { type PortfolioItem } from "../data";
-import { formatLongDate, formatShortDate } from "@/lib/format";
-import { CONFIG } from "@/lib/config";
-import type { IPortfolioItem } from "@/models/Portfolio";
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
+import DOMPurify from 'isomorphic-dompurify';
+import dbConnect from '@/lib/db';
+import Portfolio from '@/models/Portfolio';
+import Breadcrumb from '@/components/Breadcrumb';
+import PortfolioGallery from '@/components/PortfolioGallery';
+import { type PortfolioItem } from '../data';
+import { formatLongDate, formatShortDate } from '@/lib/format';
+import { CONFIG } from '@/lib/config';
+import type { IPortfolioItem } from '@/models/Portfolio';
 
 export const revalidate = 60;
 
@@ -21,9 +21,12 @@ export async function generateMetadata({
   try {
     const { id } = await params;
     await dbConnect();
-    const doc = await Portfolio.findOne({ slug: id, published: { $ne: false } }).lean() as IPortfolioItem | null;
+    const doc = (await Portfolio.findOne({
+      slug: id,
+      published: { $ne: false },
+    }).lean()) as IPortfolioItem | null;
 
-    if (!doc) return { title: "Not Found" };
+    if (!doc) return { title: 'Not Found' };
 
     return {
       title: `${doc.title} | Boss478`,
@@ -32,18 +35,21 @@ export async function generateMetadata({
         title: doc.title,
         description: doc.description || undefined,
         images: doc.cover ? [{ url: doc.cover }] : [],
-        type: "article",
+        type: 'article',
       },
     };
   } catch {
-    return { title: "Boss478" };
+    return { title: 'Boss478' };
   }
 }
 
 export async function generateStaticParams() {
   try {
     await dbConnect();
-    const docs = await Portfolio.find({ published: { $ne: false } }, "slug").lean() as IPortfolioItem[];
+    const docs = (await Portfolio.find(
+      { published: { $ne: false } },
+      'slug',
+    ).lean()) as IPortfolioItem[];
     return docs.map((doc) => ({
       id: doc.slug,
     }));
@@ -52,38 +58,39 @@ export async function generateStaticParams() {
   }
 }
 
-export default async function PortfolioDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function PortfolioDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   let doc: IPortfolioItem | null = null;
   try {
     await dbConnect();
-    doc = await Portfolio.findOne({ slug: id, published: { $ne: false } }).select('+content').lean() as IPortfolioItem | null;
+    doc = (await Portfolio.findOne({ slug: id, published: { $ne: false } })
+      .select('+content')
+      .lean()) as IPortfolioItem | null;
   } catch {
     // DB unavailable (Docker build) — ISR populates at runtime
   }
   if (!doc) notFound();
 
-  const defaultFallbackDate = new Date("2024-01-01T00:00:00.000Z");
+  const defaultFallbackDate = new Date('2024-01-01T00:00:00.000Z');
 
   const item: PortfolioItem = {
     id: doc.slug,
     title: doc.title,
-    description: doc.description || "",
-    content: doc.content || "",
+    description: doc.description || '',
+    content: doc.content || '',
     gallery: doc.gallery || [],
     tools: doc.tools || [],
     cover: doc.cover,
     tags: doc.tags || [],
-    date: doc.date instanceof Date ? doc.date.toISOString() : new Date(doc.date || defaultFallbackDate).toISOString(),
+    date:
+      doc.date instanceof Date
+        ? doc.date.toISOString()
+        : new Date(doc.date || defaultFallbackDate).toISOString(),
     relatedGalleryId: doc.relatedGalleryId || undefined,
   };
 
-  const projection = "_id slug title cover date";
+  const projection = '_id slug title cover date';
 
   const [recentDocs, relatedDocs, olderDoc, newerDoc] = await Promise.all([
     Portfolio.find({ slug: { $ne: id }, published: { $ne: false } })
@@ -93,18 +100,18 @@ export default async function PortfolioDetailPage({
       .lean(),
     item.tags.length > 0
       ? Portfolio.find({ tags: { $in: item.tags }, published: { $ne: false } })
-          .select(projection + " tags")
+          .select(projection + ' tags')
           .sort({ date: -1 })
           .limit(CONFIG.PAGINATION.PORTFOLIO_RELATED * 2)
           .lean()
       : [],
     Portfolio.findOne({ date: { $lt: doc.date }, published: { $ne: false } })
-      .select("_id slug title date")
+      .select('_id slug title date')
       .sort({ date: -1 })
       .limit(1)
       .lean(),
     Portfolio.findOne({ date: { $gt: doc.date }, published: { $ne: false } })
-      .select("_id slug title date")
+      .select('_id slug title date')
       .sort({ date: 1 })
       .limit(1)
       .lean(),
@@ -115,35 +122,42 @@ export default async function PortfolioDetailPage({
     id: d.slug,
     title: d.title,
     cover: d.cover,
-    date: d.date instanceof Date ? d.date.toISOString() : new Date(d.date || defaultFallbackDate).toISOString(),
+    date:
+      d.date instanceof Date
+        ? d.date.toISOString()
+        : new Date(d.date || defaultFallbackDate).toISOString(),
   }));
 
-  const relatedItems = relatedDocs.length > 0
-    ? (() => {
-        const itemTags = new Set(item.tags);
-        const scores = relatedDocs.map((d: LeanDoc) => {
-          const tagList = d.tags || [];
-          let score = 0;
-          for (const tag of tagList) {
-            if (itemTags.has(tag)) score++;
-          }
-          return { item: d, score, date: d.date instanceof Date ? d.date.getTime() : 0 };
-        });
-        scores.sort((a, b) => {
-          if (b.score !== a.score) return b.score - a.score;
-          return b.date - a.date;
-        });
-        return scores
-          .slice(0, CONFIG.PAGINATION.PORTFOLIO_RELATED)
-          .filter((s) => s.item.slug !== id)
-          .map((s) => ({
-            id: s.item.slug,
-            title: s.item.title,
-            cover: s.item.cover,
-            date: s.item.date instanceof Date ? s.item.date.toISOString() : new Date(s.item.date || defaultFallbackDate).toISOString(),
-          }));
-      })()
-    : [];
+  const relatedItems =
+    relatedDocs.length > 0
+      ? (() => {
+          const itemTags = new Set(item.tags);
+          const scores = relatedDocs.map((d: LeanDoc) => {
+            const tagList = d.tags || [];
+            let score = 0;
+            for (const tag of tagList) {
+              if (itemTags.has(tag)) score++;
+            }
+            return { item: d, score, date: d.date instanceof Date ? d.date.getTime() : 0 };
+          });
+          scores.sort((a, b) => {
+            if (b.score !== a.score) return b.score - a.score;
+            return b.date - a.date;
+          });
+          return scores
+            .slice(0, CONFIG.PAGINATION.PORTFOLIO_RELATED)
+            .filter((s) => s.item.slug !== id)
+            .map((s) => ({
+              id: s.item.slug,
+              title: s.item.title,
+              cover: s.item.cover,
+              date:
+                s.item.date instanceof Date
+                  ? s.item.date.toISOString()
+                  : new Date(s.item.date || defaultFallbackDate).toISOString(),
+            }));
+        })()
+      : [];
 
   const newerItem = newerDoc ? { id: newerDoc.slug, title: newerDoc.title } : null;
   const olderItem = olderDoc ? { id: olderDoc.slug, title: olderDoc.title } : null;
@@ -152,12 +166,7 @@ export default async function PortfolioDetailPage({
     <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
       <section className="pt-28 pb-8 px-4">
         <div className="max-w-7xl mx-auto">
-          <Breadcrumb
-            items={[
-              { label: "ผลงาน", href: "/portfolio" },
-              { label: item.title },
-            ]}
-          />
+          <Breadcrumb items={[{ label: 'ผลงาน', href: '/portfolio' }, { label: item.title }]} />
         </div>
       </section>
 
@@ -185,7 +194,7 @@ export default async function PortfolioDetailPage({
                     </span>
                   ))}
                 </div>
-                <h1 className="text-3xl md:text-4xl font-bold leading-snug text-zinc-900 dark:text-zinc-100 mb-4">
+                <h1 className="text-3xl md:text-4xl font-bold leading-normal text-zinc-900 dark:text-zinc-100 mb-4">
                   {item.title}
                 </h1>
                 <div className="flex flex-wrap items-center gap-6 text-zinc-500 dark:text-zinc-400 text-sm">
@@ -232,7 +241,7 @@ export default async function PortfolioDetailPage({
               )}
             </div>
 
-            {( (item.gallery && item.gallery.length > 0) || item.relatedGalleryId ) && (
+            {((item.gallery && item.gallery.length > 0) || item.relatedGalleryId) && (
               <section id="portfolio-gallery" className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 pl-2 border-l-4 border-blue-500">
@@ -248,18 +257,18 @@ export default async function PortfolioDetailPage({
                     </Link>
                   )}
                 </div>
-                
+
                 {item.gallery && item.gallery.length > 0 ? (
                   <PortfolioGallery images={item.gallery} />
                 ) : (
                   <div className="flex flex-col items-center justify-center p-8 rounded-2xl bg-blue-50 dark:bg-slate-900/50 border border-blue-100 dark:border-slate-800 text-center">
-                     <div className="w-16 h-16 bg-blue-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
-                        <i aria-hidden="true" className="fi fi-sr-picture text-2xl text-blue-500"></i>
-                     </div>
-                     <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-                       ดูรูปภาพเพิ่มเติมได้ในอัลบั้มแกลเลอรี่
-                     </p>
-                     <Link
+                    <div className="w-16 h-16 bg-blue-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
+                      <i aria-hidden="true" className="fi fi-sr-picture text-2xl text-blue-500"></i>
+                    </div>
+                    <p className="text-zinc-600 dark:text-zinc-400 mb-4">
+                      ดูรูปภาพเพิ่มเติมได้ในอัลบั้มแกลเลอรี่
+                    </p>
+                    <Link
                       href={`/gallery/${item.relatedGalleryId}`}
                       className="px-6 py-2 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-full font-medium shadow-sm hover:shadow border border-blue-100 dark:border-slate-700 transition-all"
                     >
@@ -278,7 +287,10 @@ export default async function PortfolioDetailPage({
                 className="group p-6 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300"
               >
                 <div className="flex items-center gap-2 text-xs text-zinc-400 dark:text-zinc-500 mb-2">
-                  <i aria-hidden="true" className="fi fi-sr-arrow-left transition-transform group-hover:-translate-x-1" />
+                  <i
+                    aria-hidden="true"
+                    className="fi fi-sr-arrow-left transition-transform group-hover:-translate-x-1"
+                  />
                   ผลงานก่อนหน้า
                 </div>
                 <div className="font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
@@ -294,7 +306,10 @@ export default async function PortfolioDetailPage({
               >
                 <div className="flex items-center justify-end gap-2 text-xs text-zinc-400 dark:text-zinc-500 mb-2">
                   ผลงานถัดไป
-                  <i aria-hidden="true" className="fi fi-sr-arrow-right transition-transform group-hover:translate-x-1" />
+                  <i
+                    aria-hidden="true"
+                    className="fi fi-sr-arrow-right transition-transform group-hover:translate-x-1"
+                  />
                 </div>
                 <div className="font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                   {newerItem.title}
@@ -304,7 +319,10 @@ export default async function PortfolioDetailPage({
           </nav>
 
           {relatedItems.length > 0 && (
-            <section id="portfolio-related" className="pt-16 border-t border-zinc-200 dark:border-slate-800">
+            <section
+              id="portfolio-related"
+              className="pt-16 border-t border-zinc-200 dark:border-slate-800"
+            >
               <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6 flex items-center gap-2">
                 <i aria-hidden="true" className="fi fi-sr-apps text-blue-500" />
                 ผลงานอื่น ๆ
@@ -351,10 +369,7 @@ export default async function PortfolioDetailPage({
                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 {recentItems.map((item: any) => (
                   <li key={item.id} className="group">
-                    <Link
-                      href={`/portfolio/${item.id}`}
-                      className="flex gap-3 items-start"
-                    >
+                    <Link href={`/portfolio/${item.id}`} className="flex gap-3 items-start">
                       <div className="w-16 h-16 rounded-xl bg-zinc-200 dark:bg-slate-800 shrink-0 overflow-hidden relative">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img

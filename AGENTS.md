@@ -142,6 +142,7 @@ Quick build check via Docker: `docker compose exec app-dev npm run build`
 - **`bufferCommands: false`**: queries hard-fail on unready connections (no silent queue).
 - **`sharp` must stay in `serverExternalPackages`**: cannot run in edge runtime.
 - **No `tailwind.config.ts`**: TailwindCSS 4 uses `@theme` in `globals.css` exclusively.
+- **Thai font clipping (Font จม)**: Thai descenders (ภ ว ม ห ฤ ร) need more line-height than Latin. Use `leading-relaxed` or `leading-normal` for Thai text at 2xl+. Avoid `bg-clip-text` + `text-transparent` on Thai text (clips at em-box). Avoid `leading-tight`/`leading-snug` near Thai. When editing any Thai text heading, always check `bg-clip-text`, line-height, and `overflow-hidden` parents.
 
 ---
 

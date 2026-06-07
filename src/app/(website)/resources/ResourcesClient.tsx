@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import Link from "next/link";
-import Image from "next/image";
+import Link from 'next/link';
+import Image from 'next/image';
 import { ResourceItem } from './data';
-import Breadcrumb from "@/components/Breadcrumb";
-import { formatShortDate } from "@/lib/format";
-import { Pagination } from "@/components/Pagination";
-import { EmptyState } from "@/components/EmptyState";
-import { useListNavigation } from "@/hooks/useListNavigation";
+import Breadcrumb from '@/components/Breadcrumb';
+import { formatShortDate } from '@/lib/format';
+import { Pagination } from '@/components/Pagination';
+import { EmptyState } from '@/components/EmptyState';
+import { useListNavigation } from '@/hooks/useListNavigation';
 
 interface ResourcesClientProps {
   items: ResourceItem[];
@@ -18,7 +18,7 @@ interface ResourcesClientProps {
   totalPages: number;
   activeType: string;
   activeQuery: string;
-  sort: "Newest" | "Oldest";
+  sort: 'Newest' | 'Oldest';
   total: number;
 }
 
@@ -42,7 +42,7 @@ export default function ResourcesClient({
   const filteredItems = useMemo(() => {
     if (!localQuery) return items;
     const q = localQuery.toLowerCase();
-    return items.filter(item => item.title.toLowerCase().includes(q));
+    return items.filter((item) => item.title.toLowerCase().includes(q));
   }, [items, localQuery]);
 
   useEffect(() => {
@@ -57,30 +57,31 @@ export default function ResourcesClient({
     navigateToPage(page, activeType, sort);
   };
 
-  const allTypes = ["All", ...uniqueTypes];
+  const allTypes = ['All', ...uniqueTypes];
 
   return (
     <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
       <section className="pt-28 pb-12 px-4">
         <div className="max-w-7xl mx-auto">
-          <Breadcrumb items={[{ label: "สื่อการเรียนรู้" }]} />
+          <Breadcrumb items={[{ label: 'สื่อการเรียนรู้' }]} />
 
-          <h1 className="text-4xl md:text-5xl font-bold text-blue-600 dark:text-blue-400">
+          <h1 className="text-4xl md:text-5xl font-bold text-blue-600 dark:text-blue-400 leading-relaxed">
             สื่อการเรียนรู้
           </h1>
           <p className="mt-3 text-lg text-zinc-600 dark:text-zinc-400">
             เอกสารประกอบการเรียน สไลด์ และวิดีโอความรู้
           </p>
-          <p className="mt-2 text-sm text-zinc-400 dark:text-zinc-500">
-            ทั้งหมด {total} รายการ
-          </p>
+          <p className="mt-2 text-sm text-zinc-400 dark:text-zinc-500">ทั้งหมด {total} รายการ</p>
         </div>
       </section>
 
       <section className="px-4 pb-8">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-3">
           <div className="relative w-64">
-            <i aria-hidden="true" className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-sm" />
+            <i
+              aria-hidden="true"
+              className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-sm"
+            />
             <input
               type="text"
               placeholder="ค้นหา..."
@@ -91,29 +92,29 @@ export default function ResourcesClient({
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-          {allTypes.map((type) => (
-            <button
-              key={type}
+            {allTypes.map((type) => (
+              <button
+                key={type}
                 onClick={() => filterBy(type, sort)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 border ${
-                activeType === type
-                  ? "bg-blue-500 text-white shadow-md shadow-blue-500/25"
-                  : "bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-300 hover:bg-blue-100 dark:hover:bg-slate-700"
-              }`}
-            >
-              {type === "All" ? "ทั้งหมด" : type}
-            </button>
-          ))}
-        </div>
+                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 border ${
+                  activeType === type
+                    ? 'bg-blue-500 text-white shadow-md shadow-blue-500/25'
+                    : 'bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-300 hover:bg-blue-100 dark:hover:bg-slate-700'
+                }`}
+              >
+                {type === 'All' ? 'ทั้งหมด' : type}
+              </button>
+            ))}
+          </div>
 
-        <select
-          value={sort}
+          <select
+            value={sort}
             onChange={(e) => changeSort(e.target.value, activeType)}
             className="ml-auto px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:border-blue-300 focus:outline-hidden cursor-pointer"
-        >
-          <option value="Newest">ใหม่สุด</option>
-          <option value="Oldest">เก่าสุด</option>
-        </select>
+          >
+            <option value="Newest">ใหม่สุด</option>
+            <option value="Oldest">เก่าสุด</option>
+          </select>
         </div>
       </section>
 
@@ -126,8 +127,8 @@ export default function ResourcesClient({
               icon="fi-sr-book-alt"
             />
           ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredItems.map((item) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredItems.map((item) => (
                 <Link
                   key={item.id}
                   href={item.link.startsWith('/') ? item.link : `/resources/${item.id}`}
@@ -144,20 +145,30 @@ export default function ResourcesClient({
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <i aria-hidden="true" className="fi fi-sr-book-alt text-3xl text-zinc-400" />
+                        <i
+                          aria-hidden="true"
+                          className="fi fi-sr-book-alt text-3xl text-zinc-400"
+                        />
                       </div>
                     )}
 
-<div className="absolute top-2 right-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm border border-white/40 shadow-sm ${
-                          item.type === "Worksheet" ? "bg-green-500/50 text-white" :
-                          item.type === "Article" ? "bg-orange-500/50 text-white" :
-                          item.type === "Video" ? "bg-red-500/50 text-white" :
-                          item.type === "Interactive" ? "bg-purple-500/50 text-white" : "bg-blue-500/50 text-white"
-                        }`}>
-                          {item.type}
-                        </span>
-                     </div>
+                    <div className="absolute top-2 right-2">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm border border-white/40 shadow-sm ${
+                          item.type === 'Worksheet'
+                            ? 'bg-green-500/50 text-white'
+                            : item.type === 'Article'
+                              ? 'bg-orange-500/50 text-white'
+                              : item.type === 'Video'
+                                ? 'bg-red-500/50 text-white'
+                                : item.type === 'Interactive'
+                                  ? 'bg-purple-500/50 text-white'
+                                  : 'bg-blue-500/50 text-white'
+                        }`}
+                      >
+                        {item.type}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="p-4 flex flex-col flex-1">
@@ -178,10 +189,10 @@ export default function ResourcesClient({
                         <i aria-hidden="true" className="fi fi-sr-arrow-up-right text-xs"></i>
                       </div>
                     </div>
-                 </div>
-                 </Link>
-               ))}
-             </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           )}
 
           <Pagination

@@ -4,6 +4,20 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.49 (2026-06-07)
++ **Scrolling Animation System**: ScrollReveal now supports `variant` prop (fade-up/left/right/scale-up) with `prefers-reduced-motion` check — StatsBar fades up, Spotlight slides from left, Categories scale in
++ **Card Stagger**: Per-card staggered entrances in Spotlight (`stagger-fade-left`) and Categories (`stagger-scale-up`) with 80ms intervals via CSS `nth-child` utilities
++ **Hero Parallax**: 8 floating dots drift at scroll-dependent speeds (5–61px offset) via CSS custom property — rAF-throttled, passive listener, zero React state updates
+
+## v1.9.48 (2026-06-06)
++ **Homepage Redesign**: New hero with Thai greeting (`สวัสดี ผมชื่อ Boss478`), CSS floating dot background (GPU composited, zero JS), 3rd CTA button for games
++ **Stats Bar**: MongoDB-powered counters (portfolio/gallery/games/resources) with IntersectionObserver-triggered count-up animation, respects `prefers-reduced-motion`
++ **Spotlight Section**: Latest 3 portfolio items fetched from DB with lazy-loaded cover images, graceful fallback on DB outage
++ **Categories**: 4-column grid on desktop, watermark icon, enhanced hover effects
+* **Performance**: All DB queries wrapped in try/catch with fallback defaults — page never 500s from DB blip
+* **ISR**: `revalidate = 60` on homepage for cached HTML + background regeneration
+- **Removed**: Canvas particle plan — replaced with CSS `@keyframes` (GPU composited, infinite loop safe via `motion-reduce`)
+
 ## v1.9.47 (2026-06-06)
 + **Phase 1 (Tooling)**: GitHub Actions CI, Husky + lint-staged, Prettier + EditorConfig, Sentry error monitoring, `noUnusedLocals` strict TS, `.nvmrc`, bundle analyzer script, Sentry CSP `connect-src`
 + **Phase 2 (Accessibility)**: `aria-hidden="true"` on 427 Flaticon icons, `htmlFor`+`id` on 32 form inputs, `useFocusTrap` hook, `aria-current="page"` on nav links, `role="dialog"`+`aria-modal` on 3 overlays, heading h3→h2 fix on 4 listing pages, skip links in admin layout
