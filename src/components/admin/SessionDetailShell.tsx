@@ -9,6 +9,7 @@ import SessionManager from '@/components/admin/SessionManager';
 import QuickStartModal, { type StepConfig } from '@/components/admin/QuickStartModal';
 import StageManagerModal from '@/components/admin/StageManagerModal';
 import StudentList from '@/components/admin/StudentList';
+import QRSessionCode from '@/components/tools/QRSessionCode';
 import { advanceStep } from '@/app/admin/tools/actions';
 import { t } from '@/lib/tool-translations';
 
@@ -20,6 +21,7 @@ interface SessionDetailShellProps {
 export default function SessionDetailShell({ session, responses }: SessionDetailShellProps) {
   const router = useRouter();
   const [codeFullScreen, setCodeFullScreen] = useState(false);
+  const [origin] = useState(() => (typeof window !== 'undefined' ? window.location.origin : ''));
   const [advancing, setAdvancing] = useState(false);
   const [editSessionData, setEditSessionData] = useState<Record<string, unknown> | null>(null);
   const [showStageManager, setShowStageManager] = useState(false);
@@ -57,11 +59,11 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
   return (
     <>
       {codeFullScreen && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity duration-300"
           onClick={() => setCodeFullScreen(false)}
         >
-          <div 
+          <div
             className="relative p-12 rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-2xl max-w-6xl w-full mx-4 text-center"
             onClick={(e) => e.stopPropagation()}
           >
@@ -74,11 +76,17 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
             </button>
 
             <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-4">
-              {String(session.responseCount)} response{Number(session.responseCount) !== 1 ? 's' : ''}
+              {String(session.responseCount)} response
+              {Number(session.responseCount) !== 1 ? 's' : ''}
             </p>
-            <p className="text-[10rem] leading-none font-bold tracking-[0.2em] font-mono text-blue-600 dark:text-blue-400 select-all mb-8">
+            <p className="text-[10rem] leading-none font-bold tracking-[0.2em] font-mono text-blue-600 dark:text-blue-400 select-all mb-2">
               {String(session.sessionCode)}
             </p>
+            {origin && String(session.sessionCode) && (
+              <div className="mb-2">
+                <QRSessionCode value={`${origin}/study/${session.sessionCode}`} size={240} />
+              </div>
+            )}
             <div className="pt-6 border-t border-zinc-200 dark:border-slate-700">
               <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Students go to:</p>
               <a
@@ -97,17 +105,22 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
 
       <div className="min-h-screen bg-blue-50 dark:bg-slate-950 pt-28 pb-12 px-4">
         <div className="max-w-5xl mx-auto">
-          <Breadcrumb items={[
-            { label: 'Backend', href: '/admin' },
-            { label: 'Class Tools', href: '/admin/tools' },
-            { label: String(session.sessionCode) },
-          ]} />
+          <Breadcrumb
+            items={[
+              { label: 'Backend', href: '/admin' },
+              { label: 'Class Tools', href: '/admin/tools' },
+              { label: String(session.sessionCode) },
+            ]}
+          />
 
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
                 <i aria-hidden="true" className="fi fi-sr-play text-blue-500" />
-                Session <span className="font-mono tracking-widest text-blue-600 dark:text-blue-400">{String(session.sessionCode)}</span>
+                Session{' '}
+                <span className="font-mono tracking-widest text-blue-600 dark:text-blue-400">
+                  {String(session.sessionCode)}
+                </span>
               </h1>
               <p className="text-zinc-500 dark:text-zinc-400 mt-1">{String(session.title)}</p>
             </div>
@@ -138,18 +151,20 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
             </div>
           </div>
 
-           <SessionManager
-             session={session}
-             onToggleCodeFullScreen={() => setCodeFullScreen(true)}
-           />
-           <div className="mt-6">
-             <StudentList sessionId={String(session._id)} />
-           </div>
+          <SessionManager
+            session={session}
+            onToggleCodeFullScreen={() => setCodeFullScreen(true)}
+          />
+          <div className="mt-6">
+            <StudentList sessionId={String(session._id)} />
+          </div>
 
           {hasSteps && (
             <div className="mt-6 p-4 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{t('step')}</h3>
+                <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                  {t('step')}
+                </h3>
                 <div className="flex items-center gap-2">
                   {localCurrentStep === -1 && isActive && localLastActiveStep < 0 && (
                     <button
@@ -196,22 +211,28 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
 
               <div className="flex items-center gap-2">
                 {steps.map((step, idx) => {
-                  const effectiveStep = localCurrentStep === -1 ? localLastActiveStep : localCurrentStep;
+                  const effectiveStep =
+                    localCurrentStep === -1 ? localLastActiveStep : localCurrentStep;
                   let btnClasses: string;
                   if (idx === effectiveStep) {
-                    btnClasses = localCurrentStep === -1
-                      ? 'bg-amber-500 text-white shadow-sm'
-                      : 'bg-blue-600 text-white shadow-sm';
+                    btnClasses =
+                      localCurrentStep === -1
+                        ? 'bg-amber-500 text-white shadow-sm'
+                        : 'bg-blue-600 text-white shadow-sm';
                   } else if (idx < effectiveStep) {
-                    btnClasses = localCurrentStep === -1
-                      ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
-                      : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400';
+                    btnClasses =
+                      localCurrentStep === -1
+                        ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+                        : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400';
                   } else {
                     btnClasses = 'bg-zinc-100 dark:bg-slate-700 text-zinc-500 dark:text-zinc-400';
                   }
-                  const lineClasses = idx < effectiveStep
-                    ? (localCurrentStep === -1 ? 'bg-amber-400' : 'bg-emerald-400')
-                    : 'bg-zinc-300 dark:bg-slate-600';
+                  const lineClasses =
+                    idx < effectiveStep
+                      ? localCurrentStep === -1
+                        ? 'bg-amber-400'
+                        : 'bg-emerald-400'
+                      : 'bg-zinc-300 dark:bg-slate-600';
                   return (
                     <div key={idx} className="flex items-center gap-2 flex-1">
                       <button
@@ -222,9 +243,7 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
                         <span className="block font-bold">{idx + 1}</span>
                         <span className="block truncate">{step.title}</span>
                       </button>
-                      {idx < steps.length - 1 && (
-                        <div className={`w-4 h-0.5 ${lineClasses}`} />
-                      )}
+                      {idx < steps.length - 1 && <div className={`w-4 h-0.5 ${lineClasses}`} />}
                     </div>
                   );
                 })}
@@ -233,10 +252,12 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
           )}
 
           <div className="mt-6">
-            <ResultsView 
-              session={session} 
+            <ResultsView
+              session={session}
               initialResponses={responses}
-              onToggleFullScreen={() => window.open(`/admin/tools/sessions/${String(session._id)}/results`, '_blank')}
+              onToggleFullScreen={() =>
+                window.open(`/admin/tools/sessions/${String(session._id)}/results`, '_blank')
+              }
               refreshInterval={15000}
               sessionCurrentStep={localCurrentStep}
             />

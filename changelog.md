@@ -4,8 +4,16 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+
+## v1.9.53 (2026-06-08)
++ **Session QR code**: Curved blue-themed QR code (rounded SVG rects) encoding the join URL — shown below session code in both the admin card (160px) and full-screen modal (240px)
+* **Scrutiny**: BitMatrix API uses `.get(row, col)` not array indexing; precomputed rects via `useMemo`; 4-module quiet zone padding; dark mode via CSS `currentColor` (no JS flicker)
+
+## v1.9.52 (2026-06-08)
++ **Text selection rules**: Body is now `user-select: none` to prevent accidental text selection on UI elements — inputs, textareas, contenteditable, `.article-content` and `.prose` areas remain selectable
+
 ## v1.9.51 (2026-06-07)
-+ **Sequential row-by-row image loading**: Images now reveal in rows (4 per row, top-to-bottom) rather than random load order — `loadedSet` state tracks loaded indices via `onLoad`, derived `revealedCount` unveils full rows at a time
+
 * **Shimmer skeleton fix**: `skeleton` class now removed on `onLoad` via conditional CSS class — no more infinite shimmer animation on loaded images
 * **Background preloading**: Unrevealed images download in background (`opacity: 0`, `pointer-events: none`) while next row loads — zero perceived delay between row reveals
 + **Scrutiny**: Fixed loop bound bug in row reveal logic — `Math.min(batchEnd, visibleCountRef.current)` prevents incorrect completion check for indices beyond `visibleCount`

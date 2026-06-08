@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { endSession } from '@/app/admin/tools/actions';
+import QRSessionCode from '@/components/tools/QRSessionCode';
 
 interface SessionManagerProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -12,11 +13,7 @@ interface SessionManagerProps {
 
 export default function SessionManager({ session, onToggleCodeFullScreen }: SessionManagerProps) {
   const [pending, setPending] = useState(false);
-  const [origin, setOrigin] = useState('');
-
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
+  const [origin] = useState(() => (typeof window !== 'undefined' ? window.location.origin : ''));
 
   const handleEnd = async () => {
     if (!confirm('End this session? Students will no longer be able to submit responses.')) return;
@@ -77,7 +74,10 @@ export default function SessionManager({ session, onToggleCodeFullScreen }: Sess
           <p className="text-7xl font-bold tracking-[0.3em] font-mono text-blue-600 dark:text-blue-400 select-all">
             {session.sessionCode}
           </p>
-          <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-slate-700">
+          <div className="mt-4 mb-2 flex justify-center">
+            <QRSessionCode value={`${origin}/study/${session.sessionCode}`} size={160} />
+          </div>
+          <div className="pt-4 border-t border-zinc-200 dark:border-slate-700">
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Students go to:</p>
             {origin ? (
               <Link
