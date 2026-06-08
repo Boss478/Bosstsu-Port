@@ -11,7 +11,7 @@ export default function StandaloneLayout({
       >
         ข้ามไปที่เนื้อหาหลัก
       </a>
-      <main id="main-content" className="min-h-screen overflow-hidden">
+      <main id="main-content" className="min-h-screen">
         {children}
       </main>
     </>

@@ -5,18 +5,6 @@
 
 
 
-## v1.9.61 (2026-06-08)
-* **Alphabet Adventure scroll fix v2**: Changed root from `h-screen overflow-hidden` to `fixed inset-0 overflow-hidden overscroll-none` — removes element from document flow, fixes Safari 100vh issue. Added `overflow-hidden` to standalone layout `<main>`. Changed card `max-h` from `calc(100vh)` to `calc(100dvh)` for dynamic viewport correctness
-
-## v1.9.60 (2026-06-08)
-* **Alphabet Adventure scroll fix**: Removed `pt-24` and `min-h-screen`, always `h-screen overflow-hidden`. Added internal scroll (`overflow-y-auto max-h-[calc(100vh-8rem)]`) to MenuScreen and VictoryScreen cards
-* **Alphabet Adventure bilingual UI**: Added Thai (TH) labels beneath all English UI text across MenuScreen, VictoryScreen, GameScreen, GameOverlays, MatchLevel, OnboardingOverlay, TypingLevel. Labels use `English`[primary] + `ไทย`[subtle] pattern
-* **Alphabet Adventure spacing**: Changed button container from `space-y-6` to `space-y-4` / `gap-3` for tighter spacing between Continue and Start buttons. Wrapped buttons + Thai labels in flex column groups
-* **Alphabet Adventure KG rename**: Changed "Easy Mode (KG)" to "Easy Mode" to avoid potential stigma label, with Thai "โหมดง่าย" below toggle
-
-## v1.9.59 (2026-06-08)
-* **Alphabet Adventure TDZ fix**: Moved `dropPowerRef` before lazy `useState` initializer to fix ReferenceError on client hydration. Docker `--no-cache` rebuild required — layer caching was serving stale JS chunks (20GB cache reclaimed)
-
 ## v1.9.58 (2026-06-08)
 + **Onboarding overlay**: Each level now shows a bilingual instruction card on first visit (auto-dismiss after 4s or tap "Got it!")
 + **Number badges**: Choice buttons in MatchLevel now show 1/2/3 badges for easier keyboard-to-button association

@@ -48,7 +48,7 @@ export default function MenuScreen({
   }, []);
 
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 relative max-h-[calc(100dvh-8rem)] overflow-y-auto">
+    <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 relative">
       <div className="absolute top-6 right-6 flex items-center gap-2">
         {isBeta && (
           <div className="relative">
@@ -141,78 +141,64 @@ export default function MenuScreen({
           <p className="text-xs font-black text-violet-600 dark:text-violet-400 uppercase tracking-widest">
             Best Score
           </p>
-          <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-500">คะแนนสูงสุด</p>
           <p className="text-3xl font-black text-violet-600 dark:text-violet-400">{highScore}</p>
         </div>
       )}
 
-      <div className="flex flex-col items-center gap-1 pt-2">
-        <div className="flex items-center justify-center gap-3">
-          <button
-            onClick={onToggleEasy}
-            role="switch"
-            aria-checked={easyMode}
-            className={`px-5 py-2 rounded-2xl text-sm font-black transition-all border-2 ${
-              easyMode
-                ? 'bg-emerald-100 dark:bg-emerald-900/30 border-emerald-400 text-emerald-700 dark:text-emerald-400'
-                : 'bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400'
-            }`}
-          >
-            {easyMode ? (
-              <>
-                <span aria-hidden="true">🐣</span> Easy Mode
-              </>
-            ) : (
-              'Easy Mode'
-            )}
-          </button>
-        </div>
-        <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500">โหมดง่าย</p>
+      <div className="flex items-center justify-center gap-3 pt-2">
+        <button
+          onClick={onToggleEasy}
+          role="switch"
+          aria-checked={easyMode}
+          className={`px-5 py-2 rounded-2xl text-sm font-black transition-all border-2 ${
+            easyMode
+              ? 'bg-emerald-100 dark:bg-emerald-900/30 border-emerald-400 text-emerald-700 dark:text-emerald-400'
+              : 'bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400'
+          }`}
+        >
+          {easyMode ? (
+            <>
+              <span aria-hidden="true">🐣</span> Easy Mode (KG)
+            </>
+          ) : (
+            'Easy Mode (KG)'
+          )}
+        </button>
       </div>
 
-      <div
-        className={`pt-4 ${isBeta ? 'flex items-center justify-center gap-4' : 'flex flex-col items-center gap-3'}`}
-      >
+      <div className={`pt-4 ${isBeta ? 'flex items-center justify-center gap-4' : 'space-y-6'}`}>
         {hasProgress && onContinue && (
-          <div className="flex flex-col items-center gap-1">
-            <button
-              onClick={onContinue}
-              className="group relative px-8 py-4 bg-emerald-600 text-white text-xl font-black rounded-3xl shadow-[0_10px_0_0_rgba(5,150,105,1)] active:shadow-none active:translate-y-2 transition-all duration-150 overflow-hidden"
-            >
-              <span className="relative z-10 flex items-center gap-3">
-                Continue{' '}
-                <i
-                  aria-hidden="true"
-                  className="fi fi-sr-play mt-1 transition-transform group-hover:translate-x-1"
-                ></i>
-              </span>
-              <div className="absolute inset-0 bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            </button>
-            <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">เล่นต่อ</p>
-          </div>
-        )}
-        <div className="flex flex-col items-center gap-1">
           <button
-            onClick={onStart}
-            className="group relative px-8 py-4 bg-violet-600 text-white text-xl font-black rounded-3xl shadow-[0_10px_0_0_rgba(109,40,217,1)] active:shadow-none active:translate-y-2 transition-all duration-150 overflow-hidden"
+            onClick={onContinue}
+            className="group relative px-8 py-4 bg-emerald-600 text-white text-xl font-black rounded-3xl shadow-[0_10px_0_0_rgba(5,150,105,1)] active:shadow-none active:translate-y-2 transition-all duration-150 overflow-hidden"
           >
             <span className="relative z-10 flex items-center gap-3">
-              {hasProgress ? 'New Game' : 'Start Game'}{' '}
+              Continue{' '}
               <i
                 aria-hidden="true"
                 className="fi fi-sr-play mt-1 transition-transform group-hover:translate-x-1"
               ></i>
             </span>
-            <div className="absolute inset-0 bg-violet-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="absolute inset-0 bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
           </button>
-          <p className="text-xs font-bold text-violet-500 dark:text-violet-400">
-            {hasProgress ? 'เริ่มใหม่' : 'เริ่มเกม'}
-          </p>
-        </div>
+        )}
+        <button
+          onClick={onStart}
+          className="group relative px-8 py-4 bg-violet-600 text-white text-xl font-black rounded-3xl shadow-[0_10px_0_0_rgba(109,40,217,1)] active:shadow-none active:translate-y-2 transition-all duration-150 overflow-hidden"
+        >
+          <span className="relative z-10 flex items-center gap-3">
+            {hasProgress ? 'New Game' : 'Start Game'}{' '}
+            <i
+              aria-hidden="true"
+              className="fi fi-sr-play mt-1 transition-transform group-hover:translate-x-1"
+            ></i>
+          </span>
+          <div className="absolute inset-0 bg-violet-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        </button>
       </div>
 
       {onShowCards && (
-        <div className="pt-4 flex flex-col items-center gap-1">
+        <div className="pt-4 flex items-center justify-center">
           <button
             onClick={onShowCards}
             className="group relative px-8 py-4 bg-amber-500 text-white text-xl font-black rounded-3xl shadow-[0_10px_0_0_rgba(217,119,6,1)] active:shadow-none active:translate-y-2 transition-all duration-150 overflow-hidden"
@@ -223,11 +209,10 @@ export default function MenuScreen({
             </span>
             <div className="absolute inset-0 bg-amber-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
           </button>
-          <p className="text-xs font-bold text-amber-600 dark:text-amber-400">สะสมการ์ด</p>
         </div>
       )}
 
-      <div className="pt-4 flex flex-col items-center gap-1">
+      <div className="pt-4 flex items-center justify-center">
         <button
           onClick={() => {
             if (
@@ -247,28 +232,20 @@ export default function MenuScreen({
           <i aria-hidden="true" className="fi fi-sr-refresh mr-1.5 text-xs"></i>
           RESET PROGRESS
         </button>
-        <p className="text-[9px] font-bold text-red-400/60">รีเซ็ตข้อมูล</p>
       </div>
 
       <p className="text-sm font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-widest flex items-center justify-center gap-2">
         Grade 1 • {easyMode ? '5 Levels' : '6 Levels'}
-        {isBeta && (
-          <span className="relative group cursor-help">
-            <i
-              aria-hidden="true"
-              className="fi fi-sr-info text-[10px] text-zinc-300 dark:text-zinc-600"
-            ></i>
-            <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 bg-zinc-900 dark:bg-zinc-700 text-white text-[10px] font-bold px-3 py-2 rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-normal text-center leading-relaxed">
-              Cards drop on correct answers! Longer streaks improve your chances of finding rare
-              cards.
-              <br />
-              ตอบถูกเพื่อรับการ์ด! ยิ่งเล่นต่อเนื่องยิ่งมีโอกาสได้การ์ดหายาก!
-            </span>
+        <span className="relative group cursor-help">
+          <i
+            aria-hidden="true"
+            className="fi fi-sr-info text-[10px] text-zinc-300 dark:text-zinc-600"
+          ></i>
+          <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-56 bg-zinc-900 dark:bg-zinc-700 text-white text-[10px] font-bold px-3 py-2 rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-normal text-center leading-relaxed">
+            Cards drop on correct answers! Longer streaks improve your chances of finding rare
+            cards.
           </span>
-        )}
-      </p>
-      <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500">
-        ป.1 • {easyMode ? '5 ด่าน' : '6 ด่าน'}
+        </span>
       </p>
     </div>
   );

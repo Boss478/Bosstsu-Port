@@ -57,16 +57,13 @@ export default function GameOverlays({
             <span className="inline-block px-3 py-1.5 rounded-lg bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg animate-pulse">
               CARDS
             </span>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={onToggleCollection}
-                className="p-1.5 rounded-lg bg-zinc-800/80 border border-zinc-700 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-all"
-                title="Collection"
-              >
-                <i aria-hidden="true" className="fi fi-sr-template text-xs"></i>
-              </button>
-              <span className="text-[9px] font-bold text-zinc-400">สะสม</span>
-            </div>
+            <button
+              onClick={onToggleCollection}
+              className="p-1.5 rounded-lg bg-zinc-800/80 border border-zinc-700 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-all"
+              title="Collection"
+            >
+              <i aria-hidden="true" className="fi fi-sr-template text-xs"></i>
+            </button>
           </>
         )}
         <button
@@ -109,12 +106,9 @@ export default function GameOverlays({
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="bg-black/85 backdrop-blur-xl px-5 py-4 rounded-2xl border border-zinc-700 shadow-2xl min-w-[260px]">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                  Collection
-                </p>
-                <p className="text-[9px] font-bold text-zinc-500">สะสม</p>
-              </div>
+              <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                Collection
+              </p>
               <button
                 onClick={onCloseCollection}
                 className="text-zinc-500 hover:text-zinc-300 transition-colors"
@@ -132,10 +126,7 @@ export default function GameOverlays({
               return (
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-zinc-300">{total} / 26 cards</span>
-                      <span className="text-[9px] font-bold text-zinc-500">การ์ด</span>
-                    </div>
+                    <span className="text-xs font-bold text-zinc-300">{total} / 26 cards</span>
                     <span className="text-xs font-bold text-amber-400">{col.totalPoints} pts</span>
                   </div>
                   <div className="h-1.5 rounded-full bg-zinc-700 overflow-hidden">
@@ -146,12 +137,9 @@ export default function GameOverlays({
                   </div>
                   {recent.length > 0 && (
                     <div>
-                      <div className="flex items-center gap-1.5 mb-1.5">
-                        <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
-                          Recent
-                        </p>
-                        <p className="text-[8px] font-bold text-zinc-500">ล่าสุด</p>
-                      </div>
+                      <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">
+                        Recent
+                      </p>
                       <div className="flex gap-2">
                         {recent.map((card) => (
                           <div
@@ -165,18 +153,15 @@ export default function GameOverlays({
                       </div>
                     </div>
                   )}
-                  <div className="flex flex-col items-center gap-0.5">
-                    <button
-                      onClick={() => {
-                        onCloseCollection();
-                        onViewFullCollection();
-                      }}
-                      className="w-full py-1.5 rounded-lg bg-violet-600/80 hover:bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest transition-all"
-                    >
-                      View Full Collection
-                    </button>
-                    <p className="text-[9px] font-bold text-violet-400/80">ดูทั้งหมด</p>
-                  </div>
+                  <button
+                    onClick={() => {
+                      onCloseCollection();
+                      onViewFullCollection();
+                    }}
+                    className="w-full py-1.5 rounded-lg bg-violet-600/80 hover:bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest transition-all"
+                  >
+                    View Full Collection
+                  </button>
                 </div>
               );
             })()}

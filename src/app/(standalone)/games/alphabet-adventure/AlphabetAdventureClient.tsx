@@ -98,7 +98,11 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
   return (
     <div
       ref={containerRef}
-      className="alphabet-game flex flex-col items-center justify-center p-4 transition-colors duration-500 fixed inset-0 overflow-hidden overscroll-none bg-violet-50 dark:bg-zinc-950"
+      className={`alphabet-game flex flex-col items-center justify-center p-4 transition-colors duration-500 ${
+        screen === 'game'
+          ? 'h-screen overflow-hidden bg-violet-50 dark:bg-zinc-950'
+          : 'min-h-screen bg-violet-50 dark:bg-zinc-950 pt-24'
+      }`}
       style={{ fontFamily: "'Mali', sans-serif" }}
     >
       <div className="w-full max-w-3xl mx-auto relative">
