@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 const PHOTOS_PER_PAGE = 12;
+const ROW_SIZE = 4;
 import { type GalleryAlbum } from '../data';
 import { formatLongDate } from '@/lib/format';
 import dynamic from 'next/dynamic';
@@ -18,9 +19,12 @@ interface AlbumContentProps {
 export default function AlbumContent({ album }: AlbumContentProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(PHOTOS_PER_PAGE);
+  const [loadedSet, setLoadedSet] = useState(new Set<number>());
   const hasMore = visibleCount < album.photos.length;
   const isLoadingRef = useRef(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const revealedCount = Math.min(Math.floor(loadedSet.size / ROW_SIZE) * ROW_SIZE, visibleCount);
 
   useEffect(() => {
     if (!hasMore) return;
@@ -41,6 +45,15 @@ export default function AlbumContent({ album }: AlbumContentProps) {
   useEffect(() => {
     isLoadingRef.current = false;
   });
+
+  const handleImageLoad = useCallback((idx: number) => {
+    setLoadedSet((prev) => {
+      if (prev.has(idx)) return prev;
+      const next = new Set(prev);
+      next.add(idx);
+      return next;
+    });
+  }, []);
 
   const handleLoadMore = () => {
     if (!isLoadingRef.current) {
@@ -102,21 +115,29 @@ export default function AlbumContent({ album }: AlbumContentProps) {
       <section id="album-photos" className="pb-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {album.photos.slice(0, visibleCount).map((photo, idx) => (
-              <button
-                key={idx}
-                onClick={() => setLightboxIndex(idx)}
-                className="relative h-60 rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-zoom-in group skeleton"
-              >
-                <Image
-                  src={photo}
-                  alt={`${album.title} ${idx + 1}`}
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                  className="object-cover group-hover:brightness-90 transition-all duration-300"
-                />
-              </button>
-            ))}
+            {album.photos.slice(0, visibleCount).map((photo, idx) => {
+              const isRevealed = idx < revealedCount;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setLightboxIndex(idx)}
+                  className={`relative h-60 rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-zoom-in group${isRevealed ? '' : ' skeleton'}`}
+                  style={{
+                    opacity: isRevealed ? 1 : 0,
+                    pointerEvents: isRevealed ? 'auto' : 'none',
+                  }}
+                >
+                  <Image
+                    src={photo}
+                    alt={`${album.title} ${idx + 1}`}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                    className="object-cover group-hover:brightness-90 transition-all duration-300"
+                    onLoad={() => handleImageLoad(idx)}
+                  />
+                </button>
+              );
+            })}
           </div>
 
           <div ref={sentinelRef} className="h-4" />

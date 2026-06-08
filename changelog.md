@@ -4,6 +4,12 @@
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
 
+## v1.9.51 (2026-06-07)
++ **Sequential row-by-row image loading**: Images now reveal in rows (4 per row, top-to-bottom) rather than random load order — `loadedSet` state tracks loaded indices via `onLoad`, derived `revealedCount` unveils full rows at a time
+* **Shimmer skeleton fix**: `skeleton` class now removed on `onLoad` via conditional CSS class — no more infinite shimmer animation on loaded images
+* **Background preloading**: Unrevealed images download in background (`opacity: 0`, `pointer-events: none`) while next row loads — zero perceived delay between row reveals
++ **Scrutiny**: Fixed loop bound bug in row reveal logic — `Math.min(batchEnd, visibleCountRef.current)` prevents incorrect completion check for indices beyond `visibleCount`
+
 ## v1.9.50 (2026-06-07)
 + **Gallery image loading optimization**: Batch 12 initial / +12 load-more with infinite scroll (IntersectionObserver + loading guard) on album detail and portfolio gallery pages — reduces initial payload 60% vs previous 30-image batch
 + **Performance**: PortfolioGallery (`src/components/PortfolioGallery.tsx`) switched from native `<img>` to Next.js `<Image>` with `fill` + `sizes` — enables WebP/AVIF optimization and native lazy loading
