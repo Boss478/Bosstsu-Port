@@ -33,6 +33,8 @@ Full post-mortems are in the Obsidian vault (`boss-project/` subfolder).
 
 Read `/Users/boss123/obsidian-vault/` for additional notes and references.
 
+> **Tip:** Run `/start-session` or `task -> "run triage agent"` to automate this (reads all state in one call).
+
 ---
 
 ## Project Overview
@@ -98,6 +100,17 @@ Quick build check via Docker: `docker compose exec app-dev npm run build`
 
 ---
 
+## Context Budget Rules
+
+> **Preserve context quality.** Enforce these when context pressure builds.
+
+- **Compress after every completed task** — before moving to next item
+- **Subagent for exploration >3 tool calls** — offload research to keep main window clean
+- **Monitor tokenscope at natural breakpoints** — know your budget
+- **If context feels full: stop, compress, then continue**
+
+---
+
 ## Versioning
 
 - Minor patch (default): `1.1.1` → `1.1.2`
@@ -148,15 +161,30 @@ Quick build check via Docker: `docker compose exec app-dev npm run build`
 
 ## Custom Agents (opencode)
 
-Three project-specific agents in `~/.config/opencode/agent/`:
+Four project-specific agents in `~/.config/opencode/agent/`:
 
-| Agent  | Permission                 | Purpose                                             |
-| ------ | -------------------------- | --------------------------------------------------- |
-| **DEPLOY** | bash + read                | Docker build, VPS deploy, health check, rollback    |
-| **VERIFY** | bash + read (no edit)      | Pre-done gate: build, lint, version/changelog match |
-| **DOC**    | edit `.agents/**`, changelog | Reports, memory, Obsidian vault persistence         |
+| Agent    | Permission                 | Purpose                                             |
+| -------- | -------------------------- | --------------------------------------------------- |
+| **TRIAGE**  | bash + read (no edit)      | Session start: read memory, plans, changelog, vault |
+| **DEPLOY**  | bash + read                | Docker build, VPS deploy, health check, rollback    |
+| **VERIFY**  | bash + read (no edit)      | Pre-done gate: build, lint, version/changelog match |
+| **DOC**     | edit `.agents/**`, changelog | Reports, memory, Obsidian vault persistence         |
 
-Usage: `task -> "run deploy agent"` (standalone — call when needed)
+Usage: `task -> "run triage agent"` (or use `/start-session` command)
+
+---
+
+## Custom Commands (opencode)
+
+Three custom commands in `~/.config/opencode/command/`:
+
+| Command              | Purpose                                                  |
+| -------------------- | -------------------------------------------------------- |
+| `/start-session`     | Ensure dev server + run triage agent (all-in-one)        |
+| `/session-status`    | Show git status, dev server, changelog, memory, plans    |
+| `/task-done`         | Run completion protocol: build, bump, changelog, report  |
+
+Usage: type `/command-name` in the TUI prompt.
 
 ---
 
@@ -189,5 +217,6 @@ KVM1 VPS runs multiple services (1 vCPU, 4GB RAM). DB pool: 3 (do not raise). Av
 | Styling & Glassmorphism | `.agents/reference/glassmorphism.md`    |
 | Deployment & Docker     | `.agents/reference/deployment.md`       |
 | Error Codes             | `.agents/reference/error-codes.md`      |
+| Error Patterns           | `.agents/reference/error-patterns.md`    |
 | Workflow & Guidelines   | `.agents/reference/workflow.md`         |
 | Full Project Structure  | `.agents/reference/project-structure.md`|
