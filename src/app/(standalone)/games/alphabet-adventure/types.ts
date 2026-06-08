@@ -1,7 +1,7 @@
-export type Screen = "menu" | "game" | "victory";
+export type Screen = 'menu' | 'game' | 'victory';
 
-export type LevelType = "match" | "fill-upper" | "fill-lower" | "typing";
-export type DataPool = "lowercase" | "thai" | "phonics";
+export type LevelType = 'match' | 'fill-upper' | 'fill-lower' | 'typing';
+export type DataPool = 'lowercase' | 'thai' | 'phonics';
 
 export interface LevelConfig {
   name: string;
@@ -27,6 +27,7 @@ export interface GameState {
   wrongAttempts: number;
   wrongLetters: string[];
   easyMode: boolean;
+  onboardingSeen: boolean[];
 }
 
 export interface GridCell {
@@ -49,7 +50,7 @@ export interface RoundData {
 
 export interface FeedbackState {
   text: string;
-  type: "correct" | "wrong" | "";
+  type: 'correct' | 'wrong' | '';
   showCorrect?: string;
 }
 
@@ -68,6 +69,7 @@ export function initialGameState(): GameState {
     wrongAttempts: 0,
     wrongLetters: [],
     easyMode: false,
+    onboardingSeen: [false, false, false, false, false, false],
   };
 }
 

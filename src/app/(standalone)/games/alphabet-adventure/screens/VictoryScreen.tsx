@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { HIGH_SCORE_KEY, PROGRESS_KEY, LEVELS } from "../constants";
+import { useState, useEffect } from 'react';
+import { HIGH_SCORE_KEY, PROGRESS_KEY, LEVELS } from '../constants';
 
 interface Props {
   score: number;
@@ -18,7 +18,7 @@ function StarDisplay({ count }: { count: number }) {
         <i
           key={star}
           className={`fi fi-sr-star text-3xl ${
-            star <= count ? "text-amber-400" : "text-zinc-200 dark:text-zinc-700"
+            star <= count ? 'text-amber-400' : 'text-zinc-200 dark:text-zinc-700'
           } transition-all duration-500`}
         />
       ))}
@@ -28,18 +28,18 @@ function StarDisplay({ count }: { count: number }) {
 
 function Confetti() {
   useEffect(() => {
-    const container = document.getElementById("confetti-container");
+    const container = document.getElementById('confetti-container');
     if (!container) return;
 
-    const colors = ["#8b5cf6", "#f59e0b", "#10b981", "#ec4899", "#3b82f6", "#ef4444"];
+    const colors = ['#8b5cf6', '#f59e0b', '#10b981', '#ec4899', '#3b82f6', '#ef4444'];
     const particles: HTMLDivElement[] = [];
 
     for (let i = 0; i < 60; i++) {
-      const el = document.createElement("div");
-      el.className = "absolute w-2 h-2 rounded-sm";
+      const el = document.createElement('div');
+      el.className = 'absolute w-2 h-2 rounded-sm';
       el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-      el.style.left = Math.random() * 100 + "%";
-      el.style.top = "-10px";
+      el.style.left = Math.random() * 100 + '%';
+      el.style.top = '-10px';
       el.style.opacity = String(0.7 + Math.random() * 0.3);
       el.style.transform = `rotate(${Math.random() * 360}deg)`;
       el.style.animation = `confetti-fall ${2 + Math.random() * 3}s linear forwards`;
@@ -48,7 +48,7 @@ function Confetti() {
       particles.push(el);
     }
 
-    return () => particles.forEach(p => p.remove());
+    return () => particles.forEach((p) => p.remove());
   }, []);
 
   return (
@@ -59,12 +59,18 @@ function Confetti() {
   );
 }
 
-export default function VictoryScreen({ score, stageStars, wrongLetters, onRestart, onBackToMenu }: Props) {
+export default function VictoryScreen({
+  score,
+  stageStars,
+  wrongLetters,
+  onRestart,
+  onBackToMenu,
+}: Props) {
   const [isNewBest] = useState(() => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(PROGRESS_KEY);
       const key = HIGH_SCORE_KEY;
-      const prev = Number(localStorage.getItem(key) ?? "0");
+      const prev = Number(localStorage.getItem(key) ?? '0');
       if (score > prev) {
         localStorage.setItem(key, String(score));
         return true;
@@ -114,18 +120,13 @@ export default function VictoryScreen({ score, stageStars, wrongLetters, onResta
         </div>
 
         <div className="space-y-4">
-          <p className="text-lg font-bold text-zinc-500 dark:text-zinc-400">
-            Level Stars
-          </p>
+          <p className="text-lg font-bold text-zinc-500 dark:text-zinc-400">Level Stars</p>
           <div className="flex flex-col gap-3">
             {stageStars.map((stars, index) => {
               const levelNum = index + 1;
               const levelConfig = LEVELS[levelNum];
               return (
-                <div
-                  key={levelNum}
-                  className="flex items-center justify-center gap-4"
-                >
+                <div key={levelNum} className="flex items-center justify-center gap-4">
                   <span className="text-sm font-bold text-zinc-500 dark:text-zinc-400 w-32 text-right">
                     {levelConfig?.name || `Level ${levelNum}`}
                   </span>
@@ -167,7 +168,7 @@ export default function VictoryScreen({ score, stageStars, wrongLetters, onResta
           </button>
           <button
             onClick={onBackToMenu}
-            className="text-zinc-400 hover:text-violet-500 font-bold transition-colors"
+            className="px-6 py-3 rounded-2xl text-zinc-500 hover:text-violet-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-bold transition-all"
           >
             Back to Menu
           </button>

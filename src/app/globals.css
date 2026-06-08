@@ -675,3 +675,17 @@ textarea,
   -webkit-user-select: text;
   user-select: text;
 }
+
+/* ─── Alphabet Adventure ──────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .alphabet-game * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.alphabet-game *:focus-visible {
+  outline: 3px solid #8b5cf6;
+  outline-offset: 2px;
+  border-radius: 8px;
+}

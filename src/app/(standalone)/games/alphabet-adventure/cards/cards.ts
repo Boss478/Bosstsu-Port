@@ -1,70 +1,109 @@
-import { shuffleArray } from "@/lib/shuffle";
+import { shuffleArray } from '@/lib/shuffle';
 
-export type CardTier = "common" | "uncommon" | "rare" | "ultra-rare" | "legendary";
+export type CardTier = 'common' | 'uncommon' | 'rare' | 'ultra-rare' | 'legendary';
 
-export const TIER_ORDER: CardTier[] = [
-  "common",
-  "uncommon",
-  "rare",
-  "ultra-rare",
-  "legendary",
-];
+export const TIER_ORDER: CardTier[] = ['common', 'uncommon', 'rare', 'ultra-rare', 'legendary'];
 
 export const TIER_LETTERS: Record<CardTier, string[]> = {
-  common: ["E", "T", "A", "O", "I", "S"],
-  uncommon: ["N", "H", "R", "D", "L", "C"],
-  rare: ["U", "M", "W", "F", "G"],
-  "ultra-rare": ["Y", "P", "B", "V", "K"],
-  legendary: ["J", "X", "Q", "Z"],
+  common: ['E', 'T', 'A', 'O', 'I', 'S'],
+  uncommon: ['N', 'H', 'R', 'D', 'L', 'C'],
+  rare: ['U', 'M', 'W', 'F', 'G'],
+  'ultra-rare': ['Y', 'P', 'B', 'V', 'K'],
+  legendary: ['J', 'X', 'Q', 'Z'],
 };
 
 export const TIER_POINTS: Record<CardTier, number> = {
   common: 1,
   uncommon: 2,
   rare: 3,
-  "ultra-rare": 5,
+  'ultra-rare': 5,
   legendary: 10,
 };
 
 export const TIER_LABELS: Record<CardTier, string> = {
-  common: "Common",
-  uncommon: "Uncommon",
-  rare: "Rare",
-  "ultra-rare": "Ultra Rare",
-  legendary: "Legendary",
+  common: 'Common',
+  uncommon: 'Uncommon',
+  rare: 'Rare',
+  'ultra-rare': 'Ultra Rare',
+  legendary: 'Legendary',
 };
 
-const HOLOGRAPHIC_TIERS: CardTier[] = ["rare", "ultra-rare", "legendary"];
+const HOLOGRAPHIC_TIERS: CardTier[] = ['rare', 'ultra-rare', 'legendary'];
 
 export function isHolographicTier(tier: CardTier): boolean {
   return HOLOGRAPHIC_TIERS.includes(tier);
 }
 
 export const TIER_COLORS: Record<CardTier, string> = {
-  common: "text-zinc-500 bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700",
-  uncommon: "text-green-600 bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700",
-  rare: "text-blue-600 bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700",
-  "ultra-rare": "text-purple-600 bg-purple-100 dark:bg-purple-900/30 border-purple-300 dark:border-purple-700",
-  legendary: "text-amber-600 bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700",
+  common: 'text-zinc-500 bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700',
+  uncommon:
+    'text-green-600 bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700',
+  rare: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700',
+  'ultra-rare':
+    'text-purple-600 bg-purple-100 dark:bg-purple-900/30 border-purple-300 dark:border-purple-700',
+  legendary:
+    'text-amber-600 bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700',
 };
 
 export const CARD_EMOJIS: Record<string, string> = {
-  A: "🍎", B: "🐦", C: "🐱", D: "🐶", E: "🐘", F: "🐸",
-  G: "🦒", H: "🏠", I: "🍦", J: "🧃", K: "🪁", L: "🍭",
-  M: "🐭", N: "🪹", O: "🐙", P: "🐧", Q: "👑", R: "🌈",
-  S: "⭐", T: "🐢", U: "☂️", V: "🎻", W: "🐋", X: "🩻",
-  Y: "🪀", Z: "🦓",
+  A: '🍎',
+  B: '🐦',
+  C: '🐱',
+  D: '🐶',
+  E: '🐘',
+  F: '🐸',
+  G: '🦒',
+  H: '🏠',
+  I: '🍦',
+  J: '🧃',
+  K: '🪁',
+  L: '🍭',
+  M: '🐭',
+  N: '🪹',
+  O: '🐙',
+  P: '🐧',
+  Q: '👑',
+  R: '🌈',
+  S: '⭐',
+  T: '🐢',
+  U: '☂️',
+  V: '🎻',
+  W: '🐋',
+  X: '🩻',
+  Y: '🪀',
+  Z: '🦓',
 };
 
 export const CARD_WORDS: Record<string, string> = {
-  A: "Apple", B: "Bird", C: "Cat", D: "Dog", E: "Elephant", F: "Frog",
-  G: "Giraffe", H: "House", I: "Ice cream", J: "Juice", K: "Kite", L: "Lollipop",
-  M: "Mouse", N: "Nest", O: "Octopus", P: "Penguin", Q: "Queen", R: "Rainbow",
-  S: "Star", T: "Turtle", U: "Umbrella", V: "Violin", W: "Whale", X: "X-ray",
-  Y: "Yo-yo", Z: "Zebra",
+  A: 'Apple',
+  B: 'Bird',
+  C: 'Cat',
+  D: 'Dog',
+  E: 'Elephant',
+  F: 'Frog',
+  G: 'Giraffe',
+  H: 'House',
+  I: 'Ice cream',
+  J: 'Juice',
+  K: 'Kite',
+  L: 'Lollipop',
+  M: 'Mouse',
+  N: 'Nest',
+  O: 'Octopus',
+  P: 'Penguin',
+  Q: 'Queen',
+  R: 'Rainbow',
+  S: 'Star',
+  T: 'Turtle',
+  U: 'Umbrella',
+  V: 'Violin',
+  W: 'Whale',
+  X: 'X-ray',
+  Y: 'Yo-yo',
+  Z: 'Zebra',
 };
 
-export const CARD_STORAGE_KEY = "alphabet-adventure-cards";
+export const CARD_STORAGE_KEY = 'alphabet-adventure-cards';
 
 export interface CardEntry {
   letter: string;
@@ -84,7 +123,7 @@ export function emptyCollection(): CardCollection {
 }
 
 export function loadCollection(): CardCollection {
-  if (typeof window === "undefined") return emptyCollection();
+  if (typeof window === 'undefined') return emptyCollection();
   try {
     const raw = localStorage.getItem(CARD_STORAGE_KEY);
     if (!raw) return emptyCollection();
@@ -95,15 +134,16 @@ export function loadCollection(): CardCollection {
 }
 
 export function saveCollection(collection: CardCollection): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === 'undefined') return;
   localStorage.setItem(CARD_STORAGE_KEY, JSON.stringify(collection));
 }
 
-export function addCard(letter: string, tier: CardTier): { collection: CardCollection; isNew: boolean } {
+export function addCard(
+  letter: string,
+  tier: CardTier,
+): { collection: CardCollection; isNew: boolean } {
   const collection = loadCollection();
-  const existing = collection.cards.find(
-    (c) => c.letter === letter && c.tier === tier
-  );
+  const existing = collection.cards.find((c) => c.letter === letter && c.tier === tier);
   const isNew = !existing;
   const now = Date.now();
   if (existing) {
@@ -118,12 +158,12 @@ export function addCard(letter: string, tier: CardTier): { collection: CardColle
 }
 
 const DROP_RATES: Array<{ tier: CardTier | null; base: number; max: number }> = [
-  { tier: null, base: 90, max: 80 },
-  { tier: "common", base: 5.5, max: 5.0 },
-  { tier: "uncommon", base: 2.7, max: 6.4 },
-  { tier: "rare", base: 1.2, max: 5.4 },
-  { tier: "ultra-rare", base: 0.5, max: 2.2 },
-  { tier: "legendary", base: 0.1, max: 1.0 },
+  { tier: null, base: 90, max: 75 },
+  { tier: 'common', base: 5.5, max: 7.0 },
+  { tier: 'uncommon', base: 2.7, max: 8.0 },
+  { tier: 'rare', base: 1.2, max: 6.0 },
+  { tier: 'ultra-rare', base: 0.5, max: 2.5 },
+  { tier: 'legendary', base: 0.1, max: 1.5 },
 ];
 
 function interpolateRate(base: number, max: number, streak: number): number {
@@ -132,18 +172,18 @@ function interpolateRate(base: number, max: number, streak: number): number {
 }
 
 export function getDropRate(tier: CardTier, streak: number): number {
-  const entry = DROP_RATES.find(r => r.tier === tier);
+  const entry = DROP_RATES.find((r) => r.tier === tier);
   if (!entry) return 0;
   return interpolateRate(entry.base, entry.max, streak);
 }
 
 export function getNoneDropRate(streak: number): number {
-  const entry = DROP_RATES.find(r => r.tier === null);
+  const entry = DROP_RATES.find((r) => r.tier === null);
   return interpolateRate(entry!.base, entry!.max, streak);
 }
 
 export function getEffectiveStreak(dropStreak: number, dropPower: number): number {
-  return Math.min(20, dropStreak + dropPower);
+  return Math.min(10, dropStreak + dropPower);
 }
 
 export function rollCardDrop(dropStreak: number, dropPower: number): CardTier | null {

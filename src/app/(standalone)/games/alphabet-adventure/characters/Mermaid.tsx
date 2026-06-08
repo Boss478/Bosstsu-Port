@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 export default function Mermaid({ size = 80 }: { size?: number }) {
   return (
@@ -37,10 +37,18 @@ export default function Mermaid({ size = 80 }: { size?: number }) {
       <ellipse cx="66" cy="48" rx="4" ry="2.5" fill="#fca5a5" opacity="0.5" />
 
       {/* Smile */}
-      <path d="M43 52 Q50 58 57 52" stroke="#be123c" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <path
+        d="M43 52 Q50 58 57 52"
+        stroke="#be123c"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+      />
 
       {/* Star tiara */}
-      <text x="50" y="22" textAnchor="middle" fontSize="10">⭐</text>
+      <text x="50" y="22" textAnchor="middle" fontSize="10">
+        ⭐
+      </text>
 
       {/* Shell top */}
       <path d="M35 62 Q40 56 45 62 Q42 68 35 62Z" fill="#c084fc" />

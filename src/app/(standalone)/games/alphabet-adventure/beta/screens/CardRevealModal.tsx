@@ -58,6 +58,15 @@ export default function CardRevealModal({ letter, tier, isNew, onKeep }: Props) 
             transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
           }}
           onClick={() => !flipped && setFlipped(true)}
+          onKeyDown={(e) => {
+            if (!flipped && (e.key === 'Enter' || e.key === ' ')) {
+              e.preventDefault();
+              setFlipped(true);
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label={flipped ? 'Card revealed' : 'Tap to reveal card'}
         >
           {/* — Card Back — */}
           <div className="absolute inset-0" style={{ backfaceVisibility: 'hidden' }}>

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 export default function TreasureMonster({ size = 80 }: { size?: number }) {
   return (
@@ -51,7 +51,13 @@ export default function TreasureMonster({ size = 80 }: { size?: number }) {
       <circle cx="61" cy="54" r="1.5" fill="white" />
 
       {/* Grin */}
-      <path d="M38 68 Q50 80 62 68" stroke="#064e3b" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+      <path
+        d="M38 68 Q50 80 62 68"
+        stroke="#064e3b"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        fill="none"
+      />
 
       {/* Tooth */}
       <rect x="46" y="68" width="4" height="5" rx="1" fill="white" />
@@ -60,11 +66,17 @@ export default function TreasureMonster({ size = 80 }: { size?: number }) {
       {/* Coin */}
       <circle cx="20" cy="78" r="6" fill="#fbbf24" />
       <circle cx="20" cy="78" r="4.5" fill="#f59e0b" />
-      <text x="20" y="81" textAnchor="middle" fontSize="6" fontWeight="900" fill="#92400e">$</text>
+      <text x="20" y="81" textAnchor="middle" fontSize="6" fontWeight="900" fill="#92400e">
+        $
+      </text>
 
       {/* Gold sparkles */}
-      <text x="78" y="52" textAnchor="middle" fontSize="7" fill="#fbbf24">✦</text>
-      <text x="30" y="24" textAnchor="middle" fontSize="5" fill="#fbbf24">✦</text>
+      <text x="78" y="52" textAnchor="middle" fontSize="7" fill="#fbbf24">
+        ✦
+      </text>
+      <text x="30" y="24" textAnchor="middle" fontSize="5" fill="#fbbf24">
+        ✦
+      </text>
     </svg>
   );
 }

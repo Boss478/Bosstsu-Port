@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import type { RoundData } from "../types";
+import type { RoundData } from '../types';
 
 interface Props {
   roundData: RoundData;
@@ -26,18 +26,19 @@ export default function TypingLevel({
             className={`aspect-square flex items-center justify-center rounded-lg md:rounded-xl text-xl md:text-2xl font-black transition-all duration-300 ${
               item.isHidden
                 ? item.isCorrect
-                  ? "bg-emerald-500 text-white scale-105"
+                  ? 'bg-emerald-500 text-white scale-105'
                   : item.isWrong
-                  ? "bg-rose-500 text-white shadow-none translate-y-1"
-                  : "bg-violet-100 dark:bg-violet-900/40 border-2 border-violet-300 dark:border-violet-600"
-                : "bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 text-zinc-400"
+                    ? 'bg-rose-500 text-white shadow-none translate-y-1'
+                    : 'bg-violet-100 dark:bg-violet-900/40 border-2 border-violet-300 dark:border-violet-600'
+                : 'bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 text-zinc-400'
             }`}
           >
             {item.isHidden ? (
               <input
                 autoFocus={index === roundData.missingIndices[0]}
-                className="w-full h-full bg-transparent text-center focus:outline-2 focus:outline-violet-500 rounded font-black text-xl"
-                value={item.value || ""}
+                className="w-full h-full bg-transparent text-center focus:outline-2 focus:outline-violet-500 rounded font-black text-xl placeholder:text-zinc-400 placeholder:font-bold"
+                placeholder="?"
+                value={item.value || ''}
                 onChange={(e) => {
                   const val = e.target.value.slice(-1).toUpperCase();
                   onTypingInput?.(index, val);

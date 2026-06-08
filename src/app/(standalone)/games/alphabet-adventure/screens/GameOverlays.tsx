@@ -112,6 +112,7 @@ export default function GameOverlays({
               <button
                 onClick={onCloseCollection}
                 className="text-zinc-500 hover:text-zinc-300 transition-colors"
+                aria-label="Close collection"
               >
                 <i aria-hidden="true" className="fi fi-sr-cross text-xs"></i>
               </button>
@@ -172,7 +173,9 @@ export default function GameOverlays({
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50">
           <div className="animate-in slide-in-from-top-2 duration-300">
             <div className="bg-white/95 dark:bg-zinc-800/95 backdrop-blur-md px-6 py-3 rounded-2xl shadow-2xl border-2 border-orange-400 flex items-center gap-3">
-              <span className="text-lg">🔥</span>
+              <span className="text-lg" aria-hidden="true">
+                🔥
+              </span>
               <span className="text-sm font-black text-orange-600 dark:text-orange-400 whitespace-nowrap">
                 {streakToast}
               </span>

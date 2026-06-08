@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 export default function CaptainAlph({ size = 80 }: { size?: number }) {
   return (

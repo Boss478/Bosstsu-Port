@@ -5,6 +5,32 @@
 
 
 
+## v1.9.58 (2026-06-08)
++ **Onboarding overlay**: Each level now shows a bilingual instruction card on first visit (auto-dismiss after 4s or tap "Got it!")
++ **Number badges**: Choice buttons in MatchLevel now show 1/2/3 badges for easier keyboard-to-button association
++ **Touch target**: GameScreen Menu button (px-3 py-2 → px-4 py-3) and VictoryScreen Back to Menu (now has padding) meet 44×44px min touch target
++ **FillLevel border**: Inactive hidden cells use zinc-400 dashes (from zinc-300) — much easier to spot
++ **TypingLevel placeholder**: Empty input cells show "?" placeholder
++ **Reduced motion support**: `.alphabet-game *` CSS rule disables all animations/transitions when `prefers-reduced-motion: reduce` is set
++ **Focus indicators**: `focus-visible` outline (3px violet) on all `.alphabet-game *` interactive elements
++ **Drop odds tooltip**: Info icon on menu screen explains card drop mechanic (streak improves odds)
++ **Standalone layout**: Route group `(standalone)` wraps Alphabet Adventure — no Header/Footer/BackToTop clutter during gameplay
+* **Text contrast**: 6 WCAG AA fixes — LEVEL/STREAK/SCORE/PROGRESS labels from zinc-400→zinc-500, keyboard hints from zinc-300/text-[10px]→zinc-500/text-xs, listen button from amber-600→amber-700, grade footer from zinc-400→zinc-500
+* **G.1-2 adjustments**: FEEDBACK_DURATION 1000→2000ms (more time for young readers), card drop rates improved (no-drop 90-80→90-75, rare 1.2-5.4→1.2-6.0, etc), cap reduced 20→10, partial reset (streak-5 on card drop instead of 0)
+- **getElementById hack**: Removed old header/footer classList manipulation (no longer needed — standalone layout has no header/footer)
+- **Dead code**: Old `(website)/games/alphabet-adventure/` route deleted (moved to `(standalone)` route group)
+
+## v1.9.57 (2026-06-08)
+* **Alphabet Adventure wrong-answer behavior**: 1st wrong in Levels 1-3 no longer reveals correct answer; progress bar now tracks mastered letters (`levelCorrect`) instead of total rounds attempted (`round`) — all-wrong rounds no longer inflate progress
++ **Alphabet Adventure progress accuracy**: Progress bar uses `levelCorrect` for match levels (1-3), so only correctly-answered letters advance the bar — all-wrong rounds skip without counting progress
+
+## v1.9.56 (2026-06-08)
++ **CardFrame glow effect**: Added tier-colored box-shadow glow to card borders using CSS custom properties and group-hover (fades on hover) — avoids ::after pseudo-element issues with 3D flip transforms
++ **Easy Mode aria-pressed**: Added `role="switch"` and `aria-pressed` to Easy Mode toggle for screen reader accessibility
++ **CardRevealModal keyboard**: Added tabIndex, role="button", onKeyDown handler for Enter/Space to trigger card flip via keyboard
++ **Accessible close buttons**: Added `aria-label` to close buttons in GameOverlays collection panel and CardScreen back button
++ **Emoji aria-hidden**: Marked decorative emoji (🔥, 👑, 🎴, achievements, empty state) with `aria-hidden="true"` to hide from screen readers
+
 ## v1.9.55 (2026-06-08)
 * **Card obtain animation race condition fix**: `finishGame` now waits for user to tap KEEP on `CardRevealModal` before transitioning to victory screen — previously fired at 1500ms while card appeared at 1000ms, destroying the modal after only 500ms of visibility
 * **Scrutiny fix**: `checkTyping` now resets `cardDroppedRef` at start, preventing stale-ref bug where typing mode would defer `finishGame` with no modal to dismiss

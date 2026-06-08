@@ -1,64 +1,108 @@
-import type { LevelConfig } from "./types";
-import { shuffleArray } from "@/lib/shuffle";
+import type { LevelConfig } from './types';
+import { shuffleArray } from '@/lib/shuffle';
 
-const ALPHABET_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-const ALPHABET_LOWER = "abcdefghijklmnopqrstuvwxyz".split("");
+const ALPHABET_UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const ALPHABET_LOWER = 'abcdefghijklmnopqrstuvwxyz'.split('');
 
 export const THAI_NAMES = [
-  "เอ", "บี", "ซี", "ดี", "อี", "เอฟ", "จี", "เอช", "ไอ", "เจ",
-  "เค", "แอล", "เอ็ม", "เอ็น", "โอ", "พี", "คิว", "อาร์", "เอส", "ที",
-  "ยู", "วี", "ดับเบิลยู", "เอกซ์", "วาย", "แซด",
+  'เอ',
+  'บี',
+  'ซี',
+  'ดี',
+  'อี',
+  'เอฟ',
+  'จี',
+  'เอช',
+  'ไอ',
+  'เจ',
+  'เค',
+  'แอล',
+  'เอ็ม',
+  'เอ็น',
+  'โอ',
+  'พี',
+  'คิว',
+  'อาร์',
+  'เอส',
+  'ที',
+  'ยู',
+  'วี',
+  'ดับเบิลยู',
+  'เอกซ์',
+  'วาย',
+  'แซด',
 ];
 
 export const PHONICS_SOUNDS = [
-  "แอะ /a/", "เบอะ /b/", "เคอะ /k/", "ดึ /d/", "เอะ /e/", "เฟอะ /f/",
-  "เกอะ /g/", "เฮอะ /h/", "อิ /i/", "เจอะ /j/", "เคอะ /k/", "เลอะ /l/",
-  "เมอะ /m/", "เนอะ /n/", "เอาะ /o/", "เพอะ /p/", "เควอะ /kw/", "เรอะ /r/",
-  "เซอะ /s/", "เทอะ /t/", "อะ /u/", "เวอะ /v/", "เวอะ /w/", "ซ /ks/",
-  "เยอะ /j/", "ซี /z/",
+  'แอะ /a/',
+  'เบอะ /b/',
+  'เคอะ /k/',
+  'ดึ /d/',
+  'เอะ /e/',
+  'เฟอะ /f/',
+  'เกอะ /g/',
+  'เฮอะ /h/',
+  'อิ /i/',
+  'เจอะ /j/',
+  'เคอะ /k/',
+  'เลอะ /l/',
+  'เมอะ /m/',
+  'เนอะ /n/',
+  'เอาะ /o/',
+  'เพอะ /p/',
+  'เควอะ /kw/',
+  'เรอะ /r/',
+  'เซอะ /s/',
+  'เทอะ /t/',
+  'อะ /u/',
+  'เวอะ /v/',
+  'เวอะ /w/',
+  'ซ /ks/',
+  'เยอะ /j/',
+  'ซี /z/',
 ];
 
 export const LEVELS: Record<number, LevelConfig> = {
   1: {
-    name: "Thai Match",
-    subtitle: "จับคู่ภาษาไทย",
+    name: 'Thai Match',
+    subtitle: 'จับคู่ภาษาไทย',
     target: 34,
-    type: "match",
-    dataPool: "thai",
+    type: 'match',
+    dataPool: 'thai',
   },
   2: {
-    name: "Phonics Match",
-    subtitle: "จับคู่เสียงอ่าน",
+    name: 'Phonics Match',
+    subtitle: 'จับคู่เสียงอ่าน',
     target: 34,
-    type: "match",
-    dataPool: "phonics",
+    type: 'match',
+    dataPool: 'phonics',
   },
   3: {
-    name: "Letter Match",
-    subtitle: "จับคู่ตัวอักษร",
+    name: 'Letter Match',
+    subtitle: 'จับคู่ตัวอักษร',
     target: 35,
-    type: "match",
-    dataPool: "lowercase",
+    type: 'match',
+    dataPool: 'lowercase',
   },
   4: {
-    name: "Missing Capitals",
-    subtitle: "เติมตัวพิมพ์ใหญ่ที่หายไป",
+    name: 'Missing Capitals',
+    subtitle: 'เติมตัวพิมพ์ใหญ่ที่หายไป',
     target: 10,
-    type: "fill-upper",
+    type: 'fill-upper',
     hideCount: 2,
   },
   5: {
-    name: "Missing Lowercase",
-    subtitle: "เติมตัวพิมพ์เล็กที่หายไป",
+    name: 'Missing Lowercase',
+    subtitle: 'เติมตัวพิมพ์เล็กที่หายไป',
     target: 10,
-    type: "fill-lower",
+    type: 'fill-lower',
     hideCount: 3,
   },
   6: {
-    name: "Typing Challenge",
-    subtitle: "พิมพ์ตัวอักษร (ท้าทาย)",
+    name: 'Typing Challenge',
+    subtitle: 'พิมพ์ตัวอักษร (ท้าทาย)',
     target: 10,
-    type: "typing",
+    type: 'typing',
   },
 };
 
@@ -71,42 +115,30 @@ export const GAME_CONFIG = {
   MAX_DIFFICULTY: 24,
   DIFFICULTY_INCREASE: 2,
   ERROR_THRESHOLD: 3,
-  FEEDBACK_DURATION: 1000,
+  FEEDBACK_DURATION: 2000,
   STAR_THREE: 90,
   STAR_TWO: 70,
   WRONG_LIMIT: 2,
 } as const;
 
-const STREAK_PRAISE = [
-  "Keep going!",
-  "On fire!",
-  "Unstoppable!",
-  "Legendary!",
-  "Perfect streak!",
-];
+const STREAK_PRAISE = ['Keep going!', 'On fire!', 'Unstoppable!', 'Legendary!', 'Perfect streak!'];
 
 const PRAISE = {
   correct: [
-    "Excellent!",
-    "Great job!",
-    "Perfect!",
-    "Correct!",
-    "Well done!",
-    "Amazing!",
-    "Super!",
-    "Awesome!",
+    'Excellent!',
+    'Great job!',
+    'Perfect!',
+    'Correct!',
+    'Well done!',
+    'Amazing!',
+    'Super!',
+    'Awesome!',
   ],
-  wrong: [
-    "Try again!",
-    "Keep going!",
-    "Almost!",
-    "Don't give up!",
-    "Nice try!",
-  ],
+  wrong: ['Try again!', 'Keep going!', 'Almost!', "Don't give up!", 'Nice try!'],
 } as const;
 
-export const HIGH_SCORE_KEY = "alphabet-adventure-highscore";
-export const PROGRESS_KEY = "alphabet-adventure-progress";
+export const HIGH_SCORE_KEY = 'alphabet-adventure-highscore';
+export const PROGRESS_KEY = 'alphabet-adventure-progress';
 
 export function calcStars(accuracy: number): number {
   if (accuracy >= GAME_CONFIG.STAR_THREE) return 3;
@@ -114,7 +146,7 @@ export function calcStars(accuracy: number): number {
   return 1;
 }
 
-export function randomPraise(type: "correct" | "wrong"): string {
+export function randomPraise(type: 'correct' | 'wrong'): string {
   const pool = PRAISE[type];
   return pool[Math.floor(Math.random() * pool.length)];
 }
@@ -227,7 +259,11 @@ export function generatePhonicsRevertRound(round: number, numChoices = 3) {
   };
 }
 
-export function generateFillChoices(correctChar: string, numChoices: number, isUpper: boolean): string[] {
+export function generateFillChoices(
+  correctChar: string,
+  numChoices: number,
+  isUpper: boolean,
+): string[] {
   const alphabet = isUpper ? ALPHABET_UPPER : ALPHABET_LOWER;
   const choices = [correctChar];
   while (choices.length < numChoices) {
@@ -237,8 +273,8 @@ export function generateFillChoices(correctChar: string, numChoices: number, isU
   return fisherYatesShuffle(choices);
 }
 
-export function generateFillRound(type: "fill-upper" | "fill-lower", numChoices = 4) {
-  const isUpper = type === "fill-upper";
+export function generateFillRound(type: 'fill-upper' | 'fill-lower', numChoices = 4) {
+  const isUpper = type === 'fill-upper';
   const alphabet = isUpper ? ALPHABET_UPPER : ALPHABET_LOWER;
   const hideCount = isUpper ? 2 : 3;
 
@@ -278,7 +314,7 @@ export function generateTypingRound(difficulty: number) {
   const grid = alphabet.map((char, index) => ({
     char,
     isHidden: missing.includes(index),
-    value: "",
+    value: '',
   }));
 
   return {

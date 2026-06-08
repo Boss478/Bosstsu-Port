@@ -1,17 +1,11 @@
-"use client";
+'use client';
 
-import { useEffect, useCallback, useRef } from "react";
-import type {
-  GameState,
-  RoundData,
-  FeedbackState,
-  LevelType,
-  DataPool,
-} from "../types";
-import { LEVELS } from "../constants";
-import MatchLevel from "./MatchLevel";
-import FillLevel from "./FillLevel";
-import TypingLevel from "./TypingLevel";
+import { useEffect, useCallback, useRef } from 'react';
+import type { GameState, RoundData, FeedbackState, LevelType, DataPool } from '../types';
+import { LEVELS } from '../constants';
+import MatchLevel from './MatchLevel';
+import FillLevel from './FillLevel';
+import TypingLevel from './TypingLevel';
 
 interface Props {
   gameState: GameState;
@@ -54,32 +48,31 @@ export default function GameScreen({
 }: Props) {
   const choiceRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const didAutoSpeak = useRef(false);
-  const isFeedbackVisible = feedback.text !== "";
+  const isFeedbackVisible = feedback.text !== '';
   const levelConfig = LEVELS[gameState.level];
   const levelType = levelConfig?.type as LevelType;
   const dataPool = levelConfig?.dataPool as DataPool | undefined;
-  const isThaiText = (dataPool === "thai" || dataPool === "phonics") && !roundData.revert;
+  const isThaiText = (dataPool === 'thai' || dataPool === 'phonics') && !roundData.revert;
 
   useEffect(() => {
     if (roundData.revert && roundData.targetLetter && !didAutoSpeak.current) {
       didAutoSpeak.current = true;
-      const t = setTimeout(() => onSpeak(roundData.targetLetter!, "th-TH"), 400);
+      const t = setTimeout(() => onSpeak(roundData.targetLetter!, 'th-TH'), 400);
       return () => clearTimeout(t);
     }
     if (!roundData.revert) didAutoSpeak.current = false;
   }, [roundData.targetLetter, roundData.revert, onSpeak]);
 
-  const effectiveTarget = levelType === "match" && gameState.easyMode ? 15 : levelConfig.target;
-  const progress =
-    levelType === "match" ? gameState.round : gameState.winsInLevel;
+  const effectiveTarget = levelType === 'match' && gameState.easyMode ? 15 : levelConfig.target;
+  const progress = levelType === 'match' ? gameState.levelCorrect : gameState.winsInLevel;
   const progressPct = Math.min(100, (progress / effectiveTarget) * 100);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (isTransitioning) return;
 
-      if (levelType === "typing") {
-        if (e.key === "Enter") {
+      if (levelType === 'typing') {
+        if (e.key === 'Enter') {
           e.preventDefault();
           onCheckTyping();
         }
@@ -91,17 +84,17 @@ export default function GameScreen({
           onAnswer(roundData.choices[num - 1]);
         }
       }
-      if (e.key === "Escape") {
+      if (e.key === 'Escape') {
         e.preventDefault();
         onBack();
       }
     },
-    [isTransitioning, levelType, roundData.choices, onAnswer, onCheckTyping, onBack]
+    [isTransitioning, levelType, roundData.choices, onAnswer, onCheckTyping, onBack],
   );
 
   useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
   useEffect(() => {
@@ -119,7 +112,9 @@ export default function GameScreen({
       <div className="flex flex-wrap justify-center gap-4 pt-8">
         {roundData.choices.map((choice, i) => (
           <button
-            ref={(el) => { choiceRefs.current[i] = el; }}
+            ref={(el) => {
+              choiceRefs.current[i] = el;
+            }}
             key={i}
             onClick={() => !isTransitioning && !isFeedbackVisible && onAnswer(choice)}
             disabled={isTransitioning || isFeedbackVisible}
@@ -139,7 +134,7 @@ export default function GameScreen({
           <div className="flex items-center gap-3">
             <button
               onClick={onBack}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-500 hover:text-violet-500 transition-colors"
+              className="flex items-center gap-2 px-4 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-500 hover:text-violet-500 transition-colors"
             >
               <i aria-hidden="true" className="fi fi-sr-angle-left text-xs"></i>
               <span className="text-xs font-black uppercase tracking-widest">Menu</span>
@@ -148,26 +143,32 @@ export default function GameScreen({
               {gameState.level}
             </div>
             <div>
-              <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">LEVEL</p>
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                LEVEL
+              </p>
               <p className="text-lg font-black text-zinc-800 dark:text-zinc-100">
-                {levelConfig?.name || ""}
+                {levelConfig?.name || ''}
               </p>
               <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
-                {levelConfig?.subtitle || ""}
+                {levelConfig?.subtitle || ''}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             {gameState.currentStreak >= 2 && (
               <div className="text-right">
-                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">STREAK</p>
+                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                  STREAK
+                </p>
                 <p className="text-2xl font-black text-amber-500 tracking-tighter whitespace-nowrap">
                   🔥 {gameState.currentStreak}
                 </p>
               </div>
             )}
             <div className="text-right">
-              <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">SCORE</p>
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                SCORE
+              </p>
               <p className="text-3xl font-black text-fuchsia-500 tracking-tighter">
                 {gameState.score}
               </p>
@@ -178,22 +179,29 @@ export default function GameScreen({
                 className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 hover:scale-110 transition-all"
                 title="Card Collection"
               >
-                <i aria-hidden="true" className="fi fi-sr-template text-violet-600 dark:text-violet-400 text-lg"></i>
+                <i
+                  aria-hidden="true"
+                  className="fi fi-sr-template text-violet-600 dark:text-violet-400 text-lg"
+                ></i>
               </button>
             )}
             <button
               onClick={onToggleMute}
               className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/30 hover:scale-110 transition-all"
-              title={muted ? "Unmute" : "Mute"}
+              title={muted ? 'Unmute' : 'Mute'}
             >
-              <i className={`fi ${muted ? "fi-sr-volume-off" : "fi-sr-volume"} text-fuchsia-600 dark:text-fuchsia-400 text-lg`}></i>
+              <i
+                className={`fi ${muted ? 'fi-sr-volume-off' : 'fi-sr-volume'} text-fuchsia-600 dark:text-fuchsia-400 text-lg`}
+              ></i>
             </button>
             <button
               onClick={onToggleFullscreen}
               className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 hover:scale-110 transition-all"
-              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+              title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
             >
-              <i className={`fi ${isFullscreen ? "fi-sr-exit" : "fi-sr-expand"} text-violet-600 dark:text-violet-400 text-lg`}></i>
+              <i
+                className={`fi ${isFullscreen ? 'fi-sr-exit' : 'fi-sr-expand'} text-violet-600 dark:text-violet-400 text-lg`}
+              ></i>
             </button>
           </div>
         </div>
@@ -207,7 +215,7 @@ export default function GameScreen({
               <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
             </div>
           </div>
-          <div className="flex justify-between text-[11px] font-black text-zinc-400 uppercase tracking-wider">
+          <div className="flex justify-between text-[11px] font-black text-zinc-500 uppercase tracking-wider">
             <span>PROGRESS</span>
             <span>
               {Math.min(progress, effectiveTarget)} / {effectiveTarget}
@@ -220,7 +228,7 @@ export default function GameScreen({
         <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-fuchsia-500/5 rounded-full -ml-16 -mb-16 blur-3xl"></div>
 
-        {levelType === "match" && (
+        {levelType === 'match' && (
           <MatchLevel
             roundData={roundData}
             isTransitioning={isTransitioning}
@@ -232,7 +240,7 @@ export default function GameScreen({
           />
         )}
 
-        {(levelType === "fill-upper" || levelType === "fill-lower") && (
+        {(levelType === 'fill-upper' || levelType === 'fill-lower') && (
           <FillLevel
             roundData={roundData}
             isTransitioning={isTransitioning}
@@ -245,7 +253,7 @@ export default function GameScreen({
           />
         )}
 
-        {levelType === "typing" && (
+        {levelType === 'typing' && (
           <TypingLevel
             roundData={roundData}
             isTransitioning={isTransitioning}
@@ -255,9 +263,9 @@ export default function GameScreen({
           />
         )}
 
-        <p className="text-[10px] text-zinc-300 dark:text-zinc-600 font-bold mt-8 tracking-wider uppercase">
-          {levelType === "typing"
-            ? "Press Enter to check • Esc = Menu"
+        <p className="text-xs text-zinc-500 dark:text-zinc-500 font-bold mt-8 tracking-wider uppercase">
+          {levelType === 'typing'
+            ? 'Press Enter to check • Esc = Menu'
             : `Press 1-${roundData.choices.length || 3} to answer • Esc = Menu`}
         </p>
       </div>
@@ -269,16 +277,12 @@ export default function GameScreen({
         >
           <div
             className={`bg-white/95 dark:bg-zinc-800/95 backdrop-blur-md px-10 py-6 rounded-[2rem] shadow-2xl border-4 transform -rotate-3 ${
-              feedback.type === "correct"
-                ? "border-emerald-500"
-                : "border-rose-500"
+              feedback.type === 'correct' ? 'border-emerald-500' : 'border-rose-500'
             }`}
           >
             <p
               className={`text-4xl md:text-6xl font-black ${
-                feedback.type === "correct"
-                  ? "text-emerald-500"
-                  : "text-rose-500"
+                feedback.type === 'correct' ? 'text-emerald-500' : 'text-rose-500'
               }`}
             >
               {feedback.text}

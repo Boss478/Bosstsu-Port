@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from "react";
-import type { CardTier, CardCollection } from "../../cards/cards";
+import { useState, useEffect, useRef } from 'react';
+import type { CardTier, CardCollection } from '../../cards/cards';
 import {
   TIER_ORDER,
   TIER_LABELS,
@@ -9,41 +9,51 @@ import {
   loadCollection,
   CARD_WORDS,
   isHolographicTier,
-} from "../../cards/cards";
-import { CardIllustration } from "../../cards/CardIllustrations";
-import { CardFrame } from "../../cards/CardFrame";
-import CaptainAlph from "../../characters/CaptainAlph";
-import Mermaid from "../../characters/Mermaid";
-import TreasureMonster from "../../characters/TreasureMonster";
+} from '../../cards/cards';
+import { CardIllustration } from '../../cards/CardIllustrations';
+import { CardFrame } from '../../cards/CardFrame';
+import CaptainAlph from '../../characters/CaptainAlph';
+import Mermaid from '../../characters/Mermaid';
+import TreasureMonster from '../../characters/TreasureMonster';
 
 interface Props {
   onBack: () => void;
   playSequence?: (frequencies: number[], noteDuration?: number, gainVal?: number) => void;
 }
 
-type SortMode = "tier" | "recent" | "all" | "stats";
+type SortMode = 'tier' | 'recent' | 'all' | 'stats';
 
 const MASCOT_UNLOCK_POINTS = [0, 10, 20];
 
 const LETTER_TIER: Record<string, CardTier> = {};
 TIER_ORDER.forEach((t) => TIER_LETTERS[t].forEach((l) => (LETTER_TIER[l] = t)));
-const ALL_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const ALL_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 const TIER_BG_FILL: Record<CardTier, string> = {
-  common: "bg-zinc-400",
-  uncommon: "bg-green-500",
-  rare: "bg-blue-500",
-  "ultra-rare": "bg-purple-500",
-  legendary: "bg-amber-500",
+  common: 'bg-zinc-400',
+  uncommon: 'bg-green-500',
+  rare: 'bg-blue-500',
+  'ultra-rare': 'bg-purple-500',
+  legendary: 'bg-amber-500',
 };
 
-function CollectedCardFace({ letter, tier, count, isRarest }: { letter: string; tier: CardTier; count: number; isRarest?: boolean }) {
+function CollectedCardFace({
+  letter,
+  tier,
+  count,
+  isRarest,
+}: {
+  letter: string;
+  tier: CardTier;
+  count: number;
+  isRarest?: boolean;
+}) {
   const isHolo = isHolographicTier(tier);
   return (
     <div className="relative w-full aspect-[5/7] cursor-default transition-all duration-200 hover:-translate-y-2 hover:scale-[1.04] hover:drop-shadow-2xl">
       <CardFrame
         tier={tier}
-        namePlate={`${CARD_WORDS[letter] || ""} · ${TIER_LABELS[tier]}`}
+        namePlate={`${CARD_WORDS[letter] || ''} · ${TIER_LABELS[tier]}`}
         holographic={isHolo}
       >
         <div className="-mt-8 -mb-8">
@@ -54,7 +64,12 @@ function CollectedCardFace({ letter, tier, count, isRarest }: { letter: string; 
         </span>
       </CardFrame>
       {isRarest && (
-        <span className="absolute -top-1.5 -right-1.5 text-lg z-10 animate-pulse drop-shadow-lg">👑</span>
+        <span
+          className="absolute -top-1.5 -right-1.5 text-lg z-10 animate-pulse drop-shadow-lg"
+          aria-hidden="true"
+        >
+          👑
+        </span>
       )}
       {count > 1 && (
         <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-zinc-800 text-white text-[10px] font-black flex items-center justify-center shadow-lg border-2 border-white">
@@ -75,10 +90,12 @@ function UncollectedCardBack({ tier }: { tier: CardTier }) {
 
 export default function CardScreen({ onBack, playSequence }: Props) {
   const [collection, setCollection] = useState<CardCollection>({
-    cards: [], totalPoints: 0, dropPower: 0,
+    cards: [],
+    totalPoints: 0,
+    dropPower: 0,
   });
   const [mounted, setMounted] = useState(false);
-  const [sortMode, setSortMode] = useState<SortMode>("tier");
+  const [sortMode, setSortMode] = useState<SortMode>('tier');
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showTop, setShowTop] = useState(false);
 
@@ -92,12 +109,14 @@ export default function CardScreen({ onBack, playSequence }: Props) {
     const el = scrollRef.current;
     if (!el) return;
     const onScroll = () => setShowTop(el.scrollTop > 400);
-    el.addEventListener("scroll", onScroll);
-    return () => el.removeEventListener("scroll", onScroll);
+    el.addEventListener('scroll', onScroll);
+    return () => el.removeEventListener('scroll', onScroll);
   }, []);
 
   const cardsByTier = (tier: CardTier) =>
-    collection.cards.filter((c) => c.tier === tier).sort((a, b) => a.letter.localeCompare(b.letter));
+    collection.cards
+      .filter((c) => c.tier === tier)
+      .sort((a, b) => a.letter.localeCompare(b.letter));
 
   const unlockedMascots = MASCOT_UNLOCK_POINTS.filter((t) => collection.totalPoints >= t).length;
 
@@ -114,20 +133,28 @@ export default function CardScreen({ onBack, playSequence }: Props) {
     for (let i = TIER_ORDER.length - 1; i >= 0; i--) {
       if (cardsByTier(TIER_ORDER[i]).length > 0) return TIER_LABELS[TIER_ORDER[i]];
     }
-    return "None";
+    return 'None';
   })();
   const completionPct = Math.round((totalCollected / totalPossible) * 100);
 
   const achievements = [
-    { label: "First Card", icon: "🎴", done: totalCollected >= 1 },
-    { label: "Tier Complete", icon: "🏆", done: TIER_ORDER.some(t => cardsByTier(t).length >= TIER_LETTERS[t].length) },
-    { label: "Legendary Hunter", icon: "💎", done: cardsByTier("legendary").length >= 1 },
-    { label: "Point Collector", icon: "⭐", done: collection.totalPoints >= 10 },
-    { label: "Card Hoarder", icon: "📦", done: duplicateCount >= 5 },
-    { label: "Perfectionist", icon: "🌟", done: TIER_ORDER.filter(t => cardsByTier(t).length >= TIER_LETTERS[t].length).length >= 3 },
-    { label: "Full Collection", icon: "👑", done: totalCollected >= totalPossible },
+    { label: 'First Card', icon: '🎴', done: totalCollected >= 1 },
+    {
+      label: 'Tier Complete',
+      icon: '🏆',
+      done: TIER_ORDER.some((t) => cardsByTier(t).length >= TIER_LETTERS[t].length),
+    },
+    { label: 'Legendary Hunter', icon: '💎', done: cardsByTier('legendary').length >= 1 },
+    { label: 'Point Collector', icon: '⭐', done: collection.totalPoints >= 10 },
+    { label: 'Card Hoarder', icon: '📦', done: duplicateCount >= 5 },
+    {
+      label: 'Perfectionist',
+      icon: '🌟',
+      done: TIER_ORDER.filter((t) => cardsByTier(t).length >= TIER_LETTERS[t].length).length >= 3,
+    },
+    { label: 'Full Collection', icon: '👑', done: totalCollected >= totalPossible },
   ];
-  const completedAchievements = achievements.filter(a => a.done).length;
+  const completedAchievements = achievements.filter((a) => a.done).length;
 
   let globalCardIndex = 0;
 
@@ -143,11 +170,16 @@ export default function CardScreen({ onBack, playSequence }: Props) {
     return (
       <div
         key={`${letter}-${tier}`}
-        className={`card-flip ${mounted ? "" : "opacity-0"}`}
+        className={`card-flip ${mounted ? '' : 'opacity-0'}`}
         style={{ animationDelay: `${idx * 0.06}s` }}
       >
         {card ? (
-          <CollectedCardFace letter={letter} tier={tier} count={card.count} isRarest={tier === rarestOwnedTier} />
+          <CollectedCardFace
+            letter={letter}
+            tier={tier}
+            count={card.count}
+            isRarest={tier === rarestOwnedTier}
+          />
         ) : (
           <UncollectedCardBack tier={tier} />
         )}
@@ -174,7 +206,7 @@ export default function CardScreen({ onBack, playSequence }: Props) {
           className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0L40 20L20 40L0 20Z' fill='%238b5cf6' fill-opacity='0.2'/%3E%3C/svg%3E")`,
-            backgroundSize: "40px 40px",
+            backgroundSize: '40px 40px',
           }}
         />
 
@@ -184,6 +216,7 @@ export default function CardScreen({ onBack, playSequence }: Props) {
             <button
               onClick={onBack}
               className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-500 hover:text-violet-500 transition-colors"
+              aria-label="Back to game"
             >
               <i aria-hidden="true" className="fi fi-sr-angle-left text-lg"></i>
             </button>
@@ -196,12 +229,20 @@ export default function CardScreen({ onBack, playSequence }: Props) {
           {/* Stats */}
           <div className="flex items-center justify-center gap-4">
             <div className="inline-block bg-violet-100 dark:bg-violet-900/30 px-6 py-3 rounded-2xl border-2 border-violet-200 dark:border-violet-800">
-              <p className="text-[10px] font-black text-violet-600/60 dark:text-violet-400/60 uppercase tracking-widest">Cards</p>
-              <p className="text-3xl font-black text-violet-600 dark:text-violet-400">{totalCollected}/{totalPossible}</p>
+              <p className="text-[10px] font-black text-violet-600/60 dark:text-violet-400/60 uppercase tracking-widest">
+                Cards
+              </p>
+              <p className="text-3xl font-black text-violet-600 dark:text-violet-400">
+                {totalCollected}/{totalPossible}
+              </p>
             </div>
             <div className="inline-block bg-amber-100 dark:bg-amber-900/30 px-6 py-3 rounded-2xl border-2 border-amber-200 dark:border-amber-800">
-              <p className="text-[10px] font-black text-amber-600/60 dark:text-amber-400/60 uppercase tracking-widest">Points</p>
-              <p className="text-3xl font-black text-amber-600 dark:text-amber-400">{collection.totalPoints}</p>
+              <p className="text-[10px] font-black text-amber-600/60 dark:text-amber-400/60 uppercase tracking-widest">
+                Points
+              </p>
+              <p className="text-3xl font-black text-amber-600 dark:text-amber-400">
+                {collection.totalPoints}
+              </p>
             </div>
           </div>
 
@@ -225,7 +266,7 @@ export default function CardScreen({ onBack, playSequence }: Props) {
                     />
                     <div
                       className={`h-full transition-all duration-700 ${TIER_BG_FILL[tier]}`}
-                      style={{ width: `${fill}%`, opacity: 1, marginTop: "-100%" }}
+                      style={{ width: `${fill}%`, opacity: 1, marginTop: '-100%' }}
                     />
                   </div>
                 );
@@ -235,24 +276,37 @@ export default function CardScreen({ onBack, playSequence }: Props) {
 
           {/* Mascots */}
           <div className="bg-amber-50 dark:bg-amber-900/10 p-6 rounded-3xl border-2 border-amber-200 dark:border-amber-800">
-            <p className="text-sm font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-4">Characters</p>
+            <p className="text-sm font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-4">
+              Characters
+            </p>
             <div className="flex items-center justify-center gap-8">
               <div className="flex flex-col items-center gap-1">
                 <CaptainAlph size={70} />
                 <p className="text-[10px] font-bold text-amber-500">Free</p>
               </div>
-              <div className={`flex flex-col items-center gap-1 transition-all duration-500 ${collection.totalPoints >= 10 ? "" : "opacity-40 saturate-0"}`}>
+              <div
+                className={`flex flex-col items-center gap-1 transition-all duration-500 ${collection.totalPoints >= 10 ? '' : 'opacity-40 saturate-0'}`}
+              >
                 <Mermaid size={70} />
-                <p className="text-[10px] font-bold text-zinc-400">{collection.totalPoints >= 10 ? "Unlocked!" : "10 pts"}</p>
+                <p className="text-[10px] font-bold text-zinc-400">
+                  {collection.totalPoints >= 10 ? 'Unlocked!' : '10 pts'}
+                </p>
               </div>
-              <div className={`flex flex-col items-center gap-1 transition-all duration-500 ${collection.totalPoints >= 20 ? "" : "opacity-40 saturate-0"}`}>
+              <div
+                className={`flex flex-col items-center gap-1 transition-all duration-500 ${collection.totalPoints >= 20 ? '' : 'opacity-40 saturate-0'}`}
+              >
                 <TreasureMonster size={70} />
-                <p className="text-[10px] font-bold text-zinc-400">{collection.totalPoints >= 20 ? "Unlocked!" : "20 pts"}</p>
+                <p className="text-[10px] font-bold text-zinc-400">
+                  {collection.totalPoints >= 20 ? 'Unlocked!' : '20 pts'}
+                </p>
               </div>
             </div>
             <div className="mt-4 flex justify-center gap-2">
               {MASCOT_UNLOCK_POINTS.map((_, i) => (
-                <div key={i} className={`w-3 h-3 rounded-full transition-colors ${i < unlockedMascots ? "bg-amber-500" : "bg-zinc-200 dark:bg-zinc-700"}`} />
+                <div
+                  key={i}
+                  className={`w-3 h-3 rounded-full transition-colors ${i < unlockedMascots ? 'bg-amber-500' : 'bg-zinc-200 dark:bg-zinc-700'}`}
+                />
               ))}
             </div>
           </div>
@@ -260,7 +314,7 @@ export default function CardScreen({ onBack, playSequence }: Props) {
           {/* Sort tabs */}
           {totalCollected > 0 && (
             <div className="flex justify-center gap-2">
-                  {(["tier", "recent", "all", "stats"] as SortMode[]).map((mode) => (
+              {(['tier', 'recent', 'all', 'stats'] as SortMode[]).map((mode) => (
                 <button
                   key={mode}
                   onClick={() => {
@@ -271,18 +325,24 @@ export default function CardScreen({ onBack, playSequence }: Props) {
                   }}
                   className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
                     sortMode === mode
-                      ? "bg-violet-600 text-white shadow-lg"
-                      : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                      ? 'bg-violet-600 text-white shadow-lg'
+                      : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-violet-100 dark:hover:bg-violet-900/30'
                   }`}
                 >
-                  {mode === "tier" ? "By Tier" : mode === "recent" ? "Recent" : mode === "all" ? "All A-Z" : "Stats"}
+                  {mode === 'tier'
+                    ? 'By Tier'
+                    : mode === 'recent'
+                      ? 'Recent'
+                      : mode === 'all'
+                        ? 'All A-Z'
+                        : 'Stats'}
                 </button>
               ))}
             </div>
           )}
 
           {/* Tier sections */}
-          {totalCollected > 0 && sortMode === "tier" && (
+          {totalCollected > 0 && sortMode === 'tier' && (
             <div className="space-y-10">
               {TIER_ORDER.map((tier) => {
                 const letters = TIER_LETTERS[tier];
@@ -297,10 +357,17 @@ export default function CardScreen({ onBack, playSequence }: Props) {
                   <div key={tier}>
                     <div className="flex items-center justify-center gap-3 mb-5">
                       <div className={`h-5 w-1.5 rounded-full ${TIER_BG_FILL[tier]}`} />
-                      <span className="text-xl font-black tracking-wider text-zinc-700 dark:text-zinc-200">{TIER_LABELS[tier]}</span>
-                      <span className="text-sm font-bold text-zinc-400">{collected.length}/{letters.length}</span>
+                      <span className="text-xl font-black tracking-wider text-zinc-700 dark:text-zinc-200">
+                        {TIER_LABELS[tier]}
+                      </span>
+                      <span className="text-sm font-bold text-zinc-400">
+                        {collected.length}/{letters.length}
+                      </span>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto" style={{ perspective: "1200px" }}>
+                    <div
+                      className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto"
+                      style={{ perspective: '1200px' }}
+                    >
                       {cardSlots.map(({ letter, card, idx }) => renderCard(letter, tier, idx))}
                     </div>
                   </div>
@@ -310,40 +377,75 @@ export default function CardScreen({ onBack, playSequence }: Props) {
           )}
 
           {/* Stats mode */}
-          {totalCollected > 0 && sortMode === "stats" && (
+          {totalCollected > 0 && sortMode === 'stats' && (
             <div className="space-y-6 max-w-xl mx-auto">
               <div className="bg-zinc-50 dark:bg-zinc-800/50 p-6 rounded-3xl border-2 border-zinc-200 dark:border-zinc-700 space-y-5">
                 <div className="flex items-center justify-center gap-4">
                   <div className="relative w-24 h-24">
                     <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                      <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" strokeWidth="3" className="text-zinc-200 dark:text-zinc-700" />
-                      <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" strokeWidth="3" className="text-violet-500" strokeDasharray={`${completionPct} ${100 - completionPct}`} strokeLinecap="round" />
+                      <circle
+                        cx="18"
+                        cy="18"
+                        r="15.5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        className="text-zinc-200 dark:text-zinc-700"
+                      />
+                      <circle
+                        cx="18"
+                        cy="18"
+                        r="15.5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        className="text-violet-500"
+                        strokeDasharray={`${completionPct} ${100 - completionPct}`}
+                        strokeLinecap="round"
+                      />
                     </svg>
                     <span className="absolute inset-0 flex items-center justify-center text-2xl font-black text-violet-600 dark:text-violet-400">
                       {completionPct}%
                     </span>
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">Collection</p>
-                    <p className="text-3xl font-black text-zinc-700 dark:text-zinc-200">{totalCollected}/{totalPossible}</p>
-                    <p className="text-xs font-bold text-zinc-400 mt-1">{totalWithDuplicates} total cards · {duplicateCount} duplicates</p>
+                    <p className="text-sm font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                      Collection
+                    </p>
+                    <p className="text-3xl font-black text-zinc-700 dark:text-zinc-200">
+                      {totalCollected}/{totalPossible}
+                    </p>
+                    <p className="text-xs font-bold text-zinc-400 mt-1">
+                      {totalWithDuplicates} total cards · {duplicateCount} duplicates
+                    </p>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">By Tier</p>
+                  <p className="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">
+                    By Tier
+                  </p>
                   {TIER_ORDER.map((tier) => {
                     const collected = cardsByTier(tier).length;
                     const total = TIER_LETTERS[tier].length;
                     const pct = total > 0 ? (collected / total) * 100 : 0;
                     return (
                       <div key={tier} className="flex items-center gap-2">
-                        <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${TIER_BG_FILL[tier]}`} />
-                        <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 w-20 text-left">{TIER_LABELS[tier]}</span>
+                        <div
+                          className={`w-2.5 h-2.5 rounded-full shrink-0 ${TIER_BG_FILL[tier]}`}
+                        />
+                        <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 w-20 text-left">
+                          {TIER_LABELS[tier]}
+                        </span>
                         <div className="flex-1 h-2.5 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden">
-                          <div className={`h-full rounded-full transition-all duration-700 ${TIER_BG_FILL[tier]}`} style={{ width: `${pct}%` }} />
+                          <div
+                            className={`h-full rounded-full transition-all duration-700 ${TIER_BG_FILL[tier]}`}
+                            style={{ width: `${pct}%` }}
+                          />
                         </div>
-                        <span className="text-xs font-bold text-zinc-400 w-14 text-right">{collected}/{total}</span>
+                        <span className="text-xs font-bold text-zinc-400 w-14 text-right">
+                          {collected}/{total}
+                        </span>
                       </div>
                     );
                   })}
@@ -351,16 +453,28 @@ export default function CardScreen({ onBack, playSequence }: Props) {
 
                 <div className="flex justify-around text-center pt-2 border-t-2 border-zinc-200 dark:border-zinc-700">
                   <div>
-                    <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Best Card</p>
-                    <p className="text-lg font-black text-zinc-700 dark:text-zinc-200">{highestOwnedTier}</p>
+                    <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
+                      Best Card
+                    </p>
+                    <p className="text-lg font-black text-zinc-700 dark:text-zinc-200">
+                      {highestOwnedTier}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Drop Power</p>
-                    <p className="text-lg font-black text-violet-600 dark:text-violet-400">+{collection.dropPower}</p>
+                    <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
+                      Drop Power
+                    </p>
+                    <p className="text-lg font-black text-violet-600 dark:text-violet-400">
+                      +{collection.dropPower}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Points</p>
-                    <p className="text-lg font-black text-amber-600 dark:text-amber-400">{collection.totalPoints}</p>
+                    <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
+                      Points
+                    </p>
+                    <p className="text-lg font-black text-amber-600 dark:text-amber-400">
+                      {collection.totalPoints}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -376,11 +490,13 @@ export default function CardScreen({ onBack, playSequence }: Props) {
                       key={ach.label}
                       className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
                         ach.done
-                          ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
-                          : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 opacity-50"
+                          ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+                          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 opacity-50'
                       }`}
                     >
-                      <span className="text-base">{ach.icon}</span>
+                      <span className="text-base" aria-hidden="true">
+                        {ach.icon}
+                      </span>
                       <span>{ach.label}</span>
                       {ach.done && <span className="ml-auto text-emerald-500">✓</span>}
                     </div>
@@ -391,16 +507,19 @@ export default function CardScreen({ onBack, playSequence }: Props) {
           )}
 
           {/* Recent mode */}
-          {totalCollected > 0 && sortMode === "recent" && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto" style={{ perspective: "1200px" }}>
+          {totalCollected > 0 && sortMode === 'recent' && (
+            <div
+              className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto"
+              style={{ perspective: '1200px' }}
+            >
               {[...collection.cards]
-                .sort((a, b) => ((b.lastCollected ?? 0) - (a.lastCollected ?? 0)))
+                .sort((a, b) => (b.lastCollected ?? 0) - (a.lastCollected ?? 0))
                 .map((card, i) => {
                   const idx = globalCardIndex++;
                   return (
                     <div
                       key={`${card.letter}-${card.tier}-recent`}
-                      className={`card-flip ${mounted ? "" : "opacity-0"}`}
+                      className={`card-flip ${mounted ? '' : 'opacity-0'}`}
                       style={{ animationDelay: `${idx * 0.06}s` }}
                     >
                       <CollectedCardFace letter={card.letter} tier={card.tier} count={card.count} />
@@ -411,8 +530,11 @@ export default function CardScreen({ onBack, playSequence }: Props) {
           )}
 
           {/* All A-Z mode */}
-          {totalCollected > 0 && sortMode === "all" && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto" style={{ perspective: "1200px" }}>
+          {totalCollected > 0 && sortMode === 'all' && (
+            <div
+              className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto"
+              style={{ perspective: '1200px' }}
+            >
               {ALL_LETTERS.map((letter) => {
                 const tier = LETTER_TIER[letter];
                 const idx = globalCardIndex++;
@@ -424,8 +546,12 @@ export default function CardScreen({ onBack, playSequence }: Props) {
           {/* Empty state */}
           {totalCollected === 0 && (
             <div className="py-12 space-y-4">
-              <span className="text-7xl block opacity-30">{String.fromCodePoint(0x1F0CF)}</span>
-              <p className="text-zinc-400 font-bold text-lg">No cards yet. Play the game to collect letters!</p>
+              <span className="text-7xl block opacity-30" aria-hidden="true">
+                {String.fromCodePoint(0x1f0cf)}
+              </span>
+              <p className="text-zinc-400 font-bold text-lg">
+                No cards yet. Play the game to collect letters!
+              </p>
             </div>
           )}
 
@@ -441,7 +567,7 @@ export default function CardScreen({ onBack, playSequence }: Props) {
         {/* Back to top */}
         {showTop && (
           <button
-            onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" })}
+            onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
             className="fixed bottom-6 right-6 z-20 w-12 h-12 rounded-full bg-violet-600 text-white shadow-2xl flex items-center justify-center hover:bg-violet-500 transition-all animate-in slide-in-from-bottom-2 duration-300"
           >
             <i aria-hidden="true" className="fi fi-sr-angle-up text-lg"></i>

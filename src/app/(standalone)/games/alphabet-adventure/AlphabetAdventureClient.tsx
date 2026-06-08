@@ -1,26 +1,30 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import type { Screen } from "./types";
-import { useAudio } from "@/hooks/useAudio";
-import { useGameActions } from "./hooks/useGameActions";
-import GameScreen from "./screens/GameScreen";
-import MenuScreen from "./screens/MenuScreen";
-import VictoryScreen from "./screens/VictoryScreen";
-import GameOverlays from "./screens/GameOverlays";
-import CardScreen from "./beta/screens/CardScreen";
+import { startTransition, useState, useEffect, useRef, useCallback } from 'react';
+import type { Screen } from './types';
+import { useAudio } from '@/hooks/useAudio';
+import { useGameActions } from './hooks/useGameActions';
+import GameScreen from './screens/GameScreen';
+import MenuScreen from './screens/MenuScreen';
+import VictoryScreen from './screens/VictoryScreen';
+import GameOverlays from './screens/GameOverlays';
+import CardScreen from './beta/screens/CardScreen';
+import OnboardingOverlay from './screens/OnboardingOverlay';
 
 interface Props {
   beta?: boolean;
 }
 
 export default function AlphabetAdventureClient({ beta = false }: Props) {
-  const [screen, setScreen] = useState<Screen>("menu");
+  const [screen, setScreen] = useState<Screen>('menu');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showCards, setShowCards] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const { playSound, speak, muted, toggleMute, playSequence, voiceURI, setVoiceURI } = useAudio();
+
+  const onboardingSeen = useRef<Set<number>>(new Set());
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const {
     gameState,
@@ -51,20 +55,13 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
   } = useGameActions({ playSound, playSequence, setScreen });
 
   useEffect(() => {
-    const header = document.getElementById("site-header");
-    const footer = document.getElementById("site-footer");
-    if (screen === "game") {
-      header?.classList.add("hidden");
-      footer?.classList.add("hidden");
-    } else {
-      header?.classList.remove("hidden");
-      footer?.classList.remove("hidden");
+    if (screen === 'game' && !onboardingSeen.current.has(gameState.level)) {
+      onboardingSeen.current.add(gameState.level);
+      startTransition(() => setShowOnboarding(true));
     }
-    return () => {
-      header?.classList.remove("hidden");
-      footer?.classList.remove("hidden");
-    };
-  }, [screen]);
+  }, [screen, gameState.level]);
+
+  const closeOnboarding = useCallback(() => setShowOnboarding(false), []);
 
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -78,45 +75,46 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
 
   useEffect(() => {
     const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener("fullscreenchange", handleFsChange);
-    return () => document.removeEventListener("fullscreenchange", handleFsChange);
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
   useEffect(() => {
-    const savedVoice = localStorage.getItem("alphabet-adventure-voice");
+    const savedVoice = localStorage.getItem('alphabet-adventure-voice');
     if (savedVoice) setVoiceURI(savedVoice);
   }, [setVoiceURI]);
 
-  const handleVoiceChange = useCallback((uri: string) => {
-    setVoiceURI(uri);
-    if (typeof window !== "undefined") {
-      if (uri) localStorage.setItem("alphabet-adventure-voice", uri);
-      else localStorage.removeItem("alphabet-adventure-voice");
-    }
-  }, [setVoiceURI]);
+  const handleVoiceChange = useCallback(
+    (uri: string) => {
+      setVoiceURI(uri);
+      if (typeof window !== 'undefined') {
+        if (uri) localStorage.setItem('alphabet-adventure-voice', uri);
+        else localStorage.removeItem('alphabet-adventure-voice');
+      }
+    },
+    [setVoiceURI],
+  );
 
   return (
     <div
       ref={containerRef}
-      className={`flex flex-col items-center justify-center p-4 transition-colors duration-500 ${
-        screen === "game"
-          ? "h-screen overflow-hidden bg-violet-50 dark:bg-zinc-950"
-          : "min-h-screen bg-violet-50 dark:bg-zinc-950 pt-24"
+      className={`alphabet-game flex flex-col items-center justify-center p-4 transition-colors duration-500 ${
+        screen === 'game'
+          ? 'h-screen overflow-hidden bg-violet-50 dark:bg-zinc-950'
+          : 'min-h-screen bg-violet-50 dark:bg-zinc-950 pt-24'
       }`}
       style={{ fontFamily: "'Mali', sans-serif" }}
     >
       <div className="w-full max-w-3xl mx-auto relative">
-        {showCards && (
-          <CardScreen onBack={() => setShowCards(false)} playSequence={playSequence} />
-        )}
+        {showCards && <CardScreen onBack={() => setShowCards(false)} playSequence={playSequence} />}
 
-        {!showCards && screen === "menu" && (
+        {!showCards && screen === 'menu' && (
           <MenuScreen
             onStart={() => startGame(undefined, undefined, easyMode)}
             onContinue={continueGame}
             hasProgress={hasSavedProgress}
             easyMode={easyMode}
-            onToggleEasy={() => setEasyMode(v => !v)}
+            onToggleEasy={() => setEasyMode((v) => !v)}
             isBeta={beta}
             onShowCards={() => setShowCards(true)}
             voiceURI={voiceURI}
@@ -124,8 +122,11 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
           />
         )}
 
-        {!showCards && screen === "game" && (
+        {!showCards && screen === 'game' && (
           <>
+            {showOnboarding && (
+              <OnboardingOverlay level={gameState.level} onDismiss={closeOnboarding} />
+            )}
             <GameOverlays
               isBeta={beta}
               showDebug={showDebug}
@@ -136,8 +137,8 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
               dropStreak={dropStreak}
               dropPower={dropPower}
               effectiveStreak={effectiveStreak}
-              onToggleCollection={() => setShowCollectionOverlay(v => !v)}
-              onToggleDebug={() => setShowDebug(v => !v)}
+              onToggleCollection={() => setShowCollectionOverlay((v) => !v)}
+              onToggleDebug={() => setShowDebug((v) => !v)}
               onCloseCollection={() => setShowCollectionOverlay(false)}
               onViewFullCollection={() => setShowCards(true)}
               onCardKeep={handleCardKeep}
@@ -152,7 +153,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
               muted={muted}
               onAnswer={handleAnswer}
               onCheckTyping={checkTyping}
-              onBack={() => setScreen("menu")}
+              onBack={() => setScreen('menu')}
               onToggleFullscreen={toggleFullscreen}
               onToggleMute={toggleMute}
               onSelectCell={handleSelectCell}
@@ -165,13 +166,13 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
           </>
         )}
 
-        {!showCards && screen === "victory" && (
+        {!showCards && screen === 'victory' && (
           <VictoryScreen
             score={gameState.score}
             stageStars={stageStars}
             wrongLetters={gameState.wrongLetters}
             onRestart={() => startGame(undefined, undefined, easyMode)}
-            onBackToMenu={() => setScreen("menu")}
+            onBackToMenu={() => setScreen('menu')}
           />
         )}
       </div>
