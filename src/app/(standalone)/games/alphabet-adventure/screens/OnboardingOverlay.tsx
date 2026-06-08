@@ -44,7 +44,7 @@ const INSTRUCTIONS: Record<number, { en: string; th: string }> = {
 };
 
 export default function OnboardingOverlay({ level, onDismiss }: Props) {
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     timerRef.current = setTimeout(onDismiss, 4000);
