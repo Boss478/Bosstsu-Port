@@ -90,10 +90,11 @@ export default function VictoryScreen({
           100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
       `}</style>
-      <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-12 shadow-2xl text-center space-y-8 animate-in zoom-in duration-500 relative">
+      <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl text-center space-y-8 animate-in zoom-in duration-500 relative max-h-[calc(100dvh-8rem)] overflow-y-auto">
         <h1 className="text-5xl md:text-7xl font-black text-emerald-500 animate-pulse tracking-tight">
           Amazing!
         </h1>
+        <p className="text-lg md:text-xl font-black text-emerald-400/60">เยี่ยมมาก!</p>
         <p className="text-2xl md:text-3xl text-zinc-600 dark:text-zinc-400 font-bold">
           คุณพิชิตเกาะตัวอักษรสำเร็จแล้ว!
         </p>
@@ -107,6 +108,7 @@ export default function VictoryScreen({
             <p className="text-2xl font-black text-amber-600 dark:text-amber-400">
               NEW HIGH SCORE!
             </p>
+            <p className="text-sm font-black text-amber-500/60">คะแนนสูงสุดใหม่!</p>
           </div>
         )}
 
@@ -114,6 +116,7 @@ export default function VictoryScreen({
           <p className="text-lg font-bold text-violet-600/60 dark:text-violet-400/60 uppercase tracking-widest mb-1">
             Final Score
           </p>
+          <p className="text-xs font-bold text-violet-500/40 dark:text-violet-400/40">คะแนนรวม</p>
           <p className="text-7xl font-black text-violet-600 dark:text-violet-400 tracking-tighter">
             {score}
           </p>
@@ -121,6 +124,7 @@ export default function VictoryScreen({
 
         <div className="space-y-4">
           <p className="text-lg font-bold text-zinc-500 dark:text-zinc-400">Level Stars</p>
+          <p className="text-sm font-bold text-zinc-400 dark:text-zinc-500">ดาวประจำด่าน</p>
           <div className="flex flex-col gap-3">
             {stageStars.map((stars, index) => {
               const levelNum = index + 1;
@@ -139,12 +143,16 @@ export default function VictoryScreen({
             <p className="text-sm font-bold text-violet-500 dark:text-violet-400">
               Total: {totalStars} / {stageStars.length * 3} Stars
             </p>
+            <p className="text-[10px] font-bold text-violet-400/60 dark:text-violet-400/40">
+              รวม: {totalStars} / {stageStars.length * 3} ดาว
+            </p>
           </div>
           {wrongLetters && wrongLetters.length > 0 && (
             <div className="pt-4">
-              <p className="text-sm font-bold text-rose-500 uppercase tracking-widest mb-2">
+              <p className="text-sm font-bold text-rose-500 uppercase tracking-widest mb-0.5">
                 Letters to Practice
               </p>
+              <p className="text-[10px] font-bold text-rose-400/60 mb-2">ตัวอักษรที่ต้องฝึก</p>
               <div className="flex flex-wrap justify-center gap-2">
                 {[...new Set(wrongLetters)].sort().map((letter) => (
                   <span
@@ -160,18 +168,24 @@ export default function VictoryScreen({
         </div>
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 pt-8">
-          <button
-            onClick={onRestart}
-            className="px-12 py-5 bg-emerald-600 text-white text-2xl font-black rounded-3xl shadow-[0_12px_0_0_#065f46] active:shadow-none active:translate-y-3 transition-all"
-          >
-            Play Again
-          </button>
-          <button
-            onClick={onBackToMenu}
-            className="px-6 py-3 rounded-2xl text-zinc-500 hover:text-violet-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-bold transition-all"
-          >
-            Back to Menu
-          </button>
+          <div className="flex flex-col items-center gap-1">
+            <button
+              onClick={onRestart}
+              className="px-12 py-5 bg-emerald-600 text-white text-2xl font-black rounded-3xl shadow-[0_12px_0_0_#065f46] active:shadow-none active:translate-y-3 transition-all"
+            >
+              Play Again
+            </button>
+            <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">เล่นอีกครั้ง</p>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <button
+              onClick={onBackToMenu}
+              className="px-6 py-3 rounded-2xl text-zinc-500 hover:text-violet-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-bold transition-all"
+            >
+              Back to Menu
+            </button>
+            <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500">กลับเมนู</p>
+          </div>
         </div>
       </div>
     </>

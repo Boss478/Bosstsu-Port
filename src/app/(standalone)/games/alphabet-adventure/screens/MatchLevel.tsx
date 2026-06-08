@@ -36,12 +36,17 @@ export default function MatchLevel({
                 {roundData.targetLetter}
               </span>
             </div>
-            <button
-              onClick={() => onSpeak(roundData.targetLetter || '', 'th-TH')}
-              className="px-6 py-2 rounded-xl bg-amber-100 dark:bg-amber-900/40 hover:bg-amber-200 dark:hover:bg-amber-800/60 text-amber-700 dark:text-amber-400 text-sm font-black shadow-lg hover:scale-105 transition-all"
-            >
-              Listen again
-            </button>
+            <div className="flex flex-col items-center gap-1">
+              <button
+                onClick={() => onSpeak(roundData.targetLetter || '', 'th-TH')}
+                className="px-6 py-2 rounded-xl bg-amber-100 dark:bg-amber-900/40 hover:bg-amber-200 dark:hover:bg-amber-800/60 text-amber-700 dark:text-amber-400 text-sm font-black shadow-lg hover:scale-105 transition-all"
+              >
+                Listen again
+              </button>
+              <p className="text-[10px] font-bold text-amber-600/60 dark:text-amber-400/60">
+                ฟังอีกครั้ง
+              </p>
+            </div>
           </div>
         ) : (
           <>
@@ -56,7 +61,7 @@ export default function MatchLevel({
                 onSpeak(text || '', isThaiText ? 'th-TH' : 'en-US');
               }}
               className="absolute -bottom-3 left-1/2 -translate-x-1/2 p-3 rounded-xl bg-violet-100 dark:bg-violet-900/40 hover:bg-violet-200 dark:hover:bg-violet-800/60 text-violet-600 dark:text-violet-400 shadow-lg hover:scale-110 transition-all"
-              title="Listen"
+              title="Listen / ฟัง"
             >
               <i aria-hidden="true" className="fi fi-sr-volume text-xl"></i>
             </button>

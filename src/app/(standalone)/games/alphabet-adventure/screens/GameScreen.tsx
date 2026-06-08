@@ -138,6 +138,7 @@ export default function GameScreen({
             >
               <i aria-hidden="true" className="fi fi-sr-angle-left text-xs"></i>
               <span className="text-xs font-black uppercase tracking-widest">Menu</span>
+              <span className="text-[9px] font-black text-zinc-400 dark:text-zinc-500">เมนู</span>
             </button>
             <div className="w-12 h-12 rounded-2xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-violet-600 dark:text-violet-400 text-xl font-black">
               {gameState.level}
@@ -145,6 +146,9 @@ export default function GameScreen({
             <div>
               <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
                 LEVEL
+              </p>
+              <p className="text-[8px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                ด่าน
               </p>
               <p className="text-lg font-black text-zinc-800 dark:text-zinc-100">
                 {levelConfig?.name || ''}
@@ -160,6 +164,9 @@ export default function GameScreen({
                 <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
                   STREAK
                 </p>
+                <p className="text-[8px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                  ต่อเนื่อง
+                </p>
                 <p className="text-2xl font-black text-amber-500 tracking-tighter whitespace-nowrap">
                   🔥 {gameState.currentStreak}
                 </p>
@@ -168,6 +175,9 @@ export default function GameScreen({
             <div className="text-right">
               <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
                 SCORE
+              </p>
+              <p className="text-[8px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                คะแนน
               </p>
               <p className="text-3xl font-black text-fuchsia-500 tracking-tighter">
                 {gameState.score}
@@ -217,6 +227,9 @@ export default function GameScreen({
           </div>
           <div className="flex justify-between text-[11px] font-black text-zinc-500 uppercase tracking-wider">
             <span>PROGRESS</span>
+            <span className="text-[9px] font-black text-zinc-400 dark:text-zinc-500">
+              ความคืบหน้า
+            </span>
             <span>
               {Math.min(progress, effectiveTarget)} / {effectiveTarget}
             </span>
@@ -267,6 +280,11 @@ export default function GameScreen({
           {levelType === 'typing'
             ? 'Press Enter to check • Esc = Menu'
             : `Press 1-${roundData.choices.length || 3} to answer • Esc = Menu`}
+        </p>
+        <p className="text-[10px] text-zinc-400 dark:text-zinc-600 font-bold tracking-wider">
+          {levelType === 'typing'
+            ? 'กด Enter เพื่อตรวจสอบ • Esc = เมนู'
+            : `กด 1-${roundData.choices.length || 3} เพื่อเลือก • Esc = เมนู`}
         </p>
       </div>
 

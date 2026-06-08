@@ -67,12 +67,15 @@ export default function OnboardingOverlay({ level, onDismiss }: Props) {
           {instructions.en}
         </p>
         <p className="text-base font-bold text-zinc-500 dark:text-zinc-400">{instructions.th}</p>
-        <button
-          onClick={onDismiss}
-          className="px-8 py-3 bg-violet-600 text-white text-lg font-black rounded-2xl shadow-[0_6px_0_0_#5b21b6] active:shadow-none active:translate-y-1.5 transition-all hover:bg-violet-500 focus-visible:outline-2 focus-visible:outline-white"
-        >
-          Got it!
-        </button>
+        <div className="flex flex-col items-center gap-1">
+          <button
+            onClick={onDismiss}
+            className="px-8 py-3 bg-violet-600 text-white text-lg font-black rounded-2xl shadow-[0_6px_0_0_#5b21b6] active:shadow-none active:translate-y-1.5 transition-all hover:bg-violet-500 focus-visible:outline-2 focus-visible:outline-white"
+          >
+            Got it!
+          </button>
+          <p className="text-sm font-bold text-violet-500/60">เข้าใจแล้ว!</p>
+        </div>
       </div>
     </div>
   );

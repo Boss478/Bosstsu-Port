@@ -52,14 +52,15 @@ export default function TypingLevel({
         ))}
       </div>
 
-      <div className="text-center pt-4">
+      <div className="flex flex-col items-center gap-1 pt-4">
         <button
           onClick={() => !isFeedbackVisible && onCheckTyping()}
           disabled={isTransitioning || isFeedbackVisible}
-          className="px-10 py-4 bg-fuchsia-600 text-white text-xl font-black rounded-2xl shadow-[0_8px_0_0_#9d174d] active:shadow-none active:translate-y-2 transition-all flex items-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-10 py-4 bg-fuchsia-600 text-white text-xl font-black rounded-2xl shadow-[0_8px_0_0_#9d174d] active:shadow-none active:translate-y-2 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Check Answers <i aria-hidden="true" className="fi fi-sr-checkbox"></i>
         </button>
+        <p className="text-xs font-bold text-fuchsia-500/60">ตรวจสอบ</p>
       </div>
     </div>
   );
