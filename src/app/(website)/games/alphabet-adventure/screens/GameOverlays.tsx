@@ -1,10 +1,18 @@
-"use client";
+'use client';
 
-import type { CardTier } from "../cards/cards";
-import { getDropRate, getNoneDropRate, loadCollection, TIER_ORDER, TIER_LABELS, CARD_WORDS, isHolographicTier } from "../cards/cards";
-import { CardFrame } from "../cards/CardFrame";
-import { CardIllustration } from "../cards/CardIllustrations";
-import CardRevealModal from "../beta/screens/CardRevealModal";
+import type { CardTier } from '../cards/cards';
+import {
+  getDropRate,
+  getNoneDropRate,
+  loadCollection,
+  TIER_ORDER,
+  TIER_LABELS,
+  CARD_WORDS,
+  isHolographicTier,
+} from '../cards/cards';
+import { CardFrame } from '../cards/CardFrame';
+import { CardIllustration } from '../cards/CardIllustrations';
+import CardRevealModal from '../beta/screens/CardRevealModal';
 
 interface Props {
   isBeta?: boolean;
@@ -76,7 +84,9 @@ export default function GameOverlays({
             <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
               <div className="flex justify-between text-[10px] font-bold">
                 <span className="text-zinc-500">None</span>
-                <span className="text-zinc-500 tabular-nums">{getNoneDropRate(effectiveStreak).toFixed(0)}%</span>
+                <span className="text-zinc-500 tabular-nums">
+                  {getNoneDropRate(effectiveStreak).toFixed(0)}%
+                </span>
               </div>
               {TIER_ORDER.map((tier) => {
                 const rate = getDropRate(tier, effectiveStreak);
@@ -96,7 +106,9 @@ export default function GameOverlays({
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="bg-black/85 backdrop-blur-xl px-5 py-4 rounded-2xl border border-zinc-700 shadow-2xl min-w-[260px]">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Collection</p>
+              <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                Collection
+              </p>
               <button
                 onClick={onCloseCollection}
                 className="text-zinc-500 hover:text-zinc-300 transition-colors"
@@ -107,7 +119,9 @@ export default function GameOverlays({
             {(() => {
               const col = loadCollection();
               const total = col.cards.length;
-              const recent = [...col.cards].sort((a, b) => (b.lastCollected ?? 0) - (a.lastCollected ?? 0)).slice(0, 3);
+              const recent = [...col.cards]
+                .sort((a, b) => (b.lastCollected ?? 0) - (a.lastCollected ?? 0))
+                .slice(0, 3);
               return (
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
@@ -115,14 +129,22 @@ export default function GameOverlays({
                     <span className="text-xs font-bold text-amber-400">{col.totalPoints} pts</span>
                   </div>
                   <div className="h-1.5 rounded-full bg-zinc-700 overflow-hidden">
-                    <div className="h-full rounded-full bg-violet-500 transition-all" style={{ width: `${(total / 26) * 100}%` }} />
+                    <div
+                      className="h-full rounded-full bg-violet-500 transition-all"
+                      style={{ width: `${(total / 26) * 100}%` }}
+                    />
                   </div>
                   {recent.length > 0 && (
                     <div>
-                      <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Recent</p>
+                      <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">
+                        Recent
+                      </p>
                       <div className="flex gap-2">
-                        {recent.map(card => (
-                          <div key={`${card.letter}-${card.tier}`} className="flex items-center gap-1.5 bg-zinc-800/60 px-2 py-1 rounded-lg">
+                        {recent.map((card) => (
+                          <div
+                            key={`${card.letter}-${card.tier}`}
+                            className="flex items-center gap-1.5 bg-zinc-800/60 px-2 py-1 rounded-lg"
+                          >
                             <CardIllustration letter={card.letter} size={20} />
                             <span className="text-xs font-bold text-zinc-300">{card.letter}</span>
                           </div>
@@ -131,7 +153,10 @@ export default function GameOverlays({
                     </div>
                   )}
                   <button
-                    onClick={() => { onCloseCollection(); onViewFullCollection(); }}
+                    onClick={() => {
+                      onCloseCollection();
+                      onViewFullCollection();
+                    }}
                     className="w-full py-1.5 rounded-lg bg-violet-600/80 hover:bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest transition-all"
                   >
                     View Full Collection
@@ -161,22 +186,50 @@ export default function GameOverlays({
           <div className="fixed inset-x-0 bottom-[15%] z-50 pointer-events-none flex justify-center">
             {(() => {
               const emojiKey = lastCardDropped.letter.toUpperCase();
-              const word = CARD_WORDS[emojiKey] || "";
+              const word = CARD_WORDS[emojiKey] || '';
               const label = TIER_LABELS[lastCardDropped.tier] || lastCardDropped.tier;
               const tierSparkleColor: Record<string, string> = {
-                common: "#a1a1aa",
-                uncommon: "#4ade80",
-                rare: "#60a5fa",
-                "ultra-rare": "#c084fc",
-                legendary: "#fbbf24",
+                common: '#a1a1aa',
+                uncommon: '#4ade80',
+                rare: '#60a5fa',
+                'ultra-rare': '#c084fc',
+                legendary: '#fbbf24',
               };
-              const sparkleColor = tierSparkleColor[lastCardDropped.tier] || "#a1a1aa";
+              const sparkleColor = tierSparkleColor[lastCardDropped.tier] || '#a1a1aa';
               return (
-                <div className="animate-in zoom-in duration-300" style={{ width: "120px" }}>
-                  <div className="absolute -top-1 -left-1 w-1.5 h-1.5 rounded-full pointer-events-none opacity-0" style={{ backgroundColor: sparkleColor, animation: "sparkle-pop 1s ease-out forwards", animationDelay: "0s" }} />
-                  <div className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full pointer-events-none opacity-0" style={{ backgroundColor: sparkleColor, animation: "sparkle-pop 1s ease-out forwards", animationDelay: "0.15s" }} />
-                  <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 rounded-full pointer-events-none opacity-0" style={{ backgroundColor: sparkleColor, animation: "sparkle-pop 1s ease-out forwards", animationDelay: "0.3s" }} />
-                  <div className="absolute -bottom-1 -right-1 w-1.5 h-1.5 rounded-full pointer-events-none opacity-0" style={{ backgroundColor: sparkleColor, animation: "sparkle-pop 1s ease-out forwards", animationDelay: "0.45s" }} />
+                <div className="animate-in zoom-in duration-300" style={{ width: '120px' }}>
+                  <div
+                    className="absolute -top-1 -left-1 w-1.5 h-1.5 rounded-full pointer-events-none opacity-0"
+                    style={{
+                      backgroundColor: sparkleColor,
+                      animation: 'sparkle-pop 1s ease-out forwards',
+                      animationDelay: '0s',
+                    }}
+                  />
+                  <div
+                    className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full pointer-events-none opacity-0"
+                    style={{
+                      backgroundColor: sparkleColor,
+                      animation: 'sparkle-pop 1s ease-out forwards',
+                      animationDelay: '0.15s',
+                    }}
+                  />
+                  <div
+                    className="absolute -bottom-1 -left-1 w-1.5 h-1.5 rounded-full pointer-events-none opacity-0"
+                    style={{
+                      backgroundColor: sparkleColor,
+                      animation: 'sparkle-pop 1s ease-out forwards',
+                      animationDelay: '0.3s',
+                    }}
+                  />
+                  <div
+                    className="absolute -bottom-1 -right-1 w-1.5 h-1.5 rounded-full pointer-events-none opacity-0"
+                    style={{
+                      backgroundColor: sparkleColor,
+                      animation: 'sparkle-pop 1s ease-out forwards',
+                      animationDelay: '0.45s',
+                    }}
+                  />
                   <CardFrame
                     tier={lastCardDropped.tier}
                     size="toast"
@@ -210,7 +263,7 @@ export default function GameOverlays({
         </>
       )}
 
-      {isBeta && cardReveal && (
+      {cardReveal && (
         <CardRevealModal
           letter={cardReveal.letter}
           tier={cardReveal.tier}

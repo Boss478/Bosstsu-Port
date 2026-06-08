@@ -5,6 +5,11 @@
 
 
 
+## v1.9.54 (2026-06-08)
+* **Card obtain animation fix**: Removed `isBeta` guard blocking `cardReveal` modal in non-beta normal mode — cards now show flip animation regardless of beta setting
+* **Flip duration fix**: `duration-600` → `duration-[600ms]` — card flip animation was instant (falling back to 150ms default) instead of intended 600ms
++ **First-obtain celebration**: "New Card Collected!" heading, larger NEW badge, and 12 tier-colored sparkle particles burst on first-time card reveals
+
 ## v1.9.53 (2026-06-08)
 + **Session QR code**: Curved blue-themed QR code (rounded SVG rects) encoding the join URL — shown below session code in both the admin card (160px) and full-screen modal (240px)
 * **Scrutiny**: BitMatrix API uses `.get(row, col)` not array indexing; precomputed rects via `useMemo`; 4-module quiet zone padding; dark mode via CSS `currentColor` (no JS flicker)
