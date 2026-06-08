@@ -654,3 +654,24 @@ body.python-fullscreen footer {
 @utility animate-hint-slide-up {
   animation: hint-slide-up 0.3s ease-out forwards;
 }
+
+/* ─── Text Selection ──────────────────────────────────────────────────────── */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea,
+[contenteditable='true'] {
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
+.article-content,
+.article-content *,
+.prose,
+.prose * {
+  -webkit-user-select: text;
+  user-select: text;
+}
