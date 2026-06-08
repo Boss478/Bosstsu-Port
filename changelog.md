@@ -5,6 +5,10 @@
 
 
 
+## v1.9.55 (2026-06-08)
+* **Card obtain animation race condition fix**: `finishGame` now waits for user to tap KEEP on `CardRevealModal` before transitioning to victory screen — previously fired at 1500ms while card appeared at 1000ms, destroying the modal after only 500ms of visibility
+* **Scrutiny fix**: `checkTyping` now resets `cardDroppedRef` at start, preventing stale-ref bug where typing mode would defer `finishGame` with no modal to dismiss
+
 ## v1.9.54 (2026-06-08)
 * **Card obtain animation fix**: Removed `isBeta` guard blocking `cardReveal` modal in non-beta normal mode — cards now show flip animation regardless of beta setting
 * **Flip duration fix**: `duration-600` → `duration-[600ms]` — card flip animation was instant (falling back to 150ms default) instead of intended 600ms

@@ -69,6 +69,8 @@ export function useGameActions({
   const cardToastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const streakToastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cardRevealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cardDroppedRef = useRef(false);
+  const pendingFinishRef = useRef(0);
 
   const CARD_TIER_SOUNDS: Record<CardTier, number[]> = {
     common: [500],
@@ -161,7 +163,11 @@ export function useGameActions({
     const nextLevel = stateRef.current.level + 1;
     const maxLevel = stateRef.current.easyMode ? 5 : 6;
     if (nextLevel > maxLevel) {
-      setTimeout(() => finishGame(score), GAME_CONFIG.FEEDBACK_DURATION + 500);
+      if (cardDroppedRef.current) {
+        pendingFinishRef.current = score;
+      } else {
+        setTimeout(() => finishGame(score), GAME_CONFIG.FEEDBACK_DURATION + 500);
+      }
     } else {
       const nextState: GameState = {
         ...stateRef.current,
@@ -210,6 +216,7 @@ export function useGameActions({
 
   const handleAnswer = useCallback((selected: string) => {
     if (isTransitioning) return;
+    cardDroppedRef.current = false;
     const config = LEVELS[stateRef.current.level];
     if (!config) return;
 
@@ -225,6 +232,7 @@ export function useGameActions({
       const tier = rollCardDrop(dropStreakRef.current, dropPowerRef.current);
       if (tier) {
           cardDropped = true;
+          cardDroppedRef.current = true;
           playSequence(CARD_TIER_SOUNDS[tier]);
           dropStreakRef.current = 0;
           const newPower = Math.min(10, dropPowerRef.current + 1);
@@ -351,6 +359,7 @@ export function useGameActions({
 
   const checkTyping = useCallback(() => {
     if (isTransitioning) return;
+    cardDroppedRef.current = false;
     const config = LEVELS[6];
     if (!config) return;
 
@@ -463,7 +472,11 @@ export function useGameActions({
 
   const handleCardKeep = useCallback(() => {
     setCardReveal(null);
-  }, []);
+    if (pendingFinishRef.current > 0) {
+      finishGame(pendingFinishRef.current);
+      pendingFinishRef.current = 0;
+    }
+  }, [finishGame]);
 
   return {
     gameState,
