@@ -64,12 +64,15 @@ export function useGameActions({
   playSequence: (freqs: number[], duration?: number, gainVal?: number) => void;
   setScreen: Dispatch<SetStateAction<Screen>>;
 }) {
+  const dropPowerRef = useRef(0);
+
   const [gameState, setGameState] = useState<GameState>(initialGameState());
   const [roundData, setRoundData] = useState<RoundData>(emptyRoundData());
   const [feedback, setFeedback] = useState<FeedbackState>({ text: '', type: '' });
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [stageStars, setStageStars] = useState<number[]>([]);
   const [hasSavedProgress] = useState(() => !!loadSavedProgress());
+  // eslint-disable-next-line react-hooks/refs
   const [dropPower, setDropPower] = useState(() => {
     const power = loadCollection().dropPower || 0;
     dropPowerRef.current = power;
@@ -93,7 +96,6 @@ export function useGameActions({
 
   const stateRef = useRef(gameState);
   const dropStreakRef = useRef(0);
-  const dropPowerRef = useRef(0);
   const cardToastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const streakToastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cardRevealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -302,7 +304,7 @@ export function useGameActions({
           dropStreakRef.current = Math.max(0, dropStreakRef.current - 5);
           setDropStreak(dropStreakRef.current);
           const newPower = Math.min(10, dropPowerRef.current + 1);
-          // eslint-disable-next-line react-hooks/immutability
+           
           dropPowerRef.current = newPower;
           setDropPower(newPower);
           const collection = loadCollection();
