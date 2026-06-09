@@ -48,7 +48,7 @@ export default function MenuScreen({
   }, []);
 
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 relative">
+    <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-3 sm:p-5 md:p-8 shadow-2xl text-center space-y-2 sm:space-y-3 md:space-y-5 animate-in fade-in slide-in-from-bottom-8 duration-700 relative">
       <div className="absolute top-6 right-6 flex items-center gap-2">
         {isBeta && (
           <div className="relative">
@@ -113,26 +113,26 @@ export default function MenuScreen({
       </div>
 
       <div className="space-y-2">
-        <h1 className="text-4xl md:text-6xl font-black text-violet-600 dark:text-violet-400 tracking-tight">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-violet-600 dark:text-violet-400 tracking-tight">
           Alphabet Adventure
         </h1>
-        <p className="text-xl md:text-2xl text-zinc-500 dark:text-zinc-400 font-bold">
+        <p className="text-sm sm:text-base md:text-lg lg:text-xl text-zinc-500 dark:text-zinc-400 font-bold">
           ผจญภัยโลกตัวอักษร
         </p>
       </div>
 
-      <div className="text-8xl animate-bounce py-4 transition-all hover:scale-125 duration-500 cursor-default">
+      <div className="text-5xl sm:text-6xl md:text-7xl py-1 sm:py-2 transition-all hover:scale-125 duration-500 cursor-default">
         <i
           aria-hidden="true"
           className="fi fi-sr-island-tropical text-violet-600 dark:text-violet-400"
         ></i>
       </div>
 
-      <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-md mx-auto leading-relaxed">
+      <p className="text-sm sm:text-sm md:text-base text-zinc-600 dark:text-zinc-400 max-w-sm sm:max-w-md mx-auto leading-snug">
         Prepare for an exciting journey through the A-Z islands! Learn and challenge yourself with 6
         fun levels designed for Grade 1 students.
       </p>
-      <p className="text-base text-zinc-500 dark:text-zinc-500 max-w-md mx-auto">
+      <p className="text-xs sm:text-xs md:text-sm text-zinc-500 dark:text-zinc-500 max-w-sm sm:max-w-md mx-auto">
         เตรียมพร้อมสำหรับการเดินทางแสนสนุกผ่านเกาะตัวอักษร A-Z เรียนรู้และท้าทายตัวเองไปพร้อมกัน!
       </p>
 
@@ -166,17 +166,19 @@ export default function MenuScreen({
         </button>
       </div>
 
-      <div className={`pt-4 ${isBeta ? 'flex items-center justify-center gap-4' : 'space-y-6'}`}>
+      <div
+        className={`${isBeta ? 'flex items-center justify-center gap-3' : 'space-y-2 sm:space-y-3'}`}
+      >
         {hasProgress && onContinue && (
           <button
             onClick={onContinue}
-            className="group relative px-8 py-4 bg-emerald-600 text-white text-xl font-black rounded-3xl shadow-[0_10px_0_0_rgba(5,150,105,1)] active:shadow-none active:translate-y-2 transition-all duration-150 overflow-hidden"
+            className="group relative px-5 sm:px-6 py-2.5 sm:py-3 bg-emerald-600 text-white text-sm sm:text-base md:text-lg font-black rounded-3xl shadow-[0_8px_0_0_rgba(5,150,105,1)] active:shadow-none active:translate-y-2 transition-all duration-150 overflow-hidden"
           >
-            <span className="relative z-10 flex items-center gap-3">
+            <span className="relative z-10 flex items-center gap-2">
               Continue{' '}
               <i
                 aria-hidden="true"
-                className="fi fi-sr-play mt-1 transition-transform group-hover:translate-x-1"
+                className="fi fi-sr-play transition-transform group-hover:translate-x-1 text-xs sm:text-sm"
               ></i>
             </span>
             <div className="absolute inset-0 bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -184,13 +186,13 @@ export default function MenuScreen({
         )}
         <button
           onClick={onStart}
-          className="group relative px-8 py-4 bg-violet-600 text-white text-xl font-black rounded-3xl shadow-[0_10px_0_0_rgba(109,40,217,1)] active:shadow-none active:translate-y-2 transition-all duration-150 overflow-hidden"
+          className="group relative px-5 sm:px-6 py-2.5 sm:py-3 bg-violet-600 text-white text-sm sm:text-base md:text-lg font-black rounded-3xl shadow-[0_8px_0_0_rgba(109,40,217,1)] active:shadow-none active:translate-y-2 transition-all duration-150 overflow-hidden"
         >
-          <span className="relative z-10 flex items-center gap-3">
+          <span className="relative z-10 flex items-center gap-2">
             {hasProgress ? 'New Game' : 'Start Game'}{' '}
             <i
               aria-hidden="true"
-              className="fi fi-sr-play mt-1 transition-transform group-hover:translate-x-1"
+              className="fi fi-sr-play transition-transform group-hover:translate-x-1 text-xs sm:text-sm"
             ></i>
           </span>
           <div className="absolute inset-0 bg-violet-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -198,21 +200,22 @@ export default function MenuScreen({
       </div>
 
       {onShowCards && (
-        <div className="pt-4 flex items-center justify-center">
+        <div className="flex items-center justify-center">
           <button
             onClick={onShowCards}
-            className="group relative px-8 py-4 bg-amber-500 text-white text-xl font-black rounded-3xl shadow-[0_10px_0_0_rgba(217,119,6,1)] active:shadow-none active:translate-y-2 transition-all duration-150 overflow-hidden"
+            className="group relative px-5 sm:px-6 py-2.5 sm:py-3 bg-amber-500 text-white text-sm sm:text-base md:text-lg font-black rounded-3xl shadow-[0_8px_0_0_rgba(217,119,6,1)] active:shadow-none active:translate-y-2 transition-all duration-150 overflow-hidden"
             title="View Card Collection"
           >
-            <span className="relative z-10 flex items-center gap-3">
-              <i aria-hidden="true" className="fi fi-sr-template mt-1"></i> Card Collection
+            <span className="relative z-10 flex items-center gap-2">
+              <i aria-hidden="true" className="fi fi-sr-template text-xs sm:text-sm"></i> Card
+              Collection
             </span>
             <div className="absolute inset-0 bg-amber-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
           </button>
         </div>
       )}
 
-      <div className="pt-4 flex items-center justify-center">
+      <div className="flex items-center justify-center">
         <button
           onClick={() => {
             if (

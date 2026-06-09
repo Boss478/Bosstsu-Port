@@ -5,6 +5,9 @@
 
 
 
+## v1.9.59 (2026-06-09)
+* **Alphabet Adventure: full scroll elimination**: Changed root div to `fixed inset-0 overflow-hidden overscroll-none` — zero page scroll. Layout `<main>` uses `min-h-dvh` for Safari dynamic viewport. Compacted MenuScreen/VictoryScreen content (reduced padding, spacing, font sizes) to fit entirely within viewport — no inner card scroll either. Removed `animate-bounce` from menu icon for scroll-free stability
+
 ## v1.9.58 (2026-06-08)
 + **Onboarding overlay**: Each level now shows a bilingual instruction card on first visit (auto-dismiss after 4s or tap "Got it!")
 + **Number badges**: Choice buttons in MatchLevel now show 1/2/3 badges for easier keyboard-to-button association
