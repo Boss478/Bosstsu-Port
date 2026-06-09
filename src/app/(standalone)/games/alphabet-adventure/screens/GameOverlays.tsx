@@ -61,6 +61,7 @@ export default function GameOverlays({
               onClick={onToggleCollection}
               className="p-1.5 rounded-lg bg-zinc-800/80 border border-zinc-700 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-all"
               title="Collection"
+              aria-expanded={showCollectionOverlay}
             >
               <i aria-hidden="true" className="fi fi-sr-template text-xs"></i>
             </button>

@@ -27,6 +27,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# session artifacts
+token-usage-output.txt
+
 # vercel
 .vercel
 

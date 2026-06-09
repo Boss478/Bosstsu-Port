@@ -195,7 +195,7 @@ export default function CardScreen({ onBack, playSequence }: Props) {
   60% { transform: rotateY(-10deg) scale(1.02); opacity: 1; }
   100% { transform: rotateY(0deg) scale(1); opacity: 1; }
 }
-.card-flip { perspective: 1000px; animation: cardFlip 0.5s ease-out both; }
+.card-flip { perspective: 1000px; will-change: transform; animation: cardFlip 0.5s ease-out both; }
 `}</style>
       <div
         ref={scrollRef}

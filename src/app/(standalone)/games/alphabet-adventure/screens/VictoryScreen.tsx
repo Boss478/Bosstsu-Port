@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { HIGH_SCORE_KEY, PROGRESS_KEY, LEVELS } from '../constants';
+import { getAnalytics, computeLevelStats } from '../analytics';
+import type { LevelStats } from '../analytics';
 
 interface Props {
   score: number;
@@ -66,6 +68,7 @@ export default function VictoryScreen({
   onRestart,
   onBackToMenu,
 }: Props) {
+  const [analyticsStats] = useState<LevelStats[]>(() => computeLevelStats(getAnalytics()));
   const [isNewBest] = useState(() => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(PROGRESS_KEY);
@@ -148,14 +151,57 @@ export default function VictoryScreen({
                 Letters to Practice
               </p>
               <div className="flex flex-wrap justify-center gap-1 sm:gap-2">
-                {[...new Set(wrongLetters)].sort().map((letter) => (
-                  <span
-                    key={letter}
-                    className="inline-block w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-xl bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-sm sm:text-base md:text-lg font-black flex items-center justify-center"
-                  >
-                    {letter}
-                  </span>
-                ))}
+                {Object.entries(
+                  wrongLetters.reduce((acc, l) => {
+                    acc[l] = (acc[l] || 0) + 1;
+                    return acc;
+                  }, {} as Record<string, number>),
+                )
+                  .sort(([a], [b]) => a.localeCompare(b))
+                  .map(([letter, count]) => (
+                    <span
+                      key={letter}
+                      className="inline-flex items-center gap-0.5 px-2 py-1 rounded-xl bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-sm sm:text-base md:text-lg font-black"
+                    >
+                      {letter}
+                      {count > 1 && (
+                        <span className="text-[10px] text-rose-400 dark:text-rose-500 font-bold">
+                          x{count}
+                        </span>
+                      )}
+                    </span>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {analyticsStats.length > 0 && (
+            <div className="pt-1 sm:pt-2 border-t-2 border-zinc-200 dark:border-zinc-700">
+              <p className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">
+                Session Breakdown
+              </p>
+              <div className="space-y-1.5">
+                {analyticsStats.map((stat) => {
+                  const levelConfig = LEVELS[stat.level];
+                  const name = levelConfig?.name || `Level ${stat.level}`;
+                  const totalErrors = Object.values(stat.letterErrors).reduce((a, b) => a + b, 0);
+                  return (
+                    <div key={stat.level} className="flex items-center justify-between gap-2 text-[11px] font-bold">
+                      <span className="text-zinc-600 dark:text-zinc-400 w-20 sm:w-24 text-right">{name}</span>
+                      <span className={`text-xs font-black tabular-nums ${stat.accuracy >= 80 ? 'text-emerald-500' : stat.accuracy >= 50 ? 'text-amber-500' : 'text-rose-500'}`}>
+                        {stat.accuracy}%
+                      </span>
+                      <span className="text-zinc-500 dark:text-zinc-500 tabular-nums">
+                        {stat.correct}/{stat.total}
+                      </span>
+                      {totalErrors > 0 && (
+                        <span className="text-rose-400 text-[10px]">
+                          ✗{Object.entries(stat.letterErrors).sort(([, a], [, b]) => b - a).slice(0, 3).map(([l]) => l).join(' ')}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

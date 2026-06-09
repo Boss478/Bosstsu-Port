@@ -2,9 +2,16 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 
+const MUTED_KEY = 'boss478-muted';
+
 export function useAudio() {
   const ctxRef = useRef<AudioContext | null>(null);
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(MUTED_KEY) === 'true';
+    }
+    return false;
+  });
 
   const getCtx = useCallback(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -29,7 +36,13 @@ export function useAudio() {
     };
   }, []);
 
-  const toggleMute = useCallback(() => setMuted((m) => !m), []);
+  const toggleMute = useCallback(() => {
+    setMuted((m) => {
+      const next = !m;
+      localStorage.setItem(MUTED_KEY, String(next));
+      return next;
+    });
+  }, []);
 
   const playSound = useCallback(
     (type: "correct" | "wrong" | "win") => {

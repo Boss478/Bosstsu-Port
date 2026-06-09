@@ -42,6 +42,7 @@ export interface RoundData {
   targetLetter?: string;
   correctChar?: string;
   choices: string[];
+  wrongChoices: string[];
   grid: GridCell[];
   missingIndices: number[];
   activeIndex: number;
@@ -76,6 +77,7 @@ export function initialGameState(): GameState {
 export function emptyRoundData(): RoundData {
   return {
     choices: [],
+    wrongChoices: [],
     grid: [],
     missingIndices: [],
     activeIndex: -1,

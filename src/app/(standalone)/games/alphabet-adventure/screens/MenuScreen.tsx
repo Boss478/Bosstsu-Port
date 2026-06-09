@@ -2,8 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { HIGH_SCORE_KEY, PROGRESS_KEY } from '../constants';
-import { CARD_STORAGE_KEY } from '../cards/cards';
+import { HIGH_SCORE_KEY, PROGRESS_KEY, LEVELS } from '../constants';
+import { CARD_STORAGE_KEY, loadCollection } from '../cards/cards';
 
 interface Props {
   onStart: () => void;
@@ -38,6 +38,22 @@ export default function MenuScreen({
     }
     return 0;
   });
+
+  const savedProgress = useState(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const raw = localStorage.getItem(PROGRESS_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw) as { gameState: { level: number; round: number; winsInLevel: number; easyMode?: boolean }; stageStars: number[] };
+    } catch {
+      return null;
+    }
+  })[0];
+
+  const cardCount = useState(() => {
+    if (typeof window === 'undefined') return 0;
+    return loadCollection().cards.length;
+  })[0];
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
@@ -144,6 +160,30 @@ export default function MenuScreen({
           <p className="text-3xl font-black text-violet-600 dark:text-violet-400">{highScore}</p>
         </div>
       )}
+
+      <div className="flex items-center justify-center gap-4">
+        {cardCount > 0 && (
+          <div className="inline-block bg-amber-50 dark:bg-amber-900/20 px-5 py-2.5 rounded-2xl border-2 border-amber-200 dark:border-amber-800">
+            <p className="text-xs font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest">
+              Cards
+            </p>
+            <p className="text-2xl font-black text-amber-600 dark:text-amber-400">{cardCount}/26</p>
+          </div>
+        )}
+        {savedProgress && (
+          <div className="inline-block bg-emerald-50 dark:bg-emerald-900/20 px-5 py-2.5 rounded-2xl border-2 border-emerald-200 dark:border-emerald-800">
+            <p className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+              Progress
+            </p>
+            <p className="text-lg font-black text-emerald-600 dark:text-emerald-400">
+              Level {savedProgress.gameState.level}
+              {(LEVELS[savedProgress.gameState.level]?.type === 'match'
+                ? ` · ${savedProgress.gameState.round}/${LEVELS[savedProgress.gameState.level]?.target}`
+                : ` · ${savedProgress.gameState.winsInLevel}/${LEVELS[savedProgress.gameState.level]?.target}`) || ''}
+            </p>
+          </div>
+        )}
+      </div>
 
       <div className="flex items-center justify-center gap-3 pt-2">
         <button

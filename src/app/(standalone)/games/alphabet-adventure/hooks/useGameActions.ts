@@ -19,6 +19,7 @@ import {
 } from '../cards/cards';
 import type { Screen, GameState, RoundData, FeedbackState, GridCell } from '../types';
 import { initialGameState, emptyRoundData } from '../types';
+import { pushAnalytics } from '../analytics';
 import {
   LEVELS,
   GAME_CONFIG,
@@ -149,6 +150,7 @@ export function useGameActions({
           missingIndices: [],
           activeIndex: -1,
           revert: true,
+          wrongChoices: [],
         };
       }
       if (config.dataPool === 'phonics') {
@@ -164,20 +166,21 @@ export function useGameActions({
           missingIndices: [],
           activeIndex: -1,
           revert: true,
+          wrongChoices: [],
         };
       }
       const { targetLetter, correctChar, choices } = generateMatchRound(state.round, numChoices);
-      return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1 };
+      return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1, wrongChoices: [] };
     } else if (config.type === 'fill-upper' || config.type === 'fill-lower') {
       const numFillChoices = state.easyMode ? 3 : 4;
       const { grid, missingIndices, activeIndex, choices } = generateFillRound(
         config.type,
         numFillChoices,
       );
-      return { choices, grid, missingIndices, activeIndex };
+      return { choices, grid, missingIndices, activeIndex, wrongChoices: [] };
     } else if (config.type === 'typing') {
       const { grid, missingIndices } = generateTypingRound(state.difficulty);
-      return { grid, missingIndices, activeIndex: -1, choices: [] };
+      return { grid, missingIndices, activeIndex: -1, choices: [], wrongChoices: [] };
     }
     return emptyRoundData();
   }, []);
@@ -217,6 +220,7 @@ export function useGameActions({
   const handleLevelComplete = useCallback(
     (score: number, correct: number, total: number) => {
       playSound('win');
+      pushAnalytics({ type: 'win', level: stateRef.current.level, letter: '', streak: stateRef.current.currentStreak });
       const accuracy = total > 0 ? (correct / total) * 100 : 0;
       const stars = calcStars(accuracy);
       setStageStars((prev) => [...prev, stars]);
@@ -320,13 +324,15 @@ export function useGameActions({
             if (cardRevealTimerRef.current) clearTimeout(cardRevealTimerRef.current);
             cardRevealTimerRef.current = setTimeout(() => {
               setCardReveal({ letter, tier, isNew });
-            }, 1000);
+            }, 2000);
           }
         }
 
         if (!cardDropped) {
           playSound('correct');
         }
+
+        pushAnalytics({ type: 'correct', level: stateRef.current.level, letter: isMatch ? (roundData.targetLetter || correct!) : correct!, streak: stateRef.current.currentStreak + 1 });
 
         const points =
           config.type === 'typing' ? GAME_CONFIG.SCORE_TYPING_CORRECT : GAME_CONFIG.SCORE_CORRECT;
@@ -391,6 +397,7 @@ export function useGameActions({
               missingIndices: nextMissing,
               activeIndex: nextActive,
               choices,
+              wrongChoices: [],
             });
             setGameState(newState);
             saveProgress(newState, stageStars);
@@ -408,39 +415,40 @@ export function useGameActions({
           clearTimeout(streakToastRef.current);
           streakToastRef.current = null;
         }
-        playSound('wrong');
+        playSequence([300, 220, 160], 0.1, 0.15);
+        pushAnalytics({ type: 'wrong', level: stateRef.current.level, letter: isMatch ? (roundData.targetLetter || correct!) : correct!, streak: 0 });
         const points =
           config.type === 'typing' ? GAME_CONFIG.SCORE_TYPING_WRONG : GAME_CONFIG.SCORE_WRONG;
-        const newWrong = stateRef.current.wrongAttempts + 1;
-        const newWrongLetters =
-          isMatch && roundData.targetLetter
+        const newWrongLetters = isMatch
+          ? roundData.targetLetter
             ? [...stateRef.current.wrongLetters, roundData.targetLetter]
+            : stateRef.current.wrongLetters
+          : correct
+            ? [...stateRef.current.wrongLetters, correct]
             : stateRef.current.wrongLetters;
         const newState = {
           ...stateRef.current,
           score: Math.max(0, stateRef.current.score - points),
           levelTotal: stateRef.current.levelTotal + 1,
           currentStreak: 0,
-          wrongAttempts: newWrong,
+          wrongAttempts: stateRef.current.wrongAttempts + 1,
           wrongLetters: newWrongLetters,
         };
 
-        if (isMatch && newWrong >= GAME_CONFIG.WRONG_LIMIT) {
-          const correctAnswer = roundData.correctChar || '';
-          setFeedback({ text: `${correctAnswer}!`, type: 'correct', showCorrect: correctAnswer });
+        const newWrongChoices = [...(roundData.wrongChoices || []), selected];
+        setRoundData((prev) => ({ ...prev, wrongChoices: newWrongChoices }));
+        setGameState(newState);
+
+        if (isMatch && newState.wrongAttempts >= GAME_CONFIG.WRONG_LIMIT) {
+          showFeedback(`${randomPraise('wrong')} -${points}`, 'wrong', correct);
+          saveProgress(newState, stageStars);
           setIsTransitioning(true);
           setTimeout(() => {
             advanceMatchRound(newState, newState.score, newState.levelCorrect, newState.levelTotal);
-            setFeedback({ text: '', type: '' });
             setIsTransitioning(false);
           }, GAME_CONFIG.FEEDBACK_DURATION);
         } else {
-          setGameState(newState);
-          showFeedback(
-            `${randomPraise('wrong')} -${points}`,
-            'wrong',
-            isMatch ? undefined : correct,
-          );
+          showFeedback(`${randomPraise('wrong')} -${points}`, 'wrong');
         }
       }
     },
@@ -475,6 +483,7 @@ export function useGameActions({
 
     if (allCorrect) {
       playSound('correct');
+      pushAnalytics({ type: 'correct', level: 6, letter: roundData.grid.filter(g => g.isHidden).map(g => g.char).join(''), streak: stateRef.current.currentStreak + 1 });
       const newScore = stateRef.current.score + GAME_CONFIG.SCORE_TYPING_CORRECT;
       const newWins = stateRef.current.winsInLevel + 1;
       const newDifficulty = Math.min(
@@ -511,7 +520,7 @@ export function useGameActions({
         saveProgress(newState, stageStars);
         setTimeout(() => {
           const round = generateTypingRound(newDifficulty);
-          setRoundData({ choices: [], ...round });
+          setRoundData({ choices: [], wrongChoices: [], ...round });
           setIsTransitioning(false);
         }, GAME_CONFIG.FEEDBACK_DURATION);
       }
@@ -527,7 +536,9 @@ export function useGameActions({
         clearTimeout(streakToastRef.current);
         streakToastRef.current = null;
       }
-      playSound('wrong');
+      playSequence([300, 220, 160], 0.1, 0.15);
+      pushAnalytics({ type: 'wrong', level: 6, letter: roundData.grid.filter(g => g.isHidden).map(g => g.char).join(''), streak: 0 });
+      const typingWrongLetters = newGrid.filter((g) => g.isWrong).map((g) => g.char);
       const newErrors = stateRef.current.consecutiveErrors + 1;
       const newState: GameState = {
         ...stateRef.current,
@@ -536,6 +547,7 @@ export function useGameActions({
         levelTotal: stateRef.current.levelTotal + stateRef.current.difficulty,
         currentStreak: 0,
         wrongAttempts: stateRef.current.wrongAttempts + 1,
+        wrongLetters: [...stateRef.current.wrongLetters, ...typingWrongLetters],
       };
 
       if (newErrors >= GAME_CONFIG.ERROR_THRESHOLD) {
@@ -550,7 +562,7 @@ export function useGameActions({
         setIsTransitioning(true);
         setTimeout(() => {
           const round = generateTypingRound(easierState.difficulty);
-          setRoundData({ choices: [], ...round });
+          setRoundData({ choices: [], wrongChoices: [], ...round });
           setIsTransitioning(false);
         }, GAME_CONFIG.FEEDBACK_DURATION + 500);
       } else {

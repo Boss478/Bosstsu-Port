@@ -69,7 +69,7 @@ export default function GameScreen({
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (isTransitioning) return;
+      if (isTransitioning || isFeedbackVisible) return;
 
       if (levelType === 'typing') {
         if (e.key === 'Enter') {
@@ -89,7 +89,7 @@ export default function GameScreen({
         onBack();
       }
     },
-    [isTransitioning, levelType, roundData.choices, onAnswer, onCheckTyping, onBack],
+    [isTransitioning, isFeedbackVisible, levelType, roundData.choices, onAnswer, onCheckTyping, onBack],
   );
 
   useEffect(() => {
@@ -117,8 +117,13 @@ export default function GameScreen({
             }}
             key={i}
             onClick={() => !isTransitioning && !isFeedbackVisible && onAnswer(choice)}
-            disabled={isTransitioning || isFeedbackVisible}
-            className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-white dark:bg-zinc-800 text-3xl font-black text-zinc-700 dark:text-zinc-200 shadow-[0_6px_0_0_#e4e4e7] dark:shadow-[0_6px_0_0_#27272a] active:shadow-none active:translate-y-1.5 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all border-2 border-zinc-100 dark:border-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isTransitioning || isFeedbackVisible || roundData.wrongChoices?.includes(choice)}
+            className={[
+              'rounded-2xl font-black transition-all border-2 disabled:cursor-not-allowed w-16 h-16 md:w-20 md:h-20 active:shadow-none active:translate-y-1.5',
+              roundData.wrongChoices?.includes(choice)
+                ? 'bg-rose-500 text-white border-rose-500 shadow-[0_6px_0_0_#be123c] dark:shadow-[0_6px_0_0_#be123c] disabled:opacity-100'
+                : 'bg-white dark:bg-zinc-800 text-3xl text-zinc-700 dark:text-zinc-200 shadow-[0_6px_0_0_#e4e4e7] dark:shadow-[0_6px_0_0_#27272a] hover:bg-violet-50 dark:hover:bg-violet-900/20 border-zinc-100 dark:border-zinc-800 disabled:opacity-50',
+            ].join(' ')}
           >
             {choice}
           </button>
@@ -165,7 +170,7 @@ export default function GameScreen({
                 </p>
               </div>
             )}
-            <div className="text-right">
+            <div className="text-right" aria-live="polite" aria-atomic="true">
               <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
                 SCORE
               </p>
@@ -191,7 +196,7 @@ export default function GameScreen({
               title={muted ? 'Unmute' : 'Mute'}
             >
               <i
-                className={`fi ${muted ? 'fi-sr-volume-off' : 'fi-sr-volume'} text-fuchsia-600 dark:text-fuchsia-400 text-lg`}
+                className={`fi ${muted ? 'fi-sr-cross-circle' : 'fi-sr-volume'} text-fuchsia-600 dark:text-fuchsia-400 text-lg`}
               ></i>
             </button>
             <button
@@ -206,7 +211,7 @@ export default function GameScreen({
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2" aria-live="polite" aria-atomic="true">
           <div className="h-4 w-full bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden p-1 shadow-inner">
             <div
               className="h-full bg-violet-500 rounded-full transition-all duration-500 ease-out relative shadow-sm"

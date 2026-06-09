@@ -99,23 +99,23 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
     <div
       ref={containerRef}
       className="alphabet-game flex flex-col items-center justify-center p-4 transition-colors duration-500 fixed inset-0 overflow-hidden overscroll-none bg-violet-50 dark:bg-zinc-950"
-      style={{ fontFamily: "'Mali', sans-serif" }}
+      style={{ fontFamily: "'Mali', sans-serif", contain: 'layout style paint' }}
     >
       <div className="w-full max-w-3xl mx-auto relative">
         {showCards && <CardScreen onBack={() => setShowCards(false)} playSequence={playSequence} />}
 
         {!showCards && screen === 'menu' && (
-          <MenuScreen
-            onStart={() => startGame(undefined, undefined, easyMode)}
-            onContinue={continueGame}
-            hasProgress={hasSavedProgress}
-            easyMode={easyMode}
-            onToggleEasy={() => setEasyMode((v) => !v)}
-            isBeta={beta}
-            onShowCards={() => setShowCards(true)}
-            voiceURI={voiceURI}
-            onVoiceChange={handleVoiceChange}
-          />
+            <MenuScreen
+              onStart={() => startGame(undefined, undefined, easyMode)}
+              onContinue={continueGame}
+              hasProgress={hasSavedProgress}
+              easyMode={easyMode}
+              onToggleEasy={() => setEasyMode((v) => !v)}
+              isBeta={beta}
+              onShowCards={() => setShowCards(true)}
+              voiceURI={voiceURI}
+              onVoiceChange={handleVoiceChange}
+            />
         )}
 
         {!showCards && screen === 'game' && (

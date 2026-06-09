@@ -5,6 +5,7 @@ import type { CardTier } from '../../cards/cards';
 import { CARD_WORDS, TIER_LABELS, isHolographicTier } from '../../cards/cards';
 import { CardIllustration } from '../../cards/CardIllustrations';
 import { CardFrame } from '../../cards/CardFrame';
+import { useFocusTrap } from '@/lib/hooks/useFocusTrap';
 
 interface Props {
   letter: string;
@@ -32,6 +33,7 @@ const TIER_RING: Record<CardTier, string> = {
 export default function CardRevealModal({ letter, tier, isNew, onKeep }: Props) {
   const [flipped, setFlipped] = useState(false);
   const [showKeep, setShowKeep] = useState(false);
+  const focusTrapRef = useFocusTrap(true);
 
   useEffect(() => {
     if (flipped) {
@@ -43,7 +45,7 @@ export default function CardRevealModal({ letter, tier, isNew, onKeep }: Props) 
   const word = CARD_WORDS[letter] || '';
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
+    <div ref={focusTrapRef} className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
       <p className="text-white/80 text-sm font-bold mb-6 tracking-wider uppercase">
         {flipped ? (isNew ? 'New Card Collected!' : 'Collected!') : 'Tap the card to reveal'}
       </p>
@@ -57,11 +59,17 @@ export default function CardRevealModal({ letter, tier, isNew, onKeep }: Props) 
             transformStyle: 'preserve-3d',
             transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
           }}
-          onClick={() => !flipped && setFlipped(true)}
+          onClick={() => {
+            if (!flipped) setFlipped(true);
+            else if (showKeep) onKeep();
+          }}
           onKeyDown={(e) => {
             if (!flipped && (e.key === 'Enter' || e.key === ' ')) {
               e.preventDefault();
               setFlipped(true);
+            } else if (flipped && showKeep && (e.key === 'Enter' || e.key === ' ')) {
+              e.preventDefault();
+              onKeep();
             }
           }}
           role="button"

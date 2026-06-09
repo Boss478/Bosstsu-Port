@@ -5,6 +5,37 @@
 
 
 
+## v1.9.62 (2026-06-09)
++ **Alphabet Adventure Phase 4+5 (Audio, Analytics, A11y, High Contrast)**:
+  + Wrong answer audio: replaced `playSound('wrong')` with low descending tone `playSequence([300,220,160])` — distinct auditory feedback for errors (`useGameActions.ts`)
+  + Per-session analytics: tracks correct/wrong per level, letter error frequency, total score across all 6 levels — displayed in victory screen with per-level accuracy breakdown and letter error tooltips (`analytics.ts`, `useGameActions.ts`, `VictoryScreen.tsx`)
+  + Accessibility: `useFocusTrap` on CardRevealModal; `aria-live="polite"` on score/progress regions; `aria-expanded` on collection toggle; global `.alphabet-game *:focus-visible` CSS (already existed) covers focus audit (`CardRevealModal.tsx`, `GameScreen.tsx`, `GameOverlays.tsx`)
+  + High contrast theme: toggle button in game menu, localStorage-persisted, `.high-contrast` class on `<html>`, CSS overrides for bg/text/accent colors in `globals.css` (`MenuScreen.tsx`, `AlphabetAdventureClient.tsx`, `globals.css`)
+  + 10 files modified: `analytics.ts`, `useGameActions.ts`, `VictoryScreen.tsx`, `MenuScreen.tsx`, `AlphabetAdventureClient.tsx`, `CardRevealModal.tsx`, `GameScreen.tsx`, `GameOverlays.tsx`, `globals.css`, `.agents/plans/alphabet-adventure-phase4-5.md`
+
+## v1.9.61 (2026-06-09)
++ **Alphabet Adventure QoL Phase 2 (Wrong Answer System + Per-Letter Stats)**:
+  + Wrong choice buttons (match & fill) turn red and disable on wrong answer — guides student to remaining correct choice (`wrongChoices: string[]` in `RoundData`)
+  + Removed auto-advance on 2 wrongs — red+disable naturally constrains choices
+  + Removed `showCorrect` hint (green) for fill levels — matches user spec
+  + Per-letter error frequency on victory screen — shows `xN` badge for repeated errors
+  + Expanded `wrongLetters` tracking to fill and typing levels (not just match)
+  + Fix: `wrongChoices` reset on new round, new active cell (fill), and typing grid re-check
+  + 5 files modified: `types.ts`, `useGameActions.ts`, `MatchLevel.tsx`, `GameScreen.tsx`, `VictoryScreen.tsx`
+* **Match level auto-advance restored after 2 wrongs**: WRONG_LIMIT check re-added in wrong path for match levels — shows correct answer, advances round, no progress increase. Works alongside red+disable (1st wrong red+disable, 2nd wrong auto-advances)
+* **Fix: auto-advance froze all interaction**: added `setIsTransitioning(false)` after `advanceMatchRound` in auto-advance timeout — `isTransitioning` was stuck at `true`, blocking all clicks in subsequent rounds
+* **Fix: keybind bypassed feedback delay**: added `isFeedbackVisible` guard to keybind handler in `GameScreen.tsx` — students could press 1/2/3 during the 2000ms feedback window
+* **Rendering perf (AA card game)**: `will-change: transform` on `.glow-card` and `.card-flip` CSS classes; reduced feTurbulence `numOctaves` 2→1, `baseFrequency` 0.04→0.08 in SVG distress filter; `contain: layout style paint` on game container — GPU-accelerated 3D card flips, cheaper SVG filter rendering, isolated layout scope
+
+## v1.9.60 (2026-06-09)
++ **Alphabet Adventure QoL Phase 1 (6 Quick Wins)**:
+  + Card reveal delay 1000ms → 2000ms — prevents feedback/card badge overlap (`useGameActions.ts`)
+  + Click card to keep — tapping the flipped card in CardRevealModal triggers KEEP (`CardRevealModal.tsx`)
+  + Sound on question click — clicking the target letter box speaks pronunciation, not just the small icon button (`MatchLevel.tsx`)
+  + Sound toggle persistence — `muted` state saved to localStorage (`boss478-muted`), survives page reload (`useAudio.ts`)
+  + Student progress on menu — shows "Level X · Stage Y/Z" from saved progress (`MenuScreen.tsx`)
+  + Card counter on menu — shows "Cards: X/26" from collection (`MenuScreen.tsx`)
+
 ## v1.9.59 (2026-06-09)
 * **Alphabet Adventure: full scroll elimination**: Changed root div to `fixed inset-0 overflow-hidden overscroll-none` — zero page scroll. Layout `<main>` uses `min-h-dvh` for Safari dynamic viewport. Compacted MenuScreen/VictoryScreen content (reduced padding, spacing, font sizes) to fit entirely within viewport — no inner card scroll either. Removed `animate-bounce` from menu icon for scroll-free stability
 

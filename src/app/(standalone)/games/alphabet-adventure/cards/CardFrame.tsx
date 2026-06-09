@@ -143,7 +143,7 @@ export function CardFrame({
       >
         <defs>
           <filter id={`distress-${tier}`} x="-5%" y="-5%" width="110%" height="110%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" result="noise" />
+            <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="1" result="noise" />
             <feDisplacementMap
               in="SourceGraphic"
               in2="noise"
@@ -317,6 +317,7 @@ export function CardFrame({
   box-shadow: 0 0 8px 2px rgba(var(--glow-rgb), 0.35), 0 0 25px 8px rgba(var(--glow-rgb), 0.12);
   transition: box-shadow 0.3s ease;
   pointer-events: none;
+  will-change: transform;
 }
 .glow-card > * {
   pointer-events: auto;

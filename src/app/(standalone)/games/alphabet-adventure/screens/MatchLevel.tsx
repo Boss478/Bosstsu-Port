@@ -27,7 +27,19 @@ export default function MatchLevel({
       <div className="relative mb-12">
         {roundData.revert ? (
           <div className="flex flex-col items-center gap-3">
-            <div className="w-48 h-48 md:w-56 md:h-56 rounded-[3rem] bg-amber-50 dark:bg-amber-900/10 border-8 border-amber-100 dark:border-amber-900/30 flex flex-col items-center justify-center gap-2 shadow-2xl px-4">
+            <div
+              className="w-48 h-48 md:w-56 md:h-56 rounded-[3rem] bg-amber-50 dark:bg-amber-900/10 border-8 border-amber-100 dark:border-amber-900/30 flex flex-col items-center justify-center gap-2 shadow-2xl px-4 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/20 transition-colors"
+              onClick={() => onSpeak(roundData.targetLetter || '', 'th-TH')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSpeak(roundData.targetLetter || '', 'th-TH');
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label="Listen to pronunciation"
+            >
               <i
                 aria-hidden="true"
                 className="fi fi-sr-volume text-5xl text-amber-500 animate-pulse"
@@ -45,7 +57,27 @@ export default function MatchLevel({
           </div>
         ) : (
           <>
-            <div className="w-48 h-48 md:w-56 md:h-56 rounded-[3rem] bg-violet-50 dark:bg-violet-900/10 border-8 border-violet-100 dark:border-violet-900/30 flex items-center justify-center text-9xl font-black leading-none text-violet-600 dark:text-violet-400 shadow-2xl transform hover:rotate-2 transition-transform">
+            <div
+              className="w-48 h-48 md:w-56 md:h-56 rounded-[3rem] bg-violet-50 dark:bg-violet-900/10 border-8 border-violet-100 dark:border-violet-900/30 flex items-center justify-center text-9xl font-black leading-none text-violet-600 dark:text-violet-400 shadow-2xl transform hover:rotate-2 transition-transform cursor-pointer"
+              onClick={() => {
+                const text = isThaiText
+                  ? roundData.correctChar || roundData.targetLetter
+                  : roundData.targetLetter;
+                onSpeak(text || '', isThaiText ? 'th-TH' : 'en-US');
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  const text = isThaiText
+                    ? roundData.correctChar || roundData.targetLetter
+                    : roundData.targetLetter;
+                  onSpeak(text || '', isThaiText ? 'th-TH' : 'en-US');
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label="Listen to pronunciation"
+            >
               {roundData.targetLetter}
             </div>
             <button
@@ -71,8 +103,12 @@ export default function MatchLevel({
             }}
             key={i}
             onClick={() => !isTransitioning && !isFeedbackVisible && onAnswer(choice)}
-            disabled={isTransitioning || isFeedbackVisible}
-            className={`relative rounded-3xl bg-white dark:bg-zinc-800 font-black text-zinc-700 dark:text-zinc-200 shadow-[0_8px_0_0_#e4e4e7] dark:shadow-[0_8px_0_0_#27272a] active:shadow-none active:translate-y-2 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all duration-150 border-2 border-zinc-100 dark:border-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed ${
+            disabled={isTransitioning || isFeedbackVisible || roundData.wrongChoices?.includes(choice)}
+            className={`relative rounded-3xl font-black transition-all duration-150 border-2 disabled:cursor-not-allowed ${
+              roundData.wrongChoices?.includes(choice)
+                ? 'bg-rose-500 text-white border-rose-500 shadow-[0_8px_0_0_#be123c] dark:shadow-[0_8px_0_0_#be123c] disabled:opacity-100'
+                : 'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 shadow-[0_8px_0_0_#e4e4e7] dark:shadow-[0_8px_0_0_#27272a] hover:bg-violet-50 dark:hover:bg-violet-900/20 border-zinc-100 dark:border-zinc-800 disabled:opacity-50'
+            } active:shadow-none active:translate-y-2 ${
               isThaiText
                 ? 'min-w-[7rem] px-4 py-3 text-xl md:text-2xl'
                 : 'w-24 h-24 md:w-28 md:h-28 text-5xl'
