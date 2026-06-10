@@ -5,6 +5,9 @@
 
 
 
+## v1.10.1 (2026-06-10)
+- **Refactor (dead code elimination)**: Removed 20 LOC `createToken` from `auth-base.ts` (no callers). Cleaned unused exports in phonics game: `CEFR_LEVELS`, `CEFR_LABELS`, `ROUND_LENGTHS`, `PHONEME_MAP` (constants), `parseMapGrid` (map), `isGuestMode`/`updatePhonemeStat` (save), 6 sprite constants (sprites). Build/lint clean, tests passing.
+
 ## v1.10.0 (2026-06-10)
 + **Analytics System (first-party, opt-in)**:
   + MongoDB models: `AnalyticsEvent` (raw events) + `DailyAnalytics` (pre-computed rollups) — forever retention, minimal indexes

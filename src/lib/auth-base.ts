@@ -7,30 +7,10 @@ export interface AuthConfig {
   secretKey: keyof ReturnType<typeof getEnv>;
 }
 
-async function createToken(
-  secret: string,
-  timestamp?: string
-): Promise<string> {
-  const ts = timestamp || Date.now().toString();
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(ts));
-  const hash = Array.from(new Uint8Array(signature))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-  return `${ts}.${hash}`;
-}
-
 export async function isValidToken(
   token: string,
   secret: string,
-  maxAge: number
+  maxAge: number,
 ): Promise<boolean> {
   if (!secret) return false;
   const parts = token.split('.');
@@ -45,7 +25,7 @@ export async function isValidToken(
       encoder.encode(secret),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
-      ['sign']
+      ['sign'],
     );
     const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(timestamp));
     const expectedHash = Array.from(new Uint8Array(signature))
@@ -61,9 +41,7 @@ export async function isValidToken(
   }
 }
 
-export async function verifyAuth(
-  config: AuthConfig
-): Promise<boolean> {
+export async function verifyAuth(config: AuthConfig): Promise<boolean> {
   const env = getEnv();
   const secret = env[config.secretKey] as string;
   if (!secret) return false;

@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import type { SaveData, SlotPreview, CompanionId } from "./types";
-import { SAVE_VERSION } from "./constants";
+import type { SaveData, SlotPreview, CompanionId } from './types';
+import { SAVE_VERSION } from './constants';
 
-const PREFIX = "phonics_save_";
-const ACTIVE_KEY = "phonics_active_slot";
+const PREFIX = 'phonics_save_';
+const ACTIVE_KEY = 'phonics_active_slot';
 
 export function getDefaultSave(name: string): SaveData {
   return {
     version: SAVE_VERSION,
     name,
     timestamp: Date.now(),
-    companion: "nox" as CompanionId,
+    companion: 'nox' as CompanionId,
     totalCorrects: 0,
     phonemeCoins: 0,
     phonemeStats: {},
@@ -29,68 +29,76 @@ export function getDefaultSave(name: string): SaveData {
 }
 
 export function loadSave(slot: number): SaveData | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(`${PREFIX}${slot}`);
     if (!raw) return null;
     const data = JSON.parse(raw) as SaveData;
-    if (typeof data.version !== "number") throw new Error("Invalid version");
+    if (typeof data.version !== 'number') throw new Error('Invalid version');
     if (data.version < SAVE_VERSION) return migrateSave(data);
-    if (data.version > SAVE_VERSION) throw new Error("Future version");
-    if (!data.companion || !data.phonemeStats) throw new Error("Corrupted");
+    if (data.version > SAVE_VERSION) throw new Error('Future version');
+    if (!data.companion || !data.phonemeStats) throw new Error('Corrupted');
     // Backfill optional fields added in later versions
     if (!data.definitionStats) {
-      data.definitionStats = { defToWord: { correct: 0, total: 0 }, wordToDef: { correct: 0, total: 0 } };
+      data.definitionStats = {
+        defToWord: { correct: 0, total: 0 },
+        wordToDef: { correct: 0, total: 0 },
+      };
     }
     return data;
   } catch (e) {
-    console.warn("[phonics] Save load error:", e);
+    console.warn('[phonics] Save load error:', e);
     return null;
   }
 }
 
 function migrateSave(data: Partial<SaveData>): SaveData {
-  const defaults = getDefaultSave(data.name ?? "Slot");
+  const defaults = getDefaultSave(data.name ?? 'Slot');
   return { ...defaults, ...data, version: SAVE_VERSION };
 }
 
 export function writeSave(slot: number, data: SaveData): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === 'undefined') return;
   try {
     data.timestamp = Date.now();
     localStorage.setItem(`${PREFIX}${slot}`, JSON.stringify(data));
   } catch (e) {
-    console.warn("[phonics] Save write error:", e);
+    console.warn('[phonics] Save write error:', e);
   }
 }
 
 export function deleteSave(slot: number): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === 'undefined') return;
   localStorage.removeItem(`${PREFIX}${slot}`);
 }
 
-export function getActiveSlot(): number | "guest" {
-  if (typeof window === "undefined") return "guest";
+export function getActiveSlot(): number | 'guest' {
+  if (typeof window === 'undefined') return 'guest';
   const v = localStorage.getItem(ACTIVE_KEY);
-  if (!v) return "guest";
-  if (v === "guest") return "guest";
+  if (!v) return 'guest';
+  if (v === 'guest') return 'guest';
   const n = parseInt(v, 10);
-  return isNaN(n) ? "guest" : n;
+  return isNaN(n) ? 'guest' : n;
 }
 
-export function setActiveSlot(slot: number | "guest"): void {
-  if (typeof window === "undefined") return;
+export function setActiveSlot(slot: number | 'guest'): void {
+  if (typeof window === 'undefined') return;
   localStorage.setItem(ACTIVE_KEY, String(slot));
-}
-
-function isGuestMode(): boolean {
-  return getActiveSlot() === "guest";
 }
 
 export function getSlotPreview(slot: number): SlotPreview {
   const data = loadSave(slot);
   if (!data) {
-    return { slot, empty: true, name: `Slot ${slot}`, companion: null, coins: 0, rounds: 0, bestStreak: 0, timestamp: null };
+    return {
+      slot,
+      empty: true,
+      name: `Slot ${slot}`,
+      companion: null,
+      coins: 0,
+      rounds: 0,
+      bestStreak: 0,
+      timestamp: null,
+    };
   }
   return {
     slot,
@@ -104,30 +112,11 @@ export function getSlotPreview(slot: number): SlotPreview {
   };
 }
 
-function updatePhonemeStat(
-  save: SaveData,
-  phonemeId: string,
-  correct: boolean
-): SaveData {
-  const prev = save.phonemeStats[phonemeId] ?? { correct: 0, total: 0, lastSeen: 0 };
-  return {
-    ...save,
-    phonemeStats: {
-      ...save.phonemeStats,
-      [phonemeId]: {
-        correct: prev.correct + (correct ? 1 : 0),
-        total: prev.total + 1,
-        lastSeen: Date.now(),
-      },
-    },
-  };
-}
-
 export function recordRound(
   save: SaveData,
   corrects: number,
   streak: number,
-  coins: number
+  coins: number,
 ): SaveData {
   return {
     ...save,
