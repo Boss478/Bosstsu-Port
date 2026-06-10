@@ -1,10 +1,10 @@
-import Link from "next/link";
-import { getDbStats, getDashboardStats } from "@/app/actions/admin";
-import Breadcrumb from "@/components/Breadcrumb";
-import LogoutButton from "./LogoutButton";
-import { getEnv } from "@/lib/env";
+import Link from 'next/link';
+import { getDbStats, getDashboardStats } from '@/app/actions/admin';
+import Breadcrumb from '@/components/Breadcrumb';
+import LogoutButton from './LogoutButton';
+import { getEnv } from '@/lib/env';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 export default async function AdminPage() {
   const mongoExpressUrl = getEnv().MONGO_EXPRESS_URL || 'http://localhost:8081';
@@ -14,7 +14,7 @@ export default async function AdminPage() {
     <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
       <section className="pt-28 pb-8 px-4">
         <div className="max-w-6xl mx-auto">
-          <Breadcrumb items={[{ label: "Backend" }]} />
+          <Breadcrumb items={[{ label: 'Backend' }]} />
 
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -33,12 +33,12 @@ export default async function AdminPage() {
               <span
                 className={`w-3 h-3 rounded-full ${
                   stats.connected
-                    ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
-                    : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+                    ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+                    : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'
                 }`}
               />
               <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                {stats.connected ? "Connected" : "Disconnected"}
+                {stats.connected ? 'Connected' : 'Disconnected'}
               </h2>
             </div>
 
@@ -48,7 +48,7 @@ export default async function AdminPage() {
                 <div>
                   <p className="text-zinc-400 dark:text-zinc-500 text-xs">Database</p>
                   <p className="font-semibold text-zinc-800 dark:text-zinc-200">
-                    {stats.dbName || "—"}
+                    {stats.dbName || '—'}
                   </p>
                 </div>
               </div>
@@ -58,7 +58,7 @@ export default async function AdminPage() {
                 <div>
                   <p className="text-zinc-400 dark:text-zinc-500 text-xs">URI</p>
                   <p className="font-mono font-semibold text-zinc-800 dark:text-zinc-200 text-xs break-all">
-                    {stats.dbUri || "—"}
+                    {stats.dbUri || '—'}
                   </p>
                 </div>
               </div>
@@ -68,7 +68,7 @@ export default async function AdminPage() {
                 <div>
                   <p className="text-zinc-400 dark:text-zinc-500 text-xs">Host</p>
                   <p className="font-semibold text-zinc-800 dark:text-zinc-200">
-                    {stats.host || "—"}
+                    {stats.host || '—'}
                   </p>
                 </div>
               </div>
@@ -78,9 +78,7 @@ export default async function AdminPage() {
                   <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40">
                     <i aria-hidden="true" className="fi fi-sr-info text-blue-500" />
                     <div>
-                      <p className="text-zinc-400 dark:text-zinc-500 text-xs">
-                        MongoDB Version
-                      </p>
+                      <p className="text-zinc-400 dark:text-zinc-500 text-xs">MongoDB Version</p>
                       <p className="font-semibold text-zinc-800 dark:text-zinc-200">
                         {stats.serverStatus.version}
                       </p>
@@ -117,7 +115,10 @@ export default async function AdminPage() {
                     {mongoExpressUrl.replace(/^https?:\/\//, '')}
                   </p>
                 </div>
-                <i aria-hidden="true" className="fi fi-sr-arrow-up-right text-emerald-500 text-xs ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <i
+                  aria-hidden="true"
+                  className="fi fi-sr-arrow-up-right text-emerald-500 text-xs ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                />
               </a>
             </div>
           </div>
@@ -139,11 +140,9 @@ export default async function AdminPage() {
                     {col.count}
                   </span>
                 </div>
-                <p className="font-semibold text-zinc-700 dark:text-zinc-300 text-sm">
-                  {col.name}
-                </p>
+                <p className="font-semibold text-zinc-700 dark:text-zinc-300 text-sm">{col.name}</p>
                 <p className="text-xs text-zinc-400 dark:text-zinc-500">
-                  {col.count === 0 ? "ยังไม่มีข้อมูล" : `${col.count} รายการ`}
+                  {col.count === 0 ? 'ยังไม่มีข้อมูล' : `${col.count} รายการ`}
                 </p>
               </div>
             ))}
@@ -195,7 +194,7 @@ export default async function AdminPage() {
                         </div>
                       </td>
                       <td className="py-3 px-5 hidden lg:table-cell text-zinc-500 dark:text-zinc-400">
-                        {new Date(item.date).toLocaleDateString("th-TH")}
+                        {new Date(item.date).toLocaleDateString('th-TH')}
                       </td>
                     </tr>
                   ))}
@@ -241,7 +240,7 @@ export default async function AdminPage() {
                         {album.photos?.length || 0} รูป
                       </td>
                       <td className="py-3 px-5 hidden lg:table-cell text-zinc-500 dark:text-zinc-400">
-                        {new Date(album.date).toLocaleDateString("th-TH")}
+                        {new Date(album.date).toLocaleDateString('th-TH')}
                       </td>
                     </tr>
                   ))}
@@ -261,42 +260,54 @@ export default async function AdminPage() {
                 <p className="text-zinc-400 dark:text-zinc-500 text-xs mb-1">Framework</p>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-zinc-800 dark:text-zinc-200">Next.js</span>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-black text-white">v16.1.6</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-black text-white">
+                    v16.1.6
+                  </span>
                 </div>
               </div>
               <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40 border border-blue-100 dark:border-slate-600/50">
                 <p className="text-zinc-400 dark:text-zinc-500 text-xs mb-1">Library</p>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-zinc-800 dark:text-zinc-200">React</span>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-blue-500 text-white">v19.2.3</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-blue-500 text-white">
+                    v19.2.3
+                  </span>
                 </div>
               </div>
               <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40 border border-blue-100 dark:border-slate-600/50">
                 <p className="text-zinc-400 dark:text-zinc-500 text-xs mb-1">Styling</p>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-zinc-800 dark:text-zinc-200">TailwindCSS</span>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-cyan-500 text-white">v4.0</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-cyan-500 text-white">
+                    v4.0
+                  </span>
                 </div>
               </div>
               <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40 border border-blue-100 dark:border-slate-600/50">
                 <p className="text-zinc-400 dark:text-zinc-500 text-xs mb-1">Database ORM</p>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-zinc-800 dark:text-zinc-200">Mongoose</span>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-green-600 text-white">v9.1.6</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-green-600 text-white">
+                    v9.1.6
+                  </span>
                 </div>
               </div>
               <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40 border border-blue-100 dark:border-slate-600/50">
                 <p className="text-zinc-400 dark:text-zinc-500 text-xs mb-1">Language</p>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-zinc-800 dark:text-zinc-200">TypeScript</span>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-blue-600 text-white">v5.0</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-blue-600 text-white">
+                    v5.0
+                  </span>
                 </div>
               </div>
-               <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40 border border-blue-100 dark:border-slate-600/50">
+              <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-slate-700/40 border border-blue-100 dark:border-slate-600/50">
                 <p className="text-zinc-400 dark:text-zinc-500 text-xs mb-1">Environment</p>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-zinc-800 dark:text-zinc-200">Node.js</span>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-green-500 text-white">Current</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-green-500 text-white">
+                    Current
+                  </span>
                 </div>
               </div>
             </div>
@@ -316,7 +327,10 @@ export default async function AdminPage() {
               <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
                 จัดการผลงาน
               </span>
-              <i aria-hidden="true" className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+              <i
+                aria-hidden="true"
+                className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
+              />
             </Link>
             <Link
               href="/admin/gallery"
@@ -326,7 +340,10 @@ export default async function AdminPage() {
               <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
                 จัดการแกลเลอรี
               </span>
-              <i aria-hidden="true" className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+              <i
+                aria-hidden="true"
+                className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
+              />
             </Link>
             <Link
               href="/admin/resources"
@@ -336,7 +353,10 @@ export default async function AdminPage() {
               <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
                 จัดการสื่อการเรียนรู้
               </span>
-              <i aria-hidden="true" className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+              <i
+                aria-hidden="true"
+                className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
+              />
             </Link>
             <Link
               href="/admin/games"
@@ -346,7 +366,23 @@ export default async function AdminPage() {
               <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
                 จัดการเกม
               </span>
-              <i aria-hidden="true" className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+              <i
+                aria-hidden="true"
+                className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
+              />
+            </Link>
+            <Link
+              href="/admin/analytics"
+              className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
+            >
+              <i aria-hidden="true" className="fi fi-sr-chart-line text-blue-500" />
+              <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
+                Analytics
+              </span>
+              <i
+                aria-hidden="true"
+                className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
+              />
             </Link>
           </div>
         </div>

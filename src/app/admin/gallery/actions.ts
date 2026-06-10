@@ -7,16 +7,25 @@ import { parseTagString } from '@/lib/format';
 import { finalizeUploads } from '@/lib/upload';
 import { titleField, slugField, tagsField, optionalString } from '@/lib/validation';
 import { ROUTES } from '@/lib/routes';
-import { withAuth, handleDbError, revalidateContentPaths, createTogglePublished, createDeleteItem } from '@/lib/admin-crud';
+import {
+  withAuth,
+  handleDbError,
+  revalidateContentPaths,
+  createTogglePublished,
+  createDeleteItem,
+} from '@/lib/admin-crud';
+import { trackServerEvent } from '@/lib/analytics/server';
 
-const gallerySchema = z.object({
-  title: titleField,
-  slug: slugField,
-  description: optionalString,
-  dateStr: z.string().trim().min(1, 'กรุณาระบุวันที่'),
-  tagsStr: tagsField,
-  relatedPortfolioId: z.string().optional(),
-}).strict();
+const gallerySchema = z
+  .object({
+    title: titleField,
+    slug: slugField,
+    description: optionalString,
+    dateStr: z.string().trim().min(1, 'กรุณาระบุวันที่'),
+    tagsStr: tagsField,
+    relatedPortfolioId: z.string().optional(),
+  })
+  .strict();
 
 const ADMIN = ROUTES.ADMIN.GALLERY;
 const PUBLIC = ROUTES.PUBLIC.GALLERY;
@@ -42,11 +51,18 @@ export async function createGalleryAlbum(formData: FormData) {
     try {
       await dbConnect();
       const doc = await Gallery.create({
-        title, slug, description,
+        title,
+        slug,
+        description,
         date: new Date(dateStr),
         tags: parseTagString(tagsStr),
         published: false,
         relatedPortfolioId: relatedPortfolioId || undefined,
+      });
+      await trackServerEvent({
+        path: ADMIN,
+        eventName: 'form_submit',
+        metadata: { form: 'gallery', action: 'create' },
       });
       return { id: doc._id.toString() };
     } catch (error: unknown) {
@@ -70,6 +86,11 @@ export async function saveGalleryMedia(id: string, formData: FormData) {
       if (coverUrl) updateData.cover = coverUrl;
       if (photoUrls.length > 0) updateData.photos = photoUrls;
       await Gallery.findByIdAndUpdate(id, updateData);
+      await trackServerEvent({
+        path: ADMIN,
+        eventName: 'form_submit',
+        metadata: { form: 'gallery', action: 'save_media' },
+      });
     } catch (error: unknown) {
       return handleDbError(error, 'Save gallery media', 'DB02');
     }
@@ -104,7 +125,9 @@ export async function updateGalleryAlbum(id: string, formData: FormData) {
         : [];
 
       const updateData: Record<string, unknown> = {
-        title, slug, description,
+        title,
+        slug,
+        description,
         date: new Date(dateStr),
         tags: parseTagString(tagsStr),
         published,
@@ -120,6 +143,11 @@ export async function updateGalleryAlbum(id: string, formData: FormData) {
       if (photoUrls.length > 0) updateData.photos = photoUrls;
 
       await Gallery.findByIdAndUpdate(id, updateData);
+      await trackServerEvent({
+        path: ADMIN,
+        eventName: 'form_submit',
+        metadata: { form: 'gallery', action: 'edit' },
+      });
     } catch (error: unknown) {
       return handleDbError(error, 'Update gallery', 'DB02');
     }

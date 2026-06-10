@@ -134,6 +134,18 @@ export const CONFIG = {
     MONTHLY_NORMALIZER: { weekly: 52 / 12, monthly: 1, quarterly: 1 / 3, yearly: 1 / 12 } as const,
   } as const,
 
+  // ─── Analytics ────────────────────────────────────────────────────────
+  ANALYTICS: {
+    FLUSH_INTERVAL_MS: 30000,
+    MAX_BATCH_SIZE: 50,
+    QUEUE_MAX: 200,
+    CONSENT_KEY: 'boss478-analytics-consent',
+    SESSION_KEY: 'boss478-session-id',
+    RATE_LIMIT: 600,
+    MAX_BODY_BYTES: 25600,
+    MAX_METADATA_BYTES: 500,
+  },
+
   // ─── Rate Limiting ────────────────────────────────────────────────────
   RATE_LIMIT: {
     MAX_ATTEMPTS: 5, // failed attempts before lockout

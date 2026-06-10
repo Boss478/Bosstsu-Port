@@ -5,6 +5,31 @@
 
 
 
+## v1.10.0 (2026-06-10)
++ **Analytics System (first-party, opt-in)**:
+  + MongoDB models: `AnalyticsEvent` (raw events) + `DailyAnalytics` (pre-computed rollups) — forever retention, minimal indexes
+  + API route `POST /api/analytics` — batched inserts with ipHash (SHA-256+salt), DNT respected (451), analytics rate limiter (600/min/IP), payload validation
+  + Client library: consent management (localStorage), session UUID (sessionStorage), in-memory queue with 30s flush + sendBeacon unload, React context provider with page view + Web Vitals (LCP/CLS/INP) tracking
+  + Cookie consent banner — fixed-bottom, bilingual, opt-in (no tracking before accept)
+  + 4 RUM/Web Vitals: LCP, CLS, INP tracked via PerformanceObserver
+  + Game analytics: 5 games integrated (Number Game, Phonics, Spellchecker, Computer Lab, Alphabet Adventure) — `game_start`/`game_correct`/`game_wrong`/`game_complete` events with typed metadata
+  + Resource page: download + external link tracking via `TrackedLink` component
+  + Admin form tracking: all CRUD operations (portfolio, gallery, games, resources, tools) tracked via `trackServerEvent`
+  + Admin dashboard: `/admin/analytics` with summary cards, CSS bar traffic chart, top pages/events tables, date presets (1d/3d/7d/1m/3m/ALL), CSV export, hot-reload (10s focused/60s background)
+  + Daily rollup: on-demand computation via `computeDailyRollup()` — upsert per day, aggregates views/uniques/topPages/devices/referrers/events
+  + **Scrutiny applied**: plan reviewed pre-implementation with 10+ gaps identified (rate limiter API, env.ts, ipHash, provider cleanup, queue overflow, missing types) — all fixed before ship
++ **Cookie Policy page**: `/cookie-policy` explaining data collection (localStorage/sessionStorage, no cookies, hashed IP, no third-party) — glassmorphism cards, Flaticon icons, English. Banner updated: concise English message + "Learn more" link. Footer: Cookie Policy link added to copyright line.
+* **Analytics UI enhancements (same version)**:
+  * Cookie consent: fixed bottom bar → floating rounded-full glassmorphism bubble (centered, backdrop-blur-xl, shadow-2xl)
+  * Admin nav: Analytics tab added to sidebar + mobile nav
+  * Dashboard: refresh button + interval selector (3s-60s, localStorage persistent, green pulse indicator)
+  * Dashboard: device breakdown (horizontal stacked bar: desktop/mobile/tablet)
+  * Dashboard: referrer breakdown (top 10 with percentage bars, null → Direct)
+  * Dashboard: trend arrows (↑↓ with % change on summary cards — today vs yesterday)
+  * Dashboard: day-of-week chart (client-computed from viewsOverTime, 7 bars)
+  * Dashboard: hourly distribution (24-bar chart, Asia/Bangkok timezone, 30-day window)
+  * Backend: `referrerBreakdown` added to `computeDailyRollup()`, all new fields returned from `getAnalyticsStats()` in single `Promise.all` for max parallelism
+
 ## v1.9.63 (2026-06-10)
 * **Fix: multi-step session name/description not saving on edit**: `updateSessionSteps` now includes `title` and `config.description` in `$set` — the form was sending them but the server action ignored both (`actions.ts:166-187`)
 * **Fix: session description silently dropped on single-tool edit**: `updateSession` was writing `description` at root level (Mongoose strict mode silently discarded it); moved to `config.description` where the schema expects it (`actions.ts:138-141`)

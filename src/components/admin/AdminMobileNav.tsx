@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 
 const navItems = [
   { label: 'ภาพรวม', href: '/admin', icon: 'fi-sr-apps' },
+  { label: 'วิเคราะห์', href: '/admin/analytics', icon: 'fi-sr-analytics' },
   { label: 'ผลงาน', href: '/admin/portfolio', icon: 'fi-sr-briefcase' },
   { label: 'แกลเลอรี', href: '/admin/gallery', icon: 'fi-sr-picture' },
   { label: 'สื่อฯ', href: '/admin/resources', icon: 'fi-sr-book-alt' },
@@ -16,9 +17,13 @@ export default function AdminMobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav data-admin="mobile-nav" className="fixed bottom-0 left-0 right-0 h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-blue-100 dark:border-slate-800 z-50 md:hidden flex justify-around items-center px-2 pb-safe">
+    <nav
+      data-admin="mobile-nav"
+      className="fixed bottom-0 left-0 right-0 h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-blue-100 dark:border-slate-800 z-50 md:hidden flex justify-around items-center px-2 pb-safe"
+    >
       {navItems.map((item) => {
-        const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
+        const isActive =
+          pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
         return (
           <Link
             key={item.href}

@@ -20,6 +20,7 @@ import {
 import type { Screen, GameState, RoundData, FeedbackState, GridCell } from '../types';
 import { initialGameState, emptyRoundData } from '../types';
 import { pushAnalytics } from '../analytics';
+import { useAnalytics } from '@/lib/analytics';
 import {
   LEVELS,
   GAME_CONFIG,
@@ -65,6 +66,7 @@ export function useGameActions({
   playSequence: (freqs: number[], duration?: number, gainVal?: number) => void;
   setScreen: Dispatch<SetStateAction<Screen>>;
 }) {
+  const { trackCustomEvent } = useAnalytics();
   const dropPowerRef = useRef(0);
 
   const [gameState, setGameState] = useState<GameState>(initialGameState());
@@ -170,7 +172,15 @@ export function useGameActions({
         };
       }
       const { targetLetter, correctChar, choices } = generateMatchRound(state.round, numChoices);
-      return { targetLetter, correctChar, choices, grid: [], missingIndices: [], activeIndex: -1, wrongChoices: [] };
+      return {
+        targetLetter,
+        correctChar,
+        choices,
+        grid: [],
+        missingIndices: [],
+        activeIndex: -1,
+        wrongChoices: [],
+      };
     } else if (config.type === 'fill-upper' || config.type === 'fill-lower') {
       const numFillChoices = state.easyMode ? 3 : 4;
       const { grid, missingIndices, activeIndex, choices } = generateFillRound(
@@ -191,8 +201,9 @@ export function useGameActions({
       clearProgress();
       setGameState((prev) => ({ ...prev, score }));
       setScreen('victory');
+      trackCustomEvent('game_complete', { game: 'alphabet-adventure', score, stars: stageStars });
     },
-    [playSound, setScreen],
+    [playSound, setScreen, trackCustomEvent, stageStars],
   );
 
   const startGame = useCallback(
@@ -203,8 +214,13 @@ export function useGameActions({
       setScreen('game');
       setRoundData(generateRound(initialState));
       setStageStars(savedStars || []);
+      trackCustomEvent('game_start', {
+        game: 'alphabet-adventure',
+        level: initialState.level,
+        easyMode: initialState.easyMode,
+      });
     },
-    [generateRound, setScreen],
+    [generateRound, setScreen, trackCustomEvent],
   );
 
   const continueGame = useCallback(() => {
@@ -220,7 +236,12 @@ export function useGameActions({
   const handleLevelComplete = useCallback(
     (score: number, correct: number, total: number) => {
       playSound('win');
-      pushAnalytics({ type: 'win', level: stateRef.current.level, letter: '', streak: stateRef.current.currentStreak });
+      pushAnalytics({
+        type: 'win',
+        level: stateRef.current.level,
+        letter: '',
+        streak: stateRef.current.currentStreak,
+      });
       const accuracy = total > 0 ? (correct / total) * 100 : 0;
       const stars = calcStars(accuracy);
       setStageStars((prev) => [...prev, stars]);
@@ -308,7 +329,7 @@ export function useGameActions({
           dropStreakRef.current = Math.max(0, dropStreakRef.current - 5);
           setDropStreak(dropStreakRef.current);
           const newPower = Math.min(10, dropPowerRef.current + 1);
-           
+
           dropPowerRef.current = newPower;
           setDropPower(newPower);
           const collection = loadCollection();
@@ -332,7 +353,19 @@ export function useGameActions({
           playSound('correct');
         }
 
-        pushAnalytics({ type: 'correct', level: stateRef.current.level, letter: isMatch ? (roundData.targetLetter || correct!) : correct!, streak: stateRef.current.currentStreak + 1 });
+        trackCustomEvent('game_correct', {
+          game: 'alphabet-adventure',
+          level: stateRef.current.level,
+          letter: isMatch ? roundData.targetLetter || correct! : correct!,
+          streak: stateRef.current.currentStreak + 1,
+          cardDropped: cardDropped,
+        });
+        pushAnalytics({
+          type: 'correct',
+          level: stateRef.current.level,
+          letter: isMatch ? roundData.targetLetter || correct! : correct!,
+          streak: stateRef.current.currentStreak + 1,
+        });
 
         const points =
           config.type === 'typing' ? GAME_CONFIG.SCORE_TYPING_CORRECT : GAME_CONFIG.SCORE_CORRECT;
@@ -416,7 +449,17 @@ export function useGameActions({
           streakToastRef.current = null;
         }
         playSequence([300, 220, 160], 0.1, 0.15);
-        pushAnalytics({ type: 'wrong', level: stateRef.current.level, letter: isMatch ? (roundData.targetLetter || correct!) : correct!, streak: 0 });
+        trackCustomEvent('game_wrong', {
+          game: 'alphabet-adventure',
+          level: stateRef.current.level,
+          letter: isMatch ? roundData.targetLetter || correct! : correct!,
+        });
+        pushAnalytics({
+          type: 'wrong',
+          level: stateRef.current.level,
+          letter: isMatch ? roundData.targetLetter || correct! : correct!,
+          streak: 0,
+        });
         const points =
           config.type === 'typing' ? GAME_CONFIG.SCORE_TYPING_WRONG : GAME_CONFIG.SCORE_WRONG;
         const newWrongLetters = isMatch
@@ -462,6 +505,7 @@ export function useGameActions({
       advanceMatchRound,
       stageStars,
       playSequence,
+      trackCustomEvent,
     ],
   );
 
@@ -483,7 +527,24 @@ export function useGameActions({
 
     if (allCorrect) {
       playSound('correct');
-      pushAnalytics({ type: 'correct', level: 6, letter: roundData.grid.filter(g => g.isHidden).map(g => g.char).join(''), streak: stateRef.current.currentStreak + 1 });
+      trackCustomEvent('game_correct', {
+        game: 'alphabet-adventure',
+        level: 6,
+        letter: roundData.grid
+          .filter((g) => g.isHidden)
+          .map((g) => g.char)
+          .join(''),
+        streak: stateRef.current.currentStreak + 1,
+      });
+      pushAnalytics({
+        type: 'correct',
+        level: 6,
+        letter: roundData.grid
+          .filter((g) => g.isHidden)
+          .map((g) => g.char)
+          .join(''),
+        streak: stateRef.current.currentStreak + 1,
+      });
       const newScore = stateRef.current.score + GAME_CONFIG.SCORE_TYPING_CORRECT;
       const newWins = stateRef.current.winsInLevel + 1;
       const newDifficulty = Math.min(
@@ -537,7 +598,23 @@ export function useGameActions({
         streakToastRef.current = null;
       }
       playSequence([300, 220, 160], 0.1, 0.15);
-      pushAnalytics({ type: 'wrong', level: 6, letter: roundData.grid.filter(g => g.isHidden).map(g => g.char).join(''), streak: 0 });
+      trackCustomEvent('game_wrong', {
+        game: 'alphabet-adventure',
+        level: 6,
+        letter: roundData.grid
+          .filter((g) => g.isHidden)
+          .map((g) => g.char)
+          .join(''),
+      });
+      pushAnalytics({
+        type: 'wrong',
+        level: 6,
+        letter: roundData.grid
+          .filter((g) => g.isHidden)
+          .map((g) => g.char)
+          .join(''),
+        streak: 0,
+      });
       const typingWrongLetters = newGrid.filter((g) => g.isWrong).map((g) => g.char);
       const newErrors = stateRef.current.consecutiveErrors + 1;
       const newState: GameState = {
@@ -578,7 +655,15 @@ export function useGameActions({
         }, 800);
       }
     }
-  }, [isTransitioning, roundData, playSound, showFeedback, handleLevelComplete, stageStars]);
+  }, [
+    isTransitioning,
+    roundData,
+    playSound,
+    showFeedback,
+    handleLevelComplete,
+    stageStars,
+    trackCustomEvent,
+  ]);
 
   const handleSelectCell = useCallback((index: number) => {
     setRoundData((prev) => ({ ...prev, activeIndex: index }));

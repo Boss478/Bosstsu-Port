@@ -1,26 +1,35 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useEffect, useRef } from "react";
-import { GameContext, type GameContextValue } from "./context";
-import type { Screen, SaveData, GameRound, RoundConfig, CompanionId } from "./types";
-import { getActiveSlot, setActiveSlot, loadSave, writeSave, getDefaultSave, recordRound } from "./save";
-import { useAudio } from "@/hooks/useAudio";
-import { GAME_CONFIG } from "./constants";
-import SaveSlotScreen from "./screens/SaveSlotScreen";
-import MapScreen from "./screens/MapScreen";
-import GameScreen from "./screens/GameScreen";
-import VictoryScreen from "./screens/VictoryScreen";
-import SettingsScreen from "./screens/SettingsScreen";
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { GameContext, type GameContextValue } from './context';
+import type { Screen, SaveData, GameRound, RoundConfig, CompanionId } from './types';
+import {
+  getActiveSlot,
+  setActiveSlot,
+  loadSave,
+  writeSave,
+  getDefaultSave,
+  recordRound,
+} from './save';
+import { useAudio } from '@/hooks/useAudio';
+import { GAME_CONFIG } from './constants';
+import SaveSlotScreen from './screens/SaveSlotScreen';
+import MapScreen from './screens/MapScreen';
+import GameScreen from './screens/GameScreen';
+import VictoryScreen from './screens/VictoryScreen';
+import SettingsScreen from './screens/SettingsScreen';
+import { useAnalytics } from '@/lib/analytics';
 
 export default function PhonicsClient() {
   const [mounted, setMounted] = useState(false);
-  const [screen, setScreen] = useState<Screen>("slots");
-  const [activeSlot, setActiveSlotState] = useState<number | "guest">("guest");
+  const [screen, setScreen] = useState<Screen>('slots');
+  const [activeSlot, setActiveSlotState] = useState<number | 'guest'>('guest');
   const [save, setSaveState] = useState<SaveData | null>(null);
   const [round, setRound] = useState<GameRound | null>(null);
-  const [companion, setCompanion] = useState<CompanionId>("nox");
+  const [companion, setCompanion] = useState<CompanionId>('nox');
   const { muted, toggleMute, playSound } = useAudio();
   const [crtEffect, setCrtEffect] = useState(false);
+  const { trackCustomEvent } = useAnalytics();
 
   // ── Mount guard — no localStorage access before hydration ──────────────────
   useEffect(() => {
@@ -28,14 +37,14 @@ export default function PhonicsClient() {
       setMounted(true);
       const slot = getActiveSlot();
       setActiveSlotState(slot);
-      if (slot !== "guest") {
+      if (slot !== 'guest') {
         const data = loadSave(slot as number);
         if (data) {
           setSaveState(data);
           setCompanion(data.companion);
           setCrtEffect(data.settings.crtEffect);
           // Skip slots screen if valid save exists and tutorial done
-          if (data.tutorialCompleted) setScreen("map");
+          if (data.tutorialCompleted) setScreen('map');
         }
       }
     }, 0);
@@ -43,81 +52,107 @@ export default function PhonicsClient() {
   }, []);
 
   // ── Save persistence ───────────────────────────────────────────────────────
-  const persistSave = useCallback((s: SaveData) => {
-    setSaveState(s);
-    if (activeSlot !== "guest") {
-      writeSave(activeSlot as number, s);
-    }
-  }, [activeSlot]);
+  const persistSave = useCallback(
+    (s: SaveData) => {
+      setSaveState(s);
+      if (activeSlot !== 'guest') {
+        writeSave(activeSlot as number, s);
+      }
+    },
+    [activeSlot],
+  );
 
   // ── visibilitychange save ──────────────────────────────────────────────────
   const saveRef = useRef(save);
-  useEffect(() => { saveRef.current = save; }, [save]);
+  useEffect(() => {
+    saveRef.current = save;
+  }, [save]);
   useEffect(() => {
     const handler = () => {
-      if (document.visibilityState === "hidden" && activeSlot !== "guest" && saveRef.current) {
+      if (document.visibilityState === 'hidden' && activeSlot !== 'guest' && saveRef.current) {
         writeSave(activeSlot as number, saveRef.current);
       }
     };
-    document.addEventListener("visibilitychange", handler);
-    return () => document.removeEventListener("visibilitychange", handler);
+    document.addEventListener('visibilitychange', handler);
+    return () => document.removeEventListener('visibilitychange', handler);
   }, [activeSlot]);
 
   // ── Slot selection ─────────────────────────────────────────────────────────
-  const selectSlot = useCallback((slot: number | "guest") => {
-    setActiveSlot(slot);
-    setActiveSlotState(slot);
-    if (slot === "guest") {
-      setSaveState(getDefaultSave("Guest"));
-    } else {
-      const data = loadSave(slot as number) ?? getDefaultSave(`Slot ${slot}`);
-      setSaveState(data);
-      setCompanion(data.companion);
-      setCrtEffect(data.settings.crtEffect);
-    }
-    setScreen("map");
-  }, []);
+  const selectSlot = useCallback(
+    (slot: number | 'guest') => {
+      setActiveSlot(slot);
+      setActiveSlotState(slot);
+      if (slot === 'guest') {
+        setSaveState(getDefaultSave('Guest'));
+      } else {
+        const data = loadSave(slot as number) ?? getDefaultSave(`Slot ${slot}`);
+        setSaveState(data);
+        setCompanion(data.companion);
+        setCrtEffect(data.settings.crtEffect);
+      }
+      setScreen('map');
+      trackCustomEvent('game_start', { game: 'phonics', slot: String(slot) });
+    },
+    [trackCustomEvent],
+  );
 
   // ── Round management ───────────────────────────────────────────────────────
-  const startRound = useCallback((config: RoundConfig) => {
-    // Questions are generated by GameScreen based on config
-    const newRound: GameRound = {
-      config,
-      questions: [],   // populated by GameScreen on mount
-      currentIndex: 0,
-      score: 0,
-      corrects: 0,
-      streak: 0,
-      maxStreak: 0,
-      coinsEarned: 0,
-      results: [],
-    };
-    setRound(newRound);
-    setScreen("game");
-  }, []);
+  const startRound = useCallback(
+    (config: RoundConfig) => {
+      const newRound: GameRound = {
+        config,
+        questions: [],
+        currentIndex: 0,
+        score: 0,
+        corrects: 0,
+        streak: 0,
+        maxStreak: 0,
+        coinsEarned: 0,
+        results: [],
+      };
+      setRound(newRound);
+      setScreen('game');
+      trackCustomEvent('game_round_start', {
+        game: 'phonics',
+        category: config.category,
+        level: config.level,
+      });
+    },
+    [trackCustomEvent],
+  );
 
-  const answerQuestion = useCallback((answer: string) => {
-    setRound((prev) => {
-      if (!prev) return prev;
+  const answerQuestion = useCallback(
+    (answer: string) => {
+      const prev = round;
+      if (!prev) return;
       const question = prev.questions[prev.currentIndex];
-      if (!question) return prev;
+      if (!question) return;
 
-      let correctAnswer = "";
-      if (question.category === "phonics") correctAnswer = question.correctAnswer;
-      else if (question.category === "definitions") correctAnswer = question.correctAnswer;
-      else if (question.category === "spelling") correctAnswer = question.word.word;
+      let correctAnswer = '';
+      if (question.category === 'phonics') correctAnswer = question.correctAnswer;
+      else if (question.category === 'definitions') correctAnswer = question.correctAnswer;
+      else if (question.category === 'spelling') correctAnswer = question.word.word;
 
       const correct = answer.toLowerCase() === correctAnswer.toLowerCase();
       const start = Date.now();
       const newStreak = correct ? prev.streak + 1 : 0;
       const coinsThisQ = correct
-        ? (newStreak >= GAME_CONFIG.STREAK_BONUS_THRESHOLD ? GAME_CONFIG.COINS_STREAK : GAME_CONFIG.COINS_CORRECT)
+        ? newStreak >= GAME_CONFIG.STREAK_BONUS_THRESHOLD
+          ? GAME_CONFIG.COINS_STREAK
+          : GAME_CONFIG.COINS_CORRECT
         : 0;
 
-      if (correct) playSound("correct");
-      else playSound("wrong");
+      if (correct) playSound('correct');
+      else playSound('wrong');
 
-      return {
+      trackCustomEvent(correct ? 'game_correct' : 'game_wrong', {
+        game: 'phonics',
+        category: question.category,
+        letter: question.word?.word,
+        streak: prev.streak,
+      });
+
+      setRound({
         ...prev,
         score: prev.score + (correct ? GAME_CONFIG.SCORE_CORRECT : 0),
         corrects: prev.corrects + (correct ? 1 : 0),
@@ -129,18 +164,26 @@ export default function PhonicsClient() {
           ...prev.results,
           { question, playerAnswer: answer, correct, timeMs: Date.now() - start },
         ],
-      };
-    });
-  }, [playSound]);
+      });
+    },
+    [playSound, round, trackCustomEvent],
+  );
 
   // ── Victory finalization ───────────────────────────────────────────────────
   const finalizeRound = useCallback(() => {
     if (!round || !save) return;
     const updated = recordRound(save, round.corrects, round.maxStreak, round.coinsEarned);
     persistSave(updated);
-    playSound("win");
-    setScreen("victory");
-  }, [round, save, persistSave, playSound]);
+    playSound('win');
+    setScreen('victory');
+    trackCustomEvent('game_complete', {
+      game: 'phonics',
+      corrects: round.corrects,
+      maxStreak: round.maxStreak,
+      score: round.score,
+      total: round.questions.length,
+    });
+  }, [round, save, persistSave, playSound, trackCustomEvent]);
 
   // ── CRT toggle ─────────────────────────────────────────────────────────────
   const toggleCrt = useCallback(() => {
@@ -178,17 +221,17 @@ export default function PhonicsClient() {
         {/* CRT scanline overlay */}
         {crtEffect && <div className="scanline-overlay" aria-hidden="true" />}
 
-        {screen === "slots" && (
-          <SaveSlotScreen onSelectSlot={selectSlot} />
+        {screen === 'slots' && <SaveSlotScreen onSelectSlot={selectSlot} />}
+        {screen === 'map' && <MapScreen />}
+        {screen === 'game' && round && <GameScreen onRoundComplete={finalizeRound} />}
+        {screen === 'victory' && round && (
+          <VictoryScreen
+            round={round}
+            onPlayAgain={() => startRound(round.config)}
+            onBackToMap={() => setScreen('map')}
+          />
         )}
-        {screen === "map" && <MapScreen />}
-        {screen === "game" && round && (
-          <GameScreen onRoundComplete={finalizeRound} />
-        )}
-        {screen === "victory" && round && (
-          <VictoryScreen round={round} onPlayAgain={() => startRound(round.config)} onBackToMap={() => setScreen("map")} />
-        )}
-        {screen === "settings" && <SettingsScreen />}
+        {screen === 'settings' && <SettingsScreen />}
       </div>
     </GameContext.Provider>
   );

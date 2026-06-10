@@ -7,25 +7,41 @@ import { parseTagString } from '@/lib/format';
 import { finalizeUploads } from '@/lib/upload';
 import { titleField, descriptionField, tagsField, optionalString } from '@/lib/validation';
 import { ROUTES } from '@/lib/routes';
-import { withAuth, handleDbError, sanitizeHtml, revalidateContentPaths, createTogglePublished, createDeleteItem } from '@/lib/admin-crud';
+import {
+  withAuth,
+  handleDbError,
+  sanitizeHtml,
+  revalidateContentPaths,
+  createTogglePublished,
+  createDeleteItem,
+} from '@/lib/admin-crud';
+import { trackServerEvent } from '@/lib/analytics/server';
 
 const TYPE_OPTIONS = [
-  'Article', 'Presentation', 'Video', 'Lesson Plan',
-  'Sheet', 'Worksheet', 'Scratch', 'Interactive'
+  'Article',
+  'Presentation',
+  'Video',
+  'Lesson Plan',
+  'Sheet',
+  'Worksheet',
+  'Scratch',
+  'Interactive',
 ] as const;
 
-const learningSchema = z.object({
-  title: titleField,
-  description: descriptionField,
-  subject: z.string().trim().min(1, 'กรุณาเลือกวิชา'),
-  type: z.string().trim().min(1, 'กรุณาเลือกประเภท'),
-  tagsStr: tagsField,
-  link: optionalString,
-  content: optionalString,
-  embedCode: optionalString,
-  youtubeId: optionalString,
-  canvaEmbed: optionalString,
-}).strict();
+const learningSchema = z
+  .object({
+    title: titleField,
+    description: descriptionField,
+    subject: z.string().trim().min(1, 'กรุณาเลือกวิชา'),
+    type: z.string().trim().min(1, 'กรุณาเลือกประเภท'),
+    tagsStr: tagsField,
+    link: optionalString,
+    content: optionalString,
+    embedCode: optionalString,
+    youtubeId: optionalString,
+    canvaEmbed: optionalString,
+  })
+  .strict();
 
 const ADMIN = ROUTES.ADMIN.RESOURCES;
 const PUBLIC = ROUTES.PUBLIC.RESOURCES;
@@ -36,7 +52,7 @@ export const deleteLearningResource = createDeleteItem(Learning, ADMIN, PUBLIC);
 export async function createLearningResource(formData: FormData) {
   return withAuth(async () => {
     const type = formData.get('type') as string;
-    if (!TYPE_OPTIONS.includes(type as typeof TYPE_OPTIONS[number])) {
+    if (!TYPE_OPTIONS.includes(type as (typeof TYPE_OPTIONS)[number])) {
       return { error: 'ประเภทไม่ถูกต้อง' };
     }
 
@@ -55,12 +71,25 @@ export async function createLearningResource(formData: FormData) {
 
     if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-    const { title, description, subject, link, content, embedCode, youtubeId, canvaEmbed, tagsStr } = parsed.data;
+    const {
+      title,
+      description,
+      subject,
+      link,
+      content,
+      embedCode,
+      youtubeId,
+      canvaEmbed,
+      tagsStr,
+    } = parsed.data;
 
     try {
       await dbConnect();
       const doc = await Learning.create({
-        title, description, subject, type,
+        title,
+        description,
+        subject,
+        type,
         link: link || undefined,
         tags: parseTagString(tagsStr),
         published: false,
@@ -68,6 +97,11 @@ export async function createLearningResource(formData: FormData) {
         embedCode: sanitizeHtml(embedCode),
         youtubeId: youtubeId || undefined,
         canvaEmbed: canvaEmbed || undefined,
+      });
+      await trackServerEvent({
+        path: ADMIN,
+        eventName: 'form_submit',
+        metadata: { form: 'resource', action: 'create' },
       });
       return { id: doc._id.toString() };
     } catch (error: unknown) {
@@ -83,12 +117,19 @@ export async function saveResourceMedia(id: string, formData: FormData) {
     const rawFileUrl = formData.get('fileUrl') as string;
     const published = formData.get('published') === 'on';
     try {
-      const [thumbnailUrl] = rawThumbnailUrl ? await finalizeUploads([rawThumbnailUrl], 'learning') : [''];
+      const [thumbnailUrl] = rawThumbnailUrl
+        ? await finalizeUploads([rawThumbnailUrl], 'learning')
+        : [''];
       const [fileUrl] = rawFileUrl ? await finalizeUploads([rawFileUrl], 'learning') : [''];
       const updateData: Record<string, unknown> = { published };
       if (thumbnailUrl) updateData.thumbnail = thumbnailUrl;
       if (fileUrl) updateData.fileUrl = fileUrl;
       await Learning.findByIdAndUpdate(id, updateData);
+      await trackServerEvent({
+        path: ADMIN,
+        eventName: 'form_submit',
+        metadata: { form: 'resource', action: 'save_media' },
+      });
     } catch (error: unknown) {
       return handleDbError(error, 'Save resource media', 'DB02');
     }
@@ -100,7 +141,7 @@ export async function saveResourceMedia(id: string, formData: FormData) {
 export async function updateLearningResource(id: string, formData: FormData) {
   return withAuth(async () => {
     const type = formData.get('type') as string;
-    if (!TYPE_OPTIONS.includes(type as typeof TYPE_OPTIONS[number])) {
+    if (!TYPE_OPTIONS.includes(type as (typeof TYPE_OPTIONS)[number])) {
       return { error: 'ประเภทไม่ถูกต้อง' };
     }
 
@@ -119,18 +160,33 @@ export async function updateLearningResource(id: string, formData: FormData) {
 
     if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-    const { title, description, subject, link, content, embedCode, youtubeId, canvaEmbed, tagsStr } = parsed.data;
+    const {
+      title,
+      description,
+      subject,
+      link,
+      content,
+      embedCode,
+      youtubeId,
+      canvaEmbed,
+      tagsStr,
+    } = parsed.data;
     const published = formData.get('published') === 'on';
     const rawThumbnailUrl = formData.get('thumbnailUrl') as string;
     const rawFileUrl = formData.get('fileUrl') as string;
 
     try {
       await dbConnect();
-      const [thumbnailUrl] = rawThumbnailUrl ? await finalizeUploads([rawThumbnailUrl], 'learning') : [''];
+      const [thumbnailUrl] = rawThumbnailUrl
+        ? await finalizeUploads([rawThumbnailUrl], 'learning')
+        : [''];
       const [fileUrl] = rawFileUrl ? await finalizeUploads([rawFileUrl], 'learning') : [''];
 
       const updateData: Record<string, unknown> = {
-        title, description, subject, type,
+        title,
+        description,
+        subject,
+        type,
         link: link || undefined,
         tags: parseTagString(tagsStr),
         published,
@@ -144,6 +200,11 @@ export async function updateLearningResource(id: string, formData: FormData) {
       if (fileUrl) updateData.fileUrl = fileUrl;
 
       await Learning.findByIdAndUpdate(id, updateData);
+      await trackServerEvent({
+        path: ADMIN,
+        eventName: 'form_submit',
+        metadata: { form: 'resource', action: 'edit' },
+      });
     } catch (error: unknown) {
       return handleDbError(error, 'Update learning', 'DB02');
     }

@@ -6,6 +6,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import dbConnect from '@/lib/db';
 import Learning from '@/models/Learning';
 import Breadcrumb from '@/components/Breadcrumb';
+import { TrackedLink } from '@/components/TrackedLink';
 import { formatLongDate, formatShortDate } from '@/lib/format';
 import { CONFIG } from '@/lib/config';
 
@@ -258,14 +259,16 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
                       className="max-w-full rounded-2xl shadow-md"
                     />
                   ) : null}
-                  <a
+                  <TrackedLink
                     href={doc.fileUrl}
+                    eventName="download"
+                    metadata={{ title: doc.title, type: doc.type }}
                     download
                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-colors"
                   >
                     <i aria-hidden="true" className="fi fi-sr-download" />
                     ดาวน์โหลด
-                  </a>
+                  </TrackedLink>
                 </div>
               )}
 
@@ -294,15 +297,17 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
               )}
 
               {!hasPrimaryContent(doc) && doc.link && doc.link !== '#' && (
-                <a
+                <TrackedLink
                   href={doc.link}
+                  eventName="external_link_click"
+                  metadata={{ title: doc.title }}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-colors"
                 >
                   <i aria-hidden="true" className="fi fi-sr-arrow-up-right" />
                   เปิดสื่อการเรียนรู้
-                </a>
+                </TrackedLink>
               )}
             </div>
           </div>

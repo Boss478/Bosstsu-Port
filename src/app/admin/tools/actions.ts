@@ -10,6 +10,7 @@ import { verifyAuth } from '@/lib/auth';
 import { formatError } from '@/lib/error-code';
 import { generateUniqueSessionCode } from '@/lib/session-code';
 import type { ToolType } from '@/models/ToolSession';
+import { trackServerEvent } from '@/lib/analytics/server';
 
 const TOOL_TYPES: ToolType[] = ['padlet', 'poll', 'assignment', 'qa_board', 'quiz', 'exit_ticket'];
 
@@ -113,6 +114,12 @@ export async function quickStartSession(formData: FormData) {
 
     const session = await ToolSession.create(sessionData);
 
+    await trackServerEvent({
+      path: '/admin/tools',
+      eventName: 'form_submit',
+      metadata: { form: 'tool', action: 'create' },
+    });
+
     revalidatePath('/admin/tools');
     revalidatePath(`/admin/tools/sessions/${session._id}`);
     return { error: undefined, sessionCode, sessionId: session._id.toString() };
@@ -164,6 +171,11 @@ export async function updateSession(sessionId: string, formData: FormData) {
     }
 
     await ToolSession.findByIdAndUpdate(sessionId, { $set: setData });
+    await trackServerEvent({
+      path: '/admin/tools',
+      eventName: 'form_submit',
+      metadata: { form: 'tool', action: 'edit' },
+    });
     revalidatePath('/admin/tools');
     revalidatePath(`/admin/tools/sessions/${sessionId}`);
     return { error: undefined };
@@ -207,6 +219,11 @@ export async function updateSessionSteps(sessionId: string, formData: FormData) 
     if (description) updateData['config.description'] = description.trim();
 
     await ToolSession.findByIdAndUpdate(sessionId, { $set: updateData });
+    await trackServerEvent({
+      path: '/admin/tools',
+      eventName: 'form_submit',
+      metadata: { form: 'tool', action: 'edit' },
+    });
     revalidatePath('/admin/tools');
     revalidatePath(`/admin/tools/sessions/${sessionId}`);
     return { error: undefined };
@@ -272,6 +289,11 @@ export async function addStage(sessionId: string, formData: FormData) {
       });
     }
 
+    await trackServerEvent({
+      path: '/admin/tools',
+      eventName: 'form_submit',
+      metadata: { form: 'tool', action: 'create' },
+    });
     revalidatePath('/admin/tools');
     revalidatePath(`/admin/tools/sessions/${sessionId}`);
     return { error: undefined };
@@ -327,6 +349,11 @@ export async function editStage(sessionId: string, formData: FormData) {
       $set: { [`steps.${parsed.data.index}`]: step },
     });
 
+    await trackServerEvent({
+      path: '/admin/tools',
+      eventName: 'form_submit',
+      metadata: { form: 'tool', action: 'edit' },
+    });
     revalidatePath('/admin/tools');
     revalidatePath(`/admin/tools/sessions/${sessionId}`);
     return { error: undefined };
@@ -666,6 +693,11 @@ export async function saveTemplate(formData: FormData) {
       { upsert: true, new: true, runValidators: true },
     ).lean();
 
+    await trackServerEvent({
+      path: '/admin/tools',
+      eventName: 'form_submit',
+      metadata: { form: 'tool', action: 'create' },
+    });
     revalidatePath('/admin/tools/templates');
     return { error: undefined, template: JSON.parse(JSON.stringify(template)) };
   } catch (err) {

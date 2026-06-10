@@ -5,19 +5,35 @@ import dbConnect from '@/lib/db';
 import Portfolio from '@/models/Portfolio';
 import { parseTagString } from '@/lib/format';
 import { finalizeUploads } from '@/lib/upload';
-import { titleField, slugField, descriptionField, tagsField, optionalString } from '@/lib/validation';
+import {
+  titleField,
+  slugField,
+  descriptionField,
+  tagsField,
+  optionalString,
+} from '@/lib/validation';
 import { ROUTES } from '@/lib/routes';
-import { withAuth, handleDbError, sanitizeHtml, revalidateContentPaths, createTogglePublished, createDeleteItem } from '@/lib/admin-crud';
+import {
+  withAuth,
+  handleDbError,
+  sanitizeHtml,
+  revalidateContentPaths,
+  createTogglePublished,
+  createDeleteItem,
+} from '@/lib/admin-crud';
+import { trackServerEvent } from '@/lib/analytics/server';
 
-const portfolioSchema = z.object({
-  title: titleField,
-  slug: slugField,
-  description: descriptionField,
-  content: optionalString,
-  dateStr: z.string().trim().min(1, 'กรุณาระบุวันที่'),
-  tagsStr: tagsField,
-  toolsStr: z.string().optional(),
-}).strict();
+const portfolioSchema = z
+  .object({
+    title: titleField,
+    slug: slugField,
+    description: descriptionField,
+    content: optionalString,
+    dateStr: z.string().trim().min(1, 'กรุณาระบุวันที่'),
+    tagsStr: tagsField,
+    toolsStr: z.string().optional(),
+  })
+  .strict();
 
 const ADMIN = ROUTES.ADMIN.PORTFOLIO;
 const PUBLIC = ROUTES.PUBLIC.PORTFOLIO;
@@ -44,12 +60,24 @@ export async function createPortfolioItem(formData: FormData) {
     try {
       await dbConnect();
       const doc = await Portfolio.create({
-        title, slug, description,
+        title,
+        slug,
+        description,
         date: new Date(dateStr),
         tags: parseTagString(tagsStr),
-        tools: toolsStr ? toolsStr.split(',').map(t => t.trim()).filter(Boolean) : [],
+        tools: toolsStr
+          ? toolsStr
+              .split(',')
+              .map((t) => t.trim())
+              .filter(Boolean)
+          : [],
         content: sanitizeHtml(content),
         published: false,
+      });
+      await trackServerEvent({
+        path: ADMIN,
+        eventName: 'form_submit',
+        metadata: { form: 'portfolio', action: 'create' },
       });
       return { id: doc._id.toString() };
     } catch (error: unknown) {
@@ -73,6 +101,11 @@ export async function savePortfolioMedia(id: string, formData: FormData) {
       if (coverUrl) updateData.cover = coverUrl;
       if (galleryUrls.length > 0) updateData.gallery = galleryUrls;
       await Portfolio.findByIdAndUpdate(id, updateData);
+      await trackServerEvent({
+        path: ADMIN,
+        eventName: 'form_submit',
+        metadata: { form: 'portfolio', action: 'save_media' },
+      });
     } catch (error: unknown) {
       return handleDbError(error, 'Save portfolio media', 'DB02');
     }
@@ -108,10 +141,17 @@ export async function updatePortfolioItem(id: string, formData: FormData) {
         : [];
 
       const updateData: Record<string, unknown> = {
-        title, slug, description,
+        title,
+        slug,
+        description,
         date: new Date(dateStr),
         tags: parseTagString(tagsStr),
-        tools: toolsStr ? toolsStr.split(',').map(t => t.trim()).filter(Boolean) : [],
+        tools: toolsStr
+          ? toolsStr
+              .split(',')
+              .map((t) => t.trim())
+              .filter(Boolean)
+          : [],
         content: sanitizeHtml(content),
         published,
       };
@@ -120,6 +160,11 @@ export async function updatePortfolioItem(id: string, formData: FormData) {
       if (galleryUrls.length > 0) updateData.gallery = galleryUrls;
 
       await Portfolio.findByIdAndUpdate(id, updateData);
+      await trackServerEvent({
+        path: ADMIN,
+        eventName: 'form_submit',
+        metadata: { form: 'portfolio', action: 'edit' },
+      });
     } catch (error: unknown) {
       return handleDbError(error, 'Update portfolio', 'DB02');
     }

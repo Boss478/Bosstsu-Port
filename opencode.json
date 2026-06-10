@@ -1,6 +1,30 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "lsp": true,
+  "agent": {
+    "build": {
+      "permission": {
+        "task": {
+          "*": "deny",
+          "build-error-resolver": "allow",
+          "code-reviewer": "allow",
+          "database-reviewer": "allow",
+          "deploy": "allow",
+          "doc": "allow",
+          "doc-updater": "allow",
+          "docs-lookup": "allow",
+          "e2e-runner": "allow",
+          "explore": "allow",
+          "general": "allow",
+          "planner": "allow",
+          "refactor-cleaner": "allow",
+          "security-reviewer": "allow",
+          "triage": "allow",
+          "verify": "allow"
+        }
+      }
+    }
+  },
   "mcp": {
     "context7": {
       "type": "remote",
