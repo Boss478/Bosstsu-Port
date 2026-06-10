@@ -57,7 +57,7 @@ const nextConfig: NextConfig = withBundleAnalyzer({
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn-uicons.flaticon.com",
               "font-src 'self' https://fonts.gstatic.com https://cdn-uicons.flaticon.com",
               "img-src 'self' data: blob: https: http:",
-              "connect-src 'self' https://cdn.jsdelivr.net https://*.ingest.sentry.io",
+              "connect-src 'self' https://cdn.jsdelivr.net",
               "worker-src 'self' blob:",
               "frame-ancestors 'self'",
             ].join("; "),

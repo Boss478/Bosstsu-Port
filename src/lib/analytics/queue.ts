@@ -9,9 +9,12 @@ interface QueuedEvent {
   deviceType: 'desktop' | 'tablet' | 'mobile';
 }
 
+const MAX_RETRIES = 3;
+
 class AnalyticsQueue {
   private queue: QueuedEvent[] = [];
   private timer: ReturnType<typeof setTimeout> | null = null;
+  private retryCount = 0;
   private readonly flushInterval: number;
   private readonly maxBatch: number;
   private readonly maxQueue: number;
@@ -56,8 +59,14 @@ class AnalyticsQueue {
         body: JSON.stringify({ events: batch }),
         keepalive: true,
       });
+      this.retryCount = 0;
     } catch {
-      this.queue.unshift(...batch);
+      if (this.retryCount < MAX_RETRIES) {
+        this.retryCount++;
+        this.queue.unshift(...batch);
+        const delay = Math.min(1000 * 2 ** (this.retryCount - 1), 8000);
+        this.timer = setTimeout(() => this.flush(), delay);
+      }
     }
   }
 

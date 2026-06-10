@@ -25,12 +25,16 @@ export function TrackedLink({
   rel,
 }: TrackedLinkProps) {
   const { trackCustomEvent } = useAnalytics();
+  const resolvedRel = target === '_blank' && !rel?.includes('noopener')
+    ? `${rel || ''} noopener noreferrer`.trim()
+    : rel;
+
   return (
     <a
       href={href}
       download={download}
       target={target}
-      rel={rel}
+      rel={resolvedRel}
       className={className}
       onClick={() => trackCustomEvent(eventName, metadata)}
     >

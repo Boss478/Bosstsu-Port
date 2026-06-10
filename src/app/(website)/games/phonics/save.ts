@@ -83,7 +83,7 @@ export function setActiveSlot(slot: number | "guest"): void {
   localStorage.setItem(ACTIVE_KEY, String(slot));
 }
 
-export function isGuestMode(): boolean {
+function isGuestMode(): boolean {
   return getActiveSlot() === "guest";
 }
 
@@ -104,7 +104,7 @@ export function getSlotPreview(slot: number): SlotPreview {
   };
 }
 
-export function updatePhonemeStat(
+function updatePhonemeStat(
   save: SaveData,
   phonemeId: string,
   correct: boolean

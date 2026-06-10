@@ -79,7 +79,7 @@ export function saveSave(data: SaveData): void {
   }
 }
 
-export function canUnlockStage(stage: StageId, progress: Record<StageId, { completed: boolean; stars: number; bestScore: number; unlocked: boolean }>): boolean {
+function canUnlockStage(stage: StageId, progress: Record<StageId, { completed: boolean; stars: number; bestScore: number; unlocked: boolean }>): boolean {
   const order: StageId[] = ["hardware", "software", "workflow", "build", "diagnosis"];
   const idx = order.indexOf(stage);
   if (idx === 0) return true;

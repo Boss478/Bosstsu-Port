@@ -2,7 +2,7 @@ import type { TileType, MapBuilding } from "./types";
 import { MAP_GRID, MAP_COLS, MAP_ROWS } from "./constants";
 
 // Parse map string grid → 2D tile type array
-export function parseMapGrid(): TileType[][] {
+function parseMapGrid(): TileType[][] {
   return MAP_GRID.map((row) =>
     row.split("").map((char): TileType => {
       if (char === "W") return "W";

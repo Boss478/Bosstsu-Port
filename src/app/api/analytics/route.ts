@@ -30,6 +30,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No events provided' }, { status: 400 });
   }
 
+  const contentLength = Number(request.headers.get('content-length') || 0);
+  if (contentLength > CONFIG.ANALYTICS.MAX_BODY_BYTES) {
+    return NextResponse.json({ error: 'Request too large' }, { status: 413 });
+  }
+
   if (rawEvents.length > CONFIG.ANALYTICS.MAX_BATCH_SIZE) {
     return NextResponse.json({ error: 'Too many events' }, { status: 400 });
   }

@@ -10,6 +10,12 @@ import DailyAnalytics from '@/models/DailyAnalytics';
 import { CONFIG } from '@/lib/config';
 import { verifyAuth } from '@/lib/auth';
 import { getEnv } from '@/lib/env';
+import {
+  aggregateTopPages,
+  aggregateTopEvents,
+  aggregateDeviceBreakdown,
+  aggregateReferrerBreakdown,
+} from '@/lib/analytics/aggregations';
 
 export interface DbStats {
   connected: boolean;
@@ -153,20 +159,8 @@ export async function getAnalyticsStats(): Promise<AnalyticsStats> {
     DailyAnalytics.find().sort({ date: -1 }).limit(90).lean(),
     AnalyticsEvent.countDocuments({ type: 'pageview' }),
     AnalyticsEvent.countDocuments({}),
-    AnalyticsEvent.aggregate([
-      { $match: { type: 'pageview' } },
-      { $group: { _id: '$path', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 20 },
-      { $project: { _id: 0, path: '$_id', count: 1 } },
-    ]),
-    AnalyticsEvent.aggregate([
-      { $match: { type: 'custom', eventName: { $ne: null } } },
-      { $group: { _id: '$eventName', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 20 },
-      { $project: { _id: 0, eventName: '$_id', count: 1 } },
-    ]),
+    aggregateTopPages(ninetyDaysAgo, 20),
+    aggregateTopEvents(ninetyDaysAgo, 20),
     AnalyticsEvent.aggregate([
       { $match: { timestamp: { $gte: ninetyDaysAgo } } },
       {
@@ -179,16 +173,8 @@ export async function getAnalyticsStats(): Promise<AnalyticsStats> {
       { $limit: 90 },
       { $project: { _id: 0, date: '$_id', views: 1 } },
     ]),
-    AnalyticsEvent.aggregate([
-      { $match: { timestamp: { $gte: ninetyDaysAgo } } },
-      { $group: { _id: '$deviceType', count: { $sum: 1 } } },
-      { $project: { _id: 0, type: '$_id', count: 1 } },
-    ]),
-    AnalyticsEvent.aggregate([
-      { $match: { timestamp: { $gte: ninetyDaysAgo }, type: 'pageview' } },
-      { $group: { _id: '$referrer', count: { $sum: 1 } } },
-      { $project: { _id: 0, referrer: { $ifNull: ['$_id', 'direct'] }, count: 1 } },
-    ]),
+    aggregateDeviceBreakdown(ninetyDaysAgo),
+    aggregateReferrerBreakdown(ninetyDaysAgo),
     AnalyticsEvent.countDocuments({ timestamp: { $gte: todayStart } }),
     AnalyticsEvent.countDocuments({
       timestamp: { $gte: yesterdayStart, $lt: todayStart },
@@ -244,30 +230,10 @@ export async function computeDailyRollup(): Promise<void> {
       AnalyticsEvent.distinct('sessionId', {
         timestamp: { $gte: todayDate },
       }),
-      AnalyticsEvent.aggregate([
-        { $match: { timestamp: { $gte: todayDate }, type: 'pageview' } },
-        { $group: { _id: '$path', count: { $sum: 1 } } },
-        { $sort: { count: -1 } },
-        { $limit: 10 },
-        { $project: { _id: 0, path: '$_id', count: 1 } },
-      ]),
-      AnalyticsEvent.aggregate([
-        { $match: { timestamp: { $gte: todayDate } } },
-        { $group: { _id: '$deviceType', count: { $sum: 1 } } },
-        { $project: { _id: 0, type: '$_id', count: 1 } },
-      ]),
-      AnalyticsEvent.aggregate([
-        { $match: { timestamp: { $gte: todayDate }, type: 'custom', eventName: { $ne: null } } },
-        { $group: { _id: '$eventName', count: { $sum: 1 } } },
-        { $sort: { count: -1 } },
-        { $limit: 10 },
-        { $project: { _id: 0, eventName: '$_id', count: 1 } },
-      ]),
-      AnalyticsEvent.aggregate([
-        { $match: { timestamp: { $gte: todayDate }, type: 'pageview' } },
-        { $group: { _id: '$referrer', count: { $sum: 1 } } },
-        { $project: { _id: 0, referrer: { $ifNull: ['$_id', 'direct'] }, count: 1 } },
-      ]),
+      aggregateTopPages(todayDate, 10),
+      aggregateDeviceBreakdown(todayDate),
+      aggregateTopEvents(todayDate, 10),
+      aggregateReferrerBreakdown(todayDate),
     ]);
 
   await DailyAnalytics.findOneAndUpdate(

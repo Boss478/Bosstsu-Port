@@ -111,7 +111,15 @@ function ReferrerChart({ data }: { data: { referrer: string; count: number }[] }
           <div key={r.referrer} className="space-y-1">
             <div className="flex items-center justify-between text-xs">
               <span className="text-zinc-700 dark:text-zinc-300 truncate max-w-[60%]">
-                {r.referrer === 'direct' ? 'Direct' : new URL(r.referrer).hostname || r.referrer}
+                {r.referrer === 'direct'
+                  ? 'Direct'
+                  : (() => {
+                      try {
+                        return new URL(r.referrer).hostname || r.referrer;
+                      } catch {
+                        return r.referrer;
+                      }
+                    })()}
               </span>
               <span className="text-zinc-500 dark:text-zinc-400 shrink-0 ml-2">
                 {formatNumber(r.count)} ({percentage(r.count, total)})

@@ -77,11 +77,24 @@ export function resetAttempts(ip: string): void {
 // Analytics rate limiting (high-volume, per-IP sliding window)
 const analyticsMap = new Map<string, { count: number; windowStart: number }>();
 
+function cleanupAnalyticsMap(): void {
+  const now = Date.now();
+  for (const [ip, entry] of analyticsMap) {
+    if (now - entry.windowStart > 120000) {
+      analyticsMap.delete(ip);
+    }
+  }
+}
+
 export function checkAnalyticsRateLimit(
   ip: string,
   maxRequests: number,
   windowMs: number,
 ): boolean {
+  if (analyticsMap.size % 50 === 0) {
+    cleanupAnalyticsMap();
+  }
+
   const now = Date.now();
   const entry = analyticsMap.get(ip);
 

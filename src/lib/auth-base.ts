@@ -7,7 +7,7 @@ export interface AuthConfig {
   secretKey: keyof ReturnType<typeof getEnv>;
 }
 
-export async function createToken(
+async function createToken(
   secret: string,
   timestamp?: string
 ): Promise<string> {

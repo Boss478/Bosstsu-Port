@@ -17,7 +17,7 @@ export const PALETTE: string[] = [
   "#143d1f", // 13: dark PCB green
 ];
 
-export const CPU_SPRITE: SpriteData = {
+const CPU_SPRITE: SpriteData = {
   width: 32,
   height: 20,
   pixels: [
@@ -44,7 +44,7 @@ export const CPU_SPRITE: SpriteData = {
   ],
 };
 
-export const MONITOR_SPRITE: SpriteData = {
+const MONITOR_SPRITE: SpriteData = {
   width: 32,
   height: 28,
   pixels: [
@@ -79,7 +79,7 @@ export const MONITOR_SPRITE: SpriteData = {
   ],
 };
 
-export const KEYBOARD_SPRITE: SpriteData = {
+const KEYBOARD_SPRITE: SpriteData = {
   width: 32,
   height: 12,
   pixels: [
@@ -98,7 +98,7 @@ export const KEYBOARD_SPRITE: SpriteData = {
   ],
 };
 
-export const RAM_SPRITE: SpriteData = {
+const RAM_SPRITE: SpriteData = {
   width: 32,
   height: 24,
   pixels: [
@@ -129,7 +129,7 @@ export const RAM_SPRITE: SpriteData = {
   ],
 };
 
-export const HDD_SPRITE: SpriteData = {
+const HDD_SPRITE: SpriteData = {
   width: 32,
   height: 14,
   pixels: [
@@ -150,7 +150,7 @@ export const HDD_SPRITE: SpriteData = {
   ],
 };
 
-export const MOUSE_SPRITE: SpriteData = {
+const MOUSE_SPRITE: SpriteData = {
   width: 20,
   height: 28,
   pixels: [
@@ -185,7 +185,7 @@ export const MOUSE_SPRITE: SpriteData = {
   ],
 };
 
-export const STAR_FILLED: SpriteData = {
+const STAR_FILLED: SpriteData = {
   width: 16,
   height: 16,
   pixels: [
@@ -208,7 +208,7 @@ export const STAR_FILLED: SpriteData = {
   ],
 };
 
-export const STAR_EMPTY: SpriteData = {
+const STAR_EMPTY: SpriteData = {
   width: 16,
   height: 16,
   pixels: [
@@ -231,7 +231,7 @@ export const STAR_EMPTY: SpriteData = {
   ],
 };
 
-export const HEART: SpriteData = {
+const HEART: SpriteData = {
   width: 16,
   height: 16,
   pixels: [
@@ -254,7 +254,7 @@ export const HEART: SpriteData = {
   ],
 };
 
-export const LOCK: SpriteData = {
+const LOCK: SpriteData = {
   width: 16,
   height: 16,
   pixels: [
@@ -277,7 +277,7 @@ export const LOCK: SpriteData = {
   ],
 };
 
-export const LIGHTBULB: SpriteData = {
+const LIGHTBULB: SpriteData = {
   width: 16,
   height: 16,
   pixels: [
@@ -300,7 +300,7 @@ export const LIGHTBULB: SpriteData = {
   ],
 };
 
-export const MAGNIFY: SpriteData = {
+const MAGNIFY: SpriteData = {
   width: 16,
   height: 16,
   pixels: [
@@ -323,7 +323,7 @@ export const MAGNIFY: SpriteData = {
   ],
 };
 
-export const CHECKMARK: SpriteData = {
+const CHECKMARK: SpriteData = {
   width: 12,
   height: 12,
   pixels: [
@@ -342,7 +342,7 @@ export const CHECKMARK: SpriteData = {
   ],
 };
 
-export const COMPUTER: SpriteData = {
+const COMPUTER: SpriteData = {
   width: 20,
   height: 24,
   pixels: [
@@ -373,7 +373,7 @@ export const COMPUTER: SpriteData = {
   ],
 };
 
-export const GEAR: SpriteData = {
+const GEAR: SpriteData = {
   width: 16,
   height: 16,
   pixels: [
@@ -396,7 +396,7 @@ export const GEAR: SpriteData = {
   ],
 };
 
-export const CARD: SpriteData = {
+const CARD: SpriteData = {
   width: 16,
   height: 16,
   pixels: [
@@ -419,7 +419,7 @@ export const CARD: SpriteData = {
   ],
 };
 
-export const INPUT_ICON: SpriteData = {
+const INPUT_ICON: SpriteData = {
   width: 16,
   height: 14,
   pixels: [
@@ -440,7 +440,7 @@ export const INPUT_ICON: SpriteData = {
   ],
 };
 
-export const OUTPUT_ICON: SpriteData = {
+const OUTPUT_ICON: SpriteData = {
   width: 16,
   height: 14,
   pixels: [
@@ -461,7 +461,7 @@ export const OUTPUT_ICON: SpriteData = {
   ],
 };
 
-export const PROC_ICON: SpriteData = {
+const PROC_ICON: SpriteData = {
   width: 20,
   height: 16,
   pixels: [
@@ -484,7 +484,7 @@ export const PROC_ICON: SpriteData = {
   ],
 };
 
-export const MEM_ICON: SpriteData = {
+const MEM_ICON: SpriteData = {
   width: 20,
   height: 16,
   pixels: [
@@ -507,7 +507,7 @@ export const MEM_ICON: SpriteData = {
   ],
 };
 
-export const CLIPBOARD: SpriteData = {
+const CLIPBOARD: SpriteData = {
   width: 16,
   height: 16,
   pixels: [
@@ -530,7 +530,7 @@ export const CLIPBOARD: SpriteData = {
   ],
 };
 
-export const PCCASE: SpriteData = {
+const PCCASE: SpriteData = {
   width: 20,
   height: 24,
   pixels: [
@@ -563,7 +563,7 @@ export const PCCASE: SpriteData = {
 
 // ─── Hardware Component Sprites ───
 
-export const MICROPHONE: SpriteData = {
+const MICROPHONE: SpriteData = {
   width: 12, height: 18,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0],
@@ -587,7 +587,7 @@ export const MICROPHONE: SpriteData = {
   ],
 };
 
-export const SCANNER: SpriteData = {
+const SCANNER: SpriteData = {
   width: 20, height: 14,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -607,7 +607,7 @@ export const SCANNER: SpriteData = {
   ],
 };
 
-export const WEBCAM: SpriteData = {
+const WEBCAM: SpriteData = {
   width: 16, height: 14,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -627,7 +627,7 @@ export const WEBCAM: SpriteData = {
   ],
 };
 
-export const JOYSTICK: SpriteData = {
+const JOYSTICK: SpriteData = {
   width: 14, height: 18,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -651,7 +651,7 @@ export const JOYSTICK: SpriteData = {
   ],
 };
 
-export const PRINTER: SpriteData = {
+const PRINTER: SpriteData = {
   width: 22, height: 16,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -673,7 +673,7 @@ export const PRINTER: SpriteData = {
   ],
 };
 
-export const SPEAKER: SpriteData = {
+const SPEAKER: SpriteData = {
   width: 14, height: 18,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -697,7 +697,7 @@ export const SPEAKER: SpriteData = {
   ],
 };
 
-export const PROJECTOR: SpriteData = {
+const PROJECTOR: SpriteData = {
   width: 18, height: 12,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -715,7 +715,7 @@ export const PROJECTOR: SpriteData = {
   ],
 };
 
-export const HEADPHONES: SpriteData = {
+const HEADPHONES: SpriteData = {
   width: 18, height: 14,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -735,7 +735,7 @@ export const HEADPHONES: SpriteData = {
   ],
 };
 
-export const ROBOT_ARM: SpriteData = {
+const ROBOT_ARM: SpriteData = {
   width: 18, height: 22,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -763,7 +763,7 @@ export const ROBOT_ARM: SpriteData = {
   ],
 };
 
-export const GPU: SpriteData = {
+const GPU: SpriteData = {
   width: 22, height: 14,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -783,7 +783,7 @@ export const GPU: SpriteData = {
   ],
 };
 
-export const MOTHERBOARD: SpriteData = {
+const MOTHERBOARD: SpriteData = {
   width: 22, height: 20,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -809,7 +809,7 @@ export const MOTHERBOARD: SpriteData = {
   ],
 };
 
-export const SSD: SpriteData = {
+const SSD: SpriteData = {
   width: 18, height: 10,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -825,7 +825,7 @@ export const SSD: SpriteData = {
   ],
 };
 
-export const USB_DRIVE: SpriteData = {
+const USB_DRIVE: SpriteData = {
   width: 14, height: 7,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -838,7 +838,7 @@ export const USB_DRIVE: SpriteData = {
   ],
 };
 
-export const SD_CARD: SpriteData = {
+const SD_CARD: SpriteData = {
   width: 14, height: 10,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -856,7 +856,7 @@ export const SD_CARD: SpriteData = {
 
 // ─── Build Stage Sprites ───
 
-export const PSU: SpriteData = {
+const PSU: SpriteData = {
   width: 18, height: 14,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -876,7 +876,7 @@ export const PSU: SpriteData = {
   ],
 };
 
-export const FAN: SpriteData = {
+const FAN: SpriteData = {
   width: 14, height: 14,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -896,7 +896,7 @@ export const FAN: SpriteData = {
   ],
 };
 
-export const CABLES: SpriteData = {
+const CABLES: SpriteData = {
   width: 18, height: 10,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -912,7 +912,7 @@ export const CABLES: SpriteData = {
   ],
 };
 
-export const CPU_COOLER: SpriteData = {
+const CPU_COOLER: SpriteData = {
   width: 18, height: 16,
   pixels: [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -1124,7 +1124,7 @@ export const PONG_BALL: SpriteData = {
   ],
 };
 
-export const CAT: SpriteData = {
+const CAT: SpriteData = {
   width: 16,
   height: 16,
   pixels: [
@@ -1147,7 +1147,7 @@ export const CAT: SpriteData = {
   ],
 };
 
-export const MAGNIFIER_ICON: SpriteData = {
+const MAGNIFIER_ICON: SpriteData = {
   width: 16,
   height: 16,
   pixels: [
@@ -1170,7 +1170,7 @@ export const MAGNIFIER_ICON: SpriteData = {
   ],
 };
 
-export const CHECKLIST_ICON: SpriteData = {
+const CHECKLIST_ICON: SpriteData = {
   width: 16,
   height: 16,
   pixels: [
@@ -1193,7 +1193,7 @@ export const CHECKLIST_ICON: SpriteData = {
   ],
 };
 
-export const GUIDE_ARROW_ICON: SpriteData = {
+const GUIDE_ARROW_ICON: SpriteData = {
   width: 16,
   height: 16,
   pixels: [
@@ -1216,7 +1216,7 @@ export const GUIDE_ARROW_ICON: SpriteData = {
   ],
 };
 
-export const CERTIFICATE_BG: SpriteData = {
+const CERTIFICATE_BG: SpriteData = {
   width: 64,
   height: 48,
   pixels: (() => {
@@ -1236,7 +1236,7 @@ export const CERTIFICATE_BG: SpriteData = {
   })(),
 };
 
-export const OS_ICON: SpriteData = {
+const OS_ICON: SpriteData = {
   width: 32,
   height: 32,
   pixels: [
@@ -1275,7 +1275,7 @@ export const OS_ICON: SpriteData = {
   ],
 };
 
-export const APP_ICON: SpriteData = {
+const APP_ICON: SpriteData = {
   width: 32,
   height: 32,
   pixels: [
@@ -1330,7 +1330,7 @@ function cs(w: number, h: number, data: string): SpriteData {
   };
 }
 
-export const SW_WINDOWS: SpriteData = cs(32, 32, `................................
+const SW_WINDOWS: SpriteData = cs(32, 32, `................................
 ................................
 ..4444444444444444444444444444..
 ..4..........................4..
@@ -1363,7 +1363,7 @@ export const SW_WINDOWS: SpriteData = cs(32, 32, `..............................
 ................................
 ................................`);
 
-export const SW_MACOS: SpriteData = cs(32, 32, `................................
+const SW_MACOS: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1396,7 +1396,7 @@ export const SW_MACOS: SpriteData = cs(32, 32, `................................
 ...........222222................
 ................................`);
 
-export const SW_LINUX: SpriteData = cs(32, 32, `................................
+const SW_LINUX: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1429,7 +1429,7 @@ export const SW_LINUX: SpriteData = cs(32, 32, `................................
 ................................
 ................................`);
 
-export const SW_ANDROID: SpriteData = cs(32, 32, `................................
+const SW_ANDROID: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1462,7 +1462,7 @@ export const SW_ANDROID: SpriteData = cs(32, 32, `..............................
 ................................
 ................................`);
 
-export const SW_IOS: SpriteData = cs(32, 32, `................................
+const SW_IOS: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1495,7 +1495,7 @@ export const SW_IOS: SpriteData = cs(32, 32, `................................
 ................................
 ................................`);
 
-export const SW_CHROMEOS: SpriteData = cs(32, 32, `................................
+const SW_CHROMEOS: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1529,7 +1529,7 @@ export const SW_CHROMEOS: SpriteData = cs(32, 32, `.............................
 .................5555..............
 ................................`);
 
-export const SW_WORD: SpriteData = cs(32, 32, `................................
+const SW_WORD: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1562,7 +1562,7 @@ export const SW_WORD: SpriteData = cs(32, 32, `................................
 ................................
 ................................`);
 
-export const SW_EXCEL: SpriteData = cs(32, 32, `................................
+const SW_EXCEL: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1595,7 +1595,7 @@ export const SW_EXCEL: SpriteData = cs(32, 32, `................................
 ................................
 ................................`);
 
-export const SW_PHOTOSHOP: SpriteData = cs(32, 32, `................................
+const SW_PHOTOSHOP: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1628,7 +1628,7 @@ export const SW_PHOTOSHOP: SpriteData = cs(32, 32, `............................
 ................................
 ................................`);
 
-export const SW_VSCODE: SpriteData = cs(32, 32, `................................
+const SW_VSCODE: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1661,7 +1661,7 @@ export const SW_VSCODE: SpriteData = cs(32, 32, `...............................
 ................................
 ................................`);
 
-export const SW_CHROME: SpriteData = cs(32, 32, `................................
+const SW_CHROME: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1694,7 +1694,7 @@ export const SW_CHROME: SpriteData = cs(32, 32, `...............................
 ................................
 ................................`);
 
-export const SW_SPOTIFY: SpriteData = cs(32, 32, `................................
+const SW_SPOTIFY: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1727,7 +1727,7 @@ export const SW_SPOTIFY: SpriteData = cs(32, 32, `..............................
 ................................
 ................................`);
 
-export const SW_ZOOM: SpriteData = cs(32, 32, `................................
+const SW_ZOOM: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1760,7 +1760,7 @@ export const SW_ZOOM: SpriteData = cs(32, 32, `................................
 ................................
 ................................`);
 
-export const SW_CALCULATOR: SpriteData = cs(32, 32, `................................
+const SW_CALCULATOR: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1793,7 +1793,7 @@ export const SW_CALCULATOR: SpriteData = cs(32, 32, `...........................
 ................................
 ................................`);
 
-export const SW_CALENDAR: SpriteData = cs(32, 32, `................................
+const SW_CALENDAR: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1826,7 +1826,7 @@ export const SW_CALENDAR: SpriteData = cs(32, 32, `.............................
 ................................
 ................................`);
 
-export const SW_CLOCK: SpriteData = cs(32, 32, `................................
+const SW_CLOCK: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1859,7 +1859,7 @@ export const SW_CLOCK: SpriteData = cs(32, 32, `................................
 ................................
 ................................`);
 
-export const SW_MINECRAFT: SpriteData = cs(32, 32, `................................
+const SW_MINECRAFT: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1892,7 +1892,7 @@ export const SW_MINECRAFT: SpriteData = cs(32, 32, `............................
 ................................
 ................................`);
 
-export const SW_ROBLOX: SpriteData = cs(32, 32, `................................
+const SW_ROBLOX: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1925,7 +1925,7 @@ export const SW_ROBLOX: SpriteData = cs(32, 32, `...............................
 ................................
 ................................`);
 
-export const SW_YOUTUBE: SpriteData = cs(32, 32, `................................
+const SW_YOUTUBE: SpriteData = cs(32, 32, `................................
 ................................
 ................................
 ................................
@@ -1958,7 +1958,7 @@ export const SW_YOUTUBE: SpriteData = cs(32, 32, `..............................
 ................................
 ................................`);
 
-export const SW_DISCORD: SpriteData = cs(32, 32, `................................
+const SW_DISCORD: SpriteData = cs(32, 32, `................................
 ................................
 ........1111111111111111........
 .......111111111111111111.......
@@ -1991,7 +1991,7 @@ export const SW_DISCORD: SpriteData = cs(32, 32, `..............................
 ................................
 ................................`);
 
-export const SW_POWERPOINT: SpriteData = cs(32, 32, `................................
+const SW_POWERPOINT: SpriteData = cs(32, 32, `................................
 ................................
 ........8888888888888888........
 .......888888888888888888.......
@@ -2024,7 +2024,7 @@ export const SW_POWERPOINT: SpriteData = cs(32, 32, `...........................
 ................................
 ................................`);
 
-export const SW_INSTAGRAM: SpriteData = cs(32, 32, `................................
+const SW_INSTAGRAM: SpriteData = cs(32, 32, `................................
 ................................
 ........AAAAAAAAAAAAAAAA........
 .......AAAAAAAAAAAAAAAAAA.......
@@ -2057,7 +2057,7 @@ export const SW_INSTAGRAM: SpriteData = cs(32, 32, `............................
 ................................
 ................................`);
 
-export const SW_TIKTOK: SpriteData = cs(32, 32, `................................
+const SW_TIKTOK: SpriteData = cs(32, 32, `................................
 ................................
 ........4444444444444444........
 .......444444444444444444.......
@@ -2090,7 +2090,7 @@ export const SW_TIKTOK: SpriteData = cs(32, 32, `...............................
 ................................
 ................................`);
 
-export const SW_WHATSAPP: SpriteData = cs(32, 32, `................................
+const SW_WHATSAPP: SpriteData = cs(32, 32, `................................
 ................................
 ........7777777777777777........
 .......777777777777777777.......
@@ -2123,7 +2123,7 @@ export const SW_WHATSAPP: SpriteData = cs(32, 32, `.............................
 ................................
 ................................`);
 
-export const SW_FORTNITE: SpriteData = cs(32, 32, `................................
+const SW_FORTNITE: SpriteData = cs(32, 32, `................................
 ................................
 ........AAAAAAAAAAAAAAAA........
 .......AAAAAAAAAAAAAAAAAA.......

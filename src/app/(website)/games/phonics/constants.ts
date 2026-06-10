@@ -22,14 +22,9 @@ export const GAME_CONFIG = {
   SAVE_INDICATOR_MS: 3000,    // how long to show the save indicator
 } as const;
 
-// ─── CEFR Levels ─────────────────────────────────────────────────────────────
-export const CEFR_LEVELS: CefrLevel[] = ["a1", "a2", "b1", "b2", "c1", "all"];
-export const CEFR_LABELS: Record<CefrLevel, string> = {
   a1: "A1", a2: "A2", b1: "B1", b2: "B2", c1: "C1", all: "ALL",
 };
 
-// ─── Round Lengths ────────────────────────────────────────────────────────────
-export const ROUND_LENGTHS: RoundLength[] = [5, 10, 15];
 
 // ─── Phoneme Inventory (44 phonemes, 4 tiers) ────────────────────────────────
 // ttsText is the string passed to speechSynthesis — avoids IPA rendering issues
@@ -84,8 +79,6 @@ export const PHONEMES: PhonemeData[] = [
   { id: "uh2",ipa: "/ʊ/",  ttsText: "u as in book",   name: "short oo",     example: "book",  tier: "blends" },
 ];
 
-export const PHONEME_MAP: Record<string, PhonemeData> = Object.fromEntries(
-  PHONEMES.map((p) => [p.id, p])
 );
 
 // ─── Companions ───────────────────────────────────────────────────────────────

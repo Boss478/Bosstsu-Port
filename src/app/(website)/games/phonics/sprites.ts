@@ -35,7 +35,7 @@ export const PALETTE: string[] = [
 ];
 
 // ─── Night-shifted palette (swaps day colours to night counterparts) ──────────
-export const PALETTE_NIGHT: string[] = PALETTE.map((c, i) => {
+const PALETTE_NIGHT: string[] = PALETTE.map((c, i) => {
   if (i === 5) return PALETTE[9];   // sky blue → night navy
   if (i === 6) return PALETTE[10];  // water → night water
   if (i === 7) return PALETTE[11];  // grass → night grass
@@ -309,7 +309,7 @@ export const MASCOT_WALK: SpriteData[] = [
 ];
 
 // ─── Floppy Disk Save Icon (16×16) ────────────────────────────────────────────
-export const ICON_SAVE: SpriteData = {
+const ICON_SAVE: SpriteData = {
   width: 16, height: 16,
   pixels: [
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -332,7 +332,7 @@ export const ICON_SAVE: SpriteData = {
 };
 
 // ─── Star Icon (16×16) ────────────────────────────────────────────────────────
-export const ICON_STAR_FILLED: SpriteData = {
+const ICON_STAR_FILLED: SpriteData = {
   width: 16, height: 16,
   pixels: [
     [0,0,0,0,0,0,0,16,0,0,0,0,0,0,0,0],
@@ -354,7 +354,7 @@ export const ICON_STAR_FILLED: SpriteData = {
   ],
 };
 
-export const ICON_STAR_EMPTY: SpriteData = {
+const ICON_STAR_EMPTY: SpriteData = {
   width: 16, height: 16,
   pixels: [
     [0,0,0,0,0,0,0,19,0,0,0,0,0,0,0,0],
@@ -377,7 +377,7 @@ export const ICON_STAR_EMPTY: SpriteData = {
 };
 
 // ─── Sprite Map ───────────────────────────────────────────────────────────────
-export const SPRITE_MAP = {
+const SPRITE_MAP = {
   water: TILE_WATER,
   grass: TILE_GRASS,
   sand: TILE_SAND,
@@ -394,4 +394,4 @@ export const SPRITE_MAP = {
   star_empty: ICON_STAR_EMPTY,
 } as const;
 
-export type SpriteKey = keyof typeof SPRITE_MAP;
+type SpriteKey = keyof typeof SPRITE_MAP;

@@ -49,7 +49,7 @@ export const uploadFileWithProgress = (
   });
 };
 
-export const uploadFileWithRetry = async (
+const uploadFileWithRetry = async (
   file: File,
   folder: string,
   onProgress: (loaded: number) => void,
