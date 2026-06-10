@@ -11,33 +11,41 @@ import { formatError } from '@/lib/error-code';
 import { generateUniqueSessionCode } from '@/lib/session-code';
 import type { ToolType } from '@/models/ToolSession';
 
-const TOOL_TYPES: ToolType[] = [
-  'padlet', 'poll', 'assignment', 'qa_board', 'quiz', 'exit_ticket'
-];
+const TOOL_TYPES: ToolType[] = ['padlet', 'poll', 'assignment', 'qa_board', 'quiz', 'exit_ticket'];
 
-const quickStartSchema = z.object({
-  type: z.string().min(1),
-  title: z.string().trim().min(1, 'กรุณาระบุชื่อ').max(100),
-  description: z.string().optional(),
-  prompt: z.string().optional(),
-  allowAnonymous: z.boolean().optional(),
-  maxSubmissions: z.number().optional(),
-  allowFileUpload: z.boolean().optional(),
-  pollMode: z.enum(['mcq', 'wordcloud']).optional(),
-  allowCustomChoices: z.boolean().optional(),
-  questions: z.array(z.object({
-    question: z.string().optional(),
-    options: z.array(z.string()).optional(),
-    correctAnswer: z.number().optional(),
-  })).optional(),
-  steps: z.array(z.object({
+const quickStartSchema = z
+  .object({
     type: z.string().min(1),
-    title: z.string().min(1),
-    config: z.unknown().optional(),
-  })).optional(),
-  allowStudentNavigation: z.boolean().optional(),
-  requireStudentName: z.boolean().optional(),
-}).strict();
+    title: z.string().trim().min(1, 'กรุณาระบุชื่อ').max(100),
+    description: z.string().optional(),
+    prompt: z.string().optional(),
+    allowAnonymous: z.boolean().optional(),
+    maxSubmissions: z.number().optional(),
+    allowFileUpload: z.boolean().optional(),
+    pollMode: z.enum(['mcq', 'wordcloud']).optional(),
+    allowCustomChoices: z.boolean().optional(),
+    questions: z
+      .array(
+        z.object({
+          question: z.string().optional(),
+          options: z.array(z.string()).optional(),
+          correctAnswer: z.number().optional(),
+        }),
+      )
+      .optional(),
+    steps: z
+      .array(
+        z.object({
+          type: z.string().min(1),
+          title: z.string().min(1),
+          config: z.unknown().optional(),
+        }),
+      )
+      .optional(),
+    allowStudentNavigation: z.boolean().optional(),
+    requireStudentName: z.boolean().optional(),
+  })
+  .strict();
 
 export async function quickStartSession(formData: FormData) {
   const isAuth = await verifyAuth();
@@ -46,24 +54,30 @@ export async function quickStartSession(formData: FormData) {
   const raw = {
     type: formData.get('type') as string,
     title: formData.get('title') as string,
-    description: formData.get('description') as string || undefined,
-    prompt: formData.get('prompt') as string || undefined,
+    description: (formData.get('description') as string) || undefined,
+    prompt: (formData.get('prompt') as string) || undefined,
     allowAnonymous: formData.get('allowAnonymous') === 'on',
-    maxSubmissions: formData.get('maxSubmissions') ? parseInt(formData.get('maxSubmissions') as string) : undefined,
+    maxSubmissions: formData.get('maxSubmissions')
+      ? parseInt(formData.get('maxSubmissions') as string)
+      : undefined,
     allowFileUpload: formData.get('allowFileUpload') === 'on',
-    pollMode: formData.get('pollMode') as 'mcq' | 'wordcloud' || undefined,
+    pollMode: (formData.get('pollMode') as 'mcq' | 'wordcloud') || undefined,
     allowCustomChoices: formData.get('allowCustomChoices') === 'on',
-    questions: formData.get('questions') ? JSON.parse(formData.get('questions') as string) : undefined,
+    questions: formData.get('questions')
+      ? JSON.parse(formData.get('questions') as string)
+      : undefined,
     steps: formData.get('steps') ? JSON.parse(formData.get('steps') as string) : undefined,
     allowStudentNavigation: formData.get('allowStudentNavigation') === 'on',
     requireStudentName: formData.get('requireStudentName') === 'on',
   };
 
   const parsed = quickStartSchema.safeParse(raw);
-  if (!parsed.success) return { error: parsed.error.issues[0].message, sessionCode: undefined, sessionId: undefined };
+  if (!parsed.success)
+    return { error: parsed.error.issues[0].message, sessionCode: undefined, sessionId: undefined };
 
   const toolType = parsed.data.type as ToolType;
-  if (!TOOL_TYPES.includes(toolType)) return { error: 'Invalid tool type', sessionCode: undefined, sessionId: undefined };
+  if (!TOOL_TYPES.includes(toolType))
+    return { error: 'Invalid tool type', sessionCode: undefined, sessionId: undefined };
 
   try {
     await dbConnect();
@@ -72,9 +86,11 @@ export async function quickStartSession(formData: FormData) {
     const config: Record<string, unknown> = {};
     if (parsed.data.description) config.description = parsed.data.description;
     if (parsed.data.prompt) config.prompt = parsed.data.prompt;
-    if (parsed.data.allowAnonymous !== undefined) config.allowAnonymous = parsed.data.allowAnonymous;
+    if (parsed.data.allowAnonymous !== undefined)
+      config.allowAnonymous = parsed.data.allowAnonymous;
     if (parsed.data.maxSubmissions) config.maxSubmissions = parsed.data.maxSubmissions;
-    if (parsed.data.allowFileUpload !== undefined) config.allowFileUpload = parsed.data.allowFileUpload;
+    if (parsed.data.allowFileUpload !== undefined)
+      config.allowFileUpload = parsed.data.allowFileUpload;
     if (parsed.data.pollMode) config.pollMode = parsed.data.pollMode;
     if (parsed.data.allowCustomChoices) config.allowCustomChoices = parsed.data.allowCustomChoices;
     if (parsed.data.questions) config.questions = parsed.data.questions;
@@ -118,29 +134,35 @@ export async function updateSession(sessionId: string, formData: FormData) {
   raw.requireStudentName = formData.has('requireStudentName');
   const maxSub = formData.get('maxSubmissions');
 
-  const updateSessionSchema = z.object({
-    title: z.string().trim().min(1).max(100).optional(),
-    description: z.string().optional(),
-    requireStudentName: z.boolean().optional(),
-    // maxSubmissions is handled manually below
-  }).strict();
+  const updateSessionSchema = z
+    .object({
+      title: z.string().trim().min(1).max(100).optional(),
+      description: z.string().optional(),
+      requireStudentName: z.boolean().optional(),
+      // maxSubmissions is handled manually below
+    })
+    .strict();
 
   const parsed = updateSessionSchema.safeParse(raw);
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
   try {
     await dbConnect();
-    
+
     // Build update object with nested config.maxSubmissions
     const setData: Record<string, unknown> = { ...parsed.data };
     // Remove any root-level maxSubmissions from parsed.data if present
     delete setData.maxSubmissions;
-    
+    if (setData.description !== undefined) {
+      setData['config.description'] = setData.description;
+      delete setData.description;
+    }
+
     // Set maxSubmissions in config if provided
     if (maxSub !== null) {
       setData['config.maxSubmissions'] = parseInt(maxSub as string);
     }
-    
+
     await ToolSession.findByIdAndUpdate(sessionId, { $set: setData });
     revalidatePath('/admin/tools');
     revalidatePath(`/admin/tools/sessions/${sessionId}`);
@@ -159,24 +181,32 @@ export async function updateSessionSteps(sessionId: string, formData: FormData) 
   const requireStudentName = formData.has('requireStudentName');
   if (!stepsRaw) return { error: 'Steps required' };
 
+  const title = formData.get('title') as string;
+  const description = formData.get('description') as string;
+
   try {
     const steps = JSON.parse(stepsRaw);
-    const stepsSchema = z.array(z.object({
-      type: z.string().min(1),
-      title: z.string().min(1),
-      config: z.unknown().optional(),
-    }));
+    const stepsSchema = z.array(
+      z.object({
+        type: z.string().min(1),
+        title: z.string().min(1),
+        config: z.unknown().optional(),
+      }),
+    );
     const parsed = stepsSchema.safeParse(steps);
     if (!parsed.success) return { error: 'Invalid step data' };
 
     await dbConnect();
-    await ToolSession.findByIdAndUpdate(sessionId, {
-      $set: {
-        steps: parsed.data,
-        currentStep: -1,
-        requireStudentName,
-      },
-    });
+
+    const updateData: Record<string, unknown> = {
+      steps: parsed.data,
+      currentStep: -1,
+      requireStudentName,
+    };
+    if (title) updateData.title = title.trim();
+    if (description) updateData['config.description'] = description.trim();
+
+    await ToolSession.findByIdAndUpdate(sessionId, { $set: updateData });
     revalidatePath('/admin/tools');
     revalidatePath(`/admin/tools/sessions/${sessionId}`);
     return { error: undefined };
@@ -196,12 +226,14 @@ export async function addStage(sessionId: string, formData: FormData) {
     position: formData.get('position') ? parseInt(formData.get('position') as string) : -1,
   };
 
-  const addStageSchema = z.object({
-    type: z.string().min(1),
-    title: z.string().trim().min(1, 'กรุณาระบุชื่อ'),
-    config: z.unknown().optional(),
-    position: z.number().int().min(-1),
-  }).strict();
+  const addStageSchema = z
+    .object({
+      type: z.string().min(1),
+      title: z.string().trim().min(1, 'กรุณาระบุชื่อ'),
+      config: z.unknown().optional(),
+      position: z.number().int().min(-1),
+    })
+    .strict();
 
   const parsed = addStageSchema.safeParse(raw);
   if (!parsed.success) return { error: parsed.error.issues[0].message };
@@ -216,10 +248,17 @@ export async function addStage(sessionId: string, formData: FormData) {
     if (!session) return { error: formatError('404') };
 
     const currentSteps = (session.steps as Array<unknown>) ?? [];
-    const step = { type: parsed.data.type, title: parsed.data.title, config: parsed.data.config || {} };
+    const step = {
+      type: parsed.data.type,
+      title: parsed.data.title,
+      config: parsed.data.config || {},
+    };
 
     // position: -1 means append; otherwise, clamp to valid range
-    const position = parsed.data.position === -1 ? currentSteps.length : Math.min(parsed.data.position, currentSteps.length);
+    const position =
+      parsed.data.position === -1
+        ? currentSteps.length
+        : Math.min(parsed.data.position, currentSteps.length);
 
     await ToolSession.findByIdAndUpdate(sessionId, {
       $push: { steps: { $each: [step], $position: position } },
@@ -253,12 +292,14 @@ export async function editStage(sessionId: string, formData: FormData) {
     config: formData.get('config') ? JSON.parse(formData.get('config') as string) : {},
   };
 
-  const editStageSchema = z.object({
-    index: z.number().int().min(0),
-    type: z.string().min(1),
-    title: z.string().trim().min(1, 'กรุณาระบุชื่อ'),
-    config: z.unknown().optional(),
-  }).strict();
+  const editStageSchema = z
+    .object({
+      index: z.number().int().min(0),
+      type: z.string().min(1),
+      title: z.string().trim().min(1, 'กรุณาระบุชื่อ'),
+      config: z.unknown().optional(),
+    })
+    .strict();
 
   const parsed = editStageSchema.safeParse(raw);
   if (!parsed.success) return { error: parsed.error.issues[0].message };
@@ -276,7 +317,11 @@ export async function editStage(sessionId: string, formData: FormData) {
       return { error: 'Stage index out of bounds' };
     }
 
-    const step = { type: parsed.data.type, title: parsed.data.title, config: parsed.data.config || {} };
+    const step = {
+      type: parsed.data.type,
+      title: parsed.data.title,
+      config: parsed.data.config || {},
+    };
 
     await ToolSession.findByIdAndUpdate(sessionId, {
       $set: { [`steps.${parsed.data.index}`]: step },
@@ -299,9 +344,11 @@ export async function deleteStage(sessionId: string, formData: FormData) {
     index: parseInt(formData.get('index') as string),
   };
 
-  const deleteStageSchema = z.object({
-    index: z.number().int().min(0),
-  }).strict();
+  const deleteStageSchema = z
+    .object({
+      index: z.number().int().min(0),
+    })
+    .strict();
 
   const parsed = deleteStageSchema.safeParse(raw);
   if (!parsed.success) return { error: parsed.error.issues[0].message };
@@ -309,7 +356,9 @@ export async function deleteStage(sessionId: string, formData: FormData) {
   try {
     await dbConnect();
 
-    const session = await ToolSession.findById(sessionId).select('steps currentStep lastActiveStep').lean();
+    const session = await ToolSession.findById(sessionId)
+      .select('steps currentStep lastActiveStep')
+      .lean();
     if (!session) return { error: formatError('404') };
 
     const steps = session.steps as Array<unknown> | undefined;
@@ -553,16 +602,22 @@ export async function toggleActive(id: string) {
 
 export async function advanceStep(sessionId: string, stepIndex: number) {
   const isAuth = await verifyAuth();
-  if (!isAuth) return { error: formatError('401'), currentStep: undefined, lastActiveStep: undefined };
+  if (!isAuth)
+    return { error: formatError('401'), currentStep: undefined, lastActiveStep: undefined };
 
   try {
     await dbConnect();
     const session = await ToolSession.findById(sessionId).select('steps currentStep').lean();
-    if (!session) return { error: formatError('404'), currentStep: undefined, lastActiveStep: undefined };
+    if (!session)
+      return { error: formatError('404'), currentStep: undefined, lastActiveStep: undefined };
 
     const maxStep = (session.steps?.length ?? 1) - 1;
     if (stepIndex < -1 || stepIndex > maxStep) {
-      return { error: `Step index out of bounds: ${stepIndex} (valid: -1 to ${maxStep})`, currentStep: undefined, lastActiveStep: undefined };
+      return {
+        error: `Step index out of bounds: ${stepIndex} (valid: -1 to ${maxStep})`,
+        currentStep: undefined,
+        lastActiveStep: undefined,
+      };
     }
 
     const previousStep = (session as { currentStep?: number }).currentStep ?? -1;
@@ -582,11 +637,13 @@ export async function advanceStep(sessionId: string, stepIndex: number) {
   }
 }
 
-const saveTemplateSchema = z.object({
-  type: z.string().min(1),
-  title: z.string().trim().min(1, 'กรุณาระบุชื่อแม่แบบ').max(100),
-  config: z.unknown(),
-}).strict();
+const saveTemplateSchema = z
+  .object({
+    type: z.string().min(1),
+    title: z.string().trim().min(1, 'กรุณาระบุชื่อแม่แบบ').max(100),
+    config: z.unknown(),
+  })
+  .strict();
 
 export async function saveTemplate(formData: FormData) {
   const isAuth = await verifyAuth();
@@ -606,7 +663,7 @@ export async function saveTemplate(formData: FormData) {
     const template = await ToolStepTemplate.findOneAndUpdate(
       { type: parsed.data.type, title: parsed.data.title },
       { type: parsed.data.type, title: parsed.data.title, config: parsed.data.config },
-      { upsert: true, new: true, runValidators: true }
+      { upsert: true, new: true, runValidators: true },
     ).lean();
 
     revalidatePath('/admin/tools/templates');
@@ -620,9 +677,7 @@ export async function saveTemplate(formData: FormData) {
 export async function getTemplates(type?: string) {
   await dbConnect();
   const query = type ? { type } : {};
-  const templates = await ToolStepTemplate.find(query)
-    .sort({ updatedAt: -1 })
-    .lean();
+  const templates = await ToolStepTemplate.find(query).sort({ updatedAt: -1 }).lean();
   return serializeDoc(templates);
 }
 
@@ -643,4 +698,3 @@ export async function deleteTemplate(formData: FormData) {
     return { error: formatError('DB03') };
   }
 }
-

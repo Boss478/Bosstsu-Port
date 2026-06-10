@@ -5,6 +5,11 @@
 
 
 
+## v1.9.63 (2026-06-10)
+* **Fix: multi-step session name/description not saving on edit**: `updateSessionSteps` now includes `title` and `config.description` in `$set` — the form was sending them but the server action ignored both (`actions.ts:166-187`)
+* **Fix: session description silently dropped on single-tool edit**: `updateSession` was writing `description` at root level (Mongoose strict mode silently discarded it); moved to `config.description` where the schema expects it (`actions.ts:138-141`)
+* **Fix: edit form description field always empty**: `SessionDetailShell` was reading `editSessionData.description` (always `undefined`); now reads from `config.description` (`SessionDetailShell.tsx:291`)
+
 ## v1.9.62 (2026-06-09)
 + **Alphabet Adventure Phase 4+5 (Audio, Analytics, A11y, High Contrast)**:
   + Wrong answer audio: replaced `playSound('wrong')` with low descending tone `playSequence([300,220,160])` — distinct auditory feedback for errors (`useGameActions.ts`)

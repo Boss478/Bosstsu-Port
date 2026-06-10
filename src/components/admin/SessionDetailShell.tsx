@@ -288,7 +288,9 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
             requireStudentName: editSessionData.requireStudentName as boolean | undefined,
             steps: editSessionData.steps as StepConfig[] | undefined,
             allowStudentNavigation: editSessionData.allowStudentNavigation as boolean | undefined,
-            description: String(editSessionData.description || ''),
+            description: String(
+              (editSessionData.config as Record<string, unknown> | undefined)?.description || '',
+            ),
           }}
           onSuccess={() => {
             setEditSessionData(null);
