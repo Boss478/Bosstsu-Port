@@ -6,13 +6,15 @@ import CookieConsentBanner from '@/components/CookieConsentBanner';
 
 const BackToTop = dynamic(() => import('@/components/BackToTop'));
 
+const DISABLE_ANALYTICS = !!process.env.NEXT_PUBLIC_DISABLE_ANALYTICS;
+
 export default function WebsiteLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <AnalyticsProvider>
+  const inner = (
+    <>
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-xl focus:bg-blue-500 focus:text-white focus:shadow-lg focus:outline-none"
@@ -26,6 +28,8 @@ export default function WebsiteLayout({
       <BackToTop />
       <Footer />
       <CookieConsentBanner />
-    </AnalyticsProvider>
+    </>
   );
+
+  return DISABLE_ANALYTICS ? inner : <AnalyticsProvider>{inner}</AnalyticsProvider>;
 }

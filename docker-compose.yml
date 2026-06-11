@@ -33,6 +33,7 @@ services:
       target: runner
       args:
         - MONGODB_URI=${MONGODB_URI}
+        - NEXT_PUBLIC_DISABLE_ANALYTICS=${NEXT_PUBLIC_DISABLE_ANALYTICS}
     ports:
       - "3300:3300"
     labels:
