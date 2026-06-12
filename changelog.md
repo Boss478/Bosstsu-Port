@@ -5,8 +5,11 @@
 
 
 
+## v1.10.6 (2026-06-12)
+* **React hydration error #418 fix (continued)**: Disabled `reactCompiler: true` in `next.config.ts` — per React source analysis, the remaining `args[]=HTML` error is a pre-existing structural element-type mismatch surfaced after the text mismatch fix. React Compiler transforms server/client bundles differently, causing DOM structure mismatch during hydration. Builds now use standard React without compiler optimization.
+
 ## v1.10.5 (2026-06-12)
-* **React hydration error #418 fix on admin/analytics**: `new Date()` in `useState` initializer replaced with `null` + mount `useEffect`; `typeof window`/`localStorage` in `useState` factory for `intervalSec` replaced with mount `useEffect` read. Resolves text content mismatch between server and client renders.
+* **React hydration error #418 fix on admin/analytics**: `new Date()` in `useState` initializer replaced with `null` + mount `useEffect`; `typeof window`/`localStorage` in `useState` factory for `intervalSec` replaced with mount `useEffect` read. Resolved text content mismatch.
 
 ## v1.10.4 (2026-06-12)
 + **Analytics Dashboard enhancement**: vertical 30-bar traffic chart (Y-axis ticks, label every 5th day), SVG donut for device/OS breakdown (hover tooltips), Y-axis labels on HourlyChart, last-updated timestamp, Export dropdown (CSV+JPG+PNG via html-to-image)

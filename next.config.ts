@@ -1,24 +1,24 @@
-import type { NextConfig } from "next";
-import { CONFIG } from "./src/lib/config";
+import type { NextConfig } from 'next';
+import { CONFIG } from './src/lib/config';
 import withBundleAnalyzer from '@next/bundle-analyzer';
 
 const nextConfig: NextConfig = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 })({
-  output: "standalone",
+  output: 'standalone',
   compress: true,
-  reactCompiler: true,
+  // reactCompiler: true, // Disabled — causes hydration error #418 (args[]=HTML) on admin/analytics
   poweredByHeader: false,
-  allowedDevOrigins: ["localhost", "100.97.15.5", "0.0.0.0"],
+  allowedDevOrigins: ['localhost', '100.97.15.5', '0.0.0.0'],
   experimental: {
     serverActions: {
       bodySizeLimit: CONFIG.UPLOAD.MAX_SIZE_MB,
     },
     proxyClientMaxBodySize: CONFIG.UPLOAD.MAX_SIZE_MB,
   },
-  serverExternalPackages: ["sharp", "html-to-image", "yahoo-finance2"],
+  serverExternalPackages: ['sharp', 'html-to-image', 'yahoo-finance2'],
   images: {
-    formats: ["image/avif", "image/webp"],
+    formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 31536000,
     deviceSizes: [480, 768, 1024, 1280, 1920],
     imageSizes: [32, 64, 128, 256],
@@ -40,17 +40,20 @@ const nextConfig: NextConfig = withBundleAnalyzer({
   async headers() {
     return [
       {
-        source: "/(.*)",
+        source: '/(.*)',
         headers: [
-          { key: "X-DNS-Prefetch-Control", value: "on" },
-          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
-          { key: "X-Frame-Options", value: "SAMEORIGIN" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: 'X-DNS-Prefetch-Control', value: 'on' },
           {
-            key: "Content-Security-Policy",
-            // unsafe-inline/unsafe-eval required for React Compiler (babel-plugin-react-compiler) dev mode
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          {
+            key: 'Content-Security-Policy',
+            // unsafe-inline/unsafe-eval: kept for dev mode compatibility
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
@@ -60,23 +63,21 @@ const nextConfig: NextConfig = withBundleAnalyzer({
               "connect-src 'self' https://cdn.jsdelivr.net",
               "worker-src 'self' blob:",
               "frame-ancestors 'self'",
-            ].join("; "),
+            ].join('; '),
           },
         ],
       },
       {
-        source: "/uploads/(.*)",
-        headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
-        ],
+        source: '/uploads/(.*)',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
-      ];
+    ];
   },
   async redirects() {
     return [
       {
-        source: "/games/is-it-spelled-correctly",
-        destination: "/games/spellchecker",
+        source: '/games/is-it-spelled-correctly',
+        destination: '/games/spellchecker',
         permanent: true,
       },
     ];
