@@ -40,71 +40,30 @@ function TrendBadge({ value }: { value: number }) {
 function TrafficVerticalChart({ data: rawData }: { data: { date: string; views: number }[] }) {
   const data = rawData.slice(-30);
   const maxViews = Math.max(...data.map((d) => d.views), 1);
-  const yTicks = [
-    0,
-    Math.round(maxViews * 0.25),
-    Math.round(maxViews * 0.5),
-    Math.round(maxViews * 0.75),
-    maxViews,
-  ];
 
   return (
-    <div className="relative" style={{ paddingLeft: '40px' }}>
-      <svg
-        className="absolute left-0 top-0 w-10 h-64"
-        viewBox="0 0 40 256"
-        preserveAspectRatio="none"
-      >
-        {yTicks.map((v) => {
-          const y = 256 - (v / maxViews) * 256;
-          return (
-            <g key={v}>
-              <line
-                x1="0"
-                y1={y}
-                x2="40"
-                y2={y}
-                stroke="currentColor"
-                className="text-zinc-200 dark:text-slate-700"
-                strokeWidth="1"
-              />
-              <text
-                x="38"
-                y={y + 3}
-                textAnchor="end"
-                fontSize="10"
-                className="fill-zinc-400"
-                dominantBaseline="middle"
-              >
-                {v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-      <div className="flex items-end gap-[3px] h-64">
-        {data.map((d, i) => {
-          const h = (d.views / maxViews) * 100;
-          const showLabel = i === 0 || i === data.length - 1 || i % 5 === 0;
-          return (
+    <div className="flex items-end gap-[3px] h-64">
+      {data.map((d, i) => {
+        const h = (d.views / maxViews) * 100;
+        const showLabel = i === 0 || i === data.length - 1 || i % 5 === 0;
+        return (
+          <div
+            key={d.date}
+            className="flex-1 flex flex-col items-center justify-end h-full group relative"
+          >
             <div
-              key={d.date}
-              className="flex-1 flex flex-col items-center justify-end h-full group relative"
-            >
-              <div
-                className="w-full bg-blue-500 dark:bg-blue-400 rounded-t transition-all hover:opacity-80 cursor-pointer min-h-[2px]"
-                style={{ height: `${h}%` }}
-                title={`${d.date} — ${formatNumber(d.views)} views`}
-              />
-              {showLabel && (
-                <span className="text-[9px] text-zinc-400 mt-0.5 truncate w-full text-center leading-tight">
-                  {d.date.slice(5)}
-                </span>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              className="w-full bg-blue-500 dark:bg-blue-400 rounded-t transition-all hover:opacity-80 cursor-pointer min-h-[2px]"
+              style={{ height: `${h}%` }}
+              title={`${d.date} — ${formatNumber(d.views)} views`}
+            />
+            {showLabel && (
+              <span className="text-[9px] text-zinc-400 mt-0.5 truncate w-full text-center leading-tight">
+                {d.date.slice(5)}
+              </span>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -245,56 +204,21 @@ function HourlyChart({ data }: { data: { hour: number; views: number }[] }) {
     return found ? found.views : 0;
   });
   const maxViews = Math.max(...byHour, 1);
-  const yTicks = [0, Math.round(maxViews * 0.5), maxViews];
 
   return (
-    <div className="relative" style={{ paddingLeft: '36px' }}>
-      <svg
-        className="absolute left-0 top-0 w-9 h-24"
-        viewBox="0 0 36 96"
-        preserveAspectRatio="none"
-      >
-        {yTicks.map((v) => {
-          const y = 96 - (v / maxViews) * 96;
-          return (
-            <g key={v}>
-              <line
-                x1="0"
-                y1={y}
-                x2="36"
-                y2={y}
-                stroke="currentColor"
-                className="text-zinc-200 dark:text-slate-700"
-                strokeWidth="1"
-              />
-              <text
-                x="34"
-                y={y + 2}
-                textAnchor="end"
-                fontSize="8"
-                className="fill-zinc-400"
-                dominantBaseline="middle"
-              >
-                {v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-      <div className="flex items-end gap-[2px] h-24">
-        {byHour.map((v, i) => (
+    <div className="flex items-end gap-[2px] h-24">
+      {byHour.map((v, i) => (
+        <div
+          key={i}
+          className="flex-1 flex flex-col items-center justify-end h-full relative group"
+        >
           <div
-            key={i}
-            className="flex-1 flex flex-col items-center justify-end h-full relative group"
-          >
-            <div
-              className="w-full bg-cyan-400 dark:bg-cyan-500 rounded-t transition-all"
-              style={{ height: `${(v / maxViews) * 100}%`, minHeight: v > 0 ? 2 : 0 }}
-              title={`${i}:00 — ${formatNumber(v)} views`}
-            />
-          </div>
-        ))}
-      </div>
+            className="w-full bg-cyan-400 dark:bg-cyan-500 rounded-t transition-all"
+            style={{ height: `${(v / maxViews) * 100}%`, minHeight: v > 0 ? 2 : 0 }}
+            title={`${i}:00 — ${formatNumber(v)} views`}
+          />
+        </div>
+      ))}
     </div>
   );
 }
