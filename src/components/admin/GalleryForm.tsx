@@ -25,7 +25,15 @@ interface GalleryFormProps {
   availableTags?: string[];
 }
 
-export default function GalleryForm({ initialData, portfolios, action, mediaAction, isEdit, incompleteUpload, availableTags = [] }: GalleryFormProps) {
+export default function GalleryForm({
+  initialData,
+  portfolios,
+  action,
+  mediaAction,
+  isEdit,
+  incompleteUpload,
+  availableTags = [],
+}: GalleryFormProps) {
   const router = useRouter();
   const { setIsUploading, onAuthError } = useAdminSession();
   const { showToast } = useToast();
@@ -82,7 +90,7 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
         const result = await action(textFormData);
         if (result?.error) throw new Error(result.error);
       } else {
-        const result = await action(textFormData) as { error?: string; id?: string };
+        const result = (await action(textFormData)) as { error?: string; id?: string };
         if (result?.error) throw new Error(result.error);
         itemId = result?.id;
       }
@@ -92,17 +100,21 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
       setProgress(25);
 
       // Phase 2: Upload files (only if new files exist)
-      const coverFile = croppedCoverBlob ? new File([croppedCoverBlob], 'cover.jpg', { type: 'image/jpeg' }) : null;
+      const coverFile = croppedCoverBlob
+        ? new File([croppedCoverBlob], 'cover.jpg', { type: 'image/jpeg' })
+        : null;
       const totalBytes =
-        (coverFile ? coverFile.size : 0) +
-        newPhotoFiles.reduce((acc, f) => acc + f.size, 0);
+        (coverFile ? coverFile.size : 0) + newPhotoFiles.reduce((acc, f) => acc + f.size, 0);
 
       // Size warning
       const totalMB = totalBytes / (1024 * 1024);
-      if (totalMB > 500 && !window.confirm(
-        `⚠️ ขนาดไฟล์รวม ${totalMB.toFixed(0)} MB (${newPhotoFiles.length} รูป)\n\n` +
-        `การอัปโหลดไฟล์ที่มีขนาดใหญ่อาจใช้เวลานาน\nต้องการดำเนินการต่อหรือไม่?`
-      )) {
+      if (
+        totalMB > 500 &&
+        !window.confirm(
+          `⚠️ ขนาดไฟล์รวม ${totalMB.toFixed(0)} MB (${newPhotoFiles.length} รูป)\n\n` +
+            `การอัปโหลดไฟล์ที่มีขนาดใหญ่อาจใช้เวลานาน\nต้องการดำเนินการต่อหรือไม่?`,
+        )
+      ) {
         setIsSubmitting(false);
         setIsUploading(false);
         return;
@@ -117,20 +129,33 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
         if (coverFile) {
           setStatusText('กำลังอัปโหลดหน้าปก...');
           setProgress(30);
-          finalCoverUrl = await uploadFileWithProgress(coverFile, 'gallery', () => {}, signal, batchId);
+          finalCoverUrl = await uploadFileWithProgress(
+            coverFile,
+            'gallery',
+            () => {},
+            signal,
+            batchId,
+            setStatusText,
+          );
         }
 
         // Upload New Photos (Parallel batches of 3)
         if (newPhotoFiles.length > 0) {
           setStatusText(`กำลังอัปโหลดรูปภาพ (0/${newPhotoFiles.length})...`);
           const urls = await uploadFilesInBatches(
-            newPhotoFiles, 'gallery',
+            newPhotoFiles,
+            'gallery',
             (completed, total) => {
               setStatusText(`กำลังอัปโหลดรูปภาพ (${completed}/${total})...`);
-              const uploadedBytes = newPhotoFiles.slice(0, completed).reduce((a, f) => a + f.size, 0);
+              const uploadedBytes = newPhotoFiles
+                .slice(0, completed)
+                .reduce((a, f) => a + f.size, 0);
               setProgress(25 + (uploadedBytes / totalBytes) * 65);
             },
-            3, signal, batchId
+            3,
+            signal,
+            batchId,
+            setStatusText,
           );
           finalPhotoUrls.push(...urls);
         }
@@ -161,7 +186,6 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
       setTimeout(() => {
         router.push('/admin/gallery');
       }, 500);
-
     } catch (err: unknown) {
       if (err instanceof Error) {
         if (err.message.includes('[401]')) {
@@ -205,7 +229,7 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
     setCoverPreview(url);
     setCropImageSrc(null);
   };
-  
+
   const handleCropCancel = () => {
     if (cropImageSrc?.startsWith('blob:')) URL.revokeObjectURL(cropImageSrc);
     setCropImageSrc(null);
@@ -215,33 +239,33 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
     const files = e.target.files;
     if (files) {
       const fileArray = Array.from(files);
-      setNewPhotoFiles(prev => [...prev, ...fileArray]);
+      setNewPhotoFiles((prev) => [...prev, ...fileArray]);
       const excessCount = Math.max(0, fileArray.length - PREVIEW_CAP);
       if (excessCount > 0) {
-        setExcessFiles(prev => prev + excessCount);
+        setExcessFiles((prev) => prev + excessCount);
       }
       const previewFiles = excessCount > 0 ? fileArray.slice(0, PREVIEW_CAP) : fileArray;
-      const newPreviews = previewFiles.map(file => {
+      const newPreviews = previewFiles.map((file) => {
         const url = URL.createObjectURL(file);
         blobUrlsRef.current.push(url);
         return url;
       });
-      setNewPhotoPreviews(prev => [...prev, ...newPreviews]);
+      setNewPhotoPreviews((prev) => [...prev, ...newPreviews]);
     }
   };
 
   const removeExistingPhoto = (index: number) => {
-    setPhotos(prev => prev.filter((_, i) => i !== index));
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
   const removeNewPhoto = (index: number) => {
-    setNewPhotoFiles(prev => prev.filter((_, i) => i !== index));
-    setNewPhotoPreviews(prev => {
+    setNewPhotoFiles((prev) => prev.filter((_, i) => i !== index));
+    setNewPhotoPreviews((prev) => {
       const url = prev[index];
       if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
       const filtered = prev.filter((_, i) => i !== index);
       if (excessFiles > 0 && filtered.length < PREVIEW_CAP) {
-        setExcessFiles(prev => prev - 1);
+        setExcessFiles((prev) => prev - 1);
       }
       return filtered;
     });
@@ -264,23 +288,26 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
         {incompleteUpload && (
           <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50 text-sm flex items-start gap-3">
             <i aria-hidden="true" className="fi fi-sr-exclamation mt-0.5 flex shrink-0" />
-            <span>บันทึกข้อมูลสำเร็จ แต่รูปภาพยังไม่ได้อัปโหลด กรุณาเพิ่มรูปภาพและบันทึกอีกครั้ง</span>
+            <span>
+              บันทึกข้อมูลสำเร็จ แต่รูปภาพยังไม่ได้อัปโหลด กรุณาเพิ่มรูปภาพและบันทึกอีกครั้ง
+            </span>
           </div>
         )}
         {error && (
-          <div className="p-4 rounded-xl bg-red-50 text-red-600 border border-red-200">
-            {error}
-          </div>
+          <div className="p-4 rounded-xl bg-red-50 text-red-600 border border-red-200">{error}</div>
         )}
 
         <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-4">
           <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 mb-4">
             ข้อมูลอัลบั้ม (Album Details)
           </h3>
-          
+
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label htmlFor="title" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label
+                htmlFor="title"
+                className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >
                 ชื่ออัลบั้ม (Title) <span className="text-red-500">*</span>
               </label>
               <input
@@ -294,9 +321,12 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
                 className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            
+
             <div className="space-y-2">
-              <label htmlFor="slug" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label
+                htmlFor="slug"
+                className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >
                 Slug <span className="text-red-500">*</span>
               </label>
               <input
@@ -313,7 +343,10 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="description" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label
+              htmlFor="description"
+              className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
               รายละเอียด (Description)
             </label>
             <textarea
@@ -327,7 +360,10 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="relatedPortfolioId" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label
+              htmlFor="relatedPortfolioId"
+              className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
               เชื่อมโยงผลงาน (Linked Portfolio)
             </label>
             <div className="relative">
@@ -344,7 +380,10 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
                   </option>
                 ))}
               </select>
-              <i aria-hidden="true" className="fi fi-sr-angle-small-down absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+              <i
+                aria-hidden="true"
+                className="fi fi-sr-angle-small-down absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"
+              />
             </div>
           </div>
 
@@ -354,8 +393,17 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
               {photos.map((photo, index) => (
-                <div key={index} className="relative aspect-square rounded-lg overflow-hidden group">
-                  <Image src={photo} alt={`Photo ${index}`} fill sizes="(max-width: 768px) 50vw, 150px" className="object-cover" />
+                <div
+                  key={index}
+                  className="relative aspect-square rounded-lg overflow-hidden group"
+                >
+                  <Image
+                    src={photo}
+                    alt={`Photo ${index}`}
+                    fill
+                    sizes="(max-width: 768px) 50vw, 150px"
+                    className="object-cover"
+                  />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                     <button
                       type="button"
@@ -377,8 +425,17 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
                 </div>
               ))}
               {newPhotoPreviews.map((preview, index) => (
-                <div key={`new-${index}`} className="relative aspect-square rounded-lg overflow-hidden border-2 border-blue-500 group">
-                  <Image src={preview} alt="New Upload" fill sizes="(max-width: 768px) 50vw, 150px" className="object-cover" />
+                <div
+                  key={`new-${index}`}
+                  className="relative aspect-square rounded-lg overflow-hidden border-2 border-blue-500 group"
+                >
+                  <Image
+                    src={preview}
+                    alt="New Upload"
+                    fill
+                    sizes="(max-width: 768px) 50vw, 150px"
+                    className="object-cover"
+                  />
                   <div className="absolute top-1 left-1 bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md pointer-events-none z-10">
                     NEW
                   </div>
@@ -413,8 +470,8 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
                   </div>
                 </div>
               )}
-              
-              <label 
+
+              <label
                 htmlFor="photos-upload-input"
                 className="relative aspect-square rounded-lg border-2 border-dashed border-zinc-300 dark:border-slate-700 flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors bg-zinc-50 dark:bg-slate-900"
               >
@@ -438,9 +495,7 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
 
       <div className="space-y-6">
         <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-4">
-          <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 mb-4">
-            หน้าปก
-          </h3>
+          <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 mb-4">หน้าปก</h3>
 
           {/* Published Toggle */}
           <div className="space-y-2">
@@ -451,9 +506,7 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
                 defaultChecked={initialData?.published !== false}
                 className="w-4 h-4 rounded accent-blue-500"
               />
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Public
-              </span>
+              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Public</span>
             </label>
           </div>
 
@@ -489,7 +542,7 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
                   </div>
                 </>
               ) : (
-                <label 
+                <label
                   htmlFor="cover-upload-input"
                   className="absolute inset-0 flex flex-col items-center justify-center text-zinc-400 cursor-pointer hover:text-blue-500 transition-colors"
                 >
@@ -517,7 +570,11 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
               type="date"
               name="date"
               id="date"
-              defaultValue={initialData?.date ? new Date(initialData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
+              defaultValue={
+                initialData?.date
+                  ? new Date(initialData.date).toISOString().split('T')[0]
+                  : new Date().toISOString().split('T')[0]
+              }
               required
               className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -541,7 +598,7 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
           disabled={isSubmitting}
           className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? 'กำลังบันทึก...' : (isEdit ? 'อัปเดตข้อมูล' : 'สร้างอัลบั้ม')}
+          {isSubmitting ? 'กำลังบันทึก...' : isEdit ? 'อัปเดตข้อมูล' : 'สร้างอัลบั้ม'}
         </button>
       </div>
 
@@ -562,11 +619,11 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
       />
 
       {previewModalSrc && (
-        <div 
+        <div
           className="fixed inset-0 z-150 flex items-center justify-center bg-black/10 p-4 animate-fade-in-up"
           onClick={() => setPreviewModalSrc(null)}
         >
-          <button 
+          <button
             type="button"
             className="absolute top-4 right-4 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full w-12 h-12 flex items-center justify-center transition-all z-10"
             onClick={(e) => {
@@ -576,7 +633,7 @@ export default function GalleryForm({ initialData, portfolios, action, mediaActi
           >
             <i aria-hidden="true" className="fi fi-sr-cross text-xl flex" />
           </button>
-          <div 
+          <div
             className="relative w-full h-full max-w-6xl max-h-[90vh] flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >

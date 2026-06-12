@@ -5,6 +5,9 @@
 
 
 
+## v1.10.2 (2026-06-12)
+* **HEIC upload fix (client-side conversion)**: iPhone HEIC images now converted to JPEG in-browser via `heic2any` (WASM) before XHR upload. Removes dependency on server-side `heic-convert` native bindings (`libheif`) that failed on production VPS. Added `clientConvertHeic()` with try/catch fallback → original file on failure. Status text "กำลังแปลงรูป HEIC..." shown during conversion. Scrutiny: 2 fix-its (progress status, fallback) verified before ship.
+
 ## v1.10.1 (2026-06-10)
 - **Refactor (dead code elimination)**: Removed 20 LOC `createToken` from `auth-base.ts` (no callers). Cleaned unused exports in phonics game: `CEFR_LEVELS`, `CEFR_LABELS`, `ROUND_LENGTHS`, `PHONEME_MAP` (constants), `parseMapGrid` (map), `isGuestMode`/`updatePhonemeStat` (save), 6 sprite constants (sprites). Build/lint clean, tests passing.
 

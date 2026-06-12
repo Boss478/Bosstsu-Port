@@ -157,12 +157,18 @@ export async function getAnalyticsStats(): Promise<AnalyticsStats> {
     hourlyDistribution,
   ] = await Promise.all([
     DailyAnalytics.find().sort({ date: -1 }).limit(90).lean(),
-    AnalyticsEvent.countDocuments({ type: 'pageview' }),
+    AnalyticsEvent.countDocuments({ type: 'pageview', path: { $not: /^\/test\//i } }),
     AnalyticsEvent.countDocuments({}),
     aggregateTopPages(ninetyDaysAgo, 20),
     aggregateTopEvents(ninetyDaysAgo, 20),
     AnalyticsEvent.aggregate([
-      { $match: { timestamp: { $gte: ninetyDaysAgo } } },
+      {
+        $match: {
+          type: 'pageview',
+          path: { $not: /^\/test\//i },
+          timestamp: { $gte: ninetyDaysAgo },
+        },
+      },
       {
         $group: {
           _id: { $dateToString: { format: '%Y-%m-%d', date: '$timestamp' } },
@@ -175,12 +181,24 @@ export async function getAnalyticsStats(): Promise<AnalyticsStats> {
     ]),
     aggregateDeviceBreakdown(ninetyDaysAgo),
     aggregateReferrerBreakdown(ninetyDaysAgo),
-    AnalyticsEvent.countDocuments({ timestamp: { $gte: todayStart } }),
     AnalyticsEvent.countDocuments({
+      type: 'pageview',
+      path: { $not: /^\/test\//i },
+      timestamp: { $gte: todayStart },
+    }),
+    AnalyticsEvent.countDocuments({
+      type: 'pageview',
+      path: { $not: /^\/test\//i },
       timestamp: { $gte: yesterdayStart, $lt: todayStart },
     }),
     AnalyticsEvent.aggregate([
-      { $match: { type: 'pageview', timestamp: { $gte: thirtyDaysAgo } } },
+      {
+        $match: {
+          type: 'pageview',
+          path: { $not: /^\/test\//i },
+          timestamp: { $gte: thirtyDaysAgo },
+        },
+      },
       {
         $group: {
           _id: { $hour: { date: '$timestamp', timezone: 'Asia/Bangkok' } },
@@ -226,6 +244,7 @@ export async function computeDailyRollup(): Promise<void> {
       AnalyticsEvent.countDocuments({
         timestamp: { $gte: todayDate },
         type: 'pageview',
+        path: { $not: /^\/test\//i },
       }),
       AnalyticsEvent.distinct('sessionId', {
         timestamp: { $gte: todayDate },

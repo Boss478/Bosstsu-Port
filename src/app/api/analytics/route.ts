@@ -54,7 +54,8 @@ export async function POST(request: NextRequest) {
       typeof event.path !== 'string' ||
       event.path.length > 200 ||
       typeof event.sessionId !== 'string' ||
-      !event.sessionId
+      !event.sessionId ||
+      (event.type === 'pageview' && event.path.startsWith('/test/'))
     )
       continue;
 

@@ -1,16 +1,26 @@
 'use client';
 
-export const uploadFileWithProgress = (
+import { clientConvertHeic } from './client-heic';
+
+export const uploadFileWithProgress = async (
   file: File,
   folder: string,
   onProgress: (loaded: number) => void,
   signal?: AbortSignal,
-  batchId?: string
+  batchId?: string,
+  onStatus?: (text: string) => void,
 ): Promise<string> => {
+  const isHeic =
+    /\.(heic|heif|heics|heifs)$/i.test(file.name) ||
+    file.type === 'image/heic' ||
+    file.type === 'image/heif';
+  if (isHeic) onStatus?.('กำลังแปลงรูป HEIC...');
+  const uploadFile = await clientConvertHeic(file);
+
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const fd = new FormData();
-    fd.append('file', file);
+    fd.append('file', uploadFile);
     fd.append('folder', folder);
     if (batchId) fd.append('batchId', batchId);
 
@@ -55,15 +65,16 @@ const uploadFileWithRetry = async (
   onProgress: (loaded: number) => void,
   retries = 3,
   signal?: AbortSignal,
-  batchId?: string
+  batchId?: string,
+  onStatus?: (text: string) => void,
 ): Promise<string> => {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      return await uploadFileWithProgress(file, folder, onProgress, signal, batchId);
+      return await uploadFileWithProgress(file, folder, onProgress, signal, batchId, onStatus);
     } catch (err) {
       if (err instanceof Error && err.message === 'Upload aborted') throw err;
       if (attempt === retries) throw err;
-      await new Promise(res => setTimeout(res, attempt * 1000));
+      await new Promise((res) => setTimeout(res, attempt * 1000));
     }
   }
   throw new Error('Failed to upload after max retries');
@@ -80,16 +91,17 @@ export async function uploadFilesInBatches(
   onBatchProgress: (completed: number, total: number) => void,
   concurrency = 3,
   signal?: AbortSignal,
-  batchId?: string
+  batchId?: string,
+  onStatus?: (text: string) => void,
 ): Promise<string[]> {
   const urls: string[] = [];
   for (let i = 0; i < files.length; i += concurrency) {
     if (signal?.aborted) throw new Error('Upload aborted');
     const batch = files.slice(i, i + concurrency);
     const batchResults = await Promise.all(
-      batch.map(file =>
-        uploadFileWithRetry(file, folder, () => {}, 3, signal, batchId)
-      )
+      batch.map((file) =>
+        uploadFileWithRetry(file, folder, () => {}, 3, signal, batchId, onStatus),
+      ),
     );
     urls.push(...batchResults);
     onBatchProgress(urls.length, files.length);

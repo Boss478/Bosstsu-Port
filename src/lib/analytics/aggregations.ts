@@ -3,7 +3,7 @@ import type { PipelineStage } from 'mongoose';
 
 export function topPagesAggregation(since: Date, limit: number): PipelineStage[] {
   return [
-    { $match: { type: 'pageview', timestamp: { $gte: since } } },
+    { $match: { type: 'pageview', path: { $not: /^\/test\//i }, timestamp: { $gte: since } } },
     { $group: { _id: '$path', count: { $sum: 1 } } },
     { $sort: { count: -1 } },
     { $limit: limit },
@@ -31,7 +31,7 @@ export function deviceBreakdownAggregation(since: Date): PipelineStage[] {
 
 export function referrerBreakdownAggregation(since: Date): PipelineStage[] {
   return [
-    { $match: { timestamp: { $gte: since }, type: 'pageview' } },
+    { $match: { type: 'pageview', path: { $not: /^\/test\//i }, timestamp: { $gte: since } } },
     { $group: { _id: '$referrer', count: { $sum: 1 } } },
     { $project: { _id: 0, referrer: { $ifNull: ['$_id', 'direct'] }, count: 1 } },
   ];
