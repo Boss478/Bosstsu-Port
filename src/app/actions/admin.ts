@@ -15,6 +15,7 @@ import {
   aggregateTopEvents,
   aggregateDeviceBreakdown,
   aggregateReferrerBreakdown,
+  computeOSDeviceBreakdown,
 } from '@/lib/analytics/aggregations';
 
 export interface DbStats {
@@ -128,6 +129,8 @@ export interface AnalyticsStats {
   referrerBreakdown: { referrer: string; count: number }[];
   trends: { todayViews: number; yesterdayViews: number; changePercent: number };
   hourlyDistribution: { hour: number; views: number }[];
+  osBreakdown: { name: string; count: number }[];
+  deviceModelBreakdown: { name: string; count: number }[];
 }
 
 export async function getAnalyticsStats(): Promise<AnalyticsStats> {
@@ -213,6 +216,12 @@ export async function getAnalyticsStats(): Promise<AnalyticsStats> {
     yesterdayViews > 0 ? Math.round(((todayViews - yesterdayViews) / yesterdayViews) * 100) : 0;
 
   const todayDoc = summary.find((d: { date?: string }) => d.date === todayStr);
+  const osBreakdown =
+    (todayDoc as { osBreakdown?: { name: string; count: number }[] } | undefined)?.osBreakdown ??
+    [];
+  const deviceModelBreakdown =
+    (todayDoc as { deviceModelBreakdown?: { name: string; count: number }[] } | undefined)
+      ?.deviceModelBreakdown ?? [];
 
   return {
     summary: serializeDoc(summary),
@@ -226,6 +235,8 @@ export async function getAnalyticsStats(): Promise<AnalyticsStats> {
     referrerBreakdown: rawReferrerBreakdown,
     trends: { todayViews, yesterdayViews, changePercent },
     hourlyDistribution,
+    osBreakdown,
+    deviceModelBreakdown,
   };
 }
 
@@ -236,24 +247,36 @@ export async function computeDailyRollup(): Promise<void> {
   await dbConnect();
 
   const today = new Date().toISOString().slice(0, 10);
-
   const todayDate = new Date(`${today}T00:00:00.000Z`);
 
-  const [totalViews, uniqueVisitors, topPages, deviceBreakdown, topEvents, referrerBreakdown] =
-    await Promise.all([
-      AnalyticsEvent.countDocuments({
-        timestamp: { $gte: todayDate },
-        type: 'pageview',
-        path: { $not: /^\/test\//i },
-      }),
-      AnalyticsEvent.distinct('sessionId', {
-        timestamp: { $gte: todayDate },
-      }),
-      aggregateTopPages(todayDate, 10),
-      aggregateDeviceBreakdown(todayDate),
-      aggregateTopEvents(todayDate, 10),
-      aggregateReferrerBreakdown(todayDate),
-    ]);
+  const existing = await DailyAnalytics.findOne({ date: today }).select('updatedAt').lean();
+  if (existing && Date.now() - existing.updatedAt.getTime() < 15 * 60 * 1000) {
+    return;
+  }
+
+  const [
+    totalViews,
+    uniqueVisitors,
+    topPages,
+    deviceBreakdown,
+    topEvents,
+    referrerBreakdown,
+    osDevice,
+  ] = await Promise.all([
+    AnalyticsEvent.countDocuments({
+      timestamp: { $gte: todayDate },
+      type: 'pageview',
+      path: { $not: /^\/test\//i },
+    }),
+    AnalyticsEvent.distinct('sessionId', {
+      timestamp: { $gte: todayDate },
+    }),
+    aggregateTopPages(todayDate, 10),
+    aggregateDeviceBreakdown(todayDate),
+    aggregateTopEvents(todayDate, 10),
+    aggregateReferrerBreakdown(todayDate),
+    computeOSDeviceBreakdown(todayDate),
+  ]);
 
   await DailyAnalytics.findOneAndUpdate(
     { date: today },
@@ -264,6 +287,8 @@ export async function computeDailyRollup(): Promise<void> {
       topEvents: topEvents.slice(0, 10),
       deviceBreakdown,
       referrerBreakdown,
+      osBreakdown: osDevice.osBreakdown,
+      deviceModelBreakdown: osDevice.deviceModelBreakdown,
       updatedAt: new Date(),
     },
     { upsert: true },

@@ -1,5 +1,47 @@
 import AnalyticsEvent from '@/models/AnalyticsEvent';
 import type { PipelineStage } from 'mongoose';
+import { UAParser } from 'ua-parser-js';
+import type { NameCountStat } from '@/models/DailyAnalytics';
+
+export async function computeOSDeviceBreakdown(
+  since: Date,
+): Promise<{ osBreakdown: NameCountStat[]; deviceModelBreakdown: NameCountStat[] }> {
+  const docs = await AnalyticsEvent.find({
+    timestamp: { $gte: since },
+    userAgent: { $ne: null, $exists: true },
+  })
+    .select('userAgent')
+    .lean()
+    .then((d) => d as { userAgent?: string }[]);
+
+  const osMap = new Map<string, number>();
+  const deviceMap = new Map<string, number>();
+
+  for (const doc of docs) {
+    if (!doc.userAgent) continue;
+    const parser = new UAParser(doc.userAgent);
+    const os = parser.getOS();
+    const device = parser.getDevice();
+
+    const osName = os.name || 'Unknown';
+    osMap.set(osName, (osMap.get(osName) || 0) + 1);
+
+    const model =
+      device.vendor && device.model
+        ? `${device.vendor} ${device.model}`
+        : device.model || 'Desktop';
+    deviceMap.set(model, (deviceMap.get(model) || 0) + 1);
+  }
+
+  return {
+    osBreakdown: Array.from(osMap.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count),
+    deviceModelBreakdown: Array.from(deviceMap.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count),
+  };
+}
 
 export function topPagesAggregation(since: Date, limit: number): PipelineStage[] {
   return [

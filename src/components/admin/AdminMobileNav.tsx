@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 
 const navItems = [
   { label: 'ภาพรวม', href: '/admin', icon: 'fi-sr-apps' },
-  { label: 'วิเคราะห์', href: '/admin/analytics', icon: 'fi-sr-analytics' },
+  { label: 'วิเคราะห์', href: '/admin/analytics', icon: 'fi-sr-stats' },
   { label: 'ผลงาน', href: '/admin/portfolio', icon: 'fi-sr-briefcase' },
   { label: 'แกลเลอรี', href: '/admin/gallery', icon: 'fi-sr-picture' },
   { label: 'สื่อฯ', href: '/admin/resources', icon: 'fi-sr-book-alt' },

@@ -20,6 +20,11 @@ export interface ReferrerStat {
   count: number;
 }
 
+export interface NameCountStat {
+  name: string;
+  count: number;
+}
+
 export interface IDailyAnalytics {
   date: string;
   totalViews: number;
@@ -28,6 +33,8 @@ export interface IDailyAnalytics {
   topEvents: EventStat[];
   deviceBreakdown: DeviceStat[];
   referrerBreakdown: ReferrerStat[];
+  osBreakdown: NameCountStat[];
+  deviceModelBreakdown: NameCountStat[];
   updatedAt: Date;
 }
 
@@ -42,6 +49,8 @@ const DailyAnalyticsSchema: Schema = new Schema(
     topEvents: [{ eventName: String, count: Number }],
     deviceBreakdown: [{ type: String, count: Number }],
     referrerBreakdown: [{ referrer: String, count: Number }],
+    osBreakdown: [{ name: String, count: Number }],
+    deviceModelBreakdown: [{ name: String, count: Number }],
     updatedAt: { type: Date, default: Date.now },
   },
   { timestamps: false },

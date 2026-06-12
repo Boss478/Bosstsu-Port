@@ -5,6 +5,15 @@
 
 
 
+## v1.10.4 (2026-06-12)
++ **Analytics Dashboard enhancement**: vertical 30-bar traffic chart (Y-axis ticks, label every 5th day), SVG donut for device/OS breakdown (hover tooltips), Y-axis labels on HourlyChart, last-updated timestamp, Export dropdown (CSV+JPG+PNG via html-to-image)
++ **Device/OS deep data**: `ua-parser-js` (5KB) for userAgent parsing, forward-only rollup in `computeDailyRollup()`, 2 new dashboard cards (OS donut + Device Model bars)
+* **Nav icons fixed**: `fi-sr-analytics` → `fi-sr-stats`, `fi-sr-chart-line` → `fi-sr-arrow-trend-up`, `fi-sr-devices` removed (not in font subset)
+* **Rollup debounce (15-min)**: reduces server query load by ~95% per page visit
+
+## v1.10.3 (2026-06-12)
+* **Analytics /test/ path pollution fix**: `/test/*` bot paths inflating total view count (~30k) and dominating Top Pages are now filtered at ingress (`route.ts`), aggregation layer (`aggregations.ts`), and all dashboard queries (`admin.ts`). 36k existing polluted events deleted from production MongoDB. Backup saved to `backup/2026-06-11/`.
+
 ## v1.10.2 (2026-06-12)
 * **HEIC upload fix (client-side conversion)**: iPhone HEIC images now converted to JPEG in-browser via `heic2any` (WASM) before XHR upload. Removes dependency on server-side `heic-convert` native bindings (`libheif`) that failed on production VPS. Added `clientConvertHeic()` with try/catch fallback → original file on failure. Status text "กำลังแปลงรูป HEIC..." shown during conversion. Scrutiny: 2 fix-its (progress status, fallback) verified before ship.
 
