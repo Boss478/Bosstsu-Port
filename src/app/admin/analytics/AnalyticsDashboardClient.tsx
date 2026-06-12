@@ -358,14 +358,19 @@ export default function AnalyticsDashboardClient({
   const [refreshing, setRefreshing] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [exporting, setExporting] = useState<'jpg' | 'png' | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const exportRef = useRef<HTMLDivElement>(null);
   const exportBtnRef = useRef<HTMLDivElement>(null);
-  const [intervalSec, setIntervalSec] = useState(() => {
-    if (typeof window === 'undefined') return 10;
+  const [intervalSec, setIntervalSec] = useState(10);
+
+  useEffect(() => {
     const stored = localStorage.getItem(INTERVAL_STORAGE_KEY);
-    return stored ? Number(stored) : 10;
-  });
+    if (stored) setIntervalSec(Number(stored));
+  }, []);
+
+  useEffect(() => {
+    setLastUpdated(new Date());
+  }, []);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -483,7 +488,7 @@ export default function AnalyticsDashboardClient({
                   className={`w-2 h-2 rounded-full ${refreshing ? 'bg-green-500 animate-pulse' : 'bg-green-400'}`}
                 />
                 <span className="text-[10px] text-zinc-400 whitespace-nowrap">
-                  Updated: {lastUpdated.toLocaleTimeString('th-TH')}
+                  Updated: {lastUpdated ? lastUpdated.toLocaleTimeString('th-TH') : '...'}
                 </span>
               </div>
               <div className="flex gap-2">

@@ -5,6 +5,9 @@
 
 
 
+## v1.10.5 (2026-06-12)
+* **React hydration error #418 fix on admin/analytics**: `new Date()` in `useState` initializer replaced with `null` + mount `useEffect`; `typeof window`/`localStorage` in `useState` factory for `intervalSec` replaced with mount `useEffect` read. Resolves text content mismatch between server and client renders.
+
 ## v1.10.4 (2026-06-12)
 + **Analytics Dashboard enhancement**: vertical 30-bar traffic chart (Y-axis ticks, label every 5th day), SVG donut for device/OS breakdown (hover tooltips), Y-axis labels on HourlyChart, last-updated timestamp, Export dropdown (CSV+JPG+PNG via html-to-image)
 + **Device/OS deep data**: `ua-parser-js` (5KB) for userAgent parsing, forward-only rollup in `computeDailyRollup()`, 2 new dashboard cards (OS donut + Device Model bars)
