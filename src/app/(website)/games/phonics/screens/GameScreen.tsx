@@ -190,7 +190,7 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
   return (
     <div className="h-2 bg-[#888888]/20 retro-border" role="progressbar" aria-valuenow={current} aria-valuemax={total}>
       <div
-        className="h-full bg-[#2EC4B6] transition-all duration-300"
+        className="h-full bg-[#2EC4B6] transition-all duration-300 motion-reduce:transition-none"
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -229,18 +229,28 @@ function TapQuestion({
   const speedMode = question.format === "speed";
   const feedbackRef = useRef(feedback);
   feedbackRef.current = feedback;
+  const timeAnnounceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!speedMode) return;
     setTimerPct(100);
 
     const interval = setInterval(() => {
-      setTimerPct((prev) => Math.max(0, prev - 100 / (GAME_CONFIG.SPEED_TIMER_MS / 50)));
+      setTimerPct((prev) => {
+        const next = Math.max(0, prev - 100 / (GAME_CONFIG.SPEED_TIMER_MS / 50));
+        if (next <= 20 && prev > 20 && timeAnnounceRef.current) {
+          timeAnnounceRef.current.textContent = "Time is running out!";
+        }
+        return next;
+      });
     }, 50);
 
     const timeout = setTimeout(() => {
       clearInterval(interval);
       if (!feedbackRef.current) {
+        if (timeAnnounceRef.current) {
+          timeAnnounceRef.current.textContent = "Time's up!";
+        }
         onAnswer("");
       }
     }, GAME_CONFIG.SPEED_TIMER_MS);
@@ -263,10 +273,11 @@ function TapQuestion({
 
   return (
     <div className="flex flex-col gap-5">
+      <div ref={timeAnnounceRef} className="sr-only" aria-live="assertive" aria-atomic="true" />
       {speedMode && (
         <div className="w-full h-3 retro-border bg-[#888888]/20 overflow-hidden">
           <div
-            className={`h-full transition-all duration-[50ms] ${timerPct > 20 ? "bg-[#2EC4B6]" : "bg-[#FF4136]"}`}
+            className={`h-full transition-all duration-[50ms] motion-reduce:transition-none ${timerPct > 20 ? "bg-[#2EC4B6]" : "bg-[#FF4136]"}`}
             style={{ width: `${timerPct}%` }}
           />
         </div>
@@ -417,13 +428,16 @@ export default function GameScreen({ onRoundComplete }: GameScreenProps) {
   if (!round || !question) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#A2D2FF] dark:bg-[#0A1128]">
-        <p className="text-[#1C1C1C] dark:text-[#F7E1A0] tracking-widest">LOADING...</p>
+        <div className="skeleton w-48 h-8 rounded" />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#A2D2FF] dark:bg-[#0A1128]">
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        Question {currentIndex + 1} of {questions.length}
+      </div>
       <HUD
         current={currentIndex}
         total={questions.length}

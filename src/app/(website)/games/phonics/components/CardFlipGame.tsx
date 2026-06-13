@@ -19,9 +19,13 @@ export default function CardFlipGame({ cards: initialCards, onComplete, speak }:
   }));
 
   const checkingRef = useRef(false);
+  const matchAnnounceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (state.pairsRemaining === 0 && state.matched.length > 0) {
+      if (matchAnnounceRef.current) {
+        matchAnnounceRef.current.textContent = "All pairs matched!";
+      }
       const timer = setTimeout(onComplete, 800);
       return () => clearTimeout(timer);
     }
@@ -52,6 +56,9 @@ export default function CardFlipGame({ cards: initialCards, onComplete, speak }:
           pairsRemaining: state.pairsRemaining - 1,
         });
         checkingRef.current = false;
+        if (matchAnnounceRef.current) {
+          matchAnnounceRef.current.textContent = `Match found: ${first.label} + ${second.label}`;
+        }
         speak(first.ttsText);
       } else {
         setState((prev) => ({
@@ -69,6 +76,9 @@ export default function CardFlipGame({ cards: initialCards, onComplete, speak }:
             selected: [],
           }));
           checkingRef.current = false;
+          if (matchAnnounceRef.current) {
+            matchAnnounceRef.current.textContent = "No match — try again";
+          }
         }, 800);
       }
     } else {
@@ -90,7 +100,11 @@ export default function CardFlipGame({ cards: initialCards, onComplete, speak }:
         Flips: {state.flips} &middot; Pairs left: {state.pairsRemaining}
       </p>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-sm">
+      <div
+        className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-sm"
+        role="group"
+        aria-label="Card flip game — match phonemes to words"
+      >
         {state.cards.map((card, i) => (
           <button
             key={card.id}
@@ -103,7 +117,8 @@ export default function CardFlipGame({ cards: initialCards, onComplete, speak }:
               hover:opacity-80 active:scale-95`}
             onClick={() => handleCardTap(i)}
             disabled={card.matched}
-            style={{ perspective: "1000px" }}
+            aria-label={card.flipped || card.matched ? `${card.label} — ${card.matched ? "matched" : "face up"}` : "Face-down card"}
+            aria-pressed={card.flipped || card.matched}
           >
             <span className={`block transition-opacity duration-300 ${card.flipped || card.matched ? "opacity-100" : "opacity-0"}`}>
               {card.label}
@@ -111,6 +126,12 @@ export default function CardFlipGame({ cards: initialCards, onComplete, speak }:
           </button>
         ))}
       </div>
+      <div
+        ref={matchAnnounceRef}
+        className="sr-only"
+        aria-live="polite"
+        aria-atomic="true"
+      />
     </div>
   );
 }

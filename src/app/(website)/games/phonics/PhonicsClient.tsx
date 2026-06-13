@@ -14,10 +14,12 @@ import {
 import { useAudio } from '@/hooks/useAudio';
 import { GAME_CONFIG } from './constants';
 import SaveSlotScreen from './screens/SaveSlotScreen';
-import MapScreen from './screens/MapScreen';
+import IslandScreen from './screens/IslandScreen';
 import GameScreen from './screens/GameScreen';
 import VictoryScreen from './screens/VictoryScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import TutorialScreen from './screens/TutorialScreen';
+import RotateDeviceOverlay from './components/RotateDeviceOverlay';
 import { useAnalytics } from '@/lib/analytics';
 
 export default function PhonicsClient() {
@@ -29,10 +31,12 @@ export default function PhonicsClient() {
   const [companion, setCompanion] = useState<CompanionId>('nox');
   const { muted, toggleMute, playSound } = useAudio();
   const [crtEffect, setCrtEffect] = useState(false);
+  const [showBoatReturn, setShowBoatReturn] = useState(false);
   const { trackCustomEvent } = useAnalytics();
 
   // ── Mount guard — no localStorage access before hydration ──────────────────
   useEffect(() => {
+    document.body.classList.add('phonics-fullscreen');
     const timer = setTimeout(() => {
       setMounted(true);
       const slot = getActiveSlot();
@@ -41,15 +45,31 @@ export default function PhonicsClient() {
         const data = loadSave(slot as number);
         if (data) {
           setSaveState(data);
-          setCompanion(data.companion);
-          setCrtEffect(data.settings.crtEffect);
-          // Skip slots screen if valid save exists and tutorial done
-          if (data.tutorialCompleted) setScreen('map');
+      setCompanion(data.companion);
+      setCrtEffect(data.settings.crtEffect);
+      if (data.tutorialCompleted) setScreen('map');
+      else setScreen('tutorial');
         }
       }
     }, 0);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      document.body.classList.remove('phonics-fullscreen');
+    };
   }, []);
+
+  // ── Screen transition focus management ───────────────────────────────────
+  const screenRef = useRef(screen);
+  useEffect(() => {
+    screenRef.current = screen;
+    const timer = setTimeout(() => {
+      const el = document.querySelector<HTMLElement>(
+        '#island-map-wrapper, #game-mute-btn, #settings-back, #save-slot-1, #tutorial-next, #tutorial-start'
+      );
+      el?.focus();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [screen]);
 
   // ── Save persistence ───────────────────────────────────────────────────────
   const persistSave = useCallback(
@@ -90,7 +110,7 @@ export default function PhonicsClient() {
         setCompanion(data.companion);
         setCrtEffect(data.settings.crtEffect);
       }
-      setScreen('map');
+      setScreen('tutorial');
       trackCustomEvent('game_start', { game: 'phonics', slot: String(slot) });
     },
     [trackCustomEvent],
@@ -246,25 +266,41 @@ export default function PhonicsClient() {
     toggleCrt,
   };
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#A2D2FF] dark:bg-[#0A1128]">
+        <div className="skeleton w-64 h-10 rounded mb-4" />
+        <div className="skeleton w-48 h-6 rounded" />
+      </div>
+    );
+  }
 
   return (
     <GameContext.Provider value={ctx}>
-      <div className="relative min-h-screen bg-[#A2D2FF] dark:bg-[#0A1128] transition-colors duration-500">
+      <div className="phonics-game relative min-h-screen bg-[#A2D2FF] dark:bg-[#0A1128] transition-colors duration-500 motion-reduce:transition-none">
         {/* CRT scanline overlay */}
         {crtEffect && <div className="scanline-overlay" aria-hidden="true" />}
 
         {screen === 'slots' && <SaveSlotScreen onSelectSlot={selectSlot} />}
-        {screen === 'map' && <MapScreen />}
+        {screen === 'map' && <IslandScreen showBoatReturn={showBoatReturn} onBoatDone={() => setShowBoatReturn(false)} />}
         {screen === 'game' && round && <GameScreen onRoundComplete={finalizeRound} />}
         {screen === 'victory' && round && (
           <VictoryScreen
             round={round}
             onPlayAgain={() => startRound(round.config)}
-            onBackToMap={() => setScreen('map')}
+            onBackToMap={() => { setShowBoatReturn(true); setScreen('map'); }}
+          />
+        )}
+        {screen === 'tutorial' && (
+          <TutorialScreen
+            onComplete={() => {
+              if (save) persistSave({ ...save, tutorialCompleted: true });
+              setScreen('map');
+            }}
           />
         )}
         {screen === 'settings' && <SettingsScreen />}
+        <RotateDeviceOverlay />
       </div>
     </GameContext.Provider>
   );

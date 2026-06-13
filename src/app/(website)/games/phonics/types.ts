@@ -126,7 +126,6 @@ export interface SaveData {
   totalCorrects: number;
   phonemeCoins: number;
   phonemeStats: Record<string, { correct: number; total: number; lastSeen: number }>;
-  unlockedWords: string[];
   settings: { muted: boolean; crtEffect: boolean };
   tutorialCompleted: boolean;
   totalRoundsPlayed: number;
@@ -159,9 +158,6 @@ export interface AnimatedSprite {
   fps: number;            // frames per second for cycling
 }
 
-// ─── Map System ──────────────────────────────────────────────────────────────
-export type TileType = "W" | "G" | "S" | "P" | "B";
-
 export interface MapBuilding {
   id: string;
   x: number;              // tile column
@@ -169,16 +165,6 @@ export interface MapBuilding {
   interactive: boolean;
   label: string;
   category?: GameCategory;
-}
-
-export interface MascotState {
-  tileX: number;
-  tileY: number;
-  targetTileX: number;
-  targetTileY: number;
-  walking: boolean;
-  facing: "left" | "right";
-  frameIndex: number;
 }
 
 // ─── Companion ───────────────────────────────────────────────────────────────

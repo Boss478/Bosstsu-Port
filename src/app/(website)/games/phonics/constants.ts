@@ -11,14 +11,12 @@ export const GAME_CONFIG = {
   COINS_CORRECT: 1,
   COINS_STREAK: 2,
   FEEDBACK_DURATION_MS: 800,
-  HINT_PENALTY: 0,
   MIN_OPTIONS: 3,
   MAX_OPTIONS: 4,
   DEFAULT_ROUND_LENGTH: { phonics: 10, spelling: 5, definitions: 5 } as Record<string, number>,
   SPEED_TIMER_MS: 3000,
   CARD_FLIP_PAIRS: 4,
   DEFINITION_MIX_ADAPTIVE: true,
-  MASCOT_TILE_MS: 300, // ms per tile for walk animation
   SAVE_INDICATOR_MS: 3000, // how long to show the save indicator
 } as const;
 
@@ -424,26 +422,4 @@ export const COMPANIONS: Record<string, CompanionData> = {
   },
 };
 
-// ─── Map Layout ───────────────────────────────────────────────────────────────
-export const MAP_COLS = 20;
-export const MAP_ROWS = 15;
-export const TILE_PX = 32; // canvas pixels per map tile
 
-// W=water, G=grass, S=sand, P=path, B1=Phonics(interactive), B2-B7=decorative
-export const MAP_GRID: string[] = [
-  'WWWWWWWWWWWWWWWWWWWW',
-  'WGGGGGGGGGGGGGGGGGGW',
-  'WGGGPPPGGGGPPPGGGGW',
-  'WGGPB1PGGGPPB2PGGGW',
-  'WGGGPPPGGGGPPPGGGGW',
-  'WGGGGGSGGGGGSGGGGGW',
-  'WSSSSSSSSSSSSSSSSSW',
-  'WSPPPPSPPPPPSPPPPSW',
-  'WSB3PPSPPPB4PPSB5PW',
-  'WSPPPPSPPPPPSPPPPSW',
-  'WSSSSSSSSSSSSSSSSSW',
-  'WGGGPPPGGGGPPPGGGGW',
-  'WGGPB6PGGGPPB7PGGGW',
-  'WGGGPPPGGGGPPPGGGGW',
-  'WWWWWWWWWWWWWWWWWWWW',
-];

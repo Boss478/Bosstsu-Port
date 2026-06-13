@@ -42,8 +42,11 @@ export default function VictoryScreen({ round, onPlayAgain, onBackToMap }: Victo
     ? Math.round((round.corrects / round.results.length) * 100)
     : 0;
 
+  const announceText = `Round complete! You scored ${round.score} with ${accuracy} percent accuracy. ${round.corrects} out of ${round.results.length} correct.`;
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10 bg-[#A2D2FF] dark:bg-[#0A1128]">
+      <div className="sr-only" aria-live="assertive" aria-atomic="true">{announceText}</div>
       {/* Title */}
       <div className="text-center mb-6">
         <h1

@@ -510,7 +510,9 @@ body {
 }
 
 body.python-fullscreen #site-header,
-body.python-fullscreen footer {
+body.python-fullscreen footer,
+body.phonics-fullscreen #site-header,
+body.phonics-fullscreen footer {
   display: none;
 }
 
@@ -681,6 +683,18 @@ textarea,
   .alphabet-game * {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+/* ─── Phonics Game reduced motion ────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .phonics-game .animate-correct-bounce,
+  .phonics-game .animate-wrong-shake,
+  .phonics-game .animate-star-pop,
+  .phonics-game .animate-slide-up-modal,
+  .phonics-game .animate-card-flip-enter,
+  .phonics-game .animate-hint-slide-up {
+    animation: none !important;
   }
 }
 

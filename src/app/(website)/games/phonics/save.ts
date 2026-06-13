@@ -15,7 +15,6 @@ export function getDefaultSave(name: string): SaveData {
     totalCorrects: 0,
     phonemeCoins: 0,
     phonemeStats: {},
-    unlockedWords: [],
     settings: { muted: false, crtEffect: false },
     tutorialCompleted: false,
     totalRoundsPlayed: 0,

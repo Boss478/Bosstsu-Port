@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import type { MapBuilding, RoundConfig, PhonicsFormat, SpellingFormat, DefinitionDirection, CefrLevel, RoundLength } from "../types";
 
 interface ModeSelectModalProps {
@@ -22,6 +22,30 @@ export default function ModeSelectModal({ building, onStart, onClose }: ModeSele
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
 
+  // Focus trap: cycle Tab between focusable children
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key !== "Tab") return;
+    const modal = dialogRef.current;
+    if (!modal) return;
+    const focusable = modal.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  }, []);
+
   function startPhonics(format: PhonicsFormat, level: CefrLevel, length: RoundLength) {
     onStart({ category: "phonics", phonicsFormat: format, level, length });
   }
@@ -35,6 +59,7 @@ export default function ModeSelectModal({ building, onStart, onClose }: ModeSele
   }
 
   const category = building.category ?? "phonics";
+  const accentColor = category === "spelling" ? "#FF5733" : category === "definitions" ? "#9B59B6" : "#2EC4B6";
 
   return (
     <div
@@ -48,16 +73,20 @@ export default function ModeSelectModal({ building, onStart, onClose }: ModeSele
         ref={dialogRef}
         className="retro-border bg-[#FDFBF7] dark:bg-[#101F42] w-full max-w-md animate-slide-up-modal outline-none"
         tabIndex={-1}
+        onKeyDown={handleKeyDown}
       >
-        <div className="flex items-center justify-between px-5 py-3 border-b-2 border-[#1C1C1C] dark:border-[#D4AF37]">
-          <h2 className="font-bold text-lg text-[#1C1C1C] dark:text-[#F7E1A0] tracking-widest" style={{ fontFamily: "var(--font-mali)" }}>
+        <div className="flex items-center justify-between px-5 py-3 border-b-2" style={{ borderColor: accentColor }}>
+          <h2 className="font-bold text-lg tracking-widest" style={{ fontFamily: "var(--font-mali)", color: accentColor }}>
             {building.label}
           </h2>
           <button
             id="mode-select-close"
-            className="text-[#888888] hover:text-[#1C1C1C] dark:hover:text-[#F7E1A0] text-xl"
+            className="text-xl transition-colors"
+            style={{ color: "#888888" }}
             onClick={onClose}
             aria-label="Close"
+            onMouseEnter={(e) => e.currentTarget.style.color = accentColor}
+            onMouseLeave={(e) => e.currentTarget.style.color = "#888888"}
           >
             ✕
           </button>
@@ -70,7 +99,6 @@ export default function ModeSelectModal({ building, onStart, onClose }: ModeSele
             <>
               <ModeCard id="mode-tap" title="TAP THE SOUND" description="Hear a phoneme — tap the correct word" color="#C8A44E" onClick={() => startPhonics("tap", "a1", 10)} />
               <ModeCard id="mode-speed" title="SPEED ROUND" description="Same as Tap but with a 3-second timer" color="#FF70A6" onClick={() => startPhonics("speed", "a1", 10)} />
-              <ModeCard id="mode-pick-word" title="PICK THE WORD" description="See a phoneme — find the matching word" color="#2EC4B6" onClick={() => startPhonics("pick-word", "a1", 10)} />
               <ModeCard id="mode-card-flip" title="CARD FLIP" description="Match phonemes to words in memory style" color="#9B59B6" onClick={() => startPhonics("card-flip", "a1", 10)} />
             </>
           )}

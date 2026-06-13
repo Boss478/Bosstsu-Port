@@ -73,7 +73,7 @@ export default function SaveSlotScreen({ onSelectSlot }: SaveSlotScreenProps) {
               {slot.empty ? (
                 <div className="flex items-center gap-3">
                   <span className="text-2xl text-[#888888]">+</span>
-                  <span className="text-[#888888] dark:text-[#3D3B3C] font-bold tracking-widest text-sm">NEW GAME — SLOT {slot.slot}</span>
+                  <span className="text-[#888888] dark:text-[#5A6880] font-bold tracking-widest text-sm">NEW GAME — SLOT {slot.slot}</span>
                 </div>
               ) : (
                 <div className="space-y-1">
