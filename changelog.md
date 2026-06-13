@@ -5,6 +5,9 @@
 
 
 
+## v1.10.8 (2026-06-12)
+* **Daily Traffic chart zero-day fill**: Chart title "Daily Traffic (30 Days)" was misleading — only showed days with ≥1 view (3-4 sparse bars). Now `useMemo` generates a full 30-day date range client-side, filling missing days with `views: 0`. Title dynamically shows active days: "Daily Traffic (X of 30 Days)". Zero-view days render as minimal 2px bars for accurate timeline visualization.
+
 ## v1.10.7 (2026-06-12)
 * **Analytics OS/Device Model data race fix**: OS breakdown and Device Model breakdown always showed "No data yet" because `getAnalyticsStats()` read them from the `DailyAnalytics` rollup document — which may not exist during SSR (race with `computeDailyRollup()` in `Promise.all`). Fixed by computing OS/device data inline from raw `AnalyticsEvent` documents via `computeOSDeviceBreakdown()`, matching how all other breakdowns are already computed.
 

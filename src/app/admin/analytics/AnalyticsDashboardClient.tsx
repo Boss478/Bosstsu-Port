@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { toBlob } from 'html-to-image';
 import type { AnalyticsStats } from '@/app/actions/admin';
 
@@ -37,8 +37,7 @@ function TrendBadge({ value }: { value: number }) {
   );
 }
 
-function TrafficVerticalChart({ data: rawData }: { data: { date: string; views: number }[] }) {
-  const data = rawData.slice(-30);
+function TrafficVerticalChart({ data }: { data: { date: string; views: number }[] }) {
   const maxViews = Math.max(...data.map((d) => d.views), 1);
 
   return (
@@ -363,6 +362,21 @@ export default function AnalyticsDashboardClient({
   const exportBtnRef = useRef<HTMLDivElement>(null);
   const [intervalSec, setIntervalSec] = useState(10);
 
+  const filledTrafficData = useMemo(() => {
+    const today = new Date();
+    const days: { date: string; views: number }[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().slice(0, 10);
+      const found = stats.viewsOverTime.find((r) => r.date === dateStr);
+      days.push({ date: dateStr, views: found?.views ?? 0 });
+    }
+    return days;
+  }, [stats.viewsOverTime]);
+
+  const activeTrafficDays = filledTrafficData.filter((d) => d.views > 0).length;
+
   useEffect(() => {
     const stored = localStorage.getItem(INTERVAL_STORAGE_KEY);
     if (stored) setIntervalSec(Number(stored));
@@ -569,10 +583,10 @@ export default function AnalyticsDashboardClient({
             <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm mb-6">
               <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
                 <i aria-hidden="true" className="fi fi-sr-arrow-trend-up text-blue-500 text-base" />
-                Daily Traffic (30 Days)
+                Daily Traffic ({activeTrafficDays} of 30 Days)
               </h2>
               {stats.viewsOverTime.length > 0 ? (
-                <TrafficVerticalChart data={stats.viewsOverTime} />
+                <TrafficVerticalChart data={filledTrafficData} />
               ) : (
                 <p className="text-zinc-400 text-sm">ยังไม่มีข้อมูล</p>
               )}
