@@ -5,6 +5,9 @@
 
 
 
+## v1.10.7 (2026-06-12)
+* **Analytics OS/Device Model data race fix**: OS breakdown and Device Model breakdown always showed "No data yet" because `getAnalyticsStats()` read them from the `DailyAnalytics` rollup document — which may not exist during SSR (race with `computeDailyRollup()` in `Promise.all`). Fixed by computing OS/device data inline from raw `AnalyticsEvent` documents via `computeOSDeviceBreakdown()`, matching how all other breakdowns are already computed.
+
 ## v1.10.6 (2026-06-12)
 * **React hydration error #418 fix (continued)**: Disabled `reactCompiler: true` in `next.config.ts` — per React source analysis, the remaining `args[]=HTML` error is a pre-existing structural element-type mismatch surfaced after the text mismatch fix. React Compiler transforms server/client bundles differently, causing DOM structure mismatch during hydration. Builds now use standard React without compiler optimization.
 

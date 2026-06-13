@@ -158,6 +158,7 @@ export async function getAnalyticsStats(): Promise<AnalyticsStats> {
     todayViews,
     yesterdayViews,
     hourlyDistribution,
+    osDeviceModels,
   ] = await Promise.all([
     DailyAnalytics.find().sort({ date: -1 }).limit(90).lean(),
     AnalyticsEvent.countDocuments({ type: 'pageview', path: { $not: /^\/test\//i } }),
@@ -210,18 +211,15 @@ export async function getAnalyticsStats(): Promise<AnalyticsStats> {
       },
       { $project: { _id: 0, hour: '$_id', views: 1 } },
     ]),
+    computeOSDeviceBreakdown(ninetyDaysAgo),
   ]);
 
   const changePercent =
     yesterdayViews > 0 ? Math.round(((todayViews - yesterdayViews) / yesterdayViews) * 100) : 0;
 
   const todayDoc = summary.find((d: { date?: string }) => d.date === todayStr);
-  const osBreakdown =
-    (todayDoc as { osBreakdown?: { name: string; count: number }[] } | undefined)?.osBreakdown ??
-    [];
-  const deviceModelBreakdown =
-    (todayDoc as { deviceModelBreakdown?: { name: string; count: number }[] } | undefined)
-      ?.deviceModelBreakdown ?? [];
+  const osBreakdown = osDeviceModels.osBreakdown;
+  const deviceModelBreakdown = osDeviceModels.deviceModelBreakdown;
 
   return {
     summary: serializeDoc(summary),
