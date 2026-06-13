@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { GameContext, type GameContextValue } from './context';
-import type { Screen, SaveData, GameRound, RoundConfig, CompanionId } from './types';
+import type { Screen, SaveData, GameRound, RoundConfig, CompanionId, PhonicsQuestion, DefinitionQuestion } from './types';
 import {
   getActiveSlot,
   setActiveSlot,
@@ -172,7 +172,40 @@ export default function PhonicsClient() {
   // ── Victory finalization ───────────────────────────────────────────────────
   const finalizeRound = useCallback(() => {
     if (!round || !save) return;
-    const updated = recordRound(save, round.corrects, round.maxStreak, round.coinsEarned);
+    let updated = recordRound(save, round.corrects, round.maxStreak, round.coinsEarned);
+
+    for (const result of round.results) {
+      if (result.question.category === 'phonics') {
+        const q = result.question as PhonicsQuestion;
+        const prev = updated.phonemeStats[q.phoneme.id] ?? { correct: 0, total: 0, lastSeen: 0 };
+        updated = {
+          ...updated,
+          phonemeStats: {
+            ...updated.phonemeStats,
+            [q.phoneme.id]: {
+              correct: prev.correct + (result.correct ? 1 : 0),
+              total: prev.total + 1,
+              lastSeen: Date.now(),
+            },
+          },
+        };
+      }
+      if (result.question.category === 'definitions') {
+        const q = result.question as DefinitionQuestion;
+        const key = q.direction === 'def-to-word' ? 'defToWord' : 'wordToDef';
+        updated = {
+          ...updated,
+          definitionStats: {
+            ...updated.definitionStats,
+            [key]: {
+              correct: updated.definitionStats[key].correct + (result.correct ? 1 : 0),
+              total: updated.definitionStats[key].total + 1,
+            },
+          },
+        };
+      }
+    }
+
     persistSave(updated);
     playSound('win');
     setScreen('victory');

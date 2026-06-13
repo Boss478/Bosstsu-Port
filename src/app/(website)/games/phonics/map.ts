@@ -6,10 +6,10 @@ import { MAP_GRID, MAP_COLS, MAP_ROWS } from './constants';
 export const BUILDINGS: MapBuilding[] = [
   { id: 'B1', x: 3, y: 3, interactive: true, label: 'Phonics Island', category: 'phonics' },
   { id: 'B2', x: 11, y: 3, interactive: false, label: 'Mystery Shop' },
-  { id: 'B3', x: 2, y: 8, interactive: false, label: 'Library' },
+  { id: 'B3', x: 2, y: 8, interactive: true, label: 'Library', category: 'spelling' },
   { id: 'B4', x: 10, y: 8, interactive: false, label: 'Clock Tower' },
   { id: 'B5', x: 15, y: 8, interactive: false, label: 'Market' },
-  { id: 'B6', x: 3, y: 12, interactive: false, label: 'School' },
+  { id: 'B6', x: 3, y: 12, interactive: true, label: 'School', category: 'definitions' },
   { id: 'B7', x: 11, y: 12, interactive: false, label: 'Garden' },
 ];
 

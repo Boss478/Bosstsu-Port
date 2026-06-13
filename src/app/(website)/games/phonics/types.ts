@@ -75,6 +75,7 @@ export interface RoundConfig {
   spellingFormat?: SpellingFormat;
   level: CefrLevel;
   length: RoundLength;
+  definitionDirection?: DefinitionDirection;
 }
 
 export interface GameRound {

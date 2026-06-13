@@ -3,24 +3,26 @@
 import { useEffect, useRef, useState } from "react";
 import { useGame } from "../context";
 import { PHONEMES, GAME_CONFIG, COMPANIONS } from "../constants";
-import type { PhonicsQuestion, PhonicsFormat } from "../types";
+import type {
+  PhonicsQuestion, SpellingQuestion, DefinitionQuestion,
+  PhonicsFormat, SpellingFormat, DefinitionDirection, CardFlipCard,
+  Question,
+} from "../types";
 import { WORDS } from "../words";
 import { useAudio } from "@/hooks/useAudio";
+import CardFlipGame from "../components/CardFlipGame";
+import SpellingQuestionComponent from "../components/SpellingQuestion";
+import DefinitionQuestionComponent from "../components/DefinitionQuestion";
 
-// ── Question Generator ─────────────────────────────────────────────────────────
-function generatePhonicsQuestions(
-  format: PhonicsFormat,
-  length: number
-): PhonicsQuestion[] {
-  // Filter words that have at least one phoneme we know
+// ── Question Generators ─────────────────────────────────────────────────────────
+
+function generatePhonicsQuestions(format: PhonicsFormat, length: number): PhonicsQuestion[] {
   const pool = WORDS.filter((w) => w.phonemes.some((p) => PHONEMES.find((ph) => ph.id === p)));
   const questions: PhonicsQuestion[] = [];
   const used = new Set<string>();
 
   for (let i = 0; i < length; i++) {
-    // Pick a random phoneme
     const phoneme = PHONEMES[Math.floor(Math.random() * PHONEMES.length)];
-    // Pick a word that contains this phoneme
     const matching = pool.filter((w) => w.phonemes.includes(phoneme.id) && !used.has(w.word));
     const word = matching.length > 0
       ? matching[Math.floor(Math.random() * matching.length)]
@@ -28,7 +30,6 @@ function generatePhonicsQuestions(
     if (!word) continue;
     used.add(word.word);
 
-    // Distractors: 3 words that do NOT contain this phoneme
     const distractors = pool
       .filter((w) => !w.phonemes.includes(phoneme.id) && w.word !== word.word)
       .sort(() => Math.random() - 0.5)
@@ -48,7 +49,106 @@ function generatePhonicsQuestions(
   return questions;
 }
 
+function generateCardFlipCards(numPairs: number): CardFlipCard[] {
+  const shuffled = [...PHONEMES].sort(() => Math.random() - 0.5);
+  const selected = shuffled.slice(0, numPairs);
+  const cards: CardFlipCard[] = [];
+  let id = 0;
+
+  for (const phoneme of selected) {
+    const word = WORDS.find((w) => w.phonemes.includes(phoneme.id));
+    cards.push({
+      id: id++,
+      type: "phoneme",
+      label: phoneme.ipa,
+      ttsText: phoneme.ttsText,
+      matchId: phoneme.id,
+      flipped: false,
+      matched: false,
+    });
+    cards.push({
+      id: id++,
+      type: "word",
+      label: word?.word ?? phoneme.example,
+      ttsText: word?.word ?? phoneme.example,
+      matchId: phoneme.id,
+      flipped: false,
+      matched: false,
+    });
+  }
+
+  return cards.sort(() => Math.random() - 0.5);
+}
+
+function generateSpellingQuestions(format: SpellingFormat, length: number): SpellingQuestion[] {
+  const pool = [...WORDS].sort(() => Math.random() - 0.5);
+  const questions: SpellingQuestion[] = [];
+
+  for (let i = 0; i < Math.min(length, pool.length); i++) {
+    const word = pool[i];
+    const inputMode: "tiles" | "choice" =
+      format === "mixed" ? (Math.random() > 0.5 ? "tiles" : "choice") : format;
+
+    const choices = (inputMode === "choice" || format === "choice")
+      ? [word.word, ...word.spellingDistractors].sort(() => Math.random() - 0.5).slice(0, 4)
+      : undefined;
+
+    questions.push({
+      category: "spelling",
+      format,
+      word,
+      inputMode,
+      choices,
+    });
+  }
+
+  return questions;
+}
+
+function generateDefinitionQuestions(
+  direction: DefinitionDirection,
+  length: number,
+): DefinitionQuestion[] {
+  const pool = [...WORDS].sort(() => Math.random() - 0.5);
+  const questions: DefinitionQuestion[] = [];
+
+  for (let i = 0; i < Math.min(length, pool.length); i++) {
+    const word = pool[i];
+    let options: string[];
+    let correctAnswer: string;
+
+    if (direction === "def-to-word") {
+      const distractors = WORDS
+        .filter((w) => w.word !== word.word)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3)
+        .map((w) => w.word);
+      options = [word.word, ...distractors].sort(() => Math.random() - 0.5);
+      correctAnswer = word.word;
+    } else {
+      const distractors = WORDS
+        .filter((w) => w.word !== word.word)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3)
+        .map((w) => w.definition);
+      options = [word.definition, ...distractors].sort(() => Math.random() - 0.5);
+      correctAnswer = word.definition;
+    }
+
+    questions.push({
+      category: "definitions",
+      direction,
+      word,
+      options,
+      correctAnswer,
+    });
+  }
+
+  return questions;
+}
+
 // ── HUD ────────────────────────────────────────────────────────────────────────
+
 function HUD({ current, total, score, streak, muted, onToggleMute, onSettings }: {
   current: number; total: number; score: number; streak: number;
   muted: boolean; onToggleMute: () => void; onSettings: () => void;
@@ -85,7 +185,6 @@ function HUD({ current, total, score, streak, muted, onToggleMute, onSettings }:
   );
 }
 
-// ── Progress bar ───────────────────────────────────────────────────────────────
 function ProgressBar({ current, total }: { current: number; total: number }) {
   const pct = total > 0 ? (current / total) * 100 : 0;
   return (
@@ -98,7 +197,6 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
   );
 }
 
-// ── Companion hint ─────────────────────────────────────────────────────────────
 function CompanionHint({ hint, companion }: { hint: string; companion: string }) {
   const data = COMPANIONS[companion];
   return (
@@ -114,7 +212,8 @@ function CompanionHint({ hint, companion }: { hint: string; companion: string })
   );
 }
 
-// ── Tap / PickWord format ──────────────────────────────────────────────────────
+// ── Tap / Speed / PickWord format ──────────────────────────────────────────────
+
 function TapQuestion({
   question, onAnswer, feedback, speak,
 }: {
@@ -125,10 +224,32 @@ function TapQuestion({
 }) {
   const [hintLevel, setHintLevel] = useState(0);
   const [wrongAttempts, setWrongAttempts] = useState(0);
+  const [timerPct, setTimerPct] = useState(100);
   const companion = useGame().companion;
+  const speedMode = question.format === "speed";
+  const feedbackRef = useRef(feedback);
+  feedbackRef.current = feedback;
+
+  useEffect(() => {
+    if (!speedMode) return;
+    setTimerPct(100);
+
+    const interval = setInterval(() => {
+      setTimerPct((prev) => Math.max(0, prev - 100 / (GAME_CONFIG.SPEED_TIMER_MS / 50)));
+    }, 50);
+
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      if (!feedbackRef.current) {
+        onAnswer("");
+      }
+    }, GAME_CONFIG.SPEED_TIMER_MS);
+
+    return () => { clearTimeout(timeout); clearInterval(interval); };
+  }, [question.phoneme.id, speedMode, onAnswer]);
 
   function handleAnswer(opt: string) {
-    if (feedback) return; // lockout during feedback
+    if (feedback) return;
     onAnswer(opt);
     if (opt !== question.correctAnswer) {
       setWrongAttempts((n) => n + 1);
@@ -142,7 +263,15 @@ function TapQuestion({
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Phoneme display */}
+      {speedMode && (
+        <div className="w-full h-3 retro-border bg-[#888888]/20 overflow-hidden">
+          <div
+            className={`h-full transition-all duration-[50ms] ${timerPct > 20 ? "bg-[#2EC4B6]" : "bg-[#FF4136]"}`}
+            style={{ width: `${timerPct}%` }}
+          />
+        </div>
+      )}
+
       <div className="retro-border bg-[#FDFBF7] dark:bg-[#101F42] p-6 text-center">
         <div
           className="text-6xl font-bold text-[#1C1C1C] dark:text-[#F7E1A0] tracking-widest"
@@ -164,7 +293,6 @@ function TapQuestion({
         WHICH WORD STARTS WITH THIS SOUND?
       </p>
 
-      {/* Options */}
       <div className="grid grid-cols-2 gap-3">
         {question.options.map((opt) => {
           const isCorrect = opt === question.correctAnswer;
@@ -187,39 +315,82 @@ function TapQuestion({
         })}
       </div>
 
-      {/* Hint */}
       {displayHint && <CompanionHint hint={displayHint} companion={companion} />}
     </div>
   );
 }
 
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+function computeCorrectAnswer(q: Question): string {
+  if (q.category === "phonics") return q.correctAnswer;
+  if (q.category === "definitions") return q.correctAnswer;
+  return q.word.word;
+}
+
 // ── Main GameScreen ────────────────────────────────────────────────────────────
+
 interface GameScreenProps {
   onRoundComplete: () => void;
 }
 
 export default function GameScreen({ onRoundComplete }: GameScreenProps) {
-  const { round, setScreen, answerQuestion, muted, toggleMute } = useGame();
+  const { round, setScreen, answerQuestion, muted, toggleMute, companion } = useGame();
   const { speak } = useAudio();
+  const [hintCount, setHintCount] = useState(0);
+
+  const cardFlipDeckRef = useRef<CardFlipCard[]>([]);
+
   const [localRound] = useState(() => {
     if (round && round.questions.length === 0) {
       const config = round.config;
-      const format = config.phonicsFormat ?? "tap";
-      const questions = generatePhonicsQuestions(format, config.length);
+      let questions: Question[] = [];
+
+      switch (config.category) {
+        case "phonics": {
+          const format = config.phonicsFormat ?? "tap";
+          if (format === "card-flip") {
+            cardFlipDeckRef.current = generateCardFlipCards(GAME_CONFIG.CARD_FLIP_PAIRS);
+            const word = WORDS[0];
+            questions.push({
+              category: "phonics",
+              format: "card-flip",
+              phoneme: PHONEMES[0],
+              word,
+              correctAnswer: word.word,
+              options: [word.word],
+            });
+          } else {
+            questions = generatePhonicsQuestions(format, config.length);
+          }
+          break;
+        }
+        case "spelling": {
+          const format = config.spellingFormat ?? "choice";
+          questions = generateSpellingQuestions(format, config.length);
+          break;
+        }
+        case "definitions": {
+          const direction = config.definitionDirection ?? "def-to-word";
+          questions = generateDefinitionQuestions(direction, config.length);
+          break;
+        }
+      }
+
       round.questions.push(...questions);
       return { ...round, questions };
     }
     return round;
   });
+
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
   const feedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const roundCompleted = useRef(false);
 
   const questions = localRound?.questions ?? round?.questions ?? [];
   const currentIndex = round?.currentIndex ?? 0;
-  const question = questions[currentIndex] as PhonicsQuestion | undefined;
+  const question = questions[currentIndex] as Question | undefined;
 
-  // Detect end of round
   useEffect(() => {
     if (!round || roundCompleted.current) return;
     if (round.currentIndex >= questions.length && questions.length > 0) {
@@ -228,9 +399,14 @@ export default function GameScreen({ onRoundComplete }: GameScreenProps) {
     }
   }, [round, questions.length, onRoundComplete]);
 
+  useEffect(() => {
+    setHintCount(0);
+  }, [currentIndex]);
+
   function handleAnswer(answer: string) {
-    if (feedback) return;
-    const correct = answer.toLowerCase() === (question?.correctAnswer ?? "").toLowerCase();
+    if (feedback || !question) return;
+
+    const correct = answer.toLowerCase() === computeCorrectAnswer(question).toLowerCase();
     setFeedback(correct ? "correct" : "wrong");
     answerQuestion(answer);
     feedbackTimer.current = setTimeout(() => {
@@ -260,17 +436,35 @@ export default function GameScreen({ onRoundComplete }: GameScreenProps) {
       <ProgressBar current={currentIndex} total={questions.length} />
 
       <div className="flex-1 flex flex-col justify-center px-4 py-6 max-w-lg mx-auto w-full">
-        {question.format === "tap" || question.format === "pick-word" || question.format === "speed" ? (
-          <TapQuestion
-            question={question}
+        {question.category === "phonics" && question.format === "card-flip" ? (
+          <CardFlipGame
+            cards={cardFlipDeckRef.current}
+            onComplete={() => handleAnswer(question.word.word)}
+            speak={speak}
+          />
+        ) : question.category === "spelling" ? (
+          <SpellingQuestionComponent
+            question={question as SpellingQuestion}
             onAnswer={handleAnswer}
             feedback={feedback}
+            companion={companion}
+            hintCount={hintCount}
+            onHint={() => setHintCount((n) => n + 1)}
+            speak={speak}
+          />
+        ) : question.category === "definitions" ? (
+          <DefinitionQuestionComponent
+            question={question as DefinitionQuestion}
+            onAnswer={handleAnswer}
+            feedback={feedback}
+            companion={companion}
+            hintCount={hintCount}
+            onHint={() => setHintCount((n) => n + 1)}
             speak={speak}
           />
         ) : (
-          // card-flip falls back to tap for MVP
           <TapQuestion
-            question={question}
+            question={question as PhonicsQuestion}
             onAnswer={handleAnswer}
             feedback={feedback}
             speak={speak}

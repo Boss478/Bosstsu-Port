@@ -5,6 +5,9 @@
 
 
 
+## v1.10.9 (2026-06-13)
+* **Bar chart baseline alignment + layout reorder**: `TrafficVerticalChart` zero-view bars now use `minHeight: d.views > 0 ? 2 : 0` instead of `min-h-[2px]`, matching `HourlyChart`/`DayOfWeekChart` pattern so all bar baselines align at the same Y level. Moved Time Distribution section (weekly + hourly charts) directly below Daily Traffic (monthly) for logical grouping.
+
 ## v1.10.8 (2026-06-12)
 * **Daily Traffic chart zero-day fill**: Chart title "Daily Traffic (30 Days)" was misleading — only showed days with ≥1 view (3-4 sparse bars). Now `useMemo` generates a full 30-day date range client-side, filling missing days with `views: 0`. Title dynamically shows active days: "Daily Traffic (X of 30 Days)". Zero-view days render as minimal 2px bars for accurate timeline visualization.
 

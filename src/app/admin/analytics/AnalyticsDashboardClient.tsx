@@ -51,8 +51,8 @@ function TrafficVerticalChart({ data }: { data: { date: string; views: number }[
             className="flex-1 flex flex-col items-center justify-end h-full group relative"
           >
             <div
-              className="w-full bg-blue-500 dark:bg-blue-400 rounded-t transition-all hover:opacity-80 cursor-pointer min-h-[2px]"
-              style={{ height: `${h}%` }}
+              className="w-full bg-blue-500 dark:bg-blue-400 rounded-t transition-all hover:opacity-80 cursor-pointer"
+              style={{ height: `${h}%`, minHeight: d.views > 0 ? 2 : 0 }}
               title={`${d.date} — ${formatNumber(d.views)} views`}
             />
             {showLabel && (
@@ -592,6 +592,45 @@ export default function AnalyticsDashboardClient({
               )}
             </div>
 
+            {/* Time Distribution */}
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
+                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
+                  <i aria-hidden="true" className="fi fi-sr-calendar text-blue-500 text-base" />
+                  วันในสัปดาห์
+                </h2>
+                {stats.viewsOverTime.length > 0 ? (
+                  <DayOfWeekChart data={stats.viewsOverTime} />
+                ) : (
+                  <p className="text-zinc-400 text-sm">ยังไม่มีข้อมูล</p>
+                )}
+              </div>
+
+              <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
+                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
+                  <i aria-hidden="true" className="fi fi-sr-clock text-blue-500 text-base" />
+                  ชั่วโมงในแต่ละวัน
+                </h2>
+                {stats.hourlyDistribution.length > 0 ? (
+                  <div>
+                    <HourlyChart data={stats.hourlyDistribution} />
+                    <div
+                      className="flex justify-between text-[10px] text-zinc-400 mt-1"
+                      style={{ paddingLeft: '36px' }}
+                    >
+                      <span>0:00</span>
+                      <span>6:00</span>
+                      <span>12:00</span>
+                      <span>18:00</span>
+                      <span>23:00</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-zinc-400 text-sm">ยังไม่มีข้อมูล</p>
+                )}
+              </div>
+            </div>
+
             {/* Rich Data Grid */}
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               {/* Device Breakdown */}
@@ -652,45 +691,6 @@ export default function AnalyticsDashboardClient({
                         </span>
                       </div>
                     ))}
-                  </div>
-                ) : (
-                  <p className="text-zinc-400 text-sm">ยังไม่มีข้อมูล</p>
-                )}
-              </div>
-            </div>
-
-            {/* Time Distribution */}
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
-              <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
-                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
-                  <i aria-hidden="true" className="fi fi-sr-calendar text-blue-500 text-base" />
-                  วันในสัปดาห์
-                </h2>
-                {stats.viewsOverTime.length > 0 ? (
-                  <DayOfWeekChart data={stats.viewsOverTime} />
-                ) : (
-                  <p className="text-zinc-400 text-sm">ยังไม่มีข้อมูล</p>
-                )}
-              </div>
-
-              <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
-                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
-                  <i aria-hidden="true" className="fi fi-sr-clock text-blue-500 text-base" />
-                  ชั่วโมงในแต่ละวัน
-                </h2>
-                {stats.hourlyDistribution.length > 0 ? (
-                  <div>
-                    <HourlyChart data={stats.hourlyDistribution} />
-                    <div
-                      className="flex justify-between text-[10px] text-zinc-400 mt-1"
-                      style={{ paddingLeft: '36px' }}
-                    >
-                      <span>0:00</span>
-                      <span>6:00</span>
-                      <span>12:00</span>
-                      <span>18:00</span>
-                      <span>23:00</span>
-                    </div>
                   </div>
                 ) : (
                   <p className="text-zinc-400 text-sm">ยังไม่มีข้อมูล</p>
