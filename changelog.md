@@ -5,6 +5,11 @@
 
 
 
+## v1.10.10 (2026-06-13)
+* **Bar chart baseline alignment**: Moved date labels out of bar columns into a separate flex row below `TrafficVerticalChart`. Bars with labels were being pushed up by ~14px (label height), creating a dual baseline. All bars now share the same bottom line.
+* **Hourly chart — today-only**: Changed hourly `$match` aggregation from 30-day window to `todayStartBangkok`. Uses `Asia/Bangkok` timezone offset (UTC+7) so hours 0–current are correctly captured; future hours show as zero.
+* **Hourly chart — aligned labels**: Replaced hardcoded `justify-between` + `paddingLeft: 36px` label row with a flex row matching the bar layout (24 × `flex-1`, `gap-[2px]`).
+
 ## v1.10.9 (2026-06-13)
 * **Bar chart baseline alignment + layout reorder**: `TrafficVerticalChart` zero-view bars now use `minHeight: d.views > 0 ? 2 : 0` instead of `min-h-[2px]`, matching `HourlyChart`/`DayOfWeekChart` pattern so all bar baselines align at the same Y level. Moved Time Distribution section (weekly + hourly charts) directly below Daily Traffic (monthly) for logical grouping.
 

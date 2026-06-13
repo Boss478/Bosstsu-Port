@@ -144,7 +144,8 @@ export async function getAnalyticsStats(): Promise<AnalyticsStats> {
   const todayStr = todayStart.toISOString().slice(0, 10);
   const yesterdayStart = new Date(todayStart.getTime() - 86400000);
   const ninetyDaysAgo = new Date(todayStart.getTime() - 90 * 86400000);
-  const thirtyDaysAgo = new Date(todayStart.getTime() - 30 * 86400000);
+  const BANGKOK_OFFSET_MS = 7 * 60 * 60 * 1000;
+  const todayStartBangkok = new Date(todayStart.getTime() - BANGKOK_OFFSET_MS);
 
   const [
     summary,
@@ -200,7 +201,7 @@ export async function getAnalyticsStats(): Promise<AnalyticsStats> {
         $match: {
           type: 'pageview',
           path: { $not: /^\/test\//i },
-          timestamp: { $gte: thirtyDaysAgo },
+          timestamp: { $gte: todayStartBangkok },
         },
       },
       {

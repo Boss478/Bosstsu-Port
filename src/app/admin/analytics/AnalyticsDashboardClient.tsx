@@ -41,28 +41,38 @@ function TrafficVerticalChart({ data }: { data: { date: string; views: number }[
   const maxViews = Math.max(...data.map((d) => d.views), 1);
 
   return (
-    <div className="flex items-end gap-[3px] h-64">
-      {data.map((d, i) => {
-        const h = (d.views / maxViews) * 100;
-        const showLabel = i === 0 || i === data.length - 1 || i % 5 === 0;
-        return (
-          <div
-            key={d.date}
-            className="flex-1 flex flex-col items-center justify-end h-full group relative"
-          >
+    <div>
+      <div className="flex items-end gap-[3px] h-64">
+        {data.map((d) => {
+          const h = (d.views / maxViews) * 100;
+          return (
             <div
-              className="w-full bg-blue-500 dark:bg-blue-400 rounded-t transition-all hover:opacity-80 cursor-pointer"
-              style={{ height: `${h}%`, minHeight: d.views > 0 ? 2 : 0 }}
-              title={`${d.date} — ${formatNumber(d.views)} views`}
-            />
-            {showLabel && (
-              <span className="text-[9px] text-zinc-400 mt-0.5 truncate w-full text-center leading-tight">
-                {d.date.slice(5)}
-              </span>
-            )}
-          </div>
-        );
-      })}
+              key={d.date}
+              className="flex-1 flex flex-col items-center justify-end h-full group relative"
+            >
+              <div
+                className="w-full bg-blue-500 dark:bg-blue-400 rounded-t transition-all hover:opacity-80 cursor-pointer"
+                style={{ height: `${h}%`, minHeight: d.views > 0 ? 2 : 0 }}
+                title={`${d.date} — ${formatNumber(d.views)} views`}
+              />
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex gap-[3px] mt-0.5">
+        {data.map((d, i) => {
+          const showLabel = i === 0 || i === data.length - 1 || i % 5 === 0;
+          return (
+            <div key={d.date} className="flex-1 text-center">
+              {showLabel && (
+                <span className="text-[9px] text-zinc-400 truncate leading-tight block">
+                  {d.date.slice(5)}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -614,15 +624,19 @@ export default function AnalyticsDashboardClient({
                 {stats.hourlyDistribution.length > 0 ? (
                   <div>
                     <HourlyChart data={stats.hourlyDistribution} />
-                    <div
-                      className="flex justify-between text-[10px] text-zinc-400 mt-1"
-                      style={{ paddingLeft: '36px' }}
-                    >
-                      <span>0:00</span>
-                      <span>6:00</span>
-                      <span>12:00</span>
-                      <span>18:00</span>
-                      <span>23:00</span>
+                    <div className="flex gap-[2px] mt-1">
+                      {Array.from({ length: 24 }).map((_, i) => {
+                        const showLabel = i === 0 || i === 6 || i === 12 || i === 18 || i === 23;
+                        return (
+                          <div key={i} className="flex-1 text-center">
+                            {showLabel && (
+                              <span className="text-[9px] text-zinc-400 leading-tight block">
+                                {i}:00
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 ) : (
