@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PhonicsClient from "./PhonicsClient";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 export const dynamic = "force-dynamic";
 
@@ -9,5 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default function PhonicsPage() {
-  return <PhonicsClient />;
+  return (
+    <ErrorBoundary>
+      <PhonicsClient />
+    </ErrorBoundary>
+  );
 }

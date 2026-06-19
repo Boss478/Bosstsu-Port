@@ -242,10 +242,6 @@ body {
 @utility animate-float-up {
   animation: float-up 25s linear infinite;
 }
-@utility section-divider {
-  @apply h-px bg-gradient-to-r from-transparent via-blue-300/50 dark:via-blue-600/30 to-transparent;
-}
-
 /* ─── Homepage Scrolling Animations ─── */
 @keyframes fadeLeft {
   from {
@@ -510,53 +506,22 @@ body {
 }
 
 body.python-fullscreen #site-header,
-body.python-fullscreen footer,
-body.phonics-fullscreen #site-header,
-body.phonics-fullscreen footer {
+body.python-fullscreen footer {
   display: none;
 }
 
+body:has(.phonics-game) #site-header,
+body:has(.phonics-game) footer {
+  display: none;
+}
+
+body:has(.phonics-game) #main-content {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
 /* ─── Phonics Game ──────────────────────────────────────────────────────────── */
-
-/* CRT scanline overlay */
-.scanline-overlay {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent 0px,
-    transparent 2px,
-    rgba(0, 0, 0, 0.08) 2px,
-    rgba(0, 0, 0, 0.08) 4px
-  );
-}
-.dark .scanline-overlay {
-  background: repeating-linear-gradient(
-    0deg,
-    transparent 0px,
-    transparent 2px,
-    rgba(0, 0, 0, 0.18) 2px,
-    rgba(0, 0, 0, 0.18) 4px
-  );
-}
-
-/* Retro double-bevel border */
-.retro-border {
-  border: 4px solid #1c1c1c;
-  box-shadow:
-    inset -4px -4px 0px 0px #888888,
-    inset 4px 4px 0px 0px #f0f0f0,
-    4px 4px 0px 0px rgba(0, 0, 0, 0.15);
-}
-.dark .retro-border {
-  border: 4px solid #d4af37;
-  box-shadow:
-    inset -4px -4px 0px 0px #4a3c18,
-    inset 4px 4px 0px 0px #fff1cc,
-    4px 4px 0px 0px rgba(0, 0, 0, 0.3);
-}
 
 /* Phonics Island feedback animations */
 @keyframes correct-bounce {
@@ -595,24 +560,6 @@ body.phonics-fullscreen footer {
 }
 @utility animate-wrong-shake {
   animation: wrong-shake 0.4s ease-in-out;
-}
-
-@keyframes star-pop {
-  0% {
-    transform: scale(0) rotate(-15deg);
-    opacity: 0;
-  }
-  70% {
-    transform: scale(1.2) rotate(5deg);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-    opacity: 1;
-  }
-}
-@utility animate-star-pop {
-  animation: star-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 @keyframes slide-up-modal {
@@ -703,4 +650,195 @@ textarea,
   outline-offset: 2px;
   border-radius: 8px;
 }
+
+/* ─── Mascot Companion Animations ───────────────────────────────────────── */
+@keyframes breathe {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(calc(-1 * var(--breathe-height, 4px))); }
+}
+@utility animate-breathe {
+  animation: breathe var(--breathe-speed, 2.5s) ease-in-out infinite;
+}
+
+@keyframes think {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  20% { transform: rotate(-6deg) translateY(-2px); }
+  40% { transform: rotate(6deg) translateY(-1px); }
+  60% { transform: rotate(-4deg); }
+  80% { transform: rotate(4deg); }
+}
+@utility animate-think {
+  animation: think 1.8s ease-in-out infinite;
+}
+
+@keyframes celebrate {
+  0% { transform: scale(1) rotate(0deg); }
+  20% { transform: scale(1.2) rotate(-6deg); }
+  40% { transform: scale(1.15) rotate(6deg); }
+  60% { transform: scale(1.08) rotate(-3deg); }
+  80% { transform: scale(1.04) rotate(3deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+@utility animate-celebrate {
+  animation: celebrate 0.6s ease-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-7px); }
+  30% { transform: translateX(7px); }
+  45% { transform: translateX(-5px); }
+  60% { transform: translateX(5px); }
+  75% { transform: translateX(-3px); }
+  90% { transform: translateX(3px); }
+}
+@utility animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* ─── Phonics Game Redesign Utilities ───────────────────────────────────── */
+:root {
+  --glass-level: 0.5;
+}
+
+.glass-panel {
+  --_g: clamp(0.08, var(--glass-level), 0.95);
+  background: rgba(255, 255, 255, var(--_g));
+  backdrop-filter: blur(calc(var(--_g) * 28.8px)) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, calc(var(--_g) * 0.9));
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
+}
+.dark .glass-panel {
+  background: rgba(10, 17, 40, var(--_g));
+  border: 1px solid rgba(255, 255, 255, calc(var(--_g) * 0.1));
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+}
+
+.glass-elem {
+  --_g: clamp(0.08, var(--glass-level), 0.95);
+  background: rgba(255, 255, 255, var(--_g));
+  backdrop-filter: blur(calc(var(--_g) * 14.4px)) saturate(120%);
+}
+.dark .glass-elem {
+  background: rgba(10, 17, 40, var(--_g));
+}
+
+.glass-light {
+  --_g: clamp(0.04, calc(var(--glass-level) * 0.65), 0.85);
+  background: rgba(255, 255, 255, var(--_g));
+  backdrop-filter: blur(calc(var(--_g) * 10.8px)) saturate(120%);
+}
+.dark .glass-light {
+  background: rgba(10, 17, 40, var(--_g));
+}
+
+.glass-heavy {
+  --_g: clamp(0.12, calc(var(--glass-level) + 0.2), 0.95);
+  background: rgba(255, 255, 255, var(--_g));
+  backdrop-filter: blur(calc(var(--_g) * 18px)) saturate(120%);
+}
+.dark .glass-heavy {
+  background: rgba(10, 17, 40, var(--_g));
+}
+
+:where(.glass-elem, .glass-light, .glass-heavy) {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+:where(.glass-heavy) {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.dark :where(.glass-elem, .glass-light, .glass-heavy) {
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+.dark :where(.glass-heavy) {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.btn-3d {
+  position: relative;
+  border-bottom: 4px solid var(--border-color, rgba(0, 0, 0, 0.2));
+  transition: transform 0.08s ease, border-bottom-width 0.08s ease, box-shadow 0.08s ease;
+}
+.btn-3d:hover {
+  transform: translateY(-2px);
+  border-bottom-width: 6px;
+}
+.btn-3d:active, .btn-3d-active {
+  transform: translateY(4px) !important;
+  border-bottom-width: 0px !important;
+}
+
+/* 3D card flip structure */
+.perspective-1000 {
+  perspective: 1000px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Animation utilities */
+@keyframes audio-ripple {
+  0% { transform: scale(0.95); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+@utility animate-audio-ripple {
+  animation: audio-ripple 1.8s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+}
+
+@keyframes float-island {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@utility animate-float-island {
+  animation: float-island 4s ease-in-out infinite;
+}
+
+@keyframes slide-up-drawer {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@utility animate-slide-up-drawer {
+  animation: slide-up-drawer 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes star-pop {
+  0% { transform: scale(0) rotate(-15deg); opacity: 0; }
+  70% { transform: scale(1.2) rotate(10deg); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+@utility animate-star-pop {
+  animation: star-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.5; box-shadow: 0 0 0 0 rgba(46, 196, 182, 0.7); }
+  70% { transform: scale(1); opacity: 0.9; box-shadow: 0 0 0 10px rgba(46, 196, 182, 0); }
+  100% { transform: scale(0.95); opacity: 0.5; box-shadow: 0 0 0 0 rgba(46, 196, 182, 0); }
+}
+@utility animate-pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@utility image-rendering-pixelated {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: pixelated;
+}
+
+@keyframes screen-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@utility animate-screen-enter {
+  animation: screen-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+
 

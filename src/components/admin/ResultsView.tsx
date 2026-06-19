@@ -5,6 +5,7 @@ import ExportButton from './ExportButton';
 import DeleteButton from './DeleteButton';
 import { deleteResponse, deleteAllResponses, toggleQAAnswered } from '@/app/admin/tools/actions';
 import { t } from '@/lib/tool-translations';
+import MascotAvatar from '@/components/tools/mascots/MascotAvatar';
 
 interface ResultsViewProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -15,6 +16,7 @@ interface ResultsViewProps {
   onToggleFullScreen?: () => void;
   refreshInterval?: number;
   sessionCurrentStep?: number;
+  refreshTrigger?: number;
 }
 
 const TOOL_LABELS: Record<string, string> = {
@@ -26,7 +28,7 @@ const TOOL_LABELS: Record<string, string> = {
   exit_ticket: 'Exit Ticket',
 };
 
-export default function ResultsView({ session, initialResponses, fullScreen, onToggleFullScreen, refreshInterval = 15000, sessionCurrentStep = -1 }: ResultsViewProps) {
+export default function ResultsView({ session, initialResponses, fullScreen, onToggleFullScreen, refreshInterval = 15000, sessionCurrentStep = -1, refreshTrigger }: ResultsViewProps) {
   const [responses, setResponses] = useState(initialResponses);
   const [refreshing, setRefreshing] = useState(false);
   const [columnsPerRow, setColumnsPerRow] = useState<number | null>(null);
@@ -34,6 +36,11 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
   const [previewFileUrl, setPreviewFileUrl] = useState<string | null>(null);
   const [previewFileType, setPreviewFileType] = useState<'image' | 'pdf' | 'other' | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    fetchResponses();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]);
 
   const steps = session.steps as Array<{ type: string; title: string; config?: Record<string, unknown> }> | undefined;
   const hasSteps = steps && steps.length > 1;
@@ -162,10 +169,17 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
             className={`grid grid-cols-1 gap-4 ${columnsPerRow === null ? (fullScreen ? 'sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6' : 'sm:grid-cols-2 lg:grid-cols-3') : ''}`}
             style={columnsPerRow !== null ? { gridTemplateColumns: `repeat(${columnsPerRow}, minmax(0, 1fr))` } : undefined}
           >
-            {stepRes.map((r: { _id: string; studentName?: string; content: { message?: string }; createdAt: string }) => (
+            {stepRes.map((r: { _id: string; studentName?: string; mascot?: string; content: { message?: string }; createdAt: string }) => (
               <div key={r._id} className="p-4 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{r.studentName || 'Anonymous'}</span>
+                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                    {r.mascot && (
+                      <div className="w-4 h-4 rounded overflow-hidden shrink-0">
+                        <MascotAvatar mascotId={r.mascot} size={16} />
+                      </div>
+                    )}
+                    {r.studentName || 'Anonymous'}
+                  </span>
                   <DeleteButton id={r._id} action={deleteResponse} />
                 </div>
                 <p className="text-zinc-700 dark:text-zinc-300 text-sm break-words">{r.content?.message}</p>
@@ -190,9 +204,18 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
                 </tr>
               </thead>
               <tbody>
-                {stepRes.map((r: { _id: string; studentName?: string; content: { answer?: string }; fileUrl?: string; ip?: string; createdAt: string }) => (
+                {stepRes.map((r: { _id: string; studentName?: string; mascot?: string; content: { answer?: string }; fileUrl?: string; ip?: string; createdAt: string }) => (
                   <tr key={r._id} className="border-b last:border-0 border-zinc-100/60 dark:border-slate-700/30">
-                    <td className="p-4 font-semibold text-zinc-900 dark:text-zinc-100">{r.studentName || 'Anonymous'}</td>
+                    <td className="p-4 font-semibold text-zinc-900 dark:text-zinc-100">
+                      <span className="inline-flex items-center gap-1.5">
+                        {r.mascot && (
+                          <span className="w-4 h-4 rounded overflow-hidden shrink-0 inline-block">
+                            <MascotAvatar mascotId={r.mascot} size={16} />
+                          </span>
+                        )}
+                        {r.studentName || 'Anonymous'}
+                      </span>
+                    </td>
                     <td className="p-4 hidden md:table-cell text-sm text-zinc-600 dark:text-zinc-400 max-w-xs truncate">{r.content?.answer}</td>
                     <td className="p-4 hidden lg:table-cell text-xs text-zinc-400 font-mono">{r.ip || '—'}</td>
                     <td className="p-4 hidden md:table-cell">
@@ -215,7 +238,7 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
           <div className="space-y-3">
             {stepRes
               .sort((a: { content: { upvotes?: number } }, b: { content: { upvotes?: number } }) => (b.content?.upvotes || 0) - (a.content?.upvotes || 0))
-              .map((r: { _id: string; studentName?: string; content: { question?: string; upvotes?: number; isAnswered?: boolean }; createdAt: string }) => (
+              .map((r: { _id: string; studentName?: string; mascot?: string; content: { question?: string; upvotes?: number; isAnswered?: boolean }; createdAt: string }) => (
                 <div key={r._id} className={`p-4 rounded-xl backdrop-blur-sm border shadow-sm ${
                   r.content?.isAnswered
                     ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
@@ -223,7 +246,14 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
                 }`}>
                   <div className="flex items-start gap-3">
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-xs text-blue-600 dark:text-blue-400 mb-1">{r.studentName || 'Anonymous'}</p>
+                      <p className="font-semibold text-xs text-blue-600 dark:text-blue-400 mb-1 flex items-center gap-1.5">
+                        {r.mascot && (
+                          <div className="w-4 h-4 rounded overflow-hidden shrink-0">
+                            <MascotAvatar mascotId={r.mascot} size={16} />
+                          </div>
+                        )}
+                        {r.studentName || 'Anonymous'}
+                      </p>
                       <p className="text-zinc-700 dark:text-zinc-300 break-words">{r.content?.question}</p>
                       <p className="text-xs text-zinc-400 mt-1">
                         {r.content?.upvotes || 0} upvote{r.content?.upvotes !== 1 ? 's' : ''} · {new Date(r.createdAt).toLocaleTimeString('th-TH')}
@@ -565,7 +595,7 @@ function PollResults({ responses, session, onDelete }: { responses: { _id: strin
   );
 }
 
-function QuizResults({ responses, session, onDelete }: { responses: { _id: string; studentName?: string; content: { score?: number; total?: number; answers?: Record<string, number> } }[]; session: { config: { questions?: { correctAnswer?: number }[] } }; onDelete: (id: string) => void }) {
+function QuizResults({ responses, session, onDelete }: { responses: { _id: string; studentName?: string; mascot?: string; content: { score?: number; total?: number; answers?: Record<string, number> } }[]; session: { config: { questions?: { correctAnswer?: number }[] } }; onDelete: (id: string) => void }) {
   const total = session.config?.questions?.length || 0;
 
   return (
@@ -579,10 +609,17 @@ function QuizResults({ responses, session, onDelete }: { responses: { _id: strin
           </tr>
         </thead>
         <tbody>
-          {responses.map((r) => (
+          {responses.map((r: { _id: string; studentName?: string; mascot?: string; content: { score?: number; total?: number; answers?: Record<string, number> } }) => (
             <tr key={r._id} className="border-b last:border-0 border-zinc-100/60 dark:border-slate-700/30">
               <td className="p-4 font-semibold text-zinc-900 dark:text-zinc-100">
-                {r.studentName || 'Anonymous'}
+                <span className="inline-flex items-center gap-1.5">
+                  {r.mascot && (
+                    <span className="w-4 h-4 rounded overflow-hidden shrink-0 inline-block">
+                      <MascotAvatar mascotId={r.mascot} size={16} />
+                    </span>
+                  )}
+                  {r.studentName || 'Anonymous'}
+                </span>
               </td>
               <td className="p-4 text-right font-bold text-blue-600 dark:text-blue-400">
                 {r.content?.score || 0} / {total}
@@ -598,7 +635,7 @@ function QuizResults({ responses, session, onDelete }: { responses: { _id: strin
   );
 }
 
-function ExitTicketResults({ responses, onDelete }: { responses: { _id: string; studentName?: string; content: { learned?: string; question?: string; wantToKnow?: string } }[]; onDelete: (id: string) => void }) {
+function ExitTicketResults({ responses, onDelete }: { responses: { _id: string; studentName?: string; mascot?: string; content: { learned?: string; question?: string; wantToKnow?: string } }[]; onDelete: (id: string) => void }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {(['learned', 'question', 'wantToKnow'] as const).map((field) => (
@@ -611,7 +648,14 @@ function ExitTicketResults({ responses, onDelete }: { responses: { _id: string; 
               .filter(r => r.content?.[field])
               .map(r => (
                 <div key={r._id} className="pb-3 border-b last:border-0 border-zinc-100 dark:border-slate-700/50">
-                  <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">{r.studentName || 'Anonymous'}</p>
+                  <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1.5 flex-wrap">
+                    {r.mascot && (
+                      <span className="w-4 h-4 rounded overflow-hidden shrink-0 inline-block">
+                        <MascotAvatar mascotId={r.mascot} size={16} />
+                      </span>
+                    )}
+                    {r.studentName || 'Anonymous'}
+                  </p>
                   <p className="text-sm text-zinc-700 dark:text-zinc-300">{r.content?.[field]}</p>
                 </div>
               ))}

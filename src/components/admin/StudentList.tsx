@@ -2,19 +2,22 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { deleteStudentResponses } from '@/app/admin/tools/actions';
+import MascotAvatar from '@/components/tools/mascots/MascotAvatar';
 
 interface Participant {
   studentToken: string;
   studentName?: string;
+  mascot?: string;
   createdAt: string;
   responseCount: number;
 }
 
 interface StudentListProps {
   sessionId: string;
+  onStudentRemoved?: () => void;
 }
 
-export default function StudentList({ sessionId }: StudentListProps) {
+export default function StudentList({ sessionId, onStudentRemoved }: StudentListProps) {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState<string | null>(null);
@@ -49,6 +52,9 @@ export default function StudentList({ sessionId }: StudentListProps) {
     setRemoving(null);
     if (!result?.error) {
       setParticipants((prev) => prev.filter((p) => p.studentToken !== studentToken));
+      onStudentRemoved?.();
+    } else {
+      alert(result.error);
     }
   };
 
@@ -90,7 +96,13 @@ export default function StudentList({ sessionId }: StudentListProps) {
                 >
                   <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">
                     <div className="flex items-center gap-2">
-                      <i aria-hidden="true" className="fi fi-sr-user text-xs text-zinc-400" />
+                      {p.mascot ? (
+                        <div className="w-5 h-5 rounded overflow-hidden shrink-0">
+                          <MascotAvatar mascotId={p.mascot} size={20} />
+                        </div>
+                      ) : (
+                        <i aria-hidden="true" className="fi fi-sr-user text-xs text-zinc-400" />
+                      )}
                       <span>{p.studentName || 'Anonymous'}</span>
                     </div>
                   </td>

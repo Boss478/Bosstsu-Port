@@ -3,6 +3,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 interface IToolResponse extends Document {
   sessionId: mongoose.Types.ObjectId;
   studentName?: string;
+  mascot?: string;
   content: Record<string, unknown>;
   fileUrl?: string;
   studentToken?: string;
@@ -16,6 +17,7 @@ const ToolResponseSchema = new Schema(
   {
     sessionId: { type: Schema.Types.ObjectId, ref: 'ToolSession', required: true },
     studentName: { type: String },
+    mascot: { type: String },
     content: { type: Schema.Types.Mixed, required: true },
     fileUrl: { type: String },
     studentToken: { type: String },

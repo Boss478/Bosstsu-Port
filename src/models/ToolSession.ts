@@ -4,6 +4,7 @@ export type ToolType = 'padlet' | 'poll' | 'assignment' | 'qa_board' | 'quiz' | 
 
 interface ISessionConfig {
   prompt?: string;
+  enableMascots?: boolean;
   allowAnonymous?: boolean;
   maxSubmissions?: number;
   allowFileUpload?: boolean;
@@ -39,10 +40,12 @@ interface IToolSession extends Document {
   participantCount: number;
   responseCount: number;
   createdAt: Date;
+  kickedStudents: string[];
 }
 
 const StepConfigFields = {
   prompt: { type: String },
+  enableMascots: { type: Boolean, default: true },
   allowAnonymous: { type: Boolean, default: false },
   maxSubmissions: { type: Number, default: 1 },
   allowFileUpload: { type: Boolean, default: false },
@@ -80,6 +83,7 @@ const ToolSessionSchema = new Schema(
     currentStep: { type: Number, default: -1 },
     lastActiveStep: { type: Number, default: -1 },
     allowStudentNavigation: { type: Boolean, default: false },
+    kickedStudents: [{ type: String }],
   },
   { timestamps: true }
 );

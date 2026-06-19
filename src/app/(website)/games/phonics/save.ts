@@ -15,7 +15,7 @@ export function getDefaultSave(name: string): SaveData {
     totalCorrects: 0,
     phonemeCoins: 0,
     phonemeStats: {},
-    settings: { muted: false, crtEffect: false },
+    settings: { muted: false, glassLevel: 25 },
     tutorialCompleted: false,
     totalRoundsPlayed: 0,
     bestStreak: 0,
@@ -24,6 +24,11 @@ export function getDefaultSave(name: string): SaveData {
       defToWord: { correct: 0, total: 0 },
       wordToDef: { correct: 0, total: 0 },
     },
+    lessonProgress: {},
+    activityProgress: {},
+    unlockedCompanions: ['nox', 'mira', 'chip'],
+    cefrLevel: 'a1',
+    cefrUpgradeStreak: 0,
   };
 }
 
@@ -44,6 +49,24 @@ export function loadSave(slot: number): SaveData | null {
         wordToDef: { correct: 0, total: 0 },
       };
     }
+    if (!data.lessonProgress) {
+      data.lessonProgress = {};
+    }
+    if (!data.activityProgress) {
+      data.activityProgress = {};
+    }
+    if (!data.unlockedCompanions) {
+      data.unlockedCompanions = ['nox', 'mira', 'chip'];
+    }
+    if (!data.cefrLevel) {
+      data.cefrLevel = 'a1';
+    }
+    if (typeof data.cefrUpgradeStreak !== 'number') {
+      data.cefrUpgradeStreak = 0;
+    }
+    if (typeof data.settings.glassLevel !== 'number') {
+      data.settings.glassLevel = 25;
+    }
     return data;
   } catch (e) {
     console.warn('[phonics] Save load error:', e);
@@ -51,8 +74,21 @@ export function loadSave(slot: number): SaveData | null {
   }
 }
 
+const OLD_LESSON_PREFIXES = ['basic-', 'cons-', 'vowel-', 'long-', 'diph-', 'master-'];
+
+function hasOldLessonIds(data: Partial<SaveData>): boolean {
+  if (!data.lessonProgress) return false;
+  return Object.keys(data.lessonProgress).some(k =>
+    OLD_LESSON_PREFIXES.some(prefix => k.startsWith(prefix))
+  );
+}
+
 function migrateSave(data: Partial<SaveData>): SaveData {
   const defaults = getDefaultSave(data.name ?? 'Slot');
+  // Version 1→2: path redesign — clear old lesson progress
+  if (hasOldLessonIds(data)) {
+    data.lessonProgress = {};
+  }
   return { ...defaults, ...data, version: SAVE_VERSION };
 }
 
@@ -69,6 +105,7 @@ export function writeSave(slot: number, data: SaveData): void {
 export function deleteSave(slot: number): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(`${PREFIX}${slot}`);
+  try { localStorage.removeItem('phonics-companion-pos'); } catch {}
 }
 
 export function getActiveSlot(): number | 'guest' {

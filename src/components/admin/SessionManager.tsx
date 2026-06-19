@@ -8,12 +8,12 @@ import QRSessionCode from '@/components/tools/QRSessionCode';
 interface SessionManagerProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
+  origin?: string;
   onToggleCodeFullScreen?: () => void;
 }
 
-export default function SessionManager({ session, onToggleCodeFullScreen }: SessionManagerProps) {
+export default function SessionManager({ session, origin, onToggleCodeFullScreen }: SessionManagerProps) {
   const [pending, setPending] = useState(false);
-  const [origin] = useState(() => (typeof window !== 'undefined' ? window.location.origin : ''));
 
   const handleEnd = async () => {
     if (!confirm('End this session? Students will no longer be able to submit responses.')) return;

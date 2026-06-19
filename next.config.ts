@@ -6,8 +6,9 @@ const nextConfig: NextConfig = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 })({
   output: 'standalone',
+  outputFileTracingRoot: process.cwd(),
   compress: true,
-  // reactCompiler: true, // Disabled — causes hydration error #418 (args[]=HTML) on admin/analytics
+  reactCompiler: true, // Auto-memoization via React Forget
   poweredByHeader: false,
   allowedDevOrigins: ['localhost', '100.97.15.5', '0.0.0.0'],
   experimental: {
@@ -50,7 +51,7 @@ const nextConfig: NextConfig = withBundleAnalyzer({
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=()' },
           {
             key: 'Content-Security-Policy',
             // unsafe-inline/unsafe-eval: kept for dev mode compatibility
@@ -62,6 +63,7 @@ const nextConfig: NextConfig = withBundleAnalyzer({
               "img-src 'self' data: blob: https: http:",
               "connect-src 'self' https://cdn.jsdelivr.net",
               "worker-src 'self' blob:",
+              "media-src 'self' data: blob: https://api.dictionaryapi.dev",
               "frame-ancestors 'self'",
             ].join('; '),
           },

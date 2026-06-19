@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { studentName, content, fileUrl, stepIndex } = body;
+    const { studentName, mascot, content, fileUrl, stepIndex } = body;
 
     if (!content || typeof content !== 'object') {
       return NextResponse.json({ error: 'Invalid content' }, { status: 400 });
@@ -129,6 +129,7 @@ export async function POST(req: NextRequest) {
     const response = await ToolResponse.create({
       sessionId,
       studentName: studentName || null,
+      mascot: mascot || null,
       content,
       fileUrl: fileUrl || null,
       studentToken,

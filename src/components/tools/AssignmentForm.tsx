@@ -9,9 +9,11 @@ interface AssignmentFormProps {
   session: any;
   stepIndex?: number;
   studentName?: string;
+  mascot?: string;
+  onMascotEvent?: (event: 'celebrate' | 'correct' | 'wrong') => void;
 }
 
-export default function AssignmentForm({ session, stepIndex, studentName: propName }: AssignmentFormProps) {
+export default function AssignmentForm({ session, stepIndex, studentName: propName, mascot, onMascotEvent }: AssignmentFormProps) {
   const [studentName, setStudentName] = useState(propName || '');
   const [answer, setAnswer] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -129,6 +131,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
         formData.set('studentName', studentName);
         formData.set('content', JSON.stringify({ answer: answer.trim() }));
         if (stepIndex !== undefined) formData.set('stepIndex', String(stepIndex));
+        if (mascot) formData.set('mascot', mascot);
         if (file) formData.set('file', file);
 
         const res = await fetch('/api/tools/respond', {
@@ -154,6 +157,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
           setResponseId(data.id);
           setEditToken(data.editToken);
           setFileUrl(data.fileUrl || null);
+          onMascotEvent?.('celebrate');
           if (typeof window !== 'undefined') {
             localStorage.setItem(STORAGE_KEY, JSON.stringify({
               responseId: data.id,
@@ -187,7 +191,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
           <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('name')}</label>
-              <p className="text-zinc-900 dark:text-zinc-100 font-medium">{studentName || t('anonymous')}</p>
+              <p className="text-zinc-900 dark:text-zinc-100 font-medium flex items-center gap-1.5">{studentName || t('anonymous')}</p>
             </div>
 
             <div className="space-y-2">

@@ -24,6 +24,22 @@ Key paths: `(website)/` (public), `admin/` (CMS), `api/` (routes).
 | `npm run build` | Final verification |
 | `npm run lint` | ESLint 9 flat config |
 | `npm run seed` | Seed MongoDB via `scripts/seed.ts` |
+| `npm run eval` | Run eval harness (pass feature: `npm run eval -- auth`) |
+
+---
+
+## Eval Harness
+
+Eval definitions at `.agents/evals/*.md`. Run with `npm run eval` for full suite or feature-specific commands. Results written to `.agents/report/eval-*.md`.
+
+### Eval Types
+- **Capability**: Feature-specific behavior tests (code graders)
+- **Regression**: Baseline checks against frozen schemas/routes (pass^3 = 1.00 for release-critical)
+
+### Creating a New Eval
+1. Define in `.agents/evals/<feature>.md` using template from `.agents/evals/auth.md`
+2. Add baseline assertion in `.agents/evals/baseline.json`
+3. Add run function in `.agents/evals/run-evals.sh`
 
 ---
 
@@ -74,6 +90,54 @@ KVM1 VPS (1 vCPU, 4GB RAM). DB pool: 3 (do not raise). Rate limit: 5 logins/15mi
 
 - Artifacts under `.agents/` (never `~/.opencode/`)
 - Plans → `.agents/plans/` | Reports → `.agents/report/` | Memory → `.agents/memory.md` | Tasks → `.agents/tasks/todo.md`
+
+---
+
+## MCP Conventions
+
+- **Obsidian vault:** Use `obsidian-mcp` tools (`search_notes`, `read_note`, `create_note`) — never raw file reads
+- **Fallback:** `external_directory` permission only when MCP is unavailable
+
+---
+
+## Skills & Subagents
+
+Skills are in `~/.opencode/skills/` (user-level, loaded each session). Archived skills at `.agents/archived-skills/` (load manually when needed). Reference repo at `~/.opencode/agent-skills/`.
+
+### Wave 1 — Core (always available)
+| Skill | Directory | Use When |
+|---|---|---|
+| spec-driven-development | `spec-dev` | Writing a PRD before implementing a new feature |
+| planning-and-task-breakdown | `plan-task` | Breaking a plan into task units (complements `boss478-plan`) |
+| incremental-implementation | `implement-task` | Building a thin vertical slice |
+| test-driven-development | `test-driven-development` | Writing tests first (Red-Green-Refactor) |
+| code-review-and-quality | `review` | 5-axis code review before merging |
+| shipping-and-launch | `ship` | Pre-launch checklist, staged rollouts |
+
+### Wave 2 — Extended (load when needed)
+| Skill | Directory | Use When |
+|---|---|---|
+| doubt-driven-development | `doubt-driven-development` | High-stakes decisions (production, security, irreversible) |
+| source-driven-development | `source-driven-development` | Grounding framework decisions in official docs |
+| code-simplification | `code-simplification` | Reducing complexity while preserving behavior |
+| security-and-hardening | `security-and-hardening` | User input, auth, data storage, external integrations |
+| frontend-ui-engineering | `frontend-ui-engineering` | Component architecture, responsive design, a11y |
+| browser-testing-with-devtools | `browser-test` | DevTools inspection for runtime data |
+| debugging-and-error-recovery | `debug` | Complementing `debug-mantra` for structured triage |
+| context-engineering | `context` | Context packing, MCP integration patterns |
+| git-workflow-and-versioning | `git-workflow-and-versioning` | Atomic commits, conventional commit messages |
+| documentation-and-adrs | `docs-adr` | Writing ADRs, documenting the *why* |
+| ci-cd-and-automation | `ci-cd-and-automation` | Quality gate pipelines, Shift Left |
+| performance-optimization | *(merged into `web-performance`)* | Measure-first + backend anti-patterns |
+
+### Subagents (project `opencode.json`)
+| Agent | Role | Skills Used | Tools |
+|---|---|---|---|
+| `spec-writer` | PRD/spec creation | `spec-dev` | read, glob, grep, write, edit |
+| `builder` | Incremental implementation | `implement-task` + `test-driven-development` | + npm build/test/lint/dev |
+| `test-engineer` | TDD and test writing | `test-driven-development` | + npm test/run |
+| `simplifier` | Code simplification | `code-simplification` | read, glob, grep, write, edit |
+| `webperf-auditor` | Performance audit | `web-performance` | + npx lighthouse |
 
 ---
 

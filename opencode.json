@@ -2,6 +2,19 @@
   "$schema": "https://opencode.ai/config.json",
   "lsp": true,
   "instructions": ["AGENTS.md"],
+  "command": {
+    "goal": {
+      "description": "Set a session-scoped goal and auto-continue until complete.",
+      "template": "$ARGUMENTS",
+      "agent": "build"
+    }
+  },
+  "plugin": [
+    "opencode-notify",
+    "opencode-vibeguard",
+    "opencode-shell-strategy",
+    "opencode-goal-plugin"
+  ],
   "agent": {
     "build": {
       "permission": {
@@ -20,7 +33,97 @@
           "refactor-cleaner": "allow",
           "security-reviewer": "allow",
           "triage": "allow",
-          "verify": "allow"
+          "verify": "allow",
+          "spec-writer": "allow",
+          "builder": "allow",
+          "test-engineer": "allow",
+          "simplifier": "allow",
+          "webperf-auditor": "allow"
+        }
+      }
+    },
+    "spec-writer": {
+      "description": "PRD/spec creation specialist. Loads spec-dev skill.",
+      "mode": "subagent",
+      "model": "opencode/deepseek-v4-flash-free",
+      "tools": {
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "write": true,
+        "edit": true
+      }
+    },
+    "builder": {
+      "description": "Incremental implementation specialist. Loads implement-task + test-driven-development skills.",
+      "mode": "subagent",
+      "model": "opencode/deepseek-v4-flash-free",
+      "tools": {
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "write": true,
+        "edit": true,
+        "bash": true
+      },
+      "permission": {
+        "bash": {
+          "*": "deny",
+          "npm run build": "allow",
+          "npm run lint": "allow",
+          "npm run dev": "allow",
+          "npm test": "allow",
+          "npm run *": "allow"
+        }
+      }
+    },
+    "test-engineer": {
+      "description": "TDD and test writing specialist. Loads test-driven-development skill.",
+      "mode": "subagent",
+      "model": "opencode/deepseek-v4-flash-free",
+      "tools": {
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "write": true,
+        "edit": true,
+        "bash": true
+      },
+      "permission": {
+        "bash": {
+          "*": "deny",
+          "npm test": "allow",
+          "npm run *": "allow"
+        }
+      }
+    },
+    "simplifier": {
+      "description": "Code simplification specialist. Loads code-simplification skill.",
+      "mode": "subagent",
+      "model": "opencode/deepseek-v4-flash-free",
+      "tools": {
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "write": true,
+        "edit": true
+      }
+    },
+    "webperf-auditor": {
+      "description": "Performance auditing specialist. Loads web-performance skill.",
+      "mode": "subagent",
+      "model": "opencode/deepseek-v4-flash-free",
+      "tools": {
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "bash": true
+      },
+      "permission": {
+        "bash": {
+          "*": "deny",
+          "npx lighthouse *": "allow",
+          "npm run build": "allow"
         }
       }
     }
@@ -33,6 +136,14 @@
     "gh_grep": {
       "type": "remote",
       "url": "https://mcp.grep.app"
+    },
+    "obsidian": {
+      "type": "local",
+      "enabled": true,
+      "command": ["uvx", "--with", "fastmcp==2.13.3", "obsidian-mcp"],
+      "environment": {
+        "OBSIDIAN_VAULT_PATH": "/Users/boss123/obsidian-vault"
+      }
     }
   },
   "permission": {
@@ -57,11 +168,17 @@
       "npm run dev": "allow",
       "npm run build": "allow",
       "npm run lint": "allow",
+      "npm test": "allow",
+      "npm run typecheck": "allow",
       "git status": "allow",
       "git diff": "allow",
       "git log*": "allow",
       "docker compose ps": "allow",
       "curl *": "allow"
+    },
+    "external_directory": {
+      "~/obsidian-vault/**": "allow",
+      "~/.opencode/agent-skills/**": "allow"
     }
   }
 }

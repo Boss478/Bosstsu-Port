@@ -6,6 +6,7 @@ import { verifyAuth } from '@/lib/auth';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const sessionId = searchParams.get('sessionId');
+  const studentToken = searchParams.get('studentToken');
 
   if (!sessionId) {
     return NextResponse.json({ error: 'Missing sessionId' }, { status: 400 });
@@ -14,17 +15,21 @@ export async function GET(req: NextRequest) {
   try {
     await dbConnect();
     const session = await ToolSession.findById(sessionId)
-      .select('currentStep steps.title steps.type allowStudentNavigation')
+      .select('currentStep steps.title steps.type allowStudentNavigation kickedStudents')
       .lean();
 
     if (!session) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
+    const s = session as { currentStep?: number; steps?: unknown[]; allowStudentNavigation?: boolean; kickedStudents?: string[] };
+    const kicked = studentToken ? (s.kickedStudents ?? []).includes(studentToken) : false;
+
     return NextResponse.json({
-      currentStep: (session as { currentStep?: number }).currentStep ?? -1,
-      totalSteps: ((session as { steps?: unknown[] }).steps?.length) ?? 1,
-      allowStudentNavigation: (session as { allowStudentNavigation?: boolean }).allowStudentNavigation ?? false,
+      currentStep: s.currentStep ?? -1,
+      totalSteps: s.steps?.length ?? 1,
+      allowStudentNavigation: s.allowStudentNavigation ?? false,
+      kicked,
     }, { headers: { 'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=30' } });
   } catch {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

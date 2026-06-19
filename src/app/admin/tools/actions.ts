@@ -95,6 +95,7 @@ export async function quickStartSession(formData: FormData) {
     if (parsed.data.pollMode) config.pollMode = parsed.data.pollMode;
     if (parsed.data.allowCustomChoices) config.allowCustomChoices = parsed.data.allowCustomChoices;
     if (parsed.data.questions) config.questions = parsed.data.questions;
+    if (formData.get('enableMascots') === 'off') config.enableMascots = false;
 
     const isMultiStep = parsed.data.steps && parsed.data.steps.length > 0;
     const sessionData: Record<string, unknown> = {
@@ -169,6 +170,9 @@ export async function updateSession(sessionId: string, formData: FormData) {
     if (maxSub !== null) {
       setData['config.maxSubmissions'] = parseInt(maxSub as string);
     }
+    if (formData.get('enableMascots') === 'off') {
+      setData['config.enableMascots'] = false;
+    }
 
     await ToolSession.findByIdAndUpdate(sessionId, { $set: setData });
     await trackServerEvent({
@@ -217,6 +221,9 @@ export async function updateSessionSteps(sessionId: string, formData: FormData) 
     };
     if (title) updateData.title = title.trim();
     if (description) updateData['config.description'] = description.trim();
+    if (formData.get('enableMascots') === 'off') {
+      updateData['config.enableMascots'] = false;
+    }
 
     await ToolSession.findByIdAndUpdate(sessionId, { $set: updateData });
     await trackServerEvent({
@@ -441,6 +448,7 @@ export async function deleteStudentResponses(sessionId: string, studentToken: st
     if (result.deletedCount > 0) {
       await ToolSession.findByIdAndUpdate(sessionId, {
         $inc: { responseCount: -result.deletedCount, participantCount: -1 },
+        $push: { kickedStudents: studentToken },
       });
     }
     revalidatePath('/admin/tools');

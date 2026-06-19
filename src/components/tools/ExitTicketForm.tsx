@@ -9,9 +9,11 @@ interface ExitTicketFormProps {
   session: any;
   stepIndex?: number;
   studentName?: string;
+  mascot?: string;
+  onMascotEvent?: (event: 'celebrate' | 'correct' | 'wrong') => void;
 }
 
-export default function ExitTicketForm({ session, stepIndex, studentName: propName }: ExitTicketFormProps) {
+export default function ExitTicketForm({ session, stepIndex, studentName: propName, mascot, onMascotEvent }: ExitTicketFormProps) {
   const [studentName, setStudentName] = useState(propName || '');
   const [learned, setLearned] = useState('');
   const [question, setQuestion] = useState('');
@@ -46,6 +48,7 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
         body: JSON.stringify({
           studentName: studentName.trim() || undefined,
           content: { learned: learned.trim(), question: question.trim(), wantToKnow: wantToKnow.trim() },
+          ...(mascot && { mascot }),
           ...(stepIndex !== undefined && { stepIndex }),
         }),
       });
@@ -54,6 +57,7 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
         setError(data.error);
       } else {
         setSubmitted(true);
+        onMascotEvent?.('celebrate');
       }
     } catch {
       setError(t('failedToSubmitSimple'));

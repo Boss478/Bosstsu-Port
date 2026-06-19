@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { headers } from 'next/headers';
 import dbConnect from '@/lib/db';
 import ToolSession from '@/models/ToolSession';
 import ToolResponse from '@/models/ToolResponse';
@@ -59,6 +60,9 @@ export default async function SessionDetailPage({
   let responsesData: Record<string, unknown>[] = [];
   let fetchError = false;
   let notFound = false;
+  const headersList = await headers();
+  const host = headersList.get('host') || 'localhost:3300';
+  const origin = `${headersList.get('x-forwarded-proto') || 'http'}://${host}`;
 
   try {
     await dbConnect();
@@ -86,6 +90,7 @@ export default async function SessionDetailPage({
     <SessionDetailShell
       session={sessionData}
       responses={responsesData}
+      origin={origin}
     />
   );
 }

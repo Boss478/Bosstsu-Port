@@ -1,27 +1,50 @@
 import { createContext, useContext } from "react";
-import type { Screen, SaveData, GameRound, RoundConfig, CompanionId } from "./types";
+import type { Screen, SaveData, GameRound, RoundConfig, CompanionId, Question, StageData, StageLesson, MapView, Tab, ActivityData, SimilarSoundGroup } from "./types";
 
 export interface GameContextValue {
   // Navigation
   screen: Screen;
   setScreen: (s: Screen) => void;
+  tab: Tab;
+  setTab: (t: Tab) => void;
+  // Map view navigation (groups → stages → activities)
+  mapView: MapView;
+  setMapView: (v: MapView) => void;
+  selectedGroup: SimilarSoundGroup | null;
+  selectGroup: (g: SimilarSoundGroup | null) => void;
+  selectedActivity: ActivityData | null;
+  selectActivity: (a: ActivityData | null) => void;
   // Save
   activeSlot: number | "guest";
   save: SaveData | null;
-  setSave: (s: SaveData) => void;
   persistSave: (s: SaveData) => void;
+  // Stage selection (path → confirm popup)
+  selectedStage: StageData | null;
+  selectStage: (stage: StageData | null) => void;
+  // Lesson from stage popup
+  selectedLesson: StageLesson | null;
+  selectLesson: (lesson: StageLesson | null) => void;
   // Round
   round: GameRound | null;
   startRound: (config: RoundConfig) => void;
-  answerQuestion: (answer: string) => void;
+  answerQuestion: (answer: string, question: Question) => void;
+  nextQuestion: () => void;
   // Companion
   companion: CompanionId;
   setCompanion: (id: CompanionId) => void;
   // Settings
   muted: boolean;
   toggleMute: () => void;
-  crtEffect: boolean;
-  toggleCrt: () => void;
+  // Voice settings
+  voiceURI: string;
+  setVoiceURI: (uri: string) => void;
+  voices: SpeechSynthesisVoice[];
+  speechRate: number;
+  setSpeechRate: (rate: number) => void;
+  speechPitch: number;
+  setSpeechPitch: (pitch: number) => void;
+  // Prefetch
+  prefetchWords: (words: string[], onProgress?: (loaded: number, total: number) => void) => Promise<void>;
 }
 
 export const GameContext = createContext<GameContextValue | null>(null);

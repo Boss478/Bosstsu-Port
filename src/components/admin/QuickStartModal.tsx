@@ -65,6 +65,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
   const [editingStepIndex, setEditingStepIndex] = useState<number>(-1);
   const [allowStudentNavigation, setAllowStudentNavigation] = useState(false);
   const [requireStudentName, setRequireStudentName] = useState(false);
+  const [enableMascots, setEnableMascots] = useState(true);
   const [templates, setTemplates] = useState<Array<{ _id: string; title: string; config: Record<string, unknown> }>>([]);
   const [templateFeedback, setTemplateFeedback] = useState<string | null>(null);
   const [pickerTemplates, setPickerTemplates] = useState<Array<{ _id: string; title: string; type: string; config: Record<string, unknown> }>>([]);
@@ -95,6 +96,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
       setDescription(editingSession.description || '');
       setRequireStudentName(editingSession.requireStudentName || false);
       setAllowStudentNavigation(editingSession.allowStudentNavigation || false);
+      setEnableMascots(cfg.enableMascots !== false);
       setPrompt((cfg.prompt as string) || '');
       setAllowFileUpload(cfg.allowFileUpload === true);
       setPollMode((cfg.pollMode as 'mcq' | 'wordcloud') || 'mcq');
@@ -123,6 +125,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
     setEditingStepIndex(-1);
     setAllowStudentNavigation(false);
     setRequireStudentName(false);
+    setEnableMascots(true);
     setMainTitle('');
     setDescription('');
     setMaxSubmissions(0);
@@ -149,6 +152,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
   const buildConfig = (): Record<string, unknown> => {
     const config: Record<string, unknown> = {};
     if (prompt.trim()) config.prompt = prompt.trim();
+    if (!enableMascots) config.enableMascots = false;
     if (allowFileUpload) config.allowFileUpload = true;
     if (pollMode) config.pollMode = pollMode;
     if (allowCustomChoices) config.allowCustomChoices = true;
@@ -323,6 +327,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
           }))));
       }
     }
+    if (!enableMascots) formData.set('enableMascots', 'off');
     if (maxSubmissions > 0) formData.set('maxSubmissions', String(maxSubmissions));
     if (description) formData.set('description', description);
     if (isEditing && editingSession) {
@@ -359,6 +364,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
     formData.set('steps', JSON.stringify(steps));
     if (allowStudentNavigation) formData.set('allowStudentNavigation', 'on');
     if (requireStudentName) formData.set('requireStudentName', 'on');
+    if (!enableMascots) formData.set('enableMascots', 'off');
     if (maxSubmissions > 0) formData.set('maxSubmissions', String(maxSubmissions));
     formData.set('type', steps[0].type);
     formData.set('title', mainTitle.trim() || steps[0].title);
@@ -676,6 +682,18 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
             ต้องใส่ชื่อ
           </label>
         </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="enableMascots"
+            checked={enableMascots}
+            onChange={e => setEnableMascots(e.target.checked)}
+            className="accent-blue-500 w-4 h-4"
+          />
+          <label htmlFor="enableMascots" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            แสดงมาสคอต
+          </label>
+        </div>
         <div className="space-y-1">
           <label htmlFor="qs-maxSubmissions" className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
             Max submissions per student <span className="text-zinc-400 text-xs">(0 = unlimited)</span>
@@ -937,6 +955,19 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
         />
         <label htmlFor="requireStudentName" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
           ต้องใส่ชื่อ
+        </label>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="qs-multi-enableMascots"
+          checked={enableMascots}
+          onChange={e => setEnableMascots(e.target.checked)}
+          className="accent-blue-500 w-4 h-4"
+        />
+        <label htmlFor="qs-multi-enableMascots" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          แสดงมาสคอต
         </label>
       </div>
 

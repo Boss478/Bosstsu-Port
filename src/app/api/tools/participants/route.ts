@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
         $group: {
           _id: '$studentToken',
           studentName: { $first: '$studentName' },
+          mascot: { $first: '$mascot' },
           createdAt: { $first: '$createdAt' },
           responseCount: { $sum: 1 },
         },
@@ -31,6 +32,7 @@ export async function GET(req: NextRequest) {
           _id: 0,
           studentToken: '$_id',
           studentName: 1,
+          mascot: 1,
           createdAt: 1,
           responseCount: 1,
         },

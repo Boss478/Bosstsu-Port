@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumb';
@@ -16,12 +16,14 @@ import { t } from '@/lib/tool-translations';
 interface SessionDetailShellProps {
   session: Record<string, unknown>;
   responses: Record<string, unknown>[];
+  origin?: string;
 }
 
-export default function SessionDetailShell({ session, responses }: SessionDetailShellProps) {
+export default function SessionDetailShell({ session, responses, origin }: SessionDetailShellProps) {
   const router = useRouter();
   const [codeFullScreen, setCodeFullScreen] = useState(false);
-  const [origin] = useState(() => (typeof window !== 'undefined' ? window.location.origin : ''));
+  const [resultsRefreshKey, setResultsRefreshKey] = useState(0);
+  const handleStudentRemoved = useCallback(() => setResultsRefreshKey(k => k + 1), []);
   const [advancing, setAdvancing] = useState(false);
   const [editSessionData, setEditSessionData] = useState<Record<string, unknown> | null>(null);
   const [showStageManager, setShowStageManager] = useState(false);
@@ -153,10 +155,11 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
 
           <SessionManager
             session={session}
+            origin={origin}
             onToggleCodeFullScreen={() => setCodeFullScreen(true)}
           />
           <div className="mt-6">
-            <StudentList sessionId={String(session._id)} />
+            <StudentList sessionId={String(session._id)} onStudentRemoved={handleStudentRemoved} />
           </div>
 
           {hasSteps && (
@@ -260,6 +263,7 @@ export default function SessionDetailShell({ session, responses }: SessionDetail
               }
               refreshInterval={15000}
               sessionCurrentStep={localCurrentStep}
+              refreshTrigger={resultsRefreshKey}
             />
           </div>
         </div>

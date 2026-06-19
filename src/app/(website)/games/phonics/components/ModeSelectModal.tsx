@@ -1,50 +1,29 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
-import type { MapBuilding, RoundConfig, PhonicsFormat, SpellingFormat, DefinitionDirection, CefrLevel, RoundLength } from "../types";
+import { useEffect, useState } from "react";
+import type { RoundConfig, PhonicsFormat, SpellingFormat, DefinitionDirection, CefrLevel, RoundLength, GameCategory } from "../types";
+import { useGame } from "../context";
+import { CEFR_LEVEL_LABELS } from "../constants";
+import { useFocusTrap } from '@/lib/hooks/useFocusTrap';
 
 interface ModeSelectModalProps {
-  building: MapBuilding;
+  label: string;
+  category: GameCategory;
   onStart: (config: RoundConfig) => void;
   onClose: () => void;
 }
 
-export default function ModeSelectModal({ building, onStart, onClose }: ModeSelectModalProps) {
-  const dialogRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    dialogRef.current?.focus();
-  }, []);
+export default function ModeSelectModal({ label, category: initialCategory, onStart, onClose }: ModeSelectModalProps) {
+  const focusTrapRef = useFocusTrap(true);
+  const { save } = useGame();
+  const currentLevel = save?.cefrLevel ?? "a1";
+  const [activeCategory, setActiveCategory] = useState<GameCategory>(initialCategory);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
-
-  // Focus trap: cycle Tab between focusable children
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key !== "Tab") return;
-    const modal = dialogRef.current;
-    if (!modal) return;
-    const focusable = modal.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    if (focusable.length === 0) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (e.shiftKey) {
-      if (document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      }
-    } else {
-      if (document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    }
-  }, []);
 
   function startPhonics(format: PhonicsFormat, level: CefrLevel, length: RoundLength) {
     onStart({ category: "phonics", phonicsFormat: format, level, length });
@@ -58,9 +37,6 @@ export default function ModeSelectModal({ building, onStart, onClose }: ModeSele
     onStart({ category: "definitions", definitionDirection: direction, level, length });
   }
 
-  const category = building.category ?? "phonics";
-  const accentColor = category === "spelling" ? "#FF5733" : category === "definitions" ? "#9B59B6" : "#2EC4B6";
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/40"
@@ -70,51 +46,75 @@ export default function ModeSelectModal({ building, onStart, onClose }: ModeSele
       aria-label="Mode Selection"
     >
       <div
-        ref={dialogRef}
-        className="retro-border bg-[#FDFBF7] dark:bg-[#101F42] w-full max-w-md animate-slide-up-modal outline-none"
-        tabIndex={-1}
-        onKeyDown={handleKeyDown}
+        ref={focusTrapRef}
+        className="glass-heavy border-t border-white/60 dark:border-slate-700/50 rounded-t-3xl w-full max-w-md animate-slide-up-modal outline-none shadow-xl"
       >
-        <div className="flex items-center justify-between px-5 py-3 border-b-2" style={{ borderColor: accentColor }}>
-          <h2 className="font-bold text-lg tracking-widest" style={{ fontFamily: "var(--font-mali)", color: accentColor }}>
-            {building.label}
-          </h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/60 dark:border-slate-700/50">
+          <div>
+            <h2 className="font-bold text-lg tracking-widest text-[#1C1C1C] dark:text-[#F7E1A0]" style={{ fontFamily: "var(--font-mali)" }}>
+              {label}
+            </h2>
+            <p className="text-[10px] font-extrabold text-[#C8A44E] uppercase tracking-wider mt-0.5">
+              Target Level: {CEFR_LEVEL_LABELS[currentLevel]}
+            </p>
+          </div>
           <button
             id="mode-select-close"
-            className="text-xl transition-colors"
-            style={{ color: "#888888" }}
+            className="w-8 h-8 rounded-xl glass-elem border border-white/60 dark:border-slate-700/50 flex items-center justify-center text-sm text-[#1C1C1C]/50 dark:text-[#F7E1A0]/50 hover:bg-white/80 dark:hover:bg-slate-600/80 transition-all"
             onClick={onClose}
             aria-label="Close"
-            onMouseEnter={(e) => e.currentTarget.style.color = accentColor}
-            onMouseLeave={(e) => e.currentTarget.style.color = "#888888"}
           >
             ✕
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
-          <p className="text-xs text-[#888888] dark:text-[#B0C4DE] tracking-widest mb-3">SELECT MODE</p>
+        {/* Category Tab Selector */}
+        <div className="flex border-b border-white/30 dark:border-slate-800/80 bg-white/20 dark:bg-slate-900/10">
+          {(["phonics", "spelling", "definitions"] as const).map((cat) => {
+            const active = activeCategory === cat;
+            return (
+              <button
+                key={cat}
+                type="button"
+                className={`flex-1 py-3 text-xs font-extrabold tracking-widest uppercase transition-all relative cursor-pointer ${
+                  active
+                    ? "text-[#C8A44E]"
+                    : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400"
+                }`}
+                onClick={() => setActiveCategory(cat)}
+              >
+                {cat === "phonics" ? "🔊 Phonics" : cat === "spelling" ? "📝 Spelling" : "📖 Vocab"}
+                {active && (
+                  <span className="absolute bottom-0 left-6 right-6 h-0.5 bg-[#C8A44E]" />
+                )}
+              </button>
+            );
+          })}
+        </div>
 
-          {category === "phonics" && (
+        <div className="p-6 space-y-3">
+          <p className="text-xs text-[#1C1C1C]/50 dark:text-[#F7E1A0]/60 tracking-widest mb-1 uppercase">SELECT MODE</p>
+
+          {activeCategory === "phonics" && (
             <>
-              <ModeCard id="mode-tap" title="TAP THE SOUND" description="Hear a phoneme — tap the correct word" color="#C8A44E" onClick={() => startPhonics("tap", "a1", 10)} />
-              <ModeCard id="mode-speed" title="SPEED ROUND" description="Same as Tap but with a 3-second timer" color="#FF70A6" onClick={() => startPhonics("speed", "a1", 10)} />
-              <ModeCard id="mode-card-flip" title="CARD FLIP" description="Match phonemes to words in memory style" color="#9B59B6" onClick={() => startPhonics("card-flip", "a1", 10)} />
+              <ModeCard id="mode-tap" title="TAP THE SOUND" description="Hear a phoneme — tap the correct word" color="#C8A44E" onClick={() => startPhonics("tap", currentLevel, 10)} />
+              <ModeCard id="mode-speed" title="SPEED ROUND" description="Same as Tap but with a 3-second timer" color="#FF70A6" onClick={() => startPhonics("speed", currentLevel, 10)} />
+              <ModeCard id="mode-card-flip" title="CARD FLIP" description="Match phonemes to words in memory style" color="#9B59B6" onClick={() => startPhonics("card-flip", currentLevel, 10)} />
             </>
           )}
 
-          {category === "spelling" && (
+          {activeCategory === "spelling" && (
             <>
-              <ModeCard id="mode-spelling-choice" title="SPELLING CHOICE" description="Pick the correct spelling from four options" color="#2EC4B6" onClick={() => startSpelling("choice", "a1", 10)} />
-              <ModeCard id="mode-spelling-tiles" title="SPELLING TILES" description="Arrange letter tiles to spell the word" color="#C8A44E" onClick={() => startSpelling("tiles", "a1", 5)} />
-              <ModeCard id="mode-spelling-mixed" title="MIXED SPELLING" description="Both choice and tiles, randomly mixed" color="#FF70A6" onClick={() => startSpelling("mixed", "a1", 10)} />
+              <ModeCard id="mode-spelling-choice" title="SPELLING CHOICE" description="Pick the correct spelling from four options" color="#2EC4B6" onClick={() => startSpelling("choice", currentLevel, 10)} />
+              <ModeCard id="mode-spelling-tiles" title="SPELLING TILES" description="Arrange letter tiles to spell the word" color="#C8A44E" onClick={() => startSpelling("tiles", currentLevel, 5)} />
+              <ModeCard id="mode-spelling-mixed" title="MIXED SPELLING" description="Both choice and tiles, randomly mixed" color="#FF70A6" onClick={() => startSpelling("mixed", currentLevel, 10)} />
             </>
           )}
 
-          {category === "definitions" && (
+          {activeCategory === "definitions" && (
             <>
-              <ModeCard id="mode-def-to-word" title="DEFINITION → WORD" description="See the definition — tap the correct word" color="#2EC4B6" onClick={() => startDefinitions("def-to-word", "a1", 10)} />
-              <ModeCard id="mode-word-to-def" title="WORD → DEFINITION" description="See the word — tap the correct definition" color="#9B59B6" onClick={() => startDefinitions("word-to-def", "a1", 10)} />
+              <ModeCard id="mode-def-to-word" title="DEFINITION → WORD" description="See the definition — tap the correct word" color="#2EC4B6" onClick={() => startDefinitions("def-to-word", currentLevel, 10)} />
+              <ModeCard id="mode-word-to-def" title="WORD → DEFINITION" description="See the word — tap the correct definition" color="#9B59B6" onClick={() => startDefinitions("word-to-def", currentLevel, 10)} />
             </>
           )}
         </div>
@@ -135,12 +135,12 @@ function ModeCard({
   return (
     <button
       id={id}
-      className="w-full retro-border p-4 text-left hover:opacity-90 active:scale-95 transition-transform bg-[#FDFBF7] dark:bg-[#0A1128]"
+      className="w-full rounded-xl p-4 text-left glass-elem border border-white/60 dark:border-slate-700/50 hover:bg-white/80 dark:hover:bg-slate-700/80 active:scale-95 transition-all"
       onClick={onClick}
-      style={{ borderLeftWidth: 6, borderLeftColor: color }}
+      style={{ borderLeftWidth: 4, borderLeftColor: color }}
     >
-      <p className="font-bold text-sm tracking-widest text-[#1C1C1C] dark:text-[#F7E1A0]" style={{ color }}>{title}</p>
-      <p className="text-xs text-[#888888] dark:text-[#B0C4DE] mt-0.5">{description}</p>
+      <p className="font-bold text-sm tracking-widest" style={{ color }}>{title}</p>
+      <p className="text-xs text-[#1C1C1C]/50 dark:text-[#F7E1A0]/60 mt-0.5">{description}</p>
     </button>
   );
 }

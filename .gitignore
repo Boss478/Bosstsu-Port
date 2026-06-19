@@ -60,6 +60,7 @@ Tasks/
 .claude/plans/
 .claude/report/
 .agents/
+.opencode/goals/
 .codesight/
 
 # Session memory (Remember plugin)

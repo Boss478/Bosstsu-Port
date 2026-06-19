@@ -5,7 +5,187 @@
 
 
 
-## v1.10.10 (2026-06-13)
+## v1.10.31 (2026-06-19)
++ **Phonics Game — Word Builder Settings Options**:
+  + **Phoneme Button Labels Mode**: Added a new segmented settings selector allowing users to display "Both" (IPA + Example), "IPA Only" (compact symbols), or "Word Only" (example-word-centered) on the soundboard keys.
+  + **Search History Toggle**: Added a toggle switch in layout settings to show/hide the spelling "Recent Searches" history pills, persistent in `localStorage` under `word-builder-show-search-history`.
+  * **Word Builder Capitalization**: Capitalized typed input text, matching word suggestions, search history entries, and target letter blocks under the search bar in the Spelling -> IPA builder flow to match the QWERTY keyboard keys.
+  * **Spelling Search History Polish**: Fixed a CSS styling typo in the background color class of the search history pills (`dark:bg-slate-855` -> `dark:bg-slate-800`), ensuring correct dark mode contrast.
+  * **Zero-Warnings Mount State Initialization**: Rewrote all `localStorage` preference loading into lazy state hooks initializers (`useState(() => ...)`), completely resolving ESLint synchronous `setState` in effect warnings.
+
+## v1.10.30 (2026-06-19)
+* **Phonics Game — Word Builder Polish**:
+  * **Split-Screen Dashboard Layout**: Restructured both `SpellingToIpaTab` and `IpaToWordTab` into responsive two-column layouts on desktop (`lg:grid-cols-12`). Left side encapsulates search queries, results cards, and active strings inside visual glassmorphic panels; right side wraps virtual inputs (keyboards/phonemes) in distinct floating control decks.
+  * **Layout Width Expansion**: Increased the maximum container width of the screens from `max-w-3xl` to `max-w-6xl` to optimize desktop spacing and eliminate large margins.
+  * **Virtual Keyboard Balance**: Removed the duplicate Backspace key on the left of the virtual QWERTY keyboard bottom row, replacing it with a visually symmetric decorative `Shift` key. Scaled all QWERTY keys responsively with taller visual sizing (`w-9 h-12 xs:w-11 xs:h-13 sm:w-14 sm:h-14 md:w-16 md:h-16`).
+  * **Responsive Auto-suggestions**: Converted the search suggestions container to a wrapping flexbox (`flex flex-wrap gap-1.5 justify-center`) and refitted matching word results to a compact grid (`grid-cols-3 sm:grid-cols-4`) to fit the split columns.
+  * **Custom CSS Tooltips & Phoneme Soundboard Stacking**: Swapped native HTML `title` tooltips for localized Tailwind tooltips (`group relative` absolute overlays) centered below buttons to prevent navigation overlap. Stacked phoneme groups vertically (`flex flex-col gap-5`) instead of side-by-side on desktop to expand key widths, and added `whitespace-nowrap` + responsive sizing (`text-xs sm:text-sm`) to symbol labels to prevent phonetic slashes wrapping inside grid cells. Increased phoneme button vertical padding to `py-3 px-1.5` for a taller visual profile.
+  * **Word Builder Layout & Zoom Settings**: Added a settings button (`fi-sr-settings`) in the screen header that triggers a layout settings modal. Users can toggle the screen layout between **Side-by-Side** (horizontal columns) and **Stacked Rows** (vertical stacked panels) and adjust the container layout **Zoom level** from 70% to 200% (in 10% increments). Preferences are persisted via `localStorage` keys `word-builder-layout` and `word-builder-zoom`.
+  * **Responsive Viewport Height Fits**: Configured the screen wrapper class in `PhonicsClient.tsx` to inherit flexible layouts (`flex-1 flex flex-col`), removed static min-heights under stacked layouts to let empty search cards collapse dynamically, and laid soundboard categories side-by-side inside columns (`grid grid-cols-1 md:grid-cols-3 gap-4`) under stacked mode to compress height by 3x.
+
+## v1.10.29 (2026-06-18)
++ **Eval Harness**: Implemented formal eval-driven development framework with 7 feature eval definitions (auth, admin-crud, gallery, games, tools, analytics, build) under `.agents/evals/`. Added `npm run eval` script for full suite or per-feature runs via `npm run eval -- <feature>`. Results written to `.agents/report/eval-*.md`.
+
+## v1.10.28 (2026-06-17)
++ **Phonics Game — Vocab Tab Restructure (Phase 3)**:
+  + **Vocab Group Map View**: Added 6 CEFR-level vocab groups (A1–C1, Phrasal Verbs) replacing the old linear vocab list. Each group renders as a glass card cluster with lock/unlock state and progress percentage.
+  + **Vocab Stage Sub-Map**: Each level now shows stages (sub-groups) in a PathNode-style layout with unlockable progression.
+  + **Vocab Activity Path**: Each stage has 4 sequential activities (def-to-word, word-to-def, synonyms, vocab-exercise) — must complete previous to unlock next.
+  + **Synonym & Vocab-Exercise Question Generators**: Two new question generators powering the 4-activity flow with IPA, definitions, example sentences, and multiple-choice/exercise formats.
+  + **Activity Progress Tracking**: `SaveData.activityProgress` keyed by activity ID tracks completion status across sound and vocab tabs.
+* **Phonics Game — ESLint Config Fix**:
+  * Fixed `eslint-plugin-react-compiler` import path in `eslint.config.mjs` to resolve the `@eslint/compat` wrapper correctly (build was green but eslint-plugin-init left a stale import).
+* **Phonics Game — Performance (Phase A.1–A.2)**:
+  * **Screen Lazy Loading**: Converted 7 screen components (`GameScreen`, `VictoryScreen`, `SettingsScreen`, `TutorialScreen`, `LibraryScreen`, `ShopScreen`, `ProfileScreen`) to `next/dynamic` with `ssr: false` for per-screen code splitting.
+  * **Audio Node Cleanup**: Fixed memory leak — all audio sources (`playSound`, `playSequence`, `playWordAudio`, `playPhonemeAudio`) now properly `disconnect()` nodes on `onended`. Added bounded LRU cache (200 entries) for `decodedAudioCache` to prevent unbounded Map growth.
+  * **React Compiler**: Re-enabled `reactCompiler` in `next.config.ts` (hydration bug #418 was already fixed upstream).
+* **Phonics Game — LSP Error Fix (Post-Mortem)**:
+  * Cleaned 8 TypeScript errors in `StageListScreen.tsx`: removed 6 unused imports, 2 dead helper functions, and fixed `selectedGroup` scope in `VocabActivityPath` (was referencing module-level variable instead of context).
+
+## v1.10.27 (2026-06-16)
+* **Phonics Game**:
+  * **Profile Companion Settings**: Removed the inline "Choose Companion Mascot" grid and section from the profile page. Mascot selection is now exclusively managed via the companion click modal popup.
+
+## v1.10.26 (2026-06-16)
+* **Phonics Game**:
+  * **Footer Responsive Threshold**: Adjusted the mobile breakpoint for the footer navbar from `320px` to `325px` (`max-[325px]`).
+
+## v1.10.25 (2026-06-16)
+* **Phonics Game**:
+  * **Footer Mobile L Support**: Configured the bottom navbar (`StaticFooter`) to hide text labels and display only icons (with active indicators aligned absolutely below the icons) on viewports smaller than or equal to `320px` (e.g. Chrome DevTools Mobile L).
+
+## v1.10.24 (2026-06-16)
+* **Phonics Game**:
+  * **Backdrop Blur Reduction**: Reduced backdrop filter blur multipliers by 10% across all glassmorphic components (`glass-panel`, `glass-elem`, `glass-light`, `glass-heavy`) to scale down blur levels when the glass effect is turned towards clear.
+
+## v1.10.23 (2026-06-16)
++ **Phonics Game**:
+  + **Dark Theme Switch**: Added a "Dark Theme" toggle switch to the `VISUAL` settings section, allowing players to control the site's dark mode theme directly within the game settings.
+
+## v1.10.22 (2026-06-16)
+* **Phonics Game**:
+  * **Contrast Optimizations**: Improved visibility of settings controls. Changed Mute switch off-state background to `bg-slate-200 dark:bg-slate-700` (with distinct borders) and Glass Effect slider track to `bg-slate-300 dark:bg-slate-700` for clearer contrast. Enhanced readability of the slider's "Clear" and "Opaque" labels by switching to `text-slate-600 dark:text-slate-400`.
+
+## v1.10.21 (2026-06-16)
+* **Phonics Game**:
+  * **Bottom Navbar Width**: Increased the maximum width (`max-w`) of the bottom navbar by 25%, changing it from `max-w-md` (448px) to `max-w-[560px]`.
+
+## v1.10.20 (2026-06-16)
+* **Phonics Game**:
+  * **Glass Effect Slider**: Changed the default/reset glass level from `5` to `25` and divided by `50` (instead of `10`) in the opacity computation logic to map the 50-step slider range properly.
+
+## v1.10.19 (2026-06-16)
++ **Phonics Round 2 Fixes**:
+  + **CEFR Test Overhaul**: Replaced 10-question placement with 30-question test (20 vocab gap-fill + 10 similar-sound). Gap-fill: example sentences blank the target word (`____`), 4 real-word options (no misspellings). Sound questions: distractors share phonemes with the target for genuine confusability. Added `blankedExample` field to `DefinitionQuestion` type.
+  + **Sliders → 5-Stage Buttons**: Replaced Speech Rate and TTS Pitch native range sliders with segmented button controls (Very Slow/Slow/Normal/Fast/Very Fast and Very Low/Low/Normal/High/Very High). Removed broken glass-slider CSS.
+  + **Library Quick Practice**: Added "Quick Practice (Mixed Sounds)" button below the discovery progress bar — starts a 5-question mixed-phoneme tap round.
+  + **Profile Companion Modal**: Clicking the companion circle now opens a modal overlay with the companion grid (instead of scrolling down). Removed `fi-sr-user` icon from profile title.
+* **Settings CSS**: Removed unused glass-slider-track/input style block (native range input pseudos didn't render cross-browser).
+
+## v1.10.18 (2026-06-16)
++ **Phonics UI Overhaul (13 Phases)**:
+  + **Word Bank Expansion**: Added 10 new B1+ words for better CEFR test fairness.
+  + **Library 5-per-row**: Soundbook grid now `lg:grid-cols-5` on desktop + practice button on each card.
+  + **Profile Companion Circle**: 96px rounded companion avatar at top with click-to-change-mascot scroll.
+  + **Slot Rename/Delete**: Profile screen now has rename modal and delete confirmation for the active save slot.
+  + **Shop Filter Tabs**: Bazaar sections grouped by Mascot / Power-ups tabs.
+  + **Victory Retry Incorrect**: "RETRY INCORRECT (N)" button in Victory Screen replays uniqued missed words.
+  + **Answer Feedback**: Score popups (+10), screen flash (emerald/rose), 8-particle burst on answer check.
+  + **Audio Visualizer**: Equalizer bars inside ripple animation during phoneme playback.
+  + **Settings Glassmorphic Sliders**: Custom glass-track range inputs with gold-glow thumb.
+  + **CEFR Placement Test**: 10-question placement test in Settings with ratio-based scoring (≥0.9→C1).
+  + **Interactive Tutorial**: 3 tap-to-proceed steps with mascot, tip highlights, and optional "TRY 3 QUESTIONS" mini-round.
+  + **Draggable Companion**: Pointer-based drag with viewport clamping, position saved to localStorage, pointer-events-none during drag.
+  + **Screen Transitions**: CSS fade-in slide-up keyframes on screen changes (animate-screen-enter).
+* **Settings Screen**: CEFR section now has TAKE PLACEMENT TEST button; Companion selector removed (moved to Profile).
+* **CompanionBubble**: Complete rewrite for drag support with click/drag disambiguation via 3px dead zone.
+* **TutorialScreen**: Full interactive rewrite with mascot illustration, step indicators, and optional practice round.
+* **PhonicsClient**: Tutorial flow now supports optional practice round; placement test upgraded from 4→10 questions.
+
+## v1.10.17 (2026-06-16)
+* **Vocab Path CEFR Level Sub-grouping**:
+  - Split the CEFR level stages (A1 through C1) on the Vocab path into two distinct sub-groups/progress nodes each (e.g. `A1.1` and `A1.2`), creating a winding serpentine progress path with a total of 11 stages.
+  - Resolved the target CEFR level dynamically at session start by parsing the hyphenated stage ID (e.g. `vocab-a1-1` triggers an `'a1'` Definitions round).
+  - Maintained complete backward compatibility by preserving original lesson IDs for the first sub-group (`v1-1` to `v6-3`) and adding new lesson IDs for the second sub-group (`v1-4` to `v5-6`).
+
+## v1.10.16 (2026-06-16)
+* **Phonics Navigation Path Split & Floating Glass Footer**:
+  - Split the main map path tab into separate **"Sound"** (dedicated to Phonics practice) and **"Vocab"** (dedicated to Definitions practice) tabs.
+  - Redesigned the static footer in `PhonicsClient.tsx` into a floating glass bubble using a rounded-3xl translucent panel with backdrop-blur, shadow, and border styles.
+  - Added the 5-tab footer layout (Sound, Vocab, Soundbook, Bazaar, Profile) leveraging verified local Flaticon subset classes (`fi-sr-volume`, `fi-sr-graduation-cap`, etc.).
+  - Relocated the Free Practice FAB button to `bottom-28` and expanded the scroll clearance padding to `pb-36` in `StageListScreen.tsx` and `SettingsScreen.tsx`.
+  - Added CEFR level grouping (`VOCAB_STAGES`) on the Vocab path, mapping selected nodes to target CEFR levels dynamically for the Definitions round.
+  - Corrected contrast bugs on the Soundbook (`LibraryScreen.tsx`) and game buttons (`GameScreen.tsx`) by replacing invalid Tailwind classes (e.g., `text-slate-450`, `dark:text-slate-650`, `dark:text-slate-550`, `dark:border-slate-705`, `dark:bg-slate-850`) with valid equivalents.
+  - Fixed syntax errors in `ShopScreen.tsx` (duplicate parenthesis) and `LibraryScreen.tsx` (missing return statement) to restore clean project builds.
+
+## v1.10.15 (2026-06-16)
+* **Audio Caching Widget Persistence & Game Screen Integration**: 
+  - Extracted the local background download indicator from `PhonicsClient.tsx` to a shared, reusable `<BackgroundDownloadWidget>` component.
+  - Resolved widget disappearing bugs: added immediate cache state evaluation on mount to show "Audio Ready" or "Initializing" instantly rather than waiting for the 3-second delay, and guarded prefetching logic to prevent downloading subsequent stages when the Stage 1 first-join loader is active.
+  - Integrated the download widget into `GameScreen.tsx`, positioning it fixedly below the HUD/Progress Bar (the game navbar) so caching progress remains visible permanently across the entire Phonics game session.
+  - Cleared React and ESLint warnings in key game components, resolving the typescript build warning and successfully compiling with zero errors.
+
+## v1.10.14 (2026-06-15)
++ **Phonics Audio Rate & Pitch Sliders**: Added premium slider controls for Speech Rate (0.5x - 1.5x) and TTS Pitch (0.5x - 1.5x) under the Settings tab. Settings dynamically persist to `localStorage` and adjust the SpeechSynthesis rate/pitch in real time.
++ **Interactive Pronunciation Tooltips**: Clicking reviewed words in the Victory Screen's review panel now displays a glassmorphism popover details card showing details for the target word (IPA transcription, syllable segmentation with stress indicators, word class, CEFR level badge, English definition, and an example sentence) along with a Web Audio playback button.
++ **Downloading Progress Status**: Added background downloading progress percentage indicator next to the player's name in the Static Header to track progressive audio caching and prefetching stage-by-stage. Updated loading screens to format statuses as "Status: Downloading..." and "Downloaded {current}/{all} ({percent}%)". Corrected Tailwind CSS invalid color classes (`text-slate-455` and `text-slate-450`) to `text-slate-400`.
+* **Project-wide Refactor (Analytics + Phonics Game)**: Extracted 9 chart components and format/export utilities from `AnalyticsDashboardClient.tsx` (746→295 lines). Extracted 7 question generators from `GameScreen.tsx` (976→690 lines). Extracted HUD component and fixed duplicate `ProgressBar`. Extracted companion dialogue strings to `companion-messages.ts` (`CompanionBubble.tsx`: 337→127 lines). Created shared `GlassCard` component (`src/components/GlassCard.tsx`). Fixed `round.questions` mutation anti-pattern. Removed unused `setSave` from phonics context. Deleted dead `LessonConfirmScreen.tsx`.
+
+## v1.10.13 (2026-06-14)
+* **Phonics CSP-Safe Audio Decoding Bypass**: Added direct in-JavaScript base64 string-to-ArrayBuffer decoding using `window.atob` inside `decodeAudioDataUrl`. This completely bypasses calling `fetch()` on `data:` URLs, avoiding Content Security Policy (CSP) fetch restriction errors.
+* **Targeting CEFR Levels for Phonics Stages**: Updated the Stage List's "PRACTICE SOUNDS" mode and Free Practice Phonics/Spelling modes to stick on the user's active CEFR level first, while dynamically mixing in words of all other levels using distance-weighted selection.
+* **Linting Cleanup**: Cleaned up unused eslint-disable comment directives in `useAudio.ts` to ensure 100% clean linter status on changed files.
++ **Phonics CEFR Adaptive Proficiency Levels**: Users can now select their starting English proficiency level (A1, A2, B1, B2, C1, C2) during new save slot onboarding, in settings, or on their profile card. The game adaptively generates target words and distractors using distance-weighted probabilities ($d=0,1$ weight 1.0/0.8; $d=2$ weight 0.25; others weight 0.08/0.01) centered around their active CEFR level. Note that CEFR constraints are restricted to Vocabulary (Definitions) mode; Phonics (tap, speed, card-flip) and Spelling practice ignore CEFR weights to focus strictly on phonetics (mixed levels).
++ **Phonics In-Game Placement Assessment**: Created an optional 4-question onboarding assessment testing levels A1, A2, B1, and B2 using definitions/vocabulary matching. Based on performance (4/4 -> B2, 3/4 -> B1, 2/4 -> A2, etc.), users are automatically placed at their optimal CEFR level.
++ **Phonics Performance-Based Level Scaling**: Dynamic in-game upgrades and downgrades scale the user's level based on accuracy, restricted strictly to definitions/vocabulary rounds. Scoring $\ge 90\%$ accuracy thrice in a row triggers an upgrade, while scoring $< 50\%$ accuracy twice in a row triggers a downgrade (with level up / adjustment banners displayed on the Victory Screen, gated strictly to vocabulary rounds).
++ **Split Lesson Drawer & Category Tabs**: The Phonics Path lesson details drawer now splits startup modes into 'PRACTICE SOUNDS' (phonics mode, level 'all') and 'LEARN VOCAB' (CEFR-scaled vocabulary definitions mode). The Free Practice modal at the bottom left features new tab segment selectors to let users choose between Phonics, Spelling, and Vocabulary practice categories.
++ **Phonics Stage Vocabulary Pool & Replay Enhancement**: Expanded the word dictionary from 29 to 79 words across short and long vowel sound stages. Integrated stage-scoped filtering and randomization: spelling, definitions, and distractors now draw dynamically from the active lesson/stage phoneme pool, and card-flip matches are randomly chosen from all available words matching the target phoneme, ensuring a high-variety, stage-focused experience upon replaying stages.
++ **Phonics Web Audio Buffer Prefetching & Playback**: Migrated playWordAudio, playPhonemeAudio, and prefetchWords to decode base64 MP3 audios directly into raw PCM Web Audio API `AudioBuffer` objects in the background. This completely eliminates HTMLAudioElement decoding delays, rendering audio playback 100% gapless and instantaneous (<1ms) when a user interacts.
++ **Phonics Audio Loading Screens**: 
+  * **First Join Vowel Loader**: Displays a premium welcome loading card upon entering the Phonics game for the first time, downloading and pre-decoding only Stage 1 sounds (`/æ/` and `/e/` vocabulary + example words).
+  * **Mid-game Round Loader**: Shows loading progress card for round-specific audios when starting a round, with a 2.5-second timeout backup to prevent freezes.
++ **Subsequent Progressive Stage Background Prefetching**: While playing or browsing Stage 1, the client automatically pre-downloads and decodes words for Stage 2, Stage 3, etc. stage-by-stage in the background using gentle staggered requests (batches of 3 words, 500ms delay between batches, 3-second delay between stages), achieving completely silent and lag-free audio transitions.
++ **Audio HTTP Browser Caching**: Added aggressive `Cache-Control` headers (`public, max-age=31536000, immutable`) to the dictionary API proxy response, enabling permanent browser-side caching of base64 audio resources and completely eliminating subsequent server calls.
+* **Phonics CSP media loading fix**: Added `media-src 'self' data: blob: https://api.dictionaryapi.dev` directive to the Content Security Policy in `next.config.ts`. This permits the browser to download and play the MP3 files hosted on the dictionary API CDN, resolving blocks due to default-src fallback restrictions.
+* **Phonics distractor selection fix**: Resolved a bug in single-phoneme lesson generation where distractors were filtered strictly from the active stage/lesson phoneme pool. For single-phoneme lessons (like `/æ/`), this left the distractor pool empty, causing the game to render only one single choice button (`cat`) in the option grid. Distractors are now correctly pulled from all words in the dictionary.
++ **Phonics Speech Voice settings**: Added persistent `localStorage` synchronization for custom TTS voices (shared with Alphabet Adventure) and implemented automatic English voice matching fallbacks. Users can now choose their preferred speech synthesis voice from a dropdown on the Phonics settings screen, preventing robotic/unintelligible pronunciation on non-English locales.
++ **Phonics Free Practice in Soundbook**: Clicking any unlocked sound card in the Soundbook tab now displays a premium details modal. Users can listen to the target sound with circular ripple wave animations, see stats (seen counter and accuracy percentage), and click a dedicated **PRACTICE** button to launch a custom 5-question round focused specifically on that phoneme.
++ **Dynamic Companion greetings and larger sizing**:
+  * Floating companion button size increased from 72px to 112px (using w-28 h-28 circular button and canvas scale set to 96px) so the pixel art mascot is visually twice as large and sits beautifully at the bottom right.
+  * Companion avatars inside path confirm drawers and Soundbook details modals enlarged from 54px to 72px.
+  * Added context-sensitive encouragement dialogues based on which tab the user is visiting (Path map, Soundbook, Bazaar, or Profile).
+  * Implemented ref-based bubble timeout cleanup to solve overlapping state/blink bugs when tapping companion repeatedly.
++ **Mascot drawing alignment**: Centered the companion avatar drawing at coordinates (4,4) inside the 24x24 canvases used for the header profile and the level/phoneme details drawer overlays, resolving alignment offsets.
+* **Game stage replay logic**: Prevented lesson filtering states from being immediately cleared on game start, ensuring that custom lesson replays from the Victory Screen correctly preserve target phonemes and stats updates.
++ **Static game layout shell**: Renders `StaticHeader` and `StaticFooter` persistently across path screens, settings, and victory screens.
++ **Independent scroll layers**: Converted settings, victory, map path, and all tab pages to use transparent backgrounds. Scroll regions are constrained to the middle container via `overflow-y-auto`, ensuring the parent's gradient background remains fixed and seamless.
++ **Header & Footer enhancements**:
+  * Added live companion mascot Canvas sprite rendering to the header instead of an emoji.
+  * Replaced settings gear, coins balance, and footer tab emojis with high-contrast Flaticon icons.
+  * Added a pulsing active indicator dot under the current tab text.
++ **Emoji removal pass**: Replaced all emojis in the game screens with Flaticons:
+  * **Save Slot**: Swapped icons for Phonics Island title badge, coin wallet balance, round list counter, flame streak, delete bin, and confirmation warning.
+  * **Soundbook**: Replaced the Arena (leaderboard) tab with the Soundbook screen, showing discovered phonemes grouped by category/tier, accuracy stats, and click-to-pronounce audio playback.
+  * **Bazaar**: Swapped item icons and coin balance icons with Flaticons. Added tactile sound feedback on purchase.
+  * **Settings**: Replaced the settings header back button and toggles. Added save confirmation chime.
+  * **Victory & HUD**: Replaced star ratings, medals, streaks, sound toggle states, and status banners.
+
+## v1.10.12 (2026-06-14)
++ **Kawaii-pixel mascot refinements**: All 8 mascots redesigned with higher-contrast features:
+  + **Alien**: White muzzle (#FFFFFF) replaces green-on-green (#A5D6A7) for crisp contrast; 5×5 black eyes with white sclera; purple nose and eyebrows
+  + **Fox**: Ears extended from 3 to 4 rows tall with gold tips starting at row 1; wider 5px ear base; head width matched to ear span
+  + **Bunny**: Face color changed from pure white (#FFFFFF) to warm off-white (#FFF3E0) for visibility against light backgrounds
+  + **Penguin**: Beak enlarged from 4px to 6px wide, 2 rows tall; white eye sclera added around black eyes for contrast
+  + **Robot**: Antenna extended from 1 row to 2 rows tall (1px red tip + 3px base)
+  + **Cat**: Pink ear tips (#FF8A80) added; whiskers extended outward by 2px on each side
+  + **Bear**: Dark brown (#5D4037) border added around white muzzle for definition
+  + **Ninja**: Black pupils (#222222) added to top row of white eye slits for sharper expression
+* All sprites validated: 32×32 grid, palette indices in range
++ **Blooket-style pixel mascots**: 8 mascots (Fox, Cat, Bear, Bunny, Penguin, Robot, Alien, Ninja) as 12×12 pixel art companions for classroom tools. Mascots appear as bottom-right corner companion with 5 animation states (breathe/think/celebrate/shake). Students choose or get randomly assigned (sticky per session in localStorage). Visible in student view, admin participant list, and all tool results views.
++ **Mascot toggle in QuickStartModal**: Admin can enable/disable mascots per session (default on) in both single and multi-step modes.
++ **Mascot data model**: `ToolResponse.mascot` field stores per-submission mascot ID; `ToolSession.config.enableMascots` controls feature toggle.
+* **Duplicate mascot utilities consolidation**: Extracted shared `loadMascotId`/`saveMascotId`/`getMascotStorageKey` functions from `ToolSessionView` and `MultiStepSessionView` into `mascot-data.ts`. Removed `MascotAvatarInline` wrapper.
+* **Race condition fix (multi-step)**: Unconditional polling in `MultiStepSessionView` — no longer gated on `nameConfirmed`, so students who haven't entered their name won't miss teacher step advances.
 * **Bar chart baseline alignment**: Moved date labels out of bar columns into a separate flex row below `TrafficVerticalChart`. Bars with labels were being pushed up by ~14px (label height), creating a dual baseline. All bars now share the same bottom line.
 * **Hourly chart — today-only**: Changed hourly `$match` aggregation from 30-day window to `todayStartBangkok`. Uses `Asia/Bangkok` timezone offset (UTC+7) so hours 0–current are correctly captured; future hours show as zero.
 * **Hourly chart — aligned labels**: Replaced hardcoded `justify-between` + `paddingLeft: 36px` label row with a flex row matching the bar layout (24 × `flex-1`, `gap-[2px]`).

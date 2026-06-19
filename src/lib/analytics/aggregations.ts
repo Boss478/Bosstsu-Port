@@ -1,7 +1,30 @@
 import AnalyticsEvent from '@/models/AnalyticsEvent';
 import type { PipelineStage } from 'mongoose';
-import { UAParser } from 'ua-parser-js';
 import type { NameCountStat } from '@/models/DailyAnalytics';
+
+function parseUA(ua: string): { os: string; model: string } {
+  const os =
+    /Windows NT (\d+)/.test(ua) ? `Windows ${ua.match(/Windows NT (\d+)/)![1]}` :
+    /Mac OS X (\S+)/.test(ua) ? 'macOS' :
+    /Android (\S+)/.test(ua) ? 'Android' :
+    /(CPU[\s(]+iPhone OS|iOS)/.test(ua) ? 'iOS' :
+    /(CPU[\s(]+iPad OS|iOS)/.test(ua) ? 'iOS' :
+    /CrOS/.test(ua) ? 'ChromeOS' :
+    /Linux/.test(ua) ? 'Linux' :
+    'Unknown';
+
+  const model =
+    /iPhone/.test(ua) ? 'iPhone' :
+    /iPad/.test(ua) ? 'iPad' :
+    /Android/.test(ua) ? ua.match(/Android[^;]+; ([^;)]+)/)?.[1]?.trim().replace(/\s+/g, ' ') || 'Android' :
+    /Windows/.test(ua) ? 'Desktop' :
+    /Macintosh/.test(ua) ? 'Desktop' :
+    /CrOS/.test(ua) ? 'Chromebook' :
+    /Linux/.test(ua) ? 'Desktop' :
+    'Desktop';
+
+  return { os, model };
+}
 
 export async function computeOSDeviceBreakdown(
   since: Date,
@@ -19,17 +42,9 @@ export async function computeOSDeviceBreakdown(
 
   for (const doc of docs) {
     if (!doc.userAgent) continue;
-    const parser = new UAParser(doc.userAgent);
-    const os = parser.getOS();
-    const device = parser.getDevice();
+    const { os, model } = parseUA(doc.userAgent);
 
-    const osName = os.name || 'Unknown';
-    osMap.set(osName, (osMap.get(osName) || 0) + 1);
-
-    const model =
-      device.vendor && device.model
-        ? `${device.vendor} ${device.model}`
-        : device.model || 'Desktop';
+    osMap.set(os, (osMap.get(os) || 0) + 1);
     deviceMap.set(model, (deviceMap.get(model) || 0) + 1);
   }
 

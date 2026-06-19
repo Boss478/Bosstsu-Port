@@ -3,17 +3,21 @@
 import { useState, useEffect, useRef } from 'react';
 import { t } from '@/lib/tool-translations';
 import { getStudentToken } from '@/lib/client-token';
+import MascotAvatar from './mascots/MascotAvatar';
 
 interface PadletBoardProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
   stepIndex?: number;
   studentName?: string;
+  mascot?: string;
+  onMascotEvent?: (event: 'celebrate' | 'correct' | 'wrong') => void;
 }
 
 interface Post {
   _id: string;
   studentName?: string;
+  mascot?: string;
   content: { message?: string };
   createdAt: string;
 }
@@ -23,7 +27,7 @@ interface OwnPost {
   editToken: string;
 }
 
-export default function PadletBoard({ session, stepIndex, studentName: propName }: PadletBoardProps) {
+export default function PadletBoard({ session, stepIndex, studentName: propName, mascot, onMascotEvent }: PadletBoardProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [lastFetch, setLastFetch] = useState(Date.now());
   const [loading, setLoading] = useState(true);
@@ -95,6 +99,7 @@ export default function PadletBoard({ session, stepIndex, studentName: propName 
         },
         body: JSON.stringify({
           studentName: studentName.trim() || undefined,
+          mascot,
           content: { message: message.trim() },
           ...(stepIndex !== undefined && { stepIndex }),
         }),
@@ -104,6 +109,7 @@ export default function PadletBoard({ session, stepIndex, studentName: propName 
         setError(data.error);
       } else {
         setMessage('');
+        onMascotEvent?.('celebrate');
         fetchPosts();
         if (data.id && data.editToken && typeof window !== 'undefined') {
           const newOwnPost = { _id: data.id, editToken: data.editToken };
@@ -217,8 +223,13 @@ export default function PadletBoard({ session, stepIndex, studentName: propName 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {posts.map(post => (
             <div key={post._id} className="p-4 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 truncate max-w-[120px]">
+              <div className="flex items-center gap-1.5 mb-2">
+                {post.mascot && (
+                  <div className="w-5 h-5 rounded overflow-hidden shrink-0">
+                    <MascotAvatar mascotId={post.mascot} size={20} />
+                  </div>
+                )}
+                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 truncate flex-1 min-w-0">
                   {post.studentName || t('anonymous')}
                 </span>
                 <div className="flex items-center gap-2">

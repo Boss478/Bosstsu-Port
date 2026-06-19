@@ -3,16 +3,20 @@
 import { useState, useEffect, useMemo } from 'react';
 import { t } from '@/lib/tool-translations';
 import { getStudentToken } from '@/lib/client-token';
+import MascotAvatar from './mascots/MascotAvatar';
 
 interface QABoardProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
   stepIndex?: number;
+  mascot?: string;
+  onMascotEvent?: (event: 'celebrate' | 'correct' | 'wrong') => void;
 }
 
 interface Question {
   _id: string;
   studentName?: string;
+  mascot?: string;
   content: {
     question: string;
     isAnswered?: boolean;
@@ -23,7 +27,7 @@ interface Question {
   createdAt?: string;
 }
 
-export default function QABoard({ session, stepIndex }: QABoardProps) {
+export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: QABoardProps) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -75,6 +79,7 @@ export default function QABoard({ session, stepIndex }: QABoardProps) {
         },
         body: JSON.stringify({
           content: { question: question.trim(), upvotes: 0, isAnswered: false },
+          ...(mascot && { mascot }),
           ...(stepIndex !== undefined && { stepIndex }),
         }),
       });
@@ -83,6 +88,7 @@ export default function QABoard({ session, stepIndex }: QABoardProps) {
         setError(data.error);
       } else {
         setQuestion('');
+        onMascotEvent?.('celebrate');
         fetchQuestions();
       }
     } catch {
@@ -188,6 +194,16 @@ export default function QABoard({ session, stepIndex }: QABoardProps) {
                     <span className="text-xs text-zinc-400">{t('votes')}</span>
                   </div>
                   <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      {q.mascot && (
+                        <div className="w-4 h-4 rounded overflow-hidden shrink-0">
+                          <MascotAvatar mascotId={q.mascot} size={16} />
+                        </div>
+                      )}
+                      <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 truncate">
+                        {q.studentName || t('anonymous')}
+                      </span>
+                    </div>
                     <p className="text-zinc-700 dark:text-zinc-300">{q.content?.question}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-zinc-400">

@@ -47,7 +47,6 @@ export default function RootLayout({
   return (
     <html lang="th" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://cdn-uicons.flaticon.com" crossOrigin="anonymous" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${mali.variable} antialiased`}

@@ -1,6 +1,6 @@
 {
   "name": "boss478",
-  "version": "1.10.10",
+  "version": "1.10.31",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack -p 3300",
@@ -11,8 +11,10 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
     "analyze": "ANALYZE=true npm run build",
     "seed": "npx tsx scripts/seed.ts",
+    "seed-dictionary": "npx tsx scripts/seed-dictionary.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "eval": ".agents/evals/run-evals.sh",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -39,7 +41,6 @@
     "react-dom": "19.2.3",
     "react-image-crop": "^11.0.10",
     "sharp": "^0.34.5",
-    "ua-parser-js": "^2.0.10",
     "uuid": "^13.0.0",
     "yahoo-finance2": "^3.14.1",
     "zod": "^4.3.6"
@@ -52,10 +53,10 @@
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/ua-parser-js": "^0.7.39",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "^16.2.2",
+    "eslint-plugin-react-compiler": "^19.1.0-rc.2",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.7",
     "prettier": "^3.8.3",

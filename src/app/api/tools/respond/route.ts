@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
 
     const stepIndex = formData.get('stepIndex') as string | null;
     const studentName = formData.get('studentName') as string || undefined;
+    const mascot = formData.get('mascot') as string || undefined;
     const contentRaw = formData.get('content') as string;
     const file = formData.get('file') as File | null;
 
@@ -87,6 +88,7 @@ export async function POST(req: NextRequest) {
     const response = await ToolResponse.create({
       sessionId,
       studentName: studentName || undefined,
+      mascot: mascot || undefined,
       content,
       fileUrl,
       studentToken,

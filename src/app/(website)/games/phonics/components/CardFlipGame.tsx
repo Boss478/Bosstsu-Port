@@ -7,9 +7,10 @@ interface Props {
   cards: CardFlipCard[];
   onComplete: () => void;
   speak: (text: string) => void;
+  playWordAudio: (word: string) => Promise<void>;
 }
 
-export default function CardFlipGame({ cards: initialCards, onComplete, speak }: Props) {
+export default function CardFlipGame({ cards: initialCards, onComplete, speak, playWordAudio }: Props) {
   const [state, setState] = useState<CardFlipState>(() => ({
     cards: initialCards.map((c) => ({ ...c, flipped: false, matched: false })),
     selected: [],
@@ -59,7 +60,7 @@ export default function CardFlipGame({ cards: initialCards, onComplete, speak }:
         if (matchAnnounceRef.current) {
           matchAnnounceRef.current.textContent = `Match found: ${first.label} + ${second.label}`;
         }
-        speak(first.ttsText);
+        playWordAudio(first.ttsText);
       } else {
         setState((prev) => ({
           ...prev,
@@ -89,14 +90,14 @@ export default function CardFlipGame({ cards: initialCards, onComplete, speak }:
         flips: newFlips,
       });
     }
-  }, [state, speak, onComplete]);
+  }, [state, playWordAudio]);
 
   return (
     <div className="flex flex-col items-center justify-center px-4 py-6">
-      <p className="text-xs text-[#888888] dark:text-[#B0C4DE] tracking-widest mb-2">
+      <p className="text-xs text-[#1C1C1C]/50 dark:text-[#F7E1A0]/60 tracking-widest mb-2">
         MATCH PHONEMES TO WORDS
       </p>
-      <p className="text-sm text-[#888888] dark:text-[#B0C4DE] mb-4">
+      <p className="text-sm text-[#1C1C1C]/50 dark:text-[#F7E1A0]/60 mb-4">
         Flips: {state.flips} &middot; Pairs left: {state.pairsRemaining}
       </p>
 
@@ -106,24 +107,34 @@ export default function CardFlipGame({ cards: initialCards, onComplete, speak }:
         aria-label="Card flip game — match phonemes to words"
       >
         {state.cards.map((card, i) => (
-          <button
+          <div
             key={card.id}
-            className={`retro-border w-full aspect-square text-sm font-bold tracking-wide transition-all duration-500
-              ${card.matched ? "ring-2 ring-[#2ECC40] opacity-70" : ""}
-              ${card.flipped || card.matched
-                ? "bg-[#FDFBF7] dark:bg-[#0A1128] text-[#1C1C1C] dark:text-[#F7E1A0]"
-                : "bg-[#C8A44E] dark:bg-[#2A3F6E] text-transparent"
-              }
-              hover:opacity-80 active:scale-95`}
-            onClick={() => handleCardTap(i)}
-            disabled={card.matched}
-            aria-label={card.flipped || card.matched ? `${card.label} — ${card.matched ? "matched" : "face up"}` : "Face-down card"}
-            aria-pressed={card.flipped || card.matched}
+            className="perspective-1000 w-full aspect-square"
           >
-            <span className={`block transition-opacity duration-300 ${card.flipped || card.matched ? "opacity-100" : "opacity-0"}`}>
-              {card.label}
-            </span>
-          </button>
+            <button
+              onClick={() => handleCardTap(i)}
+              disabled={card.matched}
+              className={`relative w-full h-full preserve-3d transition-transform duration-500 rounded-2xl cursor-pointer ${
+                card.flipped || card.matched ? "rotate-y-180" : ""
+              } ${card.matched ? "ring-4 ring-emerald-400 dark:ring-emerald-500 ring-offset-2 dark:ring-offset-slate-900" : ""}`}
+              aria-label={card.flipped || card.matched ? `${card.label} — ${card.matched ? "matched" : "face up"}` : "Face-down card"}
+              aria-pressed={card.flipped || card.matched}
+            >
+              {/* Front Face (revealed card content) */}
+              <div className="absolute inset-0 flex items-center justify-center p-2 rounded-2xl glass-panel text-[#1C1C1C] dark:text-[#F7E1A0] backface-hidden rotate-y-180 border-2 border-[#2EC4B6]/20">
+                <span className="text-sm md:text-base font-bold text-center break-words select-none leading-tight">
+                  {card.label}
+                </span>
+              </div>
+
+              {/* Back Face (hidden state) */}
+              <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-gradient-to-br from-[#2EC4B6] to-[#0f8a7e] dark:from-[#1a8a7f] dark:to-[#0d4f49] text-white backface-hidden border-2 border-white/20 shadow-md hover:brightness-110 active:scale-[0.97] transition-all">
+                <span className="text-xl md:text-2xl font-bold font-mono text-white/90 drop-shadow-sm select-none">
+                  ?
+                </span>
+              </div>
+            </button>
+          </div>
         ))}
       </div>
       <div

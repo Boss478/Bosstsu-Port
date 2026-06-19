@@ -9,9 +9,11 @@ interface QuickQuizProps {
   session: any;
   stepIndex?: number;
   studentName?: string;
+  mascot?: string;
+  onMascotEvent?: (event: 'celebrate' | 'correct' | 'wrong') => void;
 }
 
-export default function QuickQuiz({ session, stepIndex, studentName }: QuickQuizProps) {
+export default function QuickQuiz({ session, stepIndex, studentName, mascot, onMascotEvent }: QuickQuizProps) {
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -88,6 +90,7 @@ export default function QuickQuiz({ session, stepIndex, studentName }: QuickQuiz
         body: JSON.stringify({
           content: { score, total, answers },
           ...(studentName && { studentName }),
+          ...(mascot && { mascot }),
           ...(stepIndex !== undefined && { stepIndex }),
         }),
       });
@@ -103,6 +106,7 @@ export default function QuickQuiz({ session, stepIndex, studentName }: QuickQuiz
         }
       } else {
         setSubmitted(true);
+        onMascotEvent?.(score === total ? 'celebrate' : 'correct');
       }
     } catch {
       setError(t('failedToSubmitSimple'));

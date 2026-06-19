@@ -8,9 +8,11 @@ interface MentimeterPollProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session: any;
   stepIndex?: number;
+  mascot?: string;
+  onMascotEvent?: (event: 'celebrate' | 'correct' | 'wrong') => void;
 }
 
-export default function MentimeterPoll({ session, stepIndex }: MentimeterPollProps) {
+export default function MentimeterPoll({ session, stepIndex, mascot, onMascotEvent }: MentimeterPollProps) {
   const [responses, setResponses] = useState<{ _id: string; content: { selectedOption?: string; word?: string } }[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
@@ -96,6 +98,7 @@ export default function MentimeterPoll({ session, stepIndex }: MentimeterPollPro
           content: pollMode === 'mcq'
             ? { selectedOption: customMode ? customValue.trim() : selected }
             : { word: word.trim() },
+          ...(mascot && { mascot }),
           ...(stepIndex !== undefined && { stepIndex }),
         }),
       });
@@ -104,6 +107,7 @@ export default function MentimeterPoll({ session, stepIndex }: MentimeterPollPro
         setError(data.error);
       } else {
         setSubmitted(true);
+        onMascotEvent?.('celebrate');
         if (typeof window !== 'undefined') {
           localStorage.setItem(STORAGE_KEY, 'true');
         }

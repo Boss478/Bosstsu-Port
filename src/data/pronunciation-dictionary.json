@@ -1,0 +1,8044 @@
+[
+  {
+    "word": "cat",
+    "phonemeIds": [
+      "k",
+      "ae",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/kat/"
+  },
+  {
+    "word": "bed",
+    "phonemeIds": [
+      "b",
+      "e",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/bed/"
+  },
+  {
+    "word": "sit",
+    "phonemeIds": [
+      "s",
+      "i",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/sɪt/"
+  },
+  {
+    "word": "hot",
+    "phonemeIds": [
+      "h",
+      "o",
+      "t"
+    ],
+    "dialect": "uk",
+    "ipa": "/hɒt/"
+  },
+  {
+    "word": "hot",
+    "phonemeIds": [
+      "h",
+      "o",
+      "t"
+    ],
+    "dialect": "us",
+    "ipa": "/hɑt/"
+  },
+  {
+    "word": "cup",
+    "phonemeIds": [
+      "k",
+      "u",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/kʌp/"
+  },
+  {
+    "word": "car",
+    "phonemeIds": [
+      "k",
+      "ar"
+    ],
+    "dialect": "universal",
+    "ipa": "/kɑː/"
+  },
+  {
+    "word": "car",
+    "phonemeIds": [
+      "k",
+      "ar"
+    ],
+    "dialect": "us",
+    "ipa": "/kɑɹ/"
+  },
+  {
+    "word": "see",
+    "phonemeIds": [
+      "s",
+      "ee"
+    ],
+    "dialect": "universal",
+    "ipa": "/siː/"
+  },
+  {
+    "word": "moon",
+    "phonemeIds": [
+      "m",
+      "oo",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/muːn/"
+  },
+  {
+    "word": "bird",
+    "phonemeIds": [
+      "b",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/bɜd/"
+  },
+  {
+    "word": "bird",
+    "phonemeIds": [
+      "b",
+      "er",
+      "d"
+    ],
+    "dialect": "uk",
+    "ipa": "/bɜːd/"
+  },
+  {
+    "word": "bird",
+    "phonemeIds": [
+      "b",
+      "er",
+      "d"
+    ],
+    "dialect": "us",
+    "ipa": "/bɝd/"
+  },
+  {
+    "word": "day",
+    "phonemeIds": [
+      "d",
+      "ay"
+    ],
+    "dialect": "universal",
+    "ipa": "/deɪ/"
+  },
+  {
+    "word": "fly",
+    "phonemeIds": [
+      "f",
+      "l",
+      "ie"
+    ],
+    "dialect": "universal",
+    "ipa": "/flaɪ/"
+  },
+  {
+    "word": "boy",
+    "phonemeIds": [
+      "b",
+      "aw",
+      "uh"
+    ],
+    "dialect": "universal",
+    "ipa": "/bɔːə/"
+  },
+  {
+    "word": "now",
+    "phonemeIds": [
+      "n",
+      "ow"
+    ],
+    "dialect": "universal",
+    "ipa": "/naʊ/"
+  },
+  {
+    "word": "about",
+    "phonemeIds": [
+      "uh",
+      "b",
+      "e",
+      "uh2",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/əˈbɛʊt/"
+  },
+  {
+    "word": "near",
+    "phonemeIds": [
+      "n",
+      "eer",
+      "r"
+    ],
+    "dialect": "uk",
+    "ipa": "/nɪə(ɹ)/"
+  },
+  {
+    "word": "near",
+    "phonemeIds": [
+      "n",
+      "eer"
+    ],
+    "dialect": "universal",
+    "ipa": "/nɪɹ/"
+  },
+  {
+    "word": "care",
+    "phonemeIds": [
+      "k",
+      "e",
+      "uh"
+    ],
+    "dialect": "universal",
+    "ipa": "/kɛə/"
+  },
+  {
+    "word": "tour",
+    "phonemeIds": [
+      "t",
+      "aw",
+      "r"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɔː(ɹ)/"
+  },
+  {
+    "word": "book",
+    "phonemeIds": [
+      "b",
+      "oo",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/buːk/"
+  },
+  {
+    "word": "ship",
+    "phonemeIds": [
+      "sh",
+      "i",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/ʃɪp/"
+  },
+  {
+    "word": "measure",
+    "phonemeIds": [
+      "m",
+      "e",
+      "zh",
+      "uh"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈmɛʒə/"
+  },
+  {
+    "word": "chin",
+    "phonemeIds": [
+      "ch",
+      "i",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʃɪn/"
+  },
+  {
+    "word": "jump",
+    "phonemeIds": [
+      "dz",
+      "u",
+      "m",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/dʒʌmp/"
+  },
+  {
+    "word": "sing",
+    "phonemeIds": [
+      "s",
+      "i",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/sɪŋ/"
+  },
+  {
+    "word": "thin",
+    "phonemeIds": [
+      "th",
+      "i",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈθɪn/"
+  },
+  {
+    "word": "this",
+    "phonemeIds": [
+      "dh",
+      "uh",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/ðəs/"
+  },
+  {
+    "word": "correct",
+    "phonemeIds": [
+      "k",
+      "uh",
+      "r",
+      "e",
+      "k",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/kəˈɹɛkt/"
+  },
+  {
+    "word": "office",
+    "phonemeIds": [
+      "o",
+      "f",
+      "i",
+      "s"
+    ],
+    "dialect": "us",
+    "ipa": "/ˈɑfɪs/"
+  },
+  {
+    "word": "office",
+    "phonemeIds": [
+      "o",
+      "f",
+      "i",
+      "s"
+    ],
+    "dialect": "uk",
+    "ipa": "/ˈɒfɪs/"
+  },
+  {
+    "word": "office",
+    "phonemeIds": [
+      "aw",
+      "f",
+      "i",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈɔfɪs/"
+  },
+  {
+    "word": "spoon",
+    "phonemeIds": [
+      "s",
+      "p",
+      "oo",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/spuːn/"
+  },
+  {
+    "word": "blue",
+    "phonemeIds": [
+      "b",
+      "l",
+      "oo"
+    ],
+    "dialect": "universal",
+    "ipa": "/bluː/"
+  },
+  {
+    "word": "cake",
+    "phonemeIds": [
+      "k",
+      "ay",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/keɪk/"
+  },
+  {
+    "word": "lake",
+    "phonemeIds": [
+      "l",
+      "ay",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/leɪk/"
+  },
+  {
+    "word": "rain",
+    "phonemeIds": [
+      "r",
+      "ay",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɹeɪn/"
+  },
+  {
+    "word": "train",
+    "phonemeIds": [
+      "t",
+      "r",
+      "ay",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹeɪn/"
+  },
+  {
+    "word": "play",
+    "phonemeIds": [
+      "p",
+      "l",
+      "ay"
+    ],
+    "dialect": "universal",
+    "ipa": "/pleɪ/"
+  },
+  {
+    "word": "journey",
+    "phonemeIds": [
+      "d",
+      "zh",
+      "er",
+      "n",
+      "ee"
+    ],
+    "dialect": "uk",
+    "ipa": "/ˈd͡ʒɜːni/"
+  },
+  {
+    "word": "journey",
+    "phonemeIds": [
+      "d",
+      "zh",
+      "er",
+      "n",
+      "ee"
+    ],
+    "dialect": "us",
+    "ipa": "/ˈd͡ʒɝni/"
+  },
+  {
+    "word": "pleasure",
+    "phonemeIds": [
+      "p",
+      "l",
+      "e",
+      "zh",
+      "uh"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈplɛʒə/"
+  },
+  {
+    "word": "machine",
+    "phonemeIds": [
+      "m",
+      "uh",
+      "sh",
+      "ee",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/məˈʃin/"
+  },
+  {
+    "word": "character",
+    "phonemeIds": [
+      "k",
+      "ae",
+      "r",
+      "uh",
+      "k",
+      "t",
+      "uh"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈkæɹəktə/"
+  },
+  {
+    "word": "achieve",
+    "phonemeIds": [
+      "uh",
+      "ch",
+      "ee",
+      "v"
+    ],
+    "dialect": "universal",
+    "ipa": "/əˈtʃiːv/"
+  },
+  {
+    "word": "treasure",
+    "phonemeIds": [
+      "t",
+      "r",
+      "e",
+      "zh",
+      "uh"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈtɹɛʒə/"
+  },
+  {
+    "word": "enormous",
+    "phonemeIds": [
+      "i",
+      "n",
+      "aw",
+      "r",
+      "m",
+      "uh",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɪˈnɔː(ɹ)məs/"
+  },
+  {
+    "word": "knowledge",
+    "phonemeIds": [
+      "n",
+      "o",
+      "l",
+      "i",
+      "dz"
+    ],
+    "dialect": "uk",
+    "ipa": "/ˈnɒlɪdʒ/"
+  },
+  {
+    "word": "knowledge",
+    "phonemeIds": [
+      "n",
+      "o",
+      "l",
+      "i",
+      "dz"
+    ],
+    "dialect": "us",
+    "ipa": "/ˈnɑlɪdʒ/"
+  },
+  {
+    "word": "adventure",
+    "phonemeIds": [
+      "ae",
+      "d",
+      "v",
+      "e",
+      "n",
+      "t",
+      "sh",
+      "uh"
+    ],
+    "dialect": "universal",
+    "ipa": "/ædˈvɛnt͡ʃɚ/"
+  },
+  {
+    "word": "substance",
+    "phonemeIds": [
+      "s",
+      "u",
+      "b",
+      "s",
+      "t",
+      "uh",
+      "n",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈsʌbstəns/"
+  },
+  {
+    "word": "relevant",
+    "phonemeIds": [
+      "r",
+      "e",
+      "l",
+      "uh",
+      "v",
+      "uh",
+      "n",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈɹɛləvənt/"
+  },
+  {
+    "word": "map",
+    "phonemeIds": [
+      "m",
+      "ae",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/mæp/"
+  },
+  {
+    "word": "tap",
+    "phonemeIds": [
+      "t",
+      "ae",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/tæp/"
+  },
+  {
+    "word": "cap",
+    "phonemeIds": [
+      "k",
+      "ae",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/kæp/"
+  },
+  {
+    "word": "gap",
+    "phonemeIds": [
+      "g",
+      "ae",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡæp/"
+  },
+  {
+    "word": "nap",
+    "phonemeIds": [
+      "n",
+      "ae",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/nap/"
+  },
+  {
+    "word": "lap",
+    "phonemeIds": [
+      "l",
+      "ae",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/læp/"
+  },
+  {
+    "word": "sap",
+    "phonemeIds": [
+      "s",
+      "ae",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/sæp/"
+  },
+  {
+    "word": "rap",
+    "phonemeIds": [
+      "r",
+      "ae",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɹæp/"
+  },
+  {
+    "word": "yak",
+    "phonemeIds": [
+      "j",
+      "ae",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/jæk/"
+  },
+  {
+    "word": "sack",
+    "phonemeIds": [
+      "s",
+      "ae",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/sæk/"
+  },
+  {
+    "word": "pet",
+    "phonemeIds": [
+      "p",
+      "e",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/pɛt/"
+  },
+  {
+    "word": "set",
+    "phonemeIds": [
+      "s",
+      "e",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/sɛt/"
+  },
+  {
+    "word": "yet",
+    "phonemeIds": [
+      "j",
+      "e",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/jɛt/"
+  },
+  {
+    "word": "fed",
+    "phonemeIds": [
+      "f",
+      "e",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/fɛd/"
+  },
+  {
+    "word": "led",
+    "phonemeIds": [
+      "l",
+      "e",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈlɛd/"
+  },
+  {
+    "word": "red",
+    "phonemeIds": [
+      "r",
+      "e",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɹɛd/"
+  },
+  {
+    "word": "wed",
+    "phonemeIds": [
+      "w",
+      "e",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈwɛd/"
+  },
+  {
+    "word": "beg",
+    "phonemeIds": [
+      "b",
+      "e",
+      "g"
+    ],
+    "dialect": "universal",
+    "ipa": "/bɛɡ/"
+  },
+  {
+    "word": "peg",
+    "phonemeIds": [
+      "p",
+      "e",
+      "g"
+    ],
+    "dialect": "universal",
+    "ipa": "/pɛɡ/"
+  },
+  {
+    "word": "meg",
+    "phonemeIds": [
+      "m",
+      "e",
+      "g"
+    ],
+    "dialect": "universal",
+    "ipa": "/mɛɡ/"
+  },
+  {
+    "word": "leg",
+    "phonemeIds": [
+      "l",
+      "ay",
+      "g"
+    ],
+    "dialect": "universal",
+    "ipa": "/leɪɡ/"
+  },
+  {
+    "word": "hem",
+    "phonemeIds": [
+      "h",
+      "e",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/hɛm/"
+  },
+  {
+    "word": "den",
+    "phonemeIds": [
+      "d",
+      "e",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/dɛn/"
+  },
+  {
+    "word": "ken",
+    "phonemeIds": [
+      "k",
+      "e",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/kɛn/"
+  },
+  {
+    "word": "men",
+    "phonemeIds": [
+      "m",
+      "e",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/mɛn/"
+  },
+  {
+    "word": "ten",
+    "phonemeIds": [
+      "t",
+      "e",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɛn/"
+  },
+  {
+    "word": "wen",
+    "phonemeIds": [
+      "w",
+      "e",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/wɛn/"
+  },
+  {
+    "word": "hen",
+    "phonemeIds": [
+      "h",
+      "e",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/hɛn/"
+  },
+  {
+    "word": "fen",
+    "phonemeIds": [
+      "f",
+      "e",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/fɛn/"
+  },
+  {
+    "word": "pen",
+    "phonemeIds": [
+      "p",
+      "e",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/pɛn/"
+  },
+  {
+    "word": "yes",
+    "phonemeIds": [
+      "j",
+      "e",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/jɛs/"
+  },
+  {
+    "word": "mess",
+    "phonemeIds": [
+      "m",
+      "e",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/mɛs/"
+  },
+  {
+    "word": "less",
+    "phonemeIds": [
+      "l",
+      "e",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/lɛs/"
+  },
+  {
+    "word": "press",
+    "phonemeIds": [
+      "p",
+      "r",
+      "e",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/pɹɛs/"
+  },
+  {
+    "word": "rid",
+    "phonemeIds": [
+      "r",
+      "i",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈɹɪd/"
+  },
+  {
+    "word": "fig",
+    "phonemeIds": [
+      "f",
+      "i",
+      "g"
+    ],
+    "dialect": "universal",
+    "ipa": "/fɪɡ/"
+  },
+  {
+    "word": "dig",
+    "phonemeIds": [
+      "d",
+      "i",
+      "g"
+    ],
+    "dialect": "universal",
+    "ipa": "/dɪɡ/"
+  },
+  {
+    "word": "pig",
+    "phonemeIds": [
+      "p",
+      "i",
+      "g"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈpɪɡ/"
+  },
+  {
+    "word": "wig",
+    "phonemeIds": [
+      "w",
+      "i",
+      "g"
+    ],
+    "dialect": "universal",
+    "ipa": "/wɪɡ/"
+  },
+  {
+    "word": "big",
+    "phonemeIds": [
+      "b",
+      "i",
+      "g"
+    ],
+    "dialect": "universal",
+    "ipa": "/bɪɡ/"
+  },
+  {
+    "word": "bib",
+    "phonemeIds": [
+      "b",
+      "i",
+      "b"
+    ],
+    "dialect": "universal",
+    "ipa": "/bɪb/"
+  },
+  {
+    "word": "rib",
+    "phonemeIds": [
+      "r",
+      "i",
+      "b"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɹɪb/"
+  },
+  {
+    "word": "crib",
+    "phonemeIds": [
+      "k",
+      "r",
+      "i",
+      "b"
+    ],
+    "dialect": "universal",
+    "ipa": "/kɹɪb/"
+  },
+  {
+    "word": "grip",
+    "phonemeIds": [
+      "g",
+      "r",
+      "i",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡɹɪp/"
+  },
+  {
+    "word": "trip",
+    "phonemeIds": [
+      "t",
+      "r",
+      "i",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹɪp/"
+  },
+  {
+    "word": "skip",
+    "phonemeIds": [
+      "s",
+      "k",
+      "i",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/skɪp/"
+  },
+  {
+    "word": "clip",
+    "phonemeIds": [
+      "k",
+      "l",
+      "i",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/klɪp/"
+  },
+  {
+    "word": "flip",
+    "phonemeIds": [
+      "f",
+      "l",
+      "i",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/flɪp/"
+  },
+  {
+    "word": "slip",
+    "phonemeIds": [
+      "s",
+      "l",
+      "i",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/slɪp/"
+  },
+  {
+    "word": "drip",
+    "phonemeIds": [
+      "d",
+      "r",
+      "i",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/dɹɪp/"
+  },
+  {
+    "word": "blip",
+    "phonemeIds": [
+      "b",
+      "l",
+      "i",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/blɪp/"
+  },
+  {
+    "word": "hop",
+    "phonemeIds": [
+      "h",
+      "o",
+      "p"
+    ],
+    "dialect": "uk",
+    "ipa": "/hɒp/"
+  },
+  {
+    "word": "hop",
+    "phonemeIds": [
+      "h",
+      "o",
+      "p"
+    ],
+    "dialect": "us",
+    "ipa": "/hɑp/"
+  },
+  {
+    "word": "pop",
+    "phonemeIds": [
+      "p",
+      "o",
+      "p"
+    ],
+    "dialect": "uk",
+    "ipa": "/pɒp/"
+  },
+  {
+    "word": "pop",
+    "phonemeIds": [
+      "p",
+      "o",
+      "p"
+    ],
+    "dialect": "us",
+    "ipa": "/pɑp/"
+  },
+  {
+    "word": "mop",
+    "phonemeIds": [
+      "m",
+      "o",
+      "p"
+    ],
+    "dialect": "uk",
+    "ipa": "/mɒp/"
+  },
+  {
+    "word": "mop",
+    "phonemeIds": [
+      "m",
+      "o",
+      "p"
+    ],
+    "dialect": "us",
+    "ipa": "/mɑp/"
+  },
+  {
+    "word": "cop",
+    "phonemeIds": [
+      "k",
+      "o",
+      "p"
+    ],
+    "dialect": "uk",
+    "ipa": "/kɒp/"
+  },
+  {
+    "word": "cop",
+    "phonemeIds": [
+      "k",
+      "o",
+      "p"
+    ],
+    "dialect": "us",
+    "ipa": "/kɑp/"
+  },
+  {
+    "word": "bop",
+    "phonemeIds": [
+      "b",
+      "o",
+      "p"
+    ],
+    "dialect": "uk",
+    "ipa": "/bɒp/"
+  },
+  {
+    "word": "shop",
+    "phonemeIds": [
+      "sh",
+      "o",
+      "p"
+    ],
+    "dialect": "uk",
+    "ipa": "/ʃɒp/"
+  },
+  {
+    "word": "shop",
+    "phonemeIds": [
+      "sh",
+      "o",
+      "p"
+    ],
+    "dialect": "us",
+    "ipa": "/ʃɑp/"
+  },
+  {
+    "word": "drop",
+    "phonemeIds": [
+      "d",
+      "r",
+      "o",
+      "p"
+    ],
+    "dialect": "uk",
+    "ipa": "/dɹɒp/"
+  },
+  {
+    "word": "drop",
+    "phonemeIds": [
+      "d",
+      "r",
+      "o",
+      "p"
+    ],
+    "dialect": "us",
+    "ipa": "/dɹɑp/"
+  },
+  {
+    "word": "stop",
+    "phonemeIds": [
+      "s",
+      "t",
+      "o",
+      "p"
+    ],
+    "dialect": "uk",
+    "ipa": "/stɒp/"
+  },
+  {
+    "word": "stop",
+    "phonemeIds": [
+      "s",
+      "t",
+      "o",
+      "p"
+    ],
+    "dialect": "us",
+    "ipa": "/stɑp/"
+  },
+  {
+    "word": "but",
+    "phonemeIds": [
+      "b",
+      "uh2",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/bʊt/"
+  },
+  {
+    "word": "nut",
+    "phonemeIds": [
+      "n",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "[nɐt]"
+  },
+  {
+    "word": "shut",
+    "phonemeIds": [
+      "sh",
+      "u",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/ʃʌt/"
+  },
+  {
+    "word": "club",
+    "phonemeIds": [
+      "k",
+      "l",
+      "u",
+      "b"
+    ],
+    "dialect": "universal",
+    "ipa": "/klʌb/"
+  },
+  {
+    "word": "blub",
+    "phonemeIds": [
+      "b",
+      "l",
+      "u",
+      "b"
+    ],
+    "dialect": "universal",
+    "ipa": "/blʌb/"
+  },
+  {
+    "word": "grub",
+    "phonemeIds": [
+      "g",
+      "r",
+      "u",
+      "b"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡɹʌb/"
+  },
+  {
+    "word": "run",
+    "phonemeIds": [
+      "r",
+      "uh2",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɹʊn/"
+  },
+  {
+    "word": "fun",
+    "phonemeIds": [
+      "f",
+      "uh2",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/fʊn/"
+  },
+  {
+    "word": "bun",
+    "phonemeIds": [
+      "b",
+      "u",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/bʌn/"
+  },
+  {
+    "word": "gun",
+    "phonemeIds": [
+      "g",
+      "u",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡʌn/"
+  },
+  {
+    "word": "sun",
+    "phonemeIds": [
+      "s",
+      "u",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/sʌn/"
+  },
+  {
+    "word": "ton",
+    "phonemeIds": [
+      "t",
+      "u",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʌn/"
+  },
+  {
+    "word": "won",
+    "phonemeIds": [
+      "w",
+      "u",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/wʌn/"
+  },
+  {
+    "word": "buzz",
+    "phonemeIds": [
+      "b",
+      "u",
+      "z"
+    ],
+    "dialect": "universal",
+    "ipa": "/bʌz/"
+  },
+  {
+    "word": "fuzz",
+    "phonemeIds": [
+      "f",
+      "u",
+      "z"
+    ],
+    "dialect": "universal",
+    "ipa": "/fʌz/"
+  },
+  {
+    "word": "puff",
+    "phonemeIds": [
+      "p",
+      "u",
+      "f"
+    ],
+    "dialect": "universal",
+    "ipa": "/pʌf/"
+  },
+  {
+    "word": "huff",
+    "phonemeIds": [
+      "h",
+      "u",
+      "f"
+    ],
+    "dialect": "universal",
+    "ipa": "/hʌf/"
+  },
+  {
+    "word": "stuff",
+    "phonemeIds": [
+      "s",
+      "t",
+      "u",
+      "f"
+    ],
+    "dialect": "universal",
+    "ipa": "/stʌf/"
+  },
+  {
+    "word": "cliff",
+    "phonemeIds": [
+      "k",
+      "l",
+      "i",
+      "f"
+    ],
+    "dialect": "universal",
+    "ipa": "/klɪf/"
+  },
+  {
+    "word": "fluff",
+    "phonemeIds": [
+      "f",
+      "l",
+      "u",
+      "f"
+    ],
+    "dialect": "universal",
+    "ipa": "/flʌf/"
+  },
+  {
+    "word": "sniff",
+    "phonemeIds": [
+      "s",
+      "n",
+      "i",
+      "f"
+    ],
+    "dialect": "universal",
+    "ipa": "/snɪf/"
+  },
+  {
+    "word": "bluff",
+    "phonemeIds": [
+      "b",
+      "l",
+      "u",
+      "f"
+    ],
+    "dialect": "universal",
+    "ipa": "/blʌf/"
+  },
+  {
+    "word": "bake",
+    "phonemeIds": [
+      "b",
+      "ay",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/beɪk/"
+  },
+  {
+    "word": "make",
+    "phonemeIds": [
+      "m",
+      "ay",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/meɪk/"
+  },
+  {
+    "word": "take",
+    "phonemeIds": [
+      "t",
+      "ay",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/teɪk/"
+  },
+  {
+    "word": "rake",
+    "phonemeIds": [
+      "r",
+      "ay",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɹeɪk/"
+  },
+  {
+    "word": "fake",
+    "phonemeIds": [
+      "f",
+      "ay",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/feɪk/"
+  },
+  {
+    "word": "stone",
+    "phonemeIds": [
+      "s",
+      "t",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɐʉn/"
+  },
+  {
+    "word": "stone",
+    "phonemeIds": [
+      "s",
+      "t",
+      "oh",
+      "n"
+    ],
+    "dialect": "uk",
+    "ipa": "/stəʊn/"
+  },
+  {
+    "word": "stone",
+    "phonemeIds": [
+      "s",
+      "t",
+      "oh",
+      "n"
+    ],
+    "dialect": "us",
+    "ipa": "/stoʊn/"
+  },
+  {
+    "word": "alone",
+    "phonemeIds": [
+      "uh",
+      "l",
+      "oh",
+      "n"
+    ],
+    "dialect": "uk",
+    "ipa": "/əˈləʊn/"
+  },
+  {
+    "word": "alone",
+    "phonemeIds": [
+      "uh",
+      "l",
+      "oh",
+      "n"
+    ],
+    "dialect": "us",
+    "ipa": "/əˈloʊn/"
+  },
+  {
+    "word": "cute",
+    "phonemeIds": [
+      "k",
+      "j",
+      "oo",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/kjuːt/"
+  },
+  {
+    "word": "mute",
+    "phonemeIds": [
+      "m",
+      "j",
+      "oo",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/mjuːt/"
+  },
+  {
+    "word": "lute",
+    "phonemeIds": [
+      "l",
+      "j",
+      "oo",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/l(j)uːt/"
+  },
+  {
+    "word": "flute",
+    "phonemeIds": [
+      "f",
+      "l",
+      "oo",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/fluːt/"
+  },
+  {
+    "word": "rude",
+    "phonemeIds": [
+      "r",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɹʉːd/"
+  },
+  {
+    "word": "crude",
+    "phonemeIds": [
+      "k",
+      "r",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/kɹʉd/"
+  },
+  {
+    "word": "prune",
+    "phonemeIds": [
+      "p",
+      "r",
+      "oo",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/pɹuːn/"
+  },
+  {
+    "word": "dune",
+    "phonemeIds": [
+      "d",
+      "j",
+      "oo",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/djuːn/"
+  },
+  {
+    "word": "tune",
+    "phonemeIds": [
+      "t",
+      "j",
+      "oo",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/tjuːn/"
+  },
+  {
+    "word": "cube",
+    "phonemeIds": [
+      "k",
+      "j",
+      "oo",
+      "b"
+    ],
+    "dialect": "universal",
+    "ipa": "/kjuːb/"
+  },
+  {
+    "word": "tube",
+    "phonemeIds": [
+      "t",
+      "j",
+      "oo",
+      "b"
+    ],
+    "dialect": "universal",
+    "ipa": "/tjuːb/"
+  },
+  {
+    "word": "fume",
+    "phonemeIds": [
+      "f",
+      "j",
+      "oo",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/fjuːm/"
+  },
+  {
+    "word": "plume",
+    "phonemeIds": [
+      "p",
+      "l",
+      "j",
+      "oo",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈpljuːm/"
+  },
+  {
+    "word": "rule",
+    "phonemeIds": [
+      "r",
+      "oo",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɹuːl/"
+  },
+  {
+    "word": "mule",
+    "phonemeIds": [
+      "m",
+      "j",
+      "oo",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/mjuːl/"
+  },
+  {
+    "word": "keep",
+    "phonemeIds": [
+      "k",
+      "ee",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/kiːp/"
+  },
+  {
+    "word": "deep",
+    "phonemeIds": [
+      "d",
+      "ee",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/diːp/"
+  },
+  {
+    "word": "weep",
+    "phonemeIds": [
+      "w",
+      "ee",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/wiːp/"
+  },
+  {
+    "word": "peep",
+    "phonemeIds": [
+      "p",
+      "ee",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/piːp/"
+  },
+  {
+    "word": "beep",
+    "phonemeIds": [
+      "b",
+      "ee",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/biːp/"
+  },
+  {
+    "word": "jeep",
+    "phonemeIds": [
+      "dz",
+      "ee",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/dʒiːp/"
+  },
+  {
+    "word": "leap",
+    "phonemeIds": [
+      "l",
+      "ee",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/liːp/"
+  },
+  {
+    "word": "heap",
+    "phonemeIds": [
+      "h",
+      "e",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/heːp/"
+  },
+  {
+    "word": "cheap",
+    "phonemeIds": [
+      "t",
+      "sh",
+      "ee",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/t͡ʃiːp/"
+  },
+  {
+    "word": "creep",
+    "phonemeIds": [
+      "k",
+      "r",
+      "ee",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/kɹiːp/"
+  },
+  {
+    "word": "steep",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ee",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/stiːp/"
+  },
+  {
+    "word": "loaf",
+    "phonemeIds": [
+      "l",
+      "oh",
+      "f"
+    ],
+    "dialect": "uk",
+    "ipa": "/ləʊf/"
+  },
+  {
+    "word": "loaf",
+    "phonemeIds": [
+      "l",
+      "oh",
+      "f"
+    ],
+    "dialect": "us",
+    "ipa": "/loʊf/"
+  },
+  {
+    "word": "foam",
+    "phonemeIds": [
+      "f",
+      "oh",
+      "m"
+    ],
+    "dialect": "uk",
+    "ipa": "/fəʊm/"
+  },
+  {
+    "word": "foam",
+    "phonemeIds": [
+      "f",
+      "oh",
+      "m"
+    ],
+    "dialect": "us",
+    "ipa": "/foʊm/"
+  },
+  {
+    "word": "roam",
+    "phonemeIds": [
+      "r",
+      "oh",
+      "m"
+    ],
+    "dialect": "uk",
+    "ipa": "/ɹəʊm/"
+  },
+  {
+    "word": "roam",
+    "phonemeIds": [
+      "r",
+      "oh",
+      "m"
+    ],
+    "dialect": "us",
+    "ipa": "/ɹoʊm/"
+  },
+  {
+    "word": "soak",
+    "phonemeIds": [
+      "s",
+      "oh",
+      "k"
+    ],
+    "dialect": "uk",
+    "ipa": "/səʊk/"
+  },
+  {
+    "word": "soak",
+    "phonemeIds": [
+      "s",
+      "oh",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/soʊk/"
+  },
+  {
+    "word": "oak",
+    "phonemeIds": [
+      "oh",
+      "k"
+    ],
+    "dialect": "uk",
+    "ipa": "/əʊk/"
+  },
+  {
+    "word": "oak",
+    "phonemeIds": [
+      "oh",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/oʊk/"
+  },
+  {
+    "word": "cloak",
+    "phonemeIds": [
+      "k",
+      "l",
+      "oh",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/ˈkloʊk/"
+  },
+  {
+    "word": "croak",
+    "phonemeIds": [
+      "k",
+      "r",
+      "oh",
+      "k"
+    ],
+    "dialect": "uk",
+    "ipa": "/kɹəʊk/"
+  },
+  {
+    "word": "croak",
+    "phonemeIds": [
+      "k",
+      "r",
+      "oh",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/kɹoʊk/"
+  },
+  {
+    "word": "boast",
+    "phonemeIds": [
+      "b",
+      "oh",
+      "s",
+      "t"
+    ],
+    "dialect": "uk",
+    "ipa": "/bəʊst/"
+  },
+  {
+    "word": "boast",
+    "phonemeIds": [
+      "b",
+      "oh",
+      "s",
+      "t"
+    ],
+    "dialect": "us",
+    "ipa": "/boʊst/"
+  },
+  {
+    "word": "coast",
+    "phonemeIds": [
+      "k",
+      "oh",
+      "s",
+      "t"
+    ],
+    "dialect": "uk",
+    "ipa": "/kəʊst/"
+  },
+  {
+    "word": "coast",
+    "phonemeIds": [
+      "k",
+      "oh",
+      "s",
+      "t"
+    ],
+    "dialect": "us",
+    "ipa": "/koʊst/"
+  },
+  {
+    "word": "toast",
+    "phonemeIds": [
+      "t",
+      "oh",
+      "s",
+      "t"
+    ],
+    "dialect": "uk",
+    "ipa": "/təʊst/"
+  },
+  {
+    "word": "toast",
+    "phonemeIds": [
+      "t",
+      "oh",
+      "s",
+      "t"
+    ],
+    "dialect": "us",
+    "ipa": "/toʊst/"
+  },
+  {
+    "word": "roast",
+    "phonemeIds": [
+      "r",
+      "oh",
+      "s",
+      "t"
+    ],
+    "dialect": "uk",
+    "ipa": "/ɹəʊst/"
+  },
+  {
+    "word": "roast",
+    "phonemeIds": [
+      "r",
+      "oh",
+      "s",
+      "t"
+    ],
+    "dialect": "us",
+    "ipa": "/ɹoʊst/"
+  },
+  {
+    "word": "coach",
+    "phonemeIds": [
+      "k",
+      "oh",
+      "ch"
+    ],
+    "dialect": "uk",
+    "ipa": "/kəʊtʃ/"
+  },
+  {
+    "word": "coach",
+    "phonemeIds": [
+      "k",
+      "oh",
+      "ch"
+    ],
+    "dialect": "us",
+    "ipa": "/koʊtʃ/"
+  },
+  {
+    "word": "poach",
+    "phonemeIds": [
+      "p",
+      "oh",
+      "ch"
+    ],
+    "dialect": "us",
+    "ipa": "/ˈpoʊtʃ/"
+  },
+  {
+    "word": "teach",
+    "phonemeIds": [
+      "t",
+      "ee",
+      "t",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/tiːt͡ʃ/"
+  },
+  {
+    "word": "reach",
+    "phonemeIds": [
+      "r",
+      "ee",
+      "t",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɹiːt͡ʃ/"
+  },
+  {
+    "word": "peach",
+    "phonemeIds": [
+      "p",
+      "ee",
+      "t",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/piːt͡ʃ/"
+  },
+  {
+    "word": "beach",
+    "phonemeIds": [
+      "b",
+      "ee",
+      "t",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/biːt͡ʃ/"
+  },
+  {
+    "word": "leach",
+    "phonemeIds": [
+      "l",
+      "ee",
+      "ch"
+    ],
+    "dialect": "universal",
+    "ipa": "/liːtʃ/"
+  },
+  {
+    "word": "preach",
+    "phonemeIds": [
+      "p",
+      "r",
+      "ee",
+      "t",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/pɹiːt͡ʃ/"
+  },
+  {
+    "word": "each",
+    "phonemeIds": [
+      "ee",
+      "t",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/iːt͡ʃ/"
+  },
+  {
+    "word": "cheek",
+    "phonemeIds": [
+      "ch",
+      "ee",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʃiːk/"
+  },
+  {
+    "word": "leek",
+    "phonemeIds": [
+      "l",
+      "ee",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/liːk/"
+  },
+  {
+    "word": "seek",
+    "phonemeIds": [
+      "s",
+      "ee",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/siːk/"
+  },
+  {
+    "word": "week",
+    "phonemeIds": [
+      "w",
+      "ee",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/wiːk/"
+  },
+  {
+    "word": "harm",
+    "phonemeIds": [
+      "h",
+      "ar",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/hɑːm/"
+  },
+  {
+    "word": "harm",
+    "phonemeIds": [
+      "h",
+      "ar",
+      "m"
+    ],
+    "dialect": "us",
+    "ipa": "/hɑɹm/"
+  },
+  {
+    "word": "charm",
+    "phonemeIds": [
+      "ch",
+      "ar",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʃɑːm/"
+  },
+  {
+    "word": "charm",
+    "phonemeIds": [
+      "ch",
+      "ar",
+      "m"
+    ],
+    "dialect": "us",
+    "ipa": "/tʃɑɹm/"
+  },
+  {
+    "word": "farm",
+    "phonemeIds": [
+      "f",
+      "ar",
+      "r",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/fɑːɹm/"
+  },
+  {
+    "word": "bark",
+    "phonemeIds": [
+      "b",
+      "ar",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/bɑːk/"
+  },
+  {
+    "word": "bark",
+    "phonemeIds": [
+      "b",
+      "ar",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/bɑɹk/"
+  },
+  {
+    "word": "mark",
+    "phonemeIds": [
+      "m",
+      "ar",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/mɑɹk/"
+  },
+  {
+    "word": "spark",
+    "phonemeIds": [
+      "s",
+      "p",
+      "ar",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/spɑːk/"
+  },
+  {
+    "word": "spark",
+    "phonemeIds": [
+      "s",
+      "p",
+      "ar",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/spɑɹk/"
+  },
+  {
+    "word": "stark",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ar",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɑːk/"
+  },
+  {
+    "word": "stark",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ar",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/stɑɹk/"
+  },
+  {
+    "word": "clerk",
+    "phonemeIds": [
+      "k",
+      "l",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/klɐːk/"
+  },
+  {
+    "word": "clerk",
+    "phonemeIds": [
+      "k",
+      "l",
+      "er",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/klɝk/"
+  },
+  {
+    "word": "fern",
+    "phonemeIds": [
+      "f",
+      "er",
+      "n"
+    ],
+    "dialect": "uk",
+    "ipa": "/fɜːn/"
+  },
+  {
+    "word": "fern",
+    "phonemeIds": [
+      "f",
+      "er",
+      "n"
+    ],
+    "dialect": "us",
+    "ipa": "/fɝn/"
+  },
+  {
+    "word": "jerk",
+    "phonemeIds": [
+      "d",
+      "zh",
+      "er",
+      "k"
+    ],
+    "dialect": "uk",
+    "ipa": "/d͡ʒɜːk/"
+  },
+  {
+    "word": "jerk",
+    "phonemeIds": [
+      "d",
+      "zh",
+      "er",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/d͡ʒɝk/"
+  },
+  {
+    "word": "perk",
+    "phonemeIds": [
+      "p",
+      "er",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/pɝk/"
+  },
+  {
+    "word": "perk",
+    "phonemeIds": [
+      "p",
+      "er",
+      "k"
+    ],
+    "dialect": "uk",
+    "ipa": "/pɜːk/"
+  },
+  {
+    "word": "berk",
+    "phonemeIds": [
+      "b",
+      "er",
+      "r",
+      "k"
+    ],
+    "dialect": "uk",
+    "ipa": "/bɜː(ɹ)k/"
+  },
+  {
+    "word": "mercy",
+    "phonemeIds": [
+      "m",
+      "er",
+      "s",
+      "ee"
+    ],
+    "dialect": "uk",
+    "ipa": "/ˈmɜːsi/"
+  },
+  {
+    "word": "mercy",
+    "phonemeIds": [
+      "m",
+      "er",
+      "s",
+      "ee"
+    ],
+    "dialect": "us",
+    "ipa": "/ˈmɝsi/"
+  },
+  {
+    "word": "firm",
+    "phonemeIds": [
+      "f",
+      "er",
+      "m"
+    ],
+    "dialect": "uk",
+    "ipa": "/fɜːm/"
+  },
+  {
+    "word": "firm",
+    "phonemeIds": [
+      "f",
+      "er",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/fɜɹm/"
+  },
+  {
+    "word": "germ",
+    "phonemeIds": [
+      "d",
+      "zh",
+      "er",
+      "m"
+    ],
+    "dialect": "uk",
+    "ipa": "/d͡ʒɜːm/"
+  },
+  {
+    "word": "germ",
+    "phonemeIds": [
+      "d",
+      "zh",
+      "er",
+      "m"
+    ],
+    "dialect": "us",
+    "ipa": "/d͡ʒɝm/"
+  },
+  {
+    "word": "term",
+    "phonemeIds": [
+      "t",
+      "er",
+      "m"
+    ],
+    "dialect": "uk",
+    "ipa": "/tɜːm/"
+  },
+  {
+    "word": "term",
+    "phonemeIds": [
+      "t",
+      "er",
+      "m"
+    ],
+    "dialect": "us",
+    "ipa": "/tɝm/"
+  },
+  {
+    "word": "herd",
+    "phonemeIds": [
+      "h",
+      "er",
+      "d"
+    ],
+    "dialect": "uk",
+    "ipa": "/hɜːd/"
+  },
+  {
+    "word": "herd",
+    "phonemeIds": [
+      "h",
+      "er",
+      "d"
+    ],
+    "dialect": "us",
+    "ipa": "/hɝd/"
+  },
+  {
+    "word": "nerd",
+    "phonemeIds": [
+      "n",
+      "er",
+      "d"
+    ],
+    "dialect": "uk",
+    "ipa": "/nɜːd/"
+  },
+  {
+    "word": "nerd",
+    "phonemeIds": [
+      "n",
+      "er",
+      "d"
+    ],
+    "dialect": "us",
+    "ipa": "/nɝːd/"
+  },
+  {
+    "word": "verb",
+    "phonemeIds": [
+      "v",
+      "er",
+      "b"
+    ],
+    "dialect": "uk",
+    "ipa": "/vɜːb/"
+  },
+  {
+    "word": "verb",
+    "phonemeIds": [
+      "v",
+      "er",
+      "b"
+    ],
+    "dialect": "us",
+    "ipa": "/vɝb/"
+  },
+  {
+    "word": "serve",
+    "phonemeIds": [
+      "s",
+      "er",
+      "v"
+    ],
+    "dialect": "uk",
+    "ipa": "/sɜːv/"
+  },
+  {
+    "word": "serve",
+    "phonemeIds": [
+      "s",
+      "er",
+      "v"
+    ],
+    "dialect": "us",
+    "ipa": "/sɝv/"
+  },
+  {
+    "word": "deserve",
+    "phonemeIds": [
+      "d",
+      "i",
+      "z",
+      "er",
+      "v"
+    ],
+    "dialect": "uk",
+    "ipa": "/dɪˈzɜːv/"
+  },
+  {
+    "word": "deserve",
+    "phonemeIds": [
+      "d",
+      "i",
+      "z",
+      "er",
+      "v"
+    ],
+    "dialect": "us",
+    "ipa": "/dɪˈzɝv/"
+  },
+  {
+    "word": "observe",
+    "phonemeIds": [
+      "uh",
+      "b",
+      "z",
+      "er",
+      "v"
+    ],
+    "dialect": "us",
+    "ipa": "/əbˈzɝv/"
+  },
+  {
+    "word": "observe",
+    "phonemeIds": [
+      "o",
+      "b",
+      "z",
+      "er",
+      "v"
+    ],
+    "dialect": "uk",
+    "ipa": "/ɒbˈzɜːv/"
+  },
+  {
+    "word": "reserve",
+    "phonemeIds": [
+      "r",
+      "i",
+      "z",
+      "er",
+      "v"
+    ],
+    "dialect": "uk",
+    "ipa": "/ɹɪˈzɜːv/"
+  },
+  {
+    "word": "reserve",
+    "phonemeIds": [
+      "r",
+      "i",
+      "z",
+      "er",
+      "v"
+    ],
+    "dialect": "us",
+    "ipa": "/ɹɪˈzɝv/"
+  },
+  {
+    "word": "turn",
+    "phonemeIds": [
+      "t",
+      "er",
+      "n"
+    ],
+    "dialect": "uk",
+    "ipa": "/tɜːn/"
+  },
+  {
+    "word": "turn",
+    "phonemeIds": [
+      "t",
+      "er",
+      "n"
+    ],
+    "dialect": "us",
+    "ipa": "/tɝn/"
+  },
+  {
+    "word": "burn",
+    "phonemeIds": [
+      "b",
+      "er",
+      "n"
+    ],
+    "dialect": "uk",
+    "ipa": "/bɜːn/"
+  },
+  {
+    "word": "burn",
+    "phonemeIds": [
+      "b",
+      "er",
+      "n"
+    ],
+    "dialect": "us",
+    "ipa": "/bɝn/"
+  },
+  {
+    "word": "join",
+    "phonemeIds": [
+      "dz",
+      "oy",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈdʒɔɪn/"
+  },
+  {
+    "word": "loin",
+    "phonemeIds": [
+      "l",
+      "oy",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/lɔɪn/"
+  },
+  {
+    "word": "moist",
+    "phonemeIds": [
+      "m",
+      "oy",
+      "s",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/mɔɪst/"
+  },
+  {
+    "word": "hoist",
+    "phonemeIds": [
+      "h",
+      "oy",
+      "s",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/hɔɪst/"
+  },
+  {
+    "word": "voice",
+    "phonemeIds": [
+      "v",
+      "oy",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/vɔɪs/"
+  },
+  {
+    "word": "choice",
+    "phonemeIds": [
+      "ch",
+      "oy",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʃɔɪs/"
+  },
+  {
+    "word": "noise",
+    "phonemeIds": [
+      "n",
+      "oy",
+      "z"
+    ],
+    "dialect": "universal",
+    "ipa": "/nɔɪz/"
+  },
+  {
+    "word": "poise",
+    "phonemeIds": [
+      "p",
+      "oy",
+      "z"
+    ],
+    "dialect": "universal",
+    "ipa": "/pɔɪz/"
+  },
+  {
+    "word": "point",
+    "phonemeIds": [
+      "p",
+      "oy",
+      "n",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/pɔɪnt/"
+  },
+  {
+    "word": "joint",
+    "phonemeIds": [
+      "dz",
+      "oy",
+      "n",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/dʒɔɪnt/"
+  },
+  {
+    "word": "pout",
+    "phonemeIds": [
+      "p",
+      "u",
+      "uh2",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/pʌʊt/"
+  },
+  {
+    "word": "loud",
+    "phonemeIds": [
+      "l",
+      "ow",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/laʊd/"
+  },
+  {
+    "word": "cloud",
+    "phonemeIds": [
+      "k",
+      "l",
+      "ow",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/klaʊd/"
+  },
+  {
+    "word": "proud",
+    "phonemeIds": [
+      "p",
+      "r",
+      "ow",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/pɹaʊd/"
+  },
+  {
+    "word": "ground",
+    "phonemeIds": [
+      "g",
+      "r",
+      "ow",
+      "n",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡɹaʊnd/"
+  },
+  {
+    "word": "sound",
+    "phonemeIds": [
+      "s",
+      "ow",
+      "n",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/saʊnd/"
+  },
+  {
+    "word": "round",
+    "phonemeIds": [
+      "r",
+      "ow",
+      "n",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈɹaʊnd/"
+  },
+  {
+    "word": "found",
+    "phonemeIds": [
+      "f",
+      "ow",
+      "n",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/faʊnd/"
+  },
+  {
+    "word": "bound",
+    "phonemeIds": [
+      "b",
+      "ow",
+      "n",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈbaʊnd/"
+  },
+  {
+    "word": "count",
+    "phonemeIds": [
+      "k",
+      "ow",
+      "n",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/kaʊnt/"
+  },
+  {
+    "word": "mount",
+    "phonemeIds": [
+      "m",
+      "ow",
+      "n",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/maʊnt/"
+  },
+  {
+    "word": "ounce",
+    "phonemeIds": [
+      "ow",
+      "n",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/aʊns/"
+  },
+  {
+    "word": "bounce",
+    "phonemeIds": [
+      "b",
+      "ow",
+      "n",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/baʊns/"
+  },
+  {
+    "word": "house",
+    "phonemeIds": [
+      "h",
+      "u",
+      "uh2",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/hʌʊs/"
+  },
+  {
+    "word": "blouse",
+    "phonemeIds": [
+      "b",
+      "l",
+      "ow",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/blaʊs/"
+  },
+  {
+    "word": "spouse",
+    "phonemeIds": [
+      "s",
+      "p",
+      "ow",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/spaʊs/"
+  },
+  {
+    "word": "grouse",
+    "phonemeIds": [
+      "g",
+      "r",
+      "ow",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡɹaʊs/"
+  },
+  {
+    "word": "mouth",
+    "phonemeIds": [
+      "m",
+      "u",
+      "uh2",
+      "th"
+    ],
+    "dialect": "universal",
+    "ipa": "/mʌʊθ/"
+  },
+  {
+    "word": "south",
+    "phonemeIds": [
+      "s",
+      "ae",
+      "th"
+    ],
+    "dialect": "universal",
+    "ipa": "/sæoθ/"
+  },
+  {
+    "word": "couch",
+    "phonemeIds": [
+      "k",
+      "ow",
+      "ch"
+    ],
+    "dialect": "universal",
+    "ipa": "/kaʊtʃ/"
+  },
+  {
+    "word": "pouch",
+    "phonemeIds": [
+      "p",
+      "ow",
+      "t",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/paʊt͡ʃ/"
+  },
+  {
+    "word": "young",
+    "phonemeIds": [
+      "j",
+      "u",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/jʌŋ/"
+  },
+  {
+    "word": "rough",
+    "phonemeIds": [
+      "r",
+      "u",
+      "f"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɹʌf/"
+  },
+  {
+    "word": "tough",
+    "phonemeIds": [
+      "t",
+      "u",
+      "f"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʌf/"
+  },
+  {
+    "word": "enough",
+    "phonemeIds": [
+      "ee",
+      "n",
+      "u",
+      "f"
+    ],
+    "dialect": "universal",
+    "ipa": "/iˈnʌf/"
+  },
+  {
+    "word": "double",
+    "phonemeIds": [
+      "d",
+      "u",
+      "b",
+      "uh",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈdʌb.əl/"
+  },
+  {
+    "word": "trouble",
+    "phonemeIds": [
+      "t",
+      "r",
+      "u",
+      "b",
+      "uh",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈtɹʌb(ə)l/"
+  },
+  {
+    "word": "couple",
+    "phonemeIds": [
+      "k",
+      "u",
+      "p",
+      "uh",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈkʌpəl/"
+  },
+  {
+    "word": "country",
+    "phonemeIds": [
+      "k",
+      "n",
+      "t",
+      "r",
+      "ee"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈkɐntɹi/"
+  },
+  {
+    "word": "cousin",
+    "phonemeIds": [
+      "k",
+      "u",
+      "z",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈkʌz.n̩/"
+  },
+  {
+    "word": "flood",
+    "phonemeIds": [
+      "f",
+      "l",
+      "u",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/flʌd/"
+  },
+  {
+    "word": "blood",
+    "phonemeIds": [
+      "b",
+      "l",
+      "uh2",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/blʊd/"
+  },
+  {
+    "word": "oven",
+    "phonemeIds": [
+      "u",
+      "v",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈʌ.vn̩/"
+  },
+  {
+    "word": "glove",
+    "phonemeIds": [
+      "g",
+      "l",
+      "u",
+      "v"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡlʌv/"
+  },
+  {
+    "word": "dove",
+    "phonemeIds": [
+      "d",
+      "u",
+      "v"
+    ],
+    "dialect": "universal",
+    "ipa": "/dʌv/"
+  },
+  {
+    "word": "love",
+    "phonemeIds": [
+      "l",
+      "uh2",
+      "v"
+    ],
+    "dialect": "universal",
+    "ipa": "/lʊv/"
+  },
+  {
+    "word": "shove",
+    "phonemeIds": [
+      "sh",
+      "u",
+      "v"
+    ],
+    "dialect": "universal",
+    "ipa": "/ʃʌv/"
+  },
+  {
+    "word": "above",
+    "phonemeIds": [
+      "uh",
+      "b",
+      "u",
+      "v"
+    ],
+    "dialect": "universal",
+    "ipa": "/əˈbʌv/"
+  },
+  {
+    "word": "none",
+    "phonemeIds": [
+      "n",
+      "o",
+      "n"
+    ],
+    "dialect": "uk",
+    "ipa": "/nɒn/"
+  },
+  {
+    "word": "done",
+    "phonemeIds": [
+      "d",
+      "u",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/dʌn/"
+  },
+  {
+    "word": "come",
+    "phonemeIds": [
+      "k",
+      "u",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/kʌm/"
+  },
+  {
+    "word": "some",
+    "phonemeIds": [
+      "s",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/sɐm/"
+  },
+  {
+    "word": "son",
+    "phonemeIds": [
+      "s",
+      "o",
+      "n"
+    ],
+    "dialect": "uk",
+    "ipa": "/sɒn/"
+  },
+  {
+    "word": "tongue",
+    "phonemeIds": [
+      "t",
+      "u",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʌŋ/"
+  },
+  {
+    "word": "tongue",
+    "phonemeIds": [
+      "t",
+      "o",
+      "ng",
+      "g"
+    ],
+    "dialect": "uk",
+    "ipa": "/tɒŋɡ/"
+  },
+  {
+    "word": "front",
+    "phonemeIds": [
+      "f",
+      "r",
+      "u",
+      "n",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/fɹʌnt/"
+  },
+  {
+    "word": "month",
+    "phonemeIds": [
+      "m",
+      "u",
+      "n",
+      "th"
+    ],
+    "dialect": "universal",
+    "ipa": "/mʌnθ/"
+  },
+  {
+    "word": "other",
+    "phonemeIds": [
+      "dh",
+      "uh"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈɐðə/"
+  },
+  {
+    "word": "mother",
+    "phonemeIds": [
+      "m",
+      "u",
+      "dh",
+      "uh",
+      "r"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈmʌðə(ɹ)/"
+  },
+  {
+    "word": "brother",
+    "phonemeIds": [
+      "b",
+      "r",
+      "dh",
+      "r"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈbɹɐðɘ(ɹ)/"
+  },
+  {
+    "word": "nothing",
+    "phonemeIds": [
+      "n",
+      "u",
+      "th",
+      "i",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈnʌθɪŋ/"
+  },
+  {
+    "word": "cover",
+    "phonemeIds": [
+      "k",
+      "u",
+      "v",
+      "uh"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈkʌvə/"
+  },
+  {
+    "word": "discover",
+    "phonemeIds": [
+      "d",
+      "i",
+      "s",
+      "k",
+      "uh2",
+      "v",
+      "uh"
+    ],
+    "dialect": "universal",
+    "ipa": "/dɪsˈkʊvə/"
+  },
+  {
+    "word": "money",
+    "phonemeIds": [
+      "m",
+      "u",
+      "n",
+      "ee"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈmʌni/"
+  },
+  {
+    "word": "honey",
+    "phonemeIds": [
+      "h",
+      "u",
+      "n",
+      "ee"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈhʌni/"
+  },
+  {
+    "word": "donkey",
+    "phonemeIds": [
+      "d",
+      "o",
+      "ng",
+      "k",
+      "ee"
+    ],
+    "dialect": "uk",
+    "ipa": "/ˈdɒŋki/"
+  },
+  {
+    "word": "donkey",
+    "phonemeIds": [
+      "d",
+      "o",
+      "ng",
+      "k",
+      "ee"
+    ],
+    "dialect": "us",
+    "ipa": "/ˈdɑŋki/"
+  },
+  {
+    "word": "monkey",
+    "phonemeIds": [
+      "m",
+      "u",
+      "ng",
+      "k",
+      "ee"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈmʌŋki/"
+  },
+  {
+    "word": "bonus",
+    "phonemeIds": [
+      "b",
+      "oh",
+      "n",
+      "uh",
+      "s"
+    ],
+    "dialect": "uk",
+    "ipa": "/ˈbəʊ.nəs/"
+  },
+  {
+    "word": "bonus",
+    "phonemeIds": [
+      "b",
+      "oh",
+      "n",
+      "uh",
+      "s"
+    ],
+    "dialect": "us",
+    "ipa": "/ˈboʊ.nəs/"
+  },
+  {
+    "word": "second",
+    "phonemeIds": [
+      "s",
+      "e",
+      "k",
+      "i",
+      "n",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈsɛkɪnd/"
+  },
+  {
+    "word": "color",
+    "phonemeIds": [
+      "k",
+      "u",
+      "l",
+      "uh",
+      "r"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈkʌl.ə(ɹ)/"
+  },
+  {
+    "word": "wonder",
+    "phonemeIds": [
+      "w",
+      "u",
+      "n",
+      "d",
+      "uh"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈwʌndə/"
+  },
+  {
+    "word": "dozen",
+    "phonemeIds": [
+      "d",
+      "u",
+      "z",
+      "uh",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈdʌzən/"
+  },
+  {
+    "word": "once",
+    "phonemeIds": [
+      "w",
+      "o",
+      "n",
+      "t",
+      "s"
+    ],
+    "dialect": "uk",
+    "ipa": "/wɒn(t)s/"
+  },
+  {
+    "word": "once",
+    "phonemeIds": [
+      "w",
+      "u",
+      "n",
+      "t",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/wʌn(t)s/"
+  },
+  {
+    "word": "long",
+    "phonemeIds": [
+      "l",
+      "aw",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈlɔːŋ/"
+  },
+  {
+    "word": "long",
+    "phonemeIds": [
+      "l",
+      "o",
+      "ng"
+    ],
+    "dialect": "us",
+    "ipa": "/ˈlɑŋ/"
+  },
+  {
+    "word": "long",
+    "phonemeIds": [
+      "l",
+      "o",
+      "ng"
+    ],
+    "dialect": "uk",
+    "ipa": "/ˈlɒŋ/"
+  },
+  {
+    "word": "song",
+    "phonemeIds": [
+      "s",
+      "o",
+      "ng"
+    ],
+    "dialect": "uk",
+    "ipa": "/sɒŋ/"
+  },
+  {
+    "word": "song",
+    "phonemeIds": [
+      "s",
+      "o",
+      "ng"
+    ],
+    "dialect": "us",
+    "ipa": "/sɑŋ/"
+  },
+  {
+    "word": "ring",
+    "phonemeIds": [
+      "r",
+      "i",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɹɪŋ/"
+  },
+  {
+    "word": "king",
+    "phonemeIds": [
+      "k",
+      "i",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/kɪŋ/"
+  },
+  {
+    "word": "wing",
+    "phonemeIds": [
+      "w",
+      "i",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/wɪŋ/"
+  },
+  {
+    "word": "thing",
+    "phonemeIds": [
+      "th",
+      "i",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/θɪŋ/"
+  },
+  {
+    "word": "bring",
+    "phonemeIds": [
+      "b",
+      "r",
+      "i",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈbɹɪŋ/"
+  },
+  {
+    "word": "sting",
+    "phonemeIds": [
+      "s",
+      "t",
+      "i",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɪŋ/"
+  },
+  {
+    "word": "swing",
+    "phonemeIds": [
+      "s",
+      "w",
+      "i",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈswɪŋ/"
+  },
+  {
+    "word": "spring",
+    "phonemeIds": [
+      "s",
+      "p",
+      "r",
+      "i",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/spɹɪŋ/"
+  },
+  {
+    "word": "string",
+    "phonemeIds": [
+      "s",
+      "t",
+      "r",
+      "i",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɹɪŋ/"
+  },
+  {
+    "word": "strong",
+    "phonemeIds": [
+      "s",
+      "t",
+      "r",
+      "o",
+      "ng"
+    ],
+    "dialect": "us",
+    "ipa": "/stɹɑŋ/"
+  },
+  {
+    "word": "strong",
+    "phonemeIds": [
+      "s",
+      "t",
+      "r",
+      "o",
+      "ng"
+    ],
+    "dialect": "uk",
+    "ipa": "/stɹɒŋ/"
+  },
+  {
+    "word": "strong",
+    "phonemeIds": [
+      "s",
+      "t",
+      "r",
+      "aw",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɹɔŋ/"
+  },
+  {
+    "word": "along",
+    "phonemeIds": [
+      "uh",
+      "l",
+      "o",
+      "ng"
+    ],
+    "dialect": "us",
+    "ipa": "/əˈlɑŋ/"
+  },
+  {
+    "word": "along",
+    "phonemeIds": [
+      "uh",
+      "l",
+      "o",
+      "ng"
+    ],
+    "dialect": "uk",
+    "ipa": "/əˈlɒŋ/"
+  },
+  {
+    "word": "along",
+    "phonemeIds": [
+      "uh",
+      "l",
+      "aw",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/əˈlɔŋ/"
+  },
+  {
+    "word": "belong",
+    "phonemeIds": [
+      "b",
+      "i",
+      "l",
+      "o",
+      "ng"
+    ],
+    "dialect": "uk",
+    "ipa": "/bɪˈlɒŋ/"
+  },
+  {
+    "word": "belong",
+    "phonemeIds": [
+      "b",
+      "i",
+      "l",
+      "aw",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/bɪˈlɔŋ/"
+  },
+  {
+    "word": "among",
+    "phonemeIds": [
+      "uh",
+      "m",
+      "o",
+      "ng"
+    ],
+    "dialect": "uk",
+    "ipa": "/əˈmɒŋ/"
+  },
+  {
+    "word": "wrong",
+    "phonemeIds": [
+      "r",
+      "o",
+      "ng"
+    ],
+    "dialect": "uk",
+    "ipa": "/ɹɒŋ/"
+  },
+  {
+    "word": "wrong",
+    "phonemeIds": [
+      "r",
+      "aw",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɹɔŋ/"
+  },
+  {
+    "word": "length",
+    "phonemeIds": [
+      "l",
+      "e",
+      "n",
+      "t",
+      "th"
+    ],
+    "dialect": "universal",
+    "ipa": "/lɛn(t)θ/"
+  },
+  {
+    "word": "strength",
+    "phonemeIds": [
+      "s",
+      "t",
+      "r",
+      "e",
+      "ng",
+      "k",
+      "th"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɹɛŋkθ/"
+  },
+  {
+    "word": "shot",
+    "phonemeIds": [
+      "sh",
+      "o",
+      "t"
+    ],
+    "dialect": "uk",
+    "ipa": "/ʃɒt/"
+  },
+  {
+    "word": "shot",
+    "phonemeIds": [
+      "sh",
+      "o",
+      "t"
+    ],
+    "dialect": "us",
+    "ipa": "/ʃɑt/"
+  },
+  {
+    "word": "shed",
+    "phonemeIds": [
+      "sh",
+      "e",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/ʃɛd/"
+  },
+  {
+    "word": "fish",
+    "phonemeIds": [
+      "f",
+      "i",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/fɪʃ/"
+  },
+  {
+    "word": "dish",
+    "phonemeIds": [
+      "d",
+      "i",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/dɪʃ/"
+  },
+  {
+    "word": "wish",
+    "phonemeIds": [
+      "w",
+      "i",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/wɪʃ/"
+  },
+  {
+    "word": "push",
+    "phonemeIds": [
+      "p",
+      "uh2",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "[pʷʊʃ]"
+  },
+  {
+    "word": "bush",
+    "phonemeIds": [
+      "b",
+      "uh2",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/bʊʃ/"
+  },
+  {
+    "word": "cash",
+    "phonemeIds": [
+      "k",
+      "ae",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/kæʃ/"
+  },
+  {
+    "word": "dash",
+    "phonemeIds": [
+      "d",
+      "ae",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/dæʃ/"
+  },
+  {
+    "word": "gash",
+    "phonemeIds": [
+      "g",
+      "ae",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡæʃ/"
+  },
+  {
+    "word": "hash",
+    "phonemeIds": [
+      "h",
+      "ae",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈhæʃ/"
+  },
+  {
+    "word": "lash",
+    "phonemeIds": [
+      "l",
+      "ae",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/læʃ/"
+  },
+  {
+    "word": "mash",
+    "phonemeIds": [
+      "m",
+      "ae",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/mæʃ/"
+  },
+  {
+    "word": "rash",
+    "phonemeIds": [
+      "r",
+      "ae",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɹæʃ/"
+  },
+  {
+    "word": "sash",
+    "phonemeIds": [
+      "s",
+      "ae",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/sæʃ/"
+  },
+  {
+    "word": "wash",
+    "phonemeIds": [
+      "w",
+      "o",
+      "sh"
+    ],
+    "dialect": "us",
+    "ipa": "/wɑʃ/"
+  },
+  {
+    "word": "wash",
+    "phonemeIds": [
+      "w",
+      "o",
+      "sh"
+    ],
+    "dialect": "uk",
+    "ipa": "/wɒʃ/"
+  },
+  {
+    "word": "chat",
+    "phonemeIds": [
+      "ch",
+      "ae",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʃæt/"
+  },
+  {
+    "word": "chop",
+    "phonemeIds": [
+      "ch",
+      "o",
+      "p"
+    ],
+    "dialect": "uk",
+    "ipa": "/tʃɒp/"
+  },
+  {
+    "word": "chip",
+    "phonemeIds": [
+      "ch",
+      "i",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʃɪp/"
+  },
+  {
+    "word": "rich",
+    "phonemeIds": [
+      "r",
+      "i",
+      "t",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɹɪt͡ʃ/"
+  },
+  {
+    "word": "such",
+    "phonemeIds": [
+      "s",
+      "u",
+      "t",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/sʌt͡ʃ/"
+  },
+  {
+    "word": "much",
+    "phonemeIds": [
+      "m",
+      "u",
+      "t",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/mʌt͡ʃ/"
+  },
+  {
+    "word": "chest",
+    "phonemeIds": [
+      "t",
+      "sh",
+      "e",
+      "s",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/t͡ʃɛst/"
+  },
+  {
+    "word": "bench",
+    "phonemeIds": [
+      "b",
+      "e",
+      "n",
+      "ch"
+    ],
+    "dialect": "universal",
+    "ipa": "/bɛntʃ/"
+  },
+  {
+    "word": "lunch",
+    "phonemeIds": [
+      "l",
+      "u",
+      "n",
+      "t",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/lʌnt͡ʃ/"
+  },
+  {
+    "word": "munch",
+    "phonemeIds": [
+      "m",
+      "u",
+      "n",
+      "ch"
+    ],
+    "dialect": "universal",
+    "ipa": "/mʌntʃ/"
+  },
+  {
+    "word": "punch",
+    "phonemeIds": [
+      "p",
+      "u",
+      "n",
+      "ch"
+    ],
+    "dialect": "universal",
+    "ipa": "/pʌntʃ/"
+  },
+  {
+    "word": "branch",
+    "phonemeIds": [
+      "b",
+      "r",
+      "ae",
+      "n",
+      "ch"
+    ],
+    "dialect": "universal",
+    "ipa": "/bɹæntʃ/"
+  },
+  {
+    "word": "crunch",
+    "phonemeIds": [
+      "k",
+      "r",
+      "u",
+      "n",
+      "ch"
+    ],
+    "dialect": "universal",
+    "ipa": "/kɹʌntʃ/"
+  },
+  {
+    "word": "brunch",
+    "phonemeIds": [
+      "b",
+      "r",
+      "u",
+      "n",
+      "ch"
+    ],
+    "dialect": "universal",
+    "ipa": "/bɹʌntʃ/"
+  },
+  {
+    "word": "chick",
+    "phonemeIds": [
+      "t",
+      "sh",
+      "i",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/t͡ʃɪk/"
+  },
+  {
+    "word": "chill",
+    "phonemeIds": [
+      "ch",
+      "i",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʃɪl/"
+  },
+  {
+    "word": "chimp",
+    "phonemeIds": [
+      "ch",
+      "i",
+      "m",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʃɪmp/"
+  },
+  {
+    "word": "chore",
+    "phonemeIds": [
+      "ch",
+      "aw"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʃɔː/"
+  },
+  {
+    "word": "churn",
+    "phonemeIds": [
+      "ch",
+      "er",
+      "r",
+      "n"
+    ],
+    "dialect": "uk",
+    "ipa": "/tʃɜː(ɹ)n/"
+  },
+  {
+    "word": "churn",
+    "phonemeIds": [
+      "ch",
+      "er",
+      "n"
+    ],
+    "dialect": "us",
+    "ipa": "/tʃɝn/"
+  },
+  {
+    "word": "chant",
+    "phonemeIds": [
+      "ch",
+      "ae",
+      "n",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʃænt/"
+  },
+  {
+    "word": "chart",
+    "phonemeIds": [
+      "ch",
+      "ar",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʃɑːt/"
+  },
+  {
+    "word": "chart",
+    "phonemeIds": [
+      "ch",
+      "ar",
+      "t"
+    ],
+    "dialect": "us",
+    "ipa": "/tʃɑɹt/"
+  },
+  {
+    "word": "cheese",
+    "phonemeIds": [
+      "t",
+      "sh",
+      "ee",
+      "z"
+    ],
+    "dialect": "universal",
+    "ipa": "/t͡ʃiz/"
+  },
+  {
+    "word": "cheer",
+    "phonemeIds": [
+      "t",
+      "sh",
+      "eer",
+      "r"
+    ],
+    "dialect": "uk",
+    "ipa": "/t͡ʃɪə(ɹ)/"
+  },
+  {
+    "word": "cheer",
+    "phonemeIds": [
+      "t",
+      "sh",
+      "eer"
+    ],
+    "dialect": "universal",
+    "ipa": "/t͡ʃɪɹ/"
+  },
+  {
+    "word": "chalk",
+    "phonemeIds": [
+      "t",
+      "sh",
+      "aw",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/t͡ʃɔːk/"
+  },
+  {
+    "word": "choke",
+    "phonemeIds": [
+      "t",
+      "sh",
+      "oh",
+      "k"
+    ],
+    "dialect": "uk",
+    "ipa": "/t͡ʃəʊk/"
+  },
+  {
+    "word": "choke",
+    "phonemeIds": [
+      "t",
+      "sh",
+      "oh",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/t͡ʃoʊk/"
+  },
+  {
+    "word": "choose",
+    "phonemeIds": [
+      "t",
+      "sh",
+      "oo",
+      "z"
+    ],
+    "dialect": "universal",
+    "ipa": "/t͡ʃuːz/"
+  },
+  {
+    "word": "chase",
+    "phonemeIds": [
+      "ch",
+      "ay",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʃeɪs/"
+  },
+  {
+    "word": "chance",
+    "phonemeIds": [
+      "ch",
+      "ae",
+      "n",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "[tʃʰans]"
+  },
+  {
+    "word": "chance",
+    "phonemeIds": [
+      "ch",
+      "air",
+      "n",
+      "s"
+    ],
+    "dialect": "uk",
+    "ipa": "[tʃʰeəns]"
+  },
+  {
+    "word": "change",
+    "phonemeIds": [
+      "ch",
+      "ay",
+      "n",
+      "dz"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʃeɪndʒ/"
+  },
+  {
+    "word": "charge",
+    "phonemeIds": [
+      "t",
+      "sh",
+      "ar",
+      "d",
+      "zh"
+    ],
+    "dialect": "universal",
+    "ipa": "/t͡ʃɑːd͡ʒ/"
+  },
+  {
+    "word": "charge",
+    "phonemeIds": [
+      "t",
+      "sh",
+      "ar",
+      "d",
+      "zh"
+    ],
+    "dialect": "us",
+    "ipa": "/t͡ʃɑɹd͡ʒ/"
+  },
+  {
+    "word": "check",
+    "phonemeIds": [
+      "t",
+      "sh",
+      "e",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/t͡ʃɛk/"
+  },
+  {
+    "word": "them",
+    "phonemeIds": [
+      "dh",
+      "u",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/ðʌm/"
+  },
+  {
+    "word": "that",
+    "phonemeIds": [
+      "dh",
+      "ae",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈðæt/"
+  },
+  {
+    "word": "than",
+    "phonemeIds": [
+      "dh",
+      "ae",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/ðæn/"
+  },
+  {
+    "word": "then",
+    "phonemeIds": [
+      "dh",
+      "e",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/ðen/"
+  },
+  {
+    "word": "bath",
+    "phonemeIds": [
+      "b",
+      "th"
+    ],
+    "dialect": "universal",
+    "ipa": "/bɐːθ/"
+  },
+  {
+    "word": "bath",
+    "phonemeIds": [
+      "b",
+      "ae",
+      "th"
+    ],
+    "dialect": "uk",
+    "ipa": "[bæθ⁓bɛəθ⁓beəθ]"
+  },
+  {
+    "word": "path",
+    "phonemeIds": [
+      "p",
+      "th"
+    ],
+    "dialect": "universal",
+    "ipa": "[pʰäːθ]"
+  },
+  {
+    "word": "path",
+    "phonemeIds": [
+      "p",
+      "air",
+      "th"
+    ],
+    "dialect": "uk",
+    "ipa": "[pʰeəθ]"
+  },
+  {
+    "word": "math",
+    "phonemeIds": [
+      "m",
+      "ar",
+      "th"
+    ],
+    "dialect": "universal",
+    "ipa": "/mɑːθ/"
+  },
+  {
+    "word": "teeth",
+    "phonemeIds": [
+      "t",
+      "ee",
+      "th"
+    ],
+    "dialect": "universal",
+    "ipa": "/tiːθ/"
+  },
+  {
+    "word": "tooth",
+    "phonemeIds": [
+      "t",
+      "oo",
+      "th"
+    ],
+    "dialect": "universal",
+    "ipa": "/tuːθ/"
+  },
+  {
+    "word": "cloth",
+    "phonemeIds": [
+      "k",
+      "l",
+      "o",
+      "th"
+    ],
+    "dialect": "us",
+    "ipa": "/klɑθ/"
+  },
+  {
+    "word": "cloth",
+    "phonemeIds": [
+      "k",
+      "l",
+      "o",
+      "th"
+    ],
+    "dialect": "uk",
+    "ipa": "/klɒθ/"
+  },
+  {
+    "word": "cloth",
+    "phonemeIds": [
+      "k",
+      "l",
+      "aw",
+      "th"
+    ],
+    "dialect": "universal",
+    "ipa": "/klɔθ/"
+  },
+  {
+    "word": "both",
+    "phonemeIds": [
+      "b",
+      "oh",
+      "th"
+    ],
+    "dialect": "uk",
+    "ipa": "/bəʊθ/"
+  },
+  {
+    "word": "both",
+    "phonemeIds": [
+      "b",
+      "oh",
+      "th"
+    ],
+    "dialect": "us",
+    "ipa": "/boʊθ/"
+  },
+  {
+    "word": "forth",
+    "phonemeIds": [
+      "f",
+      "aw",
+      "th"
+    ],
+    "dialect": "universal",
+    "ipa": "/fɔːθ/"
+  },
+  {
+    "word": "moth",
+    "phonemeIds": [
+      "m",
+      "o",
+      "th"
+    ],
+    "dialect": "us",
+    "ipa": "/mɑθ/"
+  },
+  {
+    "word": "moth",
+    "phonemeIds": [
+      "m",
+      "o",
+      "th"
+    ],
+    "dialect": "uk",
+    "ipa": "/mɒθ/"
+  },
+  {
+    "word": "moth",
+    "phonemeIds": [
+      "m",
+      "aw",
+      "th"
+    ],
+    "dialect": "universal",
+    "ipa": "/mɔθ/"
+  },
+  {
+    "word": "smooth",
+    "phonemeIds": [
+      "s",
+      "m",
+      "oo",
+      "dh"
+    ],
+    "dialect": "universal",
+    "ipa": "/smuːð/"
+  },
+  {
+    "word": "breath",
+    "phonemeIds": [
+      "b",
+      "r",
+      "e",
+      "th"
+    ],
+    "dialect": "universal",
+    "ipa": "/bɹɛθ/"
+  },
+  {
+    "word": "clog",
+    "phonemeIds": [
+      "k",
+      "l",
+      "o",
+      "g"
+    ],
+    "dialect": "uk",
+    "ipa": "/klɒɡ/"
+  },
+  {
+    "word": "clog",
+    "phonemeIds": [
+      "k",
+      "l",
+      "o",
+      "g"
+    ],
+    "dialect": "us",
+    "ipa": "/klɑɡ/"
+  },
+  {
+    "word": "clam",
+    "phonemeIds": [
+      "k",
+      "l",
+      "ae",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/klæm/"
+  },
+  {
+    "word": "clash",
+    "phonemeIds": [
+      "k",
+      "l",
+      "ae",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/klaʃ/"
+  },
+  {
+    "word": "clasp",
+    "phonemeIds": [
+      "k",
+      "l",
+      "ar",
+      "s",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/klɑːsp/"
+  },
+  {
+    "word": "class",
+    "phonemeIds": [
+      "k",
+      "l",
+      "ae",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/klas/"
+  },
+  {
+    "word": "class",
+    "phonemeIds": [
+      "k",
+      "l",
+      "air",
+      "s"
+    ],
+    "dialect": "uk",
+    "ipa": "/kleəs/"
+  },
+  {
+    "word": "clean",
+    "phonemeIds": [
+      "k",
+      "l",
+      "e",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/kleːn/"
+  },
+  {
+    "word": "clear",
+    "phonemeIds": [
+      "k",
+      "l",
+      "eer",
+      "r"
+    ],
+    "dialect": "uk",
+    "ipa": "/klɪə(ɹ)/"
+  },
+  {
+    "word": "clear",
+    "phonemeIds": [
+      "k",
+      "l",
+      "eer"
+    ],
+    "dialect": "universal",
+    "ipa": "/klɪɹ/"
+  },
+  {
+    "word": "click",
+    "phonemeIds": [
+      "k",
+      "l",
+      "i",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/klɪk/"
+  },
+  {
+    "word": "climb",
+    "phonemeIds": [
+      "k",
+      "l",
+      "ie",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/klaɪm/"
+  },
+  {
+    "word": "cling",
+    "phonemeIds": [
+      "k",
+      "l",
+      "i",
+      "ng"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈklɪŋ/"
+  },
+  {
+    "word": "clock",
+    "phonemeIds": [
+      "k",
+      "l",
+      "o",
+      "k"
+    ],
+    "dialect": "uk",
+    "ipa": "/klɒk/"
+  },
+  {
+    "word": "clock",
+    "phonemeIds": [
+      "k",
+      "l",
+      "o",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/klɑk/"
+  },
+  {
+    "word": "close",
+    "phonemeIds": [
+      "k",
+      "l",
+      "oh",
+      "z"
+    ],
+    "dialect": "uk",
+    "ipa": "/kləʊz/"
+  },
+  {
+    "word": "close",
+    "phonemeIds": [
+      "k",
+      "l",
+      "oh",
+      "z"
+    ],
+    "dialect": "us",
+    "ipa": "/kloʊz/"
+  },
+  {
+    "word": "clown",
+    "phonemeIds": [
+      "k",
+      "l",
+      "ow",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/klaʊn/"
+  },
+  {
+    "word": "cluck",
+    "phonemeIds": [
+      "k",
+      "l",
+      "u",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/klʌk/"
+  },
+  {
+    "word": "flag",
+    "phonemeIds": [
+      "f",
+      "l",
+      "ae",
+      "g"
+    ],
+    "dialect": "universal",
+    "ipa": "/flæɡ/"
+  },
+  {
+    "word": "flame",
+    "phonemeIds": [
+      "f",
+      "l",
+      "ay",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/fleɪm/"
+  },
+  {
+    "word": "flash",
+    "phonemeIds": [
+      "f",
+      "l",
+      "ae",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/flæʃ/"
+  },
+  {
+    "word": "flat",
+    "phonemeIds": [
+      "f",
+      "l",
+      "ae",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/flæt/"
+  },
+  {
+    "word": "flaw",
+    "phonemeIds": [
+      "f",
+      "l",
+      "aw"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈflɔː/"
+  },
+  {
+    "word": "flee",
+    "phonemeIds": [
+      "f",
+      "l",
+      "ee"
+    ],
+    "dialect": "universal",
+    "ipa": "/fliː/"
+  },
+  {
+    "word": "fleet",
+    "phonemeIds": [
+      "f",
+      "l",
+      "ee",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/fliːt/"
+  },
+  {
+    "word": "flesh",
+    "phonemeIds": [
+      "f",
+      "l",
+      "e",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/flɛʃ/"
+  },
+  {
+    "word": "flick",
+    "phonemeIds": [
+      "f",
+      "l",
+      "i",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/flɪk/"
+  },
+  {
+    "word": "float",
+    "phonemeIds": [
+      "f",
+      "l",
+      "oh",
+      "t"
+    ],
+    "dialect": "uk",
+    "ipa": "/fləʊt/"
+  },
+  {
+    "word": "float",
+    "phonemeIds": [
+      "f",
+      "l",
+      "oh",
+      "t"
+    ],
+    "dialect": "us",
+    "ipa": "/floʊt/"
+  },
+  {
+    "word": "flock",
+    "phonemeIds": [
+      "f",
+      "l",
+      "o",
+      "k"
+    ],
+    "dialect": "uk",
+    "ipa": "/flɒk/"
+  },
+  {
+    "word": "flock",
+    "phonemeIds": [
+      "f",
+      "l",
+      "o",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/flɑk/"
+  },
+  {
+    "word": "floor",
+    "phonemeIds": [
+      "f",
+      "l",
+      "aw"
+    ],
+    "dialect": "universal",
+    "ipa": "/flɔː/"
+  },
+  {
+    "word": "flop",
+    "phonemeIds": [
+      "f",
+      "l",
+      "o",
+      "p"
+    ],
+    "dialect": "uk",
+    "ipa": "/flɒp/"
+  },
+  {
+    "word": "flop",
+    "phonemeIds": [
+      "f",
+      "l",
+      "o",
+      "p"
+    ],
+    "dialect": "us",
+    "ipa": "/flɑp/"
+  },
+  {
+    "word": "flour",
+    "phonemeIds": [
+      "f",
+      "l",
+      "ow",
+      "uh"
+    ],
+    "dialect": "uk",
+    "ipa": "/ˈflaʊə/"
+  },
+  {
+    "word": "flour",
+    "phonemeIds": [
+      "f",
+      "l",
+      "ow",
+      "uh"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈflaʊɚ/"
+  },
+  {
+    "word": "flow",
+    "phonemeIds": [
+      "f",
+      "l",
+      "oh"
+    ],
+    "dialect": "uk",
+    "ipa": "/fləʊ/"
+  },
+  {
+    "word": "flow",
+    "phonemeIds": [
+      "f",
+      "l",
+      "oh"
+    ],
+    "dialect": "us",
+    "ipa": "/floʊ/"
+  },
+  {
+    "word": "flower",
+    "phonemeIds": [
+      "f",
+      "l",
+      "ow",
+      "uh"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈflaʊ.ə/"
+  },
+  {
+    "word": "flux",
+    "phonemeIds": [
+      "f",
+      "l",
+      "u",
+      "k",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/flʌks/"
+  },
+  {
+    "word": "glad",
+    "phonemeIds": [
+      "g",
+      "l",
+      "ae",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡlæd/"
+  },
+  {
+    "word": "glaze",
+    "phonemeIds": [
+      "g",
+      "l",
+      "ay",
+      "z"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡleɪz/"
+  },
+  {
+    "word": "gleam",
+    "phonemeIds": [
+      "g",
+      "l",
+      "ee",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡliːm/"
+  },
+  {
+    "word": "glide",
+    "phonemeIds": [
+      "g",
+      "l",
+      "ie",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈɡlaɪd/"
+  },
+  {
+    "word": "glimpse",
+    "phonemeIds": [
+      "g",
+      "l",
+      "i",
+      "m",
+      "p",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡlɪmps/"
+  },
+  {
+    "word": "globe",
+    "phonemeIds": [
+      "g",
+      "l",
+      "b"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡloːb/"
+  },
+  {
+    "word": "globe",
+    "phonemeIds": [
+      "g",
+      "l",
+      "oh",
+      "b"
+    ],
+    "dialect": "uk",
+    "ipa": "/ɡləʊb/"
+  },
+  {
+    "word": "globe",
+    "phonemeIds": [
+      "g",
+      "l",
+      "oh",
+      "b"
+    ],
+    "dialect": "us",
+    "ipa": "/ɡloʊb/"
+  },
+  {
+    "word": "gloom",
+    "phonemeIds": [
+      "g",
+      "l",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡlum/"
+  },
+  {
+    "word": "glory",
+    "phonemeIds": [
+      "g",
+      "l",
+      "r",
+      "ee"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈɡlo(ː)ɹi/"
+  },
+  {
+    "word": "gloss",
+    "phonemeIds": [
+      "g",
+      "l",
+      "o",
+      "s"
+    ],
+    "dialect": "us",
+    "ipa": "/ɡlɑs/"
+  },
+  {
+    "word": "gloss",
+    "phonemeIds": [
+      "g",
+      "l",
+      "o",
+      "s"
+    ],
+    "dialect": "uk",
+    "ipa": "/ɡlɒs/"
+  },
+  {
+    "word": "gloss",
+    "phonemeIds": [
+      "g",
+      "l",
+      "aw",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡlɔs/"
+  },
+  {
+    "word": "glow",
+    "phonemeIds": [
+      "g",
+      "l",
+      "oh"
+    ],
+    "dialect": "uk",
+    "ipa": "/ɡləʊ/"
+  },
+  {
+    "word": "glow",
+    "phonemeIds": [
+      "g",
+      "l",
+      "oh"
+    ],
+    "dialect": "us",
+    "ipa": "/ɡloʊ/"
+  },
+  {
+    "word": "glue",
+    "phonemeIds": [
+      "g",
+      "l",
+      "oo"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡluː/"
+  },
+  {
+    "word": "glum",
+    "phonemeIds": [
+      "g",
+      "l",
+      "u",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡlʌm/"
+  },
+  {
+    "word": "glut",
+    "phonemeIds": [
+      "g",
+      "l",
+      "u",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɡlʌt/"
+  },
+  {
+    "word": "plan",
+    "phonemeIds": [
+      "p",
+      "l",
+      "ae",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/plæn/"
+  },
+  {
+    "word": "plot",
+    "phonemeIds": [
+      "p",
+      "l",
+      "o",
+      "t"
+    ],
+    "dialect": "uk",
+    "ipa": "/plɒt/"
+  },
+  {
+    "word": "plot",
+    "phonemeIds": [
+      "p",
+      "l",
+      "o",
+      "t"
+    ],
+    "dialect": "us",
+    "ipa": "/plɑt/"
+  },
+  {
+    "word": "plug",
+    "phonemeIds": [
+      "p",
+      "l",
+      "u",
+      "g"
+    ],
+    "dialect": "universal",
+    "ipa": "/plʌɡ/"
+  },
+  {
+    "word": "plum",
+    "phonemeIds": [
+      "p",
+      "l",
+      "u",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/plʌm/"
+  },
+  {
+    "word": "pluck",
+    "phonemeIds": [
+      "p",
+      "l",
+      "u",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/plʌk/"
+  },
+  {
+    "word": "plus",
+    "phonemeIds": [
+      "p",
+      "l",
+      "u",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/plʌs/"
+  },
+  {
+    "word": "plush",
+    "phonemeIds": [
+      "p",
+      "l",
+      "u",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/plʌʃ/"
+  },
+  {
+    "word": "plank",
+    "phonemeIds": [
+      "p",
+      "l",
+      "ae",
+      "ng",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/plæŋk/"
+  },
+  {
+    "word": "plant",
+    "phonemeIds": [
+      "p",
+      "l",
+      "ae",
+      "n",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/plænt/"
+  },
+  {
+    "word": "plate",
+    "phonemeIds": [
+      "p",
+      "l",
+      "ay",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/pleɪt/"
+  },
+  {
+    "word": "plea",
+    "phonemeIds": [
+      "p",
+      "l",
+      "ee"
+    ],
+    "dialect": "universal",
+    "ipa": "/pliː/"
+  },
+  {
+    "word": "pledge",
+    "phonemeIds": [
+      "p",
+      "l",
+      "e",
+      "dz"
+    ],
+    "dialect": "universal",
+    "ipa": "/plɛdʒ/"
+  },
+  {
+    "word": "plenty",
+    "phonemeIds": [
+      "p",
+      "l",
+      "e",
+      "n",
+      "t",
+      "ee"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈplɛnti/"
+  },
+  {
+    "word": "pliers",
+    "phonemeIds": [
+      "p",
+      "l",
+      "ie",
+      "uh",
+      "r",
+      "z"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈplaɪ.ə(ɹ)z/"
+  },
+  {
+    "word": "plod",
+    "phonemeIds": [
+      "p",
+      "l",
+      "o",
+      "d"
+    ],
+    "dialect": "uk",
+    "ipa": "/plɒd/"
+  },
+  {
+    "word": "plumb",
+    "phonemeIds": [
+      "p",
+      "l",
+      "u",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/plʌm/"
+  },
+  {
+    "word": "plump",
+    "phonemeIds": [
+      "p",
+      "l",
+      "u",
+      "m",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/plʌmp/"
+  },
+  {
+    "word": "plunge",
+    "phonemeIds": [
+      "p",
+      "l",
+      "u",
+      "n",
+      "dz"
+    ],
+    "dialect": "universal",
+    "ipa": "/plʌndʒ/"
+  },
+  {
+    "word": "plural",
+    "phonemeIds": [
+      "p",
+      "l",
+      "aw",
+      "r",
+      "uh",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈplɔː.ɹəl/"
+  },
+  {
+    "word": "scab",
+    "phonemeIds": [
+      "s",
+      "k",
+      "ae",
+      "b"
+    ],
+    "dialect": "universal",
+    "ipa": "/skæb/"
+  },
+  {
+    "word": "scan",
+    "phonemeIds": [
+      "s",
+      "k",
+      "ae",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/skæn/"
+  },
+  {
+    "word": "scar",
+    "phonemeIds": [
+      "s",
+      "k",
+      "ar",
+      "r"
+    ],
+    "dialect": "universal",
+    "ipa": "/skɑː(ɹ)/"
+  },
+  {
+    "word": "scar",
+    "phonemeIds": [
+      "s",
+      "k",
+      "ar"
+    ],
+    "dialect": "us",
+    "ipa": "/skɑɹ/"
+  },
+  {
+    "word": "scare",
+    "phonemeIds": [
+      "s",
+      "k",
+      "e",
+      "uh"
+    ],
+    "dialect": "universal",
+    "ipa": "/skɛə/"
+  },
+  {
+    "word": "score",
+    "phonemeIds": [
+      "s",
+      "k",
+      "aw"
+    ],
+    "dialect": "universal",
+    "ipa": "/skɔː/"
+  },
+  {
+    "word": "scorn",
+    "phonemeIds": [
+      "s",
+      "k",
+      "aw",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/skɔːn/"
+  },
+  {
+    "word": "scout",
+    "phonemeIds": [
+      "s",
+      "k",
+      "u",
+      "uh2",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "[skʌʊt]"
+  },
+  {
+    "word": "scrape",
+    "phonemeIds": [
+      "s",
+      "k",
+      "r",
+      "ay",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/skɹeɪp/"
+  },
+  {
+    "word": "scratch",
+    "phonemeIds": [
+      "s",
+      "k",
+      "r",
+      "ae",
+      "ch"
+    ],
+    "dialect": "universal",
+    "ipa": "/skɹætʃ/"
+  },
+  {
+    "word": "scream",
+    "phonemeIds": [
+      "s",
+      "k",
+      "r",
+      "ee",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/skɹiːm/"
+  },
+  {
+    "word": "screen",
+    "phonemeIds": [
+      "s",
+      "k",
+      "r",
+      "ee",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/skɹiːn/"
+  },
+  {
+    "word": "screw",
+    "phonemeIds": [
+      "s",
+      "k",
+      "r",
+      "oo"
+    ],
+    "dialect": "universal",
+    "ipa": "/skɹuː/"
+  },
+  {
+    "word": "scribble",
+    "phonemeIds": [
+      "s",
+      "k",
+      "r",
+      "i",
+      "b",
+      "uh",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈskɹɪbəl/"
+  },
+  {
+    "word": "script",
+    "phonemeIds": [
+      "s",
+      "k",
+      "r",
+      "i",
+      "p",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/skɹɪpt/"
+  },
+  {
+    "word": "scroll",
+    "phonemeIds": [
+      "s",
+      "k",
+      "r",
+      "oh",
+      "l"
+    ],
+    "dialect": "us",
+    "ipa": "/skɹoʊl/"
+  },
+  {
+    "word": "scrub",
+    "phonemeIds": [
+      "s",
+      "k",
+      "r",
+      "u",
+      "b"
+    ],
+    "dialect": "universal",
+    "ipa": "/skɹʌb/"
+  },
+  {
+    "word": "skate",
+    "phonemeIds": [
+      "s",
+      "k",
+      "ay",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/skeɪt/"
+  },
+  {
+    "word": "sketch",
+    "phonemeIds": [
+      "s",
+      "k",
+      "e",
+      "ch"
+    ],
+    "dialect": "universal",
+    "ipa": "/skɛtʃ/"
+  },
+  {
+    "word": "skill",
+    "phonemeIds": [
+      "s",
+      "k",
+      "i",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/skɪl/"
+  },
+  {
+    "word": "skin",
+    "phonemeIds": [
+      "s",
+      "k",
+      "i",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/skɪn/"
+  },
+  {
+    "word": "skirt",
+    "phonemeIds": [
+      "s",
+      "k",
+      "er",
+      "t"
+    ],
+    "dialect": "uk",
+    "ipa": "/skɜːt/"
+  },
+  {
+    "word": "skirt",
+    "phonemeIds": [
+      "s",
+      "k",
+      "er",
+      "t"
+    ],
+    "dialect": "us",
+    "ipa": "/skɝt/"
+  },
+  {
+    "word": "sky",
+    "phonemeIds": [
+      "s",
+      "k",
+      "ie"
+    ],
+    "dialect": "universal",
+    "ipa": "/skaɪ/"
+  },
+  {
+    "word": "skull",
+    "phonemeIds": [
+      "s",
+      "k",
+      "u",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/skʌl/"
+  },
+  {
+    "word": "skunk",
+    "phonemeIds": [
+      "s",
+      "k",
+      "u",
+      "ng",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/skʌŋk/"
+  },
+  {
+    "word": "slam",
+    "phonemeIds": [
+      "s",
+      "l",
+      "ae",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/slæm/"
+  },
+  {
+    "word": "slash",
+    "phonemeIds": [
+      "s",
+      "l",
+      "ae",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/slaʃ/"
+  },
+  {
+    "word": "slate",
+    "phonemeIds": [
+      "s",
+      "l",
+      "ay",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/sleɪt/"
+  },
+  {
+    "word": "slave",
+    "phonemeIds": [
+      "s",
+      "l",
+      "ay",
+      "v"
+    ],
+    "dialect": "universal",
+    "ipa": "/sleɪv/"
+  },
+  {
+    "word": "sled",
+    "phonemeIds": [
+      "s",
+      "l",
+      "e",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/slɛd/"
+  },
+  {
+    "word": "sleep",
+    "phonemeIds": [
+      "s",
+      "l",
+      "ee",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/sliːp/"
+  },
+  {
+    "word": "sleet",
+    "phonemeIds": [
+      "s",
+      "l",
+      "ee",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/sliːt/"
+  },
+  {
+    "word": "slice",
+    "phonemeIds": [
+      "s",
+      "l",
+      "ie",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/slaɪs/"
+  },
+  {
+    "word": "slide",
+    "phonemeIds": [
+      "s",
+      "l",
+      "ie",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/slaɪd/"
+  },
+  {
+    "word": "slight",
+    "phonemeIds": [
+      "s",
+      "l",
+      "l",
+      "i"
+    ],
+    "dialect": "universal",
+    "ipa": "[sl̥l͡ɐɪʔ̚]"
+  },
+  {
+    "word": "slit",
+    "phonemeIds": [
+      "s",
+      "l",
+      "i",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈslɪt/"
+  },
+  {
+    "word": "slope",
+    "phonemeIds": [
+      "s",
+      "l",
+      "oh",
+      "p"
+    ],
+    "dialect": "uk",
+    "ipa": "/sləʊp/"
+  },
+  {
+    "word": "slope",
+    "phonemeIds": [
+      "s",
+      "l",
+      "oh",
+      "p"
+    ],
+    "dialect": "us",
+    "ipa": "/sloʊp/"
+  },
+  {
+    "word": "slot",
+    "phonemeIds": [
+      "s",
+      "l",
+      "o",
+      "t"
+    ],
+    "dialect": "uk",
+    "ipa": "/slɒt/"
+  },
+  {
+    "word": "slow",
+    "phonemeIds": [
+      "s",
+      "l",
+      "oh"
+    ],
+    "dialect": "uk",
+    "ipa": "/sləʊ/"
+  },
+  {
+    "word": "slow",
+    "phonemeIds": [
+      "s",
+      "l",
+      "oh"
+    ],
+    "dialect": "us",
+    "ipa": "/sloʊ/"
+  },
+  {
+    "word": "slug",
+    "phonemeIds": [
+      "s",
+      "l",
+      "u",
+      "g"
+    ],
+    "dialect": "universal",
+    "ipa": "/slʌɡ/"
+  },
+  {
+    "word": "slum",
+    "phonemeIds": [
+      "s",
+      "l",
+      "u",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/slʌm/"
+  },
+  {
+    "word": "slump",
+    "phonemeIds": [
+      "s",
+      "l",
+      "u",
+      "m",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/slʌmp/"
+  },
+  {
+    "word": "small",
+    "phonemeIds": [
+      "s",
+      "m",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/smoːl/"
+  },
+  {
+    "word": "small",
+    "phonemeIds": [
+      "s",
+      "m",
+      "o",
+      "l"
+    ],
+    "dialect": "us",
+    "ipa": "/smɑl/"
+  },
+  {
+    "word": "smart",
+    "phonemeIds": [
+      "s",
+      "m",
+      "ar",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/smɑːt/"
+  },
+  {
+    "word": "smart",
+    "phonemeIds": [
+      "s",
+      "m",
+      "ar",
+      "t"
+    ],
+    "dialect": "us",
+    "ipa": "/smɑɹt/"
+  },
+  {
+    "word": "smell",
+    "phonemeIds": [
+      "s",
+      "m",
+      "e",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/smɛl/"
+  },
+  {
+    "word": "smile",
+    "phonemeIds": [
+      "s",
+      "m",
+      "ie",
+      "uh",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈsmaɪ.əl/"
+  },
+  {
+    "word": "smirk",
+    "phonemeIds": [
+      "s",
+      "m",
+      "er",
+      "k"
+    ],
+    "dialect": "uk",
+    "ipa": "/smɜːk/"
+  },
+  {
+    "word": "smirk",
+    "phonemeIds": [
+      "s",
+      "m",
+      "er",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/smɝk/"
+  },
+  {
+    "word": "smoke",
+    "phonemeIds": [
+      "s",
+      "m",
+      "oh",
+      "k"
+    ],
+    "dialect": "uk",
+    "ipa": "/sməʊk/"
+  },
+  {
+    "word": "smoke",
+    "phonemeIds": [
+      "s",
+      "m",
+      "oh",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/smoʊk/"
+  },
+  {
+    "word": "snack",
+    "phonemeIds": [
+      "s",
+      "n",
+      "ae",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/snæk/"
+  },
+  {
+    "word": "snail",
+    "phonemeIds": [
+      "s",
+      "n",
+      "ay",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/sneɪl/"
+  },
+  {
+    "word": "snake",
+    "phonemeIds": [
+      "s",
+      "n",
+      "ay",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈsneɪk/"
+  },
+  {
+    "word": "snap",
+    "phonemeIds": [
+      "s",
+      "n",
+      "ae",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/snæp/"
+  },
+  {
+    "word": "snare",
+    "phonemeIds": [
+      "s",
+      "n",
+      "e",
+      "uh"
+    ],
+    "dialect": "universal",
+    "ipa": "/snɛə/"
+  },
+  {
+    "word": "snatch",
+    "phonemeIds": [
+      "s",
+      "n",
+      "ae",
+      "ch"
+    ],
+    "dialect": "universal",
+    "ipa": "/snætʃ/"
+  },
+  {
+    "word": "sneak",
+    "phonemeIds": [
+      "s",
+      "n",
+      "ee",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/sniːk/"
+  },
+  {
+    "word": "sneeze",
+    "phonemeIds": [
+      "s",
+      "n",
+      "ee",
+      "z"
+    ],
+    "dialect": "universal",
+    "ipa": "/sniːz/"
+  },
+  {
+    "word": "snore",
+    "phonemeIds": [
+      "s",
+      "n",
+      "aw"
+    ],
+    "dialect": "universal",
+    "ipa": "/snɔː/"
+  },
+  {
+    "word": "snort",
+    "phonemeIds": [
+      "s",
+      "n",
+      "aw",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/snɔɹt/"
+  },
+  {
+    "word": "snow",
+    "phonemeIds": [
+      "s",
+      "n",
+      "oh"
+    ],
+    "dialect": "uk",
+    "ipa": "/snəʊ/"
+  },
+  {
+    "word": "snow",
+    "phonemeIds": [
+      "s",
+      "n",
+      "oh"
+    ],
+    "dialect": "us",
+    "ipa": "/snoʊ/"
+  },
+  {
+    "word": "snug",
+    "phonemeIds": [
+      "s",
+      "n",
+      "u",
+      "g"
+    ],
+    "dialect": "universal",
+    "ipa": "/snʌɡ/"
+  },
+  {
+    "word": "snuggle",
+    "phonemeIds": [
+      "s",
+      "n",
+      "u",
+      "g",
+      "uh",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈsnʌɡəl/"
+  },
+  {
+    "word": "spare",
+    "phonemeIds": [
+      "s",
+      "p",
+      "e",
+      "uh",
+      "r"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈspɛə(ɹ)/"
+  },
+  {
+    "word": "spell",
+    "phonemeIds": [
+      "s",
+      "p",
+      "e",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/spɛl/"
+  },
+  {
+    "word": "spend",
+    "phonemeIds": [
+      "s",
+      "p",
+      "e",
+      "n",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/spɛnd/"
+  },
+  {
+    "word": "spice",
+    "phonemeIds": [
+      "s",
+      "p",
+      "ie",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/spaɪs/"
+  },
+  {
+    "word": "spill",
+    "phonemeIds": [
+      "s",
+      "p",
+      "i",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/spɪl/"
+  },
+  {
+    "word": "spin",
+    "phonemeIds": [
+      "s",
+      "p",
+      "i",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/spɪn/"
+  },
+  {
+    "word": "spine",
+    "phonemeIds": [
+      "s",
+      "p",
+      "ie",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/spaɪn/"
+  },
+  {
+    "word": "spit",
+    "phonemeIds": [
+      "s",
+      "p",
+      "i",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/spɪt/"
+  },
+  {
+    "word": "spite",
+    "phonemeIds": [
+      "s",
+      "p",
+      "ie",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/spaɪt/"
+  },
+  {
+    "word": "splash",
+    "phonemeIds": [
+      "s",
+      "p",
+      "l",
+      "ae",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/splæʃ/"
+  },
+  {
+    "word": "split",
+    "phonemeIds": [
+      "s",
+      "p",
+      "l",
+      "i",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/splɪt/"
+  },
+  {
+    "word": "spoil",
+    "phonemeIds": [
+      "s",
+      "p",
+      "oy",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/spɔɪl/"
+  },
+  {
+    "word": "spoke",
+    "phonemeIds": [
+      "s",
+      "p",
+      "oh",
+      "k"
+    ],
+    "dialect": "uk",
+    "ipa": "/spəʊk/"
+  },
+  {
+    "word": "spot",
+    "phonemeIds": [
+      "s",
+      "p",
+      "o",
+      "t"
+    ],
+    "dialect": "uk",
+    "ipa": "/spɒt/"
+  },
+  {
+    "word": "spot",
+    "phonemeIds": [
+      "s",
+      "p",
+      "o",
+      "t"
+    ],
+    "dialect": "us",
+    "ipa": "/spɑt/"
+  },
+  {
+    "word": "spray",
+    "phonemeIds": [
+      "s",
+      "p",
+      "r",
+      "ay"
+    ],
+    "dialect": "universal",
+    "ipa": "/spɹeɪ/"
+  },
+  {
+    "word": "squash",
+    "phonemeIds": [
+      "s",
+      "k",
+      "w",
+      "o",
+      "sh"
+    ],
+    "dialect": "uk",
+    "ipa": "/skwɒʃ/"
+  },
+  {
+    "word": "squash",
+    "phonemeIds": [
+      "s",
+      "k",
+      "w",
+      "aw",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/skwɔʃ/"
+  },
+  {
+    "word": "squash",
+    "phonemeIds": [
+      "s",
+      "k",
+      "w",
+      "o",
+      "sh"
+    ],
+    "dialect": "us",
+    "ipa": "/skwɑʃ/"
+  },
+  {
+    "word": "squeeze",
+    "phonemeIds": [
+      "s",
+      "k",
+      "w",
+      "ee",
+      "z"
+    ],
+    "dialect": "universal",
+    "ipa": "/skwiːz/"
+  },
+  {
+    "word": "squirm",
+    "phonemeIds": [
+      "s",
+      "k",
+      "w",
+      "er",
+      "m"
+    ],
+    "dialect": "uk",
+    "ipa": "/skwɜːm/"
+  },
+  {
+    "word": "squirm",
+    "phonemeIds": [
+      "s",
+      "k",
+      "w",
+      "er",
+      "m"
+    ],
+    "dialect": "us",
+    "ipa": "/skwɝm/"
+  },
+  {
+    "word": "stab",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ae",
+      "b"
+    ],
+    "dialect": "universal",
+    "ipa": "/stæb/"
+  },
+  {
+    "word": "stack",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ae",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/stæk/"
+  },
+  {
+    "word": "staff",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ae",
+      "f"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈstæf/"
+  },
+  {
+    "word": "stage",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ay",
+      "d",
+      "zh"
+    ],
+    "dialect": "universal",
+    "ipa": "/steɪd͡ʒ/"
+  },
+  {
+    "word": "stain",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ay",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/steɪn/"
+  },
+  {
+    "word": "stair",
+    "phonemeIds": [
+      "s",
+      "t",
+      "e",
+      "uh"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɛə/"
+  },
+  {
+    "word": "stake",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ay",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/steɪk/"
+  },
+  {
+    "word": "stale",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ay",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/steɪl/"
+  },
+  {
+    "word": "stamp",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ae",
+      "m",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/stæmp/"
+  },
+  {
+    "word": "stand",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ae",
+      "n",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/stænd/"
+  },
+  {
+    "word": "stare",
+    "phonemeIds": [
+      "s",
+      "t",
+      "e",
+      "uh",
+      "r"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɛə(ɹ)/"
+  },
+  {
+    "word": "start",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ar",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɑːt/"
+  },
+  {
+    "word": "start",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ar",
+      "t"
+    ],
+    "dialect": "us",
+    "ipa": "/stɑɹt/"
+  },
+  {
+    "word": "starve",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ar",
+      "v"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɑːv/"
+  },
+  {
+    "word": "starve",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ar",
+      "v"
+    ],
+    "dialect": "us",
+    "ipa": "/stɑɹv/"
+  },
+  {
+    "word": "state",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ay",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/steɪt/"
+  },
+  {
+    "word": "stay",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ay"
+    ],
+    "dialect": "universal",
+    "ipa": "/steɪ/"
+  },
+  {
+    "word": "steal",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ee",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/stiːl/"
+  },
+  {
+    "word": "steam",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ee",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/stiːm/"
+  },
+  {
+    "word": "steel",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ee",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/stiːl/"
+  },
+  {
+    "word": "steer",
+    "phonemeIds": [
+      "s",
+      "t",
+      "eer",
+      "r"
+    ],
+    "dialect": "uk",
+    "ipa": "/stɪə(ɹ)/"
+  },
+  {
+    "word": "stem",
+    "phonemeIds": [
+      "s",
+      "t",
+      "e",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɛm/"
+  },
+  {
+    "word": "step",
+    "phonemeIds": [
+      "s",
+      "t",
+      "e",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɛp/"
+  },
+  {
+    "word": "stick",
+    "phonemeIds": [
+      "s",
+      "t",
+      "i",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɪk/"
+  },
+  {
+    "word": "stiff",
+    "phonemeIds": [
+      "s",
+      "t",
+      "i",
+      "f"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɪf/"
+  },
+  {
+    "word": "still",
+    "phonemeIds": [
+      "s",
+      "t",
+      "i",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɪl/"
+  },
+  {
+    "word": "stir",
+    "phonemeIds": [
+      "s",
+      "t",
+      "er"
+    ],
+    "dialect": "uk",
+    "ipa": "/stɜː/"
+  },
+  {
+    "word": "stir",
+    "phonemeIds": [
+      "s",
+      "t",
+      "er"
+    ],
+    "dialect": "us",
+    "ipa": "/stɝ/"
+  },
+  {
+    "word": "stock",
+    "phonemeIds": [
+      "s",
+      "t",
+      "o",
+      "k"
+    ],
+    "dialect": "uk",
+    "ipa": "/stɒk/"
+  },
+  {
+    "word": "stock",
+    "phonemeIds": [
+      "s",
+      "t",
+      "o",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/stɑk/"
+  },
+  {
+    "word": "stolen",
+    "phonemeIds": [
+      "s",
+      "t",
+      "oh",
+      "l",
+      "uh",
+      "n"
+    ],
+    "dialect": "uk",
+    "ipa": "/ˈstəʊlən/"
+  },
+  {
+    "word": "stood",
+    "phonemeIds": [
+      "s",
+      "t",
+      "uh2",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/stʊd/"
+  },
+  {
+    "word": "store",
+    "phonemeIds": [
+      "s",
+      "t",
+      "aw"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɔː/"
+  },
+  {
+    "word": "storm",
+    "phonemeIds": [
+      "s",
+      "t",
+      "aw",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɔːm/"
+  },
+  {
+    "word": "story",
+    "phonemeIds": [
+      "s",
+      "t",
+      "aw",
+      "r",
+      "ee"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈstɔː.ɹi/"
+  },
+  {
+    "word": "stove",
+    "phonemeIds": [
+      "s",
+      "t",
+      "oh",
+      "v"
+    ],
+    "dialect": "uk",
+    "ipa": "/stəʊv/"
+  },
+  {
+    "word": "stove",
+    "phonemeIds": [
+      "s",
+      "t",
+      "oh",
+      "v"
+    ],
+    "dialect": "us",
+    "ipa": "/stoʊv/"
+  },
+  {
+    "word": "strain",
+    "phonemeIds": [
+      "s",
+      "t",
+      "r",
+      "ay",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɹeɪ̯n/"
+  },
+  {
+    "word": "strap",
+    "phonemeIds": [
+      "s",
+      "t",
+      "r",
+      "ae",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɹæp/"
+  },
+  {
+    "word": "straw",
+    "phonemeIds": [
+      "s",
+      "t",
+      "r",
+      "aw"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɹɔː/"
+  },
+  {
+    "word": "stray",
+    "phonemeIds": [
+      "s",
+      "t",
+      "r",
+      "ay"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɹeɪ/"
+  },
+  {
+    "word": "stream",
+    "phonemeIds": [
+      "s",
+      "t",
+      "r",
+      "ee",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɹiːm/"
+  },
+  {
+    "word": "street",
+    "phonemeIds": [
+      "s",
+      "t",
+      "r",
+      "ee",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɹiːt/"
+  },
+  {
+    "word": "stretch",
+    "phonemeIds": [
+      "s",
+      "t",
+      "r",
+      "e",
+      "ch"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɹɛtʃ/"
+  },
+  {
+    "word": "strict",
+    "phonemeIds": [
+      "s",
+      "t",
+      "r",
+      "i",
+      "k",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɹɪkt/"
+  },
+  {
+    "word": "strike",
+    "phonemeIds": [
+      "s",
+      "t",
+      "r",
+      "ie",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɹaɪk/"
+  },
+  {
+    "word": "strip",
+    "phonemeIds": [
+      "s",
+      "t",
+      "r",
+      "i",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/stɹɪp/"
+  },
+  {
+    "word": "stroke",
+    "phonemeIds": [
+      "s",
+      "t",
+      "r",
+      "oh",
+      "k"
+    ],
+    "dialect": "uk",
+    "ipa": "/stɹəʊk/"
+  },
+  {
+    "word": "stroke",
+    "phonemeIds": [
+      "s",
+      "t",
+      "r",
+      "oh",
+      "k"
+    ],
+    "dialect": "us",
+    "ipa": "/stɹoʊk/"
+  },
+  {
+    "word": "stuck",
+    "phonemeIds": [
+      "s",
+      "t",
+      "u",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈstʌk/"
+  },
+  {
+    "word": "student",
+    "phonemeIds": [
+      "s",
+      "t",
+      "j",
+      "oo",
+      "d",
+      "uh",
+      "n",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈstjuː.dənt/"
+  },
+  {
+    "word": "study",
+    "phonemeIds": [
+      "s",
+      "t",
+      "u",
+      "d",
+      "ee"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈstʌdi/"
+  },
+  {
+    "word": "stumble",
+    "phonemeIds": [
+      "s",
+      "t",
+      "u",
+      "m",
+      "b",
+      "uh",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈstʌmbəl/"
+  },
+  {
+    "word": "stump",
+    "phonemeIds": [
+      "s",
+      "t",
+      "u",
+      "m",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/stʌmp/"
+  },
+  {
+    "word": "style",
+    "phonemeIds": [
+      "s",
+      "t",
+      "ie",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/staɪl/"
+  },
+  {
+    "word": "subject",
+    "phonemeIds": [
+      "s",
+      "u",
+      "b",
+      "dz",
+      "i",
+      "k",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈsʌb.dʒɪkt/"
+  },
+  {
+    "word": "submit",
+    "phonemeIds": [
+      "s",
+      "uh",
+      "b",
+      "m",
+      "i",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/səbˈmɪt/"
+  },
+  {
+    "word": "subtract",
+    "phonemeIds": [
+      "s",
+      "uh",
+      "b",
+      "t",
+      "r",
+      "ae",
+      "k",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/səbˈtɹækt/"
+  },
+  {
+    "word": "succeed",
+    "phonemeIds": [
+      "s",
+      "uh",
+      "k",
+      "s",
+      "ee",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/səkˈsiːd/"
+  },
+  {
+    "word": "trail",
+    "phonemeIds": [
+      "t",
+      "r",
+      "ay",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹeɪl/"
+  },
+  {
+    "word": "trait",
+    "phonemeIds": [
+      "t",
+      "r",
+      "ay"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹeɪ/"
+  },
+  {
+    "word": "trap",
+    "phonemeIds": [
+      "t",
+      "r",
+      "ae",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹæp/"
+  },
+  {
+    "word": "trash",
+    "phonemeIds": [
+      "t",
+      "r",
+      "ae",
+      "sh"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹæʃ/"
+  },
+  {
+    "word": "travel",
+    "phonemeIds": [
+      "t",
+      "r",
+      "ae",
+      "v",
+      "uh",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈtɹævəl/"
+  },
+  {
+    "word": "tray",
+    "phonemeIds": [
+      "t",
+      "r",
+      "ay"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹeɪ/"
+  },
+  {
+    "word": "treat",
+    "phonemeIds": [
+      "t",
+      "r",
+      "ee",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹiːt/"
+  },
+  {
+    "word": "tree",
+    "phonemeIds": [
+      "t",
+      "r",
+      "ee"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹiː/"
+  },
+  {
+    "word": "trek",
+    "phonemeIds": [
+      "t",
+      "r",
+      "e",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹɛk/"
+  },
+  {
+    "word": "tremble",
+    "phonemeIds": [
+      "t",
+      "r",
+      "e",
+      "m",
+      "b",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈtɹɛmbl̩/"
+  },
+  {
+    "word": "trial",
+    "phonemeIds": [
+      "t",
+      "r",
+      "ie",
+      "uh",
+      "l"
+    ],
+    "dialect": "uk",
+    "ipa": "/ˈtɹaɪəl/"
+  },
+  {
+    "word": "tribe",
+    "phonemeIds": [
+      "t",
+      "r",
+      "ie",
+      "b"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹaɪb/"
+  },
+  {
+    "word": "trick",
+    "phonemeIds": [
+      "t",
+      "r",
+      "i",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹɪk/"
+  },
+  {
+    "word": "trivet",
+    "phonemeIds": [
+      "t",
+      "r",
+      "i",
+      "v",
+      "i",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈtɹɪ.vɪt/"
+  },
+  {
+    "word": "troop",
+    "phonemeIds": [
+      "t",
+      "r",
+      "oo",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹuːp/"
+  },
+  {
+    "word": "trophy",
+    "phonemeIds": [
+      "t",
+      "r",
+      "oh",
+      "f",
+      "ee"
+    ],
+    "dialect": "uk",
+    "ipa": "/ˈtɹəʊfi/"
+  },
+  {
+    "word": "trophy",
+    "phonemeIds": [
+      "t",
+      "r",
+      "oh",
+      "f",
+      "ee"
+    ],
+    "dialect": "us",
+    "ipa": "/ˈtɹoʊfi/"
+  },
+  {
+    "word": "trot",
+    "phonemeIds": [
+      "t",
+      "r",
+      "o",
+      "t"
+    ],
+    "dialect": "uk",
+    "ipa": "/tɹɒt/"
+  },
+  {
+    "word": "trot",
+    "phonemeIds": [
+      "t",
+      "r",
+      "o",
+      "t"
+    ],
+    "dialect": "us",
+    "ipa": "/tɹɑt/"
+  },
+  {
+    "word": "trout",
+    "phonemeIds": [
+      "t",
+      "r",
+      "u",
+      "uh2",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹʌʊt/"
+  },
+  {
+    "word": "truce",
+    "phonemeIds": [
+      "t",
+      "r",
+      "oo",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹuːs/"
+  },
+  {
+    "word": "truck",
+    "phonemeIds": [
+      "t",
+      "r",
+      "u",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹʌk/"
+  },
+  {
+    "word": "truly",
+    "phonemeIds": [
+      "t",
+      "r",
+      "oo",
+      "l",
+      "ee"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈtɹuːli/"
+  },
+  {
+    "word": "trump",
+    "phonemeIds": [
+      "t",
+      "r",
+      "u",
+      "m",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹʌmp/"
+  },
+  {
+    "word": "trunk",
+    "phonemeIds": [
+      "t",
+      "r",
+      "u",
+      "ng",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹʌŋk/"
+  },
+  {
+    "word": "trust",
+    "phonemeIds": [
+      "t",
+      "r",
+      "uh2",
+      "s",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/trʊst/"
+  },
+  {
+    "word": "truth",
+    "phonemeIds": [
+      "t",
+      "r",
+      "oo",
+      "th"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹuːθ/"
+  },
+  {
+    "word": "try",
+    "phonemeIds": [
+      "t",
+      "r",
+      "ie"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɹaɪ/"
+  },
+  {
+    "word": "tub",
+    "phonemeIds": [
+      "t",
+      "u",
+      "b"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʌb/"
+  },
+  {
+    "word": "tuck",
+    "phonemeIds": [
+      "t",
+      "u",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/tʌk/"
+  },
+  {
+    "word": "tunnel",
+    "phonemeIds": [
+      "t",
+      "u",
+      "n",
+      "uh",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈtʌn(ə)l/"
+  },
+  {
+    "word": "turf",
+    "phonemeIds": [
+      "t",
+      "er",
+      "f"
+    ],
+    "dialect": "uk",
+    "ipa": "/tɜːf/"
+  },
+  {
+    "word": "turf",
+    "phonemeIds": [
+      "t",
+      "er",
+      "f"
+    ],
+    "dialect": "us",
+    "ipa": "/tɝf/"
+  },
+  {
+    "word": "turtle",
+    "phonemeIds": [
+      "t",
+      "er",
+      "t",
+      "uh",
+      "l"
+    ],
+    "dialect": "uk",
+    "ipa": "/ˈtɜːtəl/"
+  },
+  {
+    "word": "turtle",
+    "phonemeIds": [
+      "t",
+      "er",
+      "t",
+      "uh",
+      "l"
+    ],
+    "dialect": "us",
+    "ipa": "/ˈtɝtəl/"
+  },
+  {
+    "word": "twin",
+    "phonemeIds": [
+      "t",
+      "w",
+      "i",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/twɪn/"
+  },
+  {
+    "word": "twine",
+    "phonemeIds": [
+      "t",
+      "w",
+      "ie",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/twaɪn/"
+  },
+  {
+    "word": "twist",
+    "phonemeIds": [
+      "t",
+      "w",
+      "i",
+      "s",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/twɪst/"
+  },
+  {
+    "word": "type",
+    "phonemeIds": [
+      "t",
+      "ie",
+      "p"
+    ],
+    "dialect": "universal",
+    "ipa": "/taɪp/"
+  },
+  {
+    "word": "the",
+    "phonemeIds": [
+      "dh",
+      "ee"
+    ],
+    "dialect": "universal",
+    "ipa": "/ði/"
+  },
+  {
+    "word": "a",
+    "phonemeIds": [
+      "ae",
+      "i"
+    ],
+    "dialect": "universal",
+    "ipa": "/æɪ/"
+  },
+  {
+    "word": "an",
+    "phonemeIds": [
+      "ae",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/æn/"
+  },
+  {
+    "word": "in",
+    "phonemeIds": [
+      "i",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɪn/"
+  },
+  {
+    "word": "on",
+    "phonemeIds": [
+      "o",
+      "n"
+    ],
+    "dialect": "uk",
+    "ipa": "/ɒn/"
+  },
+  {
+    "word": "on",
+    "phonemeIds": [
+      "aw",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/ɔn/"
+  },
+  {
+    "word": "not",
+    "phonemeIds": [
+      "n",
+      "o",
+      "t"
+    ],
+    "dialect": "uk",
+    "ipa": "/nɒt/"
+  },
+  {
+    "word": "not",
+    "phonemeIds": [
+      "n",
+      "o",
+      "t"
+    ],
+    "dialect": "us",
+    "ipa": "/nɑt/"
+  },
+  {
+    "word": "old",
+    "phonemeIds": [
+      "o",
+      "uh2",
+      "l",
+      "d"
+    ],
+    "dialect": "uk",
+    "ipa": "/ˈɒʊld/"
+  },
+  {
+    "word": "old",
+    "phonemeIds": [
+      "oh",
+      "l",
+      "d"
+    ],
+    "dialect": "us",
+    "ipa": "/ˈoʊld/"
+  },
+  {
+    "word": "one",
+    "phonemeIds": [
+      "w",
+      "ae",
+      "n"
+    ],
+    "dialect": "universal",
+    "ipa": "/wan/"
+  },
+  {
+    "word": "one",
+    "phonemeIds": [
+      "w",
+      "o",
+      "n"
+    ],
+    "dialect": "uk",
+    "ipa": "/wɒn/"
+  },
+  {
+    "word": "only",
+    "phonemeIds": [
+      "oh",
+      "n",
+      "l",
+      "ee"
+    ],
+    "dialect": "uk",
+    "ipa": "/ˈəʊn.li/"
+  },
+  {
+    "word": "only",
+    "phonemeIds": [
+      "oh",
+      "n",
+      "l",
+      "ee"
+    ],
+    "dialect": "us",
+    "ipa": "/ˈoʊn.li/"
+  },
+  {
+    "word": "own",
+    "phonemeIds": [
+      "oh",
+      "n"
+    ],
+    "dialect": "uk",
+    "ipa": "/ˈəʊn/"
+  },
+  {
+    "word": "own",
+    "phonemeIds": [
+      "oh",
+      "n"
+    ],
+    "dialect": "us",
+    "ipa": "/ˈoʊn/"
+  },
+  {
+    "word": "part",
+    "phonemeIds": [
+      "p",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/pɐːt/"
+  },
+  {
+    "word": "part",
+    "phonemeIds": [
+      "p",
+      "ar",
+      "t"
+    ],
+    "dialect": "us",
+    "ipa": "/pɑɹt/"
+  },
+  {
+    "word": "people",
+    "phonemeIds": [
+      "p",
+      "ee",
+      "p",
+      "uh",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈpiːpəl/"
+  },
+  {
+    "word": "place",
+    "phonemeIds": [
+      "p",
+      "l",
+      "ay",
+      "s"
+    ],
+    "dialect": "universal",
+    "ipa": "/pleɪs/"
+  },
+  {
+    "word": "put",
+    "phonemeIds": [
+      "p",
+      "uh2",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/pʊt/"
+  },
+  {
+    "word": "right",
+    "phonemeIds": [
+      "r",
+      "ie",
+      "t"
+    ],
+    "dialect": "universal",
+    "ipa": "/ˈɹaɪt/"
+  },
+  {
+    "word": "said",
+    "phonemeIds": [
+      "s",
+      "e",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/sɛd/"
+  },
+  {
+    "word": "same",
+    "phonemeIds": [
+      "s",
+      "ay",
+      "m"
+    ],
+    "dialect": "universal",
+    "ipa": "/seɪm/"
+  },
+  {
+    "word": "say",
+    "phonemeIds": [
+      "s",
+      "ay"
+    ],
+    "dialect": "universal",
+    "ipa": "/seɪ/"
+  },
+  {
+    "word": "she",
+    "phonemeIds": [
+      "sh",
+      "ee"
+    ],
+    "dialect": "universal",
+    "ipa": "/ʃiː/"
+  },
+  {
+    "word": "should",
+    "phonemeIds": [
+      "sh",
+      "uh2",
+      "d"
+    ],
+    "dialect": "universal",
+    "ipa": "/ʃʊd/"
+  },
+  {
+    "word": "show",
+    "phonemeIds": [
+      "sh",
+      "oh"
+    ],
+    "dialect": "uk",
+    "ipa": "/ʃəʊ/"
+  },
+  {
+    "word": "show",
+    "phonemeIds": [
+      "sh",
+      "oh"
+    ],
+    "dialect": "us",
+    "ipa": "/ʃoʊ/"
+  },
+  {
+    "word": "so",
+    "phonemeIds": [
+      "s",
+      "oh"
+    ],
+    "dialect": "uk",
+    "ipa": "/səʊ/"
+  },
+  {
+    "word": "so",
+    "phonemeIds": [
+      "s",
+      "oh"
+    ],
+    "dialect": "us",
+    "ipa": "/soʊ/"
+  },
+  {
+    "word": "tell",
+    "phonemeIds": [
+      "t",
+      "e",
+      "l"
+    ],
+    "dialect": "universal",
+    "ipa": "/tɛl/"
+  },
+  {
+    "word": "there",
+    "phonemeIds": [
+      "dh",
+      "e",
+      "r"
+    ],
+    "dialect": "universal",
+    "ipa": "/ðeː(ɹ)/"
+  },
+  {
+    "word": "these",
+    "phonemeIds": [
+      "dh",
+      "ee",
+      "z"
+    ],
+    "dialect": "universal",
+    "ipa": "/ðiːz/"
+  },
+  {
+    "word": "they",
+    "phonemeIds": [
+      "dh",
+      "ay"
+    ],
+    "dialect": "universal",
+    "ipa": "/ðeɪ/"
+  },
+  {
+    "word": "think",
+    "phonemeIds": [
+      "th",
+      "i",
+      "ng",
+      "k"
+    ],
+    "dialect": "universal",
+    "ipa": "/θɪŋk/"
+  },
+  {
+    "word": "those",
+    "phonemeIds": [
+      "dh",
+      "oh",
+      "z"
+    ],
+    "dialect": "uk",
+    "ipa": "/ðəʊz/"
+  },
+  {
+    "word": "those",
+    "phonemeIds": [
+      "dh",
+      "oh",
+      "z"
+    ],
+    "dialect": "us",
+    "ipa": "/ðoʊz/"
+  }
+]
