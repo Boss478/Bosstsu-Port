@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 
 const INDEX_SYMBOLS = ['^GSPC', '^IXIC', '^DJI', '^SET.BK', '^SET50.BK'];

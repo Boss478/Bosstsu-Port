@@ -128,6 +128,7 @@ export default function FlashcardPlayingScreen() {
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
+              // eslint-disable-next-line react-compiler/react-compiler
               onMouseDown={(e: React.MouseEvent) => {
                 if (isAnimating || feedbackHint) return;
                 dragStartXRef.current = e.clientX;

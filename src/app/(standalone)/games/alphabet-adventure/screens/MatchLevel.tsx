@@ -98,6 +98,7 @@ export default function MatchLevel({
       <div className="flex flex-wrap justify-center gap-6">
         {roundData.choices.map((choice, i) => (
           <button
+            // eslint-disable-next-line react-compiler/react-compiler
             ref={(el) => {
               choiceRefs.current[i] = el;
             }}

@@ -171,7 +171,7 @@ export function FlashcardProvider({ children }: { children: ReactNode }) {
       }, 1000);
       return () => clearInterval(interval);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
   }, [gameState, mode, endGame]);
 
   useEffect(() => {

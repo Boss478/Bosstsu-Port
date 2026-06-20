@@ -6,14 +6,11 @@ export default function FlashcardResultScreen() {
     sessionStartTime, sessionEndTime, failedHardcoreWord, 
     startGame, goHome 
   } = useFlashcardContext();
-  let totalApps = 0;
-  let totalCorrects = 0;
-  
-  const wordList = Object.entries(wordStats).map(([word, stat]) => {
-    totalApps += stat.appearances;
-    totalCorrects += stat.correct;
-    return { word, ...stat };
-  }).sort((a, b) => b.wrong - a.wrong); // Sort by most mistakes first
+  const entries = Object.entries(wordStats);
+  const totalApps = entries.reduce((s, [, v]) => s + v.appearances, 0);
+  const totalCorrects = entries.reduce((s, [, v]) => s + v.correct, 0);
+  const wordList = entries.map(([word, stat]) => ({ word, ...stat }))
+    .sort((a, b) => b.wrong - a.wrong);
 
   const accuracy = totalApps > 0 ? Math.round((totalCorrects / totalApps) * 100) : 0;
   const durationSeconds = Math.max(1, Math.floor((sessionEndTime - sessionStartTime) / 1000));

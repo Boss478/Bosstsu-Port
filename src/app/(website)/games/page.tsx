@@ -40,6 +40,7 @@ export default async function GamesPage({
       Game.countDocuments(match),
       Game.distinct("category", { published: { $ne: false } }),
     ]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     docs = results[0] as any[];
     total = results[1] as number;
     uniqueCategories = results[2] as string[];
