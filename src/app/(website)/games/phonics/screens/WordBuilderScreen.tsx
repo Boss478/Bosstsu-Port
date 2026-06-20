@@ -3,23 +3,20 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useGame } from "../context";
 import { WORDS } from "../words";
-import { PHONEMES } from "../constants";
+import { PHONEMES, WB_PANEL_BASE } from "../constants";
 import { useAudio } from "@/hooks/useAudio";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { WordCard } from "../components/WordCard";
 import { DialectBadge } from "../components/DialectBadge";
+import WordPill from "../components/WordPill";
 import { LetterTileKeyboard } from "../components/LetterTileKeyboard";
 import { PhonemeSoundboard } from "../components/PhonemeSoundboard";
 import { useAllWordEntries } from "../hooks/useAllWordEntries";
-import type { PhonemeData } from "../types";
+import { formatPhonemeIpa } from "../utils/ipaUtils";
+import type { PhonemeData, DictEntry } from "../types";
+import { predictPhonemes, phonemeIdsToIpa } from "../utils/g2p";
+import { findClosestWords, generateSpellings } from "../utils/phonemeSearch";
 import dictData from "@/data/pronunciation-dictionary.json";
-
-interface DictEntry {
-  word: string;
-  phonemeIds: string[];
-  dialect: string;
-  ipa: string;
-}
 
 const PRONUNCIATION_DICT = dictData as DictEntry[];
 
@@ -565,6 +562,23 @@ function SpellingToIpaTab({
   const showNotFound = searchText.trim() && !apiLoading && !apiResult && !networkError;
   const showNetworkErr = searchText.trim() && !apiLoading && networkError;
 
+  const allWordEntriesForPrediction = useAllWordEntries();
+
+  const predictedPhonemes = useMemo(() => {
+    if (!searchText.trim()) return [];
+    return predictPhonemes(searchText.trim());
+  }, [searchText]);
+
+  const predictedIpa = useMemo(() => {
+    if (!predictedPhonemes.length) return null;
+    return phonemeIdsToIpa(predictedPhonemes);
+  }, [predictedPhonemes]);
+
+  const dictSuggestions = useMemo(() => {
+    if (!predictedPhonemes.length) return [];
+    return findClosestWords(predictedPhonemes, allWordEntriesForPrediction, 6);
+  }, [predictedPhonemes, allWordEntriesForPrediction]);
+
   const localWords = useMemo(() => {
     const q = searchText.trim().toLowerCase();
     if (!q) return [];
@@ -575,7 +589,7 @@ function SpellingToIpaTab({
     <div className="max-w-6xl mx-auto pb-2">
       <div className={layoutMode === "horizontal" ? "grid grid-cols-1 lg:grid-cols-12 gap-6 items-start" : "flex flex-col gap-6"}>
         {/* Left Column: Search & Result Panel */}
-        <div className={`${layoutMode === "horizontal" ? "lg:col-span-5 min-h-[380px]" : "w-full min-h-0"} bg-white/35 dark:bg-slate-900/30 border border-white/40 dark:border-slate-800/50 rounded-3xl p-5 backdrop-blur-md space-y-4 flex flex-col justify-start`}>
+        <div className={`${layoutMode === "horizontal" ? "lg:col-span-5 min-h-[380px]" : "w-full min-h-0"} ${WB_PANEL_BASE} space-y-4 flex flex-col justify-start`}>
           <div className="relative">
             <i className="fi fi-sr-search absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-slate-400" />
             <input
@@ -595,20 +609,21 @@ function SpellingToIpaTab({
                 Word Suggestions
               </span>
               <div className="flex flex-wrap gap-1.5 justify-center">
-                {localWords.map((w) => (
-                  <button
-                    key={w.word}
-                    onClick={() => {
-                      playTapSound();
-                      setSearchText(w.word);
-                      setNetworkError(false);
-                      inputRef.current?.focus();
-                    }}
-                    className="px-3.5 py-1.5 rounded-full text-[11px] font-extrabold tracking-wide transition-all cursor-pointer bg-white/60 dark:bg-slate-800/60 border border-white/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-700/80 hover:border-[#C8A44E] shrink-0"
-                  >
-                    {w.word.toUpperCase()}
-                  </button>
-                ))}
+                  {localWords.map((w) => (
+                    <WordPill
+                      key={w.word}
+                      size="lg"
+                      className="shrink-0"
+                      onClick={() => {
+                        playTapSound();
+                        setSearchText(w.word);
+                        setNetworkError(false);
+                        inputRef.current?.focus();
+                      }}
+                    >
+                      {w.word.toUpperCase()}
+                    </WordPill>
+                  ))}
               </div>
             </div>
           )}
@@ -628,20 +643,22 @@ function SpellingToIpaTab({
                 </button>
               </div>
               <div className="flex flex-wrap gap-1.5 justify-center">
-                {searchHistory.map((w) => (
-                  <button
-                    key={w}
-                    onClick={() => {
-                      playTapSound();
-                      setSearchText(w);
-                      setNetworkError(false);
-                      inputRef.current?.focus();
-                    }}
-                    className="px-3.5 py-1.5 rounded-full text-[11px] font-extrabold tracking-wide transition-all cursor-pointer bg-white/40 dark:bg-slate-800/40 border border-white/30 dark:border-slate-700/30 text-slate-600 dark:text-slate-350 hover:bg-[#C8A44E]/10 hover:border-[#C8A44E] shrink-0"
-                  >
-                    {w}
-                  </button>
-                ))}
+                  {searchHistory.map((w) => (
+                    <WordPill
+                      key={w}
+                      variant="muted"
+                      size="lg"
+                      className="shrink-0"
+                      onClick={() => {
+                        playTapSound();
+                        setSearchText(w);
+                        setNetworkError(false);
+                        inputRef.current?.focus();
+                      }}
+                    >
+                      {w}
+                    </WordPill>
+                  ))}
               </div>
             </div>
           )}
@@ -665,10 +682,47 @@ function SpellingToIpaTab({
               </p>
             )}
 
-            {showNotFound && (
+            {showNotFound && !predictedIpa && (
               <p className="text-center text-xs text-rose-500 font-bold py-8">
                 Word not found &mdash; try another word
               </p>
+            )}
+
+            {showNotFound && predictedIpa && (
+              <div className="rounded-2xl bg-amber-50/60 dark:bg-amber-900/20 border border-amber-300/40 dark:border-amber-700/40 p-4 space-y-3">
+                <span className="text-[9px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-widest">
+                  PREDICTED
+                </span>
+                <p className="text-lg font-black text-slate-800 dark:text-white">
+                  {searchText}
+                </p>
+                <p className="text-sm font-mono font-bold text-slate-600 dark:text-slate-300">
+                  {predictedIpa}
+                </p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500">
+                  Generated from English phonics rules
+                </p>
+                {dictSuggestions.length > 0 && (
+                  <div className="pt-1 space-y-1.5">
+                    <span className="text-[9px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                      Closest words
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {dictSuggestions.map((s) => (
+                        <WordPill
+                          key={s.word}
+                          onClick={() => {
+                            playTapSound();
+                            setSearchText(s.word.toUpperCase());
+                          }}
+                        >
+                          {s.word.toUpperCase()}
+                        </WordPill>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
 
             {searchText.trim() && apiResult && !apiLoading && (
@@ -754,7 +808,7 @@ function SpellingToIpaTab({
         </div>
 
         {/* Right Column: Keyboard Panel */}
-        <div className={`${layoutMode === "horizontal" ? "lg:col-span-7 min-h-[380px]" : "w-full min-h-0"} bg-white/35 dark:bg-slate-900/30 border border-white/40 dark:border-slate-800/50 rounded-3xl p-5 backdrop-blur-md flex flex-col justify-start`}>
+        <div className={`${layoutMode === "horizontal" ? "lg:col-span-7 min-h-[380px]" : "w-full min-h-0"} ${WB_PANEL_BASE} flex flex-col justify-start`}>
           <p className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4 text-center lg:text-left">
             Virtual Input Keyboard ({keyboardLayout === "qwerty" ? "QWERTY" : "A-Z"})
           </p>
@@ -795,8 +849,7 @@ function IpaToWordTab({
 
   const combinedIpa = useMemo(() => {
     if (selectedPhonemes.length === 0) return "";
-    const inner = selectedPhonemes.map((p) => p.ipa.replace(/\//g, "")).join(" ");
-    return `/ {inner} /`.replace("{inner}", inner);
+    return `/ ${formatPhonemeIpa(selectedPhonemes)} /`;
   }, [selectedPhonemes]);
 
   const allWordEntries = useAllWordEntries();
@@ -819,6 +872,16 @@ function IpaToWordTab({
       return aFav - bFav;
     });
   }, [matchingWords, favorites]);
+
+  const closestPredictions = useMemo(() => {
+    if (selectedIds.length === 0 || matchingWords.length > 0) return [];
+    return findClosestWords(selectedIds, allWordEntries, 6);
+  }, [selectedIds, allWordEntries, matchingWords.length]);
+
+  const possibleSpellings = useMemo(() => {
+    if (selectedIds.length === 0 || matchingWords.length > 0) return [];
+    return generateSpellings(selectedIds);
+  }, [selectedIds, matchingWords.length]);
 
   const selectedWordData = useMemo(() => {
     if (!selectedWordName) return null;
@@ -867,7 +930,7 @@ function IpaToWordTab({
     <div className="max-w-6xl mx-auto pb-2">
       <div className={layoutMode === "horizontal" ? "grid grid-cols-1 lg:grid-cols-12 gap-6 items-start" : "flex flex-col gap-6"}>
         {/* Left Column: Active IPA Sequence & Matches */}
-        <div className={`${layoutMode === "horizontal" ? "lg:col-span-5 min-h-[380px]" : "w-full min-h-0"} bg-white/35 dark:bg-slate-900/30 border border-white/40 dark:border-slate-800/50 rounded-3xl p-5 backdrop-blur-md space-y-4 flex flex-col justify-start`}>
+        <div className={`${layoutMode === "horizontal" ? "lg:col-span-5 min-h-[380px]" : "w-full min-h-0"} ${WB_PANEL_BASE} space-y-4 flex flex-col justify-start`}>
           <p className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
             IPA Sequence Builder
           </p>
@@ -911,28 +974,62 @@ function IpaToWordTab({
                   Matching words ({matchingWords.length})
                 </p>
                 {sortedMatchingWords.length === 0 ? (
-                  <p className="text-xs text-slate-400 dark:text-slate-500 font-bold text-center py-4">
-                    No words match this phoneme sequence
-                  </p>
+                  <div className="space-y-3">
+                    {closestPredictions.length > 0 && (
+                      <div className="space-y-1.5">
+                        <span className="text-[9px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-widest">
+                          Did you mean? (PREDICTED)
+                        </span>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+                          {closestPredictions.map((w) => (
+                            <WordPill
+                              key={w.word}
+                              size="sm"
+                              onClick={() => autoSelectPhonemes(w.entry)}
+                            >
+                              <span className="truncate">{w.word}</span>
+                              {w.entry.dialect && <DialectBadge dialect={w.entry.dialect} />}
+                            </WordPill>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {possibleSpellings.length > 0 && (
+                      <div className="space-y-1.5">
+                        <span className="text-[9px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                          Possible spellings
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {possibleSpellings.map((s) => (
+                            <WordPill key={s} variant="inert">
+                              {s}
+                            </WordPill>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {closestPredictions.length === 0 && possibleSpellings.length === 0 && (
+                      <p className="text-xs text-slate-400 dark:text-slate-500 font-bold text-center py-4">
+                        No predictions available for this phoneme sequence
+                      </p>
+                    )}
+                  </div>
                 ) : (
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
                     {sortedMatchingWords.slice(0, 12).map((w) => {
                       const isActive = selectedIds.join("|") === w.phonemeIds.join("|");
                       const isFav = favorites.includes(w.word.toUpperCase());
                       return (
-                        <button
+                        <WordPill
                           key={w.word}
+                          size="sm"
+                          active={isActive}
                           onClick={() => autoSelectPhonemes(w)}
-                          className={`px-2 py-1.5 rounded-full text-[11px] font-extrabold tracking-wide transition-all cursor-pointer truncate flex items-center gap-1 ${
-                            isActive
-                              ? "bg-[#C8A44E] text-white shadow-xs"
-                              : "bg-white/60 dark:bg-slate-800/60 border border-white/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-700/80 hover:border-[#C8A44E]"
-                          }`}
                         >
                           {isFav && <i className="fi fi-sr-heart text-[8px] text-rose-400" />}
                           <span className="truncate">{w.word}</span>
                           {w.dialect && <DialectBadge dialect={w.dialect} />}
-                        </button>
+                        </WordPill>
                       );
                     })}
                     {sortedMatchingWords.length > 12 && (
@@ -967,7 +1064,7 @@ function IpaToWordTab({
         </div>
 
         {/* Right Column: Phoneme Soundboard Keyboard */}
-        <div className={`${layoutMode === "horizontal" ? "lg:col-span-7" : "w-full"} bg-white/35 dark:bg-slate-900/30 border border-white/40 dark:border-slate-800/50 rounded-3xl p-5 backdrop-blur-md space-y-5`}>
+        <div className={`${layoutMode === "horizontal" ? "lg:col-span-7" : "w-full"} ${WB_PANEL_BASE} space-y-5`}>
           <div className="flex items-center justify-between">
             <p className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
               Phoneme Soundboard

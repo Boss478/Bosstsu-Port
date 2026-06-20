@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { WordToIpaQuestion as WordToIpaQuestionType, CompanionId } from "../types";
-import { COMPANIONS } from "../constants";
+import { COMPANIONS, QUESTION_CARD_CLASSES } from "../constants";
 import CompanionHint from "./CompanionHint";
+import QuestionChoiceButton from "./QuestionChoiceButton";
 
 interface Props {
   question: WordToIpaQuestionType;
@@ -53,7 +54,7 @@ export default function WordToIpaQuestion({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="relative glass-panel p-8 rounded-3xl border border-white/20 shadow-md text-center max-w-sm mx-auto w-full overflow-hidden">
+      <div className={QUESTION_CARD_CLASSES}>
         <div
           className="text-4xl font-extrabold text-slate-800 dark:text-[#F7E1A0] tracking-wide relative z-10 cursor-pointer hover:opacity-80 active:scale-95 transition-all"
           onClick={handleSpeak}
@@ -70,38 +71,18 @@ export default function WordToIpaQuestion({
       </div>
 
       <div className="grid grid-cols-2 gap-3.5 max-w-md mx-auto w-full">
-        {question.options.map((opt) => {
-          const isSelected = selectedAnswer === opt;
-          const isCorrect = opt === question.correctAnswer;
-
-          let btnClass =
-            "w-full px-4 py-5 font-bold text-sm tracking-wide text-center rounded-2xl backdrop-blur-xs border-2 transition-all btn-3d shadow-sm cursor-pointer ";
-          const borderStyle = { "--border-color": "rgba(0,0,0,0.12)" } as React.CSSProperties;
-
-          if (feedback === "correct" && isCorrect) {
-            btnClass += "bg-[#2EC4B6] text-white border-[#2EC4B6] dark:border-[#2EC4B6] animate-correct-bounce";
-          } else if (feedback === "wrong" && isCorrect) {
-            btnClass += "bg-[#2EC4B6]/40 text-emerald-800 dark:text-emerald-200 border-[#2EC4B6]/40";
-          } else if (feedback === "wrong" && isSelected && !isCorrect) {
-            btnClass += "bg-[#FF70A6] text-white border-[#FF70A6] dark:border-[#FF70A6] animate-shake";
-          } else if (isSelected && !feedback) {
-            btnClass += "border-[#C8A44E] bg-[#C8A44E]/10 dark:bg-[#C8A44E]/20 text-[#C8A44E] dark:text-[#F7E1A0]";
-          } else {
-            btnClass += "bg-white/60 dark:bg-slate-800/60 border-white/60 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-700/80";
-          }
-
-          return (
-            <button
-              key={opt}
-              className={btnClass}
-              onClick={() => handleSelect(opt)}
-              disabled={!!feedback}
-              style={borderStyle}
-            >
-              <span className="font-mono text-lg" style={{ fontFamily: "var(--font-geist-mono)" }}>{opt}</span>
-            </button>
-          );
-        })}
+        {question.options.map((opt) => (
+          <QuestionChoiceButton
+            key={opt}
+            feedback={feedback}
+            selectedAnswer={selectedAnswer}
+            correctAnswer={question.correctAnswer}
+            value={opt}
+            onClick={() => handleSelect(opt)}
+          >
+            <span className="font-mono text-lg" style={{ fontFamily: "var(--font-geist-mono)" }}>{opt}</span>
+          </QuestionChoiceButton>
+        ))}
       </div>
 
       {displayHint && (

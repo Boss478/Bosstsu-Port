@@ -19,6 +19,7 @@ interface LetterTileKeyboardProps {
   onChar: (char: string) => void;
   onBackspace: () => void;
   disabled?: boolean;
+  highlightedKeys?: string[];
 }
 
 export function LetterTileKeyboard({
@@ -26,6 +27,7 @@ export function LetterTileKeyboard({
   onChar,
   onBackspace,
   disabled = false,
+  highlightedKeys,
 }: LetterTileKeyboardProps) {
   const rows = layout === "qwerty" ? KEYBOARD_ROWS : ALPHABETICAL_ROWS;
 
@@ -58,7 +60,11 @@ export function LetterTileKeyboard({
               key={letter}
               onClick={() => handleKey(letter)}
               disabled={disabled}
-              className="w-9 h-12 xs:w-11 xs:h-13 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-lg bg-white/60 dark:bg-slate-800/60 border border-white/50 dark:border-slate-700/50 text-xs sm:text-sm md:text-base font-extrabold text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-700/80 hover:border-[#C8A44E]/50 active:scale-90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              className={`w-9 h-12 xs:w-11 xs:h-13 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-lg border text-xs sm:text-sm md:text-base font-extrabold active:scale-90 transition-all cursor-pointer disabled:cursor-not-allowed ${
+                highlightedKeys?.includes(letter)
+                  ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                  : "bg-white/60 dark:bg-slate-800/60 border-white/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-700/80 hover:border-[#C8A44E]/50 disabled:opacity-40"
+              }`}
             >
               {letter}
             </button>

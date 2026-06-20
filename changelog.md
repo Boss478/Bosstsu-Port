@@ -5,7 +5,28 @@
 
 
 
+## v1.10.33 (2026-06-20)
+* **Phonics Game — Code Refactoring (6-phase)**:
+  * **QuestionChoiceButton component**: Extracted 5-state choice button logic (correct/wrong-correct/wrong-incorrect/selected/default) from 4 files (WordToIpaQuestion, IpaToWordQuestion, SynonymQuestion, GameScreen TapQuestion) into a shared `components/QuestionChoiceButton.tsx` component. Deleted ~200 lines of duplicated inline class strings and state logic.
+  * **QuestionCard CSS constant**: Centralized the identical glass-panel card class (`relative glass-panel p-8 rounded-3xl border border-white/20 shadow-md text-center max-w-sm mx-auto w-full overflow-hidden`) — previously duplicated in 4 files — into a `QUESTION_CARD_CLASSES` export in `constants.ts`.
+  * **WordBuilderPanel CSS constant**: Centralized the glassmorphic panel base class (`bg-white/35 dark:bg-slate-900/30 border border-white/40 dark:border-slate-800/50 rounded-3xl p-5 backdrop-blur-md`) — previously inlined with 4 variants in WordBuilderScreen.tsx — into a `WB_PANEL_BASE` export in `constants.ts`.
+  * **WordPill component**: Extracted 6 pill-shaped word button instances (3 visual variants: default/muted/inert, 3 sizes: sm/md/lg, optional active state) into a shared `components/WordPill.tsx` component. Removed ~400 lines of duplicated inline Tailwind classes.
+  * **DictEntry type consolidation**: Unified `DictEntry` interface — previously defined 3 times across `WordBuilderScreen.tsx`, `useAllWordEntries.ts`, and `phonemeSearch.ts` — into a single shared export in `types.ts`.
+  * **Dead code removal**: `components/GlassCard.tsx` (phonics version) was orphaned — defined but never imported anywhere. Deleted.
+* **Phonics Game — Word Builder Scroll Fix**: Added `overflow-y-auto min-h-0` to the screen container in PhonicsClient.tsx to prevent result cards from pushing content out of view without scrollability.
+
+## v1.10.32 (2026-06-20)
++ **Phonics Game — Word Builder Prediction Feature**:
+  + **G2P Prediction (Spelling→IPA)**: When the API returns no result for an unknown word, rule-based grapheme-to-phoneme synthesis now generates a predicted IPA transcription displayed in an amber (PREDICTED) card. Handles digraphs (SH, CH, TH, PH), vowel context (VCe, r-controlled, closed syllable), consonant soft/hard rules (C→s before E/I/Y), and silent letters (final E, KN, WR, GN). Closest dictionary words shown alongside for reference.
+  + **Phoneme Edit Distance & P2G (IPA→Word)**: When no word matches the selected phoneme sequence, Levenshtein edit distance finds the closest-matching dictionary words ("Did you mean?" section). Phoneme-to-grapheme rules generate possible spellings validated against the pronunciation dictionary. All predictions clearly labeled as PREDICTED to distinguish from authoritative data.
++ **Phonics Game — Word Builder Test Suite (101 tests)**:
+  + **g2p.test.ts (86 tests)**: Comprehensive coverage of predictPhonemes (digraphs, vowel context, consonant soft/hard, silent letters, edge cases), phonemeIdsToIpa, and predictIPA.
+  + **phonemeSearch.test.ts (15 tests)**: Coverage of phonemeEditDistance (identical, one insert, one delete, one substitute, empty arrays), findClosestWords (exact match, similar words within threshold, out-of-threshold, tie-breaking by Favorites), and generateSpellings (known word, unknown word, empty input, partial match).
+  * **G2P bugs fixed during TDD**: Added OU digraph (→ow), OY digraph (→oy), silent B after M (MB word-end), and Q→k mapping.
+* **Phonics Game — Word Builder Scroll Fix**: Added `overflow-y-auto min-h-0` to the screen container in PhonicsClient.tsx to prevent result cards from pushing content out of view without scrollability.
+
 ## v1.10.31 (2026-06-19)
+  + **Phonics Game — Word Builder Settings Options**:
 + **Phonics Game — Word Builder Settings Options**:
   + **Phoneme Button Labels Mode**: Added a new segmented settings selector allowing users to display "Both" (IPA + Example), "IPA Only" (compact symbols), or "Word Only" (example-word-centered) on the soundboard keys.
   + **Search History Toggle**: Added a toggle switch in layout settings to show/hide the spelling "Recent Searches" history pills, persistent in `localStorage` under `word-builder-show-search-history`.

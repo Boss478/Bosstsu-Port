@@ -737,7 +737,7 @@ export default function PhonicsClient() {
   return (
     <GameContext.Provider value={ctx}>
       <div className="phonics-game relative h-full flex flex-col bg-gradient-to-b from-[#E8F2FF] via-[#E8EFFF] to-[#FAE8FF] dark:from-[#090D1A] dark:via-[#131B35] dark:to-[#2A1242] transition-colors duration-500 motion-reduce:transition-none" style={{ '--glass-level': glassValue } as React.CSSProperties}>
-        <div key={screen === 'game' ? 'slots' : screen} className={screen === 'slots' || screen === 'tutorial' || screen === 'game' || screen === 'word-builder' || screen === 'word-quiz' ? 'animate-screen-enter flex-1 flex flex-col' : ''}>
+        <div key={screen === 'game' ? 'slots' : screen} className={screen === 'slots' || screen === 'tutorial' || screen === 'game' || screen === 'word-builder' || screen === 'word-quiz' ? 'animate-screen-enter flex-1 flex flex-col overflow-y-auto min-h-0' : ''}>
           {screen === 'slots' && <SaveSlotScreen onSelectSlot={selectSlot} />}
           {screen === 'tutorial' && (
             <TutorialScreen

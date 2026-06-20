@@ -1,6 +1,6 @@
 {
   "name": "boss478",
-  "version": "1.10.31",
+  "version": "1.10.33",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack -p 3300",

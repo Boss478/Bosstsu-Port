@@ -292,6 +292,13 @@ export function getCorrectAnswerFromQuestion(q: Question): string {
   return '';
 }
 
+export interface DictEntry {
+  word: string;
+  phonemeIds: string[];
+  dialect: string;
+  ipa: string;
+}
+
 export interface CompanionData {
   id: CompanionId;
   name: string;

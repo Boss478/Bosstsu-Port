@@ -7,6 +7,7 @@ import {
   COMPANIONS,
   PHONEME_EXAMPLE_WORDS,
   PHONEME_TRIM_DURATIONS,
+  QUESTION_CARD_CLASSES,
 } from "../constants";
 import type {
   PhonicsQuestion,
@@ -39,6 +40,7 @@ import WordToIpaQuestionComponent from "../components/WordToIpaQuestion";
 import SynonymQuestionComponent from "../components/SynonymQuestion";
 import CompanionHint from "../components/CompanionHint";
 import MascotCanvas from "../components/MascotCanvas";
+import QuestionChoiceButton from "../components/QuestionChoiceButton";
 
 function TapQuestion({
   question,
@@ -161,7 +163,7 @@ function TapQuestion({
         </div>
       )}
 
-      <div className="relative glass-panel p-8 rounded-3xl border border-white/20 shadow-md text-center max-w-sm mx-auto w-full overflow-hidden">
+      <div className={QUESTION_CARD_CLASSES}>
         {isRippling && (
           <>
             <div className="absolute inset-0 rounded-3xl border-4 border-[#C8A44E]/30 animate-audio-ripple" />
@@ -203,47 +205,21 @@ function TapQuestion({
 
       <div className="grid grid-cols-2 gap-3.5 max-w-md mx-auto w-full">
         {question.options.map((opt) => {
-          const isSelected = selectedAnswer === opt;
-          const isCorrect = opt === question.correctAnswer;
           const wordData = WORDS.find(
             (w) => w.word.toLowerCase() === opt.toLowerCase()
           );
-
-          let btnClass =
-            "w-full px-4 py-5 font-bold text-sm tracking-wide text-center rounded-2xl backdrop-blur-xs border-2 transition-all btn-3d shadow-sm cursor-pointer ";
-          let borderStyle = {
-            "--border-color": "rgba(0,0,0,0.12)",
-          } as React.CSSProperties;
-
-          if (feedback === "correct" && isCorrect) {
-            btnClass +=
-              "bg-[#2EC4B6] text-white border-[#2EC4B6] hover:bg-[#2EC4B6] dark:border-[#2EC4B6] animate-correct-bounce";
-            borderStyle = { "--border-color": "#1e8a7f" } as React.CSSProperties;
-          } else if (feedback === "wrong" && isCorrect) {
-            btnClass +=
-              "bg-[#2EC4B6]/40 text-emerald-800 dark:text-emerald-200 border-[#2EC4B6]/40";
-            borderStyle = { "--border-color": "transparent" } as React.CSSProperties;
-          } else if (feedback === "wrong" && isSelected && !isCorrect) {
-            btnClass +=
-              "bg-[#FF70A6] text-white border-[#FF70A6] hover:bg-[#FF70A6] dark:border-[#FF70A6] animate-shake";
-            borderStyle = { "--border-color": "#b83f50" } as React.CSSProperties;
-          } else if (isSelected && !feedback) {
-            btnClass +=
-              "border-[#C8A44E] bg-[#C8A44E]/10 dark:bg-[#C8A44E]/20 text-[#C8A44E] dark:text-[#F7E1A0]";
-            borderStyle = { "--border-color": "#a8853b" } as React.CSSProperties;
-          } else {
-            btnClass +=
-              "bg-white/60 dark:bg-slate-800/60 border-white/60 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-700/80";
-          }
+          const isSelected = selectedAnswer === opt;
+          const isCorrect = opt === question.correctAnswer;
 
           return (
-            <button
+            <QuestionChoiceButton
               key={opt}
               id={`option-${opt}`}
-              className={btnClass}
+              feedback={feedback}
+              selectedAnswer={selectedAnswer}
+              correctAnswer={question.correctAnswer}
+              value={opt}
               onClick={() => handleAnswerSelect(opt)}
-              disabled={!!feedback}
-              style={borderStyle}
             >
               <div className="flex flex-col items-center justify-center">
                 <span>{opt}</span>
@@ -264,7 +240,7 @@ function TapQuestion({
                   </span>
                 )}
               </div>
-            </button>
+            </QuestionChoiceButton>
           );
         })}
       </div>

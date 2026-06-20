@@ -1101,4 +1101,11 @@ export const PHONEME_TRIM_DURATIONS: Record<string, number> = {
   bl: 120, br: 120, cl: 120, cr: 120, sn: 120,
 };
 
+// ─── Shared CSS Constants ──────────────────────────────────────────────────────────
+export const QUESTION_CARD_CLASSES =
+  "relative glass-panel p-8 rounded-3xl border border-white/20 shadow-md text-center max-w-sm mx-auto w-full overflow-hidden";
+
+export const WB_PANEL_BASE =
+  "bg-white/35 dark:bg-slate-900/30 border border-white/40 dark:border-slate-800/50 rounded-3xl p-5 backdrop-blur-md";
+
 

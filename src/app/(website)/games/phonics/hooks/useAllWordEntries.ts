@@ -3,13 +3,7 @@
 import { useMemo } from "react";
 import { WORDS } from "../words";
 import dictData from "@/data/pronunciation-dictionary.json";
-
-interface DictEntry {
-  word: string;
-  phonemeIds: string[];
-  dialect: string;
-  ipa: string;
-}
+import type { DictEntry } from "../types";
 
 const PRONUNCIATION_DICT = dictData as DictEntry[];
 

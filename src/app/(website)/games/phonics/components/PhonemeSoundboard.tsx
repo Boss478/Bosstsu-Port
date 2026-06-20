@@ -61,6 +61,8 @@ interface PhonemeSoundboardProps {
   phonemeLabelMode: "both" | "ipa" | "example";
   selectedPhonemeIds: string[];
   onPhonemeClick: (p: PhonemeData) => void;
+  correctPhonemeIds?: string[];
+  disabled?: boolean;
 }
 
 export function PhonemeSoundboard({
@@ -68,6 +70,8 @@ export function PhonemeSoundboard({
   phonemeLabelMode,
   selectedPhonemeIds,
   onPhonemeClick,
+  correctPhonemeIds,
+  disabled = false,
 }: PhonemeSoundboardProps) {
   return (
     <div className={layoutMode === "vertical" ? "grid grid-cols-1 md:grid-cols-3 gap-4" : "flex flex-col gap-5"}>
@@ -78,33 +82,41 @@ export function PhonemeSoundboard({
           </p>
           <div className={layoutMode === "vertical" ? "grid grid-cols-5 gap-1.5" : "grid grid-cols-5 sm:grid-cols-8 lg:grid-cols-6 gap-1.5"}>
             {group.phonemes.map((p) => {
-              const isSelected = selectedPhonemeIds.includes(p.id);
+              const isCorrect = correctPhonemeIds?.includes(p.id) ?? false;
+              const isSelected = selectedPhonemeIds.includes(p.id) && !isCorrect;
               const hl = getPhonemeHighlight(p);
               return (
                 <div key={p.id} className="group relative">
                   <button
                     onClick={() => onPhonemeClick(p)}
-                    className={`w-full rounded-xl border text-center transition-all cursor-pointer ${
+                    disabled={disabled}
+                    className={`w-full rounded-xl border text-center transition-all ${
                       phonemeLabelMode === "both" ? "py-3 px-1.5" : "py-4 px-1.5 flex items-center justify-center min-h-[52px]"
                     } ${
-                      isSelected
-                        ? "bg-[#C8A44E]/20 dark:bg-[#C8A44E]/30 border-[#C8A44E] shadow-xs"
-                        : "bg-white/50 dark:bg-slate-800/50 border-white/50 dark:border-slate-700/50 hover:bg-white/80 dark:hover:bg-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600"
-                    }`}
+                      disabled
+                        ? "cursor-default"
+                        : "cursor-pointer"
+                    } ${
+                       isCorrect
+                        ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600"
+                        : isSelected
+                          ? "bg-[#C8A44E]/20 dark:bg-[#C8A44E]/30 border-[#C8A44E] shadow-xs"
+                          : "bg-white/50 dark:bg-slate-800/50 border-white/50 dark:border-slate-700/50 hover:bg-white/80 dark:hover:bg-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600"
+                    } disabled:opacity-100`}
                   >
                     {phonemeLabelMode === "both" && (
                       <>
                         <span
-                          className={`text-xs sm:text-sm font-black block leading-none whitespace-nowrap ${isSelected ? "text-[#C8A44E]" : "text-slate-700 dark:text-[#F7E1A0]"}`}
+                          className={`text-xs sm:text-sm font-black block leading-none whitespace-nowrap ${isCorrect ? "text-emerald-700 dark:text-emerald-300" : isSelected ? "text-[#C8A44E]" : "text-slate-700 dark:text-[#F7E1A0]"}`}
                           style={{ fontFamily: "var(--font-geist-mono)" }}
                         >
                           {p.ipa}
                         </span>
-                        <span className="text-[7px] font-bold text-slate-400 dark:text-slate-500 uppercase mt-0.5 block truncate">
+                        <span className={`text-[7px] font-bold uppercase mt-0.5 block truncate ${isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"}`}>
                           {hl ? (
                             <>
                               {p.example.slice(0, hl.start)}
-                              <u className="decoration-[#C8A44E] decoration-dotted underline-offset-2">
+                              <u className={`decoration-dotted underline-offset-2 ${isCorrect ? "decoration-emerald-500" : "decoration-[#C8A44E]"}`}>
                                 {p.example.slice(hl.start, hl.end)}
                               </u>
                               {p.example.slice(hl.end)}
@@ -117,7 +129,7 @@ export function PhonemeSoundboard({
                     )}
                     {phonemeLabelMode === "ipa" && (
                       <span
-                        className={`text-sm sm:text-base font-black block leading-none whitespace-nowrap ${isSelected ? "text-[#C8A44E]" : "text-slate-700 dark:text-[#F7E1A0]"}`}
+                        className={`text-sm sm:text-base font-black block leading-none whitespace-nowrap ${isCorrect ? "text-emerald-700 dark:text-emerald-300" : isSelected ? "text-[#C8A44E]" : "text-slate-700 dark:text-[#F7E1A0]"}`}
                         style={{ fontFamily: "var(--font-geist-mono)" }}
                       >
                         {p.ipa}
@@ -125,12 +137,12 @@ export function PhonemeSoundboard({
                     )}
                     {phonemeLabelMode === "example" && (
                       <span
-                        className={`text-xs sm:text-sm font-extrabold block leading-none truncate ${isSelected ? "text-[#C8A44E]" : "text-slate-700 dark:text-[#F7E1A0]"}`}
+                        className={`text-xs sm:text-sm font-extrabold block leading-none truncate ${isCorrect ? "text-emerald-700 dark:text-emerald-300" : isSelected ? "text-[#C8A44E]" : "text-slate-700 dark:text-[#F7E1A0]"}`}
                       >
                         {hl ? (
                           <>
                             {p.example.slice(0, hl.start)}
-                            <u className="decoration-[#C8A44E] decoration-dotted underline-offset-2">
+                            <u className={`decoration-dotted underline-offset-2 ${isCorrect ? "decoration-emerald-500" : "decoration-[#C8A44E]"}`}>
                               {p.example.slice(hl.start, hl.end)}
                             </u>
                             {p.example.slice(hl.end)}

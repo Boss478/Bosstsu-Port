@@ -8,6 +8,7 @@ import { LetterTileKeyboard } from "../components/LetterTileKeyboard";
 import { PhonemeSoundboard } from "../components/PhonemeSoundboard";
 import { QuizConfigModal, type QuizConfig, type QuizDirection } from "../components/QuizConfigModal";
 import { PHONEMES } from "../constants";
+import { ipaDisplay, formatPhonemeIpa } from "../utils/ipaUtils";
 import type { PhonemeData } from "../types";
 
 type QuizPhase = "config" | "playing" | "feedback" | "results";
@@ -133,10 +134,9 @@ export default function WordQuizScreen() {
         if (sortedUser === sortedSet) {
           if (userIds.join("|") === set.join("|")) {
             isCorrect = true;
-          } else {
-            isSequence = true;
+            break;
           }
-          break;
+          isSequence = true;
         }
       }
     } else {
@@ -324,7 +324,7 @@ export default function WordQuizScreen() {
                         className="text-sm font-black text-slate-800 dark:text-white"
                         style={{ fontFamily: "var(--font-geist-mono)" }}
                       >
-                        /{selectedPhonemes.map((p) => p.ipa.replace(/\//g, "")).join(" ")}/
+                        /{formatPhonemeIpa(selectedPhonemes)}/
                       </span>
                       <button
                         onClick={removeLastPhoneme}
@@ -342,6 +342,8 @@ export default function WordQuizScreen() {
                   phonemeLabelMode="both"
                   selectedPhonemeIds={selectedPhonemes.map((p) => p.id)}
                   onPhonemeClick={appendPhoneme}
+                  correctPhonemeIds={phase === "feedback" ? [...new Set([...currentQuestion.word.phonemeIds, ...(currentQuestion.word.altPhonemeIds || [])])] : undefined}
+                  disabled={!tapEnabled}
                 />
               </div>
             )}
@@ -393,6 +395,7 @@ export default function WordQuizScreen() {
                     onChar={appendLetter}
                     onBackspace={handleBackspaceKey}
                     disabled={!tapEnabled}
+                    highlightedKeys={phase === "feedback" ? [...new Set(currentQuestion.word.word.toUpperCase().split(''))] : undefined}
                   />
                 </div>
               </div>
@@ -430,19 +433,7 @@ export default function WordQuizScreen() {
                           {currentQuestion.word.word}
                         </p>
                       )}
-                      {(() => {
-                        const w = currentQuestion.word;
-                        const hasDiff = w.ipaUs && w.ipaUk && w.ipaUs !== w.ipaUk;
-                        const ipa = hasDiff
-                          ? `${w.ipaUs} (US)  /  ${w.ipaUk} (UK)`
-                          : (w.ipaUs || w.ipaUk || w.ipa);
-                        if (!ipa) return null;
-                        return (
-                          <p className="text-sm font-mono font-bold text-slate-500 dark:text-slate-400 mt-2">
-                            {ipa}
-                          </p>
-                        );
-                      })()}
+                      {(() => { const ipa = ipaDisplay(currentQuestion.word, true); return ipa ? <p className="text-sm font-mono font-bold text-slate-500 dark:text-slate-400 mt-2">{ipa}</p> : null; })()}
                     </>
                   )}
 
@@ -466,19 +457,7 @@ export default function WordQuizScreen() {
                           {currentQuestion.word.word}
                         </p>
                       )}
-                      {(() => {
-                        const w = currentQuestion.word;
-                        const hasDiff = w.ipaUs && w.ipaUk && w.ipaUs !== w.ipaUk;
-                        const ipa = hasDiff
-                          ? `${w.ipaUs} (US)  /  ${w.ipaUk} (UK)`
-                          : (w.ipaUs || w.ipaUk);
-                        if (!ipa) return null;
-                        return (
-                          <p className="text-sm font-mono font-bold text-slate-500 dark:text-slate-400 mt-2">
-                            {ipa}
-                          </p>
-                        );
-                      })()}
+                      {(() => { const ipa = ipaDisplay(currentQuestion.word); return ipa ? <p className="text-sm font-mono font-bold text-slate-500 dark:text-slate-400 mt-2">{ipa}</p> : null; })()}
                       <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2">
                         {currentQuestion.word.definition || ""}
                       </p>
@@ -497,19 +476,7 @@ export default function WordQuizScreen() {
                           .map((p) => p!.ipa.replace(/\//g, ""))
                           .join(" ")}/
                       </p>
-                      {(() => {
-                        const w = currentQuestion.word;
-                        const hasDiff = w.ipaUs && w.ipaUk && w.ipaUs !== w.ipaUk;
-                        const ipa = hasDiff
-                          ? `${w.ipaUs} (US)  /  ${w.ipaUk} (UK)`
-                          : (w.ipaUs || w.ipaUk);
-                        if (!ipa) return null;
-                        return (
-                          <p className="text-sm font-mono font-bold text-slate-500 dark:text-slate-400 mt-2">
-                            {ipa}
-                          </p>
-                        );
-                      })()}
+                      {(() => { const ipa = ipaDisplay(currentQuestion.word); return ipa ? <p className="text-sm font-mono font-bold text-slate-500 dark:text-slate-400 mt-2">{ipa}</p> : null; })()}
                       <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2">
                         {currentQuestion.word.definition || ""}
                       </p>
