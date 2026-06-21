@@ -2,19 +2,62 @@
 
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useGame } from '../context';
-import { COMPANIONS } from '../constants';
+import { COMPANIONS, COMPANION_BUBBLE_STYLES } from '../constants';
 import MascotCanvas from './MascotCanvas';
 import {
   GREETINGS, ENCOURAGEMENTS, RANDOM_MSGS, TAB_MESSAGES,
   STREAK_MESSAGES, MILESTONE_MESSAGES, CHALLENGE_TAB_MESSAGES,
 } from '../companion-messages';
-import type { GameRound } from '../types';
+import { formatWithSpeechStyle } from '../companion-speech';
+import type { GameRound, GameCategory, EntranceAnimation, IdleAnimation } from '../types';
 
-const COMPANION_SIZE = 96;
+const COMPANION_DESKTOP_SIZE = 96;
+const COMPANION_MOBILE_SIZE = 72;
 const DRAG_KEY = 'phonics-companion-pos';
 const HINT_THINK_DELAY = 800;
 
 const STREAK_THRESHOLDS = [5, 10, 15, 20, 30];
+
+const REVEAL_SPEEDS: Record<string, number> = {
+  'word-by-word': 200,
+  'fast-character': 30,
+  'robotic-character': 70,
+  'slow-character': 100,
+  'character-by-character': 60,
+  'glitch-reveal': 20,
+  instant: 0,
+};
+
+const ENTRANCE_CLASSES: Record<EntranceAnimation, string> = {
+  'glide-down': 'animate-glide-down',
+  'scale-bounce': 'animate-scale-bounce',
+  scanline: 'animate-scanline',
+  'slide-left': 'animate-slide-left',
+  pounce: 'animate-pounce',
+  'fade-in': 'animate-companion-fade-in',
+  'bounce-in': 'animate-bounce-in',
+  'slide-up': 'animate-companion-slide-up',
+  'warp-in': 'animate-warp-in',
+  'spin-in': 'animate-spin-in',
+};
+
+const IDLE_CLASSES: Record<IdleAnimation, string> = {
+  'gentle-turn': 'animate-gentle-turn',
+  'bouncy-hover': 'animate-bouncy-hover',
+  'robotic-twitch': 'animate-robotic-twitch',
+  'tail-swish': 'animate-tail-swish',
+  'paw-stretch': 'animate-paw-stretch',
+  'slow-rock': 'animate-slow-rock',
+  'ear-wiggle': 'animate-ear-wiggle',
+  wobble: 'animate-wobble',
+  'float-wobble': 'animate-float-wobble',
+  still: '',
+};
+
+const TOOL_SCREEN_HINT_CATEGORIES: Record<string, string> = {
+  'word-builder': 'spelling',
+  'word-quiz': 'phonics',
+};
 
 function getHintForRound(companionId: string, round: GameRound | null, level: number): string {
   if (!round) return '';
@@ -22,8 +65,27 @@ function getHintForRound(companionId: string, round: GameRound | null, level: nu
   return COMPANIONS[companionId]?.hints?.[cat]?.[level] ?? '';
 }
 
+function getHintForCategory(companionId: string, category: GameCategory, level: number): string {
+  return COMPANIONS[companionId]?.hints?.[category]?.[level] ?? '';
+}
+
+function useMobile(): boolean {
+  const [mobile, setMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false
+  );
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const handler = (e: MediaQueryListEvent) => setMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return mobile;
+}
+
 export default function CompanionBubble() {
-  const { companion, round, tab, save, persistSave } = useGame();
+  const { companion, round, tab, save, persistSave, screen } = useGame();
+  const isMobile = useMobile();
+  const COMPANION_SIZE = isMobile ? COMPANION_MOBILE_SIZE : COMPANION_DESKTOP_SIZE;
   const [message, setMessage] = useState('');
   const [visible, setVisible] = useState(false);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
@@ -39,6 +101,14 @@ export default function CompanionBubble() {
   const prevStreakRef = useRef(0);
   const prevInteractionCountRef = useRef(0);
   const thinkingRef = useRef(false);
+  const [entered, setEntered] = useState(false);
+  const [revealedLength, setRevealedLength] = useState(0);
+  const revealTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const hintCategory: GameCategory | undefined = screen ? (TOOL_SCREEN_HINT_CATEGORIES[screen] as GameCategory) : undefined;
+  const bubbleStyles = COMPANION_BUBBLE_STYLES[companion] ?? COMPANION_BUBBLE_STYLES.nox;
+  const entranceClass = ENTRANCE_CLASSES[bubbleStyles.style.entranceAnimation] ?? 'animate-slide-up-drawer';
+  const idleClass = IDLE_CLASSES[bubbleStyles.style.idleAnimation] ?? '';
 
   useEffect(() => {
     try {
@@ -56,10 +126,11 @@ export default function CompanionBubble() {
 
   const showBubble = useCallback((msg: string, duration = 6500) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setMessage(msg);
+    const formatted = msg === '...' ? msg : formatWithSpeechStyle(companion, msg);
+    setMessage(formatted);
     setVisible(true);
     timeoutRef.current = setTimeout(() => setVisible(false), duration);
-  }, []);
+  }, [companion]);
 
   const trackInteraction = useCallback((hintLvl: number) => {
     if (!save || !persistSave) return;
@@ -79,14 +150,16 @@ export default function CompanionBubble() {
     if (cycleCount.current === 0 && tabMsgs.length > 0 && Math.random() > 0.3) {
       showBubble(tabMsgs[Math.floor(Math.random() * tabMsgs.length)]);
     } else if (cycleCount.current === 1) {
-      const hint = getHintForRound(companion, round, 1);
+      const hint = hintCategory
+        ? getHintForCategory(companion, hintCategory, 1)
+        : getHintForRound(companion, round, 1);
       if (hint) showBubble(hint);
       else { const msgs = ENCOURAGEMENTS[companion] ?? ENCOURAGEMENTS.nox; showBubble(msgs[Math.floor(Math.random() * msgs.length)]); }
     } else {
       const msgs = RANDOM_MSGS[companion] ?? RANDOM_MSGS.nox;
       showBubble(msgs[Math.floor(Math.random() * msgs.length)]);
     }
-  }, [companion, round, tab, showBubble]);
+  }, [companion, round, tab, hintCategory, showBubble]);
 
   const showStreakMessage = useCallback((streak: number) => {
     const idx = STREAK_THRESHOLDS.indexOf(streak);
@@ -124,16 +197,27 @@ export default function CompanionBubble() {
     setMessage('...');
     setVisible(true);
     timeoutRef.current = setTimeout(() => {
-      const hint = getHintForRound(companion, round, level);
-      setMessage(hint || "I'm thinking... try clicking me again!");
+      const hint = hintCategory
+        ? getHintForCategory(companion, hintCategory, level)
+        : getHintForRound(companion, round, level);
+      setMessage(formatWithSpeechStyle(companion, hint || "I'm thinking... try clicking me again!"));
       setCompanionAnim('idle');
       thinkingRef.current = false;
       timeoutRef.current = setTimeout(() => setVisible(false), 5000);
     }, HINT_THINK_DELAY);
-  }, [companion, round]);
+  }, [companion, round, hintCategory]);
+
+  const skipReveal = useCallback(() => {
+    if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+    setRevealedLength(message.length);
+  }, [message]);
 
   const handleClick = useCallback(() => {
     if (clickSuppressed.current) return;
+    if (revealedLength < message.length && message !== '...') {
+      skipReveal();
+      return;
+    }
 
     const currentCount = (save?.companionInteractions ?? 0) + 1;
     prevInteractionCountRef.current = save?.companionInteractions ?? 0;
@@ -154,11 +238,15 @@ export default function CompanionBubble() {
     } else if (round && round.currentIndex >= round.questions.length) {
       trackInteraction(0);
       showBubble("Round complete! Great effort!");
+    } else if (hintCategory) {
+      hintLevelRef.current = ((hintLevelRef.current % 3) + 1) as 1 | 2 | 3;
+      trackInteraction(hintLevelRef.current);
+      showThinkingHint(hintLevelRef.current);
     } else {
       trackInteraction(0);
       pickMessage();
     }
-  }, [round, save, trackInteraction, showMilestoneMessage, showThinkingHint, pickMessage, showBubble]);
+  }, [round, save, hintCategory, trackInteraction, showMilestoneMessage, showThinkingHint, pickMessage, showBubble, message, revealedLength, skipReveal]);
 
   useEffect(() => {
     if (save && save.currentStreak > prevStreakRef.current && STREAK_THRESHOLDS.includes(save.currentStreak)) {
@@ -171,6 +259,7 @@ export default function CompanionBubble() {
 
   useEffect(() => {
     const greet = GREETINGS[companion] ?? GREETINGS.nox;
+    setEntered(true);
     const timer = setTimeout(() => showBubble(greet, 6000), 50);
     return () => { clearTimeout(timer); if (timeoutRef.current) clearTimeout(timeoutRef.current); };
   }, [companion, showBubble]);
@@ -179,6 +268,49 @@ export default function CompanionBubble() {
     const timer = setInterval(() => { if (!visible && !thinkingRef.current) pickMessage(); }, 28000);
     return () => clearInterval(timer);
   }, [visible, pickMessage]);
+
+  useEffect(() => {
+    if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+    if (!visible || !message || message === '...') return;
+    const speed = REVEAL_SPEEDS[bubbleStyles.style.textReveal] ?? 30;
+    if (speed === 0) { setRevealedLength(message.length); return; }
+    setRevealedLength(0);
+    const isWordByWord = bubbleStyles.style.textReveal === 'word-by-word';
+    if (isWordByWord) {
+      const segments = message.split(/(\s+)/);
+      let idx = 0;
+      const tick = () => {
+        idx++;
+        const shown = segments.slice(0, idx).join('');
+        setRevealedLength(shown.length);
+        if (idx < segments.length) {
+          revealTimerRef.current = setTimeout(tick, speed);
+        }
+      };
+      tick();
+    } else {
+      let i = 0;
+      const tick = () => {
+        i++;
+        setRevealedLength(i);
+        if (i < message.length) {
+          revealTimerRef.current = setTimeout(tick, speed);
+        }
+      };
+      tick();
+    }
+  }, [message, visible, bubbleStyles.style.textReveal]);
+
+  useEffect(() => {
+    const handler = () => {
+      if (hintCategory) {
+        hintLevelRef.current = ((hintLevelRef.current % 3) + 1) as 1 | 2 | 3;
+        showThinkingHint(hintLevelRef.current);
+      }
+    };
+    window.addEventListener('phonics:companion-wrong-answer', handler);
+    return () => window.removeEventListener('phonics:companion-wrong-answer', handler);
+  }, [hintCategory, showThinkingHint]);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     const el = elRef.current;
@@ -197,7 +329,7 @@ export default function CompanionBubble() {
     const newX = Math.max(0, Math.min(window.innerWidth - COMPANION_SIZE, dragRef.current.elX + dx));
     const newY = Math.max(0, Math.min(window.innerHeight - COMPANION_SIZE, dragRef.current.elY + dy));
     setPos({ x: newX, y: newY });
-  }, []);
+  }, [COMPANION_SIZE]);
 
   const onPointerUp = useCallback(() => {
     if (dragRef.current && pos) {
@@ -223,28 +355,40 @@ export default function CompanionBubble() {
       onPointerUp={onPointerUp}
     >
       {visible && message && (
-        <div className="absolute bottom-full right-0 mb-3 w-[230px] glass-heavy rounded-2xl p-4 border border-white/60 dark:border-slate-800 shadow-xl text-xs font-bold leading-relaxed text-slate-800 dark:text-slate-100 animate-slide-up-drawer pointer-events-none" style={{ fontFamily: "var(--font-mali)" }}>
-          <div className="absolute bottom-[-5px] right-14 w-2.5 h-2.5 rotate-45 bg-white/95 dark:bg-slate-900 border-r border-b border-white/60 dark:border-slate-800" />
+        <div
+          className={`absolute bottom-full right-0 mb-3 w-[230px] glass-heavy rounded-2xl p-4 border shadow-xl text-xs leading-relaxed text-slate-800 dark:text-slate-100 pointer-events-none ${bubbleStyles.style.typographyClass} ${entered ? entranceClass : 'animate-slide-up-drawer'}`}
+          style={{ borderColor: `${bubbleStyles.style.accentColor}66` }}
+        >
+          <div
+            className="absolute bottom-[-5px] right-14 w-2.5 h-2.5 rotate-45 bg-white/95 dark:bg-slate-900 border-r border-b"
+            style={{ borderColor: `${bubbleStyles.style.accentColor}66` }}
+          />
           <p>{message === '...' && thinkingRef.current ? (
             <span className="inline-flex gap-1">
               <span className="animate-bounce" style={{ animationDelay: '0ms' }}>.</span>
               <span className="animate-bounce" style={{ animationDelay: '150ms' }}>.</span>
               <span className="animate-bounce" style={{ animationDelay: '300ms' }}>.</span>
             </span>
-          ) : message}</p>
+          ) : message.slice(0, revealedLength || message.length)}</p>
         </div>
       )}
       <button
         type="button"
         onClick={handleClick}
-        className={`w-28 h-28 rounded-full glass-heavy border-2 border-white/60 dark:border-slate-700/50 shadow-lg hover:bg-white/95 dark:hover:bg-slate-700/80 transition-all flex items-center justify-center relative overflow-hidden group cursor-grab active:cursor-grabbing ${
+        className={`rounded-full glass-heavy border-2 shadow-lg transition-all flex items-center justify-center relative overflow-hidden group cursor-grab active:cursor-grabbing ${idleClass} ${
+          isMobile ? 'w-[72px] h-[72px]' : 'w-28 h-28'
+        } ${
           dragging
-            ? 'pointer-events-none opacity-80 scale-105 shadow-2xl'
+            ? 'opacity-80 scale-105 shadow-2xl'
             : 'hover:scale-[1.06] cursor-pointer'
         }`}
+        style={{ borderColor: `${bubbleStyles.style.accentColor}44` }}
         aria-label="Companion"
       >
-        <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/10 to-teal-500/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+        <div
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+          style={{ background: `linear-gradient(135deg, ${bubbleStyles.style.accentColor}1A, transparent)` }}
+        />
         <MascotCanvas
           companionId={companion}
           variant="full"

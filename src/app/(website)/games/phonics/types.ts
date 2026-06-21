@@ -397,3 +397,53 @@ export interface CompanionData {
   cost: number;
   animParams: AnimParams;
 }
+
+// ─── Companion Bubble Styles ─────────────────────────────────────────────────
+export type EntranceAnimation =
+  | 'glide-down'
+  | 'scale-bounce'
+  | 'scanline'
+  | 'slide-left'
+  | 'pounce'
+  | 'fade-in'
+  | 'bounce-in'
+  | 'slide-up'
+  | 'warp-in'
+  | 'spin-in';
+
+export type IdleAnimation =
+  | 'gentle-turn'
+  | 'bouncy-hover'
+  | 'robotic-twitch'
+  | 'tail-swish'
+  | 'paw-stretch'
+  | 'slow-rock'
+  | 'ear-wiggle'
+  | 'wobble'
+  | 'float-wobble'
+  | 'still';
+
+export type TextRevealType =
+  | 'word-by-word'
+  | 'fast-character'
+  | 'robotic-character'
+  | 'slow-character'
+  | 'character-by-character'
+  | 'glitch-reveal'
+  | 'instant';
+
+export interface CompanionBubbleStyle {
+  accentColor: string;
+  accentColorDark: string;
+  typographyClass: string;
+  entranceAnimation: EntranceAnimation;
+  idleAnimation: IdleAnimation;
+  textReveal: TextRevealType;
+  spriteAccessory?: string;
+}
+
+export interface CharacterVoice {
+  prefix: string;
+  suffix: string;
+  format: 'plain' | 'spaced' | 'haiku';
+}

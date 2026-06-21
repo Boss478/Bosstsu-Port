@@ -840,5 +840,199 @@ textarea,
   animation: screen-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* ─── Companion Per-Character Entrance Animations ───────────────────────── */
+@keyframes glide-down {
+  from { opacity: 0; transform: translateY(-24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@utility animate-glide-down {
+  animation: glide-down 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes scale-bounce {
+  0% { opacity: 0; transform: scale(0); }
+  50% { opacity: 1; transform: scale(1.12); }
+  75% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+@utility animate-scale-bounce {
+  animation: scale-bounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes scanline {
+  0% { opacity: 0; clip-path: inset(0 0 100% 0); }
+  100% { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+@utility animate-scanline {
+  animation: scanline 0.5s ease-out forwards;
+}
+
+@keyframes slide-left {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@utility animate-slide-left {
+  animation: slide-left 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pounce {
+  0% { opacity: 0; transform: translateY(-60px) scaleY(0.8); }
+  40% { opacity: 1; transform: translateY(6px) scaleY(1.1); }
+  70% { transform: translateY(-4px) scaleY(0.95); }
+  100% { transform: translateY(0) scaleY(1); }
+}
+@utility animate-pounce {
+  animation: pounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes companion-fade-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@utility animate-companion-fade-in {
+  animation: companion-fade-in 0.6s ease-out forwards;
+}
+
+@keyframes bounce-in {
+  0% { opacity: 0; transform: translateY(0); }
+  20% { opacity: 1; transform: translateY(-30px); }
+  40% { transform: translateY(4px); }
+  60% { transform: translateY(-15px); }
+  80% { transform: translateY(2px); }
+  100% { transform: translateY(0); }
+}
+@utility animate-bounce-in {
+  animation: bounce-in 0.6s cubic-bezier(0.28, 0.84, 0.42, 1) forwards;
+}
+
+@keyframes companion-slide-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@utility animate-companion-slide-up {
+  animation: companion-slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes warp-in {
+  0% { opacity: 0; transform: scale(0.3) rotate(10deg); filter: blur(6px); }
+  50% { opacity: 0.7; transform: scale(1.1) rotate(-3deg); filter: blur(0); }
+  100% { opacity: 1; transform: scale(1) rotate(0); filter: blur(0); }
+}
+@utility animate-warp-in {
+  animation: warp-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes spin-in {
+  0% { opacity: 0; transform: scale(0) rotate(-360deg); }
+  60% { opacity: 1; transform: scale(1.1) rotate(10deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+@utility animate-spin-in {
+  animation: spin-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ─── Companion Per-Character Idle Animations ──────────────────────────── */
+@keyframes gentle-turn {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(3deg); }
+  75% { transform: rotate(-3deg); }
+}
+@utility animate-gentle-turn {
+  animation: gentle-turn 4s ease-in-out infinite;
+}
+
+@keyframes bouncy-hover {
+  0%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-8px); }
+  60% { transform: translateY(-2px); }
+}
+@utility animate-bouncy-hover {
+  animation: bouncy-hover 2s ease-in-out infinite;
+}
+
+@keyframes robotic-twitch {
+  0%, 90%, 100% { transform: translateX(0); }
+  92% { transform: translateX(3px); }
+  94% { transform: translateX(-1px); }
+  96% { transform: translateX(1px); }
+}
+@utility animate-robotic-twitch {
+  animation: robotic-twitch 3s steps(1) infinite;
+}
+
+@keyframes tail-swish {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  20% { transform: rotate(4deg) translateX(4px); }
+  40% { transform: rotate(-2deg) translateX(-2px); }
+  60% { transform: rotate(3deg) translateX(3px); }
+  80% { transform: rotate(-1deg) translateX(-1px); }
+}
+@utility animate-tail-swish {
+  animation: tail-swish 3s ease-in-out infinite;
+}
+
+@keyframes paw-stretch {
+  0%, 100% { transform: scaleY(1); }
+  20% { transform: scaleY(1.08) translateY(-2px); }
+  40% { transform: scaleY(0.98); }
+}
+@utility animate-paw-stretch {
+  animation: paw-stretch 3.5s ease-in-out infinite;
+}
+
+@keyframes slow-rock {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(4deg) translateX(3px); }
+  75% { transform: rotate(-4deg) translateX(-3px); }
+}
+@utility animate-slow-rock {
+  animation: slow-rock 4s ease-in-out infinite;
+}
+
+@keyframes ear-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(-5deg); }
+  30% { transform: rotate(5deg); }
+  45% { transform: rotate(-4deg); }
+  60% { transform: rotate(4deg); }
+}
+@utility animate-ear-wiggle {
+  animation: ear-wiggle 0.8s ease-in-out infinite;
+}
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-6deg); }
+  40% { transform: rotate(6deg); }
+  60% { transform: rotate(-4deg); }
+  80% { transform: rotate(4deg); }
+}
+@utility animate-wobble {
+  animation: wobble 2.5s ease-in-out infinite;
+}
+
+@keyframes float-wobble {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-5px) rotate(-3deg); }
+  50% { transform: translateY(-8px) rotate(0deg); }
+  75% { transform: translateY(-4px) rotate(3deg); }
+}
+@utility animate-float-wobble {
+  animation: float-wobble 3s ease-in-out infinite;
+}
+
+/* ─── Companion Text Reveal Animations ─────────────────────────────────── */
+@keyframes glitch-reveal {
+  0% { opacity: 0; transform: translateX(-2px); letter-spacing: 0.3em; }
+  20% { opacity: 0.5; transform: translateX(4px); }
+  40% { opacity: 0.8; transform: translateX(-3px); }
+  60% { opacity: 0.9; transform: translateX(2px); }
+  80% { opacity: 1; transform: translateX(-1px); }
+  100% { opacity: 1; transform: translateX(0); letter-spacing: normal; }
+}
+@utility animate-glitch-reveal {
+  animation: glitch-reveal 0.4s ease-out forwards;
+}
+
 
 

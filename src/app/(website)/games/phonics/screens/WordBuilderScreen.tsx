@@ -50,6 +50,8 @@ export default function WordBuilderScreen() {
   const [phonemeLabelMode, setPhonemeLabelMode] = useLocalStorage<"both" | "ipa" | "example">("word-builder-phoneme-labels", "both");
   const [showSearchHistory, setShowSearchHistory] = useLocalStorage<boolean>("word-builder-show-search-history", true);
   const [favorites, setFavorites] = useLocalStorage<string[]>("word-builder-favorites", []);
+  const [soundboardSortMode, setSoundboardSortMode] = useLocalStorage<"grouped" | "flat">("word-builder-sb-sort-mode", "grouped");
+  const [soundboardSortOrder, setSoundboardSortOrder] = useLocalStorage<"default" | "asc" | "desc">("word-builder-sb-sort-order", "default");
 
   const toggleFavorite = useCallback((word: string) => {
     setFavorites((prev) => {
@@ -353,6 +355,57 @@ export default function WordBuilderScreen() {
                       </button>
                     );
                   })}
+                </div>
+              </div>
+
+              {/* Soundboard Sort Settings */}
+              <div className="space-y-3">
+                <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+                  Soundboard Sort
+                </label>
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setSoundboardSortMode("grouped")}
+                      className={`py-2 px-3 rounded-2xl border text-center transition-all cursor-pointer text-[10px] font-black ${
+                        soundboardSortMode === "grouped"
+                          ? "bg-[#C8A44E]/10 dark:bg-[#C8A44E]/20 border-[#C8A44E] text-[#C8A44E]"
+                          : "bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-400"
+                      }`}
+                    >
+                      <i className="fi fi-sr-layer-group text-xs mr-1" />
+                      Grouped
+                    </button>
+                    <button
+                      onClick={() => setSoundboardSortMode("flat")}
+                      className={`py-2 px-3 rounded-2xl border text-center transition-all cursor-pointer text-[10px] font-black ${
+                        soundboardSortMode === "flat"
+                          ? "bg-[#C8A44E]/10 dark:bg-[#C8A44E]/20 border-[#C8A44E] text-[#C8A44E]"
+                          : "bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-400"
+                      }`}
+                    >
+                      <i className="fi fi-sr-grid text-xs mr-1" />
+                      Flat
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["default", "asc", "desc"] as const).map((order) => {
+                      const label = order === "default" ? "Default" : order === "asc" ? "A→Z" : "Z→A";
+                      return (
+                        <button
+                          key={order}
+                          onClick={() => setSoundboardSortOrder(order)}
+                          className={`py-2 px-1 rounded-2xl border text-center transition-all cursor-pointer text-[9px] font-black ${
+                            soundboardSortOrder === order
+                              ? "bg-[#C8A44E]/10 dark:bg-[#C8A44E]/20 border-[#C8A44E] text-[#C8A44E]"
+                              : "bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-400"
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
@@ -841,6 +894,8 @@ function IpaToWordTab({
   onToggleFavorite: (word: string) => void;
 }) {
   const { playWordAudio } = useAudio();
+  const [soundboardSortMode, setSoundboardSortMode] = useLocalStorage<"grouped" | "flat">("word-builder-sb-sort-mode", "grouped");
+  const [soundboardSortOrder, setSoundboardSortOrder] = useLocalStorage<"default" | "asc" | "desc">("word-builder-sb-sort-order", "default");
   const [selectedPhonemes, setSelectedPhonemes] = useState<PhonemeData[]>([]);
   const [selectedWordName, setSelectedWordName] = useState<string | null>(null);
 
@@ -1065,21 +1120,39 @@ function IpaToWordTab({
 
         {/* Right Column: Phoneme Soundboard Keyboard */}
         <div className={`${layoutMode === "horizontal" ? "lg:col-span-7" : "w-full"} ${WB_PANEL_BASE} space-y-5`}>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <p className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
               Phoneme Soundboard
             </p>
-            <button
-              onClick={() => {
-                const random = allWordEntries[Math.floor(Math.random() * allWordEntries.length)];
-                if (random) autoSelectPhonemes(random);
-              }}
-              className="text-[9px] font-extrabold text-[#2EC4B6] hover:text-[#259f94] transition-colors cursor-pointer uppercase tracking-wider flex items-center gap-1"
-              aria-label="Surprise me with a random word"
-            >
-              <i className="fi fi-sr-shuffle text-[10px]" />
-              Surprise Me
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSoundboardSortMode(soundboardSortMode === "grouped" ? "flat" : "grouped")}
+                className="text-[9px] font-extrabold text-[#C8A44E] hover:text-[#D4B06A] transition-colors cursor-pointer uppercase tracking-wider flex items-center gap-1"
+                aria-label={soundboardSortMode === "grouped" ? "Switch to flat view" : "Switch to grouped view"}
+              >
+                <i className={`fi ${soundboardSortMode === "grouped" ? "fi-sr-grid" : "fi-sr-layer-group"} text-[10px]`} />
+                {soundboardSortMode === "grouped" ? "Flat" : "Group"}
+              </button>
+              <button
+                onClick={() => setSoundboardSortOrder(soundboardSortOrder === "default" ? "asc" : soundboardSortOrder === "asc" ? "desc" : "default")}
+                className="text-[9px] font-extrabold text-[#2EC4B6] hover:text-[#259f94] transition-colors cursor-pointer uppercase tracking-wider flex items-center gap-1"
+                aria-label="Toggle sort order"
+              >
+                <i className="fi fi-sr-arrow-trend-up text-[10px]" />
+                {soundboardSortOrder === "default" ? "Default" : soundboardSortOrder === "asc" ? "A→Z" : "Z→A"}
+              </button>
+              <button
+                onClick={() => {
+                  const random = allWordEntries[Math.floor(Math.random() * allWordEntries.length)];
+                  if (random) autoSelectPhonemes(random);
+                }}
+                className="text-[9px] font-extrabold text-[#2EC4B6] hover:text-[#259f94] transition-colors cursor-pointer uppercase tracking-wider flex items-center gap-1"
+                aria-label="Surprise me with a random word"
+              >
+                <i className="fi fi-sr-shuffle text-[10px]" />
+                Surprise Me
+              </button>
+            </div>
           </div>
 
           <PhonemeSoundboard
@@ -1087,6 +1160,8 @@ function IpaToWordTab({
             phonemeLabelMode={phonemeLabelMode}
             selectedPhonemeIds={selectedIds}
             onPhonemeClick={appendPhoneme}
+            sortMode={soundboardSortMode}
+            sortOrder={soundboardSortOrder}
           />
         </div>
       </div>

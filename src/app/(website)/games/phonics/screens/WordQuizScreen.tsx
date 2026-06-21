@@ -10,6 +10,7 @@ import { QuizConfigModal, type QuizConfig, type QuizDirection } from "../compone
 import { PHONEMES } from "../constants";
 import { ipaDisplay, formatPhonemeIpa } from "../utils/ipaUtils";
 import type { PhonemeData } from "../types";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 type QuizPhase = "config" | "playing" | "feedback" | "results";
 
@@ -57,6 +58,9 @@ export default function WordQuizScreen() {
   const [selectedPhonemes, setSelectedPhonemes] = useState<PhonemeData[]>([]);
   const [typedWord, setTypedWord] = useState("");
   const [tapEnabled, setTapEnabled] = useState(true);
+  const [isSortSettingsOpen, setIsSortSettingsOpen] = useState(false);
+  const [sortMode, setSortMode] = useLocalStorage<"grouped" | "flat">("word-builder-sb-sort-mode", "grouped");
+  const [sortOrder, setSortOrder] = useLocalStorage<"default" | "asc" | "desc">("word-builder-sb-sort-order", "default");
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -76,8 +80,10 @@ export default function WordQuizScreen() {
     };
   }, [phase, config?.mode, timeLeft > 0]);
 
+  const timerEndedRef = useRef(false);
   useEffect(() => {
-    if (config?.mode === "timer" && timeLeft <= 0 && phase === "playing") {
+    if (config?.mode === "timer" && timeLeft <= 0 && phase === "playing" && !timerEndedRef.current) {
+      timerEndedRef.current = true;
       setPhase("results");
     }
   }, [timeLeft, config?.mode, phase]);
@@ -157,6 +163,7 @@ export default function WordQuizScreen() {
       if (config.mode === "endless" || config.mode === "hardcore") {
         setLivesLeft((l) => l - 1);
       }
+      window.dispatchEvent(new CustomEvent('phonics:companion-wrong-answer'));
     } else {
       setIncorrect((i) => i + 1);
       streakRef.current = 0;
@@ -164,6 +171,7 @@ export default function WordQuizScreen() {
       if (config.mode === "endless" || config.mode === "hardcore") {
         setLivesLeft((l) => l - 1);
       }
+      window.dispatchEvent(new CustomEvent('phonics:companion-wrong-answer'));
     }
     setPhase("feedback");
   }, [currentQuestion, config, selectedPhonemes, typedWord]);
@@ -261,13 +269,23 @@ export default function WordQuizScreen() {
       {(phase === "playing" || phase === "feedback") && config && (
         <>
           <div className="shrink-0 px-5 py-3 flex items-center justify-between border-b border-white/20 dark:border-slate-800/40">
-            <button
-              onClick={() => setScreen("word-builder")}
-              className="w-8 h-8 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/50 dark:border-slate-700/50 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white transition-all cursor-pointer"
-              aria-label="Back"
-            >
-              <i className="fi fi-sr-arrow-left text-sm" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setScreen("word-builder")}
+                className="w-8 h-8 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/50 dark:border-slate-700/50 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white transition-all cursor-pointer"
+                aria-label="Back"
+              >
+                <i className="fi fi-sr-arrow-left text-sm" />
+              </button>
+              <button
+                onClick={() => setIsSortSettingsOpen(true)}
+                className="w-8 h-8 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/50 dark:border-slate-700/50 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-700/80 active:scale-90 transition-all cursor-pointer"
+                aria-label="Soundboard Settings"
+                title="Soundboard Settings"
+              >
+                <i className="fi fi-sr-settings text-sm" />
+              </button>
+            </div>
             <div className="flex items-center gap-4 text-[10px] font-extrabold tracking-wider">
               <span className="text-emerald-600 dark:text-emerald-400">
                 <i className="fi fi-sr-check mr-1" />{score}
@@ -344,6 +362,8 @@ export default function WordQuizScreen() {
                   onPhonemeClick={appendPhoneme}
                   correctPhonemeIds={phase === "feedback" ? [...new Set([...currentQuestion.word.phonemeIds, ...(currentQuestion.word.altPhonemeIds || [])])] : undefined}
                   disabled={!tapEnabled}
+                  sortMode={sortMode}
+                  sortOrder={sortOrder}
                 />
               </div>
             )}
@@ -357,11 +377,6 @@ export default function WordQuizScreen() {
                   <p className="text-xl font-black text-slate-800 dark:text-white" style={{ fontFamily: "var(--font-geist-mono)" }}>
                     /{(currentQuestion.word.ipa || "").replace(/\//g, "")}/
                   </p>
-                  {config.difficulty === "normal" && (
-                    <p className="text-3xl font-black text-slate-800 dark:text-[#F7E1A0] mt-2" style={{ fontFamily: "var(--font-mali)" }}>
-                      {currentQuestion.word.word}
-                    </p>
-                  )}
                 </div>
 
                 <div className="flex items-center justify-center gap-2 min-h-[44px] p-3 rounded-2xl bg-white/40 dark:bg-slate-900/40 border border-white/40 dark:border-slate-800/60">
@@ -547,6 +562,77 @@ export default function WordQuizScreen() {
                 Word Builder
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {isSortSettingsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="w-full max-w-sm bg-white/95 dark:bg-slate-900/95 border border-white/50 dark:border-slate-800/50 rounded-3xl p-6 shadow-2xl space-y-5" style={{ fontFamily: "var(--font-mali)" }}>
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
+                <i className="fi fi-sr-settings text-[#C8A44E] text-sm" />
+                Soundboard Settings
+              </h3>
+              <button
+                onClick={() => setIsSortSettingsOpen(false)}
+                className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                aria-label="Close settings"
+              >
+                <i className="fi fi-sr-cross text-[10px]" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+                  Layout
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {(["grouped", "flat"] as const).map((m) => (
+                    <button
+                      key={m}
+                      onClick={() => setSortMode(m)}
+                      className={`py-2.5 px-3 rounded-2xl border text-center transition-all cursor-pointer text-xs font-black ${
+                        sortMode === m
+                          ? "bg-[#C8A44E]/10 dark:bg-[#C8A44E]/20 border-[#C8A44E] text-[#C8A44E]"
+                          : "bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-400"
+                      }`}
+                    >
+                      {m === "grouped" ? "Grouped" : "Flat Grid"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+                  Sort Order
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["default", "asc", "desc"] as const).map((o) => (
+                    <button
+                      key={o}
+                      onClick={() => setSortOrder(o)}
+                      className={`py-2.5 px-2 rounded-2xl border text-center transition-all cursor-pointer text-xs font-black ${
+                        sortOrder === o
+                          ? "bg-[#C8A44E]/10 dark:bg-[#C8A44E]/20 border-[#C8A44E] text-[#C8A44E]"
+                          : "bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-400"
+                      }`}
+                    >
+                      {o === "default" ? "Default" : o === "asc" ? "A–Z" : "Z–A"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsSortSettingsOpen(false)}
+              className="w-full py-2.5 rounded-xl bg-slate-800 dark:bg-slate-200 hover:bg-slate-900 dark:hover:bg-white text-white dark:text-slate-900 text-xs font-extrabold uppercase tracking-widest cursor-pointer transition-colors shadow-xs"
+            >
+              Done
+            </button>
           </div>
         </div>
       )}

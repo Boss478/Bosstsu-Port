@@ -5,6 +5,19 @@
 
 
 
+## v1.10.36 (2026-06-21)
++ **WordQuiz Soundboard Sort Settings**: Added gear icon button in WordQuiz header + settings modal for configuring soundboard sort (Grouped/Flat, Default/A–Z/Z–A). Shared localStorage keys with WordBuilder settings. [F3 follow-up]
++ **WordBuilder fix**: Fixed runtime crash in `IpaToWordTab` — inline sort toggle buttons now have their own `useLocalStorage` scope instead of referencing undefined parent-level variables. [F3 bugfix]
++ **Test suite**: 3 new tests for WordQuiz sort settings integration. 340 total tests.
+
+## v1.10.35 (2026-06-21)
++ **Phonics Island — 4 UX/QA Features**:
+  + **IPA→Word Quiz Bug Fix**: Removed word display under IPA prompt in normal difficulty mode (`WordQuizScreen.tsx`) — word was visible during the quiz, defeating the purpose. [F1]
+  + **Companion Mascot on WordBuilder + WordQuiz**: `CompanionBubble` re-enabled on both utility screens with screen-aware hint categories (spelling/WB, phonics/WQ). Responsive sizing (72px mobile / 96px desktop via `matchMedia`). Wrong-answer auto-hint via custom `phonics:companion-wrong-answer` event. [F2]
+  + **Soundboard Sort Options**: `PhonemeSoundboard` now supports Grouped (Consonants/Vowels/Blends) and Flat grid modes, with Default/Asc/Desc sort orders. Settings persisted via `useLocalStorage` and adjustable both inline (Soundboard header toggle) and in the WordBuilder Settings modal. Shared across WordBuilder and WordQuiz. [F3]
+  + **CEFR 60/30/10 Word Selection**: Replaced weight-based `getCefrWeight()` (approximate 44/35/12) with bucket-based `selectWordByCefr()` for exact 60% user-level / 30% adjacent / 10% rest distribution. Uniform fallback when a bucket is empty. 18 call sites updated. [F4]
++ **Test suite**: 17 new tests covering `sortPhonemes` (5), `selectWordByCefr` (9), bug fix verification (1), companion integration (2). 337 total tests.
+
 ## v1.10.34 (2026-06-21)
 + **Phonics Island — Phonics Expansion v2** (4 features):
   + **5 Challenge Activity Types**: New Challenges tab with Phoneme Match (card-flip memory), Sound Sort (tap-to-group by phoneme), Rhyme Time (find rhyming words), Speed Spell (timed spelling), Syllable Smash (syllable counting). Self-contained `ChallengeGameScreen.tsx` (889 lines) with difficulty scaling (Easy/Medium/Hard) and per-type scoring.

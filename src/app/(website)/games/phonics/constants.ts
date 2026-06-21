@@ -1,4 +1,4 @@
-import type { PhonemeData, CompanionData, StageData, SimilarSoundGroup, ActivityData, CefrLevel } from './types';
+import type { PhonemeData, CompanionData, StageData, SimilarSoundGroup, ActivityData, CefrLevel, CompanionBubbleStyle, CharacterVoice, CompanionId } from './types';
 
 // ─── Version ─────────────────────────────────────────────────────────────────
 export const SAVE_VERSION = 3;
@@ -1434,5 +1434,174 @@ export const QUESTION_CARD_CLASSES =
 
 export const WB_PANEL_BASE =
   "bg-white/35 dark:bg-slate-900/30 border border-white/40 dark:border-slate-800/50 rounded-3xl p-5 backdrop-blur-md";
+
+// ─── Companion Bubble Styles ───────────────────────────────────────────────────────
+export const COMPANION_BUBBLE_STYLES: Record<CompanionId, { style: CompanionBubbleStyle; voice: CharacterVoice }> = {
+  nox: {
+    style: {
+      accentColor: '#C8A44E',
+      accentColorDark: '#E8C86A',
+      typographyClass: 'font-mali font-semibold tracking-wide',
+      entranceAnimation: 'glide-down',
+      idleAnimation: 'gentle-turn',
+      textReveal: 'word-by-word',
+    },
+    voice: {
+      prefix: 'Theoretically, ',
+      suffix: ' ~contemplates~',
+      format: 'plain',
+    },
+  },
+  mira: {
+    style: {
+      accentColor: '#9B59B6',
+      accentColorDark: '#C084FC',
+      typographyClass: 'font-mali',
+      entranceAnimation: 'scale-bounce',
+      idleAnimation: 'bouncy-hover',
+      textReveal: 'fast-character',
+    },
+    voice: {
+      prefix: '✨ ',
+      suffix: ' ! ✨',
+      format: 'plain',
+    },
+  },
+  chip: {
+    style: {
+      accentColor: '#5DADE2',
+      accentColorDark: '#7EC8E3',
+      typographyClass: 'font-mono text-[11px] tracking-tight',
+      entranceAnimation: 'scanline',
+      idleAnimation: 'robotic-twitch',
+      textReveal: 'robotic-character',
+    },
+    voice: {
+      prefix: '>> ',
+      suffix: ' //done',
+      format: 'plain',
+    },
+  },
+  fox: {
+    style: {
+      accentColor: '#E85D26',
+      accentColorDark: '#F97316',
+      typographyClass: 'font-mali italic tracking-wide',
+      entranceAnimation: 'slide-left',
+      idleAnimation: 'tail-swish',
+      textReveal: 'word-by-word',
+    },
+    voice: {
+      prefix: 'Hehe... ',
+      suffix: ' 🦊',
+      format: 'plain',
+    },
+  },
+  cat: {
+    style: {
+      accentColor: '#66BB6A',
+      accentColorDark: '#86EFAC',
+      typographyClass: 'font-mali font-medium',
+      entranceAnimation: 'pounce',
+      idleAnimation: 'paw-stretch',
+      textReveal: 'slow-character',
+    },
+    voice: {
+      prefix: 'Meow! ',
+      suffix: ' ~purr~',
+      format: 'plain',
+    },
+  },
+  bear: {
+    style: {
+      accentColor: '#8D6E63',
+      accentColorDark: '#A78BFA',
+      typographyClass: 'font-mali text-base leading-relaxed',
+      entranceAnimation: 'fade-in',
+      idleAnimation: 'slow-rock',
+      textReveal: 'character-by-character',
+    },
+    voice: {
+      prefix: '',
+      suffix: ' ...',
+      format: 'plain',
+    },
+  },
+  bunny: {
+    style: {
+      accentColor: '#F48FB1',
+      accentColorDark: '#FDA4AF',
+      typographyClass: 'font-mali font-bold',
+      entranceAnimation: 'bounce-in',
+      idleAnimation: 'ear-wiggle',
+      textReveal: 'fast-character',
+    },
+    voice: {
+      prefix: '',
+      suffix: ' !!',
+      format: 'plain',
+    },
+  },
+  penguin: {
+    style: {
+      accentColor: '#37474F',
+      accentColorDark: '#64748B',
+      typographyClass: 'font-mali tracking-wide text-[11px]',
+      entranceAnimation: 'slide-up',
+      idleAnimation: 'wobble',
+      textReveal: 'character-by-character',
+    },
+    voice: {
+      prefix: '',
+      suffix: ' 🐧',
+      format: 'plain',
+    },
+  },
+  alien: {
+    style: {
+      accentColor: '#A5D6A7',
+      accentColorDark: '#86EFAC',
+      typographyClass: 'font-mali tracking-widest',
+      entranceAnimation: 'warp-in',
+      idleAnimation: 'float-wobble',
+      textReveal: 'glitch-reveal',
+    },
+    voice: {
+      prefix: '*bleep* ',
+      suffix: ' *bloop*',
+      format: 'plain',
+    },
+  },
+  ninja: {
+    style: {
+      accentColor: '#222222',
+      accentColorDark: '#475569',
+      typographyClass: 'font-mali font-light',
+      entranceAnimation: 'spin-in',
+      idleAnimation: 'still',
+      textReveal: 'instant',
+    },
+    voice: {
+      prefix: '',
+      suffix: '',
+      format: 'haiku',
+    },
+  },
+  robot: {
+    style: {
+      accentColor: '#546E7A',
+      accentColorDark: '#94A3B8',
+      typographyClass: 'font-mono text-[11px] font-semibold tracking-widest',
+      entranceAnimation: 'scanline',
+      idleAnimation: 'robotic-twitch',
+      textReveal: 'robotic-character',
+    },
+    voice: {
+      prefix: '',
+      suffix: ' . C L I C K',
+      format: 'spaced',
+    },
+  },
+};
 
 

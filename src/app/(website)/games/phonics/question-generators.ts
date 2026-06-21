@@ -32,18 +32,36 @@ import type {
 } from './types';
 import { WORDS } from './words';
 
-function getCefrWeight(wordLevel: CefrLevel, userLevel: CefrLevel): number {
-  if (userLevel === 'all' || wordLevel === 'all') return 1.0;
-  const uIdx = (CEFR_LEVEL_ORDER as readonly CefrLevel[]).indexOf(userLevel);
-  const wIdx = (CEFR_LEVEL_ORDER as readonly CefrLevel[]).indexOf(wordLevel);
-  if (uIdx === -1 || wIdx === -1) return 1.0;
+function selectWordByCefr<T extends { level: CefrLevel }>(
+  items: T[],
+  userLevel: CefrLevel,
+): T {
+  if (userLevel === 'all' || items.length === 0) {
+    return items[Math.floor(Math.random() * items.length)];
+  }
 
-  const diff = Math.abs(uIdx - wIdx);
-  if (diff === 0) return 1.0;
-  if (diff === 1) return 0.8;
-  if (diff === 2) return 0.25;
-  if (diff === 3) return 0.08;
-  return 0.01;
+  const uIdx = CEFR_LEVEL_ORDER.indexOf(userLevel);
+  const same: T[] = [];
+  const adj: T[] = [];
+  const rest: T[] = [];
+
+  for (const item of items) {
+    if (item.level === 'all') { same.push(item); continue; }
+    const wIdx = CEFR_LEVEL_ORDER.indexOf(item.level);
+    if (wIdx === -1) { same.push(item); continue; }
+    const diff = Math.abs(uIdx - wIdx);
+    if (diff === 0) same.push(item);
+    else if (diff === 1) adj.push(item);
+    else rest.push(item);
+  }
+
+  const r = Math.random();
+  if (r < 0.6 && same.length > 0) return same[Math.floor(Math.random() * same.length)];
+  if (r < 0.9 && adj.length > 0) return adj[Math.floor(Math.random() * adj.length)];
+  if (rest.length > 0) return rest[Math.floor(Math.random() * rest.length)];
+  if (adj.length > 0) return adj[Math.floor(Math.random() * adj.length)];
+  if (same.length > 0) return same[Math.floor(Math.random() * same.length)];
+  return items[Math.floor(Math.random() * items.length)];
 }
 
 function weightedRandomSelect<T>(items: T[], weightFn: (item: T) => number): T {
@@ -83,19 +101,15 @@ function generatePhonicsQuestions(
     );
     let word =
       matching.length > 0
-        ? weightedRandomSelect(matching, (w) => getCefrWeight(w.level, userLevel))
+        ? selectWordByCefr(matching, userLevel)
         : undefined;
 
     if (!word) {
       const allMatching = pool.filter((w) => w.phonemes.includes(phoneme.id));
       if (allMatching.length > 0) {
-        word = weightedRandomSelect(allMatching, (w) =>
-          getCefrWeight(w.level, userLevel),
-        );
+        word = selectWordByCefr(allMatching, userLevel);
       } else {
-        word = weightedRandomSelect(pool, (w) =>
-          getCefrWeight(w.level, userLevel),
-        );
+        word = selectWordByCefr(pool, userLevel);
       }
     }
     if (!word) continue;
@@ -112,9 +126,7 @@ function generatePhonicsQuestions(
     const distractors: WordData[] = [];
     const tempDistPool = [...distPool];
     for (let d = 0; d < Math.min(3, tempDistPool.length); d++) {
-      const dist = weightedRandomSelect(tempDistPool, (w) =>
-        getCefrWeight(w.level, userLevel),
-      );
+      const dist = selectWordByCefr(tempDistPool, userLevel);
       distractors.push(dist);
       const idx = tempDistPool.indexOf(dist);
       if (idx !== -1) tempDistPool.splice(idx, 1);
@@ -167,9 +179,7 @@ function generateCardFlipCards(
     const matchingWords = WORDS.filter((w) => w.phonemes.includes(phoneme.id));
     const word =
       matchingWords.length > 0
-        ? weightedRandomSelect(matchingWords, (w) =>
-            getCefrWeight(w.level, userLevel),
-          )
+        ? selectWordByCefr(matchingWords, userLevel)
         : undefined;
     cards.push({
       id: id++,
@@ -211,9 +221,7 @@ function generateSpellingQuestions(
   const selected: WordData[] = [];
   const tempPool = [...pool];
   for (let i = 0; i < Math.min(count, tempPool.length); i++) {
-    const word = weightedRandomSelect(tempPool, (w) =>
-      getCefrWeight(w.level, userLevel),
-    );
+    const word = selectWordByCefr(tempPool, userLevel);
     selected.push(word);
     const idx = tempPool.indexOf(word);
     if (idx !== -1) tempPool.splice(idx, 1);
@@ -264,9 +272,7 @@ function generateDefinitionQuestions(
   const selected: WordData[] = [];
   const tempPool = [...pool];
   for (let i = 0; i < Math.min(count, tempPool.length); i++) {
-    const word = weightedRandomSelect(tempPool, (w) =>
-      getCefrWeight(w.level, userLevel),
-    );
+    const word = selectWordByCefr(tempPool, userLevel);
     selected.push(word);
     const idx = tempPool.indexOf(word);
     if (idx !== -1) tempPool.splice(idx, 1);
@@ -285,9 +291,7 @@ function generateDefinitionQuestions(
       const distractors: string[] = [];
       const tempDistPool = [...distPool];
       for (let d = 0; d < Math.min(3, tempDistPool.length); d++) {
-        const dist = weightedRandomSelect(tempDistPool, (w) =>
-          getCefrWeight(w.level, userLevel),
-        );
+        const dist = selectWordByCefr(tempDistPool, userLevel);
         distractors.push(dist.word);
         const idx = tempDistPool.indexOf(dist);
         if (idx !== -1) tempDistPool.splice(idx, 1);
@@ -302,9 +306,7 @@ function generateDefinitionQuestions(
       const distractors: string[] = [];
       const tempDistPool = [...distPool];
       for (let d = 0; d < Math.min(3, tempDistPool.length); d++) {
-        const dist = weightedRandomSelect(tempDistPool, (w) =>
-          getCefrWeight(w.level, userLevel),
-        );
+        const dist = selectWordByCefr(tempDistPool, userLevel);
         distractors.push(dist.definition);
         const idx = tempDistPool.indexOf(dist);
         if (idx !== -1) tempDistPool.splice(idx, 1);
@@ -567,9 +569,7 @@ function buildRetryQuestions(
         const distractors: WordData[] = [];
         const tempDistPool = [...distPool];
         for (let d = 0; d < Math.min(3, tempDistPool.length); d++) {
-          const dist = weightedRandomSelect(tempDistPool, (w) =>
-            getCefrWeight(w.level, config.level),
-          );
+          const dist = selectWordByCefr(tempDistPool, config.level);
           distractors.push(dist);
           const idx = tempDistPool.indexOf(dist);
           if (idx !== -1) tempDistPool.splice(idx, 1);
@@ -630,9 +630,7 @@ function buildRetryQuestions(
           const distractors: string[] = [];
           const tempDistPool = [...distPool];
           for (let d = 0; d < Math.min(3, tempDistPool.length); d++) {
-            const dist = weightedRandomSelect(tempDistPool, (w) =>
-              getCefrWeight(w.level, config.level),
-            );
+            const dist = selectWordByCefr(tempDistPool, config.level);
             distractors.push(dist.word);
             const idx = tempDistPool.indexOf(dist);
             if (idx !== -1) tempDistPool.splice(idx, 1);
@@ -649,9 +647,7 @@ function buildRetryQuestions(
           const distractors: string[] = [];
           const tempDistPool = [...distPool];
           for (let d = 0; d < Math.min(3, tempDistPool.length); d++) {
-            const dist = weightedRandomSelect(tempDistPool, (w) =>
-              getCefrWeight(w.level, config.level),
-            );
+            const dist = selectWordByCefr(tempDistPool, config.level);
             distractors.push(dist.definition);
             const idx = tempDistPool.indexOf(dist);
             if (idx !== -1) tempDistPool.splice(idx, 1);
@@ -989,14 +985,14 @@ function generatePracticeQuestions(
     );
     let word =
       matching.length > 0
-        ? weightedRandomSelect(matching, (w) => getCefrWeight(w.level, level))
+        ? selectWordByCefr(matching, level)
         : undefined;
     if (!word) {
       const allM = pool.filter((w) => w.phonemes.includes(phoneme.id));
       if (allM.length > 0) {
-        word = weightedRandomSelect(allM, (w) => getCefrWeight(w.level, level));
+        word = selectWordByCefr(allM, level);
       } else {
-        word = weightedRandomSelect(pool, (w) => getCefrWeight(w.level, level));
+        word = selectWordByCefr(pool, level);
       }
     }
     if (!word) continue;
@@ -1029,9 +1025,9 @@ function generateIpaToWordQuestions(
   const used = new Set<string>();
 
   for (let i = 0; i < Math.min(count, pool.length); i++) {
-    const word = weightedRandomSelect(
+    const word = selectWordByCefr(
       pool.filter((w) => !used.has(w.word)),
-      (w) => getCefrWeight(w.level, level),
+      level,
     );
     if (!word) continue;
     used.add(word.word);
@@ -1086,9 +1082,9 @@ function generateWordToIpaQuestions(
   const used = new Set<string>();
 
   for (let i = 0; i < Math.min(count, pool.length); i++) {
-    const word = weightedRandomSelect(
+    const word = selectWordByCefr(
       pool.filter((w) => !used.has(w.word)),
-      (w) => getCefrWeight(w.level, level),
+      level,
     );
     if (!word) continue;
     used.add(word.word);
@@ -1162,9 +1158,9 @@ function generateSynonymQuestions(
   const used = new Set<string>();
 
   for (let i = 0; i < Math.min(count, pool.length); i++) {
-    const word = weightedRandomSelect(
+    const word = selectWordByCefr(
       pool.filter((w) => !used.has(w.word)),
-      (w) => getCefrWeight(w.level, level),
+      level,
     );
     if (!word) continue;
     used.add(word.word);
@@ -1302,7 +1298,7 @@ function buildActivityRetryQuestions(
 }
 
 export {
-  getCefrWeight,
+  selectWordByCefr,
   weightedRandomSelect,
   generatePhonicsQuestions,
   generateCardFlipCards,

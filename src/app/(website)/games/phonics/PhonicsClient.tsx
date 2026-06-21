@@ -896,7 +896,7 @@ export default function PhonicsClient() {
           </div>
         )}
 
-        {screen !== 'slots' && screen !== 'game' && screen !== 'word-builder' && screen !== 'word-quiz' && <CompanionBubble />}
+        {screen !== 'slots' && screen !== 'game' && <CompanionBubble />}
       </div>
     </GameContext.Provider>
   );
