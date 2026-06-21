@@ -1448,8 +1448,8 @@ export const COMPANION_BUBBLE_STYLES: Record<CompanionId, { style: CompanionBubb
       spriteAccessory: 'monocle',
     },
     voice: {
-      prefix: 'Theoretically, ',
-      suffix: ' ~contemplates~',
+      prefix: '',
+      suffix: '',
       format: 'plain',
     },
   },
