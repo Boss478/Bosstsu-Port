@@ -1,12 +1,12 @@
 // ─── Screen & Navigation ────────────────────────────────────────────────────
-export type Screen = "slots" | "path" | "game" | "victory" | "settings" | "tutorial" | "word-builder" | "word-quiz";
+export type Screen = "slots" | "path" | "game" | "victory" | "settings" | "tutorial" | "word-builder" | "word-quiz" | "challenges" | "challenge-game";
 
 export type StageCategory = "vowel" | "consonant" | "mastery";
 
 export type MapView = "groups" | "stages" | "activities";
 
 // ─── Game Categories & Formats ──────────────────────────────────────────────
-export type GameCategory = "phonics" | "spelling" | "definitions" | "vocab" | "practice" | "ipa-word" | "word-ipa" | "synonyms" | "exercise" | "vocab-exercise";
+export type GameCategory = "phonics" | "spelling" | "definitions" | "vocab" | "practice" | "ipa-word" | "word-ipa" | "synonyms" | "exercise" | "vocab-exercise" | "phoneme-match" | "sound-sort" | "rhyme-time" | "speed-spell" | "syllable-smash";
 export type PhonicsFormat = "tap" | "speed" | "pick-word" | "card-flip";
 export type SpellingFormat = "tiles" | "choice" | "mixed";
 export type DefinitionDirection = "def-to-word" | "word-to-def";
@@ -36,7 +36,7 @@ export interface SimilarSoundGroup {
   order: number;
 }
 
-export type Tab = "sound" | "vocab" | "library" | "shop" | "profile";
+export type Tab = "sound" | "vocab" | "challenges" | "library" | "shop" | "profile";
 
 // ─── New Question Formats ────────────────────────────────────────────────────
 export interface PracticeQuestion {
@@ -139,7 +139,76 @@ export interface DefinitionQuestion {
   blankedExample?: string;  // for gap-fill placement questions
 }
 
-export type Question = PhonicsQuestion | SpellingQuestion | DefinitionQuestion | PracticeQuestion | IpaToWordQuestion | WordToIpaQuestion | SynonymQuestion | ExerciseQuestion;
+// ─── Challenge Question Types ─────────────────────────────────────────────
+export interface PhonemeMatchQuestion {
+  category: "phoneme-match";
+  pairs: { phonemeId: string; ipa: string; word: string }[];
+  gridSize: number; // number of pairs
+}
+
+export interface SoundSortQuestion {
+  category: "sound-sort";
+  targetPhonemeIds: string[];
+  words: { word: string; correctGroup: string }[];
+}
+
+export interface RhymeQuestion {
+  category: "rhyme-time";
+  targetWord: string;
+  targetIpa: string;
+  options: string[];
+  correctAnswer: string;
+}
+
+export interface SpeedSpellQuestion {
+  category: "speed-spell";
+  word: WordData;
+  timeLimitMs: number;
+}
+
+export interface SyllableQuestion {
+  category: "syllable-smash";
+  word: string;
+  syllableCount: number;
+  options: number[];
+  correctAnswer: number;
+}
+
+// ─── Achievement System ────────────────────────────────────────────────────
+export type AchievementId =
+  | "first_round" | "sound_explorer" | "vocab_master"
+  | "perfectionist" | "streak_10" | "streak_30"
+  | "phoneme_10" | "phoneme_25" | "phoneme_40"
+  | "phoneme_gold" | "phoneme_allgold"
+  | "first_purchase" | "collector_5" | "millionaire"
+  | "speed_demon" | "word_builder" | "quiz_champ" | "companion_friend"
+  | "match_10" | "sort_50" | "rhyme_20" | "speed_spell_30" | "syllable_50"
+  | "challenge_all" | "challenge_allgold";
+
+export interface BadgeRecord {
+  unlocked: boolean;
+  unlockedAt: number;
+  progress: number;
+}
+
+export interface AchievementData {
+  id: AchievementId;
+  title: string;
+  description: string;
+  icon: string; // flaticon class
+  category: "progress" | "phoneme" | "economy" | "skill" | "challenge";
+  reward: number; // phoneme coin reward
+}
+
+// ─── Challenge Round State ─────────────────────────────────────────────────
+export interface ChallengeRoundConfig {
+  type: "phoneme-match" | "sound-sort" | "rhyme-time" | "speed-spell" | "syllable-smash";
+  difficulty: "easy" | "medium" | "hard";
+  level: CefrLevel;
+  isRetry?: boolean;
+}
+
+export type Question = PhonicsQuestion | SpellingQuestion | DefinitionQuestion | PracticeQuestion | IpaToWordQuestion | WordToIpaQuestion | SynonymQuestion | ExerciseQuestion | PhonemeMatchQuestion | SoundSortQuestion | RhymeQuestion | SpeedSpellQuestion | SyllableQuestion;
 
 // ─── Round State ─────────────────────────────────────────────────────────────
 export interface RoundConfig {
@@ -148,9 +217,11 @@ export interface RoundConfig {
   spellingFormat?: SpellingFormat;
   level: CefrLevel;
   length: RoundLength;
+  difficulty?: "easy" | "medium" | "hard";
   definitionDirection?: DefinitionDirection;
   isPlacement?: boolean;
   retryWords?: string[];
+  challengeTimeLimitMs?: number; // per-question time limit for speed-spell
 }
 
 export interface GameRound {
@@ -193,6 +264,13 @@ export interface CardFlipState {
 }
 
 // ─── Save / Persistence ──────────────────────────────────────────────────────
+export interface ChallengeStats {
+  roundsPlayed: number;
+  bestScore: number;
+  totalCorrect: number;
+  totalAttempts: number;
+}
+
 export interface SaveData {
   version: number;
   name: string;           // "Slot 1" — user renamable
@@ -214,6 +292,12 @@ export interface SaveData {
   unlockedCompanions: CompanionId[];
   cefrLevel: CefrLevel;
   cefrUpgradeStreak: number;
+  // v3 — Phonics Expansion
+  achievements: Record<AchievementId, BadgeRecord>;
+  challengeStats: Record<string, ChallengeStats>; // keyed by challenge type
+  companionInteractions: number;
+  lastCompanionHintLevel: number;
+  lastCompanionHintTime: number;
 }
 
 export interface SlotPreview {
@@ -276,6 +360,7 @@ export interface AnimParams {
 // ─── Utility helpers ──────────────────────────────────────────────────────────
 export function getWordFromQuestion(q: Question): WordData | undefined {
   if (q.category === 'exercise') return getWordFromQuestion((q as unknown as ExerciseQuestion).data as unknown as Question);
+  if (q.category === 'speed-spell') return (q as SpeedSpellQuestion).word;
   if ('word' in q) return (q as unknown as { word: WordData }).word;
   return undefined;
 }
@@ -289,6 +374,9 @@ export function getCorrectAnswerFromQuestion(q: Question): string {
   if (q.category === 'phonics' || q.category === 'definitions' || q.category === 'practice' || q.category === 'ipa-word' || q.category === 'word-ipa' || q.category === 'synonyms') {
     return (q as IpaToWordQuestion | WordToIpaQuestion | SynonymQuestion | PracticeQuestion | PhonicsQuestion | DefinitionQuestion).correctAnswer;
   }
+  if (q.category === 'rhyme-time') return (q as RhymeQuestion).correctAnswer;
+  if (q.category === 'syllable-smash') return String((q as SyllableQuestion).correctAnswer);
+  if (q.category === 'speed-spell') return (q as SpeedSpellQuestion).word.word;
   return '';
 }
 

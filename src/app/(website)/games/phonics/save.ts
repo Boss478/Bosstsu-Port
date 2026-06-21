@@ -1,10 +1,23 @@
 'use client';
 
-import type { SaveData, SlotPreview, CompanionId } from './types';
+import type { SaveData, SlotPreview, CompanionId, AchievementId } from './types';
 import { SAVE_VERSION } from './constants';
 
 const PREFIX = 'phonics_save_';
 const ACTIVE_KEY = 'phonics_active_slot';
+
+const ALL_ACHIEVEMENT_IDS: AchievementId[] = [
+  "first_round", "sound_explorer", "vocab_master", "perfectionist", "streak_10", "streak_30",
+  "phoneme_10", "phoneme_25", "phoneme_40", "phoneme_gold", "phoneme_allgold",
+  "first_purchase", "collector_5", "millionaire",
+  "speed_demon", "word_builder", "quiz_champ", "companion_friend",
+  "match_10", "sort_50", "rhyme_20", "speed_spell_30", "syllable_50",
+  "challenge_all", "challenge_allgold",
+];
+
+function getDefaultAchievements(): Record<string, { unlocked: boolean; unlockedAt: number; progress: number }> {
+  return Object.fromEntries(ALL_ACHIEVEMENT_IDS.map((id) => [id, { unlocked: false, unlockedAt: 0, progress: 0 }]));
+}
 
 export function getDefaultSave(name: string): SaveData {
   return {
@@ -29,6 +42,12 @@ export function getDefaultSave(name: string): SaveData {
     unlockedCompanions: ['nox', 'mira', 'chip'],
     cefrLevel: 'a1',
     cefrUpgradeStreak: 0,
+    // v3 fields
+    achievements: getDefaultAchievements(),
+    challengeStats: {},
+    companionInteractions: 0,
+    lastCompanionHintLevel: 0,
+    lastCompanionHintTime: 0,
   };
 }
 
@@ -66,6 +85,22 @@ export function loadSave(slot: number): SaveData | null {
     }
     if (typeof data.settings.glassLevel !== 'number') {
       data.settings.glassLevel = 25;
+    }
+    // v3 backfill
+    if (!data.achievements) {
+      data.achievements = getDefaultAchievements();
+    }
+    if (!data.challengeStats) {
+      data.challengeStats = {};
+    }
+    if (typeof data.companionInteractions !== 'number') {
+      data.companionInteractions = 0;
+    }
+    if (typeof data.lastCompanionHintLevel !== 'number') {
+      data.lastCompanionHintLevel = 0;
+    }
+    if (typeof data.lastCompanionHintTime !== 'number') {
+      data.lastCompanionHintTime = 0;
     }
     return data;
   } catch (e) {

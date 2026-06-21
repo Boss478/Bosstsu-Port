@@ -2,6 +2,9 @@ import {
   PHONEMES,
   CEFR_LEVEL_ORDER,
   getPhonemeGroup,
+  SIMILAR_SOUND_GROUPS,
+  CHALLENGE_ROUND_LENGTHS,
+  CHALLENGE_TIME_LIMITS,
 } from './constants';
 import type {
   PhonicsQuestion,
@@ -12,6 +15,11 @@ import type {
   WordToIpaQuestion,
   ExerciseQuestion,
   SynonymQuestion,
+  PhonemeMatchQuestion,
+  SoundSortQuestion,
+  RhymeQuestion,
+  SpeedSpellQuestion,
+  SyllableQuestion,
   PhonicsFormat,
   SpellingFormat,
   DefinitionDirection,
@@ -20,6 +28,7 @@ import type {
   RoundConfig,
   CefrLevel,
   WordData,
+  PhonemeData,
 } from './types';
 import { WORDS } from './words';
 
@@ -709,6 +718,256 @@ function getDistractorsFromSimilarGroup(
   return picked;
 }
 
+const VOWEL_PHONEME_IDS = new Set(["ae","e","i","o","u","ee","ar","aw","oo","er","ay","ie","oy","ow","oh","uh","eer","air","oor","uh2"]);
+
+function getRime(phonemes: string[]): string {
+  const lastVowelIdx = phonemes.findLastIndex(p => VOWEL_PHONEME_IDS.has(p));
+  if (lastVowelIdx === -1) return phonemes.join('');
+  return phonemes.slice(lastVowelIdx).join('');
+}
+
+function generatePhonemeMatchRound(
+  difficulty: "easy" | "medium" | "hard",
+  level: CefrLevel,
+): PhonemeMatchQuestion {
+  const gridSize = CHALLENGE_ROUND_LENGTHS["phoneme-match"][difficulty];
+  const pairs: { phonemeId: string; ipa: string; word: string }[] = [];
+  const usedPhonemes = new Set<string>();
+
+  let pool = [...WORDS];
+  if (level !== 'all') {
+    const lvlOrder: CefrLevel[] = ["a1","a2","b1","b2","c1","c2"];
+    const lvlIdx = lvlOrder.indexOf(level);
+    const maxIdx = Math.min(lvlIdx + 2, lvlOrder.length - 1);
+    const allowedLevels = lvlOrder.slice(0, maxIdx + 1);
+    pool = pool.filter(w => allowedLevels.includes(w.level));
+  }
+
+  for (let i = 0; i < gridSize; i++) {
+    const availablePhonemes = PHONEMES.filter(p => !usedPhonemes.has(p.id));
+    if (availablePhonemes.length === 0) break;
+    const phoneme = availablePhonemes[Math.floor(Math.random() * availablePhonemes.length)];
+    usedPhonemes.add(phoneme.id);
+
+    const matchingWords = pool.filter(w => w.phonemes.includes(phoneme.id));
+    if (matchingWords.length === 0) continue;
+    const word = matchingWords[Math.floor(Math.random() * matchingWords.length)];
+
+    pairs.push({ phonemeId: phoneme.id, ipa: phoneme.ipa, word: word.word });
+  }
+
+  return { category: "phoneme-match", pairs, gridSize: pairs.length };
+}
+
+function generateSoundSortQuestions(
+  count: number,
+  level: CefrLevel,
+): SoundSortQuestion[] {
+  const questions: SoundSortQuestion[] = [];
+  const groups = [...SIMILAR_SOUND_GROUPS].sort(() => Math.random() - 0.5);
+
+  let pool = [...WORDS];
+  if (level !== 'all') {
+    const lvlOrder: CefrLevel[] = ["a1","a2","b1","b2","c1","c2"];
+    const lvlIdx = lvlOrder.indexOf(level);
+    const maxIdx = Math.min(lvlIdx + 2, lvlOrder.length - 1);
+    const allowedLevels = lvlOrder.slice(0, maxIdx + 1);
+    pool = pool.filter(w => allowedLevels.includes(w.level));
+  }
+
+  for (let q = 0; q < count; q++) {
+    const numGroups = 2 + Math.floor(Math.random() * 2);
+    const selectedGroups = groups.slice(q % groups.length, (q % groups.length) + numGroups);
+    if (selectedGroups.length < 2) continue;
+
+    const targetPhonemeIds = selectedGroups.flatMap(g => g.phonemeIds);
+    const words: { word: string; correctGroup: string }[] = [];
+    const usedWords = new Set<string>();
+
+    for (const group of selectedGroups) {
+      const groupWords = pool.filter(w =>
+        w.phonemes.some(p => group.phonemeIds.includes(p)) &&
+        !usedWords.has(w.word)
+      );
+      const take = Math.min(3 + Math.floor(Math.random() * 2), groupWords.length);
+      for (let i = 0; i < take; i++) {
+        const w = groupWords[i];
+        words.push({ word: w.word, correctGroup: group.id });
+        usedWords.add(w.word);
+      }
+    }
+
+    if (words.length < 4) continue;
+
+    questions.push({
+      category: "sound-sort",
+      targetPhonemeIds,
+      words: words.sort(() => Math.random() - 0.5),
+    });
+  }
+
+  return questions;
+}
+
+function generateRhymeTimeQuestions(
+  count: number,
+  level: CefrLevel,
+): RhymeQuestion[] {
+  const questions: RhymeQuestion[] = [];
+  const usedWords = new Set<string>();
+
+  let pool = [...WORDS];
+  if (level !== 'all') {
+    const lvlOrder: CefrLevel[] = ["a1","a2","b1","b2","c1","c2"];
+    const lvlIdx = lvlOrder.indexOf(level);
+    const maxIdx = Math.min(lvlIdx + 2, lvlOrder.length - 1);
+    const allowedLevels = lvlOrder.slice(0, maxIdx + 1);
+    pool = pool.filter(w => allowedLevels.includes(w.level));
+  }
+
+  for (let i = 0; i < count; i++) {
+    const available = pool.filter(w => !usedWords.has(w.word));
+    if (available.length === 0) continue;
+    const target = weightedRandomSelect(available, () => 1);
+    if (!target) continue;
+    usedWords.add(target.word);
+
+    const rime = getRime(target.phonemes);
+
+    const rhymingPool = pool.filter(
+      w => w.word !== target.word &&
+           !usedWords.has(w.word) &&
+           w.phonemes.length >= 2 &&
+           getRime(w.phonemes) === rime
+    );
+
+    let correctAnswer: string;
+    let options: string[];
+
+    if (rhymingPool.length > 0) {
+      const rhymeWord = rhymingPool[Math.floor(Math.random() * rhymingPool.length)];
+      correctAnswer = rhymeWord.word;
+      usedWords.add(rhymeWord.word);
+
+      const distPool = pool.filter(
+        w => w.word !== target.word && w.word !== rhymeWord.word && !usedWords.has(w.word)
+      );
+      const distractors: string[] = [];
+      const tempDist = [...distPool].sort(() => Math.random() - 0.5);
+      for (let d = 0; d < Math.min(3, tempDist.length); d++) {
+        distractors.push(tempDist[d].word);
+      }
+      while (distractors.length < 3) {
+        const extra = WORDS[Math.floor(Math.random() * WORDS.length)];
+        if (!distractors.includes(extra.word)) distractors.push(extra.word);
+      }
+      options = [correctAnswer, ...distractors].sort(() => Math.random() - 0.5);
+    } else {
+      const group = getPhonemeGroup(target.phonemes[target.phonemes.length - 1]);
+      const similarPool = group
+        ? pool.filter(w => w.word !== target.word && !usedWords.has(w.word) && w.phonemes.some(p => group.phonemeIds.includes(p)))
+        : pool.filter(w => w.word !== target.word && !usedWords.has(w.word));
+      if (similarPool.length === 0) continue;
+      const similarWord = similarPool[Math.floor(Math.random() * similarPool.length)];
+      correctAnswer = similarWord.word;
+      usedWords.add(similarWord.word);
+
+      const distractors: string[] = [];
+      const tempDist = pool.filter(w => w.word !== target.word && w.word !== similarWord.word && !usedWords.has(w.word)).sort(() => Math.random() - 0.5);
+      for (let d = 0; d < Math.min(3, tempDist.length); d++) {
+        distractors.push(tempDist[d].word);
+      }
+      while (distractors.length < 3) {
+        const extra = WORDS[Math.floor(Math.random() * WORDS.length)];
+        if (!distractors.includes(extra.word)) distractors.push(extra.word);
+      }
+      options = [correctAnswer, ...distractors].sort(() => Math.random() - 0.5);
+    }
+
+    questions.push({
+      category: "rhyme-time",
+      targetWord: target.word,
+      targetIpa: target.ipa,
+      options,
+      correctAnswer,
+    });
+  }
+
+  return questions;
+}
+
+function generateSpeedSpellQuestions(
+  count: number,
+  level: CefrLevel,
+  difficulty: "easy" | "medium" | "hard",
+): SpeedSpellQuestion[] {
+  const timeLimitMs = CHALLENGE_TIME_LIMITS["speed-spell"][difficulty];
+  const questions: SpeedSpellQuestion[] = [];
+  const usedWords = new Set<string>();
+
+  let pool = [...WORDS];
+  if (level !== 'all') {
+    const lvlOrder: CefrLevel[] = ["a1","a2","b1","b2","c1","c2"];
+    const lvlIdx = lvlOrder.indexOf(level);
+    const maxIdx = Math.min(lvlIdx + 2, lvlOrder.length - 1);
+    const allowedLevels = lvlOrder.slice(0, maxIdx + 1);
+    pool = pool.filter(w => allowedLevels.includes(w.level));
+  }
+  pool = pool.filter(w => w.word.length >= 3 && w.word.length <= 8);
+
+  for (let i = 0; i < count; i++) {
+    const word = weightedRandomSelect(pool.filter(w => !usedWords.has(w.word)), () => 1);
+    if (!word) continue;
+    usedWords.add(word.word);
+    questions.push({ category: "speed-spell", word, timeLimitMs });
+  }
+
+  return questions;
+}
+
+function generateSyllableSmashQuestions(
+  count: number,
+  level: CefrLevel,
+): SyllableQuestion[] {
+  const questions: SyllableQuestion[] = [];
+  const usedWords = new Set<string>();
+
+  let pool = [...WORDS];
+  if (level !== 'all') {
+    const lvlOrder: CefrLevel[] = ["a1","a2","b1","b2","c1","c2"];
+    const lvlIdx = lvlOrder.indexOf(level);
+    const maxIdx = Math.min(lvlIdx + 2, lvlOrder.length - 1);
+    const allowedLevels = lvlOrder.slice(0, maxIdx + 1);
+    pool = pool.filter(w => allowedLevels.includes(w.level));
+  }
+  pool = pool.filter(w => w.syllables.length >= 1 && w.syllables.length <= 5);
+
+  for (let i = 0; i < count; i++) {
+    const word = weightedRandomSelect(pool.filter(w => !usedWords.has(w.word)), () => 1);
+    if (!word) continue;
+    usedWords.add(word.word);
+
+    const correctCount = word.syllables.length;
+    const optionSet = new Set<number>();
+    optionSet.add(correctCount);
+    while (optionSet.size < 4) {
+      const offset = Math.floor(Math.random() * 5) - 2;
+      const candidate = Math.max(1, Math.min(6, correctCount + offset));
+      optionSet.add(candidate);
+    }
+
+    questions.push({
+      category: "syllable-smash",
+      word: word.word,
+      syllableCount: correctCount,
+      options: [...optionSet].sort(() => Math.random() - 0.5),
+      correctAnswer: correctCount,
+    });
+  }
+
+  return questions;
+}
+
 function generatePracticeQuestions(
   count: number,
   level: CefrLevel,
@@ -1059,4 +1318,9 @@ export {
   generateSynonymQuestions,
   generateExerciseQuestions,
   buildActivityRetryQuestions,
+  generatePhonemeMatchRound,
+  generateSoundSortQuestions,
+  generateRhymeTimeQuestions,
+  generateSpeedSpellQuestions,
+  generateSyllableSmashQuestions,
 };

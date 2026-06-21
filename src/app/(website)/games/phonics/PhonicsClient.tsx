@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { GameContext, type GameContextValue } from './context';
-import type { Screen, SaveData, GameRound, RoundConfig, CompanionId, PhonicsQuestion, DefinitionQuestion, Question, StageData, StageLesson, CefrLevel, MapView, SimilarSoundGroup, ActivityData } from './types';
+import type { Screen, SaveData, GameRound, RoundConfig, CompanionId, PhonicsQuestion, DefinitionQuestion, Question, StageData, StageLesson, CefrLevel, MapView, SimilarSoundGroup, ActivityData, AchievementId } from './types';
 import { getWordFromQuestion } from './types';
 import BackgroundDownloadWidget, { type BackgroundDownloadState } from './components/BackgroundDownloadWidget';
 import {
@@ -15,13 +15,15 @@ import {
   recordRound,
 } from './save';
 import { useAudio } from '@/hooks/useAudio';
-import { GAME_CONFIG, PHONEME_EXAMPLE_WORDS, STAGES } from './constants';
+import { GAME_CONFIG, PHONEME_EXAMPLE_WORDS, STAGES, ACHIEVEMENTS } from './constants';
 import { WORDS } from './words';
 import SaveSlotScreen from './screens/SaveSlotScreen';
 import StageListScreen from './screens/StageListScreen';
 import CompanionBubble from './components/CompanionBubble';
 import { useAnalytics } from '@/lib/analytics';
 import MascotCanvas from './components/MascotCanvas';
+import AchievementToast from './components/AchievementToast';
+import { checkAchievements } from './utils/achievement-checker';
 
 const GameScreen = dynamic(() => import('./screens/GameScreen'), { ssr: false });
 const VictoryScreen = dynamic(() => import('./screens/VictoryScreen'), { ssr: false });
@@ -30,13 +32,15 @@ const TutorialScreen = dynamic(() => import('./screens/TutorialScreen'), { ssr: 
 const LibraryScreen = dynamic(() => import('./screens/LibraryScreen'), { ssr: false });
 const ShopScreen = dynamic(() => import('./screens/ShopScreen'), { ssr: false });
 const ProfileScreen = dynamic(() => import('./screens/ProfileScreen'), { ssr: false });
+const ChallengesScreen = dynamic(() => import('./screens/ChallengesScreen'), { ssr: false });
+const ChallengeGameScreen = dynamic(() => import('./screens/ChallengeGameScreen'), { ssr: false });
 const WordBuilderScreen = dynamic(() => import('./screens/WordBuilderScreen'), { ssr: false });
 const WordQuizScreen = dynamic(() => import('./screens/WordQuizScreen'), { ssr: false });
 
 export default function PhonicsClient() {
   const [mounted, setMounted] = useState(false);
   const [screen, setScreen] = useState<Screen>('slots');
-  const [tab, setTab] = useState<'sound' | 'vocab' | 'library' | 'shop' | 'profile'>('sound');
+  const [tab, setTab] = useState<'sound' | 'vocab' | 'challenges' | 'library' | 'shop' | 'profile'>('sound');
   const [activeSlot, setActiveSlotState] = useState<number | 'guest'>('guest');
   const [save, setSaveState] = useState<SaveData | null>(null);
   const [round, setRound] = useState<GameRound | null>(null);
@@ -50,6 +54,12 @@ export default function PhonicsClient() {
   const [firstJoinLoaded, setFirstJoinLoaded] = useState(0);
   const [firstJoinTotal, setFirstJoinTotal] = useState(0);
   const [bgDownloadState, setBgDownloadState] = useState<BackgroundDownloadState | null>(null);
+  const [challengeConfig, setChallengeConfig] = useState<{
+    type: "phoneme-match" | "sound-sort" | "rhyme-time" | "speed-spell" | "syllable-smash";
+    difficulty: "easy" | "medium" | "hard";
+    level: CefrLevel;
+  } | null>(null);
+  const [newAchievements, setNewAchievements] = useState<AchievementId[]>([]);
   const { muted, toggleMute, playSound, voiceURI, setVoiceURI, voices, prefetchWords, speechRate, setSpeechRate, speechPitch, setSpeechPitch } = useAudio();
   const { trackCustomEvent } = useAnalytics();
 
@@ -625,6 +635,25 @@ export default function PhonicsClient() {
     }
 
     persistSave(updated);
+
+    const accuracy = round.results.length > 0
+      ? Math.round((round.corrects / round.results.length) * 100)
+      : 0;
+    const unlocked = checkAchievements(updated, {
+      roundResult: {
+        accuracy,
+        streak: round.maxStreak,
+        category: round.config.category,
+        phonemeIds: selectedLesson?.phonemeIds ?? [],
+      },
+    });
+    if (unlocked.length > 0) {
+      const coinReward = unlocked.reduce((sum, id) => sum + (ACHIEVEMENTS[id]?.reward ?? 0), 0);
+      updated.phonemeCoins += coinReward;
+      persistSave(updated);
+      setNewAchievements(unlocked);
+    }
+
     playSound('win');
     setScreen('victory');
     trackCustomEvent('game_complete', {
@@ -635,6 +664,56 @@ export default function PhonicsClient() {
       total: round.results.length,
     });
   }, [round, save, selectedLesson, selectedActivity, persistSave, playSound, trackCustomEvent]);
+
+  // ── Challenge game ────────────────────────────────────────────────────────
+  const handleChallengeComplete = useCallback(
+    (results: { score: number; totalCorrect: number; totalAttempts: number }) => {
+      if (!save || !challengeConfig) return;
+      const prev = save.challengeStats?.[challengeConfig.type] ?? { roundsPlayed: 0, bestScore: 0, totalCorrect: 0, totalAttempts: 0 };
+      const updated: SaveData = {
+        ...save,
+        challengeStats: {
+          ...save.challengeStats,
+          [challengeConfig.type]: {
+            roundsPlayed: prev.roundsPlayed + 1,
+            bestScore: Math.max(prev.bestScore, results.score),
+            totalCorrect: prev.totalCorrect + results.totalCorrect,
+            totalAttempts: prev.totalAttempts + results.totalAttempts,
+          },
+        },
+      };
+      persistSave(updated);
+
+      const unlocked = checkAchievements(updated, {
+        challengeResult: { type: challengeConfig.type, totalCorrect: results.totalCorrect },
+      });
+      if (unlocked.length > 0) {
+        updated.phonemeCoins += unlocked.reduce((sum, id) => sum + (ACHIEVEMENTS[id]?.reward ?? 0), 0);
+        persistSave(updated);
+        setNewAchievements(unlocked);
+      }
+
+      setChallengeConfig(null);
+      setScreen('path');
+      setTab('challenges');
+      trackCustomEvent('challenge_complete', {
+        game: 'phonics',
+        challengeType: challengeConfig.type,
+        difficulty: challengeConfig.difficulty,
+        score: results.score,
+        totalCorrect: results.totalCorrect,
+      });
+    },
+    [save, challengeConfig, persistSave, trackCustomEvent],
+  );
+
+  const handleLaunchChallenge = useCallback(
+    (type: "phoneme-match" | "sound-sort" | "rhyme-time" | "speed-spell" | "syllable-smash", difficulty: "easy" | "medium" | "hard", level: CefrLevel) => {
+      setChallengeConfig({ type, difficulty, level });
+      setScreen('challenge-game');
+    },
+    [],
+  );
 
   // ── Glass level mapping ───────────────────────────────────────────────────
   const glassValue = save ? 0.08 + (save.settings.glassLevel / 50) * 0.87 : 0.5;
@@ -736,8 +815,9 @@ export default function PhonicsClient() {
 
   return (
     <GameContext.Provider value={ctx}>
+      <AchievementToast ids={newAchievements} onDismiss={() => setNewAchievements([])} />
       <div className="phonics-game relative h-full flex flex-col bg-gradient-to-b from-[#E8F2FF] via-[#E8EFFF] to-[#FAE8FF] dark:from-[#090D1A] dark:via-[#131B35] dark:to-[#2A1242] transition-colors duration-500 motion-reduce:transition-none" style={{ '--glass-level': glassValue } as React.CSSProperties}>
-        <div key={screen === 'game' ? 'slots' : screen} className={screen === 'slots' || screen === 'tutorial' || screen === 'game' || screen === 'word-builder' || screen === 'word-quiz' ? 'animate-screen-enter flex-1 flex flex-col overflow-y-auto min-h-0' : ''}>
+        <div key={screen === 'game' ? 'slots' : screen} className={screen === 'slots' || screen === 'tutorial' || screen === 'game' || screen === 'challenge-game' || screen === 'word-builder' || screen === 'word-quiz' ? 'animate-screen-enter flex-1 flex flex-col overflow-y-auto min-h-0' : ''}>
           {screen === 'slots' && <SaveSlotScreen onSelectSlot={selectSlot} />}
           {screen === 'tutorial' && (
             <TutorialScreen
@@ -756,6 +836,15 @@ export default function PhonicsClient() {
             />
           )}
           {screen === 'game' && round && <GameScreen onRoundComplete={finalizeRound} bgDownloadState={bgDownloadState} />}
+          {screen === 'challenge-game' && challengeConfig && (
+            <ChallengeGameScreen
+              challengeType={challengeConfig.type}
+              difficulty={challengeConfig.difficulty}
+              level={challengeConfig.level}
+              onComplete={handleChallengeComplete}
+              onBack={() => { setChallengeConfig(null); setScreen('path'); }}
+            />
+          )}
           {screen === 'word-builder' && <WordBuilderScreen />}
           {screen === 'word-quiz' && <WordQuizScreen />}
         </div>
@@ -768,6 +857,9 @@ export default function PhonicsClient() {
               <BackgroundDownloadWidget state={bgDownloadState} />
               {screen === 'path' && (
                 <>
+                  {tab === 'challenges' && (
+                    <ChallengesScreen onLaunch={handleLaunchChallenge} />
+                  )}
                   {tab === 'sound' && <StageListScreen mode="sound" />}
                   {tab === 'vocab' && <StageListScreen mode="vocab" />}
                   {tab === 'library' && <LibraryScreen />}
@@ -870,14 +962,15 @@ function StaticFooter({
   screen,
   setScreen,
 }: {
-  tab: 'sound' | 'vocab' | 'library' | 'shop' | 'profile';
-  setTab: (t: 'sound' | 'vocab' | 'library' | 'shop' | 'profile') => void;
+  tab: 'sound' | 'vocab' | 'challenges' | 'library' | 'shop' | 'profile';
+  setTab: (t: 'sound' | 'vocab' | 'challenges' | 'library' | 'shop' | 'profile') => void;
   screen: Screen;
   setScreen: (s: Screen) => void;
 }) {
   const tabs = [
     { id: "sound", name: "Sound", iconClass: "fi fi-sr-volume" },
     { id: "vocab", name: "Vocab", iconClass: "fi fi-sr-graduation-cap" },
+    { id: "challenges", name: "Challenges", iconClass: "fi fi-sr-bolt" },
     { id: "library", name: "Soundbook", iconClass: "fi fi-sr-book-open-cover" },
     { id: "shop", name: "Bazaar", iconClass: "fi fi-sr-shopping-cart" },
     { id: "profile", name: "Profile", iconClass: "fi fi-sr-user" },

@@ -2,15 +2,89 @@
 
 import { useGame } from "../context";
 import { useMemo, useState } from "react";
-import type { CompanionId } from "../types";
+import type { CompanionId, AchievementId, SaveData } from "../types";
 import { COMPANIONS, CEFR_LEVEL_LABELS, CEFR_LEVEL_ORDER } from "../constants";
 import { useAudio } from "@/hooks/useAudio";
 import MascotCanvas from "../components/MascotCanvas";
 import { deleteSave } from "../save";
+import AchievementBadge from "../components/AchievementBadge";
+import PhonemeHeatmap from "../components/PhonemeHeatmap";
+import CefrProgress from "../components/CefrProgress";
+import StreakSparkline from "../components/StreakSparkline";
 
 const FREE_IDS: CompanionId[] = ['nox', 'mira', 'chip'];
 
 
+
+const ACHIEVEMENT_CATEGORIES: { key: string; label: string; ids: AchievementId[] }[] = [
+  { key: 'progress', label: 'Progress', ids: ["first_round", "sound_explorer", "vocab_master", "perfectionist", "streak_10", "streak_30"] },
+  { key: 'phoneme', label: 'Phoneme Mastery', ids: ["phoneme_10", "phoneme_25", "phoneme_40", "phoneme_gold", "phoneme_allgold"] },
+  { key: 'economy', label: 'Economy', ids: ["first_purchase", "collector_5", "millionaire"] },
+  { key: 'skill', label: 'Skill', ids: ["speed_demon", "word_builder", "quiz_champ", "companion_friend"] },
+  { key: 'challenge', label: 'Challenge', ids: ["match_10", "sort_50", "rhyme_20", "speed_spell_30", "syllable_50", "challenge_all", "challenge_allgold"] },
+];
+
+function AchievementsSection({ save }: { save: SaveData | null }) {
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const totalUnlocked = save ? Object.values(save.achievements).filter((a) => (a as { unlocked: boolean }).unlocked).length : 0;
+  const total = ACHIEVEMENT_CATEGORIES.reduce((sum, cat) => sum + cat.ids.length, 0);
+
+  if (!save) return null;
+
+  return (
+    <div className="glass-panel p-5 rounded-3xl border border-white/30 dark:border-slate-800 shadow-xs text-left mb-4">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2" style={{ fontFamily: "var(--font-mali)" }}>
+          <i className="fi fi-sr-trophy text-amber-500" />
+          Achievements
+        </h2>
+        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+          {totalUnlocked}/{total}
+        </span>
+      </div>
+
+      <div className="space-y-3">
+        {ACHIEVEMENT_CATEGORIES.map((cat) => {
+          const unlockedCount = cat.ids.filter((id) => (save.achievements[id] as { unlocked?: boolean })?.unlocked).length;
+          const isCollapsed = collapsed[cat.key] ?? (unlockedCount === 0);
+
+          return (
+            <div key={cat.key}>
+              <button
+                className="flex items-center justify-between w-full text-left py-1.5 cursor-pointer"
+                onClick={() => setCollapsed((p) => ({ ...p, [cat.key]: !isCollapsed }))}
+              >
+                <span className="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                  <i className={`fi fi-sr-angle-${isCollapsed ? 'right' : 'down'} text-[10px] text-slate-400 transition-transform`} />
+                  {cat.label}
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">({unlockedCount}/{cat.ids.length})</span>
+                </span>
+              </button>
+
+              {!isCollapsed && (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-1">
+                  {cat.ids.map((id) => {
+                    const record = save.achievements[id];
+                    if (!record) return null;
+                    return <AchievementBadge key={id} id={id} record={record} />;
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {totalUnlocked === total && (
+        <div className="mt-4 p-3 rounded-2xl bg-amber-400/10 border border-amber-300/30 text-center">
+          <p className="text-xs font-bold text-amber-600 dark:text-amber-400" style={{ fontFamily: "var(--font-mali)" }}>
+            <i className="fi fi-sr-sparkles mr-1" /> All achievements unlocked! You're a true Phonics Master!
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ProfileScreen() {
   const { save, persistSave, companion, setCompanion, setTab, activeSlot, setScreen } = useGame();
@@ -198,7 +272,7 @@ export default function ProfileScreen() {
 
         {/* Skins Details panel */}
         {itemsCount > 0 && (
-          <div className="glass-panel p-4 rounded-2xl border border-white/20 text-left">
+          <div className="glass-panel p-4 rounded-2xl border border-white/20 text-left mb-4">
             <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2">Unlocked Customizations</span>
             <div className="flex flex-wrap gap-2">
               {unlockedSkins.map((skinId) => (
@@ -210,6 +284,35 @@ export default function ProfileScreen() {
                 </span>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Achievements Section */}
+        <AchievementsSection save={save} />
+
+        {/* Progress Section */}
+        {save && (
+          <div className="glass-panel p-5 rounded-3xl border border-white/30 dark:border-slate-800 shadow-xs text-left mb-4 space-y-5">
+            <div className="flex items-center gap-2 mb-1">
+              <i className="fi fi-sr-chart-line text-indigo-400 text-sm" />
+              <h2 className="text-lg font-black text-slate-800 dark:text-white" style={{ fontFamily: "var(--font-mali)" }}>
+                Progress Reports
+              </h2>
+            </div>
+
+            <PhonemeHeatmap save={save} />
+
+            <hr className="border-slate-200/30 dark:border-slate-800/40" />
+
+            <CefrProgress save={save} />
+
+            <hr className="border-slate-200/30 dark:border-slate-800/40" />
+
+            <StreakSparkline
+              bestStreak={save.bestStreak}
+              currentStreak={save.currentStreak}
+              totalRounds={save.totalRoundsPlayed}
+            />
           </div>
         )}
       </div>

@@ -5,6 +5,14 @@
 
 
 
+## v1.10.34 (2026-06-21)
++ **Phonics Island — Phonics Expansion v2** (4 features):
+  + **5 Challenge Activity Types**: New Challenges tab with Phoneme Match (card-flip memory), Sound Sort (tap-to-group by phoneme), Rhyme Time (find rhyming words), Speed Spell (timed spelling), Syllable Smash (syllable counting). Self-contained `ChallengeGameScreen.tsx` (889 lines) with difficulty scaling (Easy/Medium/Hard) and per-type scoring.
+  + **Interactive Companion**: Reworked `CompanionBubble` with progressive hints (level 1→2→3→1 per question click), thinking animation (800ms dots + companionAnim='think'), streak detection, interaction milestone messages, and challenge tab contextual messages. 165 challenge hints across 11 companions.
+  + **Achievement/Badge System** (25 achievements): `utils/achievement-checker.ts` detection engine checking progress, phoneme, economy, skill, and challenge categories. Unlock detection in `finalizeRound` + `handleChallengeComplete` with coin rewards. `AchievementBadge.tsx` (SVG progress ring) and `AchievementToast.tsx` (slide-down notification). Collapsible category grid in ProfileScreen.
+  + **Enhanced Profile**: Phoneme accuracy heatmap (PhonemeHeatmap.tsx — 14 groups × 40 phonemes color-coded), CEFR progress ladder (CefrProgress.tsx — A1→C2 visual bar), streak sparkline (StreakSparkline.tsx — 30-dot streak overview). All three added to ProfileScreen's new Progress Reports panel.
++ **Foundation**: Tab/type system extended for 6 tabs (Sound→Vocab→Challenges→Soundbook→Bazaar→Profile). SAVE_VERSION 2→3 with graceful migration (achievements, challengeStats, companionInteractions). ChallengesScreen hub with 5 challenge cards.
+
 ## v1.10.33 (2026-06-20)
 * **Phonics Game — Code Refactoring (6-phase)**:
   * **QuestionChoiceButton component**: Extracted 5-state choice button logic (correct/wrong-correct/wrong-incorrect/selected/default) from 4 files (WordToIpaQuestion, IpaToWordQuestion, SynonymQuestion, GameScreen TapQuestion) into a shared `components/QuestionChoiceButton.tsx` component. Deleted ~200 lines of duplicated inline class strings and state logic.

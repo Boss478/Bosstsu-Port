@@ -1,7 +1,7 @@
 import type { PhonemeData, CompanionData, StageData, SimilarSoundGroup, ActivityData, CefrLevel } from './types';
 
 // ─── Version ─────────────────────────────────────────────────────────────────
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 // ─── Game Config ─────────────────────────────────────────────────────────────
 export const GAME_CONFIG = {
@@ -774,6 +774,31 @@ export const COMPANIONS: Record<string, CompanionData> = {
         2: 'Think of related words you already know.',
         3: 'The first letter of the answer is a good starting point.',
       },
+      'phoneme-match': {
+        1: 'Observe each IPA symbol carefully before matching.',
+        2: 'Say the word out loud to feel the target phoneme.',
+        3: 'Match the IPA symbol whose sound matches the given word at its start.',
+      },
+      'sound-sort': {
+        1: 'Listen for the shared sound in each group.',
+        2: 'Sort each word by where you feel the sound in your mouth.',
+        3: 'Test each word against each target sound until one fits.',
+      },
+      'rhyme-time': {
+        1: 'Say the target word and listen to its ending.',
+        2: 'Think of words that share the same ending sound.',
+        3: 'Look at the IPA — any option with the same vowel+ending is a rhyme.',
+      },
+      'speed-spell': {
+        1: 'Focus on the first sound first.',
+        2: 'Break the word into chunks you know how to spell.',
+        3: 'Spell it one phoneme at a time from start to end.',
+      },
+      'syllable-smash': {
+        1: 'Say the word slowly and count the chin drops.',
+        2: 'Each vowel sound is one syllable.',
+        3: 'Clap once for each vowel sound you hear in the word.',
+      },
     },
   },
   mira: {
@@ -800,6 +825,31 @@ export const COMPANIONS: Record<string, CompanionData> = {
         2: "You've seen this word before — trust yourself!",
         3: 'Eliminate the ones that feel totally wrong first.',
       },
+      'phoneme-match': {
+        1: 'Look at the IPA symbol — try to say its sound aloud!',
+        2: 'Say each word and feel which one starts with that sound!',
+        3: 'The sound at the start of the word matches the IPA symbol!',
+      },
+      'sound-sort': {
+        1: 'Listen closely — what sound do all words in a group share?',
+        2: "Say each word and think: which group's sound do I hear?",
+        3: 'Test the target sound against each word and see which clicks!',
+      },
+      'rhyme-time': {
+        1: "Rhyming words share the same ending sound — say them both!",
+        2: "Think of words you know that sound like the target!",
+        3: "Any option that ends the same way as the target is a rhyme!",
+      },
+      'speed-spell': {
+        1: "Don't rush! Think of the first letter quickly!",
+        2: 'Sound it out in your head and type what you hear!',
+        3: 'Start with the first sound and let your fingers follow!',
+      },
+      'syllable-smash': {
+        1: 'Say the word out loud and count how many times your chin drops!',
+        2: 'Clap for each vowel sound you hear — each clap is one syllable!',
+        3: 'Every vowel in the spelling makes its own syllable!',
+      },
     },
   },
   chip: {
@@ -813,7 +863,7 @@ export const COMPANIONS: Record<string, CompanionData> = {
     hints: {
       phonics: {
         1: 'Scanning phoneme database... sound detected.',
-        2: `Syllable count: ${1}. Primary stress: initial position.`,
+        2: 'Syllable count: 1. Primary stress: initial position.',
         3: 'Processing: the target phoneme appears in position 1 of the word.',
       },
       spelling: {
@@ -825,6 +875,31 @@ export const COMPANIONS: Record<string, CompanionData> = {
         1: 'Cross-referencing semantic field: this word belongs to a specific domain.',
         2: 'Synonym detected in adjacent option — use process of elimination.',
         3: 'Word frequency: high — you have encountered this word before.',
+      },
+      'phoneme-match': {
+        1: 'Running phoneme comparison algorithm. Scanning IPA database.',
+        2: 'Audio input suggests the target phoneme appears word-initially.',
+        3: 'Match probability computed: IPA symbol correlates with word onset.',
+      },
+      'sound-sort': {
+        1: 'Group classification initiated. Feature extraction running.',
+        2: 'Each group has a distinct phoneme signature. Analyze word-onset phonemes.',
+        3: 'Apply target phoneme as filter — words matching onset criteria belong to that group.',
+      },
+      'rhyme-time': {
+        1: 'End-phoneme analysis: compare final 2-3 phonemes of each candidate.',
+        2: 'Rhyme detection requires matching nucleus + coda phoneme sequences.',
+        3: 'Cross-reference IPA of each option against target ending. Match found.',
+      },
+      'speed-spell': {
+        1: 'Speed mode active. Grapheme encoding: begin with initial phoneme.',
+        2: 'Sequencing letters by phoneme order reduces error rate.',
+        3: 'Phoneme-to-grapheme conversion running. Output first character.',
+      },
+      'syllable-smash': {
+        1: 'Syllable parsing: count sonority peaks in phoneme sequence.',
+        2: 'Each vowel phoneme forms a syllable nucleus.',
+        3: 'Run syllabification algorithm: count vowel phonemes in word.',
       },
     },
   },
@@ -852,6 +927,31 @@ export const COMPANIONS: Record<string, CompanionData> = {
         2: 'Use process of elimination to narrow it down.',
         3: 'The correct definition is simpler than it looks.',
       },
+      'phoneme-match': {
+        1: 'A matching puzzle — my favourite. Study the IPA symbol carefully.',
+        2: 'Say each word option and listen for the right phoneme at the start.',
+        3: 'The IPA symbol represents the very first sound of the matching word.',
+      },
+      'sound-sort': {
+        1: 'Cunning strategy: focus on one target sound at a time.',
+        2: 'Each word belongs to a group — find the shared sound pattern.',
+        3: 'Test each word against each target onset phoneme. The match is clear.',
+      },
+      'rhyme-time': {
+        1: 'A clever rhyme puzzle. Say the target word and feel its ending.',
+        2: 'Words that rhyme share the same tail — same vowel and following sounds.',
+        3: 'Compare the IPA tail of each option to the target. One matches.',
+      },
+      'speed-spell': {
+        1: 'Speed requires precision. Start with the first sound.',
+        2: 'Think of the word letter by letter. Outsmart the clock.',
+        3: 'The first letter is the key. Once you have it, the rest follows.',
+      },
+      'syllable-smash': {
+        1: 'Count the beats in the word by tapping your finger.',
+        2: 'Each vowel cluster is one syllable. Find the vowels.',
+        3: 'Every time you hear a new vowel sound, that is a new syllable.',
+      },
     },
   },
   cat: {
@@ -877,6 +977,31 @@ export const COMPANIONS: Record<string, CompanionData> = {
         1: 'What does it mean? Think of what it does.',
         2: "I think we've seen this word before. Try to remember!",
         3: 'Cats know best — ignore the odd choices.',
+      },
+      'phoneme-match': {
+        1: 'Ooh, a matching game! Look at the IPA symbol closely!',
+        2: 'Which word starts with that sound? Purr... think about it!',
+        3: "The IPA shows the first sound of the word it's linked to!",
+      },
+      'sound-sort': {
+        1: 'Sorting sounds! Focus on one group at a time meow!',
+        2: 'Say each word and see which target sound it starts with.',
+        3: 'Put each word where its first sound matches the group!',
+      },
+      'rhyme-time': {
+        1: 'Rhyme time! Meow... say the target and feel the ending!',
+        2: 'Cats love rhymes! Think of words that end the same way.',
+        3: 'The answer has the same ending sounds as the target. Easy!',
+      },
+      'speed-spell': {
+        1: 'Fast spelling! Paws ready? Start with the first letter!',
+        2: 'Sound it out quickly and type what you hear, meow!',
+        3: 'Quick! The first letter is the clue — GO!',
+      },
+      'syllable-smash': {
+        1: "Count the paw-beats in the word! Say it slowly!",
+        2: 'Each time your chin drops, that is a syllable!',
+        3: 'Count the vowel sounds — that is how many syllables!',
       },
     },
   },
@@ -904,6 +1029,31 @@ export const COMPANIONS: Record<string, CompanionData> = {
         2: "Take your time. Cross off the answers that don't match.",
         3: 'The correct definition is the most comforting one.',
       },
+      'phoneme-match': {
+        1: 'Take your time looking at the IPA symbol. No rush.',
+        2: 'Say each word option gently and feel where the sound starts.',
+        3: 'The IPA symbol tells you the very first sound of the matching word.',
+      },
+      'sound-sort': {
+        1: 'Let us take it one sound group at a time, nice and easy.',
+        2: 'Each group has a special sound. Say the word — does it fit?',
+        3: 'Listen for the group sound at the start of each word. You will find it.',
+      },
+      'rhyme-time': {
+        1: 'Rhymes are gentle on the ear. Say the target word softly.',
+        2: 'Words that rhyme feel the same at the end when you say them.',
+        3: 'Find the option whose ending sounds exactly like the target.',
+      },
+      'speed-spell': {
+        1: 'Even in a hurry, start with the first sound. One step at a time.',
+        2: 'Spell slowly in your mind, then type with calm fingers.',
+        3: 'The first letter is safe ground. Begin there.',
+      },
+      'syllable-smash': {
+        1: 'Say the word slowly and feel each beat like a heartbeat.',
+        2: 'Clap once for each vowel sound you hear. Each clap is a syllable.',
+        3: 'Every vowel in the word makes one syllable. Count them.',
+      },
     },
   },
   bunny: {
@@ -929,6 +1079,31 @@ export const COMPANIONS: Record<string, CompanionData> = {
         1: 'What a fun word! What does it describe?',
         2: "Trust your first choice. You're doing great!",
         3: 'Pick the one that makes the most sense to you.',
+      },
+      'phoneme-match': {
+        1: 'Hopping fun! Look at the IPA and think of its sound!',
+        2: 'Quick! Say each word and find the one that starts with the IPA sound!',
+        3: 'The IPA symbol matches the first sound of one of the words! Hop to it!',
+      },
+      'sound-sort': {
+        1: 'Sorting is fun like hopping through puddles! Listen to each group!',
+        2: 'Say each word fast and decide which group sound it starts with!',
+        3: 'Each word goes where its first sound matches the group sound!',
+      },
+      'rhyme-time': {
+        1: 'Rhyme time is the best! Say the target and bounce with it!',
+        2: 'Think of words that end with the same fun sounds!',
+        3: 'The rhyming word has the same ending as the target!',
+      },
+      'speed-spell': {
+        1: 'Super fast spelling! Hop to the first letter!',
+        2: 'Zoom! Sound it out at bunny speed and type it fast!',
+        3: 'First letter FIRST! Then the rest will follow quickly!',
+      },
+      'syllable-smash': {
+        1: 'Bounce the word out! Count each bounce as a syllable!',
+        2: 'Say the word and clap for each vowel sound you hear!',
+        3: 'Count the vowel sounds — that is the syllable count!',
       },
     },
   },
@@ -956,6 +1131,31 @@ export const COMPANIONS: Record<string, CompanionData> = {
         2: 'Break it down coolly. Eliminate the distractors.',
         3: 'Choose the definition that describes it best.',
       },
+      'phoneme-match': {
+        1: 'Keep it cool. Study the IPA symbol — what sound does it make?',
+        2: 'Glide through each word option. Which one starts with the right phoneme?',
+        3: 'The IPA symbol is the first sound of the matching word. Cool and simple.',
+      },
+      'sound-sort': {
+        1: 'Chill sorting ahead. Focus on one ice-cold target sound at a time.',
+        2: 'Slide each word into the group whose first sound it shares.',
+        3: 'The first phoneme of each word determines its group. Smooth sorting.',
+      },
+      'rhyme-time': {
+        1: 'Cool rhymes ahead. Say the target word and feel its chilly ending.',
+        2: 'Words that rhyme end the same way. Slide through the options.',
+        3: 'Pick the option whose final sounds match the target perfectly.',
+      },
+      'speed-spell': {
+        1: 'Cool focus. Start with the first letter and slide through.',
+        2: 'Think of the word in chunks. Stay chill and spell on.',
+        3: 'First letter locked. Now slide through the rest coolly.',
+      },
+      'syllable-smash': {
+        1: 'Break the ice. Say the word slowly and count its beats.',
+        2: 'Each vowel sound is one solid syllable. No rush.',
+        3: 'Count the vowel sounds in the word — that is your answer.',
+      },
     },
   },
   alien: {
@@ -981,6 +1181,31 @@ export const COMPANIONS: Record<string, CompanionData> = {
         1: 'Analyzing semantic database... loading definition.',
         2: 'Cross-referencing synonyms in the quadrant.',
         3: 'Select the optimal option matching standard usage.',
+      },
+      'phoneme-match': {
+        1: 'Beep! Phoneme matching sequence initiated. Scan IPA glyph.',
+        2: 'Cosmic match: align the IPA frequency with word-initial phoneme.',
+        3: 'The IPA glyph encodes the first phoneme of the compatible word.',
+      },
+      'sound-sort': {
+        1: 'Sorting planets by their star sounds... I mean words by their phonemes.',
+        2: 'Assign each word to the sound group its initial phoneme belongs to.',
+        3: 'Compare word onset phoneme against each group target. Quantum match.',
+      },
+      'rhyme-time': {
+        1: 'Rhyme frequency detected. Analyzing terminal phoneme clusters.',
+        2: 'Ending phoneme sequence of target must match candidate. Cosmic law.',
+        3: 'Words whose final phoneme array matches the target are rhyming allies.',
+      },
+      'speed-spell': {
+        1: 'Warp speed spelling engaged. Lock onto first phoneme.',
+        2: 'Translate phoneme sequence to graphemes. Execute rapidly.',
+        3: 'First grapheme acquired. Remaining sequence loading.',
+      },
+      'syllable-smash': {
+        1: 'Scanning for sonority peaks in word waveform.',
+        2: 'Each vowel nucleus forms one syllable. Counting...',
+        3: 'Syllable count equals number of vowel phonemes detected.',
       },
     },
   },
@@ -1008,6 +1233,31 @@ export const COMPANIONS: Record<string, CompanionData> = {
         2: 'Eliminate the wrong options silently.',
         3: 'Trust your training. Choose the correct path.',
       },
+      'phoneme-match': {
+        1: 'Silent study. Memorize the IPA symbol.',
+        2: 'Observe each word. Only one matches the symbol.',
+        3: 'The first sound of the correct word matches the IPA.',
+      },
+      'sound-sort': {
+        1: 'Focus on one target sound. Block out the noise.',
+        2: 'Each word has a hidden allegiance. Detect its first sound.',
+        3: 'The first phoneme decides the group. Strike precisely.',
+      },
+      'rhyme-time': {
+        1: 'The target reveals its ending. Study it.',
+        2: 'A rhyme is a shadow that follows the target.',
+        3: 'Only one option shares the same ending. Strike true.',
+      },
+      'speed-spell': {
+        1: 'Speed is an illusion. Precision matters first.',
+        2: 'Assemble the letters one silent strike at a time.',
+        3: 'The first letter is the opening move. Make it count.',
+      },
+      'syllable-smash': {
+        1: 'Count the beats in silence. Each is a syllable.',
+        2: 'Every vowel is a hidden node. Count them in shadow.',
+        3: 'The number of vowel sounds equals the number of syllables.',
+      },
     },
   },
   robot: {
@@ -1033,6 +1283,31 @@ export const COMPANIONS: Record<string, CompanionData> = {
         1: 'Querying semantic database for contextual match.',
         2: 'Synonym proximity scan: eliminate non-matching entries.',
         3: 'Optimal definition identified by word frequency score.',
+      },
+      'phoneme-match': {
+        1: 'Phoneme comparison algorithm active. Scanning IPA input.',
+        2: 'Matching candidate words against target IPA onset phoneme.',
+        3: 'Target IPA symbol corresponds to the first phoneme of the correct word.',
+      },
+      'sound-sort': {
+        1: 'Group classification subroutine initialized. Analyzing phoneme clusters.',
+        2: 'Classifying each word by its initial phoneme against target groups.',
+        3: 'Assign word to group where its first phoneme matches the group identifier.',
+      },
+      'rhyme-time': {
+        1: 'Rhyme detection protocol: comparing final phoneme sequences.',
+        2: 'Target ending phoneme array must match candidate. Sequence analysis running.',
+        3: 'The correct option has an identical phoneme tail to the target word.',
+      },
+      'speed-spell': {
+        1: 'Speed mode: efficiency optimization requires immediate first-letter identification.',
+        2: 'Phoneme-to-grapheme conversion in progress. Execute letter sequence.',
+        3: 'First grapheme determined. Commencing sequential output.',
+      },
+      'syllable-smash': {
+        1: 'Syllable boundary detection scanning for vowel nuclei.',
+        2: 'Each vowel phoneme marks a syllable nucleus. Tallying count.',
+        3: 'Result: syllable count equals number of vowel phonemes detected.',
       },
     },
   },
@@ -1099,6 +1374,58 @@ export const PHONEME_TRIM_DURATIONS: Record<string, number> = {
   ay: 120, ie: 120, oy: 120, ow: 120, oh: 120,
   uh: 120, eer: 120, air: 120, oor: 120,
   bl: 120, br: 120, cl: 120, cr: 120, sn: 120,
+};
+
+// ─── Challenge Config ──────────────────────────────────────────────────────
+export const CHALLENGE_TYPES = [
+  { id: "phoneme-match", title: "Phoneme Match", subtitle: "Match IPA symbols to words", icon: "fi fi-sr-cards-heart", color: "#E74C3C" },
+  { id: "sound-sort", title: "Sound Sort", subtitle: "Sort words by sound group", icon: "fi fi-sr-sort", color: "#2EC4B6" },
+  { id: "rhyme-time", title: "Rhyme Time", subtitle: "Find the rhyming word", icon: "fi fi-sr-music", color: "#9B59B6" },
+  { id: "speed-spell", title: "Speed Spell", subtitle: "Spell fast under pressure", icon: "fi fi-sr-stopwatch", color: "#FFBA08" },
+  { id: "syllable-smash", title: "Syllable Smash", subtitle: "Count the syllables", icon: "fi fi-sr-bolt", color: "#E67E22" },
+] as const;
+
+export const CHALLENGE_ROUND_LENGTHS = {
+  "phoneme-match": { easy: 4, medium: 6, hard: 8 },
+  "sound-sort": { easy: 8, medium: 10, hard: 12 },
+  "rhyme-time": { easy: 8, medium: 10, hard: 12 },
+  "speed-spell": { easy: 6, medium: 8, hard: 10 },
+  "syllable-smash": { easy: 8, medium: 10, hard: 12 },
+} as const;
+
+export const CHALLENGE_TIME_LIMITS = {
+  "speed-spell": { easy: 15000, medium: 10000, hard: 6000 },
+} as const;
+
+// ─── Achievements ──────────────────────────────────────────────────────────
+import type { AchievementData, AchievementId } from './types';
+
+export const ACHIEVEMENTS: Record<AchievementId, AchievementData> = {
+  first_round: { id: "first_round", title: "First Steps", description: "Complete your first round", icon: "fi fi-sr-star", category: "progress", reward: 5 },
+  sound_explorer: { id: "sound_explorer", title: "Sound Explorer", description: "Complete all 14 sound groups", icon: "fi fi-sr-compass", category: "progress", reward: 30 },
+  vocab_master: { id: "vocab_master", title: "Vocab Master", description: "Complete all 6 CEFR levels in Vocab tab", icon: "fi fi-sr-graduation-cap", category: "progress", reward: 30 },
+  perfectionist: { id: "perfectionist", title: "Perfectionist", description: "Get 100% accuracy on a round", icon: "fi fi-sr-medal", category: "progress", reward: 10 },
+  streak_10: { id: "streak_10", title: "Streak King", description: "Reach a 10-round streak", icon: "fi fi-sr-flame", category: "progress", reward: 15 },
+  streak_30: { id: "streak_30", title: "Streak Legend", description: "Reach a 30-round streak", icon: "fi fi-sr-fire", category: "progress", reward: 30 },
+  phoneme_10: { id: "phoneme_10", title: "Phoneme Collector", description: "Master 10 different phonemes", icon: "fi fi-sr-books", category: "phoneme", reward: 10 },
+  phoneme_25: { id: "phoneme_25", title: "Phoneme Hoarder", description: "Master 25 different phonemes", icon: "fi fi-sr-library", category: "phoneme", reward: 20 },
+  phoneme_40: { id: "phoneme_40", title: "Phoneme Master", description: "Master all 40 phonemes", icon: "fi fi-sr-crown", category: "phoneme", reward: 50 },
+  phoneme_gold: { id: "phoneme_gold", title: "Phoneme Gold", description: "Get 100% on a phoneme's activity set", icon: "fi fi-sr-award", category: "phoneme", reward: 10 },
+  phoneme_allgold: { id: "phoneme_allgold", title: "Phoneme Platinum", description: "Get 100% on all 40 phonemes", icon: "fi fi-sr-gem", category: "phoneme", reward: 100 },
+  first_purchase: { id: "first_purchase", title: "Shopper", description: "Buy your first item from the shop", icon: "fi fi-sr-shopping-cart", category: "economy", reward: 5 },
+  collector_5: { id: "collector_5", title: "Collector", description: "Unlock 5 companions", icon: "fi fi-sr-users", category: "economy", reward: 20 },
+  millionaire: { id: "millionaire", title: "Millionaire", description: "Earn 1000 phoneme coins total", icon: "fi fi-sr-wallet", category: "economy", reward: 25 },
+  speed_demon: { id: "speed_demon", title: "Speed Demon", description: "Complete a speed round with 100% accuracy", icon: "fi fi-sr-tachometer-alt", category: "skill", reward: 10 },
+  word_builder: { id: "word_builder", title: "Word Builder", description: "Use WordBuilder to look up 20 words", icon: "fi fi-sr-build", category: "skill", reward: 15 },
+  quiz_champ: { id: "quiz_champ", title: "Quiz Champion", description: "Complete a WordQuiz round with 100%", icon: "fi fi-sr-quiz", category: "skill", reward: 15 },
+  companion_friend: { id: "companion_friend", title: "Companion's Friend", description: "Click the companion 100 times", icon: "fi fi-sr-hand-heart", category: "skill", reward: 10 },
+  match_10: { id: "match_10", title: "Match Master", description: "Win 10 Phoneme Match rounds", icon: "fi fi-sr-cards-heart", category: "challenge", reward: 10 },
+  sort_50: { id: "sort_50", title: "Sort Savant", description: "Sort 50 words correctly", icon: "fi fi-sr-sort-alt", category: "challenge", reward: 10 },
+  rhyme_20: { id: "rhyme_20", title: "Rhyme Lord", description: "Find 20 rhyming pairs", icon: "fi fi-sr-music-alt", category: "challenge", reward: 10 },
+  speed_spell_30: { id: "speed_spell_30", title: "Speed Speller", description: "Spell 30 words correctly in Speed Spell", icon: "fi fi-sr-keyboard", category: "challenge", reward: 10 },
+  syllable_50: { id: "syllable_50", title: "Syllable Star", description: "Syllabify 50 words correctly", icon: "fi fi-sr-numbers", category: "challenge", reward: 10 },
+  challenge_all: { id: "challenge_all", title: "Challenge Champion", description: "Complete all 5 challenge types", icon: "fi fi-sr-trophy", category: "challenge", reward: 50 },
+  challenge_allgold: { id: "challenge_allgold", title: "Challenge Legend", description: "Get 100% on all 5 challenge types", icon: "fi fi-sr-trophy-alt", category: "challenge", reward: 100 },
 };
 
 // ─── Shared CSS Constants ──────────────────────────────────────────────────────────
