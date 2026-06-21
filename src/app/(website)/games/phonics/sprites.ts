@@ -1529,6 +1529,11 @@ export const AVATAR_PENGUIN_HEAD: SpriteData = generateDetailedPenguinHead();
 export const AVATAR_ALIEN_HEAD: SpriteData = generateDetailedAlienHead();
 export const AVATAR_NINJA_HEAD: SpriteData = generateDetailedNinjaHead();
 
+export const HEAD_ACC_Y_OFFSET: Record<string, number> = {
+  nox: 4, mira: 6, chip: 7, fox: 4, cat: 3, bear: 3,
+  bunny: 2, penguin: 3, alien: 1, ninja: 4, robot: 0,
+};
+
 export const HEAD_CONFIG = {
   nox: { x: 0, y: 0, scale: 1 },
   mira: { x: 0, y: 0, scale: 1 },
@@ -1541,4 +1546,104 @@ export const HEAD_CONFIG = {
   alien: { x: 0, y: 0, scale: 1 },
   ninja: { x: 0, y: 0, scale: 1 },
   robot: { x: 0, y: 0, scale: 1 },
+};
+
+// ─── Accessory Sprites ──────────────────────────────────────────────────────────
+type Pixel = [x: number, y: number, c: number];
+
+function acc(...pixels: Pixel[]): SpriteData {
+  const grid: number[][] = Array.from({ length: 32 }, () => new Array(32).fill(0));
+  for (const [x, y, c] of pixels) {
+    if (x >= 0 && x < 32 && y >= 0 && y < 32) grid[y][x] = c;
+  }
+  return { width: 32, height: 32, pixels: grid };
+}
+
+const ACC_MONOCLE = acc(
+  [18, 8, 3], [19, 8, 3], [20, 8, 3],
+  [17, 9, 3], [21, 9, 3],
+  [17, 10, 3], [21, 10, 3],
+  [17, 11, 3], [21, 11, 3],
+  [18, 12, 3], [19, 12, 3], [20, 12, 3],
+  [21, 13, 3], [21, 14, 3], [21, 15, 3],
+);
+
+const ACC_STAR_WAND = acc(
+  [23, 25, 42], [24, 24, 42], [25, 23, 42], [26, 22, 42], [27, 21, 42], [28, 20, 42],
+  [28, 18, 16], [27, 19, 16], [28, 19, 16], [29, 19, 16], [28, 20, 16],
+);
+
+const ACC_ANTENNA_GLOW = acc(
+  [14, 2, 16], [15, 2, 16], [16, 2, 16],
+  [14, 3, 16], [16, 3, 16],
+  [15, 1, 16],
+);
+
+const ACC_FOX_LEAF = acc(
+  [25, 6, 7], [26, 5, 7], [27, 5, 7],
+  [26, 6, 7], [27, 7, 7],
+  [25, 7, 1],
+);
+
+const ACC_YARN = acc(
+  [25, 25, 44], [26, 25, 44], [27, 25, 44],
+  [25, 26, 44], [27, 26, 44],
+  [25, 27, 44], [26, 27, 44], [27, 27, 44],
+  [26, 26, 2],
+);
+
+const ACC_HONEY_POT = acc(
+  [14, 25, 3], [15, 25, 3], [16, 25, 3], [17, 25, 3], [18, 25, 3],
+  [13, 26, 3], [14, 26, 3], [15, 26, 3], [16, 26, 3], [17, 26, 3], [18, 26, 3], [19, 26, 3],
+  [13, 27, 3], [19, 27, 3],
+  [16, 26, 16],
+);
+
+const ACC_CARROT = acc(
+  [12, 26, 40], [13, 27, 40],
+  [13, 28, 40], [14, 29, 40],
+  [11, 26, 7], [12, 27, 7],
+);
+
+const ACC_SCARF = acc(
+  [13, 15, 47], [14, 15, 47], [15, 15, 47], [16, 15, 47], [17, 15, 47], [18, 15, 47], [19, 15, 47],
+  [12, 16, 47], [19, 16, 47],
+  [20, 16, 47], [20, 17, 47],
+);
+
+const ACC_GOGGLES = acc(
+  [10, 14, 48], [11, 13, 48], [12, 13, 48], [13, 14, 48],
+  [19, 14, 48], [20, 13, 48], [21, 13, 48], [22, 14, 48],
+  [14, 14, 1], [15, 13, 1], [16, 13, 1], [17, 14, 1],
+  [11, 12, 2], [12, 12, 2], [20, 12, 2], [21, 12, 2],
+);
+
+const ACC_KATANA = acc(
+  [6, 12, 47], [7, 11, 47],
+  [8, 10, 47], [9, 9, 47], [10, 8, 47],
+  [11, 7, 47], [12, 6, 47],
+  [7, 13, 1], [8, 14, 1],
+  [11, 9, 2],
+);
+
+const ACC_GEAR = acc(
+  [14, 18, 50], [15, 17, 50], [16, 17, 50], [17, 18, 50],
+  [17, 19, 50], [18, 20, 50], [17, 21, 50], [16, 22, 50],
+  [15, 22, 50], [14, 21, 50], [13, 20, 50], [14, 19, 50],
+  [15, 19, 16], [16, 19, 16], [15, 20, 16], [16, 20, 16],
+  [16, 18, 1], [14, 20, 1], [16, 22, 1],
+);
+
+export const ACC_SPRITES: Record<string, SpriteData> = {
+  monocle: ACC_MONOCLE,
+  star_wand: ACC_STAR_WAND,
+  antenna_glow: ACC_ANTENNA_GLOW,
+  fox_leaf: ACC_FOX_LEAF,
+  yarn: ACC_YARN,
+  honey_pot: ACC_HONEY_POT,
+  carrot: ACC_CARROT,
+  scarf: ACC_SCARF,
+  goggles: ACC_GOGGLES,
+  katana: ACC_KATANA,
+  gear: ACC_GEAR,
 };

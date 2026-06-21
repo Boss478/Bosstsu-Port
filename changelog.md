@@ -5,6 +5,16 @@
 
 
 
+## v1.10.37 (2026-06-21)
++ **Per-Character Companion Mascot Redesign**: 8-phase feature set including:
+  + **CompanionBubble visual styling**: Per-character accent color borders, gradient overlays on buttons, typography classes (mono for Chip/Robot, italic for Fox, bold for Bunny, tracking variations).
+  + **Entrance animations**: 10 unique entrance animations (glide-down for Nox, scale-bounce for Mira, scanline for Chip/Robot, slide-left for Fox, pounce for Cat, fade-in for Bear, bounce-in for Bunny, slide-up for Penguin, warp-in for Alien, spin-in for Ninja).
+  + **Idle animations**: 9 idle animations (gentle-turn, bouncy-hover, robotic-twitch, tail-swish, paw-stretch, slow-rock, ear-wiggle, wobble, float-wobble) + still for Ninja.
+  + **Speech voice styles**: Per-character prefix/suffix and format (spaced for Robot, haiku for Ninja) via `formatWithSpeechStyle()` utility.
+  + **Text reveal animation**: Character-by-character or word-by-word text reveal with per-character speed config, skip-to-end on click.
+  + **Sprite accessories**: 11 pixel-art accessories (monocle/wand/antenna/leaf/yarn/honey pot/carrot/scarf/goggles/katana/gear) rendered as overlay on both full and head sprite variants.
++ **Build maintenance**: Fixed `useMobile()` setState-in-effect lint error; fixed WordQuizScreen timer setState-in-effect lint error.
+
 ## v1.10.36 (2026-06-21)
 + **WordQuiz Soundboard Sort Settings**: Added gear icon button in WordQuiz header + settings modal for configuring soundboard sort (Grouped/Flat, Default/A–Z/Z–A). Shared localStorage keys with WordBuilder settings. [F3 follow-up]
 + **WordBuilder fix**: Fixed runtime crash in `IpaToWordTab` — inline sort toggle buttons now have their own `useLocalStorage` scope instead of referencing undefined parent-level variables. [F3 bugfix]

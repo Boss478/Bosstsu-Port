@@ -1,8 +1,8 @@
 'use client';
 
 import { useRef, useEffect, useState, useMemo } from 'react';
-import { drawSprite, blinkSprite, HEAD_CONFIG } from '../sprites';
-import { COMPANIONS } from '../constants';
+import { drawSprite, blinkSprite, HEAD_CONFIG, HEAD_ACC_Y_OFFSET, ACC_SPRITES } from '../sprites';
+import { COMPANIONS, COMPANION_BUBBLE_STYLES } from '../constants';
 import {
   AVATAR_NOX_HEAD, AVATAR_MIRA_HEAD, AVATAR_CHIP_HEAD,
   AVATAR_FOX_HEAD, AVATAR_CAT_HEAD, AVATAR_BEAR_HEAD,
@@ -80,6 +80,14 @@ export default function MascotCanvas({
       ? blinkSprite(spriteData, companionId)
       : spriteData;
     drawSprite(ctx, sprite, config.x, config.y, config.scale);
+    const accId = COMPANION_BUBBLE_STYLES[companionId]?.style?.spriteAccessory;
+    if (accId) {
+      const accSprite = ACC_SPRITES[accId];
+      if (accSprite) {
+        const accY = variant === 'head' ? (config.y + (HEAD_ACC_Y_OFFSET[companionId] ?? 0)) : config.y;
+        drawSprite(ctx, accSprite, config.x, accY, config.scale);
+      }
+    }
   }, [companionId, variant, blinking, animate, spriteData, config]);
 
   const cssClass = useMemo(() => {

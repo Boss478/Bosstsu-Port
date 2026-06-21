@@ -1445,6 +1445,7 @@ export const COMPANION_BUBBLE_STYLES: Record<CompanionId, { style: CompanionBubb
       entranceAnimation: 'glide-down',
       idleAnimation: 'gentle-turn',
       textReveal: 'word-by-word',
+      spriteAccessory: 'monocle',
     },
     voice: {
       prefix: 'Theoretically, ',
@@ -1460,6 +1461,7 @@ export const COMPANION_BUBBLE_STYLES: Record<CompanionId, { style: CompanionBubb
       entranceAnimation: 'scale-bounce',
       idleAnimation: 'bouncy-hover',
       textReveal: 'fast-character',
+      spriteAccessory: 'star_wand',
     },
     voice: {
       prefix: '✨ ',
@@ -1475,6 +1477,7 @@ export const COMPANION_BUBBLE_STYLES: Record<CompanionId, { style: CompanionBubb
       entranceAnimation: 'scanline',
       idleAnimation: 'robotic-twitch',
       textReveal: 'robotic-character',
+      spriteAccessory: 'antenna_glow',
     },
     voice: {
       prefix: '>> ',
@@ -1490,6 +1493,7 @@ export const COMPANION_BUBBLE_STYLES: Record<CompanionId, { style: CompanionBubb
       entranceAnimation: 'slide-left',
       idleAnimation: 'tail-swish',
       textReveal: 'word-by-word',
+      spriteAccessory: 'fox_leaf',
     },
     voice: {
       prefix: 'Hehe... ',
@@ -1505,6 +1509,7 @@ export const COMPANION_BUBBLE_STYLES: Record<CompanionId, { style: CompanionBubb
       entranceAnimation: 'pounce',
       idleAnimation: 'paw-stretch',
       textReveal: 'slow-character',
+      spriteAccessory: 'yarn',
     },
     voice: {
       prefix: 'Meow! ',
@@ -1520,6 +1525,7 @@ export const COMPANION_BUBBLE_STYLES: Record<CompanionId, { style: CompanionBubb
       entranceAnimation: 'fade-in',
       idleAnimation: 'slow-rock',
       textReveal: 'character-by-character',
+      spriteAccessory: 'honey_pot',
     },
     voice: {
       prefix: '',
@@ -1535,6 +1541,7 @@ export const COMPANION_BUBBLE_STYLES: Record<CompanionId, { style: CompanionBubb
       entranceAnimation: 'bounce-in',
       idleAnimation: 'ear-wiggle',
       textReveal: 'fast-character',
+      spriteAccessory: 'carrot',
     },
     voice: {
       prefix: '',
@@ -1550,6 +1557,7 @@ export const COMPANION_BUBBLE_STYLES: Record<CompanionId, { style: CompanionBubb
       entranceAnimation: 'slide-up',
       idleAnimation: 'wobble',
       textReveal: 'character-by-character',
+      spriteAccessory: 'scarf',
     },
     voice: {
       prefix: '',
@@ -1565,6 +1573,7 @@ export const COMPANION_BUBBLE_STYLES: Record<CompanionId, { style: CompanionBubb
       entranceAnimation: 'warp-in',
       idleAnimation: 'float-wobble',
       textReveal: 'glitch-reveal',
+      spriteAccessory: 'goggles',
     },
     voice: {
       prefix: '*bleep* ',
@@ -1580,6 +1589,7 @@ export const COMPANION_BUBBLE_STYLES: Record<CompanionId, { style: CompanionBubb
       entranceAnimation: 'spin-in',
       idleAnimation: 'still',
       textReveal: 'instant',
+      spriteAccessory: 'katana',
     },
     voice: {
       prefix: '',
@@ -1595,6 +1605,7 @@ export const COMPANION_BUBBLE_STYLES: Record<CompanionId, { style: CompanionBubb
       entranceAnimation: 'scanline',
       idleAnimation: 'robotic-twitch',
       textReveal: 'robotic-character',
+      spriteAccessory: 'gear',
     },
     voice: {
       prefix: '',
