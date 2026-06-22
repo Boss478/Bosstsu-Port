@@ -5,6 +5,9 @@
 
 
 
+## v1.10.39 (2026-06-22)
+* **Build fix**: Removed dead `PhonemeData` import in `question-generators.ts` that was blocking Docker builds (legacy from F4 CEFR refactor)
+
 ## v1.10.38 (2026-06-22)
 + **Code quality improvements**:
   + Fixed 2 failing companion tests (stale Nox prefix/suffix assertions)
