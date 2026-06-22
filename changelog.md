@@ -5,6 +5,15 @@
 
 
 
+## v1.10.38 (2026-06-22)
++ **Code quality improvements**:
+  + Fixed 2 failing companion tests (stale Nox prefix/suffix assertions)
+  + Deduplicated entrance/idle animation maps — CompanionBubble.tsx now delegates to companion-speech.ts functions instead of maintaining duplicate constants
+  + WordQuizScreen cleanup: removed dead `return;` statements, added phase guard to `handleContinue`, merged timer effects to eliminate `set-state-in-effect` lint error
+  + 18 new question-generator tests (`weightedRandomSelect` + `computeCorrectAnswer`)
++ **Infra**: Installed `@vitest/coverage-v8` for test coverage reporting
+* **Build maintenance**: CompanionBubble.tsx lint clean, WordQuizScreen.tsx lint clean (0 errors)
+
 ## v1.10.37 (2026-06-21)
 + **Per-Character Companion Mascot Redesign**: 8-phase feature set including:
   + **CompanionBubble visual styling**: Per-character accent color borders, gradient overlays on buttons, typography classes (mono for Chip/Robot, italic for Fox, bold for Bunny, tracking variations).

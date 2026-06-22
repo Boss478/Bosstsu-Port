@@ -1,21 +1,25 @@
-"use client";
+'use client';
 
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { useGame } from "../context";
-import { useAudio } from "@/hooks/useAudio";
-import { useAllWordEntries, type WordEntry } from "../hooks/useAllWordEntries";
-import { LetterTileKeyboard } from "../components/LetterTileKeyboard";
-import { PhonemeSoundboard } from "../components/PhonemeSoundboard";
-import { QuizConfigModal, type QuizConfig, type QuizDirection } from "../components/QuizConfigModal";
-import { PHONEMES } from "../constants";
-import { ipaDisplay, formatPhonemeIpa } from "../utils/ipaUtils";
-import type { PhonemeData } from "../types";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useGame } from '../context';
+import { useAudio } from '@/hooks/useAudio';
+import { useAllWordEntries, type WordEntry } from '../hooks/useAllWordEntries';
+import { LetterTileKeyboard } from '../components/LetterTileKeyboard';
+import { PhonemeSoundboard } from '../components/PhonemeSoundboard';
+import {
+  QuizConfigModal,
+  type QuizConfig,
+  type QuizDirection,
+} from '../components/QuizConfigModal';
+import { PHONEMES } from '../constants';
+import { ipaDisplay, formatPhonemeIpa } from '../utils/ipaUtils';
+import type { PhonemeData } from '../types';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 
-type QuizPhase = "config" | "playing" | "feedback" | "results";
+type QuizPhase = 'config' | 'playing' | 'feedback' | 'results';
 
 interface QuizQuestion {
-  type: "word-to-ipa" | "ipa-to-word";
+  type: 'word-to-ipa' | 'ipa-to-word';
   word: WordEntry;
 }
 
@@ -32,7 +36,7 @@ export default function WordQuizScreen() {
   const { setScreen } = useGame();
   const { playWordAudio } = useAudio();
 
-  const [phase, setPhase] = useState<QuizPhase>("config");
+  const [phase, setPhase] = useState<QuizPhase>('config');
   const [config, setConfig] = useState<QuizConfig | null>(null);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -40,7 +44,7 @@ export default function WordQuizScreen() {
   const [incorrect, setIncorrect] = useState(0);
   const [livesLeft, setLivesLeft] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
-  const [feedbackType, setFeedbackType] = useState<"correct" | "wrong" | "sequence" | null>(null);
+  const [feedbackType, setFeedbackType] = useState<'correct' | 'wrong' | 'sequence' | null>(null);
   const [bestStreak, setBestStreak] = useState(0);
   const streakRef = useRef(0);
 
@@ -56,19 +60,30 @@ export default function WordQuizScreen() {
   const isLastQuestion = config ? questionIndex >= questions.length - 1 : false;
 
   const [selectedPhonemes, setSelectedPhonemes] = useState<PhonemeData[]>([]);
-  const [typedWord, setTypedWord] = useState("");
+  const [typedWord, setTypedWord] = useState('');
   const [tapEnabled, setTapEnabled] = useState(true);
   const [isSortSettingsOpen, setIsSortSettingsOpen] = useState(false);
-  const [sortMode, setSortMode] = useLocalStorage<"grouped" | "flat">("word-builder-sb-sort-mode", "grouped");
-  const [sortOrder, setSortOrder] = useLocalStorage<"default" | "asc" | "desc">("word-builder-sb-sort-order", "default");
+  const [sortMode, setSortMode] = useLocalStorage<'grouped' | 'flat'>(
+    'word-builder-sb-sort-mode',
+    'grouped',
+  );
+  const [sortOrder, setSortOrder] = useLocalStorage<'default' | 'asc' | 'desc'>(
+    'word-builder-sb-sort-order',
+    'default',
+  );
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
+  const timerEndedRef = useRef(false);
   useEffect(() => {
-    if (phase === "playing" && config?.mode === "timer" && timeLeft > 0) {
+    if (phase === 'playing' && config?.mode === 'timer' && timeLeft > 0) {
+      timerEndedRef.current = false;
       timerRef.current = setInterval(() => {
         setTimeLeft((t) => {
           if (t <= 1) {
+            clearInterval(timerRef.current!);
+            timerRef.current = null;
+            timerEndedRef.current = true;
+            setPhase('results');
             return 0;
           }
           return t - 1;
@@ -80,45 +95,40 @@ export default function WordQuizScreen() {
     };
   }, [phase, config?.mode, timeLeft > 0]);
 
-  const timerEndedRef = useRef(false);
-  useEffect(() => {
-    if (config?.mode === "timer" && timeLeft <= 0 && phase === "playing" && !timerEndedRef.current) {
-      timerEndedRef.current = true;
-      setPhase("results");
-    }
-  }, [timeLeft, config?.mode, phase]);
-
-  const startQuiz = useCallback((cfg: QuizConfig) => {
-    shuffledPoolRef.current = shuffleArray(quizPool);
-    poolIndexRef.current = 0;
-    const qs: QuizQuestion[] = [];
-    const count = cfg.mode === "practice" ? cfg.roundLength : 50;
-    for (let i = 0; i < count; i++) {
-      const word = shuffledPoolRef.current[i % shuffledPoolRef.current.length];
-      if (!word) continue;
-      let type: QuizDirection;
-      if (cfg.direction === "mixed") {
-        type = Math.random() < 0.5 ? "word-to-ipa" : "ipa-to-word";
-      } else {
-        type = cfg.direction;
+  const startQuiz = useCallback(
+    (cfg: QuizConfig) => {
+      shuffledPoolRef.current = shuffleArray(quizPool);
+      poolIndexRef.current = 0;
+      const qs: QuizQuestion[] = [];
+      const count = cfg.mode === 'practice' ? cfg.roundLength : 50;
+      for (let i = 0; i < count; i++) {
+        const word = shuffledPoolRef.current[i % shuffledPoolRef.current.length];
+        if (!word) continue;
+        let type: QuizDirection;
+        if (cfg.direction === 'mixed') {
+          type = Math.random() < 0.5 ? 'word-to-ipa' : 'ipa-to-word';
+        } else {
+          type = cfg.direction;
+        }
+        qs.push({ type, word });
       }
-      qs.push({ type, word });
-    }
-    setQuestions(qs);
-    setQuestionIndex(0);
-    setScore(0);
-    setIncorrect(0);
-    streakRef.current = 0;
-    setBestStreak(0);
-    setLivesLeft(cfg.mode === "endless" ? cfg.lives : cfg.mode === "hardcore" ? 1 : 999);
-    setTimeLeft(cfg.mode === "timer" ? cfg.timeLimit : 0);
-    setSelectedPhonemes([]);
-    setTypedWord("");
-    setFeedbackType(null);
-    setTapEnabled(true);
-    setConfig(cfg);
-    setPhase("playing");
-  }, [quizPool]);
+      setQuestions(qs);
+      setQuestionIndex(0);
+      setScore(0);
+      setIncorrect(0);
+      streakRef.current = 0;
+      setBestStreak(0);
+      setLivesLeft(cfg.mode === 'endless' ? cfg.lives : cfg.mode === 'hardcore' ? 1 : 999);
+      setTimeLeft(cfg.mode === 'timer' ? cfg.timeLimit : 0);
+      setSelectedPhonemes([]);
+      setTypedWord('');
+      setFeedbackType(null);
+      setTapEnabled(true);
+      setConfig(cfg);
+      setPhase('playing');
+    },
+    [quizPool],
+  );
 
   const submitAnswer = useCallback(() => {
     if (!currentQuestion || !config) return;
@@ -127,7 +137,7 @@ export default function WordQuizScreen() {
     let isCorrect = false;
     let isSequence = false;
 
-    if (currentQuestion.type === "word-to-ipa") {
+    if (currentQuestion.type === 'word-to-ipa') {
       const userIds = selectedPhonemes.map((p) => p.id);
       const acceptedSets: string[][] = [currentQuestion.word.phonemeIds];
       if (currentQuestion.word.altPhonemeIds) {
@@ -135,10 +145,10 @@ export default function WordQuizScreen() {
       }
       for (const set of acceptedSets) {
         if (userIds.length !== set.length) continue;
-        const sortedUser = [...userIds].sort().join("|");
-        const sortedSet = [...set].sort().join("|");
+        const sortedUser = [...userIds].sort().join('|');
+        const sortedSet = [...set].sort().join('|');
         if (sortedUser === sortedSet) {
-          if (userIds.join("|") === set.join("|")) {
+          if (userIds.join('|') === set.join('|')) {
             isCorrect = true;
             break;
           }
@@ -155,77 +165,81 @@ export default function WordQuizScreen() {
       setScore((s) => s + 1);
       streakRef.current += 1;
       setBestStreak((b) => Math.max(b, streakRef.current));
-      setFeedbackType("correct");
+      setFeedbackType('correct');
     } else if (isSequence) {
       setIncorrect((i) => i + 1);
       streakRef.current = 0;
-      setFeedbackType("sequence");
-      if (config.mode === "endless" || config.mode === "hardcore") {
+      setFeedbackType('sequence');
+      if (config.mode === 'endless' || config.mode === 'hardcore') {
         setLivesLeft((l) => l - 1);
       }
       window.dispatchEvent(new CustomEvent('phonics:companion-wrong-answer'));
     } else {
       setIncorrect((i) => i + 1);
       streakRef.current = 0;
-      setFeedbackType("wrong");
-      if (config.mode === "endless" || config.mode === "hardcore") {
+      setFeedbackType('wrong');
+      if (config.mode === 'endless' || config.mode === 'hardcore') {
         setLivesLeft((l) => l - 1);
       }
       window.dispatchEvent(new CustomEvent('phonics:companion-wrong-answer'));
     }
-    setPhase("feedback");
+    setPhase('feedback');
   }, [currentQuestion, config, selectedPhonemes, typedWord]);
 
   useEffect(() => {
-    if (phase !== "feedback" || !config) return;
-    if (config.mode === "endless" && livesLeft <= 0) {
-      const t = setTimeout(() => setPhase("results"), 1500);
+    if (phase !== 'feedback' || !config) return;
+    if (config.mode === 'endless' && livesLeft <= 0) {
+      const t = setTimeout(() => setPhase('results'), 1500);
       return () => clearTimeout(t);
-      return;
     }
-    if (config.mode === "hardcore" && feedbackType !== "correct") {
-      const t = setTimeout(() => setPhase("results"), 1500);
+    if (config.mode === 'hardcore' && feedbackType !== 'correct') {
+      const t = setTimeout(() => setPhase('results'), 1500);
       return () => clearTimeout(t);
-      return;
     }
   }, [phase, config, livesLeft, feedbackType]);
 
   const handleContinue = useCallback(() => {
-    if (!config) return;
-    if (config.mode === "endless" && livesLeft <= 0) {
-      setPhase("results");
+    if (!config || phase !== 'feedback') return;
+    if (config.mode === 'endless' && livesLeft <= 0) {
+      setPhase('results');
       return;
     }
-    if (config.mode === "hardcore" && feedbackType !== "correct") {
-      setPhase("results");
+    if (config.mode === 'hardcore' && feedbackType !== 'correct') {
+      setPhase('results');
       return;
     }
     if (isLastQuestion) {
-      setPhase("results");
+      setPhase('results');
       return;
     }
     setQuestionIndex((i) => i + 1);
     setSelectedPhonemes([]);
-    setTypedWord("");
+    setTypedWord('');
     setFeedbackType(null);
     setTapEnabled(true);
-    setPhase("playing");
-  }, [config, livesLeft, feedbackType, isLastQuestion]);
+    setPhase('playing');
+  }, [config, livesLeft, feedbackType, isLastQuestion, phase]);
 
-  const appendLetter = useCallback((char: string) => {
-    if (!tapEnabled) return;
-    setTypedWord((prev) => (prev + char).toUpperCase());
-  }, [tapEnabled]);
+  const appendLetter = useCallback(
+    (char: string) => {
+      if (!tapEnabled) return;
+      setTypedWord((prev) => (prev + char).toUpperCase());
+    },
+    [tapEnabled],
+  );
 
   const handleBackspaceKey = useCallback(() => {
     if (!tapEnabled) return;
     setTypedWord((prev) => prev.slice(0, -1));
   }, [tapEnabled]);
 
-  const appendPhoneme = useCallback((p: PhonemeData) => {
-    if (!tapEnabled) return;
-    setSelectedPhonemes((prev) => [...prev, p]);
-  }, [tapEnabled]);
+  const appendPhoneme = useCallback(
+    (p: PhonemeData) => {
+      if (!tapEnabled) return;
+      setSelectedPhonemes((prev) => [...prev, p]);
+    },
+    [tapEnabled],
+  );
 
   const removeLastPhoneme = useCallback(() => {
     if (!tapEnabled) return;
@@ -234,44 +248,41 @@ export default function WordQuizScreen() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (phase === "playing" && !tapEnabled) return;
-      if (phase === "playing" && currentQuestion?.type === "ipa-to-word") {
+      if (phase === 'playing' && !tapEnabled) return;
+      if (phase === 'playing' && currentQuestion?.type === 'ipa-to-word') {
         const key = e.key.toUpperCase();
         if (/^[A-Z]$/.test(key)) {
           appendLetter(key);
           return;
         }
-        if (e.key === "Backspace") {
+        if (e.key === 'Backspace') {
           handleBackspaceKey();
           return;
         }
       }
-      if (phase === "feedback" && e.key === " " && tapEnabled) {
+      if (phase === 'feedback' && e.key === ' ' && tapEnabled) {
         e.preventDefault();
         handleContinue();
       }
     };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
   }, [phase, tapEnabled, currentQuestion, appendLetter, handleBackspaceKey, handleContinue]);
 
   const totalQuestions = questions.length;
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-h-0 bg-gradient-to-b from-[#E0F2FE] via-[#F0FDFA] to-[#FEF3C7] dark:from-[#0B132B] dark:via-[#1B254B] dark:to-[#3E1B5D]">
-      {phase === "config" && (
-        <QuizConfigModal
-          onStart={startQuiz}
-          onClose={() => setScreen("path")}
-        />
+      {phase === 'config' && (
+        <QuizConfigModal onStart={startQuiz} onClose={() => setScreen('path')} />
       )}
 
-      {(phase === "playing" || phase === "feedback") && config && (
+      {(phase === 'playing' || phase === 'feedback') && config && (
         <>
           <div className="shrink-0 px-5 py-3 flex items-center justify-between border-b border-white/20 dark:border-slate-800/40">
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setScreen("word-builder")}
+                onClick={() => setScreen('word-builder')}
                 className="w-8 h-8 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/50 dark:border-slate-700/50 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white transition-all cursor-pointer"
                 aria-label="Back"
               >
@@ -288,19 +299,25 @@ export default function WordQuizScreen() {
             </div>
             <div className="flex items-center gap-4 text-[10px] font-extrabold tracking-wider">
               <span className="text-emerald-600 dark:text-emerald-400">
-                <i className="fi fi-sr-check mr-1" />{score}
+                <i className="fi fi-sr-check mr-1" />
+                {score}
               </span>
               <span className="text-rose-500 dark:text-rose-400">
-                <i className="fi fi-sr-cross mr-1" />{incorrect}
+                <i className="fi fi-sr-cross mr-1" />
+                {incorrect}
               </span>
-              {config.mode === "endless" && (
+              {config.mode === 'endless' && (
                 <span className="text-sky-600 dark:text-sky-400">
-                  <i className="fi fi-sr-heart mr-1" />{livesLeft}
+                  <i className="fi fi-sr-heart mr-1" />
+                  {livesLeft}
                 </span>
               )}
-              {config.mode === "timer" && (
-                <span className={`${timeLeft <= 10 ? "text-rose-500 animate-pulse" : "text-slate-600 dark:text-slate-300"}`}>
-                  <i className="fi fi-sr-clock mr-1" />{timeLeft}s
+              {config.mode === 'timer' && (
+                <span
+                  className={`${timeLeft <= 10 ? 'text-rose-500 animate-pulse' : 'text-slate-600 dark:text-slate-300'}`}
+                >
+                  <i className="fi fi-sr-clock mr-1" />
+                  {timeLeft}s
                 </span>
               )}
               <span className="text-slate-500 dark:text-slate-400">
@@ -310,7 +327,7 @@ export default function WordQuizScreen() {
           </div>
 
           <div className="flex-1 overflow-y-auto overscroll-contain px-5 pb-8 space-y-4 pt-5">
-            {currentQuestion && currentQuestion.type === "word-to-ipa" && (
+            {currentQuestion && currentQuestion.type === 'word-to-ipa' && (
               <div className="space-y-4">
                 <div className="text-center">
                   <p className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
@@ -318,7 +335,7 @@ export default function WordQuizScreen() {
                   </p>
                   <p
                     className="text-3xl font-black text-slate-800 dark:text-[#F7E1A0]"
-                    style={{ fontFamily: "var(--font-mali)" }}
+                    style={{ fontFamily: 'var(--font-mali)' }}
                   >
                     {currentQuestion.word.word}
                   </p>
@@ -340,7 +357,7 @@ export default function WordQuizScreen() {
                     <>
                       <span
                         className="text-sm font-black text-slate-800 dark:text-white"
-                        style={{ fontFamily: "var(--font-geist-mono)" }}
+                        style={{ fontFamily: 'var(--font-geist-mono)' }}
                       >
                         /{formatPhonemeIpa(selectedPhonemes)}/
                       </span>
@@ -360,7 +377,16 @@ export default function WordQuizScreen() {
                   phonemeLabelMode="both"
                   selectedPhonemeIds={selectedPhonemes.map((p) => p.id)}
                   onPhonemeClick={appendPhoneme}
-                  correctPhonemeIds={phase === "feedback" ? [...new Set([...currentQuestion.word.phonemeIds, ...(currentQuestion.word.altPhonemeIds || [])])] : undefined}
+                  correctPhonemeIds={
+                    phase === 'feedback'
+                      ? [
+                          ...new Set([
+                            ...currentQuestion.word.phonemeIds,
+                            ...(currentQuestion.word.altPhonemeIds || []),
+                          ]),
+                        ]
+                      : undefined
+                  }
                   disabled={!tapEnabled}
                   sortMode={sortMode}
                   sortOrder={sortOrder}
@@ -368,14 +394,17 @@ export default function WordQuizScreen() {
               </div>
             )}
 
-            {currentQuestion && currentQuestion.type === "ipa-to-word" && (
+            {currentQuestion && currentQuestion.type === 'ipa-to-word' && (
               <div className="space-y-4">
                 <div className="text-center">
                   <p className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
                     Type the word for this IPA
                   </p>
-                  <p className="text-xl font-black text-slate-800 dark:text-white" style={{ fontFamily: "var(--font-geist-mono)" }}>
-                    /{(currentQuestion.word.ipa || "").replace(/\//g, "")}/
+                  <p
+                    className="text-xl font-black text-slate-800 dark:text-white"
+                    style={{ fontFamily: 'var(--font-geist-mono)' }}
+                  >
+                    /{(currentQuestion.word.ipa || '').replace(/\//g, '')}/
                   </p>
                 </div>
 
@@ -386,13 +415,13 @@ export default function WordQuizScreen() {
                     onChange={(e) => setTypedWord(e.target.value.toUpperCase())}
                     disabled={!tapEnabled}
                     className="bg-transparent text-center text-lg font-extrabold text-slate-800 dark:text-[#F7E1A0] outline-none border-none w-full max-w-[200px] disabled:opacity-50"
-                    style={{ fontFamily: "var(--font-mali)" }}
+                    style={{ fontFamily: 'var(--font-mali)' }}
                     placeholder="Type the word..."
                     autoFocus
                   />
                   {typedWord.length > 0 && (
                     <button
-                      onClick={() => setTypedWord("")}
+                      onClick={() => setTypedWord('')}
                       className="px-2 py-1 rounded-lg bg-white/60 dark:bg-slate-800/60 border border-white/60 dark:border-slate-700/50 text-slate-500 hover:text-rose-500 hover:border-rose-300 transition-colors cursor-pointer"
                       aria-label="Clear"
                     >
@@ -410,18 +439,22 @@ export default function WordQuizScreen() {
                     onChar={appendLetter}
                     onBackspace={handleBackspaceKey}
                     disabled={!tapEnabled}
-                    highlightedKeys={phase === "feedback" ? [...new Set(currentQuestion.word.word.toUpperCase().split(''))] : undefined}
+                    highlightedKeys={
+                      phase === 'feedback'
+                        ? [...new Set(currentQuestion.word.word.toUpperCase().split(''))]
+                        : undefined
+                    }
                   />
                 </div>
               </div>
             )}
 
-            {phase === "playing" && (
+            {phase === 'playing' && (
               <button
                 onClick={submitAnswer}
                 disabled={
-                  (currentQuestion?.type === "word-to-ipa" && selectedPhonemes.length === 0) ||
-                  (currentQuestion?.type === "ipa-to-word" && typedWord.trim().length === 0)
+                  (currentQuestion?.type === 'word-to-ipa' && selectedPhonemes.length === 0) ||
+                  (currentQuestion?.type === 'ipa-to-word' && typedWord.trim().length === 0)
                 }
                 className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-extrabold tracking-wider uppercase shadow-lg hover:shadow-xl hover:from-emerald-600 hover:to-teal-600 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
@@ -429,71 +462,108 @@ export default function WordQuizScreen() {
               </button>
             )}
 
-            {phase === "feedback" && currentQuestion && config && (
+            {phase === 'feedback' && currentQuestion && config && (
               <div className="space-y-4">
                 <div
                   className={`rounded-2xl p-4 text-center ${
-                    feedbackType === "correct"
-                      ? "bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700"
-                      : "bg-rose-50 dark:bg-rose-900/30 border border-rose-300 dark:border-rose-700"
+                    feedbackType === 'correct'
+                      ? 'bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700'
+                      : 'bg-rose-50 dark:bg-rose-900/30 border border-rose-300 dark:border-rose-700'
                   }`}
                 >
-                  {feedbackType === "correct" && (
+                  {feedbackType === 'correct' && (
                     <>
                       <p className="text-4xl font-extrabold text-emerald-700 dark:text-emerald-300">
                         ✓ Correct!
                       </p>
-                      {currentQuestion.type === "ipa-to-word" && (
-                        <p className="text-4xl font-black text-slate-800 dark:text-[#F7E1A0] mt-2" style={{ fontFamily: "var(--font-mali)" }}>
+                      {currentQuestion.type === 'ipa-to-word' && (
+                        <p
+                          className="text-4xl font-black text-slate-800 dark:text-[#F7E1A0] mt-2"
+                          style={{ fontFamily: 'var(--font-mali)' }}
+                        >
                           {currentQuestion.word.word}
                         </p>
                       )}
-                      {(() => { const ipa = ipaDisplay(currentQuestion.word, true); return ipa ? <p className="text-sm font-mono font-bold text-slate-500 dark:text-slate-400 mt-2">{ipa}</p> : null; })()}
+                      {(() => {
+                        const ipa = ipaDisplay(currentQuestion.word, true);
+                        return ipa ? (
+                          <p className="text-sm font-mono font-bold text-slate-500 dark:text-slate-400 mt-2">
+                            {ipa}
+                          </p>
+                        ) : null;
+                      })()}
                     </>
                   )}
 
-                  {feedbackType === "wrong" && (
+                  {feedbackType === 'wrong' && (
                     <>
                       <p className="text-sm font-extrabold text-rose-700 dark:text-rose-300">
-                        {currentQuestion.type === "word-to-ipa"
+                        {currentQuestion.type === 'word-to-ipa'
                           ? `✗ Incorrect — The answer of "${currentQuestion.word.word}" =`
-                          : "✗ Incorrect — The answer was:"}
+                          : '✗ Incorrect — The answer was:'}
                       </p>
-                      {currentQuestion.type === "word-to-ipa" ? (
-                        <p className="text-4xl font-black text-slate-800 dark:text-white mt-2" style={{ fontFamily: "var(--font-geist-mono)" }}>
-                          /{currentQuestion.word.phonemeIds
+                      {currentQuestion.type === 'word-to-ipa' ? (
+                        <p
+                          className="text-4xl font-black text-slate-800 dark:text-white mt-2"
+                          style={{ fontFamily: 'var(--font-geist-mono)' }}
+                        >
+                          /
+                          {currentQuestion.word.phonemeIds
                             .map((id) => PHONEMES.find((p) => p.id === id))
                             .filter(Boolean)
-                            .map((p) => p!.ipa.replace(/\//g, ""))
-                            .join(" ")}/
+                            .map((p) => p!.ipa.replace(/\//g, ''))
+                            .join(' ')}
+                          /
                         </p>
                       ) : (
-                        <p className="text-4xl font-black text-slate-800 dark:text-[#F7E1A0] mt-2" style={{ fontFamily: "var(--font-mali)" }}>
+                        <p
+                          className="text-4xl font-black text-slate-800 dark:text-[#F7E1A0] mt-2"
+                          style={{ fontFamily: 'var(--font-mali)' }}
+                        >
                           {currentQuestion.word.word}
                         </p>
                       )}
-                      {(() => { const ipa = ipaDisplay(currentQuestion.word); return ipa ? <p className="text-sm font-mono font-bold text-slate-500 dark:text-slate-400 mt-2">{ipa}</p> : null; })()}
+                      {(() => {
+                        const ipa = ipaDisplay(currentQuestion.word);
+                        return ipa ? (
+                          <p className="text-sm font-mono font-bold text-slate-500 dark:text-slate-400 mt-2">
+                            {ipa}
+                          </p>
+                        ) : null;
+                      })()}
                       <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2">
-                        {currentQuestion.word.definition || ""}
+                        {currentQuestion.word.definition || ''}
                       </p>
                     </>
                   )}
 
-                  {feedbackType === "sequence" && (
+                  {feedbackType === 'sequence' && (
                     <>
                       <p className="text-sm font-extrabold text-rose-700 dark:text-rose-300">
                         ⚠ Sequence incorrect — Correct:
                       </p>
-                      <p className="text-4xl font-black text-slate-800 dark:text-white mt-2" style={{ fontFamily: "var(--font-geist-mono)" }}>
-                        /{currentQuestion.word.phonemeIds
+                      <p
+                        className="text-4xl font-black text-slate-800 dark:text-white mt-2"
+                        style={{ fontFamily: 'var(--font-geist-mono)' }}
+                      >
+                        /
+                        {currentQuestion.word.phonemeIds
                           .map((id) => PHONEMES.find((p) => p.id === id))
                           .filter(Boolean)
-                          .map((p) => p!.ipa.replace(/\//g, ""))
-                          .join(" ")}/
+                          .map((p) => p!.ipa.replace(/\//g, ''))
+                          .join(' ')}
+                        /
                       </p>
-                      {(() => { const ipa = ipaDisplay(currentQuestion.word); return ipa ? <p className="text-sm font-mono font-bold text-slate-500 dark:text-slate-400 mt-2">{ipa}</p> : null; })()}
+                      {(() => {
+                        const ipa = ipaDisplay(currentQuestion.word);
+                        return ipa ? (
+                          <p className="text-sm font-mono font-bold text-slate-500 dark:text-slate-400 mt-2">
+                            {ipa}
+                          </p>
+                        ) : null;
+                      })()}
                       <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2">
-                        {currentQuestion.word.definition || ""}
+                        {currentQuestion.word.definition || ''}
                       </p>
                     </>
                   )}
@@ -503,9 +573,11 @@ export default function WordQuizScreen() {
                   onClick={handleContinue}
                   className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#C8A44E] to-[#D4B06A] text-white text-xs font-extrabold tracking-wider uppercase shadow-lg hover:shadow-xl hover:from-[#D4B06A] hover:to-[#C8A44E] active:scale-[0.97] transition-all cursor-pointer"
                 >
-                  {isLastQuestion || (config.mode === "endless" && livesLeft <= 0) || (config.mode === "hardcore" && feedbackType !== "correct")
-                    ? "See Results"
-                    : "Continue"}
+                  {isLastQuestion ||
+                  (config.mode === 'endless' && livesLeft <= 0) ||
+                  (config.mode === 'hardcore' && feedbackType !== 'correct')
+                    ? 'See Results'
+                    : 'Continue'}
                 </button>
               </div>
             )}
@@ -513,25 +585,34 @@ export default function WordQuizScreen() {
         </>
       )}
 
-      {phase === "results" && config && (
+      {phase === 'results' && config && (
         <div className="flex-1 flex items-center justify-center p-5">
           <div className="w-full max-w-sm bg-white/95 dark:bg-slate-900/95 border border-white/50 dark:border-slate-800/50 rounded-3xl p-6 shadow-2xl space-y-5 text-center">
             <div className="w-16 h-16 rounded-full bg-[#C8A44E]/20 flex items-center justify-center mx-auto">
-              <i className={`fi fi-sr-${score >= incorrect ? "trophy" : "flag"} text-2xl text-[#C8A44E]`} />
+              <i
+                className={`fi fi-sr-${score >= incorrect ? 'trophy' : 'flag'} text-2xl text-[#C8A44E]`}
+              />
             </div>
 
-            <h2 className="text-lg font-extrabold text-slate-800 dark:text-[#F7E1A0]" style={{ fontFamily: "var(--font-mali)" }}>
+            <h2
+              className="text-lg font-extrabold text-slate-800 dark:text-[#F7E1A0]"
+              style={{ fontFamily: 'var(--font-mali)' }}
+            >
               Quiz Complete!
             </h2>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 p-3">
                 <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">{score}</p>
-                <p className="text-[8px] font-extrabold text-emerald-500/70 uppercase tracking-widest">Correct</p>
+                <p className="text-[8px] font-extrabold text-emerald-500/70 uppercase tracking-widest">
+                  Correct
+                </p>
               </div>
               <div className="rounded-2xl bg-rose-50 dark:bg-rose-900/20 p-3">
                 <p className="text-sm font-black text-rose-600 dark:text-rose-400">{incorrect}</p>
-                <p className="text-[8px] font-extrabold text-rose-500/70 uppercase tracking-widest">Incorrect</p>
+                <p className="text-[8px] font-extrabold text-rose-500/70 uppercase tracking-widest">
+                  Incorrect
+                </p>
               </div>
             </div>
 
@@ -539,7 +620,9 @@ export default function WordQuizScreen() {
               <p className="text-lg font-black text-slate-700 dark:text-slate-200">
                 {totalQuestions > 0 ? Math.round((score / (score + incorrect)) * 100) : 0}%
               </p>
-              <p className="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest">Accuracy</p>
+              <p className="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest">
+                Accuracy
+              </p>
             </div>
 
             {bestStreak > 0 && (
@@ -556,7 +639,7 @@ export default function WordQuizScreen() {
                 Play Again
               </button>
               <button
-                onClick={() => setScreen("word-builder")}
+                onClick={() => setScreen('word-builder')}
                 className="flex-1 py-3 rounded-2xl bg-white/60 dark:bg-slate-800/60 border border-white/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 text-[10px] font-extrabold tracking-wider uppercase hover:bg-white/80 dark:hover:bg-slate-700/80 active:scale-[0.97] transition-all cursor-pointer"
               >
                 Word Builder
@@ -568,7 +651,10 @@ export default function WordQuizScreen() {
 
       {isSortSettingsOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="w-full max-w-sm bg-white/95 dark:bg-slate-900/95 border border-white/50 dark:border-slate-800/50 rounded-3xl p-6 shadow-2xl space-y-5" style={{ fontFamily: "var(--font-mali)" }}>
+          <div
+            className="w-full max-w-sm bg-white/95 dark:bg-slate-900/95 border border-white/50 dark:border-slate-800/50 rounded-3xl p-6 shadow-2xl space-y-5"
+            style={{ fontFamily: 'var(--font-mali)' }}
+          >
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="text-sm font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
                 <i className="fi fi-sr-settings text-[#C8A44E] text-sm" />
@@ -589,17 +675,17 @@ export default function WordQuizScreen() {
                   Layout
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                  {(["grouped", "flat"] as const).map((m) => (
+                  {(['grouped', 'flat'] as const).map((m) => (
                     <button
                       key={m}
                       onClick={() => setSortMode(m)}
                       className={`py-2.5 px-3 rounded-2xl border text-center transition-all cursor-pointer text-xs font-black ${
                         sortMode === m
-                          ? "bg-[#C8A44E]/10 dark:bg-[#C8A44E]/20 border-[#C8A44E] text-[#C8A44E]"
-                          : "bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-400"
+                          ? 'bg-[#C8A44E]/10 dark:bg-[#C8A44E]/20 border-[#C8A44E] text-[#C8A44E]'
+                          : 'bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-400'
                       }`}
                     >
-                      {m === "grouped" ? "Grouped" : "Flat Grid"}
+                      {m === 'grouped' ? 'Grouped' : 'Flat Grid'}
                     </button>
                   ))}
                 </div>
@@ -610,17 +696,17 @@ export default function WordQuizScreen() {
                   Sort Order
                 </label>
                 <div className="grid grid-cols-3 gap-2">
-                  {(["default", "asc", "desc"] as const).map((o) => (
+                  {(['default', 'asc', 'desc'] as const).map((o) => (
                     <button
                       key={o}
                       onClick={() => setSortOrder(o)}
                       className={`py-2.5 px-2 rounded-2xl border text-center transition-all cursor-pointer text-xs font-black ${
                         sortOrder === o
-                          ? "bg-[#C8A44E]/10 dark:bg-[#C8A44E]/20 border-[#C8A44E] text-[#C8A44E]"
-                          : "bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-400"
+                          ? 'bg-[#C8A44E]/10 dark:bg-[#C8A44E]/20 border-[#C8A44E] text-[#C8A44E]'
+                          : 'bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-400'
                       }`}
                     >
-                      {o === "default" ? "Default" : o === "asc" ? "A–Z" : "Z–A"}
+                      {o === 'default' ? 'Default' : o === 'asc' ? 'A–Z' : 'Z–A'}
                     </button>
                   ))}
                 </div>
