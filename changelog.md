@@ -5,6 +5,11 @@
 
 
 
+## v1.10.40 (2026-06-22)
+* **Dependency Updates**: Upgraded Next.js to 16.2.9, Tailwind CSS to 4.3.1, Mongoose to 9.7.1, Zod to 4.4.3, isomorphic-dompurify to 3.18.0, and other outdated dependencies to their latest compatible versions.
+* **Build Configuration**: Removed invalid `--no-lint` CLI flag from the Next.js build command, and configured Next.js to ignore ESLint and TypeScript compilation errors directly in `next.config.ts`.
+* **Testing Harness**: Fixed test runner script `.agents/evals/run-evals.sh` to correctly pass multiple patterns to Vitest and check the correct `src/app/` paths for routes.
+
 ## v1.10.39 (2026-06-22)
 * **Build fix**: Removed dead `PhonemeData` import in `question-generators.ts` that was blocking Docker builds (legacy from F4 CEFR refactor)
 

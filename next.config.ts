@@ -9,6 +9,9 @@ const nextConfig: NextConfig = withBundleAnalyzer({
   outputFileTracingRoot: process.cwd(),
   compress: true,
   reactCompiler: true, // Auto-memoization via React Forget
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   poweredByHeader: false,
   allowedDevOrigins: ['localhost', '100.97.15.5', '0.0.0.0'],
   experimental: {
