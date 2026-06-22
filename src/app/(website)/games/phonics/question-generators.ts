@@ -28,14 +28,10 @@ import type {
   RoundConfig,
   CefrLevel,
   WordData,
-  PhonemeData,
 } from './types';
 import { WORDS } from './words';
 
-function selectWordByCefr<T extends { level: CefrLevel }>(
-  items: T[],
-  userLevel: CefrLevel,
-): T {
+function selectWordByCefr<T extends { level: CefrLevel }>(items: T[], userLevel: CefrLevel): T {
   if (userLevel === 'all' || items.length === 0) {
     return items[Math.floor(Math.random() * items.length)];
   }
@@ -46,9 +42,15 @@ function selectWordByCefr<T extends { level: CefrLevel }>(
   const rest: T[] = [];
 
   for (const item of items) {
-    if (item.level === 'all') { same.push(item); continue; }
+    if (item.level === 'all') {
+      same.push(item);
+      continue;
+    }
     const wIdx = CEFR_LEVEL_ORDER.indexOf(item.level);
-    if (wIdx === -1) { same.push(item); continue; }
+    if (wIdx === -1) {
+      same.push(item);
+      continue;
+    }
     const diff = Math.abs(uIdx - wIdx);
     if (diff === 0) same.push(item);
     else if (diff === 1) adj.push(item);
@@ -84,25 +86,15 @@ function generatePhonicsQuestions(
   userLevel: CefrLevel,
   phonemeIds?: string[],
 ): PhonicsQuestion[] {
-  const allPhonemes = phonemeIds
-    ? PHONEMES.filter((p) => phonemeIds.includes(p.id))
-    : PHONEMES;
-  const pool = WORDS.filter((w) =>
-    w.phonemes.some((p) => allPhonemes.find((ph) => ph.id === p)),
-  );
+  const allPhonemes = phonemeIds ? PHONEMES.filter((p) => phonemeIds.includes(p.id)) : PHONEMES;
+  const pool = WORDS.filter((w) => w.phonemes.some((p) => allPhonemes.find((ph) => ph.id === p)));
   const questions: PhonicsQuestion[] = [];
   const used = new Set<string>();
 
   for (let i = 0; i < count; i++) {
-    const phoneme =
-      allPhonemes[Math.floor(Math.random() * allPhonemes.length)];
-    const matching = pool.filter(
-      (w) => w.phonemes.includes(phoneme.id) && !used.has(w.word),
-    );
-    let word =
-      matching.length > 0
-        ? selectWordByCefr(matching, userLevel)
-        : undefined;
+    const phoneme = allPhonemes[Math.floor(Math.random() * allPhonemes.length)];
+    const matching = pool.filter((w) => w.phonemes.includes(phoneme.id) && !used.has(w.word));
+    let word = matching.length > 0 ? selectWordByCefr(matching, userLevel) : undefined;
 
     if (!word) {
       const allMatching = pool.filter((w) => w.phonemes.includes(phoneme.id));
@@ -115,13 +107,9 @@ function generatePhonicsQuestions(
     if (!word) continue;
     used.add(word.word);
 
-    let distPool = pool.filter(
-      (w) => !w.phonemes.includes(phoneme.id) && w.word !== word.word,
-    );
+    let distPool = pool.filter((w) => !w.phonemes.includes(phoneme.id) && w.word !== word.word);
     if (distPool.length < 3) {
-      distPool = WORDS.filter(
-        (w) => !w.phonemes.includes(phoneme.id) && w.word !== word.word,
-      );
+      distPool = WORDS.filter((w) => !w.phonemes.includes(phoneme.id) && w.word !== word.word);
     }
     const distractors: WordData[] = [];
     const tempDistPool = [...distPool];
@@ -132,9 +120,7 @@ function generatePhonicsQuestions(
       if (idx !== -1) tempDistPool.splice(idx, 1);
     }
 
-    const options = [word.word, ...distractors.map((d) => d.word)].sort(
-      () => Math.random() - 0.5,
-    );
+    const options = [word.word, ...distractors.map((d) => d.word)].sort(() => Math.random() - 0.5);
 
     questions.push({
       category: 'phonics',
@@ -154,13 +140,9 @@ function generateCardFlipCards(
   phonemeIds?: string[],
 ): CardFlipCard[] {
   const lessonPhonemes =
-    phonemeIds && phonemeIds.length > 0
-      ? PHONEMES.filter((p) => phonemeIds.includes(p.id))
-      : [];
+    phonemeIds && phonemeIds.length > 0 ? PHONEMES.filter((p) => phonemeIds.includes(p.id)) : [];
 
-  const selectedPhonemes = [...lessonPhonemes].sort(
-    () => Math.random() - 0.5,
-  );
+  const selectedPhonemes = [...lessonPhonemes].sort(() => Math.random() - 0.5);
 
   if (selectedPhonemes.length < numPairs) {
     const otherPhonemes = PHONEMES.filter(
@@ -177,10 +159,7 @@ function generateCardFlipCards(
 
   for (const phoneme of selectedPhonemes) {
     const matchingWords = WORDS.filter((w) => w.phonemes.includes(phoneme.id));
-    const word =
-      matchingWords.length > 0
-        ? selectWordByCefr(matchingWords, userLevel)
-        : undefined;
+    const word = matchingWords.length > 0 ? selectWordByCefr(matchingWords, userLevel) : undefined;
     cards.push({
       id: id++,
       type: 'phoneme',
@@ -230,17 +209,11 @@ function generateSpellingQuestions(
   const questions: SpellingQuestion[] = [];
   for (const word of selected) {
     const inputMode: 'tiles' | 'choice' =
-      format === 'mixed'
-        ? Math.random() > 0.5
-          ? 'tiles'
-          : 'choice'
-        : format;
+      format === 'mixed' ? (Math.random() > 0.5 ? 'tiles' : 'choice') : format;
 
     const choices =
       inputMode === 'choice' || format === 'choice'
-        ? [word.word, ...word.spellingDistractors]
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 4)
+        ? [word.word, ...word.spellingDistractors].sort(() => Math.random() - 0.5).slice(0, 4)
         : undefined;
 
     questions.push({
@@ -311,9 +284,7 @@ function generateDefinitionQuestions(
         const idx = tempDistPool.indexOf(dist);
         if (idx !== -1) tempDistPool.splice(idx, 1);
       }
-      options = [word.definition, ...distractors].sort(
-        () => Math.random() - 0.5,
-      );
+      options = [word.definition, ...distractors].sort(() => Math.random() - 0.5);
       correctAnswer = word.definition;
     }
 
@@ -422,9 +393,8 @@ function buildPlacementTest30(): Question[] {
     const similarPool = WORDS.filter(
       (w) => w.word !== word.word && w.phonemes.some((p) => word.phonemes.includes(p)),
     );
-    const distPool = similarPool.length >= 3
-      ? similarPool
-      : WORDS.filter((w) => w.word !== word.word);
+    const distPool =
+      similarPool.length >= 3 ? similarPool : WORDS.filter((w) => w.word !== word.word);
 
     const distractors = [...distPool]
       .sort(() => Math.random() - 0.5)
@@ -445,10 +415,7 @@ function buildPlacementTest30(): Question[] {
   return questions.sort(() => Math.random() - 0.5);
 }
 
-function buildQuestions(
-  config: RoundConfig,
-  phonemeIds?: string[],
-): Question[] {
+function buildQuestions(config: RoundConfig, phonemeIds?: string[]): Question[] {
   if (config.isPlacement) {
     return buildPlacementTest30();
   }
@@ -469,30 +436,15 @@ function buildQuestions(
           },
         ];
       }
-      return generatePhonicsQuestions(
-        format,
-        config.length,
-        config.level,
-        phonemeIds,
-      );
+      return generatePhonicsQuestions(format, config.length, config.level, phonemeIds);
     }
     case 'spelling': {
       const format = config.spellingFormat ?? 'choice';
-      return generateSpellingQuestions(
-        format,
-        config.length,
-        config.level,
-        phonemeIds,
-      );
+      return generateSpellingQuestions(format, config.length, config.level, phonemeIds);
     }
     case 'definitions': {
       const direction = config.definitionDirection ?? 'def-to-word';
-      return generateDefinitionQuestions(
-        direction,
-        config.length,
-        config.level,
-        phonemeIds,
-      );
+      return generateDefinitionQuestions(direction, config.length, config.level, phonemeIds);
     }
     case 'practice':
       return generatePracticeQuestions(config.length, config.level, phonemeIds);
@@ -529,10 +481,7 @@ function computeCorrectAnswer(q: Question): string {
   return q.word.word;
 }
 
-function buildRetryQuestions(
-  config: RoundConfig,
-  wordStrings: string[],
-): Question[] {
+function buildRetryQuestions(config: RoundConfig, wordStrings: string[]): Question[] {
   const words = WORDS.filter((w) => wordStrings.includes(w.word));
   if (words.length === 0) return [];
 
@@ -581,9 +530,7 @@ function buildRetryQuestions(
           phoneme,
           word,
           correctAnswer: word.word,
-          options: [word.word, ...distractors.map((d) => d.word)].sort(
-            () => Math.random() - 0.5,
-          ),
+          options: [word.word, ...distractors.map((d) => d.word)].sort(() => Math.random() - 0.5),
         });
       }
       break;
@@ -593,16 +540,10 @@ function buildRetryQuestions(
       const format = config.spellingFormat ?? 'choice';
       for (const word of words) {
         const inputMode: 'tiles' | 'choice' =
-          format === 'mixed'
-            ? Math.random() > 0.5
-              ? 'tiles'
-              : 'choice'
-            : format;
+          format === 'mixed' ? (Math.random() > 0.5 ? 'tiles' : 'choice') : format;
         const choices =
           inputMode === 'choice' || format === 'choice'
-            ? [word.word, ...word.spellingDistractors]
-                .sort(() => Math.random() - 0.5)
-                .slice(0, 4)
+            ? [word.word, ...word.spellingDistractors].sort(() => Math.random() - 0.5).slice(0, 4)
             : undefined;
 
         questions.push({
@@ -635,9 +576,7 @@ function buildRetryQuestions(
             const idx = tempDistPool.indexOf(dist);
             if (idx !== -1) tempDistPool.splice(idx, 1);
           }
-          options = [word.word, ...distractors].sort(
-            () => Math.random() - 0.5,
-          );
+          options = [word.word, ...distractors].sort(() => Math.random() - 0.5);
           correctAnswer = word.word;
         } else {
           let distPool = WORDS.filter((w) => w.word !== word.word);
@@ -652,9 +591,7 @@ function buildRetryQuestions(
             const idx = tempDistPool.indexOf(dist);
             if (idx !== -1) tempDistPool.splice(idx, 1);
           }
-          options = [word.definition, ...distractors].sort(
-            () => Math.random() - 0.5,
-          );
+          options = [word.definition, ...distractors].sort(() => Math.random() - 0.5);
           correctAnswer = word.definition;
         }
 
@@ -670,17 +607,41 @@ function buildRetryQuestions(
     }
 
     case 'practice':
-      return generatePracticeQuestions(words.length, config.level, words.flatMap((w) => w.phonemes));
+      return generatePracticeQuestions(
+        words.length,
+        config.level,
+        words.flatMap((w) => w.phonemes),
+      );
     case 'ipa-word':
-      return generateIpaToWordQuestions(words.length, config.level, words.flatMap((w) => w.phonemes));
+      return generateIpaToWordQuestions(
+        words.length,
+        config.level,
+        words.flatMap((w) => w.phonemes),
+      );
     case 'word-ipa':
-      return generateWordToIpaQuestions(words.length, config.level, words.flatMap((w) => w.phonemes));
+      return generateWordToIpaQuestions(
+        words.length,
+        config.level,
+        words.flatMap((w) => w.phonemes),
+      );
     case 'synonyms':
-      return generateSynonymQuestions(words.length, config.level, words.flatMap((w) => w.phonemes));
+      return generateSynonymQuestions(
+        words.length,
+        config.level,
+        words.flatMap((w) => w.phonemes),
+      );
     case 'exercise':
-      return generateExerciseQuestions(words.length, config.level, words.flatMap((w) => w.phonemes));
+      return generateExerciseQuestions(
+        words.length,
+        config.level,
+        words.flatMap((w) => w.phonemes),
+      );
     case 'vocab-exercise':
-      return generateVocabExerciseQuestions(words.length, config.level, words.flatMap((w) => w.phonemes));
+      return generateVocabExerciseQuestions(
+        words.length,
+        config.level,
+        words.flatMap((w) => w.phonemes),
+      );
   }
 
   return questions;
@@ -702,9 +663,7 @@ function getDistractorsFromSimilarGroup(
 ): WordData[] {
   const groupPhonemeIds = getGroupPhonemeIds(phonemeId);
   const pool = WORDS.filter(
-    (w) =>
-      w.word !== correctWord.word &&
-      w.phonemes.some((p) => groupPhonemeIds.includes(p)),
+    (w) => w.word !== correctWord.word && w.phonemes.some((p) => groupPhonemeIds.includes(p)),
   );
   const picked: WordData[] = [];
   const tempPool = [...pool].sort(() => Math.random() - 0.5);
@@ -714,61 +673,79 @@ function getDistractorsFromSimilarGroup(
   return picked;
 }
 
-const VOWEL_PHONEME_IDS = new Set(["ae","e","i","o","u","ee","ar","aw","oo","er","ay","ie","oy","ow","oh","uh","eer","air","oor","uh2"]);
+const VOWEL_PHONEME_IDS = new Set([
+  'ae',
+  'e',
+  'i',
+  'o',
+  'u',
+  'ee',
+  'ar',
+  'aw',
+  'oo',
+  'er',
+  'ay',
+  'ie',
+  'oy',
+  'ow',
+  'oh',
+  'uh',
+  'eer',
+  'air',
+  'oor',
+  'uh2',
+]);
 
 function getRime(phonemes: string[]): string {
-  const lastVowelIdx = phonemes.findLastIndex(p => VOWEL_PHONEME_IDS.has(p));
+  const lastVowelIdx = phonemes.findLastIndex((p) => VOWEL_PHONEME_IDS.has(p));
   if (lastVowelIdx === -1) return phonemes.join('');
   return phonemes.slice(lastVowelIdx).join('');
 }
 
 function generatePhonemeMatchRound(
-  difficulty: "easy" | "medium" | "hard",
+  difficulty: 'easy' | 'medium' | 'hard',
   level: CefrLevel,
 ): PhonemeMatchQuestion {
-  const gridSize = CHALLENGE_ROUND_LENGTHS["phoneme-match"][difficulty];
+  const gridSize = CHALLENGE_ROUND_LENGTHS['phoneme-match'][difficulty];
   const pairs: { phonemeId: string; ipa: string; word: string }[] = [];
   const usedPhonemes = new Set<string>();
 
   let pool = [...WORDS];
   if (level !== 'all') {
-    const lvlOrder: CefrLevel[] = ["a1","a2","b1","b2","c1","c2"];
+    const lvlOrder: CefrLevel[] = ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'];
     const lvlIdx = lvlOrder.indexOf(level);
     const maxIdx = Math.min(lvlIdx + 2, lvlOrder.length - 1);
     const allowedLevels = lvlOrder.slice(0, maxIdx + 1);
-    pool = pool.filter(w => allowedLevels.includes(w.level));
+    pool = pool.filter((w) => allowedLevels.includes(w.level));
   }
 
   for (let i = 0; i < gridSize; i++) {
-    const availablePhonemes = PHONEMES.filter(p => !usedPhonemes.has(p.id));
+    const availablePhonemes = PHONEMES.filter((p) => !usedPhonemes.has(p.id));
     if (availablePhonemes.length === 0) break;
     const phoneme = availablePhonemes[Math.floor(Math.random() * availablePhonemes.length)];
     usedPhonemes.add(phoneme.id);
 
-    const matchingWords = pool.filter(w => w.phonemes.includes(phoneme.id));
+    const matchingWords = pool.filter((w) => w.phonemes.includes(phoneme.id));
     if (matchingWords.length === 0) continue;
     const word = matchingWords[Math.floor(Math.random() * matchingWords.length)];
 
     pairs.push({ phonemeId: phoneme.id, ipa: phoneme.ipa, word: word.word });
   }
 
-  return { category: "phoneme-match", pairs, gridSize: pairs.length };
+  return { category: 'phoneme-match', pairs, gridSize: pairs.length };
 }
 
-function generateSoundSortQuestions(
-  count: number,
-  level: CefrLevel,
-): SoundSortQuestion[] {
+function generateSoundSortQuestions(count: number, level: CefrLevel): SoundSortQuestion[] {
   const questions: SoundSortQuestion[] = [];
   const groups = [...SIMILAR_SOUND_GROUPS].sort(() => Math.random() - 0.5);
 
   let pool = [...WORDS];
   if (level !== 'all') {
-    const lvlOrder: CefrLevel[] = ["a1","a2","b1","b2","c1","c2"];
+    const lvlOrder: CefrLevel[] = ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'];
     const lvlIdx = lvlOrder.indexOf(level);
     const maxIdx = Math.min(lvlIdx + 2, lvlOrder.length - 1);
     const allowedLevels = lvlOrder.slice(0, maxIdx + 1);
-    pool = pool.filter(w => allowedLevels.includes(w.level));
+    pool = pool.filter((w) => allowedLevels.includes(w.level));
   }
 
   for (let q = 0; q < count; q++) {
@@ -776,14 +753,13 @@ function generateSoundSortQuestions(
     const selectedGroups = groups.slice(q % groups.length, (q % groups.length) + numGroups);
     if (selectedGroups.length < 2) continue;
 
-    const targetPhonemeIds = selectedGroups.flatMap(g => g.phonemeIds);
+    const targetPhonemeIds = selectedGroups.flatMap((g) => g.phonemeIds);
     const words: { word: string; correctGroup: string }[] = [];
     const usedWords = new Set<string>();
 
     for (const group of selectedGroups) {
-      const groupWords = pool.filter(w =>
-        w.phonemes.some(p => group.phonemeIds.includes(p)) &&
-        !usedWords.has(w.word)
+      const groupWords = pool.filter(
+        (w) => w.phonemes.some((p) => group.phonemeIds.includes(p)) && !usedWords.has(w.word),
       );
       const take = Math.min(3 + Math.floor(Math.random() * 2), groupWords.length);
       for (let i = 0; i < take; i++) {
@@ -796,7 +772,7 @@ function generateSoundSortQuestions(
     if (words.length < 4) continue;
 
     questions.push({
-      category: "sound-sort",
+      category: 'sound-sort',
       targetPhonemeIds,
       words: words.sort(() => Math.random() - 0.5),
     });
@@ -805,24 +781,21 @@ function generateSoundSortQuestions(
   return questions;
 }
 
-function generateRhymeTimeQuestions(
-  count: number,
-  level: CefrLevel,
-): RhymeQuestion[] {
+function generateRhymeTimeQuestions(count: number, level: CefrLevel): RhymeQuestion[] {
   const questions: RhymeQuestion[] = [];
   const usedWords = new Set<string>();
 
   let pool = [...WORDS];
   if (level !== 'all') {
-    const lvlOrder: CefrLevel[] = ["a1","a2","b1","b2","c1","c2"];
+    const lvlOrder: CefrLevel[] = ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'];
     const lvlIdx = lvlOrder.indexOf(level);
     const maxIdx = Math.min(lvlIdx + 2, lvlOrder.length - 1);
     const allowedLevels = lvlOrder.slice(0, maxIdx + 1);
-    pool = pool.filter(w => allowedLevels.includes(w.level));
+    pool = pool.filter((w) => allowedLevels.includes(w.level));
   }
 
   for (let i = 0; i < count; i++) {
-    const available = pool.filter(w => !usedWords.has(w.word));
+    const available = pool.filter((w) => !usedWords.has(w.word));
     if (available.length === 0) continue;
     const target = weightedRandomSelect(available, () => 1);
     if (!target) continue;
@@ -831,10 +804,11 @@ function generateRhymeTimeQuestions(
     const rime = getRime(target.phonemes);
 
     const rhymingPool = pool.filter(
-      w => w.word !== target.word &&
-           !usedWords.has(w.word) &&
-           w.phonemes.length >= 2 &&
-           getRime(w.phonemes) === rime
+      (w) =>
+        w.word !== target.word &&
+        !usedWords.has(w.word) &&
+        w.phonemes.length >= 2 &&
+        getRime(w.phonemes) === rime,
     );
 
     let correctAnswer: string;
@@ -846,7 +820,7 @@ function generateRhymeTimeQuestions(
       usedWords.add(rhymeWord.word);
 
       const distPool = pool.filter(
-        w => w.word !== target.word && w.word !== rhymeWord.word && !usedWords.has(w.word)
+        (w) => w.word !== target.word && w.word !== rhymeWord.word && !usedWords.has(w.word),
       );
       const distractors: string[] = [];
       const tempDist = [...distPool].sort(() => Math.random() - 0.5);
@@ -861,15 +835,24 @@ function generateRhymeTimeQuestions(
     } else {
       const group = getPhonemeGroup(target.phonemes[target.phonemes.length - 1]);
       const similarPool = group
-        ? pool.filter(w => w.word !== target.word && !usedWords.has(w.word) && w.phonemes.some(p => group.phonemeIds.includes(p)))
-        : pool.filter(w => w.word !== target.word && !usedWords.has(w.word));
+        ? pool.filter(
+            (w) =>
+              w.word !== target.word &&
+              !usedWords.has(w.word) &&
+              w.phonemes.some((p) => group.phonemeIds.includes(p)),
+          )
+        : pool.filter((w) => w.word !== target.word && !usedWords.has(w.word));
       if (similarPool.length === 0) continue;
       const similarWord = similarPool[Math.floor(Math.random() * similarPool.length)];
       correctAnswer = similarWord.word;
       usedWords.add(similarWord.word);
 
       const distractors: string[] = [];
-      const tempDist = pool.filter(w => w.word !== target.word && w.word !== similarWord.word && !usedWords.has(w.word)).sort(() => Math.random() - 0.5);
+      const tempDist = pool
+        .filter(
+          (w) => w.word !== target.word && w.word !== similarWord.word && !usedWords.has(w.word),
+        )
+        .sort(() => Math.random() - 0.5);
       for (let d = 0; d < Math.min(3, tempDist.length); d++) {
         distractors.push(tempDist[d].word);
       }
@@ -881,7 +864,7 @@ function generateRhymeTimeQuestions(
     }
 
     questions.push({
-      category: "rhyme-time",
+      category: 'rhyme-time',
       targetWord: target.word,
       targetIpa: target.ipa,
       options,
@@ -895,51 +878,54 @@ function generateRhymeTimeQuestions(
 function generateSpeedSpellQuestions(
   count: number,
   level: CefrLevel,
-  difficulty: "easy" | "medium" | "hard",
+  difficulty: 'easy' | 'medium' | 'hard',
 ): SpeedSpellQuestion[] {
-  const timeLimitMs = CHALLENGE_TIME_LIMITS["speed-spell"][difficulty];
+  const timeLimitMs = CHALLENGE_TIME_LIMITS['speed-spell'][difficulty];
   const questions: SpeedSpellQuestion[] = [];
   const usedWords = new Set<string>();
 
   let pool = [...WORDS];
   if (level !== 'all') {
-    const lvlOrder: CefrLevel[] = ["a1","a2","b1","b2","c1","c2"];
+    const lvlOrder: CefrLevel[] = ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'];
     const lvlIdx = lvlOrder.indexOf(level);
     const maxIdx = Math.min(lvlIdx + 2, lvlOrder.length - 1);
     const allowedLevels = lvlOrder.slice(0, maxIdx + 1);
-    pool = pool.filter(w => allowedLevels.includes(w.level));
+    pool = pool.filter((w) => allowedLevels.includes(w.level));
   }
-  pool = pool.filter(w => w.word.length >= 3 && w.word.length <= 8);
+  pool = pool.filter((w) => w.word.length >= 3 && w.word.length <= 8);
 
   for (let i = 0; i < count; i++) {
-    const word = weightedRandomSelect(pool.filter(w => !usedWords.has(w.word)), () => 1);
+    const word = weightedRandomSelect(
+      pool.filter((w) => !usedWords.has(w.word)),
+      () => 1,
+    );
     if (!word) continue;
     usedWords.add(word.word);
-    questions.push({ category: "speed-spell", word, timeLimitMs });
+    questions.push({ category: 'speed-spell', word, timeLimitMs });
   }
 
   return questions;
 }
 
-function generateSyllableSmashQuestions(
-  count: number,
-  level: CefrLevel,
-): SyllableQuestion[] {
+function generateSyllableSmashQuestions(count: number, level: CefrLevel): SyllableQuestion[] {
   const questions: SyllableQuestion[] = [];
   const usedWords = new Set<string>();
 
   let pool = [...WORDS];
   if (level !== 'all') {
-    const lvlOrder: CefrLevel[] = ["a1","a2","b1","b2","c1","c2"];
+    const lvlOrder: CefrLevel[] = ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'];
     const lvlIdx = lvlOrder.indexOf(level);
     const maxIdx = Math.min(lvlIdx + 2, lvlOrder.length - 1);
     const allowedLevels = lvlOrder.slice(0, maxIdx + 1);
-    pool = pool.filter(w => allowedLevels.includes(w.level));
+    pool = pool.filter((w) => allowedLevels.includes(w.level));
   }
-  pool = pool.filter(w => w.syllables.length >= 1 && w.syllables.length <= 5);
+  pool = pool.filter((w) => w.syllables.length >= 1 && w.syllables.length <= 5);
 
   for (let i = 0; i < count; i++) {
-    const word = weightedRandomSelect(pool.filter(w => !usedWords.has(w.word)), () => 1);
+    const word = weightedRandomSelect(
+      pool.filter((w) => !usedWords.has(w.word)),
+      () => 1,
+    );
     if (!word) continue;
     usedWords.add(word.word);
 
@@ -953,7 +939,7 @@ function generateSyllableSmashQuestions(
     }
 
     questions.push({
-      category: "syllable-smash",
+      category: 'syllable-smash',
       word: word.word,
       syllableCount: correctCount,
       options: [...optionSet].sort(() => Math.random() - 0.5),
@@ -969,24 +955,15 @@ function generatePracticeQuestions(
   level: CefrLevel,
   phonemeIds?: string[],
 ): PracticeQuestion[] {
-  const allPhonemes = phonemeIds
-    ? PHONEMES.filter((p) => phonemeIds.includes(p.id))
-    : PHONEMES;
-  const pool = WORDS.filter((w) =>
-    w.phonemes.some((p) => allPhonemes.find((ph) => ph.id === p)),
-  );
+  const allPhonemes = phonemeIds ? PHONEMES.filter((p) => phonemeIds.includes(p.id)) : PHONEMES;
+  const pool = WORDS.filter((w) => w.phonemes.some((p) => allPhonemes.find((ph) => ph.id === p)));
   const questions: PracticeQuestion[] = [];
   const used = new Set<string>();
 
   for (let i = 0; i < count; i++) {
     const phoneme = allPhonemes[Math.floor(Math.random() * allPhonemes.length)];
-    const matching = pool.filter(
-      (w) => w.phonemes.includes(phoneme.id) && !used.has(w.word),
-    );
-    let word =
-      matching.length > 0
-        ? selectWordByCefr(matching, level)
-        : undefined;
+    const matching = pool.filter((w) => w.phonemes.includes(phoneme.id) && !used.has(w.word));
+    let word = matching.length > 0 ? selectWordByCefr(matching, level) : undefined;
     if (!word) {
       const allM = pool.filter((w) => w.phonemes.includes(phoneme.id));
       if (allM.length > 0) {
@@ -999,8 +976,7 @@ function generatePracticeQuestions(
     used.add(word.word);
 
     const distractors = getDistractorsFromSimilarGroup(word, phoneme.id, level, 3);
-    const options = [word.word, ...distractors.map((d) => d.word)]
-      .sort(() => Math.random() - 0.5);
+    const options = [word.word, ...distractors.map((d) => d.word)].sort(() => Math.random() - 0.5);
 
     questions.push({
       category: 'practice',
@@ -1037,8 +1013,7 @@ function generateIpaToWordQuestions(
     if (!phoneme) continue;
 
     const distractors = getDistractorsFromSimilarGroup(word, phonemeId, level, 3);
-    const options = [word.word, ...distractors.map((d) => d.word)]
-      .sort(() => Math.random() - 0.5);
+    const options = [word.word, ...distractors.map((d) => d.word)].sort(() => Math.random() - 0.5);
 
     questions.push({
       category: 'ipa-word',
@@ -1170,10 +1145,7 @@ function generateSynonymQuestions(
       const correctSyn = word.synonyms[Math.floor(Math.random() * word.synonyms.length)];
       options.push(correctSyn);
       const distPool = WORDS.filter(
-        (w) =>
-          w.word !== word.word &&
-          !word.synonyms.includes(w.word) &&
-          !options.includes(w.word),
+        (w) => w.word !== word.word && !word.synonyms.includes(w.word) && !options.includes(w.word),
       );
       const tempDist = [...distPool].sort(() => Math.random() - 0.5);
       for (let d = 0; d < Math.min(3, tempDist.length); d++) {
@@ -1199,7 +1171,10 @@ function generateExerciseQuestions(
   phonemeIds?: string[],
 ): ExerciseQuestion[] {
   const formats: ('ipa-word' | 'word-ipa' | 'practice' | 'synonyms')[] = [
-    'ipa-word', 'word-ipa', 'practice', 'synonyms',
+    'ipa-word',
+    'word-ipa',
+    'practice',
+    'synonyms',
   ];
   const questions: ExerciseQuestion[] = [];
 
@@ -1245,7 +1220,9 @@ function generateVocabExerciseQuestions(
   phonemeIds?: string[],
 ): (DefinitionQuestion | SynonymQuestion)[] {
   const formats: ('def-to-word' | 'word-to-def' | 'synonyms')[] = [
-    'def-to-word', 'word-to-def', 'synonyms',
+    'def-to-word',
+    'word-to-def',
+    'synonyms',
   ];
   const questions: (DefinitionQuestion | SynonymQuestion)[] = [];
 
@@ -1272,26 +1249,47 @@ function generateVocabExerciseQuestions(
   return questions;
 }
 
-function buildActivityRetryQuestions(
-  config: RoundConfig,
-  wordStrings: string[],
-): Question[] {
+function buildActivityRetryQuestions(config: RoundConfig, wordStrings: string[]): Question[] {
   const words = WORDS.filter((w) => wordStrings.includes(w.word));
   if (words.length === 0) return [];
 
   switch (config.category) {
     case 'practice':
-      return generatePracticeQuestions(words.length, config.level, words.flatMap((w) => w.phonemes));
+      return generatePracticeQuestions(
+        words.length,
+        config.level,
+        words.flatMap((w) => w.phonemes),
+      );
     case 'ipa-word':
-      return generateIpaToWordQuestions(words.length, config.level, words.flatMap((w) => w.phonemes));
+      return generateIpaToWordQuestions(
+        words.length,
+        config.level,
+        words.flatMap((w) => w.phonemes),
+      );
     case 'word-ipa':
-      return generateWordToIpaQuestions(words.length, config.level, words.flatMap((w) => w.phonemes));
+      return generateWordToIpaQuestions(
+        words.length,
+        config.level,
+        words.flatMap((w) => w.phonemes),
+      );
     case 'synonyms':
-      return generateSynonymQuestions(words.length, config.level, words.flatMap((w) => w.phonemes));
+      return generateSynonymQuestions(
+        words.length,
+        config.level,
+        words.flatMap((w) => w.phonemes),
+      );
     case 'exercise':
-      return generateExerciseQuestions(words.length, config.level, words.flatMap((w) => w.phonemes));
+      return generateExerciseQuestions(
+        words.length,
+        config.level,
+        words.flatMap((w) => w.phonemes),
+      );
     case 'vocab-exercise':
-      return generateVocabExerciseQuestions(words.length, config.level, words.flatMap((w) => w.phonemes));
+      return generateVocabExerciseQuestions(
+        words.length,
+        config.level,
+        words.flatMap((w) => w.phonemes),
+      );
     default:
       return [];
   }
