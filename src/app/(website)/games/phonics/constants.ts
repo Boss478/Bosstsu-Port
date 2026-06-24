@@ -5,12 +5,12 @@ import type {
   SimilarSoundGroup,
   ActivityData,
   ActivityType,
-  CefrLevel,
   CompanionBubbleStyle,
   CharacterVoice,
   CompanionId,
   SaveData,
 } from './types';
+import { WORDS } from './words';
 
 // ─── Version ─────────────────────────────────────────────────────────────────
 export const SAVE_VERSION = 3;
@@ -637,72 +637,102 @@ export const PHONEME_TO_GRAPHEMES: Record<string, string[]> = {
   uh2: ['oo', 'u'],
 };
 
+// ─── Phoneme property helpers ──────────────────────────────────────────────
+export function phonemeSupportsMinimalPairs(phonemeId: string): boolean {
+  const pool = WORDS.filter((w) => w.phonemes.includes(phonemeId) && w.phonemes.length >= 2);
+  for (const wordA of pool) {
+    for (const wordB of pool) {
+      if (wordA.word === wordB.word) continue;
+      if (wordA.phonemes.length !== wordB.phonemes.length) continue;
+      let diffCount = 0;
+      for (let i = 0; i < wordA.phonemes.length; i++) {
+        if (wordA.phonemes[i] !== wordB.phonemes[i]) diffCount++;
+      }
+      if (diffCount === 1) return true;
+    }
+  }
+  return false;
+}
+
+export function phonemeSupportsStress(phonemeId: string): boolean {
+  return WORDS.some((w) => (w.stress?.length ?? 0) >= 2 && w.phonemes.includes(phonemeId));
+}
+
 // ─── Activity definitions per phoneme ──────────────────────────────────────
+export function getAvailableTypesForPhoneme(phonemeId: string): ActivityType[] {
+  const types: ActivityType[] = ['grapheme', 'ipa-word', 'word-ipa'];
+  if (phonemeSupportsMinimalPairs(phonemeId)) types.push('minimal-pairs');
+  if (phonemeSupportsStress(phonemeId)) types.push('stress');
+  types.push('exercise');
+  return types;
+}
+
 export function getActivitiesForPhoneme(phonemeId: string): ActivityData[] {
   const group = getPhonemeGroup(phonemeId);
   const gid = group?.id ?? 'ungrouped';
-  return [
-    {
-      id: `${phonemeId}-grapheme`,
-      type: 'grapheme',
-      title: 'Grapheme Match',
-      subtitle: 'Match sounds to letters',
-      phonemeId,
-      length: 10,
-      groupId: gid,
-      order: 0,
-    },
-    {
-      id: `${phonemeId}-ipa-word`,
-      type: 'ipa-word',
-      title: 'IPA → Word',
-      subtitle: 'See the symbol, pick the word',
-      phonemeId,
-      length: 10,
-      groupId: gid,
-      order: 1,
-    },
-    {
-      id: `${phonemeId}-word-ipa`,
-      type: 'word-ipa',
-      title: 'Word → IPA',
-      subtitle: 'See the word, pick the symbol',
-      phonemeId,
-      length: 10,
-      groupId: gid,
-      order: 2,
-    },
-    {
-      id: `${phonemeId}-minimal-pairs`,
-      type: 'minimal-pairs',
-      title: 'Minimal Pairs',
-      subtitle: 'Hear the difference',
-      phonemeId,
-      length: 10,
-      groupId: gid,
-      order: 3,
-    },
-    {
-      id: `${phonemeId}-stress`,
-      type: 'stress',
-      title: 'Stress',
-      subtitle: 'Find the stressed syllable',
-      phonemeId,
-      length: 10,
-      groupId: gid,
-      order: 4,
-    },
-    {
-      id: `${phonemeId}-exercise`,
-      type: 'exercise',
-      title: 'Exercise',
-      subtitle: 'Mixed challenge',
-      phonemeId,
-      length: 10,
-      groupId: gid,
-      order: 5,
-    },
-  ];
+  const types = getAvailableTypesForPhoneme(phonemeId);
+  const activities: ActivityData[] = [];
+  for (let order = 0; order < types.length; order++) {
+    const type = types[order];
+    const base = { phonemeId, length: 10, groupId: gid, order } as const;
+    switch (type) {
+      case 'grapheme':
+        activities.push({
+          ...base,
+          id: `${phonemeId}-grapheme`,
+          type,
+          title: 'Grapheme Match',
+          subtitle: 'Match sounds to letters',
+        });
+        break;
+      case 'ipa-word':
+        activities.push({
+          ...base,
+          id: `${phonemeId}-ipa-word`,
+          type,
+          title: 'IPA → Word',
+          subtitle: 'See the symbol, pick the word',
+        });
+        break;
+      case 'word-ipa':
+        activities.push({
+          ...base,
+          id: `${phonemeId}-word-ipa`,
+          type,
+          title: 'Word → IPA',
+          subtitle: 'See the word, pick the symbol',
+        });
+        break;
+      case 'minimal-pairs':
+        activities.push({
+          ...base,
+          id: `${phonemeId}-minimal-pairs`,
+          type,
+          title: 'Minimal Pairs',
+          subtitle: 'Hear the difference',
+        });
+        break;
+      case 'stress':
+        activities.push({
+          ...base,
+          id: `${phonemeId}-stress`,
+          type,
+          title: 'Stress',
+          subtitle: 'Find the stressed syllable',
+        });
+        break;
+      case 'exercise':
+        activities.push({
+          ...base,
+          id: `${phonemeId}-exercise`,
+          type,
+          title: 'Exercise',
+          subtitle: 'Mixed challenge',
+        });
+        break;
+    }
+  }
+  return activities;
 }
 
 // ─── Adaptive scaling for activity question counts ─────────────────────────
@@ -738,11 +768,7 @@ export function getVocabStagesForGroup(groupId: string): StageData[] {
   return VOCAB_STAGES.filter((s) => s.id.startsWith(`vocab-${level}`));
 }
 
-export function getVocabActivitiesForStage(
-  stageId: string,
-  groupId: string,
-  _level: CefrLevel,
-): ActivityData[] {
+export function getVocabActivitiesForStage(stageId: string, groupId: string): ActivityData[] {
   return [
     {
       id: `${stageId}-def-word`,
@@ -1911,21 +1937,21 @@ export const CHALLENGE_TYPES = [
     id: 'phoneme-match',
     title: 'Phoneme Match',
     subtitle: 'Match IPA symbols to words',
-    icon: 'fi fi-sr-cards-heart',
+    icon: 'fi fi-sr-heart',
     color: '#E74C3C',
   },
   {
     id: 'sound-sort',
     title: 'Sound Sort',
     subtitle: 'Sort words by sound group',
-    icon: 'fi fi-sr-sort',
+    icon: 'fi fi-sr-list',
     color: '#2EC4B6',
   },
   {
     id: 'rhyme-time',
     title: 'Rhyme Time',
     subtitle: 'Find the rhyming word',
-    icon: 'fi fi-sr-music',
+    icon: 'fi fi-sr-volume',
     color: '#9B59B6',
   },
   {

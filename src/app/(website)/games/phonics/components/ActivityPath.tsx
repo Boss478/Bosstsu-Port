@@ -7,12 +7,12 @@ import { getActivitiesForPhoneme, PHONEMES } from '../constants';
 import type { CefrLevel } from '../types';
 
 const ACTIVITY_ICONS: Record<string, string> = {
-  grapheme: 'fi fi-sr-letters',
-  'ipa-word': 'fi fi-sr-symbols',
-  'word-ipa': 'fi fi-sr-text',
-  'minimal-pairs': 'fi fi-sr-code-compare',
-  stress: 'fi fi-sr-waveform',
-  exercise: 'fi fi-sr-dice-d6',
+  grapheme: 'fi fi-sr-pencil',
+  'ipa-word': 'fi fi-sr-eye',
+  'word-ipa': 'fi fi-sr-copy',
+  'minimal-pairs': 'fi fi-sr-volume',
+  stress: 'fi fi-sr-bolt',
+  exercise: 'fi fi-sr-gamepad',
 };
 
 const ACTIVITY_COLORS: Record<string, string> = {

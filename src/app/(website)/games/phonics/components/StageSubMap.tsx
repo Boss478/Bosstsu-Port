@@ -6,20 +6,50 @@ import { PHONEMES, getActivitiesForPhoneme } from '../constants';
 import type { StageData, StageLesson } from '../types';
 
 const PHONEME_COLORS: Record<string, string> = {
-  ae: '#2EC4B6', e: '#2EC4B6', i: '#2EC4B6', o: '#2EC4B6', u: '#2EC4B6',
-  ee: '#C8A44E', ar: '#C8A44E', aw: '#C8A44E', oo: '#C8A44E', er: '#C8A44E',
-  ay: '#9B59B6', ie: '#9B59B6', oy: '#9B59B6', ow: '#9B59B6', oh: '#9B59B6',
-  uh: '#FFBA08', eer: '#FFBA08', air: '#FFBA08', oor: '#FFBA08', uh2: '#FFBA08',
-  p: '#E74C3C', b: '#E74C3C',
-  t: '#3498DB', d: '#3498DB',
-  k: '#1ABC9C', g: '#1ABC9C',
-  f: '#E67E22', v: '#E67E22',
-  s: '#5DADE2', z: '#5DADE2',
-  sh: '#1ABC9C', zh: '#1ABC9C', h: '#1ABC9C',
-  th: '#FF70A6', dh: '#FF70A6',
-  ch: '#E74C3C', dz: '#E74C3C',
-  m: '#66BB6A', n: '#66BB6A', ng: '#66BB6A',
-  l: '#8D6E63', r: '#8D6E63', w: '#8D6E63', j: '#8D6E63',
+  ae: '#2EC4B6',
+  e: '#2EC4B6',
+  i: '#2EC4B6',
+  o: '#2EC4B6',
+  u: '#2EC4B6',
+  ee: '#C8A44E',
+  ar: '#C8A44E',
+  aw: '#C8A44E',
+  oo: '#C8A44E',
+  er: '#C8A44E',
+  ay: '#9B59B6',
+  ie: '#9B59B6',
+  oy: '#9B59B6',
+  ow: '#9B59B6',
+  oh: '#9B59B6',
+  uh: '#FFBA08',
+  eer: '#FFBA08',
+  air: '#FFBA08',
+  oor: '#FFBA08',
+  uh2: '#FFBA08',
+  p: '#E74C3C',
+  b: '#E74C3C',
+  t: '#3498DB',
+  d: '#3498DB',
+  k: '#1ABC9C',
+  g: '#1ABC9C',
+  f: '#E67E22',
+  v: '#E67E22',
+  s: '#5DADE2',
+  z: '#5DADE2',
+  sh: '#1ABC9C',
+  zh: '#1ABC9C',
+  h: '#1ABC9C',
+  th: '#FF70A6',
+  dh: '#FF70A6',
+  ch: '#E74C3C',
+  dz: '#E74C3C',
+  m: '#66BB6A',
+  n: '#66BB6A',
+  ng: '#66BB6A',
+  l: '#8D6E63',
+  r: '#8D6E63',
+  w: '#8D6E63',
+  j: '#8D6E63',
 };
 
 export default function StageSubMap() {
@@ -28,31 +58,40 @@ export default function StageSubMap() {
 
   const phonemeNodes = useMemo(() => {
     if (!selectedGroup) return [];
-    return selectedGroup.phonemeIds.map((pid) => {
-      const phoneme = PHONEMES.find((p) => p.id === pid);
-      const activities = getActivitiesForPhoneme(pid);
-      const completedCount = activities.filter((a) => activityProgress[a.id]?.completed).length;
-      const color = PHONEME_COLORS[pid] ?? '#2EC4B6';
-      return { phoneme, activities, completedCount, color, pid };
-    }).filter((n) => n.phoneme);
+    return selectedGroup.phonemeIds
+      .map((pid) => {
+        const phoneme = PHONEMES.find((p) => p.id === pid);
+        const activities = getActivitiesForPhoneme(pid);
+        const completedCount = activities.filter((a) => activityProgress[a.id]?.completed).length;
+        const color = PHONEME_COLORS[pid] ?? '#2EC4B6';
+        return { phoneme, activities, completedCount, color, pid };
+      })
+      .filter((n) => n.phoneme);
   }, [selectedGroup, activityProgress]);
 
-  const handlePhonemeClick = useCallback((pid: string) => {
-    const phoneme = PHONEMES.find((p) => p.id === pid);
-    if (!phoneme) return;
-    const fakeStage: StageData = {
-      id: `ph-stage-${pid}`,
-      title: phoneme.name,
-      subtitle: phoneme.ipa,
-      icon: pid,
-      color: PHONEME_COLORS[pid] ?? '#2EC4B6',
-      category: 'vowel',
-      lessons: [],
-    };
-    selectStage(fakeStage);
-    const fakeLesson: StageLesson = { id: `${pid}-lesson`, title: phoneme.name, phonemeIds: [pid] };
-    selectLesson(fakeLesson);
-  }, [selectStage, selectLesson]);
+  const handlePhonemeClick = useCallback(
+    (pid: string) => {
+      const phoneme = PHONEMES.find((p) => p.id === pid);
+      if (!phoneme) return;
+      const fakeStage: StageData = {
+        id: `ph-stage-${pid}`,
+        title: phoneme.name,
+        subtitle: phoneme.ipa,
+        icon: pid,
+        color: PHONEME_COLORS[pid] ?? '#2EC4B6',
+        category: 'vowel',
+        lessons: [],
+      };
+      selectStage(fakeStage);
+      const fakeLesson: StageLesson = {
+        id: `${pid}-lesson`,
+        title: phoneme.name,
+        phonemeIds: [pid],
+      };
+      selectLesson(fakeLesson);
+    },
+    [selectStage, selectLesson],
+  );
 
   if (!selectedGroup) return null;
 
@@ -75,7 +114,10 @@ export default function StageSubMap() {
             <i className="fi fi-sr-angle-left text-sm" />
           </button>
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-extrabold text-slate-800 dark:text-[#F7E1A0] truncate" style={{ fontFamily: 'var(--font-mali)' }}>
+            <h1
+              className="text-2xl font-extrabold text-slate-800 dark:text-[#F7E1A0] truncate"
+              style={{ fontFamily: 'var(--font-mali)' }}
+            >
               {selectedGroup.title}
             </h1>
             <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
@@ -87,8 +129,12 @@ export default function StageSubMap() {
         {/* Group progress */}
         <div className="glass-panel p-4 rounded-2xl border border-white/20 dark:border-slate-800/60 mb-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Group Progress</span>
-            <span className="text-[11px] font-bold" style={{ color: selectedGroup.color }}>{allCompleted}/{allTotal} activities</span>
+            <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+              Group Progress
+            </span>
+            <span className="text-[11px] font-bold" style={{ color: selectedGroup.color }}>
+              {allCompleted}/{allTotal} activities
+            </span>
           </div>
           <div className="h-3 bg-slate-300/30 dark:bg-slate-700/40 rounded-full overflow-hidden p-0.5">
             <div
@@ -103,13 +149,11 @@ export default function StageSubMap() {
 
         {/* Phoneme nodes */}
         <div className="space-y-3">
-          {phonemeNodes.map((node, i) => {
+          {phonemeNodes.map((node) => {
             if (!node.phoneme) return null;
-            const activityDots = [0, 1, 2, 3].map((order) => {
-              const act = getActivitiesForPhoneme(node.pid)[order];
-              const done = act ? activityProgress[act.id]?.completed : false;
-              return done;
-            });
+            const activityDots = node.activities.map(
+              (act) => activityProgress[act.id]?.completed ?? false,
+            );
 
             return (
               <button
@@ -126,12 +170,13 @@ export default function StageSubMap() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-bold text-slate-800 dark:text-white">{node.phoneme.name}</h3>
-                      <span className="text-[11px] font-bold text-slate-400">
-                        {node.completedCount}/4
-                      </span>
+                      <h3 className="text-sm font-bold text-slate-800 dark:text-white">
+                        {node.phoneme.name}
+                      </h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 capitalize">{node.phoneme.tier}</p>
+                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 capitalize">
+                      {node.phoneme.tier}
+                    </p>
                     <div className="flex gap-1.5 mt-2">
                       {activityDots.map((done, di) => (
                         <span

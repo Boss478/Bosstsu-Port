@@ -4,21 +4,19 @@ import { useMemo } from 'react';
 import { useGame } from '../context';
 import { SIMILAR_SOUND_GROUPS, PHONEMES } from '../constants';
 
-const GROUP_ICONS: Record<string, string> = {
-  'short-vowels': 'fi fi-sr-volume',
-  'long-vowels': 'fi fi-sr-circle-v',
-  diphthongs: 'fi fi-sr-waveform',
-  'complex-vowels': 'fi fi-sr-circle-w',
-  'bilabial-stops': 'fi fi-sr-circle-p',
-  'alveolar-stops': 'fi fi-sr-circle-t',
-  'velar-stops': 'fi fi-sr-circle-k',
-  'labiodental-fricatives': 'fi fi-sr-circle-f',
-  'alveolar-fricatives': 'fi fi-sr-circle-s',
-  'postalveolar-fricatives': 'fi fi-sr-circle-sh',
-  'dental-fricatives': 'fi fi-sr-circle-th',
-  affricates: 'fi fi-sr-circle-ch',
-  nasals: 'fi fi-sr-circle-m',
-  approximants: 'fi fi-sr-circle-l',
+const GROUP_TEXTS: Record<string, string> = {
+  'long-vowels': 'Vː',
+  'complex-vowels': 'V*',
+  'bilabial-stops': 'P',
+  'alveolar-stops': 'T',
+  'velar-stops': 'K',
+  'labiodental-fricatives': 'F',
+  'alveolar-fricatives': 'S',
+  'postalveolar-fricatives': 'SH',
+  'dental-fricatives': 'TH',
+  affricates: 'CH',
+  nasals: 'M',
+  approximants: 'L',
 };
 
 export default function GroupMapView() {
@@ -67,13 +65,28 @@ export default function GroupMapView() {
             >
               <div className="flex items-center gap-4">
                 <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-white/20"
-                  style={{ backgroundColor: g.color + '20' }}
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-white/20 font-black text-lg select-none"
+                  style={{ backgroundColor: g.color + '20', color: g.color }}
                 >
-                  <i
-                    className={`${GROUP_ICONS[g.id] ?? 'fi fi-sr-volume'} text-xl`}
-                    style={{ color: g.color }}
-                  />
+                  {g.id === 'short-vowels' ? (
+                    <i className="fi fi-sr-volume text-xl" />
+                  ) : g.id === 'diphthongs' ? (
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke={g.color}
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                    >
+                      <path d="M4 12h1M7 9v6M10 5v14M13 8v8M16 10v4M19 12h1" />
+                    </svg>
+                  ) : (
+                    <span style={{ fontFamily: 'var(--font-mali)' }}>
+                      {GROUP_TEXTS[g.id] ?? 'V'}
+                    </span>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
@@ -84,11 +97,12 @@ export default function GroupMapView() {
                       {g.phonemeIds.length} sounds
                     </span>
                   </div>
-                  {g.firstPhoneme && (
-                    <p className="text-[11px] font-mono font-bold text-[#C8A44E] mt-0.5">
-                      {g.firstPhoneme.ipa} {g.subtitle}
-                    </p>
-                  )}
+                  <p className="text-[11px] font-mono font-bold text-[#C8A44E] mt-0.5">
+                    {g.phonemeIds
+                      .map((pid) => PHONEMES.find((p) => p.id === pid)?.ipa)
+                      .filter(Boolean)
+                      .join(', ')}
+                  </p>
                   <div className="mt-2 flex items-center gap-2">
                     <div className="flex-1 h-2 bg-slate-300/30 dark:bg-slate-700/40 rounded-full overflow-hidden">
                       <div

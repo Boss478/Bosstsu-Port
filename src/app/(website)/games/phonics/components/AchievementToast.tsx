@@ -11,9 +11,10 @@ interface Props {
 
 export default function AchievementToast({ ids, onDismiss }: Props) {
   useEffect(() => {
+    if (ids.length === 0) return;
     const t = setTimeout(onDismiss, 4000);
     return () => clearTimeout(t);
-  }, [onDismiss]);
+  }, [ids, onDismiss]);
 
   if (ids.length === 0) return null;
 
@@ -36,9 +37,7 @@ export default function AchievementToast({ ids, onDismiss }: Props) {
               <p className="text-sm font-bold text-slate-800 dark:text-white truncate">
                 {def.title}
               </p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                {def.description}
-              </p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">{def.description}</p>
             </div>
             <div className="text-right shrink-0">
               <p className="text-xs font-black text-amber-500">+{def.reward}</p>

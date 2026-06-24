@@ -80,14 +80,7 @@ function FreePracticeFAB({ mode }: { mode: 'sound' | 'vocab' }) {
 
 // ── Vocab Group Map View ──
 
-const VOCAB_ICONS: Record<string, string> = {
-  'vocab-a1': 'fi fi-sr-a',
-  'vocab-a2': 'fi fi-sr-a',
-  'vocab-b1': 'fi fi-sr-b',
-  'vocab-b2': 'fi fi-sr-b',
-  'vocab-c1': 'fi fi-sr-c',
-  'vocab-c2': 'fi fi-sr-c',
-};
+// Vocab level texts will be dynamically generated from their group IDs (e.g. 'A1', 'B2')
 
 function VocabGroupMapView() {
   const { save, selectGroup } = useGame();
@@ -96,7 +89,7 @@ function VocabGroupMapView() {
   const groups = useMemo(() => {
     return VOCAB_GROUPS.map((g) => {
       const stages = getVocabStagesForGroup(g.id);
-      const allActivities = stages.flatMap((s) => getVocabActivitiesForStage(s.id, g.id, 'all'));
+      const allActivities = stages.flatMap((s) => getVocabActivitiesForStage(s.id, g.id));
       const completed = allActivities.filter((a) => activityProgress[a.id]?.completed).length;
       const total = allActivities.length;
       const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -127,13 +120,14 @@ function VocabGroupMapView() {
             >
               <div className="flex items-center gap-4">
                 <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-white/20"
-                  style={{ backgroundColor: g.color + '20' }}
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-white/20 font-black text-lg select-none"
+                  style={{
+                    backgroundColor: g.color + '20',
+                    color: g.color,
+                    fontFamily: 'var(--font-mali)',
+                  }}
                 >
-                  <i
-                    className={`${VOCAB_ICONS[g.id] ?? 'fi fi-sr-graduation-cap'} text-xl`}
-                    style={{ color: g.color }}
-                  />
+                  {g.id.replace('vocab-', '').toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
@@ -181,7 +175,7 @@ function VocabStageSubMap() {
     if (!selectedGroup) return [];
     const stages = getVocabStagesForGroup(selectedGroup.id);
     return stages.map((s) => {
-      const activities = getVocabActivitiesForStage(s.id, selectedGroup.id, 'all');
+      const activities = getVocabActivitiesForStage(s.id, selectedGroup.id);
       const completedCount = activities.filter((a) => activityProgress[a.id]?.completed).length;
       return { stage: s, activities, completedCount };
     });
@@ -293,7 +287,7 @@ const VOCAB_ACTIVITY_COLORS: Record<string, string> = {
 const VOCAB_ACTIVITY_ICONS: Record<string, string> = {
   definitions: 'fi fi-sr-book-open-cover',
   synonyms: 'fi fi-sr-copy',
-  'vocab-exercise': 'fi fi-sr-dice-d6',
+  'vocab-exercise': 'fi fi-sr-gamepad',
 };
 
 function VocabActivityPath() {
@@ -310,10 +304,10 @@ function VocabActivityPath() {
 
   const activities = useMemo(() => {
     if (!selectedStage) return [];
-     
+
     const gId = selectedGroup?.id ?? 'vocab-all';
-    return getVocabActivitiesForStage(selectedStage.id, gId, save?.cefrLevel ?? 'a1');
-  }, [selectedStage, selectedGroup, save?.cefrLevel]);
+    return getVocabActivitiesForStage(selectedStage.id, gId);
+  }, [selectedStage, selectedGroup]);
 
   const isUnlocked = useCallback(
     (order: number): boolean => {

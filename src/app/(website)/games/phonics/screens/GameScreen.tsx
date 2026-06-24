@@ -284,7 +284,12 @@ export default function GameScreen({ onRoundComplete, bgDownloadState }: GameScr
     if (!round) return [];
     const config = round.config;
     if (config.retryWords && config.retryWords.length > 0) {
-      return buildRetryQuestions(config, config.retryWords, mergedWordsOverride || WORDS);
+      return buildRetryQuestions(
+        config,
+        config.retryWords,
+        mergedWordsOverride || WORDS,
+        selectedLesson?.phonemeIds,
+      );
     }
     const filterPhonemes = selectedLesson?.phonemeIds;
     return buildQuestions(config, filterPhonemes, mergedWordsOverride || WORDS);
@@ -305,7 +310,14 @@ export default function GameScreen({ onRoundComplete, bgDownloadState }: GameScr
         if (docs.length > 0 && round) {
           const cfg = round.config;
           if (cfg.retryWords?.length) {
-            setQuestions(buildRetryQuestions(cfg, cfg.retryWords, mergedWordsOverride));
+            setQuestions(
+              buildRetryQuestions(
+                cfg,
+                cfg.retryWords,
+                mergedWordsOverride,
+                selectedLesson?.phonemeIds,
+              ),
+            );
           } else {
             setQuestions(buildQuestions(cfg, selectedLesson?.phonemeIds, mergedWordsOverride));
           }
@@ -529,6 +541,7 @@ export default function GameScreen({ onRoundComplete, bgDownloadState }: GameScr
           speak={speak}
           playWordAudio={playWordAudio}
           playPhonemeAudio={playPhonemeAudio}
+          isPlacement={round.config.isPlacement ?? false}
         />
       )}
     </div>
@@ -540,13 +553,14 @@ interface ActiveQuestionProps {
   onAnswer: (answer: string) => void;
   onContinue: () => void;
   companion: CompanionId;
-  speak: (text: string) => void;
+  speak: (text: string, lang?: string) => void;
   playWordAudio: (word: string) => Promise<void>;
   playPhonemeAudio: (
     exampleWord: string,
     fallbackText: string,
     trimDurationMs: number,
   ) => Promise<void>;
+  isPlacement: boolean;
 }
 
 function getActiveWordData(q: Question): WordData | undefined {
@@ -566,6 +580,7 @@ function ActiveQuestion({
   speak,
   playWordAudio,
   playPhonemeAudio,
+  isPlacement,
 }: ActiveQuestionProps) {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
@@ -577,6 +592,11 @@ function ActiveQuestion({
 
   const handleCheck = () => {
     if (!selectedAnswer || feedback) return;
+    if (isPlacement) {
+      onAnswer(selectedAnswer);
+      onContinue();
+      return;
+    }
     const correct = selectedAnswer.toLowerCase() === computeCorrectAnswer(question).toLowerCase();
     setFeedback(correct ? 'correct' : 'wrong');
     onAnswer(selectedAnswer);
@@ -915,7 +935,11 @@ function ActiveQuestion({
             )}
             {feedback === null && (
               <p className="text-xs text-slate-500 dark:text-slate-400 font-bold tracking-wider uppercase text-left">
-                {selectedAnswer ? 'Ready to verify!' : 'Select an answer'}
+                {selectedAnswer
+                  ? isPlacement
+                    ? 'Tap NEXT to continue'
+                    : 'Ready to verify!'
+                  : 'Select an answer'}
               </p>
             )}
           </div>
@@ -935,7 +959,7 @@ function ActiveQuestion({
                   : undefined
               }
             >
-              CHECK
+              {isPlacement ? 'NEXT' : 'CHECK'}
             </button>
           ) : (
             <button

@@ -3,9 +3,27 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { GameContext, type GameContextValue } from './context';
-import type { Screen, SaveData, GameRound, RoundConfig, CompanionId, PhonicsQuestion, DefinitionQuestion, Question, StageData, StageLesson, CefrLevel, MapView, SimilarSoundGroup, ActivityData, AchievementId } from './types';
+import type {
+  Screen,
+  SaveData,
+  GameRound,
+  RoundConfig,
+  CompanionId,
+  PhonicsQuestion,
+  DefinitionQuestion,
+  Question,
+  StageData,
+  StageLesson,
+  CefrLevel,
+  MapView,
+  SimilarSoundGroup,
+  ActivityData,
+  AchievementId,
+} from './types';
 import { getWordFromQuestion } from './types';
-import BackgroundDownloadWidget, { type BackgroundDownloadState } from './components/BackgroundDownloadWidget';
+import BackgroundDownloadWidget, {
+  type BackgroundDownloadState,
+} from './components/BackgroundDownloadWidget';
 import {
   getActiveSlot,
   setActiveSlot,
@@ -40,7 +58,9 @@ const WordQuizScreen = dynamic(() => import('./screens/WordQuizScreen'), { ssr: 
 export default function PhonicsClient() {
   const [mounted, setMounted] = useState(false);
   const [screen, setScreen] = useState<Screen>('slots');
-  const [tab, setTab] = useState<'sound' | 'vocab' | 'challenges' | 'library' | 'shop' | 'profile'>('sound');
+  const [tab, setTab] = useState<'sound' | 'vocab' | 'challenges' | 'library' | 'shop' | 'profile'>(
+    'sound',
+  );
   const [activeSlot, setActiveSlotState] = useState<number | 'guest'>('guest');
   const [save, setSaveState] = useState<SaveData | null>(null);
   const [round, setRound] = useState<GameRound | null>(null);
@@ -55,12 +75,27 @@ export default function PhonicsClient() {
   const [firstJoinTotal, setFirstJoinTotal] = useState(0);
   const [bgDownloadState, setBgDownloadState] = useState<BackgroundDownloadState | null>(null);
   const [challengeConfig, setChallengeConfig] = useState<{
-    type: "phoneme-match" | "sound-sort" | "rhyme-time" | "speed-spell" | "syllable-smash";
-    difficulty: "easy" | "medium" | "hard";
+    type: 'phoneme-match' | 'sound-sort' | 'rhyme-time' | 'speed-spell' | 'syllable-smash';
+    difficulty: 'easy' | 'medium' | 'hard';
     level: CefrLevel;
   } | null>(null);
   const [newAchievements, setNewAchievements] = useState<AchievementId[]>([]);
-  const { muted, toggleMute, playSound, voiceURI, setVoiceURI, voices, prefetchWords, speechRate, setSpeechRate, speechPitch, setSpeechPitch } = useAudio();
+  const dismissAchievements = useCallback(() => {
+    setNewAchievements([]);
+  }, []);
+  const {
+    muted,
+    toggleMute,
+    playSound,
+    voiceURI,
+    setVoiceURI,
+    voices,
+    prefetchWords,
+    speechRate,
+    setSpeechRate,
+    speechPitch,
+    setSpeechPitch,
+  } = useAudio();
   const { trackCustomEvent } = useAnalytics();
 
   // ── Mount guard — no localStorage access before hydration ──────────────────
@@ -89,8 +124,8 @@ export default function PhonicsClient() {
     if (!mounted) return;
 
     const checkFirstJoin = async () => {
-      const stage1Key = "phonics-stage-1-loaded";
-      const isLoaded = localStorage.getItem(stage1Key) === "true";
+      const stage1Key = 'phonics-stage-1-loaded';
+      const isLoaded = localStorage.getItem(stage1Key) === 'true';
       if (isLoaded) return;
 
       const stage = STAGES[0];
@@ -120,7 +155,7 @@ export default function PhonicsClient() {
       const timeout = setTimeout(() => {
         if (active) {
           setIsFirstJoinLoading(false);
-          localStorage.setItem(stage1Key, "true");
+          localStorage.setItem(stage1Key, 'true');
         }
       }, 3500);
 
@@ -133,7 +168,7 @@ export default function PhonicsClient() {
           await new Promise((resolve) => setTimeout(resolve, 1200));
           if (active) {
             setIsFirstJoinLoading(false);
-            localStorage.setItem(stage1Key, "true");
+            localStorage.setItem(stage1Key, 'true');
           }
         }
       });
@@ -157,13 +192,13 @@ export default function PhonicsClient() {
       for (let i = 1; i < STAGES.length; i++) {
         const stage = STAGES[i];
         const stageKey = `phonics-${stage.id}-loaded`;
-        if (localStorage.getItem(stageKey) !== "true") {
+        if (localStorage.getItem(stageKey) !== 'true') {
           allAlreadyCached = false;
         }
       }
 
-      const stage1Key = "phonics-stage-1-loaded";
-      const isStage1Loaded = localStorage.getItem(stage1Key) === "true";
+      const stage1Key = 'phonics-stage-1-loaded';
+      const isStage1Loaded = localStorage.getItem(stage1Key) === 'true';
 
       if (!isStage1Loaded) {
         // Guard: wait until Stage 1 is fully loaded before prefetching subsequent stages
@@ -183,7 +218,7 @@ export default function PhonicsClient() {
         // Show initializing status immediately
         setBgDownloadState({
           isActive: true,
-          stageTitle: "Initializing",
+          stageTitle: 'Initializing',
           pct: 0,
           loaded: 0,
           total: 0,
@@ -199,7 +234,7 @@ export default function PhonicsClient() {
       for (let i = 1; i < STAGES.length; i++) {
         const stage = STAGES[i];
         const stageKey = `phonics-${stage.id}-loaded`;
-        if (localStorage.getItem(stageKey) !== "true") {
+        if (localStorage.getItem(stageKey) !== 'true') {
           recheckCached = false;
         }
       }
@@ -221,7 +256,7 @@ export default function PhonicsClient() {
         const stageKey = `phonics-${stage.id}-loaded`;
 
         // If already cached/loaded, skip
-        if (localStorage.getItem(stageKey) === "true") continue;
+        if (localStorage.getItem(stageKey) === 'true') continue;
 
         cachedAny = true;
         const phonemes = stage.lessons.flatMap((l) => l.phonemeIds);
@@ -271,7 +306,7 @@ export default function PhonicsClient() {
         }
 
         // Mark as loaded
-        localStorage.setItem(stageKey, "true");
+        localStorage.setItem(stageKey, 'true');
         setBgDownloadState({
           isActive: false,
           stageTitle: stage.title,
@@ -306,7 +341,7 @@ export default function PhonicsClient() {
     screenRef.current = screen;
     const timer = setTimeout(() => {
       const el = document.querySelector<HTMLElement>(
-        '#save-slot-1, #tutorial-next, #tutorial-start, #settings-back'
+        '#save-slot-1, #tutorial-next, #tutorial-start, #settings-back',
       );
       el?.focus();
     }, 100);
@@ -366,7 +401,12 @@ export default function PhonicsClient() {
 
   // ── Slot selection ─────────────────────────────────────────────────────────
   const selectSlot = useCallback(
-    (slot: number | 'guest', nameInput?: string, startLevel?: CefrLevel, startPlacement?: boolean) => {
+    (
+      slot: number | 'guest',
+      nameInput?: string,
+      startLevel?: CefrLevel,
+      startPlacement?: boolean,
+    ) => {
       setActiveSlot(slot);
       setActiveSlotState(slot);
 
@@ -396,12 +436,12 @@ export default function PhonicsClient() {
 
       if (startPlacement) {
         // Start placement test immediately
-          startRound({
-              category: 'definitions',
-              level: 'a1', // dummy level
-              length: 30,
-              isPlacement: true,
-            });
+        startRound({
+          category: 'definitions',
+          level: 'a1', // dummy level
+          length: 30,
+          isPlacement: true,
+        });
       } else {
         setScreen('tutorial');
       }
@@ -438,20 +478,14 @@ export default function PhonicsClient() {
 
       let correctAnswer = '';
       const category = question.category;
-      if (category === 'phonics') correctAnswer = question.correctAnswer;
-      else if (category === 'definitions') correctAnswer = question.correctAnswer;
-      else if (category === 'practice') correctAnswer = question.correctAnswer;
-      else if (category === 'ipa-word') correctAnswer = question.correctAnswer;
-      else if (category === 'word-ipa') correctAnswer = question.correctAnswer;
-      else if (category === 'synonyms') correctAnswer = question.correctAnswer;
-      else if (category === 'exercise') {
+      if (category === 'exercise') {
         const e = question as import('./types').ExerciseQuestion;
         correctAnswer = 'correctAnswer' in e.data ? e.data.correctAnswer : '';
-      }
-      else if (category === 'spelling') {
-        correctAnswer = question.inputMode === 'tiles'
-          ? question.word.phonemes.join("")
-          : question.word.word;
+      } else if (category === 'spelling') {
+        correctAnswer =
+          question.inputMode === 'tiles' ? question.word.phonemes.join('') : question.word.word;
+      } else if ('correctAnswer' in question) {
+        correctAnswer = (question as { correctAnswer: string }).correctAnswer;
       }
 
       const correct = answer.toLowerCase() === correctAnswer.toLowerCase();
@@ -462,8 +496,10 @@ export default function PhonicsClient() {
           : GAME_CONFIG.COINS_CORRECT
         : 0;
 
-      if (correct) playSound('correct');
-      else playSound('wrong');
+      if (!prev.config.isPlacement) {
+        if (correct) playSound('correct');
+        else playSound('wrong');
+      }
 
       trackCustomEvent(correct ? 'game_correct' : 'game_wrong', {
         game: 'phonics',
@@ -495,11 +531,11 @@ export default function PhonicsClient() {
     if (round.config.isPlacement) {
       const correctCount = round.results.filter((r) => r.correct).length;
       const pct = round.results.length > 0 ? correctCount / round.results.length : 0;
-      let placedLevel: CefrLevel = "a1";
-      if (pct >= 0.9) placedLevel = "c1";
-      else if (pct >= 0.7) placedLevel = "b2";
-      else if (pct >= 0.5) placedLevel = "b1";
-      else if (pct >= 0.3) placedLevel = "a2";
+      let placedLevel: CefrLevel = 'a1';
+      if (pct >= 0.9) placedLevel = 'c1';
+      else if (pct >= 0.7) placedLevel = 'b2';
+      else if (pct >= 0.5) placedLevel = 'b1';
+      else if (pct >= 0.3) placedLevel = 'a2';
 
       const updated: SaveData = {
         ...save,
@@ -523,9 +559,8 @@ export default function PhonicsClient() {
 
     // Update lesson progress if coming from a lesson
     if (selectedLesson && save) {
-      const accuracy = round.results.length > 0
-        ? Math.round((round.corrects / round.results.length) * 100)
-        : 0;
+      const accuracy =
+        round.results.length > 0 ? Math.round((round.corrects / round.results.length) * 100) : 0;
       updated = {
         ...updated,
         lessonProgress: {
@@ -545,9 +580,8 @@ export default function PhonicsClient() {
 
     // Update activity progress if coming from an activity
     if (selectedActivity && save) {
-      const accuracy = round.results.length > 0
-        ? Math.round((round.corrects / round.results.length) * 100)
-        : 0;
+      const accuracy =
+        round.results.length > 0 ? Math.round((round.corrects / round.results.length) * 100) : 0;
       updated = {
         ...updated,
         activityProgress: {
@@ -598,13 +632,12 @@ export default function PhonicsClient() {
 
     // Adaptive CEFR Level upgrading/downgrading via performance (only for vocabulary mode)
     if (!round.config.isPlacement && round.config.category === 'definitions') {
-      const accuracy = round.results.length > 0
-        ? Math.round((round.corrects / round.results.length) * 100)
-        : 0;
+      const accuracy =
+        round.results.length > 0 ? Math.round((round.corrects / round.results.length) * 100) : 0;
 
       let newStreak = updated.cefrUpgradeStreak ?? 0;
       let newCefr = updated.cefrLevel ?? 'a1';
-      const cefrOrder: CefrLevel[] = ["a1", "a2", "b1", "b2", "c1", "c2"];
+      const cefrOrder: CefrLevel[] = ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'];
       const currentIdx = cefrOrder.indexOf(newCefr);
 
       if (accuracy >= 90) {
@@ -636,9 +669,8 @@ export default function PhonicsClient() {
 
     persistSave(updated);
 
-    const accuracy = round.results.length > 0
-      ? Math.round((round.corrects / round.results.length) * 100)
-      : 0;
+    const accuracy =
+      round.results.length > 0 ? Math.round((round.corrects / round.results.length) * 100) : 0;
     const unlocked = checkAchievements(updated, {
       roundResult: {
         accuracy,
@@ -669,7 +701,12 @@ export default function PhonicsClient() {
   const handleChallengeComplete = useCallback(
     (results: { score: number; totalCorrect: number; totalAttempts: number }) => {
       if (!save || !challengeConfig) return;
-      const prev = save.challengeStats?.[challengeConfig.type] ?? { roundsPlayed: 0, bestScore: 0, totalCorrect: 0, totalAttempts: 0 };
+      const prev = save.challengeStats?.[challengeConfig.type] ?? {
+        roundsPlayed: 0,
+        bestScore: 0,
+        totalCorrect: 0,
+        totalAttempts: 0,
+      };
       const updated: SaveData = {
         ...save,
         challengeStats: {
@@ -688,7 +725,10 @@ export default function PhonicsClient() {
         challengeResult: { type: challengeConfig.type, totalCorrect: results.totalCorrect },
       });
       if (unlocked.length > 0) {
-        updated.phonemeCoins += unlocked.reduce((sum, id) => sum + (ACHIEVEMENTS[id]?.reward ?? 0), 0);
+        updated.phonemeCoins += unlocked.reduce(
+          (sum, id) => sum + (ACHIEVEMENTS[id]?.reward ?? 0),
+          0,
+        );
         persistSave(updated);
         setNewAchievements(unlocked);
       }
@@ -708,7 +748,11 @@ export default function PhonicsClient() {
   );
 
   const handleLaunchChallenge = useCallback(
-    (type: "phoneme-match" | "sound-sort" | "rhyme-time" | "speed-spell" | "syllable-smash", difficulty: "easy" | "medium" | "hard", level: CefrLevel) => {
+    (
+      type: 'phoneme-match' | 'sound-sort' | 'rhyme-time' | 'speed-spell' | 'syllable-smash',
+      difficulty: 'easy' | 'medium' | 'hard',
+      level: CefrLevel,
+    ) => {
       setChallengeConfig({ type, difficulty, level });
       setScreen('challenge-game');
     },
@@ -783,27 +827,34 @@ export default function PhonicsClient() {
           <MascotCanvas
             companionId={companion}
             size={84}
-            animationState={isDone ? "celebrate" : "idle"}
+            animationState={isDone ? 'celebrate' : 'idle'}
             className="rounded-2xl bg-white/10 p-2"
           />
           <div className="space-y-2 w-full">
-            <h3 className={`text-xl font-black text-slate-800 dark:text-white ${isDone ? "" : "animate-pulse"}`} style={{ fontFamily: "var(--font-mali)" }}>
-              {isDone ? "Status: Done" : "Status: Downloading..."}
+            <h3
+              className={`text-xl font-black text-slate-800 dark:text-white ${isDone ? '' : 'animate-pulse'}`}
+              style={{ fontFamily: 'var(--font-mali)' }}
+            >
+              {isDone ? 'Status: Done' : 'Status: Downloading...'}
             </h3>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              {isDone ? "All audio has been downloaded." : `Downloaded ${firstJoinLoaded}/${firstJoinTotal} ({pct}%)`}
+              {isDone
+                ? 'All audio has been downloaded.'
+                : `Downloaded ${firstJoinLoaded}/${firstJoinTotal} ({pct}%)`}
             </p>
           </div>
           <div className="w-full space-y-2">
             <div className="h-4 bg-slate-300/30 dark:bg-slate-900/40 rounded-full border border-white/20 overflow-hidden p-0.5 shadow-inner relative">
               <div
-                className={`h-full rounded-full bg-gradient-to-r ${isDone ? "from-emerald-400 to-teal-500" : "from-[#2EC4B6] to-[#C8A44E]"} transition-all duration-300`}
+                className={`h-full rounded-full bg-gradient-to-r ${isDone ? 'from-emerald-400 to-teal-500' : 'from-[#2EC4B6] to-[#C8A44E]'} transition-all duration-300`}
                 style={{ width: `${pct}%` }}
               />
             </div>
             <div className="flex justify-between text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-              <span>{isDone ? "DOWNLOAD COMPLETE" : "LOADING INTRODUCTION"}</span>
-              <span>{firstJoinLoaded} / {firstJoinTotal}</span>
+              <span>{isDone ? 'DOWNLOAD COMPLETE' : 'LOADING INTRODUCTION'}</span>
+              <span>
+                {firstJoinLoaded} / {firstJoinTotal}
+              </span>
             </div>
           </div>
         </div>
@@ -815,9 +866,24 @@ export default function PhonicsClient() {
 
   return (
     <GameContext.Provider value={ctx}>
-      <AchievementToast ids={newAchievements} onDismiss={() => setNewAchievements([])} />
-      <div className="phonics-game relative h-full flex flex-col bg-gradient-to-b from-[#E8F2FF] via-[#E8EFFF] to-[#FAE8FF] dark:from-[#090D1A] dark:via-[#131B35] dark:to-[#2A1242] transition-colors duration-500 motion-reduce:transition-none" style={{ '--glass-level': glassValue } as React.CSSProperties}>
-        <div key={screen === 'game' ? 'slots' : screen} className={screen === 'slots' || screen === 'tutorial' || screen === 'game' || screen === 'challenge-game' || screen === 'word-builder' || screen === 'word-quiz' ? 'animate-screen-enter flex-1 flex flex-col overflow-y-auto min-h-0' : ''}>
+      <AchievementToast ids={newAchievements} onDismiss={dismissAchievements} />
+      <div
+        className="phonics-game relative h-full flex flex-col bg-gradient-to-b from-[#E8F2FF] via-[#E8EFFF] to-[#FAE8FF] dark:from-[#090D1A] dark:via-[#131B35] dark:to-[#2A1242] transition-colors duration-500 motion-reduce:transition-none"
+        style={{ '--glass-level': glassValue } as React.CSSProperties}
+      >
+        <div
+          key={screen === 'game' ? 'slots' : screen}
+          className={
+            screen === 'slots' ||
+            screen === 'tutorial' ||
+            screen === 'game' ||
+            screen === 'challenge-game' ||
+            screen === 'word-builder' ||
+            screen === 'word-quiz'
+              ? 'animate-screen-enter flex-1 flex flex-col overflow-y-auto min-h-0'
+              : ''
+          }
+        >
           {screen === 'slots' && <SaveSlotScreen onSelectSlot={selectSlot} />}
           {screen === 'tutorial' && (
             <TutorialScreen
@@ -835,14 +901,19 @@ export default function PhonicsClient() {
               }}
             />
           )}
-          {screen === 'game' && round && <GameScreen onRoundComplete={finalizeRound} bgDownloadState={bgDownloadState} />}
+          {screen === 'game' && round && (
+            <GameScreen onRoundComplete={finalizeRound} bgDownloadState={bgDownloadState} />
+          )}
           {screen === 'challenge-game' && challengeConfig && (
             <ChallengeGameScreen
               challengeType={challengeConfig.type}
               difficulty={challengeConfig.difficulty}
               level={challengeConfig.level}
               onComplete={handleChallengeComplete}
-              onBack={() => { setChallengeConfig(null); setScreen('path'); }}
+              onBack={() => {
+                setChallengeConfig(null);
+                setScreen('path');
+              }}
             />
           )}
           {screen === 'word-builder' && <WordBuilderScreen />}
@@ -852,14 +923,15 @@ export default function PhonicsClient() {
         {showHeaderFooter && (
           <div className="flex-1 flex flex-col overflow-hidden min-h-0">
             <StaticHeader save={save} companion={companion} setScreen={setScreen} screen={screen} />
-            
-            <div key={screen} className="flex-1 overflow-hidden relative min-h-0 flex flex-col animate-screen-enter">
+
+            <div
+              key={screen}
+              className="flex-1 overflow-hidden relative min-h-0 flex flex-col animate-screen-enter"
+            >
               <BackgroundDownloadWidget state={bgDownloadState} />
               {screen === 'path' && (
                 <>
-                  {tab === 'challenges' && (
-                    <ChallengesScreen onLaunch={handleLaunchChallenge} />
-                  )}
+                  {tab === 'challenges' && <ChallengesScreen onLaunch={handleLaunchChallenge} />}
                   {tab === 'sound' && <StageListScreen mode="sound" />}
                   {tab === 'vocab' && <StageListScreen mode="vocab" />}
                   {tab === 'library' && <LibraryScreen />}
@@ -887,7 +959,12 @@ export default function PhonicsClient() {
                       isPlacement: false,
                     });
                   }}
-                  onBackToPath={() => { setSelectedStage(null); setSelectedLesson(null); selectActivity(null); setScreen('path'); }}
+                  onBackToPath={() => {
+                    setSelectedStage(null);
+                    setSelectedLesson(null);
+                    selectActivity(null);
+                    setScreen('path');
+                  }}
                 />
               )}
             </div>
@@ -930,8 +1007,11 @@ function StaticHeader({
       <div className="flex items-center gap-3">
         <MascotHeaderAvatar companion={companion} size={38} />
         <div className="flex flex-col text-left">
-          <span className="text-base font-extrabold text-slate-800 dark:text-white leading-tight" style={{ fontFamily: "var(--font-mali)" }}>
-            {save?.name ?? "Guest"}
+          <span
+            className="text-base font-extrabold text-slate-800 dark:text-white leading-tight"
+            style={{ fontFamily: 'var(--font-mali)' }}
+          >
+            {save?.name ?? 'Guest'}
           </span>
         </div>
       </div>
@@ -941,12 +1021,16 @@ function StaticHeader({
         </span>
         <button
           className={`w-9.5 h-9.5 rounded-xl flex items-center justify-center text-base active:scale-90 transition-all cursor-pointer shadow-xs btn-3d ${
-            screen === "settings"
-              ? "bg-[#C8A44E] text-white border-[#C8A44E]"
-              : "bg-white/60 dark:bg-slate-800/60 border border-white/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200"
+            screen === 'settings'
+              ? 'bg-[#C8A44E] text-white border-[#C8A44E]'
+              : 'bg-white/60 dark:bg-slate-800/60 border border-white/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200'
           }`}
-          onClick={() => setScreen(screen === "settings" ? "path" : "settings")}
-          style={{ "--border-color": screen === "settings" ? "#91722e" : "rgba(0,0,0,0.1)" } as React.CSSProperties}
+          onClick={() => setScreen(screen === 'settings' ? 'path' : 'settings')}
+          style={
+            {
+              '--border-color': screen === 'settings' ? '#91722e' : 'rgba(0,0,0,0.1)',
+            } as React.CSSProperties
+          }
           aria-label="Settings"
         >
           <i className="fi fi-sr-settings text-sm" />
@@ -968,31 +1052,33 @@ function StaticFooter({
   setScreen: (s: Screen) => void;
 }) {
   const tabs = [
-    { id: "sound", name: "Sound", iconClass: "fi fi-sr-volume" },
-    { id: "vocab", name: "Vocab", iconClass: "fi fi-sr-graduation-cap" },
-    { id: "challenges", name: "Challenges", iconClass: "fi fi-sr-bolt" },
-    { id: "library", name: "Soundbook", iconClass: "fi fi-sr-book-open-cover" },
-    { id: "shop", name: "Bazaar", iconClass: "fi fi-sr-shopping-cart" },
-    { id: "profile", name: "Profile", iconClass: "fi fi-sr-user" },
+    { id: 'sound', name: 'Sound', iconClass: 'fi fi-sr-volume' },
+    { id: 'vocab', name: 'Vocab', iconClass: 'fi fi-sr-graduation-cap' },
+    { id: 'challenges', name: 'Challenges', iconClass: 'fi fi-sr-bolt' },
+    { id: 'library', name: 'Soundbook', iconClass: 'fi fi-sr-book-open-cover' },
+    { id: 'shop', name: 'Bazaar', iconClass: 'fi fi-sr-shopping-cart' },
+    { id: 'profile', name: 'Profile', iconClass: 'fi fi-sr-user' },
   ] as const;
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-[560px] glass-panel rounded-3xl shadow-lg border border-white/20 dark:border-slate-800/40 backdrop-blur-md flex items-center justify-between py-3 px-5">
       {tabs.map((t) => {
-        const active = screen === "path" && tab === t.id;
+        const active = screen === 'path' && tab === t.id;
         return (
           <button
             key={t.id}
             onClick={() => {
               setTab(t.id);
-              setScreen("path");
+              setScreen('path');
             }}
             className={`flex flex-col items-center justify-center flex-1 cursor-pointer transition-all duration-200 select-none relative ${
-              active 
-                ? "text-[#C8A44E] scale-105 font-bold" 
-                : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400"
+              active
+                ? 'text-[#C8A44E] scale-105 font-bold'
+                : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400'
             }`}
           >
-            <span className={`text-xl mb-0.5 relative flex flex-col items-center ${active ? "scale-110 font-bold" : ""}`}>
+            <span
+              className={`text-xl mb-0.5 relative flex flex-col items-center ${active ? 'scale-110 font-bold' : ''}`}
+            >
               <i className={t.iconClass} />
               {active && (
                 <span className="hidden max-[325px]:block w-1 h-1 rounded-full bg-[#C8A44E] absolute -bottom-1.5 animate-pulse" />

@@ -179,7 +179,7 @@ export default function LibraryScreen() {
           }}
           className="w-full py-3 rounded-xl bg-[#C8A44E] text-white font-extrabold text-xs tracking-wider uppercase hover:brightness-105 active:scale-95 transition-all cursor-pointer mb-5 flex items-center justify-center gap-2"
         >
-          <i className="fi fi-sr-sparkles" /> CREATE YOUR WORD
+          <i className="fi fi-sr-pencil" /> CREATE YOUR WORD
         </button>
 
         {/* Category Filters selector chips */}

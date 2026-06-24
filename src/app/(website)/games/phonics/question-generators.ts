@@ -6,6 +6,7 @@ import {
   CHALLENGE_ROUND_LENGTHS,
   CHALLENGE_TIME_LIMITS,
   PHONEME_TO_GRAPHEMES,
+  getAvailableTypesForPhoneme,
 } from './constants';
 import type {
   PhonicsQuestion,
@@ -516,6 +517,7 @@ function buildRetryQuestions(
   config: RoundConfig,
   wordStrings: string[],
   words?: WordData[],
+  phonemeIds?: string[],
 ): Question[] {
   const wordPool = words || WORDS;
   const retryWords = wordPool.filter((w) => wordStrings.includes(w.word));
@@ -541,7 +543,11 @@ function buildRetryQuestions(
       }
 
       for (const word of retryWords) {
-        const phonemeId = word.phonemes[0];
+        let phonemeId = word.phonemes[0];
+        if (phonemeIds && phonemeIds.length > 0) {
+          const match = word.phonemes.find((p) => phonemeIds.includes(p));
+          if (match) phonemeId = match;
+        }
         const phoneme = PHONEMES.find((p) => p.id === phonemeId);
         if (!phoneme) continue;
 
@@ -720,9 +726,22 @@ function getDistractorsFromSimilarGroup(
 ): WordData[] {
   const wordPool = words || WORDS;
   const groupPhonemeIds = getGroupPhonemeIds(phonemeId);
-  const pool = wordPool.filter(
-    (w) => w.word !== correctWord.word && w.phonemes.some((p) => groupPhonemeIds.includes(p)),
+  let pool = wordPool.filter(
+    (w) =>
+      w.word !== correctWord.word &&
+      !w.phonemes.includes(phonemeId) &&
+      w.phonemes.some((p) => groupPhonemeIds.includes(p)),
   );
+
+  // Fallback: if we don't have enough distractors from the same similar group,
+  // draw from general vocabulary excluding the target phoneme.
+  if (pool.length < count) {
+    const extra = wordPool.filter(
+      (w) => w.word !== correctWord.word && !w.phonemes.includes(phonemeId),
+    );
+    pool = [...pool, ...extra];
+  }
+
   const picked: WordData[] = [];
   const tempPool = [...pool].sort(() => Math.random() - 0.5);
   for (let i = 0; i < Math.min(count, tempPool.length); i++) {
@@ -1072,7 +1091,11 @@ function generateIpaToWordQuestions(
     if (!word) continue;
     used.add(word.word);
 
-    const phonemeId = word.phonemes[0];
+    let phonemeId = word.phonemes[0];
+    if (phonemeIds && phonemeIds.length > 0) {
+      const match = word.phonemes.find((p) => phonemeIds.includes(p));
+      if (match) phonemeId = match;
+    }
     const phoneme = PHONEMES.find((p) => p.id === phonemeId);
     if (!phoneme) continue;
 
@@ -1093,7 +1116,11 @@ function generateIpaToWordQuestions(
     const w = wordPool[Math.floor(Math.random() * wordPool.length)];
     if (used.has(w.word)) continue;
     used.add(w.word);
-    const pid = w.phonemes[0];
+    let pid = w.phonemes[0];
+    if (phonemeIds && phonemeIds.length > 0) {
+      const match = w.phonemes.find((p) => phonemeIds.includes(p));
+      if (match) pid = match;
+    }
     const ph = PHONEMES.find((p) => p.id === pid);
     if (!ph) continue;
     const dists = getDistractorsFromSimilarGroup(w, pid, level, 3, words);
@@ -1130,7 +1157,11 @@ function generateWordToIpaQuestions(
     if (!word) continue;
     used.add(word.word);
 
-    const phonemeId = word.phonemes[0];
+    let phonemeId = word.phonemes[0];
+    if (phonemeIds && phonemeIds.length > 0) {
+      const match = word.phonemes.find((p) => phonemeIds.includes(p));
+      if (match) phonemeId = match;
+    }
     const correctPhoneme = PHONEMES.find((p) => p.id === phonemeId);
     if (!correctPhoneme) continue;
 
@@ -1159,7 +1190,11 @@ function generateWordToIpaQuestions(
     const w = wordPool[Math.floor(Math.random() * wordPool.length)];
     if (used.has(w.word)) continue;
     used.add(w.word);
-    const pid = w.phonemes[0];
+    let pid = w.phonemes[0];
+    if (phonemeIds && phonemeIds.length > 0) {
+      const match = w.phonemes.find((p) => phonemeIds.includes(p));
+      if (match) pid = match;
+    }
     const ph = PHONEMES.find((p) => p.id === pid);
     if (!ph) continue;
     const options = [ph.ipa];
@@ -1452,7 +1487,11 @@ function generateStressQuestions(
     const correctIdx = stress.indexOf(1);
     if (correctIdx === -1) continue;
 
-    const phonemeId = word.phonemes[0];
+    let phonemeId = word.phonemes[0];
+    if (phonemeIds && phonemeIds.length > 0) {
+      const match = word.phonemes.find((p) => phonemeIds.includes(p));
+      if (match) phonemeId = match;
+    }
 
     questions.push({
       category: 'stress',
@@ -1472,14 +1511,32 @@ function generateExerciseQuestions(
   phonemeIds?: string[],
   words?: WordData[],
 ): ExerciseQuestion[] {
-  const FORMATS: ('grapheme' | 'ipa-word' | 'word-ipa' | 'minimal-pairs' | 'stress')[] = [
+  let FORMATS: ('grapheme' | 'ipa-word' | 'word-ipa' | 'minimal-pairs' | 'stress')[] = [
     'grapheme',
     'ipa-word',
     'word-ipa',
     'minimal-pairs',
     'stress',
   ];
-  const RATIOS = [6, 4, 4, 6, 5];
+  let RATIOS = [6, 4, 4, 6, 5];
+
+  if (phonemeIds?.length === 1) {
+    const availableTypes = getAvailableTypesForPhoneme(phonemeIds[0]);
+    const availableSet = new Set(availableTypes.filter((t) => t !== 'exercise'));
+    const filtered: typeof FORMATS = [];
+    const filteredRatios: number[] = [];
+    FORMATS.forEach((f, i) => {
+      if (availableSet.has(f)) {
+        filtered.push(f);
+        filteredRatios.push(RATIOS[i]);
+      }
+    });
+    FORMATS = filtered;
+    RATIOS = filteredRatios;
+  }
+
+  if (FORMATS.length === 0) return [];
+
   const totalRatio = RATIOS.reduce((a, b) => a + b, 0);
 
   const counts = FORMATS.map((_, i) => Math.round((count * RATIOS[i]) / totalRatio));

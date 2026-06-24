@@ -5,6 +5,19 @@
 
 
 
+## v1.10.45 (2026-06-24)
+* **Phonics Game Improvements & Fixes**:
+  * Fixed target phoneme focus bug in IPA-to-Word, Word-to-IPA, and stress question generators, where the generator blindly picked the first phoneme of a word (e.g. `/p/` in `propaganda` or `practice`) even when generating questions for a specific target phoneme group (e.g. `/æ/`), causing irrelevant phoneme questions to show up in the `/æ/` lesson.
+  * Fixed answer grading bug in `PhonicsClient.tsx` where new activity types (`grapheme`, `minimal-pairs`, `stress`) and other choice-based questions were incorrectly marked as wrong due to a missing category mapping in `correctAnswer` checking. Simplified this logic to fall back to `correctAnswer` directly for any question containing the property.
+  * Fixed achievement unlock toast auto-dismiss loop in `PhonicsClient.tsx` and `AchievementToast.tsx` by wrapping the `onDismiss` callback in a stable `useCallback` and adding `ids` to the toast's `useEffect` dependency array, preventing parent component rerenders from continuously resetting the auto-dismiss timer.
+  * Fixed all missing/invisible Flaticon icons in Phonics Game views.
+  * In `GroupMapView.tsx`, mapped sound category cards to either the working `fi-sr-volume` icon, a custom inline SVG waveform (for diphthongs), or large stylized letter indicators (like Vː, P, T, K) in Mali font. Also fixed subtitles to display clean IPA slash notation for all category sounds (e.g. `/p/, /b/`), eliminating duplicate characters.
+  * In `ActivityPath.tsx`, mapped activity path nodes to supported icons from the project's font subset (grapheme → `fi-sr-pencil`, ipa-word → `fi-sr-eye`, word-ipa → `fi-sr-copy`, minimal-pairs → `fi-sr-volume`, stress → `fi-sr-bolt`, exercise → `fi-sr-gamepad`).
+  * In `StageListScreen.tsx`, replaced missing vocab group icons with large text labels (like A1, B2) styled with Mali font, and mapped `vocab-exercise` to the supported `fi-sr-gamepad` class.
+  * In `LibraryScreen.tsx`, changed the spelling sandbox / Word Builder entry point to use `fi-sr-pencil` instead of `fi-sr-sparkles`.
+  * In `ChallengesScreen.tsx`, mapped `fi-sr-repeat` to the supported `fi-sr-refresh` icon.
+  * In `constants.ts`, updated `CHALLENGE_TYPES` config to use working icon classes (`fi-sr-heart` for Phoneme Match, `fi-sr-list` for Sound Sort, and `fi-sr-volume` for Rhyme Time).
+
 ## v1.10.44 (2026-06-24)
 * **Overlay Z-Index & React Portal Integration**:
   * Wrapped key game drawer and modal components (`ActivityPath.tsx`, `StageListScreen.tsx` for VocabActivityPath, `LibraryScreen.tsx`, `WordQuizScreen.tsx`, `WordBuilderScreen.tsx`, `QuizConfigModal.tsx`) using React Portals (`createPortal`) targeting `document.body`. This lifts all overlays completely out of local stacking contexts caused by parent screen animation transforms, ensuring they render on top of the fixed navbar footer.
