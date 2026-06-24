@@ -5,6 +5,29 @@
 
 
 
+## v1.10.44 (2026-06-24)
+* **Overlay Z-Index & React Portal Integration**:
+  * Wrapped key game drawer and modal components (`ActivityPath.tsx`, `StageListScreen.tsx` for VocabActivityPath, `LibraryScreen.tsx`, `WordQuizScreen.tsx`, `WordBuilderScreen.tsx`, `QuizConfigModal.tsx`) using React Portals (`createPortal`) targeting `document.body`. This lifts all overlays completely out of local stacking contexts caused by parent screen animation transforms, ensuring they render on top of the fixed navbar footer.
+  * Rebalanced drawer backgrounds to clean solid whites/slates, dark borders, and 80% opacity dark slate overlays to eliminate text clashing and enhance visual hierarchy.
+
+## v1.10.43 (2026-06-24)
+* **Glassmorphism Backdrop & Transition Fixes**:
+  * Fixed backdrop blur in Phonics Game overlay screens (`ActivityPath.tsx`, `StageListScreen.tsx`, `LibraryScreen.tsx`, `WordQuizScreen.tsx`, `WordBuilderScreen.tsx`, `QuizConfigModal.tsx`, `VictoryScreen.tsx`) by upgrading the invalid `backdrop-blur-xs` utility to `backdrop-blur-md` to completely eliminate text clashing from the background map.
+  * Defined `--backdrop-blur-xs: 3px` in the `@theme` block of `globals.css` to fix the fallback 0px blur on game buttons and other layout components across the site.
+  * Added the missing `@keyframes fade-in` and `@utility animate-fade-in` to `globals.css` to enable smooth fade-in animations on all game modals and backdrops.
+
+## v1.10.42 (2026-06-24)
+* **Grapheme Match 2-question ceiling**: Removed overly restrictive `used` set in `generateGraphemePatternQuestions`. Single-grapheme phonemes (æ→a, e→e, etc.) now produce the full question count. Each question paired with an example word from the phoneme's word pool for variety. UI updated to show example word text.
+* **Minimal Pairs infinite loop guard**: Added `targetIds` pre-filter to skip phonemes with zero word coverage, plus safety counter in fallback loop. Prevents game freeze for phonemes with no matching word data.
+
+## v1.10.41 (2026-06-24)
++ **Phonics Island Sound Path Revamp**: Replaced Listen & Pick with Grapheme Pattern Match, added Minimal Pairs and Stress activities. New 6-activity progression: Grapheme Match → IPA→Word → Word→IPA → Minimal Pairs → Stress → Exercise.
++ **3 new question generators**: `generateGraphemePatternQuestions` (alternates phoneme/grapheme directions), `generateMinimalPairsQuestions` (true minimal pair detection + same-group fallback), `generateStressQuestions` (word→stressed-IPA with space-separated display).
++ **3 new UI components**: `GraphemePatternQuestion.tsx`, `MinimalPairsQuestion.tsx`, `StressQuestion.tsx` with choice-based layouts following existing QuestionChoiceButton patterns.
++ **Adaptive scaling**: `getQuestionCount()` adjusts count based on best score (10–25 for activities, 25–50 for exercise).
++ **Exercise rebalance**: Weighted pool 6:4:4:6:5 (grapheme:ipa-word:word-ipa:minimal-pairs:stress). Removed `practice` from exercise subtypes.
+* **Activity dot tracking**: GroupMapView and ActivityPath updated from 4 to 6 activities per phoneme.
+
 ## v1.10.40 (2026-06-22)
 * **Dependency Updates**: Upgraded Next.js to 16.2.9, Tailwind CSS to 4.3.1, Mongoose to 9.7.1, Zod to 4.4.3, isomorphic-dompurify to 3.18.0, and other outdated dependencies to their latest compatible versions.
 * **Build Configuration**: Removed invalid `--no-lint` CLI flag from the Next.js build command, and configured Next.js to ignore ESLint and TypeScript compilation errors directly in `next.config.ts`.

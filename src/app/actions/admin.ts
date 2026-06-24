@@ -5,6 +5,7 @@ import Portfolio from '@/models/Portfolio';
 import Gallery from '@/models/Gallery';
 import Learning from '@/models/Learning';
 import Game from '@/models/Game';
+import WordOverride from '@/models/Word';
 import AnalyticsEvent from '@/models/AnalyticsEvent';
 import DailyAnalytics from '@/models/DailyAnalytics';
 import { CONFIG } from '@/lib/config';
@@ -42,11 +43,12 @@ export async function getDbStats(): Promise<DbStats> {
     const conn = await dbConnect();
     const db = conn.connection.db;
 
-    const [portfolioCount, galleryCount, learningCount, gameCount] = await Promise.all([
+    const [portfolioCount, galleryCount, learningCount, gameCount, wordCount] = await Promise.all([
       Portfolio.countDocuments(),
       Gallery.countDocuments(),
       Learning.countDocuments(),
       Game.countDocuments(),
+      WordOverride.countDocuments(),
     ]);
 
     // Get server info
@@ -79,6 +81,7 @@ export async function getDbStats(): Promise<DbStats> {
         { name: 'Gallery', count: galleryCount, icon: 'fi fi-sr-picture' },
         { name: 'Resources', count: learningCount, icon: 'fi fi-sr-book-alt' },
         { name: 'Game', count: gameCount, icon: 'fi fi-sr-gamepad' },
+        { name: 'Words', count: wordCount, icon: 'fi fi-sr-book' },
       ],
       serverStatus,
     };

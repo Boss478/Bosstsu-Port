@@ -12,6 +12,7 @@ const navItems = [
   { label: 'แกลเลอรี (Gallery)', href: '/admin/gallery', icon: 'fi-sr-picture' },
   { label: 'สื่อการเรียนรู้ (Resources)', href: '/admin/resources', icon: 'fi-sr-book-alt' },
   { label: 'เกม (Games)', href: '/admin/games', icon: 'fi-sr-gamepad' },
+  { label: 'คำศัพท์ (Words)', href: '/admin/words', icon: 'fi-sr-book' },
   { label: 'เครื่องมือในชั้นเรียน (Class Tools)', href: '/admin/tools', icon: 'fi-sr-chalkboard' },
   { label: 'วิเคราะห์ (Analytics)', href: '/admin/analytics', icon: 'fi-sr-stats' },
 ];

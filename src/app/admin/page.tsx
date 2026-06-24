@@ -372,6 +372,19 @@ export default async function AdminPage() {
               />
             </Link>
             <Link
+              href="/admin/words"
+              className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
+            >
+              <i aria-hidden="true" className="fi fi-sr-book text-blue-500" />
+              <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
+                จัดการคำศัพท์
+              </span>
+              <i
+                aria-hidden="true"
+                className="fi fi-sr-arrow-right text-xs text-zinc-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
+              />
+            </Link>
+            <Link
               href="/admin/analytics"
               className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
             >

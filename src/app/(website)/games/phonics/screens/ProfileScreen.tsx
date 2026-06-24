@@ -1,32 +1,63 @@
-"use client";
+'use client';
 
-import { useGame } from "../context";
-import { useMemo, useState } from "react";
-import type { CompanionId, AchievementId, SaveData } from "../types";
-import { COMPANIONS, CEFR_LEVEL_LABELS, CEFR_LEVEL_ORDER } from "../constants";
-import { useAudio } from "@/hooks/useAudio";
-import MascotCanvas from "../components/MascotCanvas";
-import { deleteSave } from "../save";
-import AchievementBadge from "../components/AchievementBadge";
-import PhonemeHeatmap from "../components/PhonemeHeatmap";
-import CefrProgress from "../components/CefrProgress";
-import StreakSparkline from "../components/StreakSparkline";
+import { useGame } from '../context';
+import { useMemo, useState } from 'react';
+import type { CompanionId, AchievementId, SaveData } from '../types';
+import { COMPANIONS, CEFR_LEVEL_LABELS, CEFR_LEVEL_ORDER } from '../constants';
+import { useAudio } from '@/hooks/useAudio';
+import MascotCanvas from '../components/MascotCanvas';
+import { deleteSave } from '../save';
+import AchievementBadge from '../components/AchievementBadge';
+import PhonemeHeatmap from '../components/PhonemeHeatmap';
+import CefrProgress from '../components/CefrProgress';
+import StreakSparkline from '../components/StreakSparkline';
 
 const FREE_IDS: CompanionId[] = ['nox', 'mira', 'chip'];
 
-
-
 const ACHIEVEMENT_CATEGORIES: { key: string; label: string; ids: AchievementId[] }[] = [
-  { key: 'progress', label: 'Progress', ids: ["first_round", "sound_explorer", "vocab_master", "perfectionist", "streak_10", "streak_30"] },
-  { key: 'phoneme', label: 'Phoneme Mastery', ids: ["phoneme_10", "phoneme_25", "phoneme_40", "phoneme_gold", "phoneme_allgold"] },
-  { key: 'economy', label: 'Economy', ids: ["first_purchase", "collector_5", "millionaire"] },
-  { key: 'skill', label: 'Skill', ids: ["speed_demon", "word_builder", "quiz_champ", "companion_friend"] },
-  { key: 'challenge', label: 'Challenge', ids: ["match_10", "sort_50", "rhyme_20", "speed_spell_30", "syllable_50", "challenge_all", "challenge_allgold"] },
+  {
+    key: 'progress',
+    label: 'Progress',
+    ids: [
+      'first_round',
+      'sound_explorer',
+      'vocab_master',
+      'perfectionist',
+      'streak_10',
+      'streak_30',
+    ],
+  },
+  {
+    key: 'phoneme',
+    label: 'Phoneme Mastery',
+    ids: ['phoneme_10', 'phoneme_25', 'phoneme_40', 'phoneme_gold', 'phoneme_allgold'],
+  },
+  { key: 'economy', label: 'Economy', ids: ['first_purchase', 'collector_5', 'millionaire'] },
+  {
+    key: 'skill',
+    label: 'Skill',
+    ids: ['speed_demon', 'word_builder', 'quiz_champ', 'companion_friend'],
+  },
+  {
+    key: 'challenge',
+    label: 'Challenge',
+    ids: [
+      'match_10',
+      'sort_50',
+      'rhyme_20',
+      'speed_spell_30',
+      'syllable_50',
+      'challenge_all',
+      'challenge_allgold',
+    ],
+  },
 ];
 
 function AchievementsSection({ save }: { save: SaveData | null }) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-  const totalUnlocked = save ? Object.values(save.achievements).filter((a) => (a as { unlocked: boolean }).unlocked).length : 0;
+  const totalUnlocked = save
+    ? Object.values(save.achievements).filter((a) => (a as { unlocked: boolean }).unlocked).length
+    : 0;
   const total = ACHIEVEMENT_CATEGORIES.reduce((sum, cat) => sum + cat.ids.length, 0);
 
   if (!save) return null;
@@ -34,7 +65,10 @@ function AchievementsSection({ save }: { save: SaveData | null }) {
   return (
     <div className="glass-panel p-5 rounded-3xl border border-white/30 dark:border-slate-800 shadow-xs text-left mb-4">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2" style={{ fontFamily: "var(--font-mali)" }}>
+        <h2
+          className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2"
+          style={{ fontFamily: 'var(--font-mali)' }}
+        >
           <i className="fi fi-sr-trophy text-amber-500" />
           Achievements
         </h2>
@@ -45,8 +79,10 @@ function AchievementsSection({ save }: { save: SaveData | null }) {
 
       <div className="space-y-3">
         {ACHIEVEMENT_CATEGORIES.map((cat) => {
-          const unlockedCount = cat.ids.filter((id) => (save.achievements[id] as { unlocked?: boolean })?.unlocked).length;
-          const isCollapsed = collapsed[cat.key] ?? (unlockedCount === 0);
+          const unlockedCount = cat.ids.filter(
+            (id) => (save.achievements[id] as { unlocked?: boolean })?.unlocked,
+          ).length;
+          const isCollapsed = collapsed[cat.key] ?? unlockedCount === 0;
 
           return (
             <div key={cat.key}>
@@ -55,9 +91,13 @@ function AchievementsSection({ save }: { save: SaveData | null }) {
                 onClick={() => setCollapsed((p) => ({ ...p, [cat.key]: !isCollapsed }))}
               >
                 <span className="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                  <i className={`fi fi-sr-angle-${isCollapsed ? 'right' : 'down'} text-[10px] text-slate-400 transition-transform`} />
+                  <i
+                    className={`fi fi-sr-angle-${isCollapsed ? 'right' : 'down'} text-[10px] text-slate-400 transition-transform`}
+                  />
                   {cat.label}
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">({unlockedCount}/{cat.ids.length})</span>
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                    ({unlockedCount}/{cat.ids.length})
+                  </span>
                 </span>
               </button>
 
@@ -77,8 +117,12 @@ function AchievementsSection({ save }: { save: SaveData | null }) {
 
       {totalUnlocked === total && (
         <div className="mt-4 p-3 rounded-2xl bg-amber-400/10 border border-amber-300/30 text-center">
-          <p className="text-xs font-bold text-amber-600 dark:text-amber-400" style={{ fontFamily: "var(--font-mali)" }}>
-            <i className="fi fi-sr-sparkles mr-1" /> All achievements unlocked! You're a true Phonics Master!
+          <p
+            className="text-xs font-bold text-amber-600 dark:text-amber-400"
+            style={{ fontFamily: 'var(--font-mali)' }}
+          >
+            <i className="fi fi-sr-sparkles mr-1" /> All achievements unlocked! You&apos;re a true
+            Phonics Master!
           </p>
         </div>
       )}
@@ -93,7 +137,7 @@ export default function ProfileScreen() {
   const [justBought, setJustBought] = useState<CompanionId | null>(null);
   const [isChangingLevel, setIsChangingLevel] = useState(false);
   const [showRename, setShowRename] = useState(false);
-  const [renameValue, setRenameValue] = useState("");
+  const [renameValue, setRenameValue] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showCompanionModal, setShowCompanionModal] = useState(false);
 
@@ -105,7 +149,12 @@ export default function ProfileScreen() {
   const isGuest = !save;
 
   const sortedCompanions = useMemo(() => {
-    const all = Object.values(COMPANIONS) as { id: CompanionId; name: string; type: string; cost: number }[];
+    const all = Object.values(COMPANIONS) as {
+      id: CompanionId;
+      name: string;
+      type: string;
+      cost: number;
+    }[];
     return [...all].sort((a, b) => {
       const aFree = a.cost === 0;
       const bFree = b.cost === 0;
@@ -120,7 +169,7 @@ export default function ProfileScreen() {
   }, [unlockedCompanions]);
 
   const visibleCompanions = useMemo(
-    () => isGuest ? sortedCompanions.filter(c => c.cost === 0) : sortedCompanions,
+    () => (isGuest ? sortedCompanions.filter((c) => c.cost === 0) : sortedCompanions),
     [isGuest, sortedCompanions],
   );
 
@@ -134,8 +183,6 @@ export default function ProfileScreen() {
     }
   };
 
-
-
   const handleBuyCompanion = (id: CompanionId) => {
     if (!save) return;
     const data = COMPANIONS[id];
@@ -147,7 +194,7 @@ export default function ProfileScreen() {
       unlockedCompanions: [...unlockedCompanions, id],
     };
     persistSave(updated);
-    playSound("tada");
+    playSound('tada');
     setLockedClickId(null);
     setJustBought(id);
   };
@@ -162,7 +209,9 @@ export default function ProfileScreen() {
 
   const selectedCompanionData = lockedClickId ? COMPANIONS[lockedClickId] : null;
   const justBoughtData = justBought ? COMPANIONS[justBought] : null;
-  const canAfford = selectedCompanionData ? (save?.phonemeCoins ?? 0) >= selectedCompanionData.cost : false;
+  const canAfford = selectedCompanionData
+    ? (save?.phonemeCoins ?? 0) >= selectedCompanionData.cost
+    : false;
 
   const unlockedSkins = useMemo(() => save?.unlockedItems ?? [], [save?.unlockedItems]);
   const itemsCount = unlockedSkins.length;
@@ -170,7 +219,6 @@ export default function ProfileScreen() {
   return (
     <div className="flex-1 overflow-y-auto overscroll-contain bg-transparent min-h-full">
       <div className="max-w-md mx-auto px-6 py-8 pb-36 text-center">
-        
         {/* Companion Avatar Circle */}
         {save && (
           <div className="flex justify-center mb-4">
@@ -193,50 +241,75 @@ export default function ProfileScreen() {
 
         {/* Title */}
         <div className="mb-6">
-            <h1 className="text-2xl font-extrabold text-slate-800 dark:text-[#F7E1A0] tracking-wide" style={{ fontFamily: "var(--font-mali)" }}>
+          <h1
+            className="text-2xl font-extrabold text-slate-800 dark:text-[#F7E1A0] tracking-wide"
+            style={{ fontFamily: 'var(--font-mali)' }}
+          >
             Adventurer Profile
           </h1>
-          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-widest">Your Statistics & Companions</p>
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-widest">
+            Your Statistics & Companions
+          </p>
         </div>
 
         {/* Profile Stats Card */}
         <div className="glass-panel p-6 rounded-3xl border border-white/30 dark:border-slate-800 shadow-xs text-left mb-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[#C8A44E]/10 to-[#2EC4B6]/10 rounded-bl-full pointer-events-none" />
-          <h2 className="text-xl font-black text-slate-800 dark:text-white mb-4" style={{ fontFamily: "var(--font-mali)" }}>
-            {save?.name ?? "Guest Player"}
+          <h2
+            className="text-xl font-black text-slate-800 dark:text-white mb-4"
+            style={{ fontFamily: 'var(--font-mali)' }}
+          >
+            {save?.name ?? 'Guest Player'}
           </h2>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Total XP</span>
+              <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+                Total XP
+              </span>
               <span className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-1.5 mt-0.5">
-                <i className="fi fi-sr-star text-amber-500 text-base" /> {((save?.totalCorrects ?? 0) * 10)} XP
+                <i className="fi fi-sr-star text-amber-500 text-base" />{' '}
+                {(save?.totalCorrects ?? 0) * 10} XP
               </span>
             </div>
             <div>
-              <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Best Streak</span>
+              <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+                Best Streak
+              </span>
               <span className="text-lg font-black text-[#FFBA08] flex items-center gap-1.5 mt-0.5">
-                <i className="fi fi-sr-flame text-orange-500 text-base" /> {save?.bestStreak ?? 0} Days
+                <i className="fi fi-sr-flame text-orange-500 text-base" /> {save?.bestStreak ?? 0}{' '}
+                Days
               </span>
             </div>
             <div>
-              <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Lessons Played</span>
+              <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+                Lessons Played
+              </span>
               <span className="text-lg font-black text-[#2EC4B6] flex items-center gap-1.5 mt-0.5">
-                <i className="fi fi-sr-clipboard-list-check text-slate-400 text-base" /> {save?.totalRoundsPlayed ?? 0} rounds
+                <i className="fi fi-sr-clipboard-list-check text-slate-400 text-base" />{' '}
+                {save?.totalRoundsPlayed ?? 0} rounds
               </span>
             </div>
             <div>
-              <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Items Unlocked</span>
+              <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+                Items Unlocked
+              </span>
               <span className="text-lg font-black text-[#9B59B6] flex items-center gap-1.5 mt-0.5">
                 <i className="fi fi-sr-shopping-cart text-[#9B59B6] text-base" /> {itemsCount} items
               </span>
             </div>
-            
+
             <div className="col-span-2 border-t border-slate-200/50 dark:border-slate-800/60 pt-4 mt-2">
-              <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">English level (CEFR)</span>
+              <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+                English level (CEFR)
+              </span>
               <div className="flex items-center justify-between mt-1">
-                <span className="text-base font-black text-[#C8A44E] flex items-center gap-1.5" style={{ fontFamily: "var(--font-mali)" }}>
-                  <i className="fi fi-sr-graduation-cap text-[#C8A44E] text-base" /> {CEFR_LEVEL_LABELS[save?.cefrLevel ?? "a1"]}
+                <span
+                  className="text-base font-black text-[#C8A44E] flex items-center gap-1.5"
+                  style={{ fontFamily: 'var(--font-mali)' }}
+                >
+                  <i className="fi fi-sr-graduation-cap text-[#C8A44E] text-base" />{' '}
+                  {CEFR_LEVEL_LABELS[save?.cefrLevel ?? 'a1']}
                 </span>
                 {!isGuest && (
                   <button
@@ -253,7 +326,10 @@ export default function ProfileScreen() {
               <div className="col-span-2 border-t border-slate-200/50 dark:border-slate-800/60 pt-4 mt-2 flex gap-2">
                 <button
                   className="flex-1 px-3 py-2 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/60 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[10px] font-black tracking-widest uppercase hover:bg-white/80 dark:hover:bg-slate-700 active:scale-95 transition-all cursor-pointer"
-                  onClick={() => { setRenameValue(save?.name ?? ""); setShowRename(true); }}
+                  onClick={() => {
+                    setRenameValue(save?.name ?? '');
+                    setShowRename(true);
+                  }}
                 >
                   <i className="fi fi-sr-pencil mr-1" /> Rename
                 </button>
@@ -268,19 +344,19 @@ export default function ProfileScreen() {
           </div>
         </div>
 
-
-
         {/* Skins Details panel */}
         {itemsCount > 0 && (
           <div className="glass-panel p-4 rounded-2xl border border-white/20 text-left mb-4">
-            <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2">Unlocked Customizations</span>
+            <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2">
+              Unlocked Customizations
+            </span>
             <div className="flex flex-wrap gap-2">
               {unlockedSkins.map((skinId) => (
                 <span
                   key={skinId}
                   className="inline-block px-3 py-1 rounded-xl bg-slate-200/50 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 border border-slate-300/30 capitalize"
                 >
-                  ⭐ {skinId.replace("_", " ")}
+                  ⭐ {skinId.replace('_', ' ')}
                 </span>
               ))}
             </div>
@@ -295,7 +371,10 @@ export default function ProfileScreen() {
           <div className="glass-panel p-5 rounded-3xl border border-white/30 dark:border-slate-800 shadow-xs text-left mb-4 space-y-5">
             <div className="flex items-center gap-2 mb-1">
               <i className="fi fi-sr-chart-line text-indigo-400 text-sm" />
-              <h2 className="text-lg font-black text-slate-800 dark:text-white" style={{ fontFamily: "var(--font-mali)" }}>
+              <h2
+                className="text-lg font-black text-slate-800 dark:text-white"
+                style={{ fontFamily: 'var(--font-mali)' }}
+              >
                 Progress Reports
               </h2>
             </div>
@@ -319,10 +398,19 @@ export default function ProfileScreen() {
 
       {/* Companion Selection Modal */}
       {showCompanionModal && save && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setShowCompanionModal(false)}>
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-sm max-h-[80vh] overflow-y-auto shadow-2xl border border-white/20 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md animate-fade-in"
+          onClick={() => setShowCompanionModal(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-sm max-h-[80vh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-slate-800"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="text-center mb-4">
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white" style={{ fontFamily: "var(--font-mali)" }}>
+              <h3
+                className="text-lg font-bold text-slate-800 dark:text-white"
+                style={{ fontFamily: 'var(--font-mali)' }}
+              >
                 Choose Companion
               </h3>
             </div>
@@ -332,8 +420,8 @@ export default function ProfileScreen() {
                   key={comp.id}
                   className={`glass-panel p-3 rounded-2xl border flex flex-col items-center justify-center cursor-pointer transition-all relative ${
                     companion === comp.id
-                      ? "border-[#C8A44E] ring-4 ring-[#C8A44E]/10 scale-[1.02] shadow-md"
-                      : "border-white/20 hover:scale-[1.01]"
+                      ? 'border-[#C8A44E] ring-4 ring-[#C8A44E]/10 scale-[1.02] shadow-md'
+                      : 'border-white/20 hover:scale-[1.01]'
                   }`}
                   onClick={() => {
                     if (unlockedCompanions.includes(comp.id)) {
@@ -350,7 +438,10 @@ export default function ProfileScreen() {
                     size={48}
                     className="rounded-2xl bg-white/20 dark:bg-slate-900/30 p-1.5 border border-white/30 dark:border-slate-800 shadow-sm"
                   />
-                  <span className="text-xs font-extrabold text-slate-800 dark:text-slate-100 mt-1.5 block" style={{ fontFamily: "var(--font-mali)" }}>
+                  <span
+                    className="text-xs font-extrabold text-slate-800 dark:text-slate-100 mt-1.5 block"
+                    style={{ fontFamily: 'var(--font-mali)' }}
+                  >
                     {comp.name}
                   </span>
                   {!unlockedCompanions.includes(comp.id) && (
@@ -380,14 +471,25 @@ export default function ProfileScreen() {
 
       {/* Buy Modal */}
       {selectedCompanionData && !justBought && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setLockedClickId(null)}>
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-72 shadow-2xl border border-white/20 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setLockedClickId(null)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-72 shadow-2xl border border-white/20 dark:border-slate-700"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="text-center mb-4">
               <i className="fi fi-sr-lock text-3xl text-slate-400 mb-2 block" />
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white" style={{ fontFamily: "var(--font-mali)" }}>
+              <h3
+                className="text-lg font-bold text-slate-800 dark:text-white"
+                style={{ fontFamily: 'var(--font-mali)' }}
+              >
                 {selectedCompanionData.name}
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 capitalize">{selectedCompanionData.type}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 capitalize">
+                {selectedCompanionData.type}
+              </p>
               <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C8A44E]/10 text-[#C8A44E] text-sm font-extrabold">
                 <i className="fi fi-sr-wallet text-xs" /> {selectedCompanionData.cost} coins
               </div>
@@ -407,7 +509,10 @@ export default function ProfileScreen() {
               )}
               <button
                 className="w-full py-2.5 rounded-xl font-bold text-xs tracking-wider bg-[#2EC4B6] text-white hover:opacity-90 active:scale-95 transition-all cursor-pointer"
-                onClick={() => { setLockedClickId(null); setTab('shop'); }}
+                onClick={() => {
+                  setLockedClickId(null);
+                  setTab('shop');
+                }}
               >
                 <i className="fi fi-sr-shop mr-1.5" /> Go to Bazaar
               </button>
@@ -428,10 +533,15 @@ export default function ProfileScreen() {
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-72 shadow-2xl border border-white/20 dark:border-slate-700">
             <div className="text-center mb-4">
               <i className="fi fi-sr-sparkles text-3xl text-[#C8A44E] mb-2 block" />
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white" style={{ fontFamily: "var(--font-mali)" }}>
+              <h3
+                className="text-lg font-bold text-slate-800 dark:text-white"
+                style={{ fontFamily: 'var(--font-mali)' }}
+              >
                 {justBoughtData.name} Unlocked!
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Select as active companion?</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Select as active companion?
+              </p>
             </div>
             <div className="space-y-2">
               <button
@@ -453,11 +563,20 @@ export default function ProfileScreen() {
 
       {/* Rename Slot Modal */}
       {showRename && save && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setShowRename(false)}>
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-80 shadow-2xl border border-white/20 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md animate-fade-in"
+          onClick={() => setShowRename(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-80 shadow-2xl border border-slate-200 dark:border-slate-800"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="text-center mb-4">
               <i className="fi fi-sr-pencil text-3xl text-[#C8A44E] mb-2 block" />
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white" style={{ fontFamily: "var(--font-mali)" }}>
+              <h3
+                className="text-lg font-bold text-slate-800 dark:text-white"
+                style={{ fontFamily: 'var(--font-mali)' }}
+              >
                 Rename Profile
               </h3>
             </div>
@@ -482,7 +601,7 @@ export default function ProfileScreen() {
                   if (renameValue.trim()) {
                     persistSave({ ...save, name: renameValue.trim() });
                     setShowRename(false);
-                    playSound("correct");
+                    playSound('correct');
                   }
                 }}
               >
@@ -494,17 +613,27 @@ export default function ProfileScreen() {
       )}
 
       {/* Delete Confirmation Modal */}
-      {confirmDelete && save && typeof activeSlot === "number" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setConfirmDelete(false)}>
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-80 shadow-2xl border border-white/20 dark:border-slate-700 text-center" onClick={(e) => e.stopPropagation()}>
+      {confirmDelete && save && typeof activeSlot === 'number' && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md animate-fade-in"
+          onClick={() => setConfirmDelete(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-80 shadow-2xl border border-slate-200 dark:border-slate-800 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="w-16 h-16 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center text-2xl mx-auto mb-4">
               <i className="fi fi-sr-exclamation" />
             </div>
-            <h3 className="text-lg font-bold text-slate-800 dark:text-white" style={{ fontFamily: "var(--font-mali)" }}>
+            <h3
+              className="text-lg font-bold text-slate-800 dark:text-white"
+              style={{ fontFamily: 'var(--font-mali)' }}
+            >
               Delete Save?
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 mb-6">
-              This will permanently delete all progress, coins, and streaks for <strong>{save.name}</strong>.
+              This will permanently delete all progress, coins, and streaks for{' '}
+              <strong>{save.name}</strong>.
             </p>
             <div className="flex gap-3">
               <button
@@ -518,7 +647,7 @@ export default function ProfileScreen() {
                 onClick={() => {
                   deleteSave(activeSlot as number);
                   setConfirmDelete(false);
-                  setScreen("slots");
+                  setScreen('slots');
                 }}
               >
                 Delete
@@ -530,26 +659,35 @@ export default function ProfileScreen() {
 
       {/* Change Level Modal */}
       {isChangingLevel && save && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setIsChangingLevel(false)}>
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-80 shadow-2xl border border-white/20 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setIsChangingLevel(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-80 shadow-2xl border border-white/20 dark:border-slate-700"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="text-center mb-4">
               <i className="fi fi-sr-graduation-cap text-3xl text-[#C8A44E] mb-2 block" />
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white" style={{ fontFamily: "var(--font-mali)" }}>
+              <h3
+                className="text-lg font-bold text-slate-800 dark:text-white"
+                style={{ fontFamily: 'var(--font-mali)' }}
+              >
                 Select English Level
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 This will adapt vocabulary focus and questions.
               </p>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-2 mb-4">
               {CEFR_LEVEL_ORDER.map((lvl) => (
                 <button
                   key={lvl}
                   className={`py-2 px-3 rounded-xl font-bold text-xs transition-all active:scale-95 cursor-pointer ${
                     save.cefrLevel === lvl
-                      ? "bg-[#C8A44E] text-white shadow-sm"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/50 dark:border-slate-700/50 hover:bg-slate-200/50 dark:hover:bg-slate-700"
+                      ? 'bg-[#C8A44E] text-white shadow-sm'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/50 dark:border-slate-700/50 hover:bg-slate-200/50 dark:hover:bg-slate-700'
                   }`}
                   onClick={() => {
                     persistSave({
@@ -557,11 +695,11 @@ export default function ProfileScreen() {
                       cefrLevel: lvl,
                       cefrUpgradeStreak: 0,
                     });
-                    playSound("correct");
+                    playSound('correct');
                     setIsChangingLevel(false);
                   }}
                 >
-                  {CEFR_LEVEL_LABELS[lvl].split(" ")[0]}
+                  {CEFR_LEVEL_LABELS[lvl].split(' ')[0]}
                 </button>
               ))}
             </div>

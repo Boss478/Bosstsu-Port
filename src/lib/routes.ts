@@ -4,6 +4,7 @@ export const ROUTES = {
     GALLERY: '/admin/gallery',
     GAMES: '/admin/games',
     RESOURCES: '/admin/resources',
+    WORDS: '/admin/words',
   },
   PUBLIC: {
     PORTFOLIO: '/portfolio',

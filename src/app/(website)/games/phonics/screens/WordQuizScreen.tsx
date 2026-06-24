@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useGame } from '../context';
 import { useAudio } from '@/hooks/useAudio';
 import { useAllWordEntries, type WordEntry } from '../hooks/useAllWordEntries';
@@ -649,79 +650,82 @@ export default function WordQuizScreen() {
         </div>
       )}
 
-      {isSortSettingsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
-          <div
-            className="w-full max-w-sm bg-white/95 dark:bg-slate-900/95 border border-white/50 dark:border-slate-800/50 rounded-3xl p-6 shadow-2xl space-y-5"
-            style={{ fontFamily: 'var(--font-mali)' }}
-          >
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h3 className="text-sm font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
-                <i className="fi fi-sr-settings text-[#C8A44E] text-sm" />
-                Soundboard Settings
-              </h3>
+      {isSortSettingsOpen &&
+        typeof window !== 'undefined' &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in">
+            <div
+              className="w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5"
+              style={{ fontFamily: 'var(--font-mali)' }}
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 className="text-sm font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
+                  <i className="fi fi-sr-settings text-[#C8A44E] text-sm" />
+                  Soundboard Settings
+                </h3>
+                <button
+                  onClick={() => setIsSortSettingsOpen(false)}
+                  className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                  aria-label="Close settings"
+                >
+                  <i className="fi fi-sr-cross text-[10px]" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+                    Layout
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {(['grouped', 'flat'] as const).map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => setSortMode(m)}
+                        className={`py-2.5 px-3 rounded-2xl border text-center transition-all cursor-pointer text-xs font-black ${
+                          sortMode === m
+                            ? 'bg-[#C8A44E]/10 dark:bg-[#C8A44E]/20 border-[#C8A44E] text-[#C8A44E]'
+                            : 'bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        {m === 'grouped' ? 'Grouped' : 'Flat Grid'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+                    Sort Order
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['default', 'asc', 'desc'] as const).map((o) => (
+                      <button
+                        key={o}
+                        onClick={() => setSortOrder(o)}
+                        className={`py-2.5 px-2 rounded-2xl border text-center transition-all cursor-pointer text-xs font-black ${
+                          sortOrder === o
+                            ? 'bg-[#C8A44E]/10 dark:bg-[#C8A44E]/20 border-[#C8A44E] text-[#C8A44E]'
+                            : 'bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        {o === 'default' ? 'Default' : o === 'asc' ? 'A–Z' : 'Z–A'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               <button
                 onClick={() => setIsSortSettingsOpen(false)}
-                className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                aria-label="Close settings"
+                className="w-full py-2.5 rounded-xl bg-slate-800 dark:bg-slate-200 hover:bg-slate-900 dark:hover:bg-white text-white dark:text-slate-900 text-xs font-extrabold uppercase tracking-widest cursor-pointer transition-colors shadow-xs"
               >
-                <i className="fi fi-sr-cross text-[10px]" />
+                Done
               </button>
             </div>
-
-            <div className="space-y-4">
-              <div className="space-y-3">
-                <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
-                  Layout
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {(['grouped', 'flat'] as const).map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => setSortMode(m)}
-                      className={`py-2.5 px-3 rounded-2xl border text-center transition-all cursor-pointer text-xs font-black ${
-                        sortMode === m
-                          ? 'bg-[#C8A44E]/10 dark:bg-[#C8A44E]/20 border-[#C8A44E] text-[#C8A44E]'
-                          : 'bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-400'
-                      }`}
-                    >
-                      {m === 'grouped' ? 'Grouped' : 'Flat Grid'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
-                  Sort Order
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['default', 'asc', 'desc'] as const).map((o) => (
-                    <button
-                      key={o}
-                      onClick={() => setSortOrder(o)}
-                      className={`py-2.5 px-2 rounded-2xl border text-center transition-all cursor-pointer text-xs font-black ${
-                        sortOrder === o
-                          ? 'bg-[#C8A44E]/10 dark:bg-[#C8A44E]/20 border-[#C8A44E] text-[#C8A44E]'
-                          : 'bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-400'
-                      }`}
-                    >
-                      {o === 'default' ? 'Default' : o === 'asc' ? 'A–Z' : 'Z–A'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setIsSortSettingsOpen(false)}
-              className="w-full py-2.5 rounded-xl bg-slate-800 dark:bg-slate-200 hover:bg-slate-900 dark:hover:bg-white text-white dark:text-slate-900 text-xs font-extrabold uppercase tracking-widest cursor-pointer transition-colors shadow-xs"
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

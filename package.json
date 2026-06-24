@@ -1,6 +1,6 @@
 {
   "name": "boss478",
-  "version": "1.10.40",
+  "version": "1.10.44",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack -p 3300",
@@ -12,6 +12,10 @@
     "analyze": "ANALYZE=true npm run build",
     "seed": "npx tsx scripts/seed.ts",
     "seed-dictionary": "npx tsx scripts/seed-dictionary.ts",
+    "parse-oxford": "npx tsx scripts/parse-oxford.ts",
+    "enrich-stress": "npx tsx scripts/enrich-stress.ts",
+    "enrich-definitions": "npx tsx scripts/enrich-definitions.ts",
+    "assemble-words": "npx tsx scripts/assemble-words.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "eval": ".agents/evals/run-evals.sh",

@@ -1,33 +1,31 @@
 'use client';
 
 import { useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useGame } from '../context';
 import { getActivitiesForPhoneme, PHONEMES } from '../constants';
 import type { CefrLevel } from '../types';
 
 const ACTIVITY_ICONS: Record<string, string> = {
-  practice: 'fi fi-sr-ear',
+  grapheme: 'fi fi-sr-letters',
   'ipa-word': 'fi fi-sr-symbols',
   'word-ipa': 'fi fi-sr-text',
+  'minimal-pairs': 'fi fi-sr-code-compare',
+  stress: 'fi fi-sr-waveform',
   exercise: 'fi fi-sr-dice-d6',
 };
 
 const ACTIVITY_COLORS: Record<string, string> = {
-  practice: '#2EC4B6',
+  grapheme: '#2EC4B6',
   'ipa-word': '#C8A44E',
   'word-ipa': '#9B59B6',
-  exercise: '#FF70A6',
+  'minimal-pairs': '#FF70A6',
+  stress: '#FFBA08',
+  exercise: '#66BB6A',
 };
 
 export default function ActivityPath() {
-  const {
-    save,
-    selectedLesson,
-    selectStage,
-    selectLesson,
-    selectActivity,
-    startRound,
-  } = useGame();
+  const { save, selectedLesson, selectStage, selectLesson, selectActivity, startRound } = useGame();
   const activityProgress = useMemo(() => save?.activityProgress ?? {}, [save?.activityProgress]);
   const phonemeId = selectedLesson?.phonemeIds?.[0];
 
@@ -41,23 +39,29 @@ export default function ActivityPath() {
     return PHONEMES.find((p) => p.id === phonemeId) ?? null;
   }, [phonemeId]);
 
-  const isActivityUnlocked = useCallback((order: number): boolean => {
-    if (order === 0) return true;
-    const prev = activities[order - 1];
-    if (!prev) return true;
-    return !!activityProgress[prev.id]?.completed;
-  }, [activities, activityProgress]);
+  const isActivityUnlocked = useCallback(
+    (order: number): boolean => {
+      if (order === 0) return true;
+      const prev = activities[order - 1];
+      if (!prev) return true;
+      return !!activityProgress[prev.id]?.completed;
+    },
+    [activities, activityProgress],
+  );
 
-  const handleStartActivity = useCallback((activity: typeof activities[number]) => {
-    if (!isActivityUnlocked(activity.order)) return;
-    selectActivity(activity);
-    const targetLevel: CefrLevel = save?.cefrLevel ?? 'a1';
-    startRound({
-      category: activity.type as import('../types').GameCategory,
-      level: targetLevel,
-      length: activity.length,
-    });
-  }, [isActivityUnlocked, selectActivity, startRound, save]);
+  const handleStartActivity = useCallback(
+    (activity: (typeof activities)[number]) => {
+      if (!isActivityUnlocked(activity.order)) return;
+      selectActivity(activity);
+      const targetLevel: CefrLevel = save?.cefrLevel ?? 'a1';
+      startRound({
+        category: activity.type as import('../types').GameCategory,
+        level: targetLevel,
+        length: activity.length,
+      });
+    },
+    [isActivityUnlocked, selectActivity, startRound, save],
+  );
 
   const handleBack = useCallback(() => {
     selectStage(null);
@@ -66,27 +70,34 @@ export default function ActivityPath() {
   }, [selectStage, selectLesson, selectActivity]);
 
   if (!phonemeId || !phoneme) return null;
+  if (typeof window === 'undefined') return null;
 
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end justify-center animate-fade-in" onClick={handleBack}>
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end justify-center animate-fade-in"
+      onClick={handleBack}
+    >
       <div
-        className="glass-panel rounded-t-3xl border-t border-white/30 dark:border-slate-800 p-6 w-full max-w-md animate-slide-up-drawer shadow-2xl relative max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-slate-900 rounded-t-3xl border-t border-slate-200 dark:border-slate-800 p-6 w-full max-w-md animate-slide-up-drawer shadow-2xl relative max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-center mb-5">
-          <div className="w-14 h-1 rounded-full bg-slate-400/30" />
+          <div className="w-14 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
         </div>
 
         {/* Phoneme header */}
         <div className="flex items-center gap-4 mb-6">
           <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-white/20 font-mono font-black text-2xl"
+            className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-slate-100 dark:border-slate-850 font-mono font-black text-2xl"
             style={{ backgroundColor: '#C8A44E20', color: '#C8A44E' }}
           >
             {phoneme.ipa.replace(/[\/]/g, '')}
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold text-slate-800 dark:text-white truncate" style={{ fontFamily: 'var(--font-mali)' }}>
+            <h2
+              className="text-xl font-bold text-slate-800 dark:text-white truncate"
+              style={{ fontFamily: 'var(--font-mali)' }}
+            >
               {phoneme.name}
             </h2>
             <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
@@ -112,8 +123,8 @@ export default function ActivityPath() {
                   done
                     ? 'bg-emerald-500/10 dark:bg-emerald-950/10 border-emerald-400/30'
                     : unlocked
-                      ? 'bg-white/70 dark:bg-slate-800/70 border-white/60 dark:border-slate-700/50 hover:brightness-105 active:scale-[0.98]'
-                      : 'bg-white/30 dark:bg-slate-800/30 border-white/20 dark:border-slate-700/30 opacity-50'
+                      ? 'bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-800 border-slate-100 dark:border-slate-800 hover:brightness-105 active:scale-[0.98]'
+                      : 'bg-slate-50/50 dark:bg-slate-800/30 border-slate-100/10 dark:border-slate-800/20 opacity-50'
                 } ${unlocked ? 'cursor-pointer' : 'cursor-not-allowed'}`}
               >
                 <div
@@ -133,17 +144,23 @@ export default function ActivityPath() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <h3 className={`text-sm font-bold truncate ${done ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 dark:text-white'}`}>
+                    <h3
+                      className={`text-sm font-bold truncate ${done ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 dark:text-white'}`}
+                    >
                       {act.title}
                     </h3>
                     {done && (
-                      <span className="text-[10px] font-bold text-emerald-500 shrink-0">✓ Done</span>
+                      <span className="text-[10px] font-bold text-emerald-500 shrink-0">
+                        ✓ Done
+                      </span>
                     )}
                     {!unlocked && !done && (
                       <i className="fi fi-sr-lock text-xs text-slate-400 shrink-0" />
                     )}
                   </div>
-                  <p className={`text-[11px] mt-0.5 ${done ? 'text-emerald-500/70' : 'text-slate-500 dark:text-slate-400'}`}>
+                  <p
+                    className={`text-[11px] mt-0.5 ${done ? 'text-emerald-500/70' : 'text-slate-500 dark:text-slate-400'}`}
+                  >
                     {act.subtitle}
                   </p>
                   <div className="flex items-center gap-1.5 mt-1.5">
@@ -181,6 +198,7 @@ export default function ActivityPath() {
           BACK
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

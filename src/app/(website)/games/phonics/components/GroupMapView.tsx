@@ -7,7 +7,7 @@ import { SIMILAR_SOUND_GROUPS, PHONEMES } from '../constants';
 const GROUP_ICONS: Record<string, string> = {
   'short-vowels': 'fi fi-sr-volume',
   'long-vowels': 'fi fi-sr-circle-v',
-  'diphthongs': 'fi fi-sr-waveform',
+  diphthongs: 'fi fi-sr-waveform',
   'complex-vowels': 'fi fi-sr-circle-w',
   'bilabial-stops': 'fi fi-sr-circle-p',
   'alveolar-stops': 'fi fi-sr-circle-t',
@@ -16,9 +16,9 @@ const GROUP_ICONS: Record<string, string> = {
   'alveolar-fricatives': 'fi fi-sr-circle-s',
   'postalveolar-fricatives': 'fi fi-sr-circle-sh',
   'dental-fricatives': 'fi fi-sr-circle-th',
-  'affricates': 'fi fi-sr-circle-ch',
-  'nasals': 'fi fi-sr-circle-m',
-  'approximants': 'fi fi-sr-circle-l',
+  affricates: 'fi fi-sr-circle-ch',
+  nasals: 'fi fi-sr-circle-m',
+  approximants: 'fi fi-sr-circle-l',
 };
 
 export default function GroupMapView() {
@@ -28,9 +28,11 @@ export default function GroupMapView() {
   const groupsWithProgress = useMemo(() => {
     return SIMILAR_SOUND_GROUPS.map((g) => {
       const allActivities = g.phonemeIds.flatMap((pid) => [
-        `${pid}-practice`,
+        `${pid}-grapheme`,
         `${pid}-ipa-word`,
         `${pid}-word-ipa`,
+        `${pid}-minimal-pairs`,
+        `${pid}-stress`,
         `${pid}-exercise`,
       ]);
       const completed = allActivities.filter((aid) => activityProgress[aid]?.completed).length;
@@ -45,7 +47,10 @@ export default function GroupMapView() {
     <div className="flex-1 overflow-y-auto overscroll-contain bg-transparent min-h-full">
       <div className="max-w-lg mx-auto px-4 py-8 pb-36">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-slate-800 dark:text-[#F7E1A0] tracking-wide" style={{ fontFamily: 'var(--font-mali)' }}>
+          <h1
+            className="text-3xl font-extrabold text-slate-800 dark:text-[#F7E1A0] tracking-wide"
+            style={{ fontFamily: 'var(--font-mali)' }}
+          >
             Sound Groups
           </h1>
           <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1.5 uppercase tracking-widest">
@@ -65,17 +70,24 @@ export default function GroupMapView() {
                   className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-white/20"
                   style={{ backgroundColor: g.color + '20' }}
                 >
-                  <i className={`${GROUP_ICONS[g.id] ?? 'fi fi-sr-volume'} text-xl`} style={{ color: g.color }} />
+                  <i
+                    className={`${GROUP_ICONS[g.id] ?? 'fi fi-sr-volume'} text-xl`}
+                    style={{ color: g.color }}
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-sm font-bold text-slate-800 dark:text-white truncate">{g.title}</h3>
+                    <h3 className="text-sm font-bold text-slate-800 dark:text-white truncate">
+                      {g.title}
+                    </h3>
                     <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 shrink-0">
                       {g.phonemeIds.length} sounds
                     </span>
                   </div>
                   {g.firstPhoneme && (
-                    <p className="text-[11px] font-mono font-bold text-[#C8A44E] mt-0.5">{g.firstPhoneme.ipa} {g.subtitle}</p>
+                    <p className="text-[11px] font-mono font-bold text-[#C8A44E] mt-0.5">
+                      {g.firstPhoneme.ipa} {g.subtitle}
+                    </p>
                   )}
                   <div className="mt-2 flex items-center gap-2">
                     <div className="flex-1 h-2 bg-slate-300/30 dark:bg-slate-700/40 rounded-full overflow-hidden">
