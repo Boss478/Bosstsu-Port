@@ -19,6 +19,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['cats', 'catty', 'kitten'],
     synonyms: ['feline', 'kitty', 'puss'],
     collocations: ['pet cat', 'domestic cat', 'feed the cat'],
+    antonyms: [],
     spellingDistractors: ['kat', 'cet', 'catt'],
   },
   {
@@ -34,6 +35,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['bedroom', 'bedding', 'beds'],
     synonyms: ['cot', 'couch', 'bunk'],
     collocations: ['go to bed', 'make the bed', 'single bed'],
+    antonyms: [],
     spellingDistractors: ['bad', 'bet', 'bedd'],
   },
   {
@@ -50,6 +52,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['sitting', 'sat', 'seater'],
     synonyms: ['rest', 'settle', 'perch'],
     collocations: ['sit down', 'sit still', 'sit comfortably'],
+    antonyms: [],
     spellingDistractors: ['set', 'sid'],
   },
   {
@@ -65,6 +68,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['hotter', 'hottest', 'heat'],
     synonyms: ['warm', 'boiling', 'spicy'],
     collocations: ['hot water', 'hot weather', 'hot day'],
+    antonyms: [],
     spellingDistractors: ['hat', 'hod', 'hott'],
   },
   {
@@ -80,6 +84,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['cups', 'cupcake', 'cupboard'],
     synonyms: ['mug', 'glass', 'chalice'],
     collocations: ['cup of tea', 'paper cup', 'coffee cup'],
+    antonyms: [],
     spellingDistractors: ['cop', 'cub', 'cupp'],
   },
   {
@@ -96,6 +101,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['cars', 'parking', 'garage'],
     synonyms: ['automobile', 'vehicle', 'ride'],
     collocations: ['drive a car', 'park the car', 'used car'],
+    antonyms: [],
     spellingDistractors: ['cah', 'kar', 'caar'],
   },
   {
@@ -111,6 +117,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['seeing', 'saw', 'seen', 'sight'],
     synonyms: ['view', 'look', 'watch'],
     collocations: ['see a doctor', 'see you later', 'let me see'],
+    antonyms: [],
     spellingDistractors: ['sea', 'se', 'si'],
   },
   {
@@ -126,6 +133,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['moonlight', 'moons', 'moonbeam'],
     synonyms: ['satellite', 'luna'],
     collocations: ['full moon', 'moon landing', 'under the moon'],
+    antonyms: [],
     spellingDistractors: ['mun', 'moone', 'mon'],
   },
   {
@@ -141,6 +149,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['birds', 'birdhouse', 'feather'],
     synonyms: ['fowl', 'avian', 'songbird'],
     collocations: ['early bird', 'wild bird', 'bird nest'],
+    antonyms: [],
     spellingDistractors: ['berd', 'birt', 'brid'],
   },
   {
@@ -156,6 +165,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['daily', 'days', 'daylight'],
     synonyms: ['daytime', 'date'],
     collocations: ['have a nice day', 'all day long', 'next day'],
+    antonyms: [],
     spellingDistractors: ['dey', 'dae', 'dai'],
   },
   {
@@ -171,6 +181,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['flying', 'flew', 'flown', 'flight'],
     synonyms: ['soar', 'glide', 'hover'],
     collocations: ['fly a kite', 'fly a plane', 'let fly'],
+    antonyms: [],
     spellingDistractors: ['flai', 'flye', 'flei'],
   },
   {
@@ -186,6 +197,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['boyhood', 'boys', 'boyfriend'],
     synonyms: ['lad', 'youth', 'male'],
     collocations: ['young boy', 'little boy', 'baby boy'],
+    antonyms: [],
     spellingDistractors: ['boi', 'boye', 'booy'],
   },
   {
@@ -201,6 +213,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['nowadays', 'now'],
     synonyms: ['currently', 'immediately', 'instantly'],
     collocations: ['right now', 'now and then', 'up to now'],
+    antonyms: [],
     spellingDistractors: ['nau', 'nou', 'nowe'],
   },
   {
@@ -216,6 +229,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['abouts'],
     synonyms: ['regarding', 'concerning'],
     collocations: ['ask about', 'think about', 'talk about'],
+    antonyms: [],
     spellingDistractors: ['abaut', 'aboutt', 'aboute'],
   },
   {
@@ -231,6 +245,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['nearby', 'nearness', 'nearly'],
     synonyms: ['close', 'adjacent', 'local'],
     collocations: ['near future', 'near distance', 'nowhere near'],
+    antonyms: [],
     spellingDistractors: ['neer', 'nia', 'nere'],
   },
   {
@@ -247,6 +262,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['careful', 'careless', 'caring'],
     synonyms: ['attention', 'caution', 'concern'],
     collocations: ['take care', 'medical care', 'care provider'],
+    antonyms: [],
     spellingDistractors: ['kair', 'caer', 'cair'],
   },
   {
@@ -262,6 +278,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['tourism', 'tourist', 'touring'],
     synonyms: ['journey', 'trip', 'excursion'],
     collocations: ['guided tour', 'world tour', 'study tour'],
+    antonyms: [],
     spellingDistractors: ['tua', 'toor', 'ture'],
   },
   {
@@ -278,6 +295,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['books', 'bookcase', 'bookstore', 'booking'],
     synonyms: ['volume', 'novel', 'manual'],
     collocations: ['read a book', 'write a book', 'text book'],
+    antonyms: [],
     spellingDistractors: ['buk', 'booke', 'bouk'],
   },
   {
@@ -293,6 +311,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['shipping', 'shipment', 'ships'],
     synonyms: ['vessel', 'boat', 'liner'],
     collocations: ['cruise ship', 'cargo ship', 'board the ship'],
+    antonyms: [],
     spellingDistractors: ['sip', 'chip', 'shipp'],
   },
   {
@@ -309,6 +328,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['measurement', 'measurable', 'measured'],
     synonyms: ['assess', 'evaluate', 'gauge'],
     collocations: ['measure success', 'measure progress', 'tape measure'],
+    antonyms: [],
     spellingDistractors: ['masur', 'measer', 'meazure'],
   },
   {
@@ -325,6 +345,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['chins'],
     synonyms: ['jawline', 'jaw'],
     collocations: ['double chin', 'rub your chin', 'chin up'],
+    antonyms: [],
     spellingDistractors: ['cin', 'shin', 'chinn'],
   },
   {
@@ -341,6 +362,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['jumping', 'jumped', 'jumper'],
     synonyms: ['leap', 'hop', 'bound'],
     collocations: ['jump high', 'jump over', 'jump up'],
+    antonyms: [],
     spellingDistractors: ['gump', 'cump', 'jumpp'],
   },
   {
@@ -356,6 +378,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['singer', 'singing', 'sang', 'sung'],
     synonyms: ['carol', 'chant', 'hum'],
     collocations: ['sing a song', 'sing along', 'choir singing'],
+    antonyms: [],
     spellingDistractors: ['sin', 'singg', 'sink'],
   },
   {
@@ -371,6 +394,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['thinner', 'thinnest', 'thinly'],
     synonyms: ['slim', 'slender', 'skinny'],
     collocations: ['thin line', 'thin layer', 'thin ice'],
+    antonyms: [],
     spellingDistractors: ['tin', 'phin', 'thinn'],
   },
   {
@@ -386,6 +410,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['these'],
     synonyms: ['here'],
     collocations: ['this one', 'this time', 'like this'],
+    antonyms: [],
     spellingDistractors: ['dis', 'tis', 'thiss'],
   },
   {
@@ -401,6 +426,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['correctly', 'correction', 'incorrect'],
     synonyms: ['right', 'accurate', 'proper'],
     collocations: ['correct answer', 'correct procedure', 'politically correct'],
+    antonyms: [],
     spellingDistractors: ['collect', 'corect', 'correkt'],
   },
   {
@@ -417,6 +443,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['officer', 'official', 'officially'],
     synonyms: ['headquarters', 'branch', 'bureau'],
     collocations: ['post office', 'box office', 'office hour'],
+    antonyms: [],
     spellingDistractors: ['offis', 'ofice', 'offise'],
   },
   {
@@ -432,6 +459,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['washing', 'washed', 'washer'],
     synonyms: ['clean', 'rinse', 'scrub'],
     collocations: ['wash hands', 'wash dishes', 'car wash'],
+    antonyms: [],
     spellingDistractors: ['wat', 'wosh', 'washe'],
   },
   {
@@ -447,6 +475,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['hopeful', 'hopeless', 'hoping'],
     synonyms: ['wish', 'aspire', 'desire'],
     collocations: ['hope for', 'sincere hope', 'ray of hope'],
+    antonyms: [],
     spellingDistractors: ['hop', 'hoap', 'hopee'],
   },
 
@@ -464,6 +493,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['bats', 'batsman'],
     synonyms: ['club', 'paddle', 'stick'],
     collocations: ['baseball bat', 'cricket bat', 'wooden bat'],
+    antonyms: [],
     spellingDistractors: ['bet', 'batt', 'bate'],
   },
   {
@@ -479,6 +509,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['hats', 'hatter'],
     synonyms: ['cap', 'bonnet', 'helmet'],
     collocations: ['wear a hat', 'put on a hat', 'straw hat'],
+    antonyms: [],
     spellingDistractors: ['het', 'hatt', 'hate'],
   },
   {
@@ -494,6 +525,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['bags', 'baggage', 'backpack'],
     synonyms: ['sack', 'pouch', 'pack'],
     collocations: ['shopping bag', 'paper bag', 'plastic bag'],
+    antonyms: [],
     spellingDistractors: ['beg', 'bagg', 'bage'],
   },
   {
@@ -509,6 +541,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['sadly', 'sadness', 'sadden'],
     synonyms: ['unhappy', 'gloomy', 'sorrowful'],
     collocations: ['feel sad', 'sad story', 'sad news'],
+    antonyms: [],
     spellingDistractors: ['sed', 'sadd', 'sade'],
   },
   {
@@ -524,6 +557,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['men', 'manly', 'manhood'],
     synonyms: ['gentleman', 'guy', 'fellow'],
     collocations: ['young man', 'old man', 'wise man'],
+    antonyms: [],
     spellingDistractors: ['men', 'mann', 'mane'],
   },
   {
@@ -539,6 +573,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['pens', 'pencil'],
     synonyms: ['quill', 'marker'],
     collocations: ['ballpoint pen', 'ink pen', 'write with a pen'],
+    antonyms: [],
     spellingDistractors: ['pan', 'penn', 'pene'],
   },
   {
@@ -554,6 +589,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['legs', 'leggings'],
     synonyms: ['limb', 'shank'],
     collocations: ['broken leg', 'left leg', 'stretch legs'],
+    antonyms: [],
     spellingDistractors: ['lag', 'legg', 'lege'],
   },
   {
@@ -569,6 +605,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['hens', 'chicken'],
     synonyms: ['fowl', 'poultry'],
     collocations: ['farm hen', 'hen house', 'laying hen'],
+    antonyms: [],
     spellingDistractors: ['han', 'henn', 'hene'],
   },
   {
@@ -584,6 +621,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['wetness', 'wetly', 'wetter'],
     synonyms: ['damp', 'moist', 'soaked'],
     collocations: ['wet weather', 'wet paint', 'wet cloth'],
+    antonyms: [],
     spellingDistractors: ['wat', 'wett', 'wete'],
   },
   {
@@ -599,6 +637,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['nests', 'nesting'],
     synonyms: ['roost', 'shelter', 'crush'],
     collocations: ['bird nest', 'build a nest', 'empty nest'],
+    antonyms: [],
     spellingDistractors: ['nast', 'nestt', 'naste'],
   },
 
@@ -616,6 +655,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['pins', 'pincushion'],
     synonyms: ['needle', 'peg', 'fastener'],
     collocations: ['safety pin', 'push pin', 'hair pin'],
+    antonyms: [],
     spellingDistractors: ['pen', 'pinn', 'pine'],
   },
   {
@@ -631,6 +671,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['pigs', 'piglet'],
     synonyms: ['swine', 'hog', 'boar'],
     collocations: ['guinea pig', 'pig farm', 'wild pig'],
+    antonyms: [],
     spellingDistractors: ['peg', 'pigg', 'pige'],
   },
   {
@@ -646,6 +687,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['bigger', 'biggest', 'bigness'],
     synonyms: ['large', 'huge', 'giant'],
     collocations: ['big house', 'big city', 'big deal'],
+    antonyms: [],
     spellingDistractors: ['beg', 'bigg', 'bige'],
   },
   {
@@ -661,6 +703,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['digging', 'dug', 'digger'],
     synonyms: ['excavate', 'scoop', 'shovel'],
     collocations: ['dig a hole', 'dig deep', 'dig up'],
+    antonyms: [],
     spellingDistractors: ['deg', 'digg', 'dige'],
   },
   {
@@ -677,6 +720,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['lips', 'lipstick'],
     synonyms: ['brim', 'edge'],
     collocations: ['upper lip', 'lower lip', 'lip balm'],
+    antonyms: [],
     spellingDistractors: ['lep', 'lipp', 'lipe'],
   },
   {
@@ -693,6 +737,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['dogs', 'puppy', 'doggy'],
     synonyms: ['hound', 'canine', 'mutt'],
     collocations: ['pet dog', 'walk the dog', 'guard dog'],
+    antonyms: [],
     spellingDistractors: ['deg', 'dogg', 'doge'],
   },
   {
@@ -708,6 +753,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['boxes', 'boxing'],
     synonyms: ['carton', 'chest', 'crate'],
     collocations: ['cardboard box', 'gift box', 'lunch box'],
+    antonyms: [],
     spellingDistractors: ['bex', 'boxx', 'bokes'],
   },
   {
@@ -724,6 +770,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['foxes', 'foxy'],
     synonyms: ['vixen', 'clever animal'],
     collocations: ['red fox', 'wild fox', 'clever fox'],
+    antonyms: [],
     spellingDistractors: ['fex', 'foxx', 'fokes'],
   },
   {
@@ -739,6 +786,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['tops', 'topper', 'topmost'],
     synonyms: ['peak', 'summit', 'apex'],
     collocations: ['top floor', 'on top of', 'at the top'],
+    antonyms: [],
     spellingDistractors: ['tep', 'topp', 'tope'],
   },
   {
@@ -754,6 +802,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['pots', 'pottery', 'potter'],
     synonyms: ['pan', 'vessel', 'jar'],
     collocations: ['cooking pot', 'flower pot', 'clay pot'],
+    antonyms: [],
     spellingDistractors: ['pet', 'pott', 'pote'],
   },
   {
@@ -769,6 +818,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['buses', 'bus stop'],
     synonyms: ['coach', 'transit'],
     collocations: ['school bus', 'bus stop', 'catch the bus'],
+    antonyms: [],
     spellingDistractors: ['bas', 'buss', 'buse'],
   },
   {
@@ -784,6 +834,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['bugs', 'buggy'],
     synonyms: ['insect', 'beetle'],
     collocations: ['software bug', 'lady bug', 'bed bug'],
+    antonyms: [],
     spellingDistractors: ['beg', 'bugg', 'buge'],
   },
   {
@@ -799,6 +850,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['sunny', 'sunlight', 'sunflower'],
     synonyms: ['sol', 'daystar'],
     collocations: ['bright sun', 'sun exposure', 'morning sun'],
+    antonyms: [],
     spellingDistractors: ['san', 'sunn', 'sune'],
   },
   {
@@ -814,6 +866,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['nuts', 'nutty', 'peanut'],
     synonyms: ['kernel', 'seed'],
     collocations: ['cashew nut', 'peanut butter', 'crack a nut'],
+    antonyms: [],
     spellingDistractors: ['net', 'nutt', 'nute'],
   },
   {
@@ -829,6 +882,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['tubs', 'bathtub'],
     synonyms: ['basin', 'vat', 'trough'],
     collocations: ['hot tub', 'bath tub', 'ice tub'],
+    antonyms: [],
     spellingDistractors: ['teb', 'tubb', 'tube'],
   },
 
@@ -846,6 +900,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['bees', 'honeybee', 'beeswax'],
     synonyms: ['honey maker', 'bumblebee'],
     collocations: ['honey bee', 'busy bee', 'bee sting'],
+    antonyms: [],
     spellingDistractors: ['be', 'beee', 'bey'],
   },
   {
@@ -862,6 +917,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['trees', 'woodland'],
     synonyms: ['sapling', 'timber'],
     collocations: ['climb a tree', 'green tree', 'plant a tree'],
+    antonyms: [],
     spellingDistractors: ['tre', 'treee', 'trey'],
   },
   {
@@ -877,6 +933,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['foot', 'football'],
     synonyms: ['paws', 'hooves'],
     collocations: ['bare feet', 'cold feet', 'on your feet'],
+    antonyms: [],
     spellingDistractors: ['feat', 'fett', 'fete'],
   },
   {
@@ -892,6 +949,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['greenish', 'greens'],
     synonyms: ['verdant', 'leafy'],
     collocations: ['green light', 'green grass', 'dark green'],
+    antonyms: [],
     spellingDistractors: ['grean', 'gren', 'grene'],
   },
   {
@@ -907,6 +965,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['sleepy', 'sleeping', 'sleepless', 'slept'],
     synonyms: ['doze', 'rest', 'slumber'],
     collocations: ['go to sleep', 'fall asleep', 'deep sleep'],
+    antonyms: [],
     spellingDistractors: ['sleap', 'slep', 'slepe'],
   },
   {
@@ -923,6 +982,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['stars', 'starlight', 'starfish'],
     synonyms: ['sun', 'luminary'],
     collocations: ['shooting star', 'bright star', 'star shape'],
+    antonyms: [],
     spellingDistractors: ['ster', 'starr', 'stare'],
   },
   {
@@ -938,6 +998,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['parking', 'parks'],
     synonyms: ['common', 'playground'],
     collocations: ['national park', 'car park', 'amusement park'],
+    antonyms: [],
     spellingDistractors: ['perk', 'parkk', 'prake'],
   },
   {
@@ -953,6 +1014,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['farmer', 'farming', 'farmhouse'],
     synonyms: ['homestead', 'ranch', 'plantation'],
     collocations: ['dairy farm', 'organic farm', 'work on a farm'],
+    antonyms: [],
     spellingDistractors: ['ferm', 'farmm', 'fram'],
   },
   {
@@ -968,6 +1030,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['darkness', 'darkly', 'darken'],
     synonyms: ['gloomy', 'shadowy', 'dim'],
     collocations: ['dark night', 'dark blue', 'pitch dark'],
+    antonyms: [],
     spellingDistractors: ['derk', 'darkk', 'drake'],
   },
   {
@@ -983,6 +1046,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['artist', 'artistic', 'artwork'],
     synonyms: ['craft', 'design', 'creation'],
     collocations: ['modern art', 'art gallery', 'work of art'],
+    antonyms: [],
     spellingDistractors: ['ert', 'artt', 'arte'],
   },
   {
@@ -998,6 +1062,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['balls', 'ballroom'],
     synonyms: ['sphere', 'globe', 'orb'],
     collocations: ['soccer ball', 'tennis ball', 'bounce a ball'],
+    antonyms: [],
     spellingDistractors: ['bol', 'balll', 'bal'],
   },
   {
@@ -1014,6 +1079,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['lawyer', 'lawful', 'unlawful'],
     synonyms: ['rule', 'regulation', 'code'],
     collocations: ['break the law', 'obey the law', 'law enforcement'],
+    antonyms: [],
     spellingDistractors: ['lawe', 'lor', 'lo'],
   },
   {
@@ -1030,6 +1096,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['saws', 'sawdust'],
     synonyms: ['blade', 'cutter'],
     collocations: ['hand saw', 'chain saw', 'cut with a saw'],
+    antonyms: [],
     spellingDistractors: ['sawe', 'sor', 'so'],
   },
   {
@@ -1045,6 +1112,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['drawing', 'drawn', 'drawer'],
     synonyms: ['sketch', 'paint', 'trace'],
     collocations: ['draw a picture', 'draw a line', 'draw attention'],
+    antonyms: [],
     spellingDistractors: ['drawe', 'dror', 'dro'],
   },
   {
@@ -1060,6 +1128,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['falling', 'fell', 'fallen'],
     synonyms: ['drop', 'tumble', 'descend'],
     collocations: ['fall down', 'fall asleep', 'fall in love'],
+    antonyms: [],
     spellingDistractors: ['fol', 'falll', 'fal'],
   },
   {
@@ -1075,6 +1144,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['coolness', 'coolly', 'cooler'],
     synonyms: ['chilly', 'fresh', 'breezy'],
     collocations: ['cool breeze', 'cool water', 'keep cool'],
+    antonyms: [],
     spellingDistractors: ['col', 'cooll', 'cule'],
   },
   {
@@ -1090,6 +1160,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['pools', 'swimming'],
     synonyms: ['pond', 'basin', 'lago'],
     collocations: ['swimming pool', 'pool party', 'puddle pool'],
+    antonyms: [],
     spellingDistractors: ['pol', 'pooll', 'pule'],
   },
   {
@@ -1105,6 +1176,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['foods', 'feed', 'fastfood'],
     synonyms: ['meal', 'nourishment', 'grub'],
     collocations: ['delicious food', 'fast food', 'fresh food'],
+    antonyms: [],
     spellingDistractors: ['fod', 'foodd', 'fude'],
   },
   {
@@ -1121,6 +1193,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['spoons', 'spoonful'],
     synonyms: ['ladle', 'scoop'],
     collocations: ['soup spoon', 'teaspoon', 'wooden spoon'],
+    antonyms: [],
     spellingDistractors: ['spon', 'spoonn', 'spune'],
   },
   {
@@ -1136,6 +1209,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['bluish', 'bluebird'],
     synonyms: ['azure', 'sky-blue'],
     collocations: ['blue sky', 'light blue', 'dark blue'],
+    antonyms: [],
     spellingDistractors: ['blew', 'bloo', 'blu'],
   },
 
@@ -1154,6 +1228,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['cakes', 'cupcake'],
     synonyms: ['pastry', 'tart'],
     collocations: ['birthday cake', 'chocolate cake', 'slice of cake'],
+    antonyms: [],
     spellingDistractors: ['cak', 'cayk', 'cakee'],
   },
   {
@@ -1169,6 +1244,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['lakes', 'lakeside'],
     synonyms: ['pond', 'lagoon', 'pool'],
     collocations: ['freshwater lake', 'lake shore', 'lake side'],
+    antonyms: [],
     spellingDistractors: ['lak', 'layk', 'lakee'],
   },
   {
@@ -1184,6 +1260,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['rainy', 'rainbow', 'raincoat', 'raining'],
     synonyms: ['shower', 'downpour', 'drizzle'],
     collocations: ['heavy rain', 'acid rain', 'rain drop'],
+    antonyms: [],
     spellingDistractors: ['ran', 'rayn', 'raine'],
   },
   {
@@ -1199,6 +1276,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['trains', 'trainer', 'training'],
     synonyms: ['express', 'railway'],
     collocations: ['steam train', 'train station', 'board the train'],
+    antonyms: [],
     spellingDistractors: ['tran', 'trayn', 'traine'],
   },
   {
@@ -1214,6 +1292,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['player', 'playing', 'playful', 'playground'],
     synonyms: ['recreate', 'amuse', 'fun'],
     collocations: ['play soccer', 'play games', 'play music'],
+    antonyms: [],
     spellingDistractors: ['pley', 'plae', 'plai'],
   },
 
@@ -1232,6 +1311,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['journeys', 'journeyman'],
     synonyms: ['trip', 'voyage', 'expedition'],
     collocations: ['long journey', 'return journey', 'journey time'],
+    antonyms: [],
     spellingDistractors: ['jerney', 'jorney', 'journy'],
   },
   {
@@ -1247,6 +1327,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['neighbors', 'neighborhood', 'neighboring'],
     synonyms: ['resident', 'local', 'nearby'],
     collocations: ['next-door neighbor', 'good neighbor', 'neighbor country'],
+    antonyms: [],
     spellingDistractors: ['naybor', 'nebor', 'neibor'],
   },
   {
@@ -1262,6 +1343,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['pleasurable', 'pleasantly'],
     synonyms: ['joy', 'delight', 'satisfaction'],
     collocations: ['my pleasure', 'take pleasure in', 'pleasure trip'],
+    antonyms: [],
     spellingDistractors: ['plesure', 'plezure', 'pleashure'],
   },
   {
@@ -1278,6 +1360,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['machinery', 'machinist', 'mechanical'],
     synonyms: ['appliance', 'engine', 'device'],
     collocations: ['washing machine', 'sewing machine', 'vending machine'],
+    antonyms: [],
     spellingDistractors: ['masheen', 'machin', 'mashine'],
   },
   {
@@ -1293,6 +1376,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['characteristic', 'characterize', 'characterless'],
     synonyms: ['personality', 'nature', 'temperament'],
     collocations: ['strong character', 'main character', 'good character'],
+    antonyms: [],
     spellingDistractors: ['caracter', 'charackter', 'karacter'],
   },
   {
@@ -1308,6 +1392,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['achievement', 'achievable', 'achiever'],
     synonyms: ['accomplish', 'attain', 'reach'],
     collocations: ['achieve success', 'achieve a goal', 'achieve results'],
+    antonyms: [],
     spellingDistractors: ['acheeve', 'acheive', 'achive'],
   },
   {
@@ -1323,6 +1408,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['treasures', 'treasury', 'treasure hunt'],
     synonyms: ['riches', 'wealth', 'hoard'],
     collocations: ['buried treasure', 'treasure chest', 'hidden treasure'],
+    antonyms: [],
     spellingDistractors: ['tresure', 'trezure', 'treshure'],
   },
   {
@@ -1338,6 +1424,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['enormously', 'enormousness'],
     synonyms: ['huge', 'gigantic', 'immense'],
     collocations: ['enormous amount', 'enormous size', 'enormous pressure'],
+    antonyms: [],
     spellingDistractors: ['enormus', 'enormas', 'inormous'],
   },
   {
@@ -1353,6 +1440,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['knowledgeable', 'known', 'unknown'],
     synonyms: ['understanding', 'wisdom', 'expertise'],
     collocations: ['general knowledge', 'common knowledge', 'knowledge base'],
+    antonyms: [],
     spellingDistractors: ['nowledge', 'noledge', 'knowlege'],
   },
   {
@@ -1368,6 +1456,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['adventurer', 'adventurous', 'adventures'],
     synonyms: ['exploit', 'quest', 'journey'],
     collocations: ['great adventure', 'adventure story', 'sense of adventure'],
+    antonyms: [],
     spellingDistractors: ['adventur', 'adventuree', 'adventcher'],
   },
   {
@@ -1383,6 +1472,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['substantial', 'substantially', 'substantive'],
     synonyms: ['material', 'matter', 'compound'],
     collocations: ['chemical substance', 'toxic substance', 'substance abuse'],
+    antonyms: [],
     spellingDistractors: ['substence', 'substancee', 'substans'],
   },
   {
@@ -1398,6 +1488,7 @@ const LEGACY_WORDS: WordData[] = [
     wordFamily: ['relevance', 'relevantly', 'irrelevant'],
     synonyms: ['pertinent', 'applicable', 'germane'],
     collocations: ['relevant information', 'relevant experience', 'highly relevant'],
+    antonyms: [],
     spellingDistractors: ['relevent', 'revelant', 'relefant'],
   },
 ];

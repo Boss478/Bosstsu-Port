@@ -80,9 +80,3 @@ export function computeLevelStats(events: AnalyticsEvent[]): LevelStats[] {
 
   return stats.sort((a, b) => a.level - b.level);
 }
-
-export function clearAnalytics() {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem(ANALYTICS_KEY);
-  }
-}

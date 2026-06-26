@@ -8,7 +8,6 @@ import type {
   CompanionBubbleStyle,
   CharacterVoice,
   CompanionId,
-  SaveData,
 } from './types';
 import { WORDS } from './words';
 
@@ -735,23 +734,6 @@ export function getActivitiesForPhoneme(phonemeId: string): ActivityData[] {
   return activities;
 }
 
-// ─── Adaptive scaling for activity question counts ─────────────────────────
-export function getQuestionCount(
-  activityId: string,
-  activityType: ActivityType,
-  saveData: SaveData,
-): number {
-  const progress = saveData.activityProgress?.[activityId];
-  const highScore = progress?.bestScore;
-  const isExercise = activityType === 'exercise';
-
-  if (highScore == null) return isExercise ? 25 : 10;
-  if (highScore >= 90) return isExercise ? 25 : 10;
-  if (highScore >= 70) return isExercise ? 30 : 15;
-  if (highScore >= 50) return isExercise ? 40 : 20;
-  return isExercise ? 50 : 25;
-}
-
 // ─── Vocab helpers ──────────────────────────────────────────────────────────
 const VOCAB_GROUP_MAP: Record<string, string> = {
   'vocab-a1': 'a1',
@@ -768,7 +750,32 @@ export function getVocabStagesForGroup(groupId: string): StageData[] {
   return VOCAB_STAGES.filter((s) => s.id.startsWith(`vocab-${level}`));
 }
 
-export function getVocabActivitiesForStage(stageId: string, groupId: string): ActivityData[] {
+const CEFR_BASE_LENGTHS: Record<string, number> = {
+  a1: 6,
+  a2: 8,
+  b1: 10,
+  b2: 10,
+  c1: 12,
+  c2: 12,
+};
+
+export function getVocabActivityLength(cefrLevel: string, lastAccuracy?: number): number {
+  const base = CEFR_BASE_LENGTHS[cefrLevel] ?? 10;
+  let adjustment = 0;
+  if (lastAccuracy !== undefined) {
+    if (lastAccuracy < 0.4) adjustment = 2;
+    else if (lastAccuracy > 0.8) adjustment = -2;
+  }
+  return Math.max(4, Math.min(14, base + adjustment));
+}
+
+export function getVocabActivitiesForStage(
+  stageId: string,
+  groupId: string,
+  lastAccuracy?: number,
+): ActivityData[] {
+  const cefrLevel = stageId.replace('vocab-', '');
+  const length = getVocabActivityLength(cefrLevel, lastAccuracy);
   return [
     {
       id: `${stageId}-def-word`,
@@ -777,7 +784,7 @@ export function getVocabActivitiesForStage(stageId: string, groupId: string): Ac
       title: 'Definition → Word',
       subtitle: 'Read the meaning, find the word',
       phonemeId: stageId,
-      length: 10,
+      length,
       groupId,
       order: 0,
     },
@@ -788,7 +795,7 @@ export function getVocabActivitiesForStage(stageId: string, groupId: string): Ac
       title: 'Word → Definition',
       subtitle: 'Read the word, find the meaning',
       phonemeId: stageId,
-      length: 10,
+      length,
       groupId,
       order: 1,
     },
@@ -798,9 +805,49 @@ export function getVocabActivitiesForStage(stageId: string, groupId: string): Ac
       title: 'Synonyms',
       subtitle: 'Find the matching synonym',
       phonemeId: stageId,
-      length: 10,
+      length,
       groupId,
       order: 2,
+    },
+    {
+      id: `${stageId}-antonyms`,
+      type: 'antonyms',
+      title: 'Antonyms',
+      subtitle: 'Find the opposite meaning',
+      phonemeId: stageId,
+      length,
+      groupId,
+      order: 3,
+    },
+    {
+      id: `${stageId}-collocations`,
+      type: 'collocations',
+      title: 'Collocations',
+      subtitle: 'Find the word partner',
+      phonemeId: stageId,
+      length,
+      groupId,
+      order: 4,
+    },
+    {
+      id: `${stageId}-vocab-fill-blank`,
+      type: 'fill-blank',
+      title: 'Fill in the Blank',
+      subtitle: 'Complete the sentence',
+      phonemeId: stageId,
+      length,
+      groupId,
+      order: 5,
+    },
+    {
+      id: `${stageId}-vocab-word-assoc`,
+      type: 'word-assoc',
+      title: 'Word Class',
+      subtitle: 'Identify the word type',
+      phonemeId: stageId,
+      length,
+      groupId,
+      order: 6,
     },
     {
       id: `${stageId}-vocab-exercise`,
@@ -808,9 +855,9 @@ export function getVocabActivitiesForStage(stageId: string, groupId: string): Ac
       title: 'Mixed Exercise',
       subtitle: 'Mixed challenge',
       phonemeId: stageId,
-      length: 10,
+      length,
       groupId,
-      order: 3,
+      order: 7,
     },
   ];
 }

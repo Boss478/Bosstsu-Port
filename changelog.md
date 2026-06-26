@@ -5,6 +5,34 @@
 
 
 
+## v1.10.48 (2026-06-26)
+* **Vocab Activity Expansion — Phonics Game**:
+  * + **4 New Question Types**: `antonyms`, `collocations`, `fill-blank`, `word-assoc` generators, routed through `buildQuestions`/`buildRetryQuestions`/`buildActivityRetryQuestions`/`computeCorrectAnswer`.
+  * + **FillBlankQuestionComponent**: Renders blanked sentence with `____` placeholder + 4-option grid.
+  * + **WordAssocQuestionComponent**: Renders target word + word-class button picker (noun/verb/adjective/adverb/preposition/pronoun).
+  * + **GameScreen Integration**: `isAntonyms`/`isCollocations` → SynonymQuestionComponent; `isFillBlank` → FillBlankQuestionComponent; `isWordAssoc` → WordAssocQuestionComponent.
+  * + **CEFR + Accuracy Scaling**: `getVocabActivityLength` returns CEFR-aware base length (A1=6→C2=12) adjusted by accuracy (±2) and clamped to [4,14].
+  * + **8 Vocab Activities per Stage**: Added antonyms, collocations, fill-blank, word-assoc activities with unique colors/icons. Dynamic `{n.completedCount}/{N}` counter.
+  * + **Type System**: Added 4 types to `GameCategory`/`ActivityType`, 4 question interfaces to `Question` union.
+  * * **WordData**: Added `antonyms: string[]` field to WordData interface and all legacy word entries.
+
+## v1.10.47 (2026-06-25)
+* **Cartoon-Realistic Card Overhaul — Alphabet Adventure**:
+  * * **Thick Ink Outlines**: Added heavy, high-contrast charcoal outlines (`#18181b`) bordering the card face, portrait arch, nameplate, and gem to anchor the cartoon style.
+  * * **Layered Bevel Frames**: Overhauled the card outline with 3D offset overlays (shadow + border + highlight bevels) for physical depth.
+  * * **3D Plaque Nameplates**: Redesigned nameplates with offset extrusion backing, dark borders, and gradient face plates.
+  * * **Double-Beveled Portrait Arch**: Sculpted a thick inset frame for illustrations.
+  * * **3D Gem Bezel Mounts**: Mounted the polished gems in structured bezels with drop shadows and metallic base rings.
+  * * **Beveled Card Backs**: Updated card back mandalas, seals, and question marks with aligned beveled offsets.
+
+## v1.10.46 (2026-06-25)
+* **Card Redesign — Alphabet Adventure**:
+  * + **Metallic & Gemstone Borders**: Overhauled simple card borders with premium multi-stop gradients tailored to each tier (steel/silver, emerald, sapphire, amethyst, gold).
+  * + **Spotlight Portrait Window**: Filled the illustration arch with a dynamic radial gradient spotlight vignette to highlight card artwork.
+  * + **3D Sphere Gems**: Added off-axis radial gradients to gems (`cx="35%" cy="35%"`) to create a glassy, polished 3D look with bright highlights.
+  * + **Magical Card Backs**: Replaced plain card backs with a deep indigo gradient, detailed concentric circles, starburst mandala lines, a glowing seal, and a metallic gradient question mark.
+  * + **GPU Hover Shine Sweep**: Added a CSS-only diagonal gloss sweep that runs across the card face on hover.
+
 ## v1.10.45 (2026-06-24)
 * **Phonics Game Improvements & Fixes**:
   * Fixed target phoneme focus bug in IPA-to-Word, Word-to-IPA, and stress question generators, where the generator blindly picked the first phoneme of a word (e.g. `/p/` in `propaganda` or `practice`) even when generating questions for a specific target phoneme group (e.g. `/æ/`), causing irrelevant phoneme questions to show up in the `/æ/` lesson.

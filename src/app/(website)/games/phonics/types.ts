@@ -34,7 +34,11 @@ export type GameCategory =
   | 'syllable-smash'
   | 'grapheme'
   | 'minimal-pairs'
-  | 'stress';
+  | 'stress'
+  | 'antonyms'
+  | 'fill-blank'
+  | 'word-assoc'
+  | 'collocations';
 export type PhonicsFormat = 'tap' | 'speed' | 'pick-word' | 'card-flip';
 export type SpellingFormat = 'tiles' | 'choice' | 'mixed';
 export type DefinitionDirection = 'def-to-word' | 'word-to-def';
@@ -50,7 +54,11 @@ export type ActivityType =
   | 'vocab-exercise'
   | 'grapheme'
   | 'minimal-pairs'
-  | 'stress';
+  | 'stress'
+  | 'antonyms'
+  | 'fill-blank'
+  | 'word-assoc'
+  | 'collocations';
 
 export interface ActivityData {
   id: string;
@@ -120,6 +128,35 @@ export interface SynonymQuestion {
   options: string[];
 }
 
+export interface AntonymQuestion {
+  category: 'antonyms';
+  word: WordData;
+  correctAnswer: string;
+  options: string[];
+}
+
+export interface CollocationQuestion {
+  category: 'collocations';
+  word: WordData;
+  correctAnswer: string;
+  options: string[];
+}
+
+export interface FillBlankQuestion {
+  category: 'fill-blank';
+  word: WordData;
+  correctAnswer: string;
+  options: string[];
+  blankedSentence: string;
+}
+
+export interface WordAssocQuestion {
+  category: 'word-assoc';
+  word: WordData;
+  correctAnswer: string;
+  options: string[];
+}
+
 export interface GraphemePatternQuestion {
   category: 'grapheme';
   direction: 'phoneme-to-grapheme' | 'grapheme-to-phoneme';
@@ -181,6 +218,7 @@ export interface WordData {
   wordFamily: string[];
   synonyms: string[];
   collocations: string[];
+  antonyms: string[];
   spellingDistractors: string[]; // auto-generated wrong spellings
 }
 
@@ -316,6 +354,10 @@ export type Question =
   | IpaToWordQuestion
   | WordToIpaQuestion
   | SynonymQuestion
+  | AntonymQuestion
+  | CollocationQuestion
+  | FillBlankQuestion
+  | WordAssocQuestion
   | ExerciseQuestion
   | PhonemeMatchQuestion
   | SoundSortQuestion
@@ -510,6 +552,10 @@ export function getCorrectAnswerFromQuestion(q: Question): string {
     q.category === 'ipa-word' ||
     q.category === 'word-ipa' ||
     q.category === 'synonyms' ||
+    q.category === 'antonyms' ||
+    q.category === 'collocations' ||
+    q.category === 'fill-blank' ||
+    q.category === 'word-assoc' ||
     q.category === 'grapheme' ||
     q.category === 'minimal-pairs' ||
     q.category === 'stress'
@@ -519,6 +565,10 @@ export function getCorrectAnswerFromQuestion(q: Question): string {
         | IpaToWordQuestion
         | WordToIpaQuestion
         | SynonymQuestion
+        | AntonymQuestion
+        | CollocationQuestion
+        | FillBlankQuestion
+        | WordAssocQuestion
         | PracticeQuestion
         | PhonicsQuestion
         | DefinitionQuestion

@@ -87,9 +87,15 @@ function VocabGroupMapView() {
   const activityProgress = useMemo(() => save?.activityProgress ?? {}, [save?.activityProgress]);
 
   const groups = useMemo(() => {
+    const accs = Object.values(activityProgress)
+      .map((p) => p.lastAccuracy)
+      .filter((a): a is number => a !== undefined && a !== null);
+    const avgAccuracy = accs.length > 0 ? accs.reduce((a, b) => a + b, 0) / accs.length : undefined;
     return VOCAB_GROUPS.map((g) => {
       const stages = getVocabStagesForGroup(g.id);
-      const allActivities = stages.flatMap((s) => getVocabActivitiesForStage(s.id, g.id));
+      const allActivities = stages.flatMap((s) =>
+        getVocabActivitiesForStage(s.id, g.id, avgAccuracy),
+      );
       const completed = allActivities.filter((a) => activityProgress[a.id]?.completed).length;
       const total = allActivities.length;
       const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -174,8 +180,12 @@ function VocabStageSubMap() {
   const stageNodes = useMemo(() => {
     if (!selectedGroup) return [];
     const stages = getVocabStagesForGroup(selectedGroup.id);
+    const accs = Object.values(activityProgress)
+      .map((p) => p.lastAccuracy)
+      .filter((a): a is number => a !== undefined && a !== null);
+    const avgAccuracy = accs.length > 0 ? accs.reduce((a, b) => a + b, 0) / accs.length : undefined;
     return stages.map((s) => {
-      const activities = getVocabActivitiesForStage(s.id, selectedGroup.id);
+      const activities = getVocabActivitiesForStage(s.id, selectedGroup.id, avgAccuracy);
       const completedCount = activities.filter((a) => activityProgress[a.id]?.completed).length;
       return { stage: s, activities, completedCount };
     });
@@ -249,7 +259,7 @@ function VocabStageSubMap() {
                       {n.stage.title}
                     </h3>
                     <span className="text-[11px] font-bold text-slate-400">
-                      {n.completedCount}/4
+                      {n.completedCount}/{n.activities.length}
                     </span>
                   </div>
                   <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
@@ -281,12 +291,20 @@ function VocabStageSubMap() {
 const VOCAB_ACTIVITY_COLORS: Record<string, string> = {
   definitions: '#2EC4B6',
   synonyms: '#9B59B6',
+  antonyms: '#E74C3C',
+  collocations: '#3498DB',
+  'fill-blank': '#F39C12',
+  'word-assoc': '#1ABC9C',
   'vocab-exercise': '#FF70A6',
 };
 
 const VOCAB_ACTIVITY_ICONS: Record<string, string> = {
   definitions: 'fi fi-sr-book-open-cover',
   synonyms: 'fi fi-sr-copy',
+  antonyms: 'fi fi-sr-arrows-retweet',
+  collocations: 'fi fi-sr-link',
+  'fill-blank': 'fi fi-sr-pencil',
+  'word-assoc': 'fi fi-sr-tags',
   'vocab-exercise': 'fi fi-sr-gamepad',
 };
 
@@ -306,8 +324,12 @@ function VocabActivityPath() {
     if (!selectedStage) return [];
 
     const gId = selectedGroup?.id ?? 'vocab-all';
-    return getVocabActivitiesForStage(selectedStage.id, gId);
-  }, [selectedStage, selectedGroup]);
+    const accs = Object.values(activityProgress)
+      .map((p) => p.lastAccuracy)
+      .filter((a): a is number => a !== undefined && a !== null);
+    const avgAccuracy = accs.length > 0 ? accs.reduce((a, b) => a + b, 0) / accs.length : undefined;
+    return getVocabActivitiesForStage(selectedStage.id, gId, avgAccuracy);
+  }, [selectedStage, selectedGroup, activityProgress]);
 
   const isUnlocked = useCallback(
     (order: number): boolean => {

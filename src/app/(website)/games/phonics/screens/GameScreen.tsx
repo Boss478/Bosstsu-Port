@@ -16,6 +16,8 @@ import type {
   IpaToWordQuestion,
   WordToIpaQuestion,
   SynonymQuestion,
+  FillBlankQuestion as FillBlankQuestionType,
+  WordAssocQuestion as WordAssocQuestionType,
   GraphemePatternQuestion,
   MinimalPairsQuestion,
   StressQuestion,
@@ -43,6 +45,8 @@ import DefinitionQuestionComponent from '../components/DefinitionQuestion';
 import IpaToWordQuestionComponent from '../components/IpaToWordQuestion';
 import WordToIpaQuestionComponent from '../components/WordToIpaQuestion';
 import SynonymQuestionComponent from '../components/SynonymQuestion';
+import FillBlankQuestionComponent from '../components/FillBlankQuestion';
+import WordAssocQuestionComponent from '../components/WordAssocQuestion';
 import GraphemePatternQuestionComponent from '../components/GraphemePatternQuestion';
 import MinimalPairsQuestionComponent from '../components/MinimalPairsQuestion';
 import StressQuestionComponent from '../components/StressQuestion';
@@ -617,6 +621,10 @@ function ActiveQuestion({
   const isIpaWord = question.category === 'ipa-word';
   const isWordIpa = question.category === 'word-ipa';
   const isSynonyms = question.category === 'synonyms';
+  const isAntonyms = question.category === 'antonyms';
+  const isFillBlank = question.category === 'fill-blank';
+  const isWordAssoc = question.category === 'word-assoc';
+  const isCollocations = question.category === 'collocations';
   const isGrapheme = question.category === 'grapheme';
   const isMinimalPairs = question.category === 'minimal-pairs';
   const isStress = question.category === 'stress';
@@ -813,9 +821,33 @@ function ActiveQuestion({
               selectedAnswer={selectedAnswer}
               setSelectedAnswer={setSelectedAnswer}
             />
-          ) : isSynonyms ? (
+          ) : isSynonyms || isAntonyms || isCollocations ? (
             <SynonymQuestionComponent
               question={question as SynonymQuestion}
+              feedback={feedback}
+              companion={companion}
+              hintCount={hintCount}
+              onHint={() => setHintCount((n) => n + 1)}
+              speak={speak}
+              playWordAudio={playWordAudio}
+              selectedAnswer={selectedAnswer}
+              setSelectedAnswer={setSelectedAnswer}
+            />
+          ) : isFillBlank ? (
+            <FillBlankQuestionComponent
+              question={question as FillBlankQuestionType}
+              feedback={feedback}
+              companion={companion}
+              hintCount={hintCount}
+              onHint={() => setHintCount((n) => n + 1)}
+              speak={speak}
+              playWordAudio={playWordAudio}
+              selectedAnswer={selectedAnswer}
+              setSelectedAnswer={setSelectedAnswer}
+            />
+          ) : isWordAssoc ? (
+            <WordAssocQuestionComponent
+              question={question as WordAssocQuestionType}
               feedback={feedback}
               companion={companion}
               hintCount={hintCount}
