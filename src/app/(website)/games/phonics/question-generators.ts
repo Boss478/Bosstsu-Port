@@ -1,3 +1,4 @@
+import { shuffleArray } from '@/lib/shuffle';
 import {
   PHONEMES,
   CEFR_LEVEL_ORDER,
@@ -133,7 +134,7 @@ function generatePhonicsQuestions(
       if (idx !== -1) tempDistPool.splice(idx, 1);
     }
 
-    const options = [word.word, ...distractors.map((d) => d.word)].sort(() => Math.random() - 0.5);
+    const options = shuffleArray([word.word, ...distractors.map((d) => d.word)]);
 
     questions.push({
       category: 'phonics',
@@ -157,12 +158,12 @@ function generateCardFlipCards(
   const lessonPhonemes =
     phonemeIds && phonemeIds.length > 0 ? PHONEMES.filter((p) => phonemeIds.includes(p.id)) : [];
 
-  const selectedPhonemes = [...lessonPhonemes].sort(() => Math.random() - 0.5);
+  const selectedPhonemes = shuffleArray(lessonPhonemes);
 
   if (selectedPhonemes.length < numPairs) {
-    const otherPhonemes = PHONEMES.filter(
+    const otherPhonemes = shuffleArray(PHONEMES.filter(
       (p) => !selectedPhonemes.some((sp) => sp.id === p.id),
-    ).sort(() => Math.random() - 0.5);
+    ));
     const needed = numPairs - selectedPhonemes.length;
     selectedPhonemes.push(...otherPhonemes.slice(0, needed));
   } else if (selectedPhonemes.length > numPairs) {
@@ -195,7 +196,7 @@ function generateCardFlipCards(
     });
   }
 
-  return cards.sort(() => Math.random() - 0.5);
+  return shuffleArray(cards);
 }
 
 function generateSpellingQuestions(
@@ -230,7 +231,7 @@ function generateSpellingQuestions(
 
     const choices =
       inputMode === 'choice' || format === 'choice'
-        ? [word.word, ...word.spellingDistractors].sort(() => Math.random() - 0.5).slice(0, 4)
+        ? shuffleArray([word.word, ...word.spellingDistractors]).slice(0, 4)
         : undefined;
 
     questions.push({
@@ -288,7 +289,7 @@ function generateDefinitionQuestions(
         const idx = tempDistPool.indexOf(dist);
         if (idx !== -1) tempDistPool.splice(idx, 1);
       }
-      options = [word.word, ...distractors].sort(() => Math.random() - 0.5);
+      options = shuffleArray([word.word, ...distractors]);
       correctAnswer = word.word;
     } else {
       let distPool = pool.filter((w) => w.word !== word.word);
@@ -303,7 +304,7 @@ function generateDefinitionQuestions(
         const idx = tempDistPool.indexOf(dist);
         if (idx !== -1) tempDistPool.splice(idx, 1);
       }
-      options = [word.definition, ...distractors].sort(() => Math.random() - 0.5);
+      options = shuffleArray([word.definition, ...distractors]);
       correctAnswer = word.definition;
     }
 
@@ -342,12 +343,11 @@ function buildPlacementTest30(words?: WordData[]): Question[] {
 
     const blanked = word.example.replace(new RegExp('\\b' + word.word + '\\b', 'gi'), '____');
 
-    const distractors = wordPool
-      .filter((w) => w.word !== word.word && w.level === word.level)
-      .sort(() => Math.random() - 0.5)
+    const distractors = shuffleArray(wordPool
+      .filter((w) => w.word !== word.word && w.level === word.level))
       .slice(0, 3)
       .map((w) => w.word);
-    const options = [word.word, ...distractors].sort(() => Math.random() - 0.5);
+    const options = shuffleArray([word.word, ...distractors]);
 
     questions.push({
       category: 'definitions',
@@ -365,12 +365,11 @@ function buildPlacementTest30(words?: WordData[]): Question[] {
     const word = pickWord(lvl);
     if (!word) continue;
 
-    const distractors = wordPool
-      .filter((w) => w.word !== word.word)
-      .sort(() => Math.random() - 0.5)
+    const distractors = shuffleArray(wordPool
+      .filter((w) => w.word !== word.word))
       .slice(0, 3)
       .map((w) => w.definition);
-    const options = [word.definition, ...distractors].sort(() => Math.random() - 0.5);
+    const options = shuffleArray([word.definition, ...distractors]);
 
     questions.push({
       category: 'definitions',
@@ -418,11 +417,10 @@ function buildPlacementTest30(words?: WordData[]): Question[] {
     const distPool =
       similarPool.length >= 3 ? similarPool : wordPool.filter((w) => w.word !== word.word);
 
-    const distractors = [...distPool]
-      .sort(() => Math.random() - 0.5)
+    const distractors = shuffleArray(distPool)
       .slice(0, 3)
       .map((w) => w.word);
-    const options = [word.word, ...distractors].sort(() => Math.random() - 0.5);
+    const options = shuffleArray([word.word, ...distractors]);
 
     questions.push({
       category: 'phonics',
@@ -434,7 +432,7 @@ function buildPlacementTest30(words?: WordData[]): Question[] {
     });
   }
 
-  return questions.sort(() => Math.random() - 0.5);
+  return shuffleArray(questions);
 }
 
 function buildQuestions(
@@ -451,12 +449,16 @@ function buildQuestions(
     case 'phonics': {
       const format = config.phonicsFormat ?? 'tap';
       if (format === 'card-flip') {
-        const word = wordPool[0];
+        const phoneme = phonemeIds?.length
+          ? PHONEMES.find((p) => p.id === phonemeIds[0]) ?? PHONEMES[0]
+          : PHONEMES[0];
+        const word =
+          wordPool.find((w) => w.phonemes.includes(phoneme.id)) ?? wordPool[0];
         return [
           {
             category: 'phonics' as const,
             format: 'card-flip' as const,
-            phoneme: PHONEMES[0],
+            phoneme,
             word,
             correctAnswer: word.word,
             options: [word.word],
@@ -545,12 +547,16 @@ function buildRetryQuestions(
     case 'phonics': {
       const format = config.phonicsFormat ?? 'tap';
       if (format === 'card-flip') {
-        const word = wordPool[0];
+        const phoneme = phonemeIds?.length
+          ? PHONEMES.find((p) => p.id === phonemeIds[0]) ?? PHONEMES[0]
+          : PHONEMES[0];
+        const word =
+          wordPool.find((w) => w.phonemes.includes(phoneme.id)) ?? wordPool[0];
         return [
           {
             category: 'phonics' as const,
             format: 'card-flip' as const,
-            phoneme: PHONEMES[0],
+            phoneme,
             word,
             correctAnswer: word.word,
             options: [word.word],
@@ -588,7 +594,7 @@ function buildRetryQuestions(
           phoneme,
           word,
           correctAnswer: word.word,
-          options: [word.word, ...distractors.map((d) => d.word)].sort(() => Math.random() - 0.5),
+          options: shuffleArray([word.word, ...distractors.map((d) => d.word)]),
         });
       }
       break;
@@ -601,7 +607,7 @@ function buildRetryQuestions(
           format === 'mixed' ? (Math.random() > 0.5 ? 'tiles' : 'choice') : format;
         const choices =
           inputMode === 'choice' || format === 'choice'
-            ? [word.word, ...word.spellingDistractors].sort(() => Math.random() - 0.5).slice(0, 4)
+            ? shuffleArray([word.word, ...word.spellingDistractors]).slice(0, 4)
             : undefined;
 
         questions.push({
@@ -634,7 +640,7 @@ function buildRetryQuestions(
             const idx = tempDistPool.indexOf(dist);
             if (idx !== -1) tempDistPool.splice(idx, 1);
           }
-          options = [word.word, ...distractors].sort(() => Math.random() - 0.5);
+          options = shuffleArray([word.word, ...distractors]);
           correctAnswer = word.word;
         } else {
           let distPool = wordPool.filter((w) => w.word !== word.word);
@@ -649,7 +655,7 @@ function buildRetryQuestions(
             const idx = tempDistPool.indexOf(dist);
             if (idx !== -1) tempDistPool.splice(idx, 1);
           }
-          options = [word.definition, ...distractors].sort(() => Math.random() - 0.5);
+          options = shuffleArray([word.definition, ...distractors]);
           correctAnswer = word.definition;
         }
 
@@ -787,7 +793,7 @@ function getDistractorsFromSimilarGroup(
   }
 
   const picked: WordData[] = [];
-  const tempPool = [...pool].sort(() => Math.random() - 0.5);
+  const tempPool = shuffleArray(pool);
   for (let i = 0; i < Math.min(count, tempPool.length); i++) {
     picked.push(tempPool[i]);
   }
@@ -858,7 +864,7 @@ function generatePhonemeMatchRound(
 
 function generateSoundSortQuestions(count: number, level: CefrLevel): SoundSortQuestion[] {
   const questions: SoundSortQuestion[] = [];
-  const groups = [...SIMILAR_SOUND_GROUPS].sort(() => Math.random() - 0.5);
+  const groups = shuffleArray(SIMILAR_SOUND_GROUPS);
 
   let pool = [...WORDS];
   if (level !== 'all') {
@@ -895,7 +901,7 @@ function generateSoundSortQuestions(count: number, level: CefrLevel): SoundSortQ
     questions.push({
       category: 'sound-sort',
       targetPhonemeIds,
-      words: words.sort(() => Math.random() - 0.5),
+      words: shuffleArray(words),
     });
   }
 
@@ -944,7 +950,7 @@ function generateRhymeTimeQuestions(count: number, level: CefrLevel): RhymeQuest
         (w) => w.word !== target.word && w.word !== rhymeWord.word && !usedWords.has(w.word),
       );
       const distractors: string[] = [];
-      const tempDist = [...distPool].sort(() => Math.random() - 0.5);
+      const tempDist = shuffleArray(distPool);
       for (let d = 0; d < Math.min(3, tempDist.length); d++) {
         distractors.push(tempDist[d].word);
       }
@@ -952,7 +958,7 @@ function generateRhymeTimeQuestions(count: number, level: CefrLevel): RhymeQuest
         const extra = WORDS[Math.floor(Math.random() * WORDS.length)];
         if (!distractors.includes(extra.word)) distractors.push(extra.word);
       }
-      options = [correctAnswer, ...distractors].sort(() => Math.random() - 0.5);
+      options = shuffleArray([correctAnswer, ...distractors]);
     } else {
       const group = getPhonemeGroup(target.phonemes[target.phonemes.length - 1]);
       const similarPool = group
@@ -969,11 +975,10 @@ function generateRhymeTimeQuestions(count: number, level: CefrLevel): RhymeQuest
       usedWords.add(similarWord.word);
 
       const distractors: string[] = [];
-      const tempDist = pool
+      const tempDist = shuffleArray(pool
         .filter(
           (w) => w.word !== target.word && w.word !== similarWord.word && !usedWords.has(w.word),
-        )
-        .sort(() => Math.random() - 0.5);
+        ));
       for (let d = 0; d < Math.min(3, tempDist.length); d++) {
         distractors.push(tempDist[d].word);
       }
@@ -981,7 +986,7 @@ function generateRhymeTimeQuestions(count: number, level: CefrLevel): RhymeQuest
         const extra = WORDS[Math.floor(Math.random() * WORDS.length)];
         if (!distractors.includes(extra.word)) distractors.push(extra.word);
       }
-      options = [correctAnswer, ...distractors].sort(() => Math.random() - 0.5);
+      options = shuffleArray([correctAnswer, ...distractors]);
     }
 
     questions.push({
@@ -1063,7 +1068,7 @@ function generateSyllableSmashQuestions(count: number, level: CefrLevel): Syllab
       category: 'syllable-smash',
       word: word.word,
       syllableCount: correctCount,
-      options: [...optionSet].sort(() => Math.random() - 0.5),
+      options: shuffleArray([...optionSet]),
       correctAnswer: correctCount,
     });
   }
@@ -1101,7 +1106,7 @@ function generatePracticeQuestions(
     used.add(word.word);
 
     const distractors = getDistractorsFromSimilarGroup(word, phoneme.id, level, 3, words);
-    const options = [word.word, ...distractors.map((d) => d.word)].sort(() => Math.random() - 0.5);
+    const options = shuffleArray([word.word, ...distractors.map((d) => d.word)]);
 
     questions.push({
       category: 'practice',
@@ -1144,7 +1149,7 @@ function generateIpaToWordQuestions(
     if (!phoneme) continue;
 
     const distractors = getDistractorsFromSimilarGroup(word, phonemeId, level, 3, words);
-    const options = [word.word, ...distractors.map((d) => d.word)].sort(() => Math.random() - 0.5);
+    const options = shuffleArray([word.word, ...distractors.map((d) => d.word)]);
 
     questions.push({
       category: 'ipa-word',
@@ -1172,7 +1177,7 @@ function generateIpaToWordQuestions(
       category: 'ipa-word',
       ipa: ph.ipa,
       correctAnswer: w.word,
-      options: [w.word, ...dists.map((d) => d.word)].sort(() => Math.random() - 0.5),
+      options: shuffleArray([w.word, ...dists.map((d) => d.word)]),
       phoneme: ph,
       word: w,
     });
@@ -1214,7 +1219,7 @@ function generateWordToIpaQuestions(
       (p) => groupIds.includes(p.id) && p.id !== phonemeId,
     );
     const options: string[] = [correctPhoneme.ipa];
-    const tempDists = [...distractorPhonemes].sort(() => Math.random() - 0.5);
+    const tempDists = shuffleArray(distractorPhonemes);
     for (let d = 0; d < Math.min(3, tempDists.length); d++) {
       options.push(tempDists[d].ipa);
     }
@@ -1227,7 +1232,7 @@ function generateWordToIpaQuestions(
       category: 'word-ipa',
       word,
       correctAnswer: correctPhoneme.ipa,
-      options: options.sort(() => Math.random() - 0.5),
+      options: shuffleArray(options),
     });
   }
   while (questions.length < count) {
@@ -1246,7 +1251,7 @@ function generateWordToIpaQuestions(
     const dists = group
       ? PHONEMES.filter((p) => group.phonemeIds.includes(p.id) && p.id !== pid)
       : PHONEMES.filter((p) => p.id !== pid);
-    const tempD = [...dists].sort(() => Math.random() - 0.5).slice(0, 3);
+    const tempD = shuffleArray(dists).slice(0, 3);
     tempD.forEach((d) => options.push(d.ipa));
     while (options.length < 4) {
       const extra = PHONEMES[Math.floor(Math.random() * PHONEMES.length)];
@@ -1256,7 +1261,7 @@ function generateWordToIpaQuestions(
       category: 'word-ipa',
       word: w,
       correctAnswer: ph.ipa,
-      options: options.sort(() => Math.random() - 0.5),
+      options: shuffleArray(options),
     });
   }
   return questions.slice(0, count);
@@ -1294,7 +1299,7 @@ function generateSynonymQuestions(
       const distPool = wordPool.filter(
         (w) => w.word !== word.word && !word.synonyms.includes(w.word) && !options.includes(w.word),
       );
-      const tempDist = [...distPool].sort(() => Math.random() - 0.5);
+      const tempDist = shuffleArray(distPool);
       for (let d = 0; d < Math.min(3, tempDist.length); d++) {
         options.push(tempDist[d].word);
       }
@@ -1305,7 +1310,7 @@ function generateSynonymQuestions(
         category: 'synonyms',
         word,
         correctAnswer: correctSyn,
-        options: [...new Set(options)].sort(() => Math.random() - 0.5),
+        options: shuffleArray([...new Set(options)]),
       });
     }
   }
@@ -1344,7 +1349,7 @@ function generateAntonymQuestions(
       const distPool = wordPool.filter(
         (w) => w.word !== word.word && !word.antonyms.includes(w.word) && !options.includes(w.word),
       );
-      const tempDist = [...distPool].sort(() => Math.random() - 0.5);
+      const tempDist = shuffleArray(distPool);
       for (let d = 0; d < Math.min(3, tempDist.length); d++) {
         options.push(tempDist[d].word);
       }
@@ -1355,7 +1360,7 @@ function generateAntonymQuestions(
         category: 'antonyms',
         word,
         correctAnswer: correctAnt,
-        options: [...new Set(options)].sort(() => Math.random() - 0.5),
+        options: shuffleArray([...new Set(options)]),
       });
     }
   }
@@ -1397,7 +1402,7 @@ function generateCollocationQuestions(
           !word.collocations.some((c) => c.includes(w.word)) &&
           !options.includes(w.word),
       );
-      const tempDist = [...distPool].sort(() => Math.random() - 0.5);
+      const tempDist = shuffleArray(distPool);
       for (let d = 0; d < Math.min(3, tempDist.length); d++) {
         const distWord = tempDist[d].word;
         const distCollocations = tempDist[d].collocations.filter((c) => !c.includes(word.word));
@@ -1414,7 +1419,7 @@ function generateCollocationQuestions(
         category: 'collocations',
         word,
         correctAnswer: correctCol,
-        options: [...new Set(options)].sort(() => Math.random() - 0.5),
+        options: shuffleArray([...new Set(options)]),
       });
     }
   }
@@ -1450,7 +1455,7 @@ function generateFillBlankQuestions(
 
     const options = [word.word];
     const distPool = wordPool.filter((w) => w.word !== word.word);
-    const tempDist = [...distPool].sort(() => Math.random() - 0.5);
+    const tempDist = shuffleArray(distPool);
     for (let d = 0; d < Math.min(3, tempDist.length); d++) {
       options.push(tempDist[d].word);
     }
@@ -1462,7 +1467,7 @@ function generateFillBlankQuestions(
       category: 'fill-blank',
       word,
       correctAnswer: word.word,
-      options: [...new Set(options)].sort(() => Math.random() - 0.5),
+      options: shuffleArray([...new Set(options)]),
       blankedSentence,
     });
   }
@@ -1496,11 +1501,11 @@ function generateWordAssociationQuestions(
 
     const wordClass = word.wordClass.toLowerCase();
     const otherClasses = allClasses.filter((c) => c !== wordClass);
-    const shuffledOthers = [...otherClasses].sort(() => Math.random() - 0.5);
+    const shuffledOthers = shuffleArray(otherClasses);
     const distractorCount = Math.min(3, shuffledOthers.length);
     const distractors = shuffledOthers.slice(0, distractorCount);
 
-    const options = [wordClass, ...distractors].sort(() => Math.random() - 0.5);
+    const options = shuffleArray([wordClass, ...distractors]);
 
     questions.push({
       category: 'word-assoc',
@@ -1546,8 +1551,8 @@ function generateGraphemePatternQuestions(
           if (g !== correctGrapheme) distractorPool.push(g);
         }
       }
-      const distractors = [...new Set(distractorPool)].sort(() => Math.random() - 0.5).slice(0, 3);
-      const options = [correctGrapheme, ...distractors].sort(() => Math.random() - 0.5);
+      const distractors = shuffleArray([...new Set(distractorPool)]).slice(0, 3);
+      const options = shuffleArray([correctGrapheme, ...distractors]);
 
       questions.push({
         category: 'grapheme',
@@ -1579,7 +1584,7 @@ function generateGraphemePatternQuestions(
         direction: 'grapheme-to-phoneme',
         promptLabel: correctGrapheme,
         correctAnswer: phoneme.ipa,
-        options: options.sort(() => Math.random() - 0.5),
+        options: shuffleArray(options),
         phonemeId,
         word: exampleWord,
       });
@@ -1616,7 +1621,7 @@ function generateMinimalPairsQuestions(
           if (direction === 'word-to-ipa') {
             const options = [wordA.ipa, wordB.ipa];
             const extra = wordPool.filter((w) => !options.includes(w.ipa) && w.word !== wordA.word);
-            const tempExtra = [...extra].sort(() => Math.random() - 0.5);
+            const tempExtra = shuffleArray(extra);
             for (let e = 0; e < Math.min(2, tempExtra.length); e++) {
               options.push(tempExtra[e].ipa);
             }
@@ -1628,7 +1633,7 @@ function generateMinimalPairsQuestions(
               direction: 'word-to-ipa',
               prompt: wordA.word,
               correctAnswer: wordA.ipa,
-              options: [...new Set(options)].sort(() => Math.random() - 0.5),
+              options: shuffleArray([...new Set(options)]),
               phonemeId: pid,
               word: wordA,
             });
@@ -1637,7 +1642,7 @@ function generateMinimalPairsQuestions(
             const extra = wordPool.filter(
               (w) => !options.includes(w.word) && w.word !== wordA.word,
             );
-            const tempExtra = [...extra].sort(() => Math.random() - 0.5);
+            const tempExtra = shuffleArray(extra);
             for (let e = 0; e < Math.min(2, tempExtra.length); e++) {
               options.push(tempExtra[e].word);
             }
@@ -1649,7 +1654,7 @@ function generateMinimalPairsQuestions(
               direction: 'ipa-to-word',
               prompt: wordA.ipa,
               correctAnswer: wordA.word,
-              options: [...new Set(options)].sort(() => Math.random() - 0.5),
+              options: shuffleArray([...new Set(options)]),
               phonemeId: pid,
               word: wordA,
             });
@@ -1684,7 +1689,7 @@ function generateMinimalPairsQuestions(
       direction: 'word-to-ipa',
       prompt: word.word,
       correctAnswer: word.ipa,
-      options: options.sort(() => Math.random() - 0.5),
+      options: shuffleArray(options),
       phonemeId: pid,
       word,
     });
@@ -1741,7 +1746,7 @@ function generateStressQuestions(
       category: 'stress',
       word,
       correctAnswer: options[correctIdx],
-      options: options.sort(() => Math.random() - 0.5),
+      options: shuffleArray(options),
       phonemeId,
     });
   }
@@ -1836,7 +1841,7 @@ function generateExerciseQuestions(
     }
   }
 
-  return questions.sort(() => Math.random() - 0.5);
+  return shuffleArray(questions);
 }
 
 function generateVocabExerciseQuestions(

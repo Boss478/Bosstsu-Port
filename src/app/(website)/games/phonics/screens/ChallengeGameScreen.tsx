@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { shuffleArray } from "@/lib/shuffle";
 import {
   generatePhonemeMatchRound,
   generateSoundSortQuestions,
@@ -28,10 +29,6 @@ interface PhonemeMatchCard {
   matchId: string;
   flipped: boolean;
   matched: boolean;
-}
-
-function shuffleArray<T>(arr: T[]): T[] {
-  return [...arr].sort(() => Math.random() - 0.5);
 }
 
 function getChallengeColor(type: string): string {

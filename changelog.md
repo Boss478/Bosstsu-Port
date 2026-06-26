@@ -5,6 +5,14 @@
 
 
 
+## v1.10.49 (2026-06-26)
+* **Shuffle Bias & Card-Flip Stub Fixes — Phonics Game**:
+  * + **Fisher-Yates shuffleArray tests**: 8 tests for `src/lib/shuffle.ts` (immutability, correct length, element preservation, probabilistic order).
+  * * **Biased shuffle → Fisher-Yates**: Replaced 54 `.sort(() => Math.random() - 0.5)` with `shuffleArray` across `question-generators.ts`. Eliminated distribution bias in all question type shuffles.
+  * * **ChallengeGameScreen shuffle**: Replaced inline biased `shuffleArray` with shared `@/lib/shuffle` import.
+  * * **Card-flip stub fix**: `buildQuestions`/`buildRetryQuestions` now use `phonemeIds[0]` (lesson-relevant) instead of always `PHONEMES[0]` + `wordPool[0]`.
+  * + **19 card-flip tests**: `buildQuestions`/`buildRetryQuestions` card-flip routing + `generateCardFlipCards` (pair generation, fallback, truncation, word matching).
+
 ## v1.10.48 (2026-06-26)
 * **Vocab Activity Expansion — Phonics Game**:
   * + **4 New Question Types**: `antonyms`, `collocations`, `fill-blank`, `word-assoc` generators, routed through `buildQuestions`/`buildRetryQuestions`/`buildActivityRetryQuestions`/`computeCorrectAnswer`.
