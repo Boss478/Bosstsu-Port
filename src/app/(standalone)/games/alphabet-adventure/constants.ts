@@ -4,7 +4,7 @@ import { shuffleArray } from '@/lib/shuffle';
 const ALPHABET_UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const ALPHABET_LOWER = 'abcdefghijklmnopqrstuvwxyz'.split('');
 
-export const THAI_NAMES = [
+const THAI_NAMES = [
   'เอ',
   'บี',
   'ซี',
@@ -33,7 +33,7 @@ export const THAI_NAMES = [
   'แซด',
 ];
 
-export const PHONICS_SOUNDS = [
+const PHONICS_SOUNDS = [
   'แอะ /a/',
   'เบอะ /b/',
   'เคอะ /k/',
@@ -161,6 +161,10 @@ const fisherYatesShuffle = shuffleArray;
 
 let roundSeed: number[] | null = null;
 
+export function resetRoundSeed() {
+  roundSeed = null;
+}
+
 function getLetterIndex(round: number): number {
   if (round <= 26) return round - 1;
   if (!roundSeed) {
@@ -201,42 +205,6 @@ export function generateThaiRevertRound(round: number, numChoices = 3) {
   return {
     targetLetter: thaiName,
     correctChar: correctLetter,
-    choices: fisherYatesShuffle(choices),
-  };
-}
-
-export function generateThaiRound(round: number, numChoices = 3) {
-  const targetIndex = getLetterIndex(round);
-  const upper = ALPHABET_UPPER[targetIndex];
-  const correct = THAI_NAMES[targetIndex];
-
-  const choices = [correct];
-  while (choices.length < numChoices) {
-    const r = Math.floor(Math.random() * 26);
-    if (!choices.includes(THAI_NAMES[r])) choices.push(THAI_NAMES[r]);
-  }
-
-  return {
-    targetLetter: upper,
-    correctChar: correct,
-    choices: fisherYatesShuffle(choices),
-  };
-}
-
-export function generatePhonicsRound(round: number, numChoices = 3) {
-  const targetIndex = getLetterIndex(round);
-  const upper = ALPHABET_UPPER[targetIndex];
-  const correct = PHONICS_SOUNDS[targetIndex];
-
-  const choices = [correct];
-  while (choices.length < numChoices) {
-    const r = Math.floor(Math.random() * 26);
-    if (!choices.includes(PHONICS_SOUNDS[r])) choices.push(PHONICS_SOUNDS[r]);
-  }
-
-  return {
-    targetLetter: upper,
-    correctChar: correct,
     choices: fisherYatesShuffle(choices),
   };
 }
@@ -299,6 +267,33 @@ export function generateFillRound(type: 'fill-upper' | 'fill-lower', numChoices 
     activeIndex: missing[0],
     choices,
   };
+}
+
+export type CardTier = 'common' | 'uncommon' | 'rare' | 'ultra-rare' | 'legendary';
+
+export const CARD_DROP_RATES: Array<{ tier: CardTier | null; base: number; max: number }> = [
+  { tier: null, base: 90, max: 75 },
+  { tier: 'common', base: 5.5, max: 7.0 },
+  { tier: 'uncommon', base: 2.7, max: 8.0 },
+  { tier: 'rare', base: 1.2, max: 6.0 },
+  { tier: 'ultra-rare', base: 0.5, max: 2.5 },
+  { tier: 'legendary', base: 0.1, max: 1.5 },
+];
+
+export function interpolateRate(base: number, max: number, streak: number): number {
+  const t = Math.min(streak, 20) / 20;
+  return base + (max - base) * t;
+}
+
+export function getDropRate(tier: CardTier, streak: number): number {
+  const entry = CARD_DROP_RATES.find((r) => r.tier === tier);
+  if (!entry) return 0;
+  return interpolateRate(entry.base, entry.max, streak);
+}
+
+export function getNoneDropRate(streak: number): number {
+  const entry = CARD_DROP_RATES.find((r) => r.tier === null);
+  return interpolateRate(entry!.base, entry!.max, streak);
 }
 
 export function generateTypingRound(difficulty: number) {

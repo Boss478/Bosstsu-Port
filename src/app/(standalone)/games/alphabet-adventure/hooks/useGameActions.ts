@@ -34,6 +34,7 @@ import {
   generateFillChoices,
   generateTypingRound,
   PROGRESS_KEY,
+  resetRoundSeed,
 } from '../constants';
 
 function saveProgress(state: GameState, stars: number[]) {
@@ -208,6 +209,7 @@ export function useGameActions({
 
   const startGame = useCallback(
     (savedState?: GameState, savedStars?: number[], easyMode = false) => {
+      resetRoundSeed();
       clearProgress();
       const initialState = savedState || { ...initialGameState(), easyMode };
       setGameState(initialState);
@@ -309,7 +311,6 @@ export function useGameActions({
   const handleAnswer = useCallback(
     (selected: string) => {
       if (isTransitioning) return;
-      cardDroppedRef.current = false;
       const config = LEVELS[stateRef.current.level];
       if (!config) return;
 
@@ -437,6 +438,7 @@ export function useGameActions({
           }
         }
       } else {
+        cardDroppedRef.current = false;
         dropStreakRef.current = 0;
         setDropStreak(0);
         setStreakToast('');
@@ -511,7 +513,6 @@ export function useGameActions({
 
   const checkTyping = useCallback(() => {
     if (isTransitioning) return;
-    cardDroppedRef.current = false;
     const config = LEVELS[6];
     if (!config) return;
 
@@ -586,6 +587,7 @@ export function useGameActions({
         }, GAME_CONFIG.FEEDBACK_DURATION);
       }
     } else {
+      cardDroppedRef.current = false;
       dropStreakRef.current = 0;
       setDropStreak(0);
       setStreakToast('');
@@ -685,6 +687,19 @@ export function useGameActions({
     }
   }, [finishGame]);
 
+  const markOnboardingSeen = useCallback(
+    (level: number) => {
+      setGameState((prev) => {
+        const onboardingSeen = [...prev.onboardingSeen];
+        onboardingSeen[level - 1] = true;
+        const newState = { ...prev, onboardingSeen };
+        saveProgress(newState, stageStars);
+        return newState;
+      });
+    },
+    [stageStars],
+  );
+
   return {
     gameState,
     roundData,
@@ -711,5 +726,6 @@ export function useGameActions({
     checkTyping,
     handleSelectCell,
     handleTypingInput,
+    markOnboardingSeen,
   };
 }

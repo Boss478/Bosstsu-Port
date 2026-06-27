@@ -5,6 +5,13 @@
 
 
 
+## v1.10.50 (2026-06-27)
+* **Alphabet Adventure Stabilization [Phase 1-4]**:
+  * * **5 Bug Fixes**: `cardDroppedRef` race condition (moved reset to wrong-answer only), pendingFinishRef Escape key leak (added ESC→onKeep handler), `onboardingSeen` persistence (saved to progress localStorage), `roundSeed` module-scope leak (added `resetRoundSeed`), VictoryScreen `0/0` edge case (hidden when no stars).
+  * * **Drop Rates → constants.ts**: Extracted `CardTier`, `CARD_DROP_RATES`, `interpolateRate`, `getDropRate`, `getNoneDropRate` from `cards.ts` to `constants.ts` for centralised configuration.
+  * + **78 Tests**: Card drop probability (`rollCardDrop`, `pickLetter`, rate interpolation), scoring/star calculation, praise selection, rate integrity, and all question generators (`generateMatchRound`, `generateThaiRevertRound`, `generatePhonicsRevertRound`, `getLetterIndex`/`resetRoundSeed`, `generateFillChoices`, `generateFillRound`, `generateTypingRound`).
+  * * **Card Screen Polish**: Added "Play Now" CTA button to empty state; secondary letter sort for Recent mode stability.
+
 ## v1.10.49 (2026-06-26)
 * **Shuffle Bias & Card-Flip Stub Fixes — Phonics Game**:
   * + **Fisher-Yates shuffleArray tests**: 8 tests for `src/lib/shuffle.ts` (immutability, correct length, element preservation, probabilistic order).

@@ -4,6 +4,7 @@
 
 | Version | Key Changes |
 |---------|-------------|
+| v1.10.50 | Alphabet Adventure stabilization: 5 bug fixes (cardDroppedRef race, Escape leak, onboardingSeen persistence, roundSeed reset, VictoryScreen 0/0), drop rates→constants.ts, 78 new tests (drops/scoring/generators/integrity), card screen polish (Play Now CTA, sort stability). |
 | v1.10.49 | Fixed biased shuffle (54 locations → Fisher-Yates) and card-flip stub (now uses lesson phoneme/word). 27 new tests (shuffle + card-flip). |
 | v1.10.47 | Cartoon-realistic card overhaul: added thick outlines, 3D beveled borders, offset extruded plaque nameplates, double-beveled portrait arches, and bezel-mounted gems to achieve TCG cartoon aesthetics. |
 | v1.10.46 | Redesigned collectible cards visually with premium gemstone/metallic borders, 3D radial sphere highlights for gems, spotlight/vignette backgrounds for illustrations, cosmic geometric mandalas for card backs, and a GPU-accelerated hover gloss shine sweep. |

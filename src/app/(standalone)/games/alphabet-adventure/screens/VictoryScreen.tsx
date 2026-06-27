@@ -122,105 +122,122 @@ export default function VictoryScreen({
           </p>
         </div>
 
-        <div className="space-y-2 sm:space-y-3">
-          <p className="text-xs sm:text-sm font-bold text-zinc-500 dark:text-zinc-400">
-            Level Stars
-          </p>
-          <div className="flex flex-col gap-1 sm:gap-2">
-            {stageStars.map((stars, index) => {
-              const levelNum = index + 1;
-              const levelConfig = LEVELS[levelNum];
-              return (
-                <div key={levelNum} className="flex items-center justify-center gap-2 sm:gap-3">
-                  <span className="text-[10px] sm:text-xs font-bold text-zinc-500 dark:text-zinc-400 w-20 sm:w-24 md:w-32 text-right">
-                    {levelConfig?.name || `Level ${levelNum}`}
-                  </span>
-                  <StarDisplay count={stars} />
-                </div>
-              );
-            })}
-          </div>
-          <div className="pt-1 sm:pt-2 border-t-2 border-violet-200 dark:border-violet-800">
-            <p className="text-[10px] sm:text-xs font-bold text-violet-500 dark:text-violet-400">
-              Total: {totalStars} / {stageStars.length * 3} Stars
+        {stageStars.length > 0 && (
+          <div className="space-y-2 sm:space-y-3">
+            <p className="text-xs sm:text-sm font-bold text-zinc-500 dark:text-zinc-400">
+              Level Stars
             </p>
-          </div>
-          {wrongLetters && wrongLetters.length > 0 && (
-            <div className="pt-1 sm:pt-2">
-              <p className="text-[10px] sm:text-xs font-bold text-rose-500 uppercase tracking-widest mb-1 sm:mb-2">
-                Letters to Practice
+            <div className="flex flex-col gap-1 sm:gap-2">
+              {stageStars.map((stars, index) => {
+                const levelNum = index + 1;
+                const levelConfig = LEVELS[levelNum];
+                return (
+                  <div key={levelNum} className="flex items-center justify-center gap-2 sm:gap-3">
+                    <span className="text-[10px] sm:text-xs font-bold text-zinc-500 dark:text-zinc-400 w-20 sm:w-24 md:w-32 text-right">
+                      {levelConfig?.name || `Level ${levelNum}`}
+                    </span>
+                    <StarDisplay count={stars} />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="pt-1 sm:pt-2 border-t-2 border-violet-200 dark:border-violet-800">
+              <p className="text-[10px] sm:text-xs font-bold text-violet-500 dark:text-violet-400">
+                Total: {totalStars} / {stageStars.length * 3} Stars
               </p>
-              <div className="flex flex-wrap justify-center gap-1 sm:gap-2">
-                {Object.entries(
-                  wrongLetters.reduce((acc, l) => {
+            </div>
+          </div>
+        )}
+        {wrongLetters && wrongLetters.length > 0 && (
+          <div className="pt-1 sm:pt-2">
+            <p className="text-[10px] sm:text-xs font-bold text-rose-500 uppercase tracking-widest mb-1 sm:mb-2">
+              Letters to Practice
+            </p>
+            <div className="flex flex-wrap justify-center gap-1 sm:gap-2">
+              {Object.entries(
+                wrongLetters.reduce(
+                  (acc, l) => {
                     acc[l] = (acc[l] || 0) + 1;
                     return acc;
-                  }, {} as Record<string, number>),
-                )
-                  .sort(([a], [b]) => a.localeCompare(b))
-                  .map(([letter, count]) => (
-                    <span
-                      key={letter}
-                      className="inline-flex items-center gap-0.5 px-2 py-1 rounded-xl bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-sm sm:text-base md:text-lg font-black"
-                    >
-                      {letter}
-                      {count > 1 && (
-                        <span className="text-[10px] text-rose-400 dark:text-rose-500 font-bold">
-                          x{count}
-                        </span>
-                      )}
+                  },
+                  {} as Record<string, number>,
+                ),
+              )
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([letter, count]) => (
+                  <span
+                    key={letter}
+                    className="inline-flex items-center gap-0.5 px-2 py-1 rounded-xl bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-sm sm:text-base md:text-lg font-black"
+                  >
+                    {letter}
+                    {count > 1 && (
+                      <span className="text-[10px] text-rose-400 dark:text-rose-500 font-bold">
+                        x{count}
+                      </span>
+                    )}
+                  </span>
+                ))}
+            </div>
+          </div>
+        )}
+
+        {analyticsStats.length > 0 && (
+          <div className="pt-1 sm:pt-2 border-t-2 border-zinc-200 dark:border-zinc-700">
+            <p className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">
+              Session Breakdown
+            </p>
+            <div className="space-y-1.5">
+              {analyticsStats.map((stat) => {
+                const levelConfig = LEVELS[stat.level];
+                const name = levelConfig?.name || `Level ${stat.level}`;
+                const totalErrors = Object.values(stat.letterErrors).reduce((a, b) => a + b, 0);
+                return (
+                  <div
+                    key={stat.level}
+                    className="flex items-center justify-between gap-2 text-[11px] font-bold"
+                  >
+                    <span className="text-zinc-600 dark:text-zinc-400 w-20 sm:w-24 text-right">
+                      {name}
                     </span>
-                  ))}
-              </div>
-            </div>
-          )}
-
-          {analyticsStats.length > 0 && (
-            <div className="pt-1 sm:pt-2 border-t-2 border-zinc-200 dark:border-zinc-700">
-              <p className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">
-                Session Breakdown
-              </p>
-              <div className="space-y-1.5">
-                {analyticsStats.map((stat) => {
-                  const levelConfig = LEVELS[stat.level];
-                  const name = levelConfig?.name || `Level ${stat.level}`;
-                  const totalErrors = Object.values(stat.letterErrors).reduce((a, b) => a + b, 0);
-                  return (
-                    <div key={stat.level} className="flex items-center justify-between gap-2 text-[11px] font-bold">
-                      <span className="text-zinc-600 dark:text-zinc-400 w-20 sm:w-24 text-right">{name}</span>
-                      <span className={`text-xs font-black tabular-nums ${stat.accuracy >= 80 ? 'text-emerald-500' : stat.accuracy >= 50 ? 'text-amber-500' : 'text-rose-500'}`}>
-                        {stat.accuracy}%
+                    <span
+                      className={`text-xs font-black tabular-nums ${stat.accuracy >= 80 ? 'text-emerald-500' : stat.accuracy >= 50 ? 'text-amber-500' : 'text-rose-500'}`}
+                    >
+                      {stat.accuracy}%
+                    </span>
+                    <span className="text-zinc-500 dark:text-zinc-500 tabular-nums">
+                      {stat.correct}/{stat.total}
+                    </span>
+                    {totalErrors > 0 && (
+                      <span className="text-rose-400 text-[10px]">
+                        ✗
+                        {Object.entries(stat.letterErrors)
+                          .sort(([, a], [, b]) => b - a)
+                          .slice(0, 3)
+                          .map(([l]) => l)
+                          .join(' ')}
                       </span>
-                      <span className="text-zinc-500 dark:text-zinc-500 tabular-nums">
-                        {stat.correct}/{stat.total}
-                      </span>
-                      {totalErrors > 0 && (
-                        <span className="text-rose-400 text-[10px]">
-                          ✗{Object.entries(stat.letterErrors).sort(([, a], [, b]) => b - a).slice(0, 3).map(([l]) => l).join(' ')}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
 
-        <div className="flex flex-col md:flex-row items-center justify-center gap-3 pt-2 sm:pt-3 md:pt-4">
-          <button
-            onClick={onRestart}
-            className="px-6 py-2.5 sm:px-8 sm:py-3 md:px-10 md:py-4 bg-emerald-600 text-white text-base sm:text-lg md:text-xl font-black rounded-3xl shadow-[0_8px_0_0_#065f46] active:shadow-none active:translate-y-2 transition-all"
-          >
-            Play Again
-          </button>
-          <button
-            onClick={onBackToMenu}
-            className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl text-sm sm:text-base text-zinc-500 hover:text-violet-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-bold transition-all"
-          >
-            Back to Menu
-          </button>
-        </div>
+      <div className="flex flex-col md:flex-row items-center justify-center gap-3 pt-2 sm:pt-3 md:pt-4">
+        <button
+          onClick={onRestart}
+          className="px-6 py-2.5 sm:px-8 sm:py-3 md:px-10 md:py-4 bg-emerald-600 text-white text-base sm:text-lg md:text-xl font-black rounded-3xl shadow-[0_8px_0_0_#065f46] active:shadow-none active:translate-y-2 transition-all"
+        >
+          Play Again
+        </button>
+        <button
+          onClick={onBackToMenu}
+          className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl text-sm sm:text-base text-zinc-500 hover:text-violet-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-bold transition-all"
+        >
+          Back to Menu
+        </button>
       </div>
     </>
   );

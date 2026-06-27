@@ -513,7 +513,11 @@ export default function CardScreen({ onBack, playSequence }: Props) {
               style={{ perspective: '1200px' }}
             >
               {[...collection.cards]
-                .sort((a, b) => (b.lastCollected ?? 0) - (a.lastCollected ?? 0))
+                .sort(
+                  (a, b) =>
+                    (b.lastCollected ?? 0) - (a.lastCollected ?? 0) ||
+                    a.letter.localeCompare(b.letter),
+                )
                 .map((card, i) => {
                   const idx = globalCardIndex++;
                   return (
@@ -545,13 +549,19 @@ export default function CardScreen({ onBack, playSequence }: Props) {
 
           {/* Empty state */}
           {totalCollected === 0 && (
-            <div className="py-12 space-y-4">
+            <div className="py-12 space-y-6">
               <span className="text-7xl block opacity-30" aria-hidden="true">
                 {String.fromCodePoint(0x1f0cf)}
               </span>
               <p className="text-zinc-400 font-bold text-lg">
                 No cards yet. Play the game to collect letters!
               </p>
+              <button
+                onClick={onBack}
+                className="inline-block px-8 py-3 bg-violet-600 text-white text-sm font-black rounded-2xl shadow-[0_6px_0_0_#5b21b6] active:shadow-none active:translate-y-1.5 transition-all hover:bg-violet-500"
+              >
+                Play Now
+              </button>
             </div>
           )}
 

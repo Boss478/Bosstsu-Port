@@ -42,10 +42,21 @@ export default function CardRevealModal({ letter, tier, isNew, onKeep }: Props) 
     }
   }, [flipped]);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onKeep();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onKeep]);
+
   const word = CARD_WORDS[letter] || '';
 
   return (
-    <div ref={focusTrapRef} className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
+    <div
+      ref={focusTrapRef}
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300"
+    >
       <p className="text-white/80 text-sm font-bold mb-6 tracking-wider uppercase">
         {flipped ? (isNew ? 'New Card Collected!' : 'Collected!') : 'Tap the card to reveal'}
       </p>

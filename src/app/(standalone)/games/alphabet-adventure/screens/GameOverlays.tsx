@@ -1,9 +1,8 @@
 'use client';
 
 import type { CardTier } from '../cards/cards';
+import { getDropRate, getNoneDropRate } from '../constants';
 import {
-  getDropRate,
-  getNoneDropRate,
   loadCollection,
   TIER_ORDER,
   TIER_LABELS,

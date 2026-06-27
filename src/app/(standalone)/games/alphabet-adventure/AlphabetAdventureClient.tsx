@@ -23,7 +23,6 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { playSound, speak, muted, toggleMute, playSequence, voiceURI, setVoiceURI } = useAudio();
 
-  const onboardingSeen = useRef<Set<number>>(new Set());
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   const {
@@ -52,14 +51,15 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
     checkTyping,
     handleSelectCell,
     handleTypingInput,
+    markOnboardingSeen,
   } = useGameActions({ playSound, playSequence, setScreen });
 
   useEffect(() => {
-    if (screen === 'game' && !onboardingSeen.current.has(gameState.level)) {
-      onboardingSeen.current.add(gameState.level);
+    if (screen === 'game' && !gameState.onboardingSeen[gameState.level - 1]) {
+      markOnboardingSeen(gameState.level);
       startTransition(() => setShowOnboarding(true));
     }
-  }, [screen, gameState.level]);
+  }, [screen, gameState.level, gameState.onboardingSeen, markOnboardingSeen]);
 
   const closeOnboarding = useCallback(() => setShowOnboarding(false), []);
 
@@ -105,17 +105,17 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
         {showCards && <CardScreen onBack={() => setShowCards(false)} playSequence={playSequence} />}
 
         {!showCards && screen === 'menu' && (
-            <MenuScreen
-              onStart={() => startGame(undefined, undefined, easyMode)}
-              onContinue={continueGame}
-              hasProgress={hasSavedProgress}
-              easyMode={easyMode}
-              onToggleEasy={() => setEasyMode((v) => !v)}
-              isBeta={beta}
-              onShowCards={() => setShowCards(true)}
-              voiceURI={voiceURI}
-              onVoiceChange={handleVoiceChange}
-            />
+          <MenuScreen
+            onStart={() => startGame(undefined, undefined, easyMode)}
+            onContinue={continueGame}
+            hasProgress={hasSavedProgress}
+            easyMode={easyMode}
+            onToggleEasy={() => setEasyMode((v) => !v)}
+            isBeta={beta}
+            onShowCards={() => setShowCards(true)}
+            voiceURI={voiceURI}
+            onVoiceChange={handleVoiceChange}
+          />
         )}
 
         {!showCards && screen === 'game' && (
