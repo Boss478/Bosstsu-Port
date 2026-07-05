@@ -6,7 +6,6 @@ import type { CompanionId, AchievementId, SaveData } from '../types';
 import { COMPANIONS, CEFR_LEVEL_LABELS, CEFR_LEVEL_ORDER } from '../constants';
 import { useAudio } from '@/hooks/useAudio';
 import MascotCanvas from '../components/MascotCanvas';
-import { deleteSave } from '../save';
 import AchievementBadge from '../components/AchievementBadge';
 import PhonemeHeatmap from '../components/PhonemeHeatmap';
 import CefrProgress from '../components/CefrProgress';
@@ -131,7 +130,16 @@ function AchievementsSection({ save }: { save: SaveData | null }) {
 }
 
 export default function ProfileScreen() {
-  const { save, persistSave, companion, setCompanion, setTab, activeSlot, setScreen } = useGame();
+  const {
+    save,
+    persistSave,
+    companion,
+    setCompanion,
+    setTab,
+    activeSlot,
+    setScreen,
+    deleteSaveSlot,
+  } = useGame();
   const { playSound } = useAudio();
   const [lockedClickId, setLockedClickId] = useState<CompanionId | null>(null);
   const [justBought, setJustBought] = useState<CompanionId | null>(null);
@@ -645,9 +653,8 @@ export default function ProfileScreen() {
               <button
                 className="flex-1 px-4 py-3 rounded-2xl bg-rose-500 text-white font-bold text-xs tracking-wider uppercase hover:bg-rose-600 active:scale-95 transition-all cursor-pointer"
                 onClick={() => {
-                  deleteSave(activeSlot as number);
+                  deleteSaveSlot();
                   setConfirmDelete(false);
-                  setScreen('slots');
                 }}
               >
                 Delete

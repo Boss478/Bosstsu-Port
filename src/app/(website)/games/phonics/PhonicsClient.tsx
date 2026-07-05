@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { GameContext, type GameContextValue } from './context';
 import type {
   Screen,
+  Tab,
   SaveData,
   GameRound,
   RoundConfig,
@@ -19,6 +20,7 @@ import type {
   SimilarSoundGroup,
   ActivityData,
   AchievementId,
+  QuizConfig,
 } from './types';
 import { getWordFromQuestion } from './types';
 import BackgroundDownloadWidget, {
@@ -29,6 +31,7 @@ import {
   setActiveSlot,
   loadSave,
   writeSave,
+  deleteSave,
   getDefaultSave,
   recordRound,
 } from './save';
@@ -50,17 +53,18 @@ const TutorialScreen = dynamic(() => import('./screens/TutorialScreen'), { ssr: 
 const LibraryScreen = dynamic(() => import('./screens/LibraryScreen'), { ssr: false });
 const ShopScreen = dynamic(() => import('./screens/ShopScreen'), { ssr: false });
 const ProfileScreen = dynamic(() => import('./screens/ProfileScreen'), { ssr: false });
-const ChallengesScreen = dynamic(() => import('./screens/ChallengesScreen'), { ssr: false });
 const ChallengeGameScreen = dynamic(() => import('./screens/ChallengeGameScreen'), { ssr: false });
 const WordBuilderScreen = dynamic(() => import('./screens/WordBuilderScreen'), { ssr: false });
 const WordQuizScreen = dynamic(() => import('./screens/WordQuizScreen'), { ssr: false });
+const ChallengeSelectScreen = dynamic(() => import('./screens/ChallengeSelectScreen'), {
+  ssr: false,
+});
+const ChallengeQuizScreen = dynamic(() => import('./screens/ChallengeQuizScreen'), { ssr: false });
 
 export default function PhonicsClient() {
   const [mounted, setMounted] = useState(false);
   const [screen, setScreen] = useState<Screen>('slots');
-  const [tab, setTab] = useState<'sound' | 'vocab' | 'challenges' | 'library' | 'shop' | 'profile'>(
-    'sound',
-  );
+  const [tab, setTab] = useState<Tab>('profile');
   const [activeSlot, setActiveSlotState] = useState<number | 'guest'>('guest');
   const [save, setSaveState] = useState<SaveData | null>(null);
   const [round, setRound] = useState<GameRound | null>(null);
@@ -79,6 +83,7 @@ export default function PhonicsClient() {
     difficulty: 'easy' | 'medium' | 'hard';
     level: CefrLevel;
   } | null>(null);
+  const [quizConfig, setQuizConfig] = useState<QuizConfig | null>(null);
   const [newAchievements, setNewAchievements] = useState<AchievementId[]>([]);
   const dismissAchievements = useCallback(() => {
     setNewAchievements([]);
@@ -360,19 +365,15 @@ export default function PhonicsClient() {
   );
 
   // ── visibilitychange save ──────────────────────────────────────────────────
-  const saveRef = useRef(save);
-  useEffect(() => {
-    saveRef.current = save;
-  }, [save]);
   useEffect(() => {
     const handler = () => {
-      if (document.visibilityState === 'hidden' && activeSlot !== 'guest' && saveRef.current) {
-        writeSave(activeSlot as number, saveRef.current);
+      if (document.visibilityState === 'hidden' && activeSlot !== 'guest' && save) {
+        writeSave(activeSlot as number, save);
       }
     };
     document.addEventListener('visibilitychange', handler);
     return () => document.removeEventListener('visibilitychange', handler);
-  }, [activeSlot]);
+  }, [activeSlot, save]);
 
   // ── Round management ───────────────────────────────────────────────────────
   const startRound = useCallback(
@@ -700,8 +701,9 @@ export default function PhonicsClient() {
   // ── Challenge game ────────────────────────────────────────────────────────
   const handleChallengeComplete = useCallback(
     (results: { score: number; totalCorrect: number; totalAttempts: number }) => {
-      if (!save || !challengeConfig) return;
-      const prev = save.challengeStats?.[challengeConfig.type] ?? {
+      if (!save) return;
+      const key = challengeConfig ? challengeConfig.type : 'quiz';
+      const prev = save.challengeStats?.[key] ?? {
         roundsPlayed: 0,
         bestScore: 0,
         totalCorrect: 0,
@@ -711,7 +713,7 @@ export default function PhonicsClient() {
         ...save,
         challengeStats: {
           ...save.challengeStats,
-          [challengeConfig.type]: {
+          [key]: {
             roundsPlayed: prev.roundsPlayed + 1,
             bestScore: Math.max(prev.bestScore, results.score),
             totalCorrect: prev.totalCorrect + results.totalCorrect,
@@ -721,25 +723,27 @@ export default function PhonicsClient() {
       };
       persistSave(updated);
 
-      const unlocked = checkAchievements(updated, {
-        challengeResult: { type: challengeConfig.type, totalCorrect: results.totalCorrect },
-      });
-      if (unlocked.length > 0) {
-        updated.phonemeCoins += unlocked.reduce(
-          (sum, id) => sum + (ACHIEVEMENTS[id]?.reward ?? 0),
-          0,
-        );
-        persistSave(updated);
-        setNewAchievements(unlocked);
+      if (challengeConfig) {
+        const unlocked = checkAchievements(updated, {
+          challengeResult: { type: challengeConfig.type, totalCorrect: results.totalCorrect },
+        });
+        if (unlocked.length > 0) {
+          updated.phonemeCoins += unlocked.reduce(
+            (sum, id) => sum + (ACHIEVEMENTS[id]?.reward ?? 0),
+            0,
+          );
+          persistSave(updated);
+          setNewAchievements(unlocked);
+        }
       }
 
       setChallengeConfig(null);
-      setScreen('path');
-      setTab('challenges');
+      setQuizConfig(null);
+      setScreen('challenge-list');
+      setTab('word-builder');
       trackCustomEvent('challenge_complete', {
         game: 'phonics',
-        challengeType: challengeConfig.type,
-        difficulty: challengeConfig.difficulty,
+        challengeType: key,
         score: results.score,
         totalCorrect: results.totalCorrect,
       });
@@ -787,6 +791,13 @@ export default function PhonicsClient() {
     activeSlot,
     save,
     persistSave,
+    deleteSaveSlot: useCallback(() => {
+      if (activeSlot === 'guest') return;
+      deleteSave(activeSlot as number);
+      setSaveState(null);
+      setActiveSlotState('guest');
+      setScreen('slots');
+    }, [activeSlot]),
     selectedStage,
     selectStage,
     selectedLesson,
@@ -840,7 +851,7 @@ export default function PhonicsClient() {
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
               {isDone
                 ? 'All audio has been downloaded.'
-                : `Downloaded ${firstJoinLoaded}/${firstJoinTotal} ({pct}%)`}
+                : `Downloaded ${firstJoinLoaded}/${firstJoinTotal} (${pct}%)`}
             </p>
           </div>
           <div className="w-full space-y-2">
@@ -879,7 +890,9 @@ export default function PhonicsClient() {
             screen === 'game' ||
             screen === 'challenge-game' ||
             screen === 'word-builder' ||
-            screen === 'word-quiz'
+            screen === 'word-quiz' ||
+            screen === 'challenge-list' ||
+            screen === 'challenge-quiz'
               ? 'animate-screen-enter flex-1 flex flex-col overflow-y-auto min-h-0'
               : ''
           }
@@ -918,7 +931,28 @@ export default function PhonicsClient() {
           )}
           {screen === 'word-builder' && <WordBuilderScreen />}
           {screen === 'word-quiz' && <WordQuizScreen />}
+          {screen === 'challenge-list' && (
+            <ChallengeSelectScreen
+              onLaunch={handleLaunchChallenge}
+              onStartQuiz={(config) => {
+                setQuizConfig(config);
+                setScreen('challenge-quiz');
+              }}
+            />
+          )}
+          {screen === 'challenge-quiz' && quizConfig && (
+            <ChallengeQuizScreen
+              config={quizConfig}
+              onComplete={handleChallengeComplete}
+              onBack={() => setScreen('challenge-list')}
+              onBackToBuilder={() => setScreen('word-builder')}
+            />
+          )}
         </div>
+
+        {screen === 'word-builder' && (
+          <StaticFooter tab={tab} setTab={setTab} screen={screen} setScreen={setScreen} />
+        )}
 
         {showHeaderFooter && (
           <div className="flex-1 flex flex-col overflow-hidden min-h-0">
@@ -931,7 +965,6 @@ export default function PhonicsClient() {
               <BackgroundDownloadWidget state={bgDownloadState} />
               {screen === 'path' && (
                 <>
-                  {tab === 'challenges' && <ChallengesScreen onLaunch={handleLaunchChallenge} />}
                   {tab === 'sound' && <StageListScreen mode="sound" />}
                   {tab === 'vocab' && <StageListScreen mode="vocab" />}
                   {tab === 'library' && <LibraryScreen />}
@@ -1046,15 +1079,15 @@ function StaticFooter({
   screen,
   setScreen,
 }: {
-  tab: 'sound' | 'vocab' | 'challenges' | 'library' | 'shop' | 'profile';
-  setTab: (t: 'sound' | 'vocab' | 'challenges' | 'library' | 'shop' | 'profile') => void;
+  tab: Tab;
+  setTab: (t: Tab) => void;
   screen: Screen;
   setScreen: (s: Screen) => void;
 }) {
   const tabs = [
     { id: 'sound', name: 'Sound', iconClass: 'fi fi-sr-volume' },
     { id: 'vocab', name: 'Vocab', iconClass: 'fi fi-sr-graduation-cap' },
-    { id: 'challenges', name: 'Challenges', iconClass: 'fi fi-sr-bolt' },
+    { id: 'word-builder', name: 'Word Builder', iconClass: 'fi fi-sr-bolt' },
     { id: 'library', name: 'Soundbook', iconClass: 'fi fi-sr-book-open-cover' },
     { id: 'shop', name: 'Bazaar', iconClass: 'fi fi-sr-shopping-cart' },
     { id: 'profile', name: 'Profile', iconClass: 'fi fi-sr-user' },
@@ -1062,13 +1095,18 @@ function StaticFooter({
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-[560px] glass-panel rounded-3xl shadow-lg border border-white/20 dark:border-slate-800/40 backdrop-blur-md flex items-center justify-between py-3 px-5">
       {tabs.map((t) => {
-        const active = screen === 'path' && tab === t.id;
+        const active =
+          t.id === 'word-builder' ? screen === 'word-builder' : screen === 'path' && tab === t.id;
         return (
           <button
             key={t.id}
             onClick={() => {
-              setTab(t.id);
-              setScreen('path');
+              if (t.id === 'word-builder') {
+                setScreen('word-builder');
+              } else {
+                setTab(t.id);
+                setScreen('path');
+              }
             }}
             className={`flex flex-col items-center justify-center flex-1 cursor-pointer transition-all duration-200 select-none relative ${
               active
@@ -1079,7 +1117,7 @@ function StaticFooter({
             <span
               className={`text-xl mb-0.5 relative flex flex-col items-center ${active ? 'scale-110 font-bold' : ''}`}
             >
-              <i className={t.iconClass} />
+              <i className={t.iconClass} aria-hidden="true" />
               {active && (
                 <span className="hidden max-[325px]:block w-1 h-1 rounded-full bg-[#C8A44E] absolute -bottom-1.5 animate-pulse" />
               )}

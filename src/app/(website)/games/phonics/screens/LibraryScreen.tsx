@@ -212,71 +212,72 @@ export default function LibraryScreen() {
             const gridPlaying = activePlayingId === p.id;
 
             return (
-              <button
-                key={p.id}
-                onClick={unlocked ? () => setSelectedPhoneme(p) : undefined}
-                className={`rounded-2xl p-3 border transition-all relative flex flex-col items-center justify-between min-h-[105px] group select-none ${
-                  unlocked
-                    ? 'glass-panel border-white/30 dark:border-slate-800 hover:scale-[1.03] active:scale-98 cursor-pointer shadow-xs'
-                    : 'bg-slate-200/20 dark:bg-slate-950/20 border-dashed border-slate-300 dark:border-slate-800 opacity-45 cursor-not-allowed'
-                }`}
-                title={unlocked ? `Open ${p.ipa} details` : 'Locked'}
-                aria-label={
-                  unlocked ? `Open phoneme ${p.name} details` : `Locked phoneme ${p.name}`
-                }
-              >
-                {unlocked ? (
-                  <>
-                    <div className="flex justify-between items-center w-full">
-                      <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide truncate max-w-[65%]">
-                        {p.example}
-                      </span>
-                      <div className="flex gap-1">
+              <div key={p.id} className="relative">
+                <button
+                  onClick={unlocked ? () => setSelectedPhoneme(p) : undefined}
+                  className={`rounded-2xl p-3 border transition-all flex flex-col items-center justify-between min-h-[105px] group select-none w-full ${
+                    unlocked
+                      ? 'glass-panel border-white/30 dark:border-slate-800 hover:scale-[1.03] active:scale-98 cursor-pointer shadow-xs'
+                      : 'bg-slate-200/20 dark:bg-slate-950/20 border-dashed border-slate-300 dark:border-slate-800 opacity-45 cursor-not-allowed'
+                  }`}
+                  title={unlocked ? `Open ${p.ipa} details` : 'Locked'}
+                  aria-label={
+                    unlocked ? `Open phoneme ${p.name} details` : `Locked phoneme ${p.name}`
+                  }
+                >
+                  {unlocked ? (
+                    <>
+                      <div className="flex justify-between items-center w-full">
+                        <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide truncate max-w-[65%]">
+                          {p.example}
+                        </span>
                         <i
                           className={`fi fi-sr-volume text-[10px] transition-all ${gridPlaying ? 'text-[#C8A44E] scale-125 animate-ping' : 'text-slate-400 group-hover:text-[#C8A44E]'}`}
                         />
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleStartPractice(p);
-                          }}
-                          className="text-[10px] text-slate-400 hover:text-[#2EC4B6] transition-colors cursor-pointer"
-                          title="Practice this phoneme"
-                          aria-label={`Practice phoneme ${p.name}`}
-                        >
-                          <i className="fi fi-sr-play" />
-                        </button>
                       </div>
-                    </div>
 
-                    <span
-                      className={`text-2xl font-black tracking-wide my-1 transition-all duration-300 ${gridPlaying ? 'text-[#C8A44E] scale-110' : 'text-slate-800 dark:text-[#F7E1A0]'}`}
-                      style={{ fontFamily: 'var(--font-geist-mono)' }}
-                    >
-                      {p.ipa}
-                    </span>
+                      <span
+                        className={`text-2xl font-black tracking-wide my-1 transition-all duration-300 ${gridPlaying ? 'text-[#C8A44E] scale-110' : 'text-slate-800 dark:text-[#F7E1A0]'}`}
+                        style={{ fontFamily: 'var(--font-geist-mono)' }}
+                      >
+                        {p.ipa}
+                      </span>
 
-                    <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                      {accuracy > 0 ? `${accuracy}% ACC` : `${stats?.total ?? 0} Seen`}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex justify-end w-full">
-                      <i className="fi fi-sr-lock text-[10px] text-slate-400 dark:text-slate-500" />
-                    </div>
-                    <span
-                      className="text-2xl font-black text-slate-300 dark:text-slate-800 my-1 filter blur-[1.5px] select-none"
-                      style={{ fontFamily: 'var(--font-geist-mono)' }}
-                    >
-                      {p.ipa}
-                    </span>
-                    <span className="text-[8px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                      LOCKED
-                    </span>
-                  </>
+                      <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                        {accuracy > 0 ? `${accuracy}% ACC` : `${stats?.total ?? 0} Seen`}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex justify-end w-full">
+                        <i className="fi fi-sr-lock text-[10px] text-slate-400 dark:text-slate-500" />
+                      </div>
+                      <span
+                        className="text-2xl font-black text-slate-300 dark:text-slate-800 my-1 filter blur-[1.5px] select-none"
+                        style={{ fontFamily: 'var(--font-geist-mono)' }}
+                      >
+                        {p.ipa}
+                      </span>
+                      <span className="text-[8px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                        LOCKED
+                      </span>
+                    </>
+                  )}
+                </button>
+                {unlocked && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStartPractice(p);
+                    }}
+                    className="absolute top-2 right-2 z-10 p-1.5 rounded-lg text-slate-400 hover:text-[#2EC4B6] hover:bg-white/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+                    title="Practice this phoneme"
+                    aria-label={`Practice phoneme ${p.name}`}
+                  >
+                    <i className="fi fi-sr-play text-[10px]" />
+                  </button>
                 )}
-              </button>
+              </div>
             );
           })}
         </div>

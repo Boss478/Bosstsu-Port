@@ -1,17 +1,20 @@
 import type { Mascot } from './mascot-data';
 
-export const PHONICS_THAI_NAMES: Record<string, string> = {
-  nox: 'นกซ์',
-  mira: 'มิร่า',
-  chip: 'ชิพ',
-};
-
 export const PHONICS_MASCOTS: Mascot[] = [
   {
     id: 'nox',
     name: 'Nox',
     nameTh: 'นกซ์',
-    palette: ['transparent', '#1C1C1C', '#FFFFFF', '#C8A44E', '#FF70A6', '#5C4033', '#E8D5B7', '#FF5733'],
+    palette: [
+      'transparent',
+      '#1C1C1C',
+      '#FFFFFF',
+      '#C8A44E',
+      '#FF70A6',
+      '#5C4033',
+      '#E8D5B7',
+      '#FF5733',
+    ],
     data: [
       '00000000000000000000000000000000',
       '00000000000000000000000000000000',
@@ -51,7 +54,16 @@ export const PHONICS_MASCOTS: Mascot[] = [
     id: 'mira',
     name: 'Mira',
     nameTh: 'มิร่า',
-    palette: ['transparent', '#1C1C1C', '#FFFFFF', '#C8A44E', '#9B59B6', '#FF70A6', '#E8D5B7', '#7B68EE'],
+    palette: [
+      'transparent',
+      '#1C1C1C',
+      '#FFFFFF',
+      '#C8A44E',
+      '#9B59B6',
+      '#FF70A6',
+      '#E8D5B7',
+      '#7B68EE',
+    ],
     data: [
       '00000000000000000000000000000000',
       '00000000000000000000000000000000',
@@ -91,7 +103,16 @@ export const PHONICS_MASCOTS: Mascot[] = [
     id: 'chip',
     name: 'Chip',
     nameTh: 'ชิพ',
-    palette: ['transparent', '#1C1C1C', '#FFFFFF', '#C8A44E', '#5DADE2', '#FFBA08', '#4682B4', '#B0C4DE'],
+    palette: [
+      'transparent',
+      '#1C1C1C',
+      '#FFFFFF',
+      '#C8A44E',
+      '#5DADE2',
+      '#FFBA08',
+      '#4682B4',
+      '#B0C4DE',
+    ],
     data: [
       '00000000000000000000000000000000',
       '00000000000000000000000000000000',
@@ -128,11 +149,3 @@ export const PHONICS_MASCOTS: Mascot[] = [
     ],
   },
 ];
-
-export function getPhonicsMascot(id: string): Mascot | undefined {
-  return PHONICS_MASCOTS.find(m => m.id === id);
-}
-
-export function getPhonicsThaiName(id: string): string | undefined {
-  return PHONICS_THAI_NAMES[id];
-}

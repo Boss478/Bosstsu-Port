@@ -4,6 +4,9 @@
 
 | Version | Key Changes |
 |---------|-------------|
+| v1.10.53 | LibraryScreen nested `<button>` fix (phoneme grid card): outer `<button>` + absolute-positioned sibling practice `<button>` instead of nested `<button>` inside `<button>`. Resolves React hydration warning. P3 cosmetic. |
+| v1.10.52 | Admin test infrastructure fix: removed `async` from `WordOverride.findOne` mock (broke `.select()` chain), replaced `vi.clearAllMocks()` with targeted reset. 704 tests pass, build clean. |
+| v1.10.51 | Phonics save layer overhaul (writeSave non-mutating, loadSave backfill guards, persistSave race fix, deleteSave in-memory reset), GameScreen hint stale closure fix (useState→useRef), achievement dead context flags removed (companion_friend unconditional, first_purchase save-data-only formula, removed shopPurchase/companionClick/wordBuilderLookup/wordQuizComplete). 232 tests. |
 | v1.10.50 | Alphabet Adventure stabilization: 5 bug fixes (cardDroppedRef race, Escape leak, onboardingSeen persistence, roundSeed reset, VictoryScreen 0/0), drop rates→constants.ts, 78 new tests (drops/scoring/generators/integrity), card screen polish (Play Now CTA, sort stability). |
 | v1.10.49 | Fixed biased shuffle (54 locations → Fisher-Yates) and card-flip stub (now uses lesson phoneme/word). 27 new tests (shuffle + card-flip). |
 | v1.10.47 | Cartoon-realistic card overhaul: added thick outlines, 3D beveled borders, offset extruded plaque nameplates, double-beveled portrait arches, and bezel-mounted gems to achieve TCG cartoon aesthetics. |

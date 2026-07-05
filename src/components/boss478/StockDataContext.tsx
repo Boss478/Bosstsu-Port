@@ -1,8 +1,17 @@
 'use client';
 
-import { createContext, useContext, useState, useMemo, useRef, useCallback, useEffect, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useRef,
+  useCallback,
+  useEffect,
+  type ReactNode,
+} from 'react';
 
-export interface StockData {
+interface StockData {
   symbol: string;
   name: string;
   price: number;
@@ -59,15 +68,15 @@ export interface PeriodConfig {
 }
 
 export const PERIOD_CONFIG: PeriodConfig[] = [
-  { value: '1d',  label: '1D',  days: 1,    yahooRange: '1d',  yahooInterval: '5m' },
-  { value: '5d',  label: '5D',  days: 5,    yahooRange: '5d',  yahooInterval: '30m' },
-  { value: '1w',  label: '1W',  days: 7,    yahooRange: '5d',  yahooInterval: '30m' },
-  { value: '1m',  label: '1M',  days: 30,   yahooRange: '1mo', yahooInterval: '1d' },
-  { value: '3m',  label: '3M',  days: 90,   yahooRange: '3mo', yahooInterval: '1d' },
-  { value: '6m',  label: '6M',  days: 180,  yahooRange: '6mo', yahooInterval: '1d' },
-  { value: 'ytd', label: 'YTD', days: 180,  yahooRange: 'ytd', yahooInterval: '1wk' },
-  { value: '1y',  label: '1Y',  days: 365,  yahooRange: '1y',  yahooInterval: '1wk' },
-  { value: '5y',  label: '5Y',  days: 1825, yahooRange: '5y',  yahooInterval: '1mo' },
+  { value: '1d', label: '1D', days: 1, yahooRange: '1d', yahooInterval: '5m' },
+  { value: '5d', label: '5D', days: 5, yahooRange: '5d', yahooInterval: '30m' },
+  { value: '1w', label: '1W', days: 7, yahooRange: '5d', yahooInterval: '30m' },
+  { value: '1m', label: '1M', days: 30, yahooRange: '1mo', yahooInterval: '1d' },
+  { value: '3m', label: '3M', days: 90, yahooRange: '3mo', yahooInterval: '1d' },
+  { value: '6m', label: '6M', days: 180, yahooRange: '6mo', yahooInterval: '1d' },
+  { value: 'ytd', label: 'YTD', days: 180, yahooRange: 'ytd', yahooInterval: '1wk' },
+  { value: '1y', label: '1Y', days: 365, yahooRange: '1y', yahooInterval: '1wk' },
+  { value: '5y', label: '5Y', days: 1825, yahooRange: '5y', yahooInterval: '1mo' },
   { value: 'all', label: 'Max', days: 3650, yahooRange: 'max', yahooInterval: '1mo' },
 ];
 
@@ -91,7 +100,12 @@ interface StockDataContextValue {
   addToWatchlist: (symbol: string) => void;
   removeFromWatchlist: (symbol: string) => void;
   updateHolding: (symbol: string, updates: Partial<Omit<PortfolioHolding, 'symbol'>>) => void;
-  addHolding: (symbol: string, shares: number, avgCost: number, manualPrice?: number) => Promise<boolean>;
+  addHolding: (
+    symbol: string,
+    shares: number,
+    avgCost: number,
+    manualPrice?: number,
+  ) => Promise<boolean>;
   removeHolding: (symbol: string) => Promise<boolean>;
   marketState: { thai: { open: boolean; label: string }; us: { open: boolean; label: string } };
   activeTab: TabId;
@@ -110,24 +124,44 @@ interface StockDataContextValue {
 const StockDataContext = createContext<StockDataContextValue | null>(null);
 
 const THAI_SYMBOLS = [
-  'PTT.BK', 'AOT.BK', 'CPALL.BK', 'ADVANC.BK', 'KBANK.BK',
-  'PTTEP.BK', 'SCB.BK', 'BBL.BK', 'BDMS.BK', 'BH.BK',
-  'GULF.BK', 'INTUCH.BK', 'TRUE.BK', 'OR.BK', 'MINT.BK',
-  'CRC.BK', 'CPN.BK', 'KTB.BK', 'TISCO.BK', 'HMPRO.BK',
+  'PTT.BK',
+  'AOT.BK',
+  'CPALL.BK',
+  'ADVANC.BK',
+  'KBANK.BK',
+  'PTTEP.BK',
+  'SCB.BK',
+  'BBL.BK',
+  'BDMS.BK',
+  'BH.BK',
+  'GULF.BK',
+  'INTUCH.BK',
+  'TRUE.BK',
+  'OR.BK',
+  'MINT.BK',
+  'CRC.BK',
+  'CPN.BK',
+  'KTB.BK',
+  'TISCO.BK',
+  'HMPRO.BK',
 ];
 
 const US_SYMBOLS = ['TSM', 'GOOGL', 'NVDA', 'AAPL', 'MSFT', 'META', 'AMD'];
 
 const DEFAULT_SYMBOLS = [...THAI_SYMBOLS, ...US_SYMBOLS];
 
-const MOCK_PORTFOLIO: PortfolioHolding[] = [
-  { symbol: 'CPN.BK', shares: 1, avgCost: 65.00 },
-];
+const MOCK_PORTFOLIO: PortfolioHolding[] = [{ symbol: 'CPN.BK', shares: 1, avgCost: 65.0 }];
 
 export function StockDataProvider({ children }: { children: ReactNode }) {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [period, setPeriod] = useState<Period>('1m');
-  const [watchlist, setWatchlist] = useState<string[]>(['PTT.BK', 'AOT.BK', 'CPALL.BK', 'AAPL', 'MSFT']);
+  const [watchlist, setWatchlist] = useState<string[]>([
+    'PTT.BK',
+    'AOT.BK',
+    'CPALL.BK',
+    'AAPL',
+    'MSFT',
+  ]);
   const [stocks, setStocks] = useState<ExtendedStockData[]>([]);
   const [indexes, setIndexes] = useState<MarketIndex[]>([]);
   const [portfolio, setPortfolio] = useState<PortfolioHolding[]>([]);
@@ -165,39 +199,53 @@ export function StockDataProvider({ children }: { children: ReactNode }) {
     };
   }, [marketClock]);
 
-  const updateHolding = useCallback((symbol: string, updates: Partial<Omit<PortfolioHolding, 'symbol'>>) => {
-    setPortfolio(prev => prev.map(h => h.symbol === symbol ? { ...h, ...updates } : h));
-    fetch('/boss478/api/holdings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ symbol, ...updates }),
-    }).catch(() => {});
-  }, []);
+  const updateHolding = useCallback(
+    (symbol: string, updates: Partial<Omit<PortfolioHolding, 'symbol'>>) => {
+      setPortfolio((prev) => prev.map((h) => (h.symbol === symbol ? { ...h, ...updates } : h)));
+      fetch('/boss478/api/holdings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol, ...updates }),
+      }).catch(() => {});
+    },
+    [],
+  );
 
   const [holdingsLoaded, setHoldingsLoaded] = useState(false);
 
-  const addHolding = useCallback(async (symbol: string, shares: number, avgCost: number, manualPrice?: number): Promise<boolean> => {
-    try {
-      const res = await fetch('/boss478/api/holdings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbol, shares, avgCost, manualPrice }),
-      });
-      if (!res.ok) return false;
-      const data = await res.json();
-      if (data.holding) {
-        setPortfolio(prev => {
-          const exists = prev.find(h => h.symbol === symbol.toUpperCase());
-          if (exists) return prev.map(h => h.symbol === symbol.toUpperCase() ? { ...h, shares, avgCost, manualPrice } : h);
-          return [...prev, { symbol: symbol.toUpperCase(), shares, avgCost, manualPrice }];
+  const addHolding = useCallback(
+    async (
+      symbol: string,
+      shares: number,
+      avgCost: number,
+      manualPrice?: number,
+    ): Promise<boolean> => {
+      try {
+        const res = await fetch('/boss478/api/holdings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbol, shares, avgCost, manualPrice }),
         });
-        return true;
+        if (!res.ok) return false;
+        const data = await res.json();
+        if (data.holding) {
+          setPortfolio((prev) => {
+            const exists = prev.find((h) => h.symbol === symbol.toUpperCase());
+            if (exists)
+              return prev.map((h) =>
+                h.symbol === symbol.toUpperCase() ? { ...h, shares, avgCost, manualPrice } : h,
+              );
+            return [...prev, { symbol: symbol.toUpperCase(), shares, avgCost, manualPrice }];
+          });
+          return true;
+        }
+        return false;
+      } catch {
+        return false;
       }
-      return false;
-    } catch {
-      return false;
-    }
-  }, []);
+    },
+    [],
+  );
 
   const removeHolding = useCallback(async (symbol: string): Promise<boolean> => {
     try {
@@ -207,7 +255,7 @@ export function StockDataProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ symbol }),
       });
       if (!res.ok) return false;
-      setPortfolio(prev => prev.filter(h => h.symbol !== symbol.toUpperCase()));
+      setPortfolio((prev) => prev.filter((h) => h.symbol !== symbol.toUpperCase()));
       return true;
     } catch {
       return false;
@@ -284,8 +332,8 @@ export function StockDataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (holdingsLoaded) return;
     fetch('/boss478/api/holdings')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
         setHoldingsLoaded(true);
         if (data?.holdings?.length) {
           setPortfolio(data.holdings);
@@ -304,8 +352,8 @@ export function StockDataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (watchlistLoaded) return;
     fetch('/boss478/api/watchlist')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
         setWatchlistLoaded(true);
         if (data?.symbols?.length) {
           setWatchlist(data.symbols);
@@ -323,7 +371,7 @@ export function StockDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addToWatchlist = (symbol: string) => {
-    setWatchlist(prev => {
+    setWatchlist((prev) => {
       const next = prev.includes(symbol) ? prev : [...prev, symbol];
       persistWatchlist(next);
       return next;
@@ -331,48 +379,48 @@ export function StockDataProvider({ children }: { children: ReactNode }) {
   };
 
   const removeFromWatchlist = (symbol: string) => {
-    setWatchlist(prev => {
-      const next = prev.filter(s => s !== symbol);
+    setWatchlist((prev) => {
+      const next = prev.filter((s) => s !== symbol);
       persistWatchlist(next);
       return next;
     });
   };
 
-function filterMarketHours(data: StockHistory[], isThai = false): StockHistory[] {
-  return data.filter(d => {
-    const dt = new Date(d.date);
-    const m = dt.getUTCHours() * 60 + dt.getUTCMinutes();
-    if (isThai) {
-      return m >= 3 * 60 && m < 9 * 60 + 30;
-    }
-    return m >= 13 * 60 + 30 && m < 20 * 60;
-  });
-}
-
-const history = useMemo(() => {
-  const h: Record<string, StockHistory[]> = {};
-  const currentStocks = stocksRef.current;
-
-  for (const stock of currentStocks) {
-    const cacheKey = `${stock.symbol}_${period}`;
-    const cached = historyCache.current.get(cacheKey);
-    const ttl = CACHE_TTL[period] || CACHE_TTL.default;
-
-    if (cached && Date.now() - cached.fetchedAt < ttl) {
-      const isThai = stock.symbol.endsWith('.BK');
-      const data = period === '1d' ? filterMarketHours(cached.data, isThai) : cached.data;
-      if (data.length >= 2) {
-        h[stock.symbol] = data;
+  function filterMarketHours(data: StockHistory[], isThai = false): StockHistory[] {
+    return data.filter((d) => {
+      const dt = new Date(d.date);
+      const m = dt.getUTCHours() * 60 + dt.getUTCMinutes();
+      if (isThai) {
+        return m >= 3 * 60 && m < 9 * 60 + 30;
       }
-    }
+      return m >= 13 * 60 + 30 && m < 20 * 60;
+    });
   }
 
-  return h;
-}, [period, historyCacheVersion]);
+  const history = useMemo(() => {
+    const h: Record<string, StockHistory[]> = {};
+    const currentStocks = stocksRef.current;
+
+    for (const stock of currentStocks) {
+      const cacheKey = `${stock.symbol}_${period}`;
+      const cached = historyCache.current.get(cacheKey);
+      const ttl = CACHE_TTL[period] || CACHE_TTL.default;
+
+      if (cached && Date.now() - cached.fetchedAt < ttl) {
+        const isThai = stock.symbol.endsWith('.BK');
+        const data = period === '1d' ? filterMarketHours(cached.data, isThai) : cached.data;
+        if (data.length >= 2) {
+          h[stock.symbol] = data;
+        }
+      }
+    }
+
+    return h;
+  }, [period, historyCacheVersion]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const config = PERIOD_CONFIG.find(p => p.value === period);
+    const config = PERIOD_CONFIG.find((p) => p.value === period);
     if (!config) return;
 
     for (const stock of stocksRef.current) {
@@ -385,12 +433,15 @@ const history = useMemo(() => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'history', symbol: stock.symbol, period }),
-      }).then(res => res.json()).then(data => {
-        if (data.history?.length) {
-          historyCache.current.set(cacheKey, { data: data.history, fetchedAt: Date.now() });
-          setHistoryCacheVersion(v => v + 1);
-        }
-      }).catch(e => console.warn('[StockData] history fetch failed:', e));
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.history?.length) {
+            historyCache.current.set(cacheKey, { data: data.history, fetchedAt: Date.now() });
+            setHistoryCacheVersion((v) => v + 1);
+          }
+        })
+        .catch((e) => console.warn('[StockData] history fetch failed:', e));
     }
   }, [period]);
 

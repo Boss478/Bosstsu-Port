@@ -9,7 +9,9 @@ export type Screen =
   | 'word-builder'
   | 'word-quiz'
   | 'challenges'
-  | 'challenge-game';
+  | 'challenge-game'
+  | 'challenge-list'
+  | 'challenge-quiz';
 
 export type StageCategory = 'vowel' | 'consonant' | 'mastery';
 
@@ -82,7 +84,7 @@ export interface SimilarSoundGroup {
   order: number;
 }
 
-export type Tab = 'sound' | 'vocab' | 'challenges' | 'library' | 'shop' | 'profile';
+export type Tab = 'sound' | 'vocab' | 'word-builder' | 'library' | 'shop' | 'profile';
 
 // ─── New Question Formats ────────────────────────────────────────────────────
 export interface PracticeQuestion {
@@ -293,6 +295,29 @@ export interface SyllableQuestion {
   syllableCount: number;
   options: number[];
   correctAnswer: number;
+}
+
+// ─── Quiz Challenge Config ───────────────────────────────────────────────────
+export type QuizDirection =
+  | 'word-to-ipa'
+  | 'ipa-to-word'
+  | 'word-to-def'
+  | 'def-to-word'
+  | 'synonyms'
+  | 'stress'
+  | 'antonyms';
+
+export type QuizMode = 'number' | 'timer' | 'hardcore' | 'life' | 'streak' | 'speed-run';
+
+export interface QuizConfig {
+  directions: QuizDirection[];
+  mode: QuizMode;
+  roundLength: number;
+  lives: number;
+  timeLimit: number;
+  timerPerQuestion: number;
+  speedRunDuration: number;
+  speedRunBonus: number;
 }
 
 // ─── Achievement System ────────────────────────────────────────────────────
@@ -528,59 +553,6 @@ export function getWordFromQuestion(q: Question): WordData | undefined {
   if (q.category === 'speed-spell') return (q as SpeedSpellQuestion).word;
   if ('word' in q) return (q as unknown as { word: WordData }).word;
   return undefined;
-}
-
-export function getCorrectAnswerFromQuestion(q: Question): string {
-  if (q.category === 'exercise') {
-    const ex = q as ExerciseQuestion;
-    if ('correctAnswer' in ex.data)
-      return (
-        ex.data as
-          | IpaToWordQuestion
-          | WordToIpaQuestion
-          | SynonymQuestion
-          | GraphemePatternQuestion
-          | MinimalPairsQuestion
-          | StressQuestion
-      ).correctAnswer;
-    return '';
-  }
-  if (
-    q.category === 'phonics' ||
-    q.category === 'definitions' ||
-    q.category === 'practice' ||
-    q.category === 'ipa-word' ||
-    q.category === 'word-ipa' ||
-    q.category === 'synonyms' ||
-    q.category === 'antonyms' ||
-    q.category === 'collocations' ||
-    q.category === 'fill-blank' ||
-    q.category === 'word-assoc' ||
-    q.category === 'grapheme' ||
-    q.category === 'minimal-pairs' ||
-    q.category === 'stress'
-  ) {
-    return (
-      q as
-        | IpaToWordQuestion
-        | WordToIpaQuestion
-        | SynonymQuestion
-        | AntonymQuestion
-        | CollocationQuestion
-        | FillBlankQuestion
-        | WordAssocQuestion
-        | PracticeQuestion
-        | PhonicsQuestion
-        | DefinitionQuestion
-        | GraphemePatternQuestion
-        | MinimalPairsQuestion
-        | StressQuestion
-    ).correctAnswer;
-  }
-  if (q.category === 'rhyme-time') return (q as RhymeQuestion).correctAnswer;
-  if (q.category === 'syllable-smash') return String((q as SyllableQuestion).correctAnswer);
-  if (q.category === 'speed-spell') return (q as SpeedSpellQuestion).word.word;
-  return '';
 }
 
 export interface DictEntry {

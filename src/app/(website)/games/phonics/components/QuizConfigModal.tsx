@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 export type QuizDirection = 'word-to-ipa' | 'ipa-to-word' | 'mixed';
 export type QuizMode = 'practice' | 'endless' | 'timer' | 'hardcore';
@@ -45,6 +46,7 @@ const MODES: { value: QuizMode; label: string; desc: string; icon: string }[] = 
 ];
 
 export function QuizConfigModal({ onStart, onClose }: QuizConfigModalProps) {
+  const trapRef = useFocusTrap(true);
   const [direction, setDirection] = useState<QuizDirection>('mixed');
   const [mode, setMode] = useState<QuizMode>('practice');
   const [difficulty, setDifficulty] = useState<QuizDifficulty>('normal');
@@ -59,11 +61,20 @@ export function QuizConfigModal({ onStart, onClose }: QuizConfigModalProps) {
   if (typeof window === 'undefined') return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in">
+    <div
+      ref={trapRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="quiz-config-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in"
+    >
       <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5 transform scale-100 transition-transform duration-200 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-          <h3 className="text-sm font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
-            <i className="fi fi-sr-gamepad text-[#C8A44E] text-sm" />
+          <h3
+            id="quiz-config-title"
+            className="text-sm font-extrabold text-slate-800 dark:text-white flex items-center gap-2"
+          >
+            <i className="fi fi-sr-gamepad text-[#C8A44E] text-sm" aria-hidden="true" />
             Quiz Setup
           </h3>
           <button
@@ -71,7 +82,7 @@ export function QuizConfigModal({ onStart, onClose }: QuizConfigModalProps) {
             className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
             aria-label="Close"
           >
-            <i className="fi fi-sr-cross text-[10px]" />
+            <i className="fi fi-sr-cross text-[10px]" aria-hidden="true" />
           </button>
         </div>
 

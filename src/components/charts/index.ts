@@ -6,4 +6,3 @@ export { default as HourlyChart } from './HourlyChart';
 export { default as DonutChartCard } from './DonutChartCard';
 export { default as ModelBarChart } from './ModelBarChart';
 export { default as SummaryCard } from './SummaryCard';
-export { default as TrendBadge } from './TrendBadge';

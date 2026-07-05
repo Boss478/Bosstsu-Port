@@ -8,7 +8,7 @@ export interface Mascot {
 
 import { PHONICS_MASCOTS } from './mascot-bridge';
 
-export const MASCOTS: Mascot[] = [
+const MASCOTS: Mascot[] = [
   {
     id: 'fox',
     name: 'Fox',
@@ -331,8 +331,6 @@ export const MASCOTS: Mascot[] = [
   },
 ];
 
-export const MASCOT_MAP = new Map(MASCOTS.map((m) => [m.id, m]));
-
 export function getRandomMascot(): Mascot {
   return ALL_MASCOTS[Math.floor(Math.random() * ALL_MASCOTS.length)];
 }
@@ -359,11 +357,3 @@ export function saveMascotId(sessionId: string, id: string): void {
 
 export const ALL_MASCOTS: Mascot[] = [...MASCOTS, ...PHONICS_MASCOTS];
 export const ALL_MASCOT_MAP = new Map(ALL_MASCOTS.map((m) => [m.id, m]));
-
-export function getAllMascots(): Mascot[] {
-  return ALL_MASCOTS;
-}
-
-export function getAnyMascot(id: string): Mascot | undefined {
-  return ALL_MASCOT_MAP.get(id);
-}

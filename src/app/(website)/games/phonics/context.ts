@@ -1,5 +1,18 @@
-import { createContext, useContext } from "react";
-import type { Screen, SaveData, GameRound, RoundConfig, CompanionId, Question, StageData, StageLesson, MapView, Tab, ActivityData, SimilarSoundGroup } from "./types";
+import { createContext, useContext } from 'react';
+import type {
+  Screen,
+  SaveData,
+  GameRound,
+  RoundConfig,
+  CompanionId,
+  Question,
+  StageData,
+  StageLesson,
+  MapView,
+  Tab,
+  ActivityData,
+  SimilarSoundGroup,
+} from './types';
 
 export interface GameContextValue {
   // Navigation
@@ -15,9 +28,10 @@ export interface GameContextValue {
   selectedActivity: ActivityData | null;
   selectActivity: (a: ActivityData | null) => void;
   // Save
-  activeSlot: number | "guest";
+  activeSlot: number | 'guest';
   save: SaveData | null;
   persistSave: (s: SaveData) => void;
+  deleteSaveSlot: () => void;
   // Stage selection (path → confirm popup)
   selectedStage: StageData | null;
   selectStage: (stage: StageData | null) => void;
@@ -44,13 +58,16 @@ export interface GameContextValue {
   speechPitch: number;
   setSpeechPitch: (pitch: number) => void;
   // Prefetch
-  prefetchWords: (words: string[], onProgress?: (loaded: number, total: number) => void) => Promise<void>;
+  prefetchWords: (
+    words: string[],
+    onProgress?: (loaded: number, total: number) => void,
+  ) => Promise<void>;
 }
 
 export const GameContext = createContext<GameContextValue | null>(null);
 
 export function useGame(): GameContextValue {
   const ctx = useContext(GameContext);
-  if (!ctx) throw new Error("useGame must be used within PhonicsClient");
+  if (!ctx) throw new Error('useGame must be used within PhonicsClient');
   return ctx;
 }

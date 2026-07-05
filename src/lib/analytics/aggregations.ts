@@ -3,25 +3,40 @@ import type { PipelineStage } from 'mongoose';
 import type { NameCountStat } from '@/models/DailyAnalytics';
 
 function parseUA(ua: string): { os: string; model: string } {
-  const os =
-    /Windows NT (\d+)/.test(ua) ? `Windows ${ua.match(/Windows NT (\d+)/)![1]}` :
-    /Mac OS X (\S+)/.test(ua) ? 'macOS' :
-    /Android (\S+)/.test(ua) ? 'Android' :
-    /(CPU[\s(]+iPhone OS|iOS)/.test(ua) ? 'iOS' :
-    /(CPU[\s(]+iPad OS|iOS)/.test(ua) ? 'iOS' :
-    /CrOS/.test(ua) ? 'ChromeOS' :
-    /Linux/.test(ua) ? 'Linux' :
-    'Unknown';
+  const os = /Windows NT (\d+)/.test(ua)
+    ? `Windows ${ua.match(/Windows NT (\d+)/)![1]}`
+    : /Mac OS X (\S+)/.test(ua)
+      ? 'macOS'
+      : /Android (\S+)/.test(ua)
+        ? 'Android'
+        : /(CPU[\s(]+iPhone OS|iOS)/.test(ua)
+          ? 'iOS'
+          : /(CPU[\s(]+iPad OS|iOS)/.test(ua)
+            ? 'iOS'
+            : /CrOS/.test(ua)
+              ? 'ChromeOS'
+              : /Linux/.test(ua)
+                ? 'Linux'
+                : 'Unknown';
 
-  const model =
-    /iPhone/.test(ua) ? 'iPhone' :
-    /iPad/.test(ua) ? 'iPad' :
-    /Android/.test(ua) ? ua.match(/Android[^;]+; ([^;)]+)/)?.[1]?.trim().replace(/\s+/g, ' ') || 'Android' :
-    /Windows/.test(ua) ? 'Desktop' :
-    /Macintosh/.test(ua) ? 'Desktop' :
-    /CrOS/.test(ua) ? 'Chromebook' :
-    /Linux/.test(ua) ? 'Desktop' :
-    'Desktop';
+  const model = /iPhone/.test(ua)
+    ? 'iPhone'
+    : /iPad/.test(ua)
+      ? 'iPad'
+      : /Android/.test(ua)
+        ? ua
+            .match(/Android[^;]+; ([^;)]+)/)?.[1]
+            ?.trim()
+            .replace(/\s+/g, ' ') || 'Android'
+        : /Windows/.test(ua)
+          ? 'Desktop'
+          : /Macintosh/.test(ua)
+            ? 'Desktop'
+            : /CrOS/.test(ua)
+              ? 'Chromebook'
+              : /Linux/.test(ua)
+                ? 'Desktop'
+                : 'Desktop';
 
   return { os, model };
 }
@@ -58,7 +73,7 @@ export async function computeOSDeviceBreakdown(
   };
 }
 
-export function topPagesAggregation(since: Date, limit: number): PipelineStage[] {
+function topPagesAggregation(since: Date, limit: number): PipelineStage[] {
   return [
     { $match: { type: 'pageview', path: { $not: /^\/test\//i }, timestamp: { $gte: since } } },
     { $group: { _id: '$path', count: { $sum: 1 } } },
@@ -68,7 +83,7 @@ export function topPagesAggregation(since: Date, limit: number): PipelineStage[]
   ];
 }
 
-export function topEventsAggregation(since: Date, limit: number): PipelineStage[] {
+function topEventsAggregation(since: Date, limit: number): PipelineStage[] {
   return [
     { $match: { type: 'custom', eventName: { $ne: null }, timestamp: { $gte: since } } },
     { $group: { _id: '$eventName', count: { $sum: 1 } } },
@@ -78,7 +93,7 @@ export function topEventsAggregation(since: Date, limit: number): PipelineStage[
   ];
 }
 
-export function deviceBreakdownAggregation(since: Date): PipelineStage[] {
+function deviceBreakdownAggregation(since: Date): PipelineStage[] {
   return [
     { $match: { timestamp: { $gte: since } } },
     { $group: { _id: '$deviceType', count: { $sum: 1 } } },
@@ -86,7 +101,7 @@ export function deviceBreakdownAggregation(since: Date): PipelineStage[] {
   ];
 }
 
-export function referrerBreakdownAggregation(since: Date): PipelineStage[] {
+function referrerBreakdownAggregation(since: Date): PipelineStage[] {
   return [
     { $match: { type: 'pageview', path: { $not: /^\/test\//i }, timestamp: { $gte: since } } },
     { $group: { _id: '$referrer', count: { $sum: 1 } } },

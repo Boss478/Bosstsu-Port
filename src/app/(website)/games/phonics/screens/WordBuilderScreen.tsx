@@ -160,12 +160,12 @@ export default function WordBuilderScreen() {
           IPA &rarr; Word
         </TabButton>
         <button
-          onClick={() => setScreen('word-quiz')}
+          onClick={() => setScreen('challenge-list')}
           className="ml-auto px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#C8A44E] to-[#D4B06A] text-white text-[9px] font-extrabold tracking-wider uppercase shadow-sm hover:shadow-md hover:from-[#D4B06A] hover:to-[#C8A44E] active:scale-95 transition-all cursor-pointer flex items-center gap-1"
-          aria-label="Start Quiz"
+          aria-label="Challenge"
         >
-          <i className="fi fi-sr-gamepad text-[10px]" />
-          Start Quiz
+          <i className="fi fi-sr-bolt text-[10px]" />
+          Challenge
         </button>
       </div>
 

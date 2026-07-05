@@ -64,3 +64,72 @@ Kept in barrel (externally imported): `generateCardFlipCards`, `buildQuestions`,
 - `npm run lint` — passes
 - `npx vitest run tests/games/phonics.test.ts` — 13/13 passed
 - All full-body avatar sprites retained as `_HEAD` variants for runtime rendering
+
+## [2026-06-26] Refactor Clean — Dead Code Cleanup
+
+### Unused Files Deleted
+
+| File | Reason | Lines |
+|------|--------|-------|
+| `scripts/harness-audit.js` | Only referenced in eslint `globalIgnores` config | ~50 |
+
+### Unused Exports Removed (removed `export` keyword, kept internal code)
+
+**`cards/cards.ts` (Alphabet Adventure)** — Removed exports/entirely removed:
+- `TIER_POINTS` — no external usage (kept as internal, used by `loadCollection`)
+- `TIER_COLORS` — entirely unused, removed entirely (36 lines)
+- `CARD_EMOJIS` — entirely unused, removed entirely (27 lines)
+- `emptyCollection` — no external usage (kept as internal, used by `loadCollection`)
+
+**`constants.ts` (Alphabet Adventure)** — Removed exports:
+- `THAI_NAMES` — kept as internal, used by `generateThaiRevertRound`
+- `PHONICS_SOUNDS` — kept as internal, used by `generatePhonicsRevertRound`
+- `generateThaiRound` — entirely unused even internally, removed (17 lines)
+- `generatePhonicsRound` — entirely unused even internally, removed (17 lines)
+
+**`sprites.ts` (Phonics)** — Removed exports (all unused even internally, removed entirely):
+- `SUN_16`, `SUN_16B`, `CLOUDS`, `BIRD_V`, `FISH`, `BOAT`, `DOCK`, `SPLASH`, `ROTATE_PHONE`
+- `drawSpriteFlipped`, `drawMascotIdle`
+- `PALETTE` — kept internal, used by `drawSprite`
+
+**`types.ts` (Phonics)** — Removed:
+- `getCorrectAnswerFromQuestion` — confirmed 0 callers anywhere (52 lines)
+
+**`mascot-bridge.ts`** — Removed:
+- `PHONICS_THAI_NAMES`, `getPhonicsMascot`, `getPhonicsThaiName` — no references
+- Kept `PHONICS_MASCOTS` (imported by mascot-data.ts)
+
+**`mascot-data.ts`** — Removed:
+- `MASCOTS`, `MASCOT_MAP`, `getAllMascots`, `getAnyMascot` — no external references
+- Kept `ALL_MASCOTS`, `ALL_MASCOT_MAP` (imported by MascotCompanion, MascotAvatar)
+
+**`analytics/index.ts`** — Removed re-export:
+- `getConsent`, `setConsent`, `hasConsent` from consent module
+
+**`analytics/aggregations.ts`** — Removed exports:
+- `topPagesAggregation`, `topEventsAggregation`, `deviceBreakdownAggregation`, `referrerBreakdownAggregation`
+- All kept as internal (used by `aggregateTopPages` etc.)
+
+**`charts/index.ts`** — Removed re-export:
+- `TrendBadge` (component itself IS used by `SummaryCard`)
+
+**`StockDataContext.tsx`** — Removed export:
+- `StockData` interface (kept as internal, extended by `ExtendedStockData`)
+
+**`scripts/ipa-parser.ts`** — Removed export:
+- `normalizeIpa` (kept as internal, used within the file)
+
+### Impact
+
+| Metric | Value |
+|--------|-------|
+| Files deleted | 1 |
+| Files modified | 11 |
+| Lines of code removed | **~450** |
+| Unused exports cleaned | 30+ |
+
+### Verification
+
+- `npm run build` — passes (ignoreBuildErrors: true)
+- `npx vitest run` — all pass (pre-existing DB-dependent failures unchanged)
+- No new lint errors introduced

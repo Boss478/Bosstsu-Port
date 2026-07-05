@@ -161,9 +161,9 @@ function generateCardFlipCards(
   const selectedPhonemes = shuffleArray(lessonPhonemes);
 
   if (selectedPhonemes.length < numPairs) {
-    const otherPhonemes = shuffleArray(PHONEMES.filter(
-      (p) => !selectedPhonemes.some((sp) => sp.id === p.id),
-    ));
+    const otherPhonemes = shuffleArray(
+      PHONEMES.filter((p) => !selectedPhonemes.some((sp) => sp.id === p.id)),
+    );
     const needed = numPairs - selectedPhonemes.length;
     selectedPhonemes.push(...otherPhonemes.slice(0, needed));
   } else if (selectedPhonemes.length > numPairs) {
@@ -320,7 +320,7 @@ function generateDefinitionQuestions(
   return questions;
 }
 
-function buildPlacementTest30(words?: WordData[]): Question[] {
+function buildPlacementTest(words?: WordData[]): Question[] {
   const wordPool = words || WORDS;
   const usedWords = new Set<string>();
   const questions: Question[] = [];
@@ -343,8 +343,9 @@ function buildPlacementTest30(words?: WordData[]): Question[] {
 
     const blanked = word.example.replace(new RegExp('\\b' + word.word + '\\b', 'gi'), '____');
 
-    const distractors = shuffleArray(wordPool
-      .filter((w) => w.word !== word.word && w.level === word.level))
+    const distractors = shuffleArray(
+      wordPool.filter((w) => w.word !== word.word && w.level === word.level),
+    )
       .slice(0, 3)
       .map((w) => w.word);
     const options = shuffleArray([word.word, ...distractors]);
@@ -365,8 +366,7 @@ function buildPlacementTest30(words?: WordData[]): Question[] {
     const word = pickWord(lvl);
     if (!word) continue;
 
-    const distractors = shuffleArray(wordPool
-      .filter((w) => w.word !== word.word))
+    const distractors = shuffleArray(wordPool.filter((w) => w.word !== word.word))
       .slice(0, 3)
       .map((w) => w.definition);
     const options = shuffleArray([word.definition, ...distractors]);
@@ -442,7 +442,7 @@ function buildQuestions(
 ): Question[] {
   const wordPool = words || WORDS;
   if (config.isPlacement) {
-    return buildPlacementTest30(words);
+    return buildPlacementTest(words);
   }
 
   switch (config.category) {
@@ -450,10 +450,9 @@ function buildQuestions(
       const format = config.phonicsFormat ?? 'tap';
       if (format === 'card-flip') {
         const phoneme = phonemeIds?.length
-          ? PHONEMES.find((p) => p.id === phonemeIds[0]) ?? PHONEMES[0]
+          ? (PHONEMES.find((p) => p.id === phonemeIds[0]) ?? PHONEMES[0])
           : PHONEMES[0];
-        const word =
-          wordPool.find((w) => w.phonemes.includes(phoneme.id)) ?? wordPool[0];
+        const word = wordPool.find((w) => w.phonemes.includes(phoneme.id)) ?? wordPool[0];
         return [
           {
             category: 'phonics' as const,
@@ -548,10 +547,9 @@ function buildRetryQuestions(
       const format = config.phonicsFormat ?? 'tap';
       if (format === 'card-flip') {
         const phoneme = phonemeIds?.length
-          ? PHONEMES.find((p) => p.id === phonemeIds[0]) ?? PHONEMES[0]
+          ? (PHONEMES.find((p) => p.id === phonemeIds[0]) ?? PHONEMES[0])
           : PHONEMES[0];
-        const word =
-          wordPool.find((w) => w.phonemes.includes(phoneme.id)) ?? wordPool[0];
+        const word = wordPool.find((w) => w.phonemes.includes(phoneme.id)) ?? wordPool[0];
         return [
           {
             category: 'phonics' as const,
@@ -975,10 +973,11 @@ function generateRhymeTimeQuestions(count: number, level: CefrLevel): RhymeQuest
       usedWords.add(similarWord.word);
 
       const distractors: string[] = [];
-      const tempDist = shuffleArray(pool
-        .filter(
+      const tempDist = shuffleArray(
+        pool.filter(
           (w) => w.word !== target.word && w.word !== similarWord.word && !usedWords.has(w.word),
-        ));
+        ),
+      );
       for (let d = 0; d < Math.min(3, tempDist.length); d++) {
         distractors.push(tempDist[d].word);
       }
@@ -1987,7 +1986,7 @@ export {
   generateSpellingQuestions,
   generateDefinitionQuestions,
   buildQuestions,
-  buildPlacementTest30,
+  buildPlacementTest,
   buildRetryQuestions,
   computeCorrectAnswer,
   generatePracticeQuestions,

@@ -7,16 +7,40 @@ const PREFIX = 'phonics_save_';
 const ACTIVE_KEY = 'phonics_active_slot';
 
 const ALL_ACHIEVEMENT_IDS: AchievementId[] = [
-  "first_round", "sound_explorer", "vocab_master", "perfectionist", "streak_10", "streak_30",
-  "phoneme_10", "phoneme_25", "phoneme_40", "phoneme_gold", "phoneme_allgold",
-  "first_purchase", "collector_5", "millionaire",
-  "speed_demon", "word_builder", "quiz_champ", "companion_friend",
-  "match_10", "sort_50", "rhyme_20", "speed_spell_30", "syllable_50",
-  "challenge_all", "challenge_allgold",
+  'first_round',
+  'sound_explorer',
+  'vocab_master',
+  'perfectionist',
+  'streak_10',
+  'streak_30',
+  'phoneme_10',
+  'phoneme_25',
+  'phoneme_40',
+  'phoneme_gold',
+  'phoneme_allgold',
+  'first_purchase',
+  'collector_5',
+  'millionaire',
+  'speed_demon',
+  'word_builder',
+  'quiz_champ',
+  'companion_friend',
+  'match_10',
+  'sort_50',
+  'rhyme_20',
+  'speed_spell_30',
+  'syllable_50',
+  'challenge_all',
+  'challenge_allgold',
 ];
 
-function getDefaultAchievements(): Record<string, { unlocked: boolean; unlockedAt: number; progress: number }> {
-  return Object.fromEntries(ALL_ACHIEVEMENT_IDS.map((id) => [id, { unlocked: false, unlockedAt: 0, progress: 0 }]));
+function getDefaultAchievements(): Record<
+  string,
+  { unlocked: boolean; unlockedAt: number; progress: number }
+> {
+  return Object.fromEntries(
+    ALL_ACHIEVEMENT_IDS.map((id) => [id, { unlocked: false, unlockedAt: 0, progress: 0 }]),
+  );
 }
 
 export function getDefaultSave(name: string): SaveData {
@@ -83,8 +107,23 @@ export function loadSave(slot: number): SaveData | null {
     if (typeof data.cefrUpgradeStreak !== 'number') {
       data.cefrUpgradeStreak = 0;
     }
+    if (!data.settings || typeof data.settings.muted !== 'boolean') {
+      data.settings = { ...data.settings, muted: false };
+    }
     if (typeof data.settings.glassLevel !== 'number') {
-      data.settings.glassLevel = 25;
+      data.settings = { ...data.settings, glassLevel: 25 };
+    }
+    if (typeof data.tutorialCompleted !== 'boolean') {
+      data.tutorialCompleted = false;
+    }
+    if (typeof data.totalCorrects !== 'number') {
+      data.totalCorrects = 0;
+    }
+    if (typeof data.phonemeCoins !== 'number') {
+      data.phonemeCoins = 0;
+    }
+    if (typeof data.name !== 'string') {
+      data.name = 'Slot';
     }
     // v3 backfill
     if (!data.achievements) {
@@ -113,8 +152,8 @@ const OLD_LESSON_PREFIXES = ['basic-', 'cons-', 'vowel-', 'long-', 'diph-', 'mas
 
 function hasOldLessonIds(data: Partial<SaveData>): boolean {
   if (!data.lessonProgress) return false;
-  return Object.keys(data.lessonProgress).some(k =>
-    OLD_LESSON_PREFIXES.some(prefix => k.startsWith(prefix))
+  return Object.keys(data.lessonProgress).some((k) =>
+    OLD_LESSON_PREFIXES.some((prefix) => k.startsWith(prefix)),
   );
 }
 
@@ -130,8 +169,7 @@ function migrateSave(data: Partial<SaveData>): SaveData {
 export function writeSave(slot: number, data: SaveData): void {
   if (typeof window === 'undefined') return;
   try {
-    data.timestamp = Date.now();
-    localStorage.setItem(`${PREFIX}${slot}`, JSON.stringify(data));
+    localStorage.setItem(`${PREFIX}${slot}`, JSON.stringify({ ...data, timestamp: Date.now() }));
   } catch (e) {
     console.warn('[phonics] Save write error:', e);
   }
@@ -140,7 +178,9 @@ export function writeSave(slot: number, data: SaveData): void {
 export function deleteSave(slot: number): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(`${PREFIX}${slot}`);
-  try { localStorage.removeItem('phonics-companion-pos'); } catch {}
+  try {
+    localStorage.removeItem('phonics-companion-pos');
+  } catch {}
 }
 
 export function getActiveSlot(): number | 'guest' {

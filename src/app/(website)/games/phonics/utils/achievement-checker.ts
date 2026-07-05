@@ -14,21 +14,26 @@ export interface AchievementContext {
     type: string;
     totalCorrect: number;
   };
-  shopPurchase?: boolean;
-  companionClick?: boolean;
-  wordBuilderLookup?: boolean;
-  wordQuizComplete?: boolean;
 }
 
-const CHALLENGE_TYPES = ['phoneme-match', 'sound-sort', 'rhyme-time', 'speed-spell', 'syllable-smash'] as const;
+const CHALLENGE_TYPES = [
+  'phoneme-match',
+  'sound-sort',
+  'rhyme-time',
+  'speed-spell',
+  'syllable-smash',
+] as const;
 
 function phonemeMasteryCount(save: SaveData): number {
-  return Object.values(save.phonemeStats).filter((s) => s.total >= 3 && s.correct / s.total >= 0.7).length;
+  return Object.values(save.phonemeStats).filter((s) => s.total >= 3 && s.correct / s.total >= 0.7)
+    .length;
 }
 
 function allPhonemeGold(save: SaveData): boolean {
-  return Object.entries(save.phonemeStats).length >= 40 &&
-    Object.values(save.phonemeStats).every((s) => s.total >= 1 && s.correct / s.total >= 0.95);
+  return (
+    Object.entries(save.phonemeStats).length >= 40 &&
+    Object.values(save.phonemeStats).every((s) => s.total >= 1 && s.correct / s.total >= 0.95)
+  );
 }
 
 function allGroupsCompleted(save: SaveData): boolean {
@@ -50,7 +55,9 @@ function allVocabLevelsCompleted(save: SaveData): boolean {
 function challengeTypeAllGold(save: SaveData): boolean {
   return CHALLENGE_TYPES.every((t) => {
     const s = save.challengeStats[t];
-    return s && s.roundsPlayed >= 1 && s.totalAttempts > 0 && s.totalCorrect / s.totalAttempts >= 0.95;
+    return (
+      s && s.roundsPlayed >= 1 && s.totalAttempts > 0 && s.totalCorrect / s.totalAttempts >= 0.95
+    );
   });
 }
 
@@ -61,10 +68,7 @@ function challengeTypeAllCompleted(save: SaveData): boolean {
   });
 }
 
-export function checkAchievements(
-  save: SaveData,
-  context?: AchievementContext,
-): AchievementId[] {
+export function checkAchievements(save: SaveData, context?: AchievementContext): AchievementId[] {
   const newlyUnlocked: AchievementId[] = [];
   const now = Date.now();
 
@@ -77,8 +81,12 @@ export function checkAchievements(
 
   function updateProgress(id: AchievementId, progress: number) {
     const existing = save.achievements[id];
-    if (!existing || existing.unlocked) return;
-    save.achievements[id] = { ...existing, progress: Math.min(100, Math.max(existing.progress, progress)) };
+    if (existing?.unlocked) return;
+    save.achievements[id] = {
+      unlocked: false,
+      unlockedAt: 0,
+      progress: Math.min(100, Math.max(existing?.progress ?? 0, progress)),
+    };
   }
 
   const accuracy = context?.roundResult?.accuracy ?? 0;
@@ -105,7 +113,11 @@ export function checkAchievements(
   const phonemeIds = context?.roundResult?.phonemeIds ?? [];
   if (phonemeIds.length > 0 && accuracy === 100) {
     const phoneme = phonemeIds[0];
-    if (phoneme && save.phonemeStats[phoneme]?.total >= 3 && save.phonemeStats[phoneme]?.correct / save.phonemeStats[phoneme]?.total >= 0.95) {
+    if (
+      phoneme &&
+      save.phonemeStats[phoneme]?.total >= 3 &&
+      save.phonemeStats[phoneme]?.correct / save.phonemeStats[phoneme]?.total >= 0.95
+    ) {
       unlock('phoneme_gold');
     }
   }
@@ -117,15 +129,14 @@ export function checkAchievements(
   updateProgress('phoneme_40', Math.round((Math.min(totalPhonemes, 40) / 40) * 100));
 
   // ── Economy ──
-  if (context?.shopPurchase) {
-    const itemCount = (save.unlockedItems?.length ?? 0) + save.unlockedCompanions.length - 3;
-    if (itemCount >= 1 || save.unlockedCompanions.length > 3) unlock('first_purchase');
-  }
-  if (!save.achievements.first_purchase?.unlocked && save.unlockedCompanions.length > 3) {
-    unlock('first_purchase');
-  }
+  const itemCount =
+    (save.unlockedItems?.length ?? 0) + Math.max(0, save.unlockedCompanions.length - 3);
+  if (itemCount >= 1) unlock('first_purchase');
   if (save.unlockedCompanions.length >= 5) unlock('collector_5');
-  updateProgress('collector_5', Math.round((Math.max(0, save.unlockedCompanions.length - 3) / 2) * 100));
+  updateProgress(
+    'collector_5',
+    Math.round((Math.max(0, save.unlockedCompanions.length - 3) / 2) * 100),
+  );
 
   if (totalCoins >= 1000) unlock('millionaire');
   updateProgress('millionaire', Math.round((Math.min(totalCoins, 1000) / 1000) * 100));
@@ -134,39 +145,55 @@ export function checkAchievements(
   if (context?.roundResult?.category === 'spelling' && context?.roundResult?.accuracy === 100) {
     unlock('speed_demon');
   }
-  if (context?.wordBuilderLookup) {
-    updateProgress('word_builder', Math.round(Math.min(save.phonemeStats ? Object.keys(save.phonemeStats).length * 5 : 0, 100)));
-  }
-  if (context?.wordQuizComplete) {
-    unlock('quiz_champ');
-  }
-  if (context?.companionClick || save.companionInteractions >= 100) {
-    if (save.companionInteractions >= 100) unlock('companion_friend');
-    updateProgress('companion_friend', Math.round((Math.min(save.companionInteractions, 100) / 100) * 100));
-  }
+  if (save.companionInteractions >= 100) unlock('companion_friend');
+  updateProgress(
+    'companion_friend',
+    Math.round((Math.min(save.companionInteractions, 100) / 100) * 100),
+  );
 
   // ── Challenge ──
   if (context?.challengeResult) {
     const type = context.challengeResult.type;
 
     if (type === 'phoneme-match') {
-      updateProgress('match_10', Math.round(Math.min(save.challengeStats['phoneme-match']?.roundsPlayed ?? 0, 10) / 10 * 100));
+      updateProgress(
+        'match_10',
+        Math.round(
+          (Math.min(save.challengeStats['phoneme-match']?.roundsPlayed ?? 0, 10) / 10) * 100,
+        ),
+      );
       if ((save.challengeStats['phoneme-match']?.roundsPlayed ?? 0) >= 10) unlock('match_10');
     }
     if (type === 'sound-sort') {
-      updateProgress('sort_50', Math.round(Math.min(save.challengeStats['sound-sort']?.totalCorrect ?? 0, 50) / 50 * 100));
+      updateProgress(
+        'sort_50',
+        Math.round((Math.min(save.challengeStats['sound-sort']?.totalCorrect ?? 0, 50) / 50) * 100),
+      );
       if ((save.challengeStats['sound-sort']?.totalCorrect ?? 0) >= 50) unlock('sort_50');
     }
     if (type === 'rhyme-time') {
-      updateProgress('rhyme_20', Math.round(Math.min(save.challengeStats['rhyme-time']?.totalCorrect ?? 0, 20) / 20 * 100));
+      updateProgress(
+        'rhyme_20',
+        Math.round((Math.min(save.challengeStats['rhyme-time']?.totalCorrect ?? 0, 20) / 20) * 100),
+      );
       if ((save.challengeStats['rhyme-time']?.totalCorrect ?? 0) >= 20) unlock('rhyme_20');
     }
     if (type === 'speed-spell') {
-      updateProgress('speed_spell_30', Math.round(Math.min(save.challengeStats['speed-spell']?.totalCorrect ?? 0, 30) / 30 * 100));
+      updateProgress(
+        'speed_spell_30',
+        Math.round(
+          (Math.min(save.challengeStats['speed-spell']?.totalCorrect ?? 0, 30) / 30) * 100,
+        ),
+      );
       if ((save.challengeStats['speed-spell']?.totalCorrect ?? 0) >= 30) unlock('speed_spell_30');
     }
     if (type === 'syllable-smash') {
-      updateProgress('syllable_50', Math.round(Math.min(save.challengeStats['syllable-smash']?.totalCorrect ?? 0, 50) / 50 * 100));
+      updateProgress(
+        'syllable_50',
+        Math.round(
+          (Math.min(save.challengeStats['syllable-smash']?.totalCorrect ?? 0, 50) / 50) * 100,
+        ),
+      );
       if ((save.challengeStats['syllable-smash']?.totalCorrect ?? 0) >= 50) unlock('syllable_50');
     }
   }

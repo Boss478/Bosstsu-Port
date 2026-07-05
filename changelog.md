@@ -5,6 +5,37 @@
 
 
 
+## v1.10.54 (2026-07-05)
+* **Challenge Word Builder mode [New Tab + 6 Challenge Types + Config]**:
+  * * Word Builder tab now shows Custom Build + Challenge button; Challenge opens full-screen flat list (Quiz + 5 mini games with stats).
+  * * `ChallengeSelectScreen`: 6-item list per challenge type with per-type stats, accordion keyboard navigation.
+  * * `ChallengeConfigModal`: 7 question types (IPA→Word, Word→IPA, Word→Def, Def→Word, Synonyms, Stress IPA, Antonyms) + 6 quiz modes (Number, Timer, Hardcore, Life, Streak, Speed Run), config saved to localStorage.
+  * * `ChallengeQuizScreen`: Hybrid quiz engine — IPA types use PhonemeSoundboard/LetterTileKeyboard, Word types use QuestionChoiceButton multiple-choice; auto-saves stats on completion.
+  * * Navbar: Word Builder in Section 1 (no header), footer renders below Section 1. ChallengesScreen.tsx deleted (replaced).
+* **Accessibility fixes (Challenge screens)**:
+  * * Created `useFocusTrap` hook at `src/hooks/useFocusTrap.ts`; applied to both ChallengeConfigModal and QuizConfigModal.
+  * * Both modals: `role="dialog"`, `aria-modal="true"`, focus trap.
+  * * ChallengeSelectScreen cards: accordion pattern (h3[role=button]) for keyboard access.
+  * * ChallengeQuizScreen: `aria-live="polite"` region announces question changes; `aria-hidden="true"` on decorative icons.
+  * * Back button on ChallengeSelectScreen for navigation.
+* **Bug fix**: `{pct}` rendered literally in template literal — added missing `$` prefix (`${pct}`).
+* **Tests**: `tests/unit/challenge-generators.test.ts` — 16 tests for `generateDefinitionQuestions`, `generateSynonymQuestions`, `generateStressQuestions`.
+* **Dead code removal**: Removed empty exports from `charts/index.ts`, `analytics/index.ts`; removed unused bridge module `mascot-bridge.ts`. Build + all tests pass clean.
+
+## v1.10.53 (2026-06-29)
+* **LibraryScreen nested `<button>` fix**: Outer phoneme card `<button>` contained a nested "Practice" `<button>`, violating HTML spec and triggering React hydration warning. Restructured as sibling elements: outer `<div>` wraps card `<button>` + absolute-positioned practice `<button>`. No behavioral change.
+
+## v1.10.52 (2026-06-28)
+* **Admin test infrastructure fix**: `WordOverride.findOne` mock was `async` (returning Promise) breaking `.select()` chain — removed `async`. Replaced `vi.clearAllMocks()` in `beforeEach` with targeted `mod.verifyAuth.mockReset()` to prevent resetting module-level mock implementations. 704 tests pass, build clean.
+
+## v1.10.51 (2026-06-28)
+* **Phonics Save Layer & Achievement System Fixes**:
+  * * **Save layer fixes**: `writeSave` no longer mutates input data; `loadSave` backfills `settings.muted`, `tutorialCompleted`, `totalCorrects`, `phonemeCoins`, `name`; `persistSave` syncs `saveRef` before write to fix stale-save race; `deleteSaveSlot` now resets in-memory state (setScreen(slots), activeSlot=guest).
+  * * **GameScreen hint closure**: Replaced `useState<wrongAttempts>` with `useRef<wrongAttemptsRef>` in `TapQuestion` to eliminate stale closure preventing hint from appearing.
+  * * **Achievement fixes**: `companion_friend` progress now unconditional; removed dead context flags (`shopPurchase`, `companionClick`, `wordBuilderLookup`, `wordQuizComplete`) and their code paths; `first_purchase` uses save-data-only formula handling missing `unlockedItems`; `updateProgress` initializes entries if missing.
+  * * **Rename**: `buildPlacementTest30` → `buildPlacementTest`.
+  * + **16 new tests**: save layer (13), GameScreen hint (3), achievement checker (9) — all 232 pass.
+
 ## v1.10.50 (2026-06-27)
 * **Alphabet Adventure Stabilization [Phase 1-4]**:
   * * **5 Bug Fixes**: `cardDroppedRef` race condition (moved reset to wrong-answer only), pendingFinishRef Escape key leak (added ESC→onKeep handler), `onboardingSeen` persistence (saved to progress localStorage), `roundSeed` module-scope leak (added `resetRoundSeed`), VictoryScreen `0/0` edge case (hidden when no stars).

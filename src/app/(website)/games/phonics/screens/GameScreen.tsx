@@ -54,7 +54,7 @@ import CompanionHint from '../components/CompanionHint';
 import MascotCanvas from '../components/MascotCanvas';
 import QuestionChoiceButton from '../components/QuestionChoiceButton';
 
-function TapQuestion({
+export function TapQuestion({
   question,
   feedback,
   speak,
@@ -76,7 +76,7 @@ function TapQuestion({
   setSelectedAnswer: (ans: string | null) => void;
 }) {
   const [hintLevel, setHintLevel] = useState(0);
-  const [wrongAttempts, setWrongAttempts] = useState(0);
+  const wrongAttemptsRef = useRef(0);
   const [timerPct, setTimerPct] = useState(100);
   const [isRippling, setIsRippling] = useState(false);
 
@@ -86,6 +86,9 @@ function TapQuestion({
   useEffect(() => {
     feedbackRef.current = feedback;
   }, [feedback]);
+  useEffect(() => {
+    wrongAttemptsRef.current = 0;
+  }, [question.phoneme.id]);
   const timeAnnounceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -135,11 +138,11 @@ function TapQuestion({
       playWordAudio(opt);
       setSelectedAnswer(opt);
       if (opt !== question.correctAnswer) {
-        setWrongAttempts((n) => n + 1);
-        if (wrongAttempts + 1 >= 2) setHintLevel((l) => Math.min(l + 1, 3));
+        wrongAttemptsRef.current += 1;
+        if (wrongAttemptsRef.current >= 2) setHintLevel((l) => Math.min(l + 1, 3));
       }
     },
-    [question.correctAnswer, wrongAttempts, setSelectedAnswer, playWordAudio],
+    [question.correctAnswer, setSelectedAnswer, playWordAudio],
   );
 
   const displayHint =

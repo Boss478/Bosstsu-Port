@@ -76,7 +76,7 @@ const PHONEME_IPA_MAP: IpaEntry[] = [
   { ipa: 'x', id: '' }, // velar fricative — skip (rare in English)
 ];
 
-export function normalizeIpa(raw: string): string {
+function normalizeIpa(raw: string): string {
   const first = raw.split('⁓')[0];
   return first
     .replace(/[ˈˌ]/g, '')
