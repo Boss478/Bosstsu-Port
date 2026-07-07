@@ -133,3 +133,46 @@ Kept in barrel (externally imported): `generateCardFlipCards`, `buildQuestions`,
 - `npm run build` — passes (ignoreBuildErrors: true)
 - `npx vitest run` — all pass (pre-existing DB-dependent failures unchanged)
 - No new lint errors introduced
+
+## [2026-07-07] Refactor Clean — Dead Code & Duplicate Consolidation
+
+### Unused Function Removed
+
+| File | Function | Reason | Lines |
+|------|----------|--------|-------|
+| `question-generators.ts` | `scoreToPlacementTier()` | Zero references in production code AND tests (confirmed via grep) | 5 |
+
+### Unused DevDependency Removed
+
+| Package | Reason |
+|---------|--------|
+| `@testing-library/react` | Never imported anywhere in codebase or tests (vitest uses `node` environment, no DOM testing) |
+
+### Duplicate Code Consolidated
+
+**`parseTagString` / `parseWordArray`** — Two identical functions in `format.ts` and `validation.ts`:
+- Kept `parseTagString` in `format.ts` as canonical version
+- Removed duplicate `parseWordArray` from `validation.ts`
+- Updated `admin/words/actions.ts` to import `parseTagString` (aliased as `parseWordArray`)
+
+**`useFocusTrap`** — Two implementations:
+- `src/hooks/useFocusTrap.ts` (robust: uses `requestAnimationFrame` + `useCallback`)
+- `src/lib/hooks/useFocusTrap.ts` (simpler: direct `useEffect`)
+- Consolidated to use robust version from `src/hooks/useFocusTrap.ts`
+- Updated `ModeSelectModal.tsx` and `CardRevealModal.tsx` imports
+- Deleted `src/lib/hooks/useFocusTrap.ts`
+
+### Impact
+
+| Metric | Value |
+|--------|-------|
+| Files deleted | 1 |
+| Files modified | 5 |
+| Lines of code removed | ~60 |
+| Unused dependency removed | 1 |
+
+### Verification
+
+- `npm run build` — compiled successfully
+- `npx vitest run tests/games/phonics.test.ts tests/games/g2p.test.ts tests/games/phonemeSearch.test.ts tests/unit/phonics/features.test.ts tests/vocab-generators.test.ts tests/unit/phonics/question-generators.test.ts` — 196/196 passed
+- No new lint errors introduced

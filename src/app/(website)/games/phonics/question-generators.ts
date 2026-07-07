@@ -1,12 +1,12 @@
 import { shuffleArray } from '@/lib/shuffle';
 import {
   PHONEMES,
-  CEFR_LEVEL_ORDER,
   getPhonemeGroup,
   SIMILAR_SOUND_GROUPS,
   CHALLENGE_ROUND_LENGTHS,
   CHALLENGE_TIME_LIMITS,
   PHONEME_TO_GRAPHEMES,
+  CEFR_LEVEL_ORDER,
   getAvailableTypesForPhoneme,
 } from './constants';
 import type {
@@ -41,7 +41,19 @@ import type {
 } from './types';
 import { WORDS } from './words';
 
-function selectWordByCefr<T extends { level: CefrLevel }>(items: T[], userLevel: CefrLevel): T {
+export function computePlacementUnlockCount(accuracy: number): number {
+  if (accuracy < 0.3) return 4;
+  if (accuracy < 0.5) return 7;
+  if (accuracy < 0.7) return 14;
+  if (accuracy < 0.85) return 28;
+  return 51;
+}
+
+function selectWordByCefr<T extends { level: CefrLevel }>(
+  items: T[],
+  userLevel: CefrLevel,
+  weights?: { same: number; adjacent: number },
+): T {
   if (userLevel === 'all' || items.length === 0) {
     return items[Math.floor(Math.random() * items.length)];
   }
@@ -68,8 +80,9 @@ function selectWordByCefr<T extends { level: CefrLevel }>(items: T[], userLevel:
   }
 
   const r = Math.random();
-  if (r < 0.6 && same.length > 0) return same[Math.floor(Math.random() * same.length)];
-  if (r < 0.9 && adj.length > 0) return adj[Math.floor(Math.random() * adj.length)];
+  const w = weights ?? { same: 0.6, adjacent: 0.3 };
+  if (r < w.same && same.length > 0) return same[Math.floor(Math.random() * same.length)];
+  if (r < w.same + w.adjacent && adj.length > 0) return adj[Math.floor(Math.random() * adj.length)];
   if (rest.length > 0) return rest[Math.floor(Math.random() * rest.length)];
   if (adj.length > 0) return adj[Math.floor(Math.random() * adj.length)];
   if (same.length > 0) return same[Math.floor(Math.random() * same.length)];
@@ -830,18 +843,18 @@ function getRime(phonemes: string[]): string {
 function generatePhonemeMatchRound(
   difficulty: 'easy' | 'medium' | 'hard',
   level: CefrLevel,
+  words?: WordData[],
 ): PhonemeMatchQuestion {
   const gridSize = CHALLENGE_ROUND_LENGTHS['phoneme-match'][difficulty];
   const pairs: { phonemeId: string; ipa: string; word: string }[] = [];
   const usedPhonemes = new Set<string>();
 
-  let pool = [...WORDS];
+  let pool = words?.length ? [...words] : [...WORDS];
   if (level !== 'all') {
-    const lvlOrder: CefrLevel[] = ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'];
-    const lvlIdx = lvlOrder.indexOf(level);
-    const maxIdx = Math.min(lvlIdx + 2, lvlOrder.length - 1);
-    const allowedLevels = lvlOrder.slice(0, maxIdx + 1);
-    pool = pool.filter((w) => allowedLevels.includes(w.level));
+    const lvlIdx = CEFR_LEVEL_ORDER.indexOf(level as (typeof CEFR_LEVEL_ORDER)[number]);
+    const maxIdx = Math.min(lvlIdx + 2, CEFR_LEVEL_ORDER.length - 1);
+    const allowedLevels = CEFR_LEVEL_ORDER.slice(0, maxIdx + 1);
+    pool = pool.filter((w) => allowedLevels.includes(w.level as (typeof CEFR_LEVEL_ORDER)[number]));
   }
 
   for (let i = 0; i < gridSize; i++) {
@@ -860,17 +873,16 @@ function generatePhonemeMatchRound(
   return { category: 'phoneme-match', pairs, gridSize: pairs.length };
 }
 
-function generateSoundSortQuestions(count: number, level: CefrLevel): SoundSortQuestion[] {
+function generateSoundSortQuestions(count: number, level: CefrLevel, words?: WordData[]): SoundSortQuestion[] {
   const questions: SoundSortQuestion[] = [];
   const groups = shuffleArray(SIMILAR_SOUND_GROUPS);
 
-  let pool = [...WORDS];
+  let pool = words?.length ? [...words] : [...WORDS];
   if (level !== 'all') {
-    const lvlOrder: CefrLevel[] = ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'];
-    const lvlIdx = lvlOrder.indexOf(level);
-    const maxIdx = Math.min(lvlIdx + 2, lvlOrder.length - 1);
-    const allowedLevels = lvlOrder.slice(0, maxIdx + 1);
-    pool = pool.filter((w) => allowedLevels.includes(w.level));
+    const lvlIdx = CEFR_LEVEL_ORDER.indexOf(level as (typeof CEFR_LEVEL_ORDER)[number]);
+    const maxIdx = Math.min(lvlIdx + 2, CEFR_LEVEL_ORDER.length - 1);
+    const allowedLevels = CEFR_LEVEL_ORDER.slice(0, maxIdx + 1);
+    pool = pool.filter((w) => allowedLevels.includes(w.level as (typeof CEFR_LEVEL_ORDER)[number]));
   }
 
   for (let q = 0; q < count; q++) {
@@ -906,17 +918,16 @@ function generateSoundSortQuestions(count: number, level: CefrLevel): SoundSortQ
   return questions;
 }
 
-function generateRhymeTimeQuestions(count: number, level: CefrLevel): RhymeQuestion[] {
+function generateRhymeTimeQuestions(count: number, level: CefrLevel, words?: WordData[]): RhymeQuestion[] {
   const questions: RhymeQuestion[] = [];
   const usedWords = new Set<string>();
 
-  let pool = [...WORDS];
+  let pool = words?.length ? [...words] : [...WORDS];
   if (level !== 'all') {
-    const lvlOrder: CefrLevel[] = ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'];
-    const lvlIdx = lvlOrder.indexOf(level);
-    const maxIdx = Math.min(lvlIdx + 2, lvlOrder.length - 1);
-    const allowedLevels = lvlOrder.slice(0, maxIdx + 1);
-    pool = pool.filter((w) => allowedLevels.includes(w.level));
+    const lvlIdx = CEFR_LEVEL_ORDER.indexOf(level as (typeof CEFR_LEVEL_ORDER)[number]);
+    const maxIdx = Math.min(lvlIdx + 2, CEFR_LEVEL_ORDER.length - 1);
+    const allowedLevels = CEFR_LEVEL_ORDER.slice(0, maxIdx + 1);
+    pool = pool.filter((w) => allowedLevels.includes(w.level as (typeof CEFR_LEVEL_ORDER)[number]));
   }
 
   for (let i = 0; i < count; i++) {
@@ -1004,18 +1015,18 @@ function generateSpeedSpellQuestions(
   count: number,
   level: CefrLevel,
   difficulty: 'easy' | 'medium' | 'hard',
+  words?: WordData[],
 ): SpeedSpellQuestion[] {
   const timeLimitMs = CHALLENGE_TIME_LIMITS['speed-spell'][difficulty];
   const questions: SpeedSpellQuestion[] = [];
   const usedWords = new Set<string>();
 
-  let pool = [...WORDS];
+  let pool = words?.length ? [...words] : [...WORDS];
   if (level !== 'all') {
-    const lvlOrder: CefrLevel[] = ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'];
-    const lvlIdx = lvlOrder.indexOf(level);
-    const maxIdx = Math.min(lvlIdx + 2, lvlOrder.length - 1);
-    const allowedLevels = lvlOrder.slice(0, maxIdx + 1);
-    pool = pool.filter((w) => allowedLevels.includes(w.level));
+    const lvlIdx = CEFR_LEVEL_ORDER.indexOf(level as (typeof CEFR_LEVEL_ORDER)[number]);
+    const maxIdx = Math.min(lvlIdx + 2, CEFR_LEVEL_ORDER.length - 1);
+    const allowedLevels = CEFR_LEVEL_ORDER.slice(0, maxIdx + 1);
+    pool = pool.filter((w) => allowedLevels.includes(w.level as (typeof CEFR_LEVEL_ORDER)[number]));
   }
   pool = pool.filter((w) => w.word.length >= 3 && w.word.length <= 8);
 
@@ -1032,17 +1043,16 @@ function generateSpeedSpellQuestions(
   return questions;
 }
 
-function generateSyllableSmashQuestions(count: number, level: CefrLevel): SyllableQuestion[] {
+function generateSyllableSmashQuestions(count: number, level: CefrLevel, words?: WordData[]): SyllableQuestion[] {
   const questions: SyllableQuestion[] = [];
   const usedWords = new Set<string>();
 
-  let pool = [...WORDS];
+  let pool = words?.length ? [...words] : [...WORDS];
   if (level !== 'all') {
-    const lvlOrder: CefrLevel[] = ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'];
-    const lvlIdx = lvlOrder.indexOf(level);
-    const maxIdx = Math.min(lvlIdx + 2, lvlOrder.length - 1);
-    const allowedLevels = lvlOrder.slice(0, maxIdx + 1);
-    pool = pool.filter((w) => allowedLevels.includes(w.level));
+    const lvlIdx = CEFR_LEVEL_ORDER.indexOf(level as (typeof CEFR_LEVEL_ORDER)[number]);
+    const maxIdx = Math.min(lvlIdx + 2, CEFR_LEVEL_ORDER.length - 1);
+    const allowedLevels = CEFR_LEVEL_ORDER.slice(0, maxIdx + 1);
+    pool = pool.filter((w) => allowedLevels.includes(w.level as (typeof CEFR_LEVEL_ORDER)[number]));
   }
   pool = pool.filter((w) => w.syllables.length >= 1 && w.syllables.length <= 5);
 
@@ -1879,129 +1889,20 @@ function generateVocabExerciseQuestions(
   return questions;
 }
 
-function buildActivityRetryQuestions(
-  config: RoundConfig,
-  wordStrings: string[],
-  words?: WordData[],
-): Question[] {
-  const wordPool = words || WORDS;
-  const retryWords = wordPool.filter((w) => wordStrings.includes(w.word));
-  if (retryWords.length === 0) return [];
-
-  switch (config.category) {
-    case 'grapheme':
-      return generateGraphemePatternQuestions(
-        retryWords.length,
-        config.level,
-        retryWords.flatMap((w) => w.phonemes),
-        words,
-      );
-    case 'ipa-word':
-      return generateIpaToWordQuestions(
-        retryWords.length,
-        config.level,
-        retryWords.flatMap((w) => w.phonemes),
-        words,
-      );
-    case 'word-ipa':
-      return generateWordToIpaQuestions(
-        retryWords.length,
-        config.level,
-        retryWords.flatMap((w) => w.phonemes),
-        words,
-      );
-    case 'minimal-pairs':
-      return generateMinimalPairsQuestions(
-        retryWords.length,
-        config.level,
-        retryWords.flatMap((w) => w.phonemes),
-        words,
-      );
-    case 'stress':
-      return generateStressQuestions(
-        retryWords.length,
-        config.level,
-        retryWords.flatMap((w) => w.phonemes),
-        words,
-      );
-    case 'synonyms':
-      return generateSynonymQuestions(
-        retryWords.length,
-        config.level,
-        retryWords.flatMap((w) => w.phonemes),
-        words,
-      );
-    case 'antonyms':
-      return generateAntonymQuestions(
-        retryWords.length,
-        config.level,
-        retryWords.flatMap((w) => w.phonemes),
-        words,
-      );
-    case 'fill-blank':
-      return generateFillBlankQuestions(
-        retryWords.length,
-        config.level,
-        retryWords.flatMap((w) => w.phonemes),
-        words,
-      );
-    case 'word-assoc':
-      return generateWordAssociationQuestions(
-        retryWords.length,
-        config.level,
-        retryWords.flatMap((w) => w.phonemes),
-        words,
-      );
-    case 'collocations':
-      return generateCollocationQuestions(
-        retryWords.length,
-        config.level,
-        retryWords.flatMap((w) => w.phonemes),
-        words,
-      );
-    case 'exercise':
-      return generateExerciseQuestions(
-        retryWords.length,
-        config.level,
-        retryWords.flatMap((w) => w.phonemes),
-        words,
-      );
-    case 'vocab-exercise':
-      return generateVocabExerciseQuestions(
-        retryWords.length,
-        config.level,
-        retryWords.flatMap((w) => w.phonemes),
-        words,
-      );
-    default:
-      return [];
-  }
-}
-
 export {
   selectWordByCefr,
   weightedRandomSelect,
-  generatePhonicsQuestions,
   generateCardFlipCards,
-  generateSpellingQuestions,
   generateDefinitionQuestions,
   buildQuestions,
-  buildPlacementTest,
   buildRetryQuestions,
   computeCorrectAnswer,
-  generatePracticeQuestions,
-  generateIpaToWordQuestions,
-  generateWordToIpaQuestions,
   generateSynonymQuestions,
   generateAntonymQuestions,
   generateFillBlankQuestions,
   generateWordAssociationQuestions,
   generateCollocationQuestions,
-  generateGraphemePatternQuestions,
-  generateMinimalPairsQuestions,
   generateStressQuestions,
-  generateExerciseQuestions,
-  buildActivityRetryQuestions,
   generatePhonemeMatchRound,
   generateSoundSortQuestions,
   generateRhymeTimeQuestions,

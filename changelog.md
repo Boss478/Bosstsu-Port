@@ -5,6 +5,42 @@
 
 
 
+## v1.10.58 (2026-07-07)
++ **Dead code removal + CEFR_LEVEL_ORDER consolidation**:
+  + * Removed unused `scoreToPlacementTier()` from `question-generators.ts`.
+  + * Removed unused `@testing-library/react` devDependency.
+  + * Removed duplicate `parseWordArray()` (consolidated into `parseTagString`).
+  + * Removed duplicate `useFocusTrap` in `src/lib/hooks/` (consolidated to `src/hooks/`).
+  + * Consolidated 15 inline CEFR_LEVEL_ORDER redefinitions across 5 files into import from `constants.ts`.
+  + * Fixed pre-existing test bug: `save.test.ts` expected version 4 but `SAVE_VERSION` is 3.
+
+## v1.10.57 (2026-07-06)
++ **Flaticon subset rebuild (178 icons, 30KB woff2)**:
+  + * Subset rebuilt from CDN v4 using `pyftsubset` — 60 new icons added (blank icons now render), 34 name mappings across 23 files.
+  + * 6 legacy icons not in CDN v4 remapped: add-image→add, chalkboard→chalkboard-user, medal→trophy, tools→gavel, user-lock→lock, drawer→removed.
+  + * woff2 size reduced 68% (94KB→30KB).
++ **Vocab Path: Cloud Progression**:
+  + * `StageListScreen.tsx`: Vertical path with 5 difficulty cloud nodes (Easy→Hard), inline accordion expansion, lock overlays, auto-scroll to placementTier.
++ **Challenge: Multi-Select Level + Group Filters**:
+  + * `ChallengeSelectScreen.tsx`: CEFR Level single-radio→multi-select toggle, Word Group single-select→multi-select checkboxes with Select All/Clear All per tier.
+  + * Intersection word pool (AND across dimensions, OR within), empty intersection guard.
++ **Fix**: Duplicate React key `charm` in `WordBuilderScreen.tsx:1178` — `pronunciation-dictionary.json` has 2 dialect entries for `charm` (universal + us). Key changed to `${word}-${dialect}`.
+
+## v1.10.56 (2026-07-06)
++ **Vocab Group + CEFR filter for Challenges**:
+  * * `ChallengeSelectScreen`: Filter bar with CEFR level picker (Auto/A1-C2) + tier-collapsible 82-group word group picker. Active level resolves to player tier when 'Auto' is selected.
+  * * `ChallengeGameScreen`: Accepts `words?: WordData[]` prop, passed to all 5 generator calls (phoneme-match, sound-sort, rhyme-time, speed-spell, syllable-smash).
+  * * `ChallengeQuizScreen`: Uses `config.cefrLevel` and `config.groupId` to drive question generation (was hardcoded `'all'`/`WORDS`).
+  * * `PhonicsClient`: Updated `handleLaunchChallenge` to accept and store `words[]`; wired through to ChallengeGameScreen.
+
+## v1.10.55 (2026-07-06)
++ **Synonym group fallback (Two-tier matching)**:
+  * * `getWordsForGroup`: 3-tier fallback for synonym groups — strict synonym match first, broad match with level filter second, broad match without level filter third. Returns better result when both sub-threshold.
+  * * `broadWordMatch()`: Searches synonymOf terms against word+definition+example+synonyms as fallback keywords. Only used for true synonym groups.
+  * * `SYNONYM_STRICT_THRESHOLD=10`, `FALLBACK_MIN_WORDS=5` constants guard fallback triggering.
+  * * All 22 synonym groups now serve 3+ words (up from 0-5). `wordGroupMap` remains strict for display accuracy.
+  * * 4 new tests covering fallback, topic group exclusion, map strictness, and all-groups coverage.
+
 ## v1.10.54 (2026-07-05)
 * **Challenge Word Builder mode [New Tab + 6 Challenge Types + Config]**:
   * * Word Builder tab now shows Custom Build + Challenge button; Challenge opens full-screen flat list (Quiz + 5 mini games with stats).

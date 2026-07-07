@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { WordToIpaQuestion as WordToIpaQuestionType, CompanionId } from "../types";
-import { COMPANIONS, QUESTION_CARD_CLASSES } from "../constants";
+import { COMPANIONS, QUESTION_CARD_CLASSES, WORD_CLASS_ABBREV } from "../constants";
 import CompanionHint from "./CompanionHint";
 import QuestionChoiceButton from "./QuestionChoiceButton";
 
@@ -56,11 +56,14 @@ export default function WordToIpaQuestion({
     <div className="flex flex-col gap-6">
       <div className={QUESTION_CARD_CLASSES}>
         <div
-          className="text-4xl font-extrabold text-slate-800 dark:text-[#F7E1A0] tracking-wide relative z-10 cursor-pointer hover:opacity-80 active:scale-95 transition-all"
+          className="text-4xl font-extrabold text-slate-800 dark:text-[#F7E1A0] tracking-wide relative z-10 cursor-pointer hover:opacity-80 active:scale-95 transition-all flex items-center justify-center gap-2 flex-wrap"
           onClick={handleSpeak}
           title="Click to hear the word"
         >
-          {question.word.word}
+          <span>{question.word.word}</span>
+          <span className="text-lg font-medium text-slate-400 dark:text-slate-500">
+            ({WORD_CLASS_ABBREV[question.word.wordClass.toLowerCase()] ?? question.word.wordClass})
+          </span>
         </div>
         <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mt-2 uppercase tracking-widest relative z-10">
           {question.word.definition}

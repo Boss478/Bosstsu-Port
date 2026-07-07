@@ -3,7 +3,7 @@
 import { useMemo, useCallback } from 'react';
 import { useGame } from '../context';
 import { PHONEMES, getActivitiesForPhoneme } from '../constants';
-import type { StageData, StageLesson } from '../types';
+import type { StageData, StageLesson, SimilarSoundGroup } from '../types';
 
 const PHONEME_COLORS: Record<string, string> = {
   ae: '#2EC4B6',
@@ -56,9 +56,11 @@ export default function StageSubMap() {
   const { save, selectedGroup, selectGroup, selectStage, selectLesson } = useGame();
   const activityProgress = useMemo(() => save?.activityProgress ?? {}, [save?.activityProgress]);
 
+  const grp = selectedGroup && 'phonemeIds' in selectedGroup ? (selectedGroup as SimilarSoundGroup) : null;
+
   const phonemeNodes = useMemo(() => {
-    if (!selectedGroup) return [];
-    return selectedGroup.phonemeIds
+    if (!grp) return [];
+    return grp.phonemeIds
       .map((pid) => {
         const phoneme = PHONEMES.find((p) => p.id === pid);
         const activities = getActivitiesForPhoneme(pid);
@@ -93,9 +95,9 @@ export default function StageSubMap() {
     [selectStage, selectLesson],
   );
 
-  if (!selectedGroup) return null;
+  if (!grp) return null;
 
-  const allActivities = selectedGroup.phonemeIds.flatMap((pid) => getActivitiesForPhoneme(pid));
+  const allActivities = grp.phonemeIds.flatMap((pid) => getActivitiesForPhoneme(pid));
   const allCompleted = allActivities.filter((a) => activityProgress[a.id]?.completed).length;
   const allTotal = allActivities.length;
   const groupPct = allTotal > 0 ? Math.round((allCompleted / allTotal) * 100) : 0;
@@ -118,10 +120,10 @@ export default function StageSubMap() {
               className="text-2xl font-extrabold text-slate-800 dark:text-[#F7E1A0] truncate"
               style={{ fontFamily: 'var(--font-mali)' }}
             >
-              {selectedGroup.title}
+              {grp.title}
             </h1>
             <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-              {selectedGroup.phonemeIds.length} phonemes &middot; {groupPct}% mastered
+              {grp.phonemeIds.length} phonemes &middot; {groupPct}% mastered
             </p>
           </div>
         </div>
@@ -132,7 +134,7 @@ export default function StageSubMap() {
             <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
               Group Progress
             </span>
-            <span className="text-[11px] font-bold" style={{ color: selectedGroup.color }}>
+            <span className="text-[11px] font-bold" style={{ color: grp.color }}>
               {allCompleted}/{allTotal} activities
             </span>
           </div>
@@ -141,7 +143,7 @@ export default function StageSubMap() {
               className="h-full rounded-full transition-all duration-700"
               style={{
                 width: `${groupPct}%`,
-                background: `linear-gradient(90deg, ${selectedGroup.color}, ${selectedGroup.color}cc)`,
+                background: `linear-gradient(90deg, ${grp.color}, ${grp.color}cc)`,
               }}
             />
           </div>

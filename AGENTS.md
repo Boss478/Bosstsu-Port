@@ -77,6 +77,7 @@ Minor patch default. Major only when told. Always ask.
 - `bufferCommands: false` → queries hard-fail on unready connections
 - `sharp` in `serverExternalPackages` (can't run edge)
 - Thai descenders (ภ ว ม ห ฤ ร) at 2xl+: avoid `bg-clip-text`, `leading-tight`; use `leading-relaxed`
+- Next.js 16 ESLint strict rules: pre-commit hook enforces `react-hooks/immutability` (no ref.current = val in render top-level) and `react-hooks/set-state-in-effect` (no setState synchronously in effect body). Use lazy state initializers (`useState(() => ...)`) for localStorage loads.
 
 ---
 

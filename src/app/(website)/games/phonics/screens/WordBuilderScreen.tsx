@@ -415,7 +415,7 @@ export default function WordBuilderScreen() {
                             : 'bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-400'
                         }`}
                       >
-                        <i className="fi fi-sr-layer-group text-xs mr-1" />
+                        <i className="fi fi-sr-layers text-xs mr-1" />
                         Grouped
                       </button>
                       <button
@@ -1137,7 +1137,7 @@ function IpaToWordTab({
                         <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
                           {closestPredictions.map((w) => (
                             <WordPill
-                              key={w.word}
+                          key={`${w.word}-${w.dialect || 'default'}`}
                               size="sm"
                               onClick={() => autoSelectPhonemes(w.entry)}
                             >
@@ -1238,7 +1238,7 @@ function IpaToWordTab({
                 }
               >
                 <i
-                  className={`fi ${soundboardSortMode === 'grouped' ? 'fi-sr-grid' : 'fi-sr-layer-group'} text-[10px]`}
+                  className={`fi ${soundboardSortMode === 'grouped' ? 'fi-sr-grid' : 'fi-sr-layers'} text-[10px]`}
                 />
                 {soundboardSortMode === 'grouped' ? 'Flat' : 'Group'}
               </button>

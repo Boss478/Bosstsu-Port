@@ -2,7 +2,8 @@
 
 import { useState, useRef } from 'react';
 import { useGame } from '../context';
-import { CEFR_LEVEL_ORDER, CEFR_LEVEL_LABELS } from '../constants';
+import { VOCAB_GROUP_DEFS } from '../vocab-group-defs';
+import { CEFR_LEVEL_ORDER } from '../constants';
 import { useAudio } from '@/hooks/useAudio';
 import { useTheme } from '@/components/ThemeProvider';
 
@@ -241,31 +242,51 @@ export default function SettingsScreen() {
           </Section>
 
           {save && (
-            <Section title="ENGLISH LEVEL (CEFR)">
-              <div className="grid grid-cols-2 gap-2">
-                {CEFR_LEVEL_ORDER.map((lvl) => (
-                  <button
-                    key={lvl}
-                    className={`py-2.5 px-3.5 rounded-xl font-bold text-xs transition-all active:scale-95 cursor-pointer ${
-                      save.cefrLevel === lvl
-                        ? 'bg-[#C8A44E] text-white shadow-sm'
-                        : 'bg-white/60 dark:bg-slate-800/60 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-[#1C1C1C] dark:text-[#F7E1A0] hover:bg-white/80 dark:hover:bg-slate-700/80'
-                    }`}
-                    onClick={() => {
-                      persistSave({
-                        ...save,
-                        cefrLevel: lvl,
-                        cefrUpgradeStreak: 0,
-                      });
-                      playSound('correct');
-                    }}
-                  >
-                    {CEFR_LEVEL_LABELS[lvl]}
-                  </button>
-                ))}
+            <Section title="DIFFICULTY">
+              <div className="space-y-3">
+                <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">
+                  Challenge & Sound Path Difficulty
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {CEFR_LEVEL_ORDER.map((lvl) => (
+                    <button
+                      key={lvl}
+                      className={`py-2 px-3 rounded-xl font-bold text-xs transition-all active:scale-95 cursor-pointer ${
+                        save.challengeDifficulty === lvl
+                          ? 'bg-[#C8A44E] text-white shadow-sm'
+                          : 'bg-white/60 dark:bg-slate-800/60 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-[#1C1C1C] dark:text-[#F7E1A0] hover:bg-white/80 dark:hover:bg-slate-700/80'
+                      }`}
+                      onClick={() => {
+                        persistSave({ ...save, challengeDifficulty: lvl });
+                        playSound('correct');
+                      }}
+                    >
+                      {lvl.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
               </div>
+            </Section>
+          )}
+
+          {save && (
+            <Section title="PROGRESS">
               <button
-                className="mt-4 w-full py-2.5 rounded-xl bg-[#2EC4B6] text-white font-extrabold text-xs tracking-wider uppercase hover:brightness-105 active:scale-95 transition-all cursor-pointer btn-3d shadow-md flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 font-extrabold text-xs tracking-wider uppercase hover:bg-rose-500/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2"
+                onClick={() => {
+                  persistSave({
+                    ...save,
+                    groupProgress: {},
+                    unlockedGroupIds: VOCAB_GROUP_DEFS.filter((g) => g.tier === 'easy').slice(0, 4).map((g) => g.id),
+                  });
+                  playSound('correct');
+                }}
+              >
+                <i className="fi fi-sr-refresh text-sm" />
+                RESET GROUP PROGRESS
+              </button>
+              <button
+                className="mt-2 w-full py-2.5 rounded-xl bg-[#2EC4B6] text-white font-extrabold text-xs tracking-wider uppercase hover:brightness-105 active:scale-95 transition-all cursor-pointer btn-3d shadow-md flex items-center justify-center gap-2"
                 onClick={() => {
                   startRound({
                     category: 'definitions',
@@ -277,7 +298,7 @@ export default function SettingsScreen() {
                 style={{ '--border-color': '#0d4f49' } as React.CSSProperties}
               >
                 <i className="fi fi-sr-graduation-cap text-sm" />
-                TAKE CEFR PLACEMENT TEST
+                RETAKE PLACEMENT TEST
               </button>
             </Section>
           )}

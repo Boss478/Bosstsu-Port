@@ -1,7 +1,8 @@
 'use client';
 
 import type { SaveData, AchievementId, BadgeRecord } from '../types';
-import { SIMILAR_SOUND_GROUPS, CEFR_LEVEL_ORDER } from '../constants';
+import { SIMILAR_SOUND_GROUPS } from '../constants';
+import { VOCAB_GROUP_DEFS } from '../vocab-group-defs';
 
 export interface AchievementContext {
   roundResult?: {
@@ -46,9 +47,9 @@ function allGroupsCompleted(save: SaveData): boolean {
 }
 
 function allVocabLevelsCompleted(save: SaveData): boolean {
-  return CEFR_LEVEL_ORDER.every((level) => {
-    const lessons = Object.values(save.lessonProgress);
-    return lessons.some((l) => l.completed && l.bestScore >= 60);
+  return VOCAB_GROUP_DEFS.every((group) => {
+    const gp = save.groupProgress?.[group.id];
+    return gp && gp.completedStages >= gp.totalStages && gp.totalStages > 0;
   });
 }
 

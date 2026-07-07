@@ -388,7 +388,7 @@ export default async function AdminPage() {
               href="/admin/analytics"
               className="flex items-center gap-3 p-4 rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-700 transition-all group"
             >
-              <i aria-hidden="true" className="fi fi-sr-chart-line text-blue-500" />
+              <i aria-hidden="true" className="fi fi-sr-chart-pie text-blue-500" />
               <span className="font-medium text-zinc-700 dark:text-zinc-300 text-sm">
                 Analytics
               </span>

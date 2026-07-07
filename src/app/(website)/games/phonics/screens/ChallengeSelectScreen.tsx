@@ -1,16 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useGame } from '../context';
-import { CHALLENGE_TYPES } from '../constants';
+import { CHALLENGE_TYPES, CEFR_LEVEL_ORDER } from '../constants';
 import { ChallengeConfigModal } from '../components/ChallengeConfigModal';
-import type { QuizConfig, CefrLevel } from '../types';
+import { getWordsForGroup, VOCAB_GROUP_DEFS, TIER_ORDER } from '../vocab-group-defs';
+import type { QuizConfig, CefrLevel, WordData, VocabTier } from '../types';
+import { WORDS } from '../words';
 
 interface Props {
   onLaunch: (
     type: 'phoneme-match' | 'sound-sort' | 'rhyme-time' | 'speed-spell' | 'syllable-smash',
     difficulty: 'easy' | 'medium' | 'hard',
     level: CefrLevel,
+    words?: WordData[],
   ) => void;
   onStartQuiz: (config: QuizConfig) => void;
 }
@@ -27,7 +30,77 @@ export default function ChallengeSelectScreen({ onLaunch, onStartQuiz }: Props) 
   const { save, setScreen } = useGame();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showConfig, setShowConfig] = useState(false);
-  const level: CefrLevel = save?.cefrLevel ?? 'a1';
+  const level: CefrLevel = save?.challengeDifficulty ?? 'b1';
+  const [selectedLevels, setSelectedLevels] = useState<Set<CefrLevel>>(
+    () => new Set<CefrLevel>([level === 'all' ? 'b1' : level]),
+  );
+  const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(new Set());
+  const [expandedTier, setExpandedTier] = useState<VocabTier | null>(null);
+
+  const toggleLevel = useCallback((l: CefrLevel) => {
+    setSelectedLevels((prev) => {
+      const next = new Set(prev);
+      if (next.has(l)) next.delete(l);
+      else next.add(l);
+      return next;
+    });
+  }, []);
+
+  const toggleAllLevels = useCallback(() => {
+    setSelectedLevels((prev) => {
+      if (prev.size > 0) return new Set();
+      return new Set([...CEFR_LEVEL_ORDER]);
+    });
+  }, []);
+
+  const toggleGroup = useCallback((gid: string) => {
+    setSelectedGroupIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(gid)) next.delete(gid);
+      else next.add(gid);
+      return next;
+    });
+  }, []);
+
+  const selectAllInTier = useCallback((ids: string[]) => {
+    setSelectedGroupIds((prev) => {
+      const next = new Set(prev);
+      for (const id of ids) next.add(id);
+      return next;
+    });
+  }, []);
+
+  const clearAllInTier = useCallback((ids: string[]) => {
+    setSelectedGroupIds((prev) => {
+      const next = new Set(prev);
+      for (const id of ids) next.delete(id);
+      return next;
+    });
+  }, []);
+
+  const wordPool = useMemo(() => {
+    const hasLevels = selectedLevels.size > 0;
+    const hasGroups = selectedGroupIds.size > 0;
+    if (!hasLevels && !hasGroups) return undefined;
+    if (hasLevels && !hasGroups) return WORDS.filter((w) => selectedLevels.has(w.level));
+    if (!hasLevels && hasGroups) return Array.from(selectedGroupIds).flatMap((id) => getWordsForGroup(id));
+    const groupWords = Array.from(selectedGroupIds).flatMap((id) => getWordsForGroup(id));
+    const groupSet = new Set(groupWords.map((w) => w.word));
+    return WORDS.filter((w) => selectedLevels.has(w.level) && groupSet.has(w.word));
+  }, [selectedLevels, selectedGroupIds]);
+
+  const activeLevel: CefrLevel = level;
+  const isEmptyPool = wordPool !== undefined && wordPool.length === 0;
+  const poolSize = wordPool !== undefined ? wordPool.length : WORDS.length;
+
+  const tierGroupIds = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    for (const g of VOCAB_GROUP_DEFS) {
+      if (!map[g.tier]) map[g.tier] = [];
+      map[g.tier].push(g.id);
+    }
+    return map;
+  }, []);
 
   const getStats = (id: string) => {
     const stats = save?.challengeStats?.[id];
@@ -36,6 +109,16 @@ export default function ChallengeSelectScreen({ onLaunch, onStartQuiz }: Props) 
       roundsPlayed: stats?.roundsPlayed ?? 0,
       totalCorrect: stats?.totalCorrect ?? 0,
     };
+  };
+
+  const LEVEL_OPTIONS = [...CEFR_LEVEL_ORDER];
+
+  const TIER_LABELS: Record<VocabTier, string> = {
+    easy: 'Easy',
+    'easy-medium': 'Easy-Med',
+    medium: 'Medium',
+    'medium-hard': 'Medium-Hard',
+    hard: 'Hard',
   };
 
   return (
@@ -59,6 +142,118 @@ export default function ChallengeSelectScreen({ onLaunch, onStartQuiz }: Props) 
             <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-widest">
               Choose a challenge to test your skills
             </p>
+          </div>
+        </div>
+
+        {/* ── Filter Bar ── */}
+        <div className="mb-4 p-4 rounded-2xl bg-white/20 dark:bg-slate-800/20 border border-white/20 dark:border-slate-700/20">
+          <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+            CEFR Level
+          </p>
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            <button
+              onClick={toggleAllLevels}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-extrabold uppercase tracking-wider cursor-pointer transition-all ${
+                selectedLevels.size === 0
+                  ? 'bg-indigo-500 text-white shadow-xs'
+                  : 'bg-white/40 dark:bg-slate-700/40 text-slate-600 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-600/60'
+              }`}
+            >
+              All
+            </button>
+            {LEVEL_OPTIONS.map((l) => (
+              <button
+                key={l}
+                onClick={() => toggleLevel(l)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-extrabold uppercase tracking-wider cursor-pointer transition-all ${
+                  selectedLevels.has(l)
+                    ? 'bg-indigo-500 text-white shadow-xs'
+                    : 'bg-white/40 dark:bg-slate-700/40 text-slate-600 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-600/60'
+                }`}
+              >
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Word Group
+            </p>
+          </div>
+          {TIER_ORDER.map((tier) => {
+            const ids = tierGroupIds[tier];
+            if (!ids?.length) return null;
+            const isOpen = expandedTier === tier;
+            const tierSelectedCount = ids.filter((id) => selectedGroupIds.has(id)).length;
+            const allSelected = tierSelectedCount === ids.length;
+            const noneSelected = tierSelectedCount === 0;
+            return (
+              <div key={tier} className="mb-1">
+                <button
+                  onClick={() => setExpandedTier(isOpen ? null : tier)}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-[11px] font-bold text-slate-500 dark:text-slate-400 hover:bg-white/20 dark:hover:bg-slate-700/20 cursor-pointer transition-all"
+                >
+                  <i className={`fi fi-sr-angle-small-${isOpen ? 'down' : 'right'} text-xs transition-transform`} aria-hidden="true" />
+                  {TIER_LABELS[tier]}
+                  {tierSelectedCount > 0 && (
+                    <span className="ml-auto text-[10px] text-indigo-500 dark:text-indigo-300">
+                      {tierSelectedCount}/{ids.length}
+                    </span>
+                  )}
+                </button>
+                {isOpen && (
+                  <div className="pl-4 pb-1.5">
+                    <div className="flex gap-2 mb-1.5">
+                      {!allSelected && (
+                        <button
+                          onClick={() => selectAllInTier(ids)}
+                          className="text-[10px] font-bold text-indigo-500 hover:text-indigo-400 cursor-pointer uppercase tracking-wider"
+                        >
+                          Select All
+                        </button>
+                      )}
+                      {!noneSelected && (
+                        <button
+                          onClick={() => clearAllInTier(ids)}
+                          className="text-[10px] font-bold text-rose-500 hover:text-rose-400 cursor-pointer uppercase tracking-wider"
+                        >
+                          Clear All
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      {ids.map((gid) => {
+                        const isSelected = selectedGroupIds.has(gid);
+                        return (
+                          <button
+                            key={gid}
+                            onClick={() => toggleGroup(gid)}
+                            className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all text-left ${
+                              isSelected
+                                ? 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-300/50'
+                                : 'bg-white/30 dark:bg-slate-700/30 text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-600/50 border border-transparent'
+                            }`}
+                          >
+                            <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center text-[8px] transition-all ${
+                              isSelected
+                                ? 'bg-indigo-500 border-indigo-500 text-white'
+                                : 'border-slate-400 dark:border-slate-500'
+                            }`}>
+                              {isSelected && <i className="fi fi-sr-check text-[8px]" aria-hidden="true" />}
+                            </span>
+                            {gid.replace(/-/g, ' ')}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          <div className="mt-2 text-[11px] font-bold text-slate-500 dark:text-slate-400 text-center">
+            {poolSize} words
           </div>
         </div>
 
@@ -124,15 +319,25 @@ export default function ChallengeSelectScreen({ onLaunch, onStartQuiz }: Props) 
 
             {expandedId === QUIZ_ITEM.id && (
               <div className="mt-4 pt-4 border-t border-slate-200/40 dark:border-slate-800/40 animate-fadeIn">
+                {isEmptyPool && (
+                  <div className="mb-3 p-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/30 text-center">
+                    <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                      Select at least one level or group to start
+                    </p>
+                  </div>
+                )}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowConfig(true);
                   }}
-                  className="w-full py-3 rounded-2xl text-sm font-extrabold uppercase tracking-wider cursor-pointer active:scale-95 transition-all shadow-xs border"
+                  disabled={isEmptyPool}
+                  className={`w-full py-3 rounded-2xl text-sm font-extrabold uppercase tracking-wider cursor-pointer active:scale-95 transition-all shadow-xs border ${
+                    isEmptyPool ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                   style={{
-                    backgroundColor: QUIZ_ITEM.color,
-                    borderColor: '#4f46e5',
+                    backgroundColor: isEmptyPool ? '#94a3b8' : QUIZ_ITEM.color,
+                    borderColor: isEmptyPool ? '#64748b' : '#4f46e5',
                     color: '#fff',
                   }}
                 >
@@ -145,7 +350,7 @@ export default function ChallengeSelectScreen({ onLaunch, onStartQuiz }: Props) 
               <ChallengeConfigModal
                 onSubmit={(config) => {
                   setShowConfig(false);
-                  onStartQuiz(config);
+                  onStartQuiz({ ...config, cefrLevel: activeLevel, groupId: undefined });
                 }}
                 onClose={() => setShowConfig(false)}
               />
@@ -213,6 +418,13 @@ export default function ChallengeSelectScreen({ onLaunch, onStartQuiz }: Props) 
 
                 {isExpanded && (
                   <div className="mt-4 pt-4 border-t border-slate-200/40 dark:border-slate-800/40 animate-fadeIn">
+                    {isEmptyPool && (
+                      <div className="mb-3 p-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/30 text-center">
+                        <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                          Select at least one level or group to start
+                        </p>
+                      </div>
+                    )}
                     <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">
                       Select Difficulty
                     </p>
@@ -220,7 +432,9 @@ export default function ChallengeSelectScreen({ onLaunch, onStartQuiz }: Props) 
                       {(['easy', 'medium', 'hard'] as const).map((d) => (
                         <button
                           key={d}
+                          disabled={isEmptyPool}
                           onClick={(e) => {
+                            if (isEmptyPool) return;
                             e.stopPropagation();
                             onLaunch(
                               challenge.id as
@@ -230,15 +444,30 @@ export default function ChallengeSelectScreen({ onLaunch, onStartQuiz }: Props) 
                                 | 'speed-spell'
                                 | 'syllable-smash',
                               d,
-                              level,
+                              activeLevel,
+                              wordPool,
                             );
                           }}
-                          className="flex-1 py-2.5 rounded-2xl text-xs font-extrabold uppercase tracking-wider cursor-pointer active:scale-95 transition-all shadow-xs border"
+                          className={`flex-1 py-2.5 rounded-2xl text-xs font-extrabold uppercase tracking-wider cursor-pointer active:scale-95 transition-all shadow-xs border ${
+                            isEmptyPool ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                           style={{
                             backgroundColor:
-                              d === 'easy' ? '#2EC4B6' : d === 'medium' ? '#FFBA08' : '#E74C3C',
+                              isEmptyPool
+                                ? '#94a3b8'
+                                : d === 'easy'
+                                  ? '#2EC4B6'
+                                  : d === 'medium'
+                                    ? '#FFBA08'
+                                    : '#E74C3C',
                             borderColor:
-                              d === 'easy' ? '#1a8a7e' : d === 'medium' ? '#d49a00' : '#c0392b',
+                              isEmptyPool
+                                ? '#64748b'
+                                : d === 'easy'
+                                  ? '#1a8a7e'
+                                  : d === 'medium'
+                                    ? '#d49a00'
+                                    : '#c0392b',
                             color: '#fff',
                           }}
                         >

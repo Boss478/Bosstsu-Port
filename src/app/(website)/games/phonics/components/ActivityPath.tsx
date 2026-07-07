@@ -53,7 +53,7 @@ export default function ActivityPath() {
     (activity: (typeof activities)[number]) => {
       if (!isActivityUnlocked(activity.order)) return;
       selectActivity(activity);
-      const targetLevel: CefrLevel = save?.cefrLevel ?? 'a1';
+      const targetLevel: CefrLevel = save?.challengeDifficulty ?? 'b1';
       startRound({
         category: activity.type as import('../types').GameCategory,
         level: targetLevel,

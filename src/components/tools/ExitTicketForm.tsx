@@ -108,7 +108,7 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
 
             <div className="space-y-2">
               <label className="text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-                <i aria-hidden="true" className="fi fi-sr-lightbulb text-emerald-500" />
+                <i aria-hidden="true" className="fi fi-sr-bulb text-emerald-500" />
                 {t('learnedToday')}
               </label>
               <textarea

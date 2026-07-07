@@ -10,12 +10,13 @@ import {
   generateSyllableSmashQuestions,
 } from "../question-generators";
 import { CHALLENGE_TYPES, CHALLENGE_ROUND_LENGTHS, SIMILAR_SOUND_GROUPS } from "../constants";
-import type { PhonemeMatchQuestion, SoundSortQuestion, RhymeQuestion, SpeedSpellQuestion, SyllableQuestion, CefrLevel } from "../types";
+import type { PhonemeMatchQuestion, SoundSortQuestion, RhymeQuestion, SpeedSpellQuestion, SyllableQuestion, CefrLevel, WordData } from "../types";
 
 interface ChallengeGameScreenProps {
   challengeType: "phoneme-match" | "sound-sort" | "rhyme-time" | "speed-spell" | "syllable-smash";
   difficulty: "easy" | "medium" | "hard";
   level: string;
+  words?: WordData[];
   onComplete: (results: { score: number; totalCorrect: number; totalAttempts: number }) => void;
   onBack: () => void;
 }
@@ -656,6 +657,7 @@ export default function ChallengeGameScreen({
   challengeType,
   difficulty,
   level,
+  words,
   onComplete,
   onBack,
 }: ChallengeGameScreenProps) {
@@ -676,32 +678,32 @@ export default function ChallengeGameScreen({
 
     switch (challengeType) {
       case "phoneme-match": {
-        const data = generatePhonemeMatchRound(difficulty, cefrLevel);
+        const data = generatePhonemeMatchRound(difficulty, cefrLevel, words);
         setPhonemeMatchData(data);
         setTotal(data.gridSize * 2);
         break;
       }
       case "sound-sort": {
-        const data = generateSoundSortQuestions(1, cefrLevel);
+        const data = generateSoundSortQuestions(1, cefrLevel, words);
         setSoundSortData(data);
         const wordCount = data.reduce((acc, q) => acc + q.words.length, 0);
         setTotal(wordCount);
         break;
       }
       case "rhyme-time": {
-        const data = generateRhymeTimeQuestions(roundCount, cefrLevel);
+        const data = generateRhymeTimeQuestions(roundCount, cefrLevel, words);
         setRhymeData(data);
         setTotal(data.length);
         break;
       }
       case "speed-spell": {
-        const data = generateSpeedSpellQuestions(roundCount, cefrLevel, difficulty);
+        const data = generateSpeedSpellQuestions(roundCount, cefrLevel, difficulty, words);
         setSpeedSpellData(data);
         setTotal(data.length);
         break;
       }
       case "syllable-smash": {
-        const data = generateSyllableSmashQuestions(roundCount, cefrLevel);
+        const data = generateSyllableSmashQuestions(roundCount, cefrLevel, words);
         setSyllableData(data);
         setTotal(data.length);
         break;

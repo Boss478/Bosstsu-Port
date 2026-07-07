@@ -12,6 +12,7 @@ import type {
   Tab,
   ActivityData,
   SimilarSoundGroup,
+  VocabGroupDef,
 } from './types';
 
 export interface GameContextValue {
@@ -23,8 +24,8 @@ export interface GameContextValue {
   // Map view navigation (groups → stages → activities)
   mapView: MapView;
   setMapView: (v: MapView) => void;
-  selectedGroup: SimilarSoundGroup | null;
-  selectGroup: (g: SimilarSoundGroup | null) => void;
+  selectedGroup: SimilarSoundGroup | VocabGroupDef | null;
+  selectGroup: (g: SimilarSoundGroup | VocabGroupDef | null) => void;
   selectedActivity: ActivityData | null;
   selectActivity: (a: ActivityData | null) => void;
   // Save

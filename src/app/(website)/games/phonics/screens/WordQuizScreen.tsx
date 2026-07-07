@@ -12,7 +12,8 @@ import {
   type QuizConfig,
   type QuizDirection,
 } from '../components/QuizConfigModal';
-import { PHONEMES } from '../constants';
+import { PHONEMES, WORD_CLASS_ABBREV } from '../constants';
+import { DialectBadge } from '../components/DialectBadge';
 import { ipaDisplay, formatPhonemeIpa } from '../utils/ipaUtils';
 import type { PhonemeData } from '../types';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
@@ -334,12 +335,20 @@ export default function WordQuizScreen() {
                   <p className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
                     Build the IPA for this word
                   </p>
-                  <p
-                    className="text-3xl font-black text-slate-800 dark:text-[#F7E1A0]"
-                    style={{ fontFamily: 'var(--font-mali)' }}
-                  >
-                    {currentQuestion.word.word}
-                  </p>
+                  <div className="flex items-center justify-center gap-2 flex-wrap">
+                    <span
+                      className="text-3xl font-black text-slate-800 dark:text-[#F7E1A0]"
+                      style={{ fontFamily: 'var(--font-mali)' }}
+                    >
+                      {currentQuestion.word.word}
+                    </span>
+                    {currentQuestion.word.wordClass && (
+                      <span className="text-base font-medium text-slate-400 dark:text-slate-500">
+                        ({WORD_CLASS_ABBREV[currentQuestion.word.wordClass.toLowerCase()] ?? currentQuestion.word.wordClass})
+                      </span>
+                    )}
+                    {currentQuestion.word.dialect && <DialectBadge dialect={currentQuestion.word.dialect} />}
+                  </div>
                   <button
                     onClick={() => playWordAudio(currentQuestion!.word.word)}
                     className="mt-2 w-10 h-10 rounded-xl bg-[#C8A44E]/20 border border-[#C8A44E]/40 text-[#C8A44E] hover:bg-[#C8A44E]/30 transition-colors cursor-pointer flex items-center justify-center mx-auto"
@@ -478,12 +487,20 @@ export default function WordQuizScreen() {
                         ✓ Correct!
                       </p>
                       {currentQuestion.type === 'ipa-to-word' && (
-                        <p
-                          className="text-4xl font-black text-slate-800 dark:text-[#F7E1A0] mt-2"
-                          style={{ fontFamily: 'var(--font-mali)' }}
-                        >
-                          {currentQuestion.word.word}
-                        </p>
+                        <div className="flex items-center justify-center gap-2 mt-2">
+                          <span
+                            className="text-4xl font-black text-slate-800 dark:text-[#F7E1A0]"
+                            style={{ fontFamily: 'var(--font-mali)' }}
+                          >
+                            {currentQuestion.word.word}
+                          </span>
+                          {currentQuestion.word.wordClass && (
+                            <span className="text-base font-medium text-slate-400 dark:text-slate-500">
+                              ({WORD_CLASS_ABBREV[currentQuestion.word.wordClass.toLowerCase()] ?? currentQuestion.word.wordClass})
+                            </span>
+                          )}
+                          {currentQuestion.word.dialect && <DialectBadge dialect={currentQuestion.word.dialect} />}
+                        </div>
                       )}
                       {(() => {
                         const ipa = ipaDisplay(currentQuestion.word, true);
@@ -499,9 +516,20 @@ export default function WordQuizScreen() {
                   {feedbackType === 'wrong' && (
                     <>
                       <p className="text-sm font-extrabold text-rose-700 dark:text-rose-300">
-                        {currentQuestion.type === 'word-to-ipa'
-                          ? `✗ Incorrect — The answer of "${currentQuestion.word.word}" =`
-                          : '✗ Incorrect — The answer was:'}
+                        {currentQuestion.type === 'word-to-ipa' ? (
+                          <>
+                            ✗ Incorrect — The answer of &ldquo;{currentQuestion.word.word}
+                            {currentQuestion.word.wordClass && (
+                              <span className="text-xs font-medium text-rose-500 dark:text-rose-400 ml-1">
+                                ({WORD_CLASS_ABBREV[currentQuestion.word.wordClass.toLowerCase()] ?? currentQuestion.word.wordClass})
+                              </span>
+                            )}
+                            {currentQuestion.word.dialect && <span className="ml-1"><DialectBadge dialect={currentQuestion.word.dialect} /></span>}
+                            &rdquo; =
+                          </>
+                        ) : (
+                          '✗ Incorrect — The answer was:'
+                        )}
                       </p>
                       {currentQuestion.type === 'word-to-ipa' ? (
                         <p
@@ -517,12 +545,20 @@ export default function WordQuizScreen() {
                           /
                         </p>
                       ) : (
-                        <p
-                          className="text-4xl font-black text-slate-800 dark:text-[#F7E1A0] mt-2"
-                          style={{ fontFamily: 'var(--font-mali)' }}
-                        >
-                          {currentQuestion.word.word}
-                        </p>
+                        <div className="flex items-center justify-center gap-2 mt-2">
+                          <span
+                            className="text-4xl font-black text-slate-800 dark:text-[#F7E1A0]"
+                            style={{ fontFamily: 'var(--font-mali)' }}
+                          >
+                            {currentQuestion.word.word}
+                          </span>
+                          {currentQuestion.word.wordClass && (
+                            <span className="text-base font-medium text-slate-400 dark:text-slate-500">
+                              ({WORD_CLASS_ABBREV[currentQuestion.word.wordClass.toLowerCase()] ?? currentQuestion.word.wordClass})
+                            </span>
+                          )}
+                          {currentQuestion.word.dialect && <DialectBadge dialect={currentQuestion.word.dialect} />}
+                        </div>
                       )}
                       {(() => {
                         const ipa = ipaDisplay(currentQuestion.word);

@@ -65,7 +65,7 @@ export default function VictoryScreen({
       )}
 
       <div className="text-[8rem] drop-shadow-2xl py-2">
-        <i aria-hidden="true" className="fi fi-sr-medal text-amber-500 dark:text-amber-400"></i>
+        <i aria-hidden="true" className="fi fi-sr-trophy text-amber-500 dark:text-amber-400"></i>
       </div>
 
       <StarDisplay count={totalStars} />

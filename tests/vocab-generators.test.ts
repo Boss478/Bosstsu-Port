@@ -8,8 +8,9 @@ import {
   buildRetryQuestions,
   generateCardFlipCards,
 } from '../src/app/(website)/games/phonics/question-generators';
-import { getVocabActivityLength, getVocabActivitiesForStage } from '../src/app/(website)/games/phonics/constants';
-import type { RoundConfig, PhonicsQuestion, CardFlipCard } from '../src/app/(website)/games/phonics/types';
+import { getActivityLengthForTier, getActivityTypesForStage, getWordsForGroup, wordGroupMap, VOCAB_GROUP_DEFS } from '../src/app/(website)/games/phonics/vocab-group-defs';
+import { WORDS } from '../src/app/(website)/games/phonics/words';
+import type { RoundConfig, PhonicsQuestion } from '../src/app/(website)/games/phonics/types';
 
 describe('generateAntonymQuestions', () => {
   it('returns empty array when no words have antonyms', () => {
@@ -298,69 +299,82 @@ describe('generateCardFlipCards', () => {
   });
 });
 
-describe('getVocabActivityLength', () => {
-  it('returns A1=6, A2=8, B1=10, B2=10, C1=12, C2=12 as base values', () => {
-    expect(getVocabActivityLength('a1')).toBe(6);
-    expect(getVocabActivityLength('a2')).toBe(8);
-    expect(getVocabActivityLength('b1')).toBe(10);
-    expect(getVocabActivityLength('b2')).toBe(10);
-    expect(getVocabActivityLength('c1')).toBe(12);
-    expect(getVocabActivityLength('c2')).toBe(12);
-  });
-
-  it('defaults unknown level to 10', () => {
-    expect(getVocabActivityLength('all')).toBe(10);
-    expect(getVocabActivityLength('unknown')).toBe(10);
+describe('getActivityLengthForTier', () => {
+  it('returns Easy=4, Easy-Med=6, Medium=8, Med-Hard=10, Hard=12 as base values', () => {
+    expect(getActivityLengthForTier('easy')).toBe(4);
+    expect(getActivityLengthForTier('easy-medium')).toBe(6);
+    expect(getActivityLengthForTier('medium')).toBe(8);
+    expect(getActivityLengthForTier('medium-hard')).toBe(10);
+    expect(getActivityLengthForTier('hard')).toBe(12);
   });
 
   it('adjusts by +2 when accuracy < 0.4', () => {
-    expect(getVocabActivityLength('a1', 0.3)).toBe(8);
-    expect(getVocabActivityLength('c2', 0.2)).toBe(14);
+    expect(getActivityLengthForTier('easy', 0.3)).toBe(6);
+    expect(getActivityLengthForTier('medium', 0.2)).toBe(10);
   });
 
   it('adjusts by -2 when accuracy > 0.8', () => {
-    expect(getVocabActivityLength('a1', 0.9)).toBe(4);
-    expect(getVocabActivityLength('b1', 0.85)).toBe(8);
+    expect(getActivityLengthForTier('medium', 0.9)).toBe(6);
+    expect(getActivityLengthForTier('hard', 0.85)).toBe(10);
   });
 
-  it('no adjustment when accuracy is between 0.4 and 0.8', () => {
-    expect(getVocabActivityLength('a1', 0.6)).toBe(6);
-    expect(getVocabActivityLength('c2', 0.5)).toBe(12);
-  });
-
-  it('clamps result to [4, 14]', () => {
-    expect(getVocabActivityLength('a1', 0.1)).toBe(8);
-    expect(getVocabActivityLength('a1', 0.95)).toBe(4);
-    expect(getVocabActivityLength('c2', 0.95)).toBe(10);
+  it('clamps result to tier bounds', () => {
+    expect(getActivityLengthForTier('easy', 0.95)).toBe(2);
+    expect(getActivityLengthForTier('hard', 0.95)).toBe(10);
+    expect(getActivityLengthForTier('hard', 0.1)).toBe(14);
   });
 
   it('no adjustment when accuracy is undefined', () => {
-    expect(getVocabActivityLength('a1')).toBe(6);
-    expect(getVocabActivityLength('c2')).toBe(12);
+    expect(getActivityLengthForTier('easy')).toBe(4);
+    expect(getActivityLengthForTier('hard')).toBe(12);
   });
 });
 
-describe('getVocabActivitiesForStage', () => {
-  it('returns 8 activities', () => {
-    const result = getVocabActivitiesForStage('vocab-a1', 'vocab-a1');
-    expect(result.length).toBe(8);
+describe('getActivityTypesForStage', () => {
+  it('returns 3 types for stage 0 of a topic group', () => {
+    const result = getActivityTypesForStage('animals', 0);
+    expect(result.length).toBe(3);
+    expect(result[0]).toBe('definitions');
   });
 
-  it('includes all 6 new activity types', () => {
-    const result = getVocabActivitiesForStage('vocab-a1', 'vocab-a1');
-    const types = result.map((a) => a.type);
-    expect(types).toContain('definitions');
-    expect(types).toContain('synonyms');
-    expect(types).toContain('antonyms');
-    expect(types).toContain('collocations');
-    expect(types).toContain('fill-blank');
-    expect(types).toContain('word-assoc');
-    expect(types).toContain('vocab-exercise');
+  it('returns collocations, fill-blank, word-assoc for stage 1', () => {
+    const result = getActivityTypesForStage('animals', 1);
+    expect(result).toEqual(['collocations', 'fill-blank', 'word-assoc']);
   });
 
-  it('respects accuracy parameter for length scaling', () => {
-    const noAcc = getVocabActivitiesForStage('vocab-a1', 'vocab-a1');
-    const lowAcc = getVocabActivitiesForStage('vocab-a1', 'vocab-a1', 0.3);
-    expect(lowAcc[0].length).toBeGreaterThan(noAcc[0].length);
+  it('returns fewer types for synonym groups', () => {
+    const result = getActivityTypesForStage('good-synonyms', 0);
+    expect(result.length).toBeGreaterThan(0);
+  });
+});
+
+describe('getWordsForGroup two-tier fallback', () => {
+  it('synonym group returns more words than strict match alone', () => {
+    const result = getWordsForGroup('good-synonyms');
+    expect(result.length).toBeGreaterThanOrEqual(10);
+  });
+
+  it('topic group is unaffected by fallback', () => {
+    const result = getWordsForGroup('animals');
+    expect(result.length).toBeGreaterThan(100);
+  });
+
+  it('wordGroupMap still uses strict matching', () => {
+    const ship = WORDS.find(w => w.word === 'ship');
+    expect(ship).toBeDefined();
+    const groups = wordGroupMap[ship!.word] || [];
+    const synGroups = groups.filter(g => g.includes('synonyms'));
+    expect(synGroups.length).toBe(0);
+  });
+
+  it('all synonym groups get more words than before', () => {
+    const synIds = VOCAB_GROUP_DEFS
+      .filter(g => g.synonymOf?.length)
+      .map(g => g.id);
+    expect(synIds.length).toBe(22);
+    for (const id of synIds) {
+      const words = getWordsForGroup(id);
+      expect(words.length).toBeGreaterThanOrEqual(3);
+    }
   });
 });

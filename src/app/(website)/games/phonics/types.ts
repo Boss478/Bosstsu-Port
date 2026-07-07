@@ -45,6 +45,39 @@ export type PhonicsFormat = 'tap' | 'speed' | 'pick-word' | 'card-flip';
 export type SpellingFormat = 'tiles' | 'choice' | 'mixed';
 export type DefinitionDirection = 'def-to-word' | 'word-to-def';
 
+// ─── Vocab Group Types ────────────────────────────────────────────────────
+export type VocabTier = 'easy' | 'easy-medium' | 'medium' | 'medium-hard' | 'hard';
+
+export interface VocabGroupDef {
+  id: string;
+  title: string;
+  tier: VocabTier;
+  sortOrder: number;
+  color: string;
+  icon: string;
+  description: string;
+  keywords?: string[];
+  synonymOf?: string[];
+  minLevel?: CefrLevel;
+  maxLevel?: CefrLevel;
+  activityTypes?: ActivityType[];
+  baseLength: number;
+}
+
+export interface StageProgress {
+  completed: boolean;
+  bestAccuracy: number;
+  lessonsCompleted: number;
+  totalLessons: number;
+}
+
+export interface GroupProgress {
+  completedStages: number;
+  totalStages: number;
+  bestAccuracy: number;
+  stageProgress: Record<string, StageProgress>;
+}
+
 // ─── New Activity & Group Types ─────────────────────────────────────────────
 export type ActivityType =
   | 'practice'
@@ -318,6 +351,8 @@ export interface QuizConfig {
   timerPerQuestion: number;
   speedRunDuration: number;
   speedRunBonus: number;
+  cefrLevel?: CefrLevel;
+  groupId?: string;
 }
 
 // ─── Achievement System ────────────────────────────────────────────────────
@@ -405,6 +440,9 @@ export interface RoundConfig {
   isPlacement?: boolean;
   retryWords?: string[];
   challengeTimeLimitMs?: number; // per-question time limit for speed-spell
+  // v4 — Vocab Groups
+  wordPool?: WordData[];
+  groupId?: string;
 }
 
 export interface GameRound {
@@ -479,8 +517,11 @@ export interface SaveData {
   activityProgress: Record<string, { completed: boolean; bestScore: number; lastAccuracy: number }>;
   unlockedItems?: string[];
   unlockedCompanions: CompanionId[];
-  cefrLevel: CefrLevel;
-  cefrUpgradeStreak: number;
+  // v4 — Vocab Groups
+  unlockedGroupIds: string[];
+  groupProgress: Record<string, GroupProgress>;
+  placementTier?: VocabTier;
+  challengeDifficulty: CefrLevel;
   // v3 — Phonics Expansion
   achievements: Record<AchievementId, BadgeRecord>;
   challengeStats: Record<string, ChallengeStats>; // keyed by challenge type

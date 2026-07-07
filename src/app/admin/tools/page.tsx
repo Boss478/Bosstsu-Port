@@ -87,7 +87,7 @@ const sessions = sessionsRaw as unknown as Array<{
 
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
-            <i aria-hidden="true" className="fi fi-sr-chalkboard text-blue-500" />
+            <i aria-hidden="true" className="fi fi-sr-chalkboard-user text-blue-500" />
             Class Tools
           </h1>
           <div className="flex items-center gap-3">

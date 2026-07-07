@@ -1,30 +1,53 @@
 'use client';
 
+import { useMemo } from 'react';
 import type { SaveData } from '../types';
-import { CEFR_LEVEL_LABELS, CEFR_LEVEL_ORDER } from '../constants';
-
-
+import { getGroupsInTier, TIER_ORDER } from '../vocab-group-defs';
+import type { VocabTier } from '../types';
 
 interface Props {
   save: SaveData;
 }
 
+const TIER_LABELS: Record<VocabTier, string> = {
+  'easy': 'Easy',
+  'easy-medium': 'E-Med',
+  'medium': 'Medium',
+  'medium-hard': 'M-Hard',
+  'hard': 'Hard',
+};
+
 export default function CefrProgress({ save }: Props) {
-  const currentIdx = CEFR_LEVEL_ORDER.indexOf(save.cefrLevel as typeof CEFR_LEVEL_ORDER[number]);
+  const tierData = useMemo(() => {
+    return TIER_ORDER.map((tier) => {
+      const groupIds = getGroupsInTier(tier);
+      const completed = groupIds.filter((gid) => {
+        const p = save.groupProgress?.[gid];
+        return p && p.completedStages >= p.totalStages;
+      }).length;
+      return { tier, completed, total: groupIds.length, pct: groupIds.length > 0 ? Math.round((completed / groupIds.length) * 100) : 0 };
+    });
+  }, [save.groupProgress]);
+
+  const currentTierIdx = TIER_ORDER.findIndex((t) => {
+    const data = tierData[TIER_ORDER.indexOf(t)];
+    return data ? data.completed < data.total : false;
+  });
 
   return (
     <div>
       <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-3">
-        CEFR Progress
+        Tier Progress
       </span>
 
       <div className="flex items-center gap-1">
-        {CEFR_LEVEL_ORDER.map((level, idx) => {
-          const filled = idx <= currentIdx;
-          const isCurrent = level === save.cefrLevel;
+        {tierData.map((td) => {
+          const idx = TIER_ORDER.indexOf(td.tier);
+          const filled = td.completed >= td.total;
+          const isCurrent = idx === currentTierIdx || (!td.completed && currentTierIdx === -1);
 
           return (
-            <div key={level} className="flex-1 flex flex-col items-center gap-1">
+            <div key={td.tier} className="flex-1 flex flex-col items-center gap-1">
               <div
                 className={`w-full h-2 rounded-full transition-all duration-500 ${
                   filled
@@ -41,7 +64,7 @@ export default function CefrProgress({ save }: Props) {
                       : 'text-slate-300 dark:text-slate-600'
                 }`}
               >
-                {CEFR_LEVEL_LABELS[level].split(' ')[0]}
+                {TIER_LABELS[td.tier]}
               </span>
             </div>
           );
@@ -50,13 +73,18 @@ export default function CefrProgress({ save }: Props) {
 
       <div className="mt-2 text-center">
         <span className="text-xs font-bold text-[#C8A44E]">
-          {CEFR_LEVEL_LABELS[save.cefrLevel]}
+          {TIER_LABELS[TIER_ORDER[currentTierIdx >= 0 ? currentTierIdx : TIER_ORDER.length - 1]]}
         </span>
-        <span className="text-[10px] text-slate-400 dark:text-slate-500 ml-2">
-          {currentIdx < CEFR_LEVEL_ORDER.length - 1
-            ? `Next: ${CEFR_LEVEL_LABELS[CEFR_LEVEL_ORDER[currentIdx + 1]].split(' ')[0]}`
-            : 'Maximum level!'}
-        </span>
+        {currentTierIdx >= 0 && (
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 ml-2">
+            {tierData[currentTierIdx].completed}/{tierData[currentTierIdx].total} groups
+          </span>
+        )}
+        {currentTierIdx < 0 && (
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 ml-2">
+            All groups complete!
+          </span>
+        )}
       </div>
     </div>
   );

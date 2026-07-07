@@ -1,7 +1,8 @@
 'use client';
 
-import type { SaveData, SlotPreview, CompanionId, AchievementId } from './types';
+import type { SaveData, SlotPreview, CompanionId, AchievementId, VocabTier } from './types';
 import { SAVE_VERSION } from './constants';
+import { getGroupsByTier } from './vocab-group-defs';
 
 const PREFIX = 'phonics_save_';
 const ACTIVE_KEY = 'phonics_active_slot';
@@ -64,8 +65,11 @@ export function getDefaultSave(name: string): SaveData {
     lessonProgress: {},
     activityProgress: {},
     unlockedCompanions: ['nox', 'mira', 'chip'],
-    cefrLevel: 'a1',
-    cefrUpgradeStreak: 0,
+    // v4 — Vocab Groups
+    unlockedGroupIds: getGroupsByTier('easy').slice(0, 4).map(g => g.id),
+    groupProgress: {},
+    placementTier: undefined,
+    challengeDifficulty: 'b1',
     // v3 fields
     achievements: getDefaultAchievements(),
     challengeStats: {},
@@ -101,11 +105,15 @@ export function loadSave(slot: number): SaveData | null {
     if (!data.unlockedCompanions) {
       data.unlockedCompanions = ['nox', 'mira', 'chip'];
     }
-    if (!data.cefrLevel) {
-      data.cefrLevel = 'a1';
+    // v4 backfill
+    if (!data.unlockedGroupIds || data.unlockedGroupIds.length === 0) {
+      data.unlockedGroupIds = getGroupsByTier('easy').slice(0, 4).map(g => g.id);
     }
-    if (typeof data.cefrUpgradeStreak !== 'number') {
-      data.cefrUpgradeStreak = 0;
+    if (!data.groupProgress) {
+      data.groupProgress = {};
+    }
+    if (typeof data.challengeDifficulty !== 'string') {
+      data.challengeDifficulty = 'b1';
     }
     if (!data.settings || typeof data.settings.muted !== 'boolean') {
       data.settings = { ...data.settings, muted: false };
@@ -157,11 +165,39 @@ function hasOldLessonIds(data: Partial<SaveData>): boolean {
   );
 }
 
+const CEFR_TO_TIERS: Record<string, VocabTier[]> = {
+  a1: ['easy'],
+  a2: ['easy', 'easy-medium'],
+  b1: ['easy', 'easy-medium', 'medium'],
+  b2: ['easy', 'easy-medium', 'medium', 'medium-hard'],
+  c1: ['easy', 'easy-medium', 'medium', 'medium-hard', 'hard'],
+  c2: ['easy', 'easy-medium', 'medium', 'medium-hard', 'hard'],
+};
+
 function migrateSave(data: Partial<SaveData>): SaveData {
   const defaults = getDefaultSave(data.name ?? 'Slot');
   // Version 1→2: path redesign — clear old lesson progress
   if (hasOldLessonIds(data)) {
     data.lessonProgress = {};
+  }
+  // Version 3→4: CEFR level → group-based progression
+  if ((data.version ?? 0) < 4) {
+    const oldData = data as Record<string, unknown>;
+    const oldCefr = (oldData.cefrLevel as string) ?? 'a1';
+    const tiers = CEFR_TO_TIERS[oldCefr] ?? ['easy'];
+    const groupIds: string[] = [];
+    for (const tier of tiers) {
+      const groups = getGroupsByTier(tier);
+      for (const g of groups) {
+        groupIds.push(g.id);
+      }
+    }
+    data.unlockedGroupIds = groupIds;
+    data.groupProgress = {};
+    data.challengeDifficulty = 'b1';
+    // Strip old CEFR fields
+    delete (oldData as any).cefrLevel;
+    delete (oldData as any).cefrUpgradeStreak;
   }
   return { ...defaults, ...data, version: SAVE_VERSION };
 }

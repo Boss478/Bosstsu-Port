@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import type { QuizConfig, QuizDirection, PhonemeData, WordData } from '../types';
+import type { QuizConfig, QuizDirection, CefrLevel, PhonemeData, WordData } from '../types';
 import { useAllWordEntries, type WordEntry } from '../hooks/useAllWordEntries';
 import { PhonemeSoundboard } from '../components/PhonemeSoundboard';
 import { LetterTileKeyboard } from '../components/LetterTileKeyboard';
 import QuestionChoiceButton from '../components/QuestionChoiceButton';
-import { PHONEMES } from '../constants';
+import { PHONEMES, WORD_CLASS_ABBREV } from '../constants';
+import { DialectBadge } from '../components/DialectBadge';
 import { WORDS } from '../words';
+import { getWordsForGroup } from '../vocab-group-defs';
 import { formatPhonemeIpa } from '../utils/ipaUtils';
 import { useAudio } from '@/hooks/useAudio';
 import {
@@ -57,6 +59,8 @@ function generateQuestions(
   pool: WordEntry[],
   directions: QuizDirection[],
   count: number,
+  cefrLevel?: CefrLevel,
+  wordPool?: WordData[],
 ): ChallengeQuestion[] {
   const ipaDirs = directions.filter((d) => d === 'word-to-ipa' || d === 'ipa-to-word') as (
     | 'word-to-ipa'
@@ -78,8 +82,11 @@ function generateQuestions(
   const wordQPool: McqWordQuestion[] = [];
   const mcqCount = wordDirs.length > 0 ? Math.max(10, Math.ceil(count * 0.6)) : 0;
 
+  const lvl = cefrLevel ?? 'all';
+  const wp = wordPool ?? WORDS;
+
   if (wordDirs.includes('word-to-def')) {
-    const qs = generateDefinitionQuestions('word-to-def', mcqCount, 'all', undefined, WORDS);
+    const qs = generateDefinitionQuestions('word-to-def', mcqCount, lvl, undefined, wp);
     wordQPool.push(
       ...qs.map((q) => ({
         kind: 'mcq' as const,
@@ -93,7 +100,7 @@ function generateQuestions(
     );
   }
   if (wordDirs.includes('def-to-word')) {
-    const qs = generateDefinitionQuestions('def-to-word', mcqCount, 'all', undefined, WORDS);
+    const qs = generateDefinitionQuestions('def-to-word', mcqCount, lvl, undefined, wp);
     wordQPool.push(
       ...qs.map((q) => ({
         kind: 'mcq' as const,
@@ -107,7 +114,7 @@ function generateQuestions(
     );
   }
   if (wordDirs.includes('synonyms')) {
-    const qs = generateSynonymQuestions(mcqCount, 'all', undefined, WORDS);
+    const qs = generateSynonymQuestions(mcqCount, lvl, undefined, wp);
     wordQPool.push(
       ...qs.map((q) => ({
         kind: 'mcq' as const,
@@ -121,7 +128,7 @@ function generateQuestions(
     );
   }
   if (wordDirs.includes('stress')) {
-    const qs = generateStressQuestions(mcqCount, 'all', undefined, WORDS);
+    const qs = generateStressQuestions(mcqCount, lvl, undefined, wp);
     wordQPool.push(
       ...qs.map((q) => ({
         kind: 'mcq' as const,
@@ -135,7 +142,7 @@ function generateQuestions(
     );
   }
   if (wordDirs.includes('antonyms')) {
-    const qs = generateAntonymQuestions(mcqCount, 'all', undefined, WORDS);
+    const qs = generateAntonymQuestions(mcqCount, lvl, undefined, wp);
     wordQPool.push(
       ...qs.map((q) => ({
         kind: 'mcq' as const,
@@ -186,11 +193,16 @@ export default function ChallengeQuizScreen({
     [allWordEntries],
   );
 
+  const wordPool = useMemo(
+    () => (config.groupId ? getWordsForGroup(config.groupId) : undefined),
+    [config.groupId],
+  );
+
   const questions = useMemo(() => {
     const count =
       config.mode === 'streak' ? Math.max(100, quizPool.length * 2) : config.roundLength;
-    return generateQuestions(quizPool, config.directions, count);
-  }, [quizPool, config.directions, config.roundLength, config.mode]);
+    return generateQuestions(quizPool, config.directions, count, config.cefrLevel, wordPool);
+  }, [quizPool, config.directions, config.roundLength, config.mode, config.cefrLevel, wordPool]);
 
   const [phase, setPhase] = useState<Phase>('playing');
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -475,12 +487,20 @@ export default function ChallengeQuizScreen({
             <p className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
               Build the IPA for this word
             </p>
-            <p
-              className="text-3xl font-black text-slate-800 dark:text-[#F7E1A0]"
-              style={{ fontFamily: 'var(--font-mali)' }}
-            >
-              {q.word.word}
-            </p>
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              <span
+                className="text-3xl font-black text-slate-800 dark:text-[#F7E1A0]"
+                style={{ fontFamily: 'var(--font-mali)' }}
+              >
+                {q.word.word}
+              </span>
+              {q.word.wordClass && (
+                <span className="text-base font-medium text-slate-400 dark:text-slate-500">
+                  ({WORD_CLASS_ABBREV[q.word.wordClass.toLowerCase()] ?? q.word.wordClass})
+                </span>
+              )}
+              {q.word.dialect && <DialectBadge dialect={q.word.dialect} />}
+            </div>
             <button
               onClick={() => playWordAudio(q.word.word)}
               className="mt-2 w-10 h-10 rounded-xl bg-[#C8A44E]/20 border border-[#C8A44E]/40 text-[#C8A44E] hover:bg-[#C8A44E]/30 transition-colors cursor-pointer flex items-center justify-center mx-auto"
@@ -595,12 +615,17 @@ export default function ChallengeQuizScreen({
           </p>
 
           {q.type === 'word-to-def' && (
-            <p
-              className="text-3xl font-black text-slate-800 dark:text-[#F7E1A0]"
-              style={{ fontFamily: 'var(--font-mali)' }}
-            >
-              {q.prompt}
-            </p>
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              <span
+                className="text-3xl font-black text-slate-800 dark:text-[#F7E1A0]"
+                style={{ fontFamily: 'var(--font-mali)' }}
+              >
+                {q.prompt}
+              </span>
+              <span className="text-base font-medium text-slate-400 dark:text-slate-500">
+                ({WORD_CLASS_ABBREV[q.word.wordClass.toLowerCase()] ?? q.word.wordClass})
+              </span>
+            </div>
           )}
           {q.type === 'def-to-word' && (
             <div className="glass-panel p-4 rounded-3xl border border-white/20 shadow-sm max-w-sm mx-auto">
@@ -614,12 +639,17 @@ export default function ChallengeQuizScreen({
           )}
           {q.type === 'synonyms' && (
             <>
-              <p
-                className="text-3xl font-black text-slate-800 dark:text-[#F7E1A0]"
-                style={{ fontFamily: 'var(--font-mali)' }}
-              >
-                {q.prompt}
-              </p>
+              <div className="flex items-center justify-center gap-2 flex-wrap">
+                <span
+                  className="text-3xl font-black text-slate-800 dark:text-[#F7E1A0]"
+                  style={{ fontFamily: 'var(--font-mali)' }}
+                >
+                  {q.prompt}
+                </span>
+                <span className="text-base font-medium text-slate-400 dark:text-slate-500">
+                  ({WORD_CLASS_ABBREV[q.word.wordClass.toLowerCase()] ?? q.word.wordClass})
+                </span>
+              </div>
               <button
                 onClick={() => playWordAudio(q.word.word)}
                 className="mt-2 w-10 h-10 rounded-xl bg-[#C8A44E]/20 border border-[#C8A44E]/40 text-[#C8A44E] hover:bg-[#C8A44E]/30 transition-colors cursor-pointer flex items-center justify-center mx-auto"
@@ -631,12 +661,17 @@ export default function ChallengeQuizScreen({
           )}
           {q.type === 'stress' && (
             <>
-              <p
-                className="text-3xl font-black text-slate-800 dark:text-[#F7E1A0]"
-                style={{ fontFamily: 'var(--font-mali)' }}
-              >
-                {q.prompt}
-              </p>
+              <div className="flex items-center justify-center gap-2 flex-wrap">
+                <span
+                  className="text-3xl font-black text-slate-800 dark:text-[#F7E1A0]"
+                  style={{ fontFamily: 'var(--font-mali)' }}
+                >
+                  {q.prompt}
+                </span>
+                <span className="text-base font-medium text-slate-400 dark:text-slate-500">
+                  ({WORD_CLASS_ABBREV[q.word.wordClass.toLowerCase()] ?? q.word.wordClass})
+                </span>
+              </div>
               <button
                 onClick={() => playWordAudio(q.word.word)}
                 className="mt-2 w-10 h-10 rounded-xl bg-[#C8A44E]/20 border border-[#C8A44E]/40 text-[#C8A44E] hover:bg-[#C8A44E]/30 transition-colors cursor-pointer flex items-center justify-center mx-auto"
@@ -648,12 +683,17 @@ export default function ChallengeQuizScreen({
           )}
           {q.type === 'antonyms' && (
             <>
-              <p
-                className="text-3xl font-black text-slate-800 dark:text-[#F7E1A0]"
-                style={{ fontFamily: 'var(--font-mali)' }}
-              >
-                {q.prompt}
-              </p>
+              <div className="flex items-center justify-center gap-2 flex-wrap">
+                <span
+                  className="text-3xl font-black text-slate-800 dark:text-[#F7E1A0]"
+                  style={{ fontFamily: 'var(--font-mali)' }}
+                >
+                  {q.prompt}
+                </span>
+                <span className="text-base font-medium text-slate-400 dark:text-slate-500">
+                  ({WORD_CLASS_ABBREV[q.word.wordClass.toLowerCase()] ?? q.word.wordClass})
+                </span>
+              </div>
               <button
                 onClick={() => playWordAudio(q.word.word)}
                 className="mt-2 w-10 h-10 rounded-xl bg-[#C8A44E]/20 border border-[#C8A44E]/40 text-[#C8A44E] hover:bg-[#C8A44E]/30 transition-colors cursor-pointer flex items-center justify-center mx-auto"
@@ -700,7 +740,14 @@ export default function ChallengeQuizScreen({
             ) : (
               <>
                 <p className="text-sm font-extrabold text-rose-700 dark:text-rose-300">
-                  ✗ Incorrect — The answer of &ldquo;{q.word.word}&rdquo; =
+                  ✗ Incorrect — The answer of &ldquo;{q.word.word}&rdquo;
+                  {q.word.wordClass && (
+                    <span className="text-xs font-medium text-rose-500 dark:text-rose-400 ml-1">
+                      ({WORD_CLASS_ABBREV[q.word.wordClass.toLowerCase()] ?? q.word.wordClass})
+                    </span>
+                  )}
+                  {q.word.dialect && <span className="ml-1"><DialectBadge dialect={q.word.dialect} /></span>}
+                  {' '}=
                 </p>
                 <p
                   className="text-4xl font-black text-slate-800 dark:text-white mt-2"
@@ -726,24 +773,40 @@ export default function ChallengeQuizScreen({
               <p className="text-4xl font-extrabold text-emerald-700 dark:text-emerald-300">
                 ✓ Correct!
               </p>
-              <p
-                className="text-4xl font-black text-slate-800 dark:text-[#F7E1A0] mt-2"
-                style={{ fontFamily: 'var(--font-mali)' }}
-              >
-                {q.word.word}
-              </p>
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <span
+                  className="text-4xl font-black text-slate-800 dark:text-[#F7E1A0]"
+                  style={{ fontFamily: 'var(--font-mali)' }}
+                >
+                  {q.word.word}
+                </span>
+                {q.word.wordClass && (
+                  <span className="text-base font-medium text-slate-400 dark:text-slate-500">
+                    ({WORD_CLASS_ABBREV[q.word.wordClass.toLowerCase()] ?? q.word.wordClass})
+                  </span>
+                )}
+                {q.word.dialect && <DialectBadge dialect={q.word.dialect} />}
+              </div>
             </>
           ) : (
             <>
               <p className="text-sm font-extrabold text-rose-700 dark:text-rose-300">
                 ✗ Incorrect — The answer was:
               </p>
-              <p
-                className="text-4xl font-black text-slate-800 dark:text-[#F7E1A0] mt-2"
-                style={{ fontFamily: 'var(--font-mali)' }}
-              >
-                {q.word.word}
-              </p>
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <span
+                  className="text-4xl font-black text-slate-800 dark:text-[#F7E1A0]"
+                  style={{ fontFamily: 'var(--font-mali)' }}
+                >
+                  {q.word.word}
+                </span>
+                {q.word.wordClass && (
+                  <span className="text-base font-medium text-slate-400 dark:text-slate-500">
+                    ({WORD_CLASS_ABBREV[q.word.wordClass.toLowerCase()] ?? q.word.wordClass})
+                  </span>
+                )}
+                {q.word.dialect && <DialectBadge dialect={q.word.dialect} />}
+              </div>
               <p className="mt-1" style={{ fontFamily: 'var(--font-geist-mono)' }}>
                 /{(q.word.ipa || '').replace(/\//g, '')}/
               </p>

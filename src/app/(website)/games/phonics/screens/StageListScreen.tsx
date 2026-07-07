@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useGame } from '../context';
-import { VOCAB_GROUPS, getVocabStagesForGroup, getVocabActivitiesForStage } from '../constants';
+import { getVocabStagesForGroup, getVocabActivitiesForStage } from '../constants';
+import { VOCAB_GROUP_DEFS, TIER_ORDER } from '../vocab-group-defs';
 import GroupMapView from '../components/GroupMapView';
 import StageSubMap from '../components/StageSubMap';
 import ActivityPath from '../components/ActivityPath';
 import ModeSelectModal from '../components/ModeSelectModal';
-import type { StageData, CefrLevel } from '../types';
+import type { StageData, CefrLevel, VocabTier } from '../types';
 
 interface StageListScreenProps {
   mode?: 'sound' | 'vocab';
@@ -78,93 +79,199 @@ function FreePracticeFAB({ mode }: { mode: 'sound' | 'vocab' }) {
   );
 }
 
-// ── Vocab Group Map View ──
+// ── Vocab Group Map View (Duolingo-style Cloud Progression) ──
 
-// Vocab level texts will be dynamically generated from their group IDs (e.g. 'A1', 'B2')
+const TIER_CONFIG: Record<VocabTier, { color: string; icon: string; label: string }> = {
+  easy: { color: '#10B981', icon: 'seedling', label: 'Easy' },
+  'easy-medium': { color: '#3B82F6', icon: 'leaf', label: 'Easy-Medium' },
+  medium: { color: '#8B5CF6', icon: 'map', label: 'Medium' },
+  'medium-hard': { color: '#F59E0B', icon: 'flame', label: 'Medium-Hard' },
+  hard: { color: '#EF4444', icon: 'crown', label: 'Hard' },
+};
+
+const TIER_LABELS: Record<VocabTier, string> = {
+  easy: 'Easy',
+  'easy-medium': 'Easy-Medium',
+  medium: 'Medium',
+  'medium-hard': 'Medium-Hard',
+  hard: 'Hard',
+};
 
 function VocabGroupMapView() {
   const { save, selectGroup } = useGame();
-  const activityProgress = useMemo(() => save?.activityProgress ?? {}, [save?.activityProgress]);
+  const [expandedTier, setExpandedTier] = useState<VocabTier | null>(null);
+  const tierRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const groups = useMemo(() => {
-    const accs = Object.values(activityProgress)
-      .map((p) => p.lastAccuracy)
-      .filter((a): a is number => a !== undefined && a !== null);
-    const avgAccuracy = accs.length > 0 ? accs.reduce((a, b) => a + b, 0) / accs.length : undefined;
-    return VOCAB_GROUPS.map((g) => {
-      const stages = getVocabStagesForGroup(g.id);
-      const allActivities = stages.flatMap((s) =>
-        getVocabActivitiesForStage(s.id, g.id, avgAccuracy),
-      );
-      const completed = allActivities.filter((a) => activityProgress[a.id]?.completed).length;
-      const total = allActivities.length;
+  const groupProgress = useMemo(() => save?.groupProgress ?? {}, [save?.groupProgress]);
+  const unlockedGroupIds = useMemo(() => save?.unlockedGroupIds ?? [], [save?.unlockedGroupIds]);
+  const placementTier = save?.placementTier;
+
+  const tierData = useMemo(() => {
+    return TIER_ORDER.map((tierId) => {
+      const groups = VOCAB_GROUP_DEFS.filter((g) => g.tier === tierId);
+      const completed = groups.filter((g) => groupProgress[g.id]?.completedStages > 0).length;
+      const total = groups.length;
       const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-      return { ...g, stages, completed, total, pct };
+      const hasUnlocked = groups.some((g) => unlockedGroupIds.includes(g.id));
+      const isFirst = tierId === TIER_ORDER[0];
+      const locked = !isFirst && !hasUnlocked;
+      return { tierId, groups, completed, total, pct, locked };
     });
-  }, [activityProgress]);
+  }, [groupProgress, unlockedGroupIds]);
+
+  useEffect(() => {
+    const firstIncomplete = tierData.find((t) => t.completed < t.total && !t.locked);
+    const target = placementTier ?? firstIncomplete?.tierId;
+    if (target) {
+      requestAnimationFrame(() => {
+        tierRefs.current[target]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  }, [placementTier, tierData]);
+
+  const handleTierClick = useCallback((tierId: VocabTier) => {
+    setExpandedTier((prev) => (prev === tierId ? null : tierId));
+  }, []);
+
+  const scrollToNext = useCallback((tierId: VocabTier) => {
+    const idx = TIER_ORDER.indexOf(tierId);
+    if (idx < TIER_ORDER.length - 1) {
+      const nextId = TIER_ORDER[idx + 1];
+      tierRefs.current[nextId]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setExpandedTier(nextId);
+    }
+  }, []);
+
+  const prevTierLabel = useCallback((tierId: VocabTier): string => {
+    const idx = TIER_ORDER.indexOf(tierId);
+    return idx > 0 ? TIER_LABELS[TIER_ORDER[idx - 1]] : '';
+  }, []);
 
   return (
     <div className="flex-1 overflow-y-auto overscroll-contain bg-transparent min-h-full">
-      <div className="max-w-lg mx-auto px-4 py-8 pb-36">
-        <div className="text-center mb-8">
+      <div className="max-w-lg mx-auto px-4 py-6 pb-36">
+        <div className="text-center mb-6">
           <h1
             className="text-3xl font-extrabold text-slate-800 dark:text-[#F7E1A0] tracking-wide"
             style={{ fontFamily: 'var(--font-mali)' }}
           >
-            Vocabulary Levels
+            Vocabulary Path
           </h1>
-          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1.5 uppercase tracking-widest">
-            Pick a level to practice
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-widest">
+            Master each tier to advance
           </p>
         </div>
-        <div className="space-y-4">
-          {groups.map((g) => (
-            <button
-              key={g.id}
-              onClick={() => selectGroup(g)}
-              className="w-full glass-panel rounded-2xl border border-white/20 dark:border-slate-800/60 p-4 text-left hover:brightness-105 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
-            >
-              <div className="flex items-center gap-4">
+
+        <div className="relative">
+          <div className="absolute left-6 top-0 bottom-0 w-0.5 border-l-2 border-dashed border-slate-300 dark:border-slate-600 z-0" />
+
+          <div className="space-y-6 relative z-10">
+            {tierData.map((tier) => {
+              const cfg = TIER_CONFIG[tier.tierId];
+
+              return (
                 <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-white/20 font-black text-lg select-none"
-                  style={{
-                    backgroundColor: g.color + '20',
-                    color: g.color,
-                    fontFamily: 'var(--font-mali)',
-                  }}
+                  key={tier.tierId}
+                  ref={(el) => { tierRefs.current[tier.tierId] = el; }}
+                  className="relative pl-16 scroll-mt-24"
                 >
-                  {g.id.replace('vocab-', '').toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-sm font-bold text-slate-800 dark:text-white truncate">
-                      {g.title}
-                    </h3>
-                    <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 shrink-0">
-                      {g.stages.length} units
-                    </span>
+                  <div
+                    className={`absolute left-0 top-4 w-12 h-12 rounded-2xl flex items-center justify-center shadow-xs border-2 z-10 transition-transform ${tier.locked ? '' : 'hover:scale-110 cursor-pointer'}`}
+                    style={{
+                      backgroundColor: tier.locked ? '#94a3b840' : cfg.color + '20',
+                      borderColor: tier.locked ? '#94a3b880' : cfg.color + '60',
+                      color: tier.locked ? '#94a3b8' : cfg.color,
+                    }}
+                    onClick={() => !tier.locked && handleTierClick(tier.tierId)}
+                  >
+                    <i className={`fi fi-sr-${cfg.icon} text-lg ${tier.locked ? 'opacity-50' : ''}`} />
                   </div>
-                  <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
-                    {g.subtitle}
-                  </p>
-                  <div className="mt-2 flex items-center gap-2">
-                    <div className="flex-1 h-2 bg-slate-300/30 dark:bg-slate-700/40 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${g.pct}%`,
-                          background: `linear-gradient(90deg, ${g.color}, ${g.color}cc)`,
-                        }}
-                      />
+
+                  <div
+                    className={`glass-panel rounded-2xl border border-white/20 dark:border-slate-800/60 overflow-hidden transition-all duration-300 ${tier.locked ? 'opacity-40' : 'hover:brightness-105 active:scale-[0.98] cursor-pointer'}`}
+                    onClick={() => !tier.locked && handleTierClick(tier.tierId)}
+                  >
+                    <div className="p-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-base font-bold text-slate-800 dark:text-white">
+                          {cfg.label}
+                        </h3>
+                        {tier.locked ? (
+                          <i className="fi fi-sr-lock text-sm text-slate-400" />
+                        ) : (
+                          <i
+                            className={`fi fi-sr-angle-${expandedTier === tier.tierId ? 'up' : 'down'} text-sm text-slate-400 transition-transform duration-300`}
+                          />
+                        )}
+                      </div>
+
+                      <div className="mt-3 flex items-center gap-2">
+                        <div className="flex-1 h-2 bg-slate-300/30 dark:bg-slate-700/40 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${tier.pct}%`,
+                              background: tier.locked
+                                ? '#94a3b8'
+                                : `linear-gradient(90deg, ${cfg.color}, ${cfg.color}cc)`,
+                            }}
+                          />
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 shrink-0">
+                          {tier.completed}/{tier.total}
+                        </span>
+                      </div>
+
+                      <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-1.5">
+                        {tier.completed} / {tier.total} groups
+                      </p>
+
+                      {tier.locked && (
+                        <p className="text-[10px] font-bold text-slate-400 mt-2">
+                          Complete {prevTierLabel(tier.tierId)} to unlock
+                        </p>
+                      )}
                     </div>
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 shrink-0">
-                      {g.completed}/{g.total}
-                    </span>
+
+                    {expandedTier === tier.tierId && !tier.locked && (
+                      <div className="px-4 pb-4 space-y-2 animate-fade-in">
+                        <div className="border-t border-slate-200/50 dark:border-slate-700/30 pt-3 space-y-2">
+                          {tier.groups.map((g) => {
+                            const done = groupProgress[g.id]?.completedStages > 0;
+                            return (
+                              <button
+                                key={g.id}
+                                onClick={(e) => { e.stopPropagation(); selectGroup(g); }}
+                                className="w-full glass-panel rounded-xl p-3 text-left flex items-center gap-3 hover:scale-[1.02] transition-transform cursor-pointer"
+                              >
+                                <i className={`fi ${g.icon} text-lg ${done ? 'text-emerald-500' : 'text-slate-600 dark:text-slate-300'}`} />
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-200 flex-1">
+                                  {g.title}
+                                </span>
+                                {done && (
+                                  <i className="fi fi-sr-check text-emerald-500 text-xs shrink-0" />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {TIER_ORDER.indexOf(tier.tierId) < TIER_ORDER.length - 1 && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); scrollToNext(tier.tierId); }}
+                            className="w-full mt-3 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider text-white transition-all hover:brightness-110 active:scale-95 cursor-pointer"
+                            style={{ background: `linear-gradient(135deg, ${cfg.color}, ${cfg.color}dd)` }}
+                          >
+                            Next Difficulty →
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            </button>
-          ))}
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
@@ -231,7 +338,7 @@ function VocabStageSubMap() {
               {selectedGroup.title}
             </h1>
             <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-              {selectedGroup.subtitle} &middot; {groupPct}% mastered
+              {'subtitle' in selectedGroup ? selectedGroup.subtitle : (selectedGroup as any).description ?? ''} &middot; {groupPct}% mastered
             </p>
           </div>
         </div>

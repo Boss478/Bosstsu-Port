@@ -23,14 +23,6 @@ export const tagsField = z.string().optional();
 
 export const optionalString = z.string().optional();
 
-export function parseWordArray(str?: string | null): string[] {
-  if (!str || !str.trim()) return [];
-  return str
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
-
 export function parseNumberArray(str?: string | null): number[] {
   if (!str || !str.trim()) return [];
   return str

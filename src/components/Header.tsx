@@ -170,7 +170,7 @@ export default function Header() {
                   aria-label="Switch to private tools"
                   title={navMode === 'public' ? 'Switch to private tools' : 'Switch to public nav'}
                 >
-                  <i aria-hidden="true" className="fi fi-sr-user-lock text-sm leading-none"></i>
+                  <i aria-hidden="true" className="fi fi-sr-lock text-sm leading-none"></i>
                 </button>
               )}
 
@@ -232,7 +232,7 @@ export default function Header() {
                 aria-label="Switch nav mode"
                 title={navMode === 'public' ? 'Private tools' : 'Public nav'}
               >
-                <i className={`fi fi-sr-user-lock text-sm ${navMode === 'private' ? 'text-blue-600' : 'text-zinc-500'}`} />
+                <i className={`fi fi-sr-lock text-sm ${navMode === 'private' ? 'text-blue-600' : 'text-zinc-500'}`} />
               </button>
             )}
 

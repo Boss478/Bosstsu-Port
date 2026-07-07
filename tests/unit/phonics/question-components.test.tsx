@@ -29,6 +29,7 @@ vi.mock('@/app/(website)/games/phonics/constants', () => ({
     },
   },
   QUESTION_CARD_CLASSES: '',
+  WORD_CLASS_ABBREV: {},
 }));
 
 function makeWordData(overrides: Partial<WordData> = {}): WordData {

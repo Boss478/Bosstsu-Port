@@ -546,7 +546,7 @@ export default function GalleryForm({
                   htmlFor="cover-upload-input"
                   className="absolute inset-0 flex flex-col items-center justify-center text-zinc-400 cursor-pointer hover:text-blue-500 transition-colors"
                 >
-                  <i aria-hidden="true" className="fi fi-sr-add-image text-3xl mb-2" />
+                  <i aria-hidden="true" className="fi fi-sr-add text-3xl mb-2" />
                   <span className="text-sm">อัปโหลดรูปปก (Cover)</span>
                 </label>
               )}

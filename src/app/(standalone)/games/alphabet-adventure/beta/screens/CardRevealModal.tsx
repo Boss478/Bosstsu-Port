@@ -5,7 +5,7 @@ import type { CardTier } from '../../cards/cards';
 import { CARD_WORDS, TIER_LABELS, isHolographicTier } from '../../cards/cards';
 import { CardIllustration } from '../../cards/CardIllustrations';
 import { CardFrame } from '../../cards/CardFrame';
-import { useFocusTrap } from '@/lib/hooks/useFocusTrap';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface Props {
   letter: string;

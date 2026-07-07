@@ -18,9 +18,12 @@ import type {
   CefrLevel,
   MapView,
   SimilarSoundGroup,
+  VocabGroupDef,
+  VocabTier,
   ActivityData,
   AchievementId,
   QuizConfig,
+  WordData,
 } from './types';
 import { getWordFromQuestion } from './types';
 import BackgroundDownloadWidget, {
@@ -38,6 +41,8 @@ import {
 import { useAudio } from '@/hooks/useAudio';
 import { GAME_CONFIG, PHONEME_EXAMPLE_WORDS, STAGES, ACHIEVEMENTS } from './constants';
 import { WORDS } from './words';
+import { computePlacementUnlockCount } from './question-generators';
+import { VOCAB_GROUP_DEFS, getGroupDef } from './vocab-group-defs';
 import SaveSlotScreen from './screens/SaveSlotScreen';
 import StageListScreen from './screens/StageListScreen';
 import CompanionBubble from './components/CompanionBubble';
@@ -72,7 +77,7 @@ export default function PhonicsClient() {
   const [selectedStage, setSelectedStage] = useState<StageData | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<StageLesson | null>(null);
   const [mapView, setMapView] = useState<MapView>('groups');
-  const [selectedGroup, setSelectedGroup] = useState<SimilarSoundGroup | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<SimilarSoundGroup | VocabGroupDef | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<ActivityData | null>(null);
   const [isFirstJoinLoading, setIsFirstJoinLoading] = useState(false);
   const [firstJoinLoaded, setFirstJoinLoaded] = useState(0);
@@ -82,6 +87,7 @@ export default function PhonicsClient() {
     type: 'phoneme-match' | 'sound-sort' | 'rhyme-time' | 'speed-spell' | 'syllable-smash';
     difficulty: 'easy' | 'medium' | 'hard';
     level: CefrLevel;
+    words?: WordData[];
   } | null>(null);
   const [quizConfig, setQuizConfig] = useState<QuizConfig | null>(null);
   const [newAchievements, setNewAchievements] = useState<AchievementId[]>([]);
@@ -412,12 +418,10 @@ export default function PhonicsClient() {
       setActiveSlotState(slot);
 
       const defaultName = nameInput || (slot === 'guest' ? 'Guest' : `Slot ${slot}`);
-      const initialLevel = startLevel || 'b1';
-
+      const defaultSave = getDefaultSave(defaultName);
       const newSave: SaveData = {
-        ...getDefaultSave(defaultName),
-        cefrLevel: initialLevel,
-        cefrUpgradeStreak: 0,
+        ...defaultSave,
+        challengeDifficulty: (startLevel as CefrLevel) || defaultSave.challengeDifficulty,
       };
 
       if (slot === 'guest') {
@@ -460,7 +464,7 @@ export default function PhonicsClient() {
     setSelectedLesson(lesson);
   }, []);
 
-  const selectGroup = useCallback((group: SimilarSoundGroup | null) => {
+  const selectGroup = useCallback((group: SimilarSoundGroup | VocabGroupDef | null) => {
     setSelectedGroup(group);
     if (group) setMapView('stages');
     else setMapView('groups');
@@ -532,17 +536,18 @@ export default function PhonicsClient() {
     if (round.config.isPlacement) {
       const correctCount = round.results.filter((r) => r.correct).length;
       const pct = round.results.length > 0 ? correctCount / round.results.length : 0;
-      let placedLevel: CefrLevel = 'a1';
-      if (pct >= 0.9) placedLevel = 'c1';
-      else if (pct >= 0.7) placedLevel = 'b2';
-      else if (pct >= 0.5) placedLevel = 'b1';
-      else if (pct >= 0.3) placedLevel = 'a2';
+      const unlockCount = computePlacementUnlockCount(pct);
+      const easyGroups = VOCAB_GROUP_DEFS
+        .filter((g) => g.tier === 'easy')
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .slice(0, unlockCount)
+        .map((g) => g.id);
 
       const updated: SaveData = {
         ...save,
-        cefrLevel: placedLevel,
-        cefrUpgradeStreak: 0,
-        tutorialCompleted: true, // Bypass tutorial on placement
+        unlockedGroupIds: easyGroups,
+        groupProgress: {},
+        tutorialCompleted: true,
       };
 
       persistSave(updated);
@@ -550,7 +555,7 @@ export default function PhonicsClient() {
       setScreen('victory');
       trackCustomEvent('placement_complete', {
         game: 'phonics',
-        placedLevel,
+        groupsUnlocked: easyGroups.length,
         score: round.score,
       });
       return;
@@ -631,41 +636,46 @@ export default function PhonicsClient() {
       }
     }
 
-    // Adaptive CEFR Level upgrading/downgrading via performance (only for vocabulary mode)
-    if (!round.config.isPlacement && round.config.category === 'definitions') {
+    // Group progress tracking for vocab rounds
+    if (!round.config.isPlacement && round.config.category === 'definitions' && round.config.groupId) {
       const accuracy =
         round.results.length > 0 ? Math.round((round.corrects / round.results.length) * 100) : 0;
-
-      let newStreak = updated.cefrUpgradeStreak ?? 0;
-      let newCefr = updated.cefrLevel ?? 'a1';
-      const cefrOrder: CefrLevel[] = ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'];
-      const currentIdx = cefrOrder.indexOf(newCefr);
-
-      if (accuracy >= 90) {
-        newStreak = Math.max(0, newStreak + 1);
-        if (newStreak >= 3) {
-          if (currentIdx !== -1 && currentIdx < cefrOrder.length - 1) {
-            newCefr = cefrOrder[currentIdx + 1];
-          }
-          newStreak = 0;
-        }
-      } else if (accuracy < 50) {
-        newStreak = Math.min(0, newStreak - 1);
-        if (newStreak <= -2) {
-          if (currentIdx !== -1 && currentIdx > 0) {
-            newCefr = cefrOrder[currentIdx - 1];
-          }
-          newStreak = 0;
-        }
-      } else {
-        newStreak = 0;
-      }
-
+      const groupId = round.config.groupId;
+      const existing = updated.groupProgress[groupId] ?? { completedStages: 0, totalStages: 1, bestAccuracy: 0, stageProgress: {} };
       updated = {
         ...updated,
-        cefrLevel: newCefr,
-        cefrUpgradeStreak: newStreak,
+        groupProgress: {
+          ...updated.groupProgress,
+          [groupId]: {
+            ...existing,
+            bestAccuracy: Math.max(existing.bestAccuracy, accuracy),
+            completedStages: existing.completedStages + 1,
+          },
+        },
       };
+
+      const group = getGroupDef(groupId);
+      if (group) {
+        const tierGroups = VOCAB_GROUP_DEFS.filter((g) => g.tier === group.tier);
+        const allDone = tierGroups.every((g) => {
+          const prog = updated.groupProgress[g.id];
+          return prog ? prog.completedStages >= prog.totalStages : false;
+        });
+        if (allDone) {
+          const tierOrder: VocabTier[] = ['easy', 'easy-medium', 'medium', 'medium-hard', 'hard'];
+          const currentIdx = tierOrder.indexOf(group.tier);
+          if (currentIdx < tierOrder.length - 1) {
+            const nextTier = tierOrder[currentIdx + 1];
+            const nextGroups = VOCAB_GROUP_DEFS
+              .filter((g) => g.tier === nextTier)
+              .map((g) => g.id);
+            updated = {
+              ...updated,
+              unlockedGroupIds: [...updated.unlockedGroupIds, ...nextGroups],
+            };
+          }
+        }
+      }
     }
 
     persistSave(updated);
@@ -756,8 +766,9 @@ export default function PhonicsClient() {
       type: 'phoneme-match' | 'sound-sort' | 'rhyme-time' | 'speed-spell' | 'syllable-smash',
       difficulty: 'easy' | 'medium' | 'hard',
       level: CefrLevel,
+      words?: WordData[],
     ) => {
-      setChallengeConfig({ type, difficulty, level });
+      setChallengeConfig({ type, difficulty, level, words });
       setScreen('challenge-game');
     },
     [],
@@ -922,6 +933,7 @@ export default function PhonicsClient() {
               challengeType={challengeConfig.type}
               difficulty={challengeConfig.difficulty}
               level={challengeConfig.level}
+              words={challengeConfig.words}
               onComplete={handleChallengeComplete}
               onBack={() => {
                 setChallengeConfig(null);

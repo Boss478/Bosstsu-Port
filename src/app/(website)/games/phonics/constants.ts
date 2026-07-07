@@ -43,6 +43,22 @@ export const CEFR_LEVEL_LABELS: Record<string, string> = {
   all: 'All Levels',
 };
 
+export const WORD_CLASS_ABBREV: Record<string, string> = {
+  noun: 'n.',
+  verb: 'v.',
+  adjective: 'adj.',
+  adverb: 'adv.',
+  conjunction: 'conj.',
+  determiner: 'det.',
+  exclamation: 'excl.',
+  'linking verb': 'linking v.',
+  'modal verb': 'modal v.',
+  number: 'num.',
+  'ordinal number': 'ord.',
+  preposition: 'prep.',
+  pronoun: 'pron.',
+};
+
 // ─── Phoneme Inventory (44 phonemes, 4 tiers) ────────────────────────────────
 // ttsText is the string passed to speechSynthesis — avoids IPA rendering issues
 export const PHONEMES: PhonemeData[] = [
@@ -579,7 +595,7 @@ export const SIMILAR_SOUND_GROUPS: SimilarSoundGroup[] = [
 ];
 
 // ─── Phoneme → Group lookup ───────────────────────────────────────────────
-export const PHONEME_TO_GROUP = Object.fromEntries(
+const PHONEME_TO_GROUP = Object.fromEntries(
   SIMILAR_SOUND_GROUPS.flatMap((g) => g.phonemeIds.map((pid) => [pid, g.id])),
 );
 
@@ -759,7 +775,7 @@ const CEFR_BASE_LENGTHS: Record<string, number> = {
   c2: 12,
 };
 
-export function getVocabActivityLength(cefrLevel: string, lastAccuracy?: number): number {
+function getVocabActivityLength(cefrLevel: string, lastAccuracy?: number): number {
   const base = CEFR_BASE_LENGTHS[cefrLevel] ?? 10;
   let adjustment = 0;
   if (lastAccuracy !== undefined) {
@@ -861,64 +877,6 @@ export function getVocabActivitiesForStage(
     },
   ];
 }
-
-// ─── Vocab Groups ──────────────────────────────────────────────────────────
-export const VOCAB_GROUPS: SimilarSoundGroup[] = [
-  {
-    id: 'vocab-a1',
-    title: 'A1 Beginner',
-    subtitle: 'Basic everyday words',
-    icon: 'a',
-    color: '#2EC4B6',
-    phonemeIds: [],
-    order: 0,
-  },
-  {
-    id: 'vocab-a2',
-    title: 'A2 Elementary',
-    subtitle: 'Common phrases',
-    icon: 'a',
-    color: '#FF70A6',
-    phonemeIds: [],
-    order: 1,
-  },
-  {
-    id: 'vocab-b1',
-    title: 'B1 Intermediate',
-    subtitle: 'Conversational',
-    icon: 'b',
-    color: '#C8A44E',
-    phonemeIds: [],
-    order: 2,
-  },
-  {
-    id: 'vocab-b2',
-    title: 'B2 Upper-Intermediate',
-    subtitle: 'Abstract topics',
-    icon: 'b',
-    color: '#9B59B6',
-    phonemeIds: [],
-    order: 3,
-  },
-  {
-    id: 'vocab-c1',
-    title: 'C1 Advanced',
-    subtitle: 'Demanding vocabulary',
-    icon: 'c',
-    color: '#E2B237',
-    phonemeIds: [],
-    order: 4,
-  },
-  {
-    id: 'vocab-c2',
-    title: 'C2 Mastery',
-    subtitle: 'Fluent professional',
-    icon: 'c',
-    color: '#4A90E2',
-    phonemeIds: [],
-    order: 5,
-  },
-];
 
 // ─── Path / Progression ──────────────────────────────────────────────────────
 export const STAGES: StageData[] = [
@@ -1166,7 +1124,7 @@ export const STAGES: StageData[] = [
   },
 ];
 
-export const VOCAB_STAGES: StageData[] = [
+const VOCAB_STAGES: StageData[] = [
   {
     id: 'vocab-a1-1',
     title: 'A1.1 - Beginner',
@@ -2045,7 +2003,7 @@ export const ACHIEVEMENTS: Record<AchievementId, AchievementData> = {
     id: 'sound_explorer',
     title: 'Sound Explorer',
     description: 'Complete all 14 sound groups',
-    icon: 'fi fi-sr-compass',
+    icon: 'fi fi-sr-map',
     category: 'progress',
     reward: 30,
   },
@@ -2061,7 +2019,7 @@ export const ACHIEVEMENTS: Record<AchievementId, AchievementData> = {
     id: 'perfectionist',
     title: 'Perfectionist',
     description: 'Get 100% accuracy on a round',
-    icon: 'fi fi-sr-medal',
+    icon: 'fi fi-sr-trophy',
     category: 'progress',
     reward: 10,
   },
@@ -2077,7 +2035,7 @@ export const ACHIEVEMENTS: Record<AchievementId, AchievementData> = {
     id: 'streak_30',
     title: 'Streak Legend',
     description: 'Reach a 30-round streak',
-    icon: 'fi fi-sr-fire',
+    icon: 'fi fi-sr-flame',
     category: 'progress',
     reward: 30,
   },
@@ -2093,7 +2051,7 @@ export const ACHIEVEMENTS: Record<AchievementId, AchievementData> = {
     id: 'phoneme_25',
     title: 'Phoneme Hoarder',
     description: 'Master 25 different phonemes',
-    icon: 'fi fi-sr-library',
+    icon: 'fi fi-sr-books',
     category: 'phoneme',
     reward: 20,
   },
@@ -2109,7 +2067,7 @@ export const ACHIEVEMENTS: Record<AchievementId, AchievementData> = {
     id: 'phoneme_gold',
     title: 'Phoneme Gold',
     description: "Get 100% on a phoneme's activity set",
-    icon: 'fi fi-sr-award',
+    icon: 'fi fi-sr-trophy',
     category: 'phoneme',
     reward: 10,
   },
@@ -2149,7 +2107,7 @@ export const ACHIEVEMENTS: Record<AchievementId, AchievementData> = {
     id: 'speed_demon',
     title: 'Speed Demon',
     description: 'Complete a speed round with 100% accuracy',
-    icon: 'fi fi-sr-tachometer-alt',
+    icon: 'fi fi-sr-tachometer',
     category: 'skill',
     reward: 10,
   },
@@ -2157,7 +2115,7 @@ export const ACHIEVEMENTS: Record<AchievementId, AchievementData> = {
     id: 'word_builder',
     title: 'Word Builder',
     description: 'Use WordBuilder to look up 20 words',
-    icon: 'fi fi-sr-build',
+    icon: 'fi fi-sr-hammer',
     category: 'skill',
     reward: 15,
   },
@@ -2165,7 +2123,7 @@ export const ACHIEVEMENTS: Record<AchievementId, AchievementData> = {
     id: 'quiz_champ',
     title: 'Quiz Champion',
     description: 'Complete a WordQuiz round with 100%',
-    icon: 'fi fi-sr-quiz',
+    icon: 'fi fi-sr-question',
     category: 'skill',
     reward: 15,
   },
@@ -2181,7 +2139,7 @@ export const ACHIEVEMENTS: Record<AchievementId, AchievementData> = {
     id: 'match_10',
     title: 'Match Master',
     description: 'Win 10 Phoneme Match rounds',
-    icon: 'fi fi-sr-cards-heart',
+    icon: 'fi fi-sr-hand-heart',
     category: 'challenge',
     reward: 10,
   },
@@ -2213,7 +2171,7 @@ export const ACHIEVEMENTS: Record<AchievementId, AchievementData> = {
     id: 'syllable_50',
     title: 'Syllable Star',
     description: 'Syllabify 50 words correctly',
-    icon: 'fi fi-sr-numbers',
+    icon: 'fi fi-sr-tally',
     category: 'challenge',
     reward: 10,
   },
@@ -2229,7 +2187,7 @@ export const ACHIEVEMENTS: Record<AchievementId, AchievementData> = {
     id: 'challenge_allgold',
     title: 'Challenge Legend',
     description: 'Get 100% on all 5 challenge types',
-    icon: 'fi fi-sr-trophy-alt',
+    icon: 'fi fi-sr-trophy',
     category: 'challenge',
     reward: 100,
   },

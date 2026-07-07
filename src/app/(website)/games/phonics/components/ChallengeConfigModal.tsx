@@ -31,7 +31,7 @@ const ALL_DIRECTIONS: { value: QuizDirection; label: string; desc: string }[] = 
 ];
 
 const MODES: { value: QuizMode; label: string; desc: string; icon: string }[] = [
-  { value: 'number', label: 'Number', desc: 'Fixed number of questions', icon: 'fi-sr-numbers' },
+  { value: 'number', label: 'Number', desc: 'Fixed number of questions', icon: 'fi-sr-tally' },
   { value: 'timer', label: 'Timer', desc: 'Per-question countdown', icon: 'fi-sr-clock' },
   { value: 'hardcore', label: 'Hardcore', desc: 'One mistake ends it', icon: 'fi-sr-flame' },
   { value: 'life', label: 'Life', desc: 'Limited hearts', icon: 'fi-sr-heart' },

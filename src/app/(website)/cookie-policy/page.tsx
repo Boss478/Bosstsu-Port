@@ -3,7 +3,7 @@ import Link from 'next/link';
 const sections = [
   {
     title: 'What Data We Collect',
-    icon: 'fi fi-sr-chart-line',
+    icon: 'fi fi-sr-chart-pie',
     items: [
       'Pages you visit (path)',
       'Device type (desktop / tablet / mobile)',

@@ -285,7 +285,7 @@ export default function FinanceSummary({ data, transactions, loading, error }: P
           )}
         </CollapsiblePanel>
 
-        <CollapsiblePanel title="Top 5 Expenses" icon="fi-sr-fire" defaultOpen={true}>
+        <CollapsiblePanel title="Top 5 Expenses" icon="fi-sr-flame" defaultOpen={true}>
           {top5Expenses.length === 0 ? (
             <p className="text-xs text-zinc-400 py-2">No expenses this month</p>
           ) : (

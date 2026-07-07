@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getSlotPreview, deleteSave } from '../save';
 import type { SlotPreview, CompanionId, CefrLevel } from '../types';
-import { COMPANIONS } from '../constants';
+import { COMPANIONS, CEFR_LEVEL_ORDER } from '../constants';
 import MascotCanvas from '../components/MascotCanvas';
 
 interface SaveSlotScreenProps {
@@ -292,10 +292,10 @@ export default function SaveSlotScreen({ onSelectSlot }: SaveSlotScreenProps) {
               {/* CEFR Grid */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                  Select Starting English Level
+                  Challenge Difficulty
                 </label>
                 <div className="grid grid-cols-3 gap-1.5">
-                  {(['a1', 'a2', 'b1', 'b2', 'c1', 'c2'] as CefrLevel[]).map((lvl) => (
+                  {(CEFR_LEVEL_ORDER as readonly CefrLevel[]).map((lvl) => (
                     <button
                       key={lvl}
                       type="button"
@@ -311,13 +311,7 @@ export default function SaveSlotScreen({ onSelectSlot }: SaveSlotScreenProps) {
                   ))}
                 </div>
                 <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                  Focus: We will prioritize{' '}
-                  {selectedLevel === 'a1'
-                    ? 'A1 and A2'
-                    : selectedLevel === 'c2'
-                      ? 'C1 and C2'
-                      : `${selectedLevel === 'a2' ? 'A1' : selectedLevel === 'b1' ? 'A2' : selectedLevel === 'b2' ? 'B1' : 'B2'}, ${selectedLevel.toUpperCase()}, and ${selectedLevel === 'a2' ? 'B1' : selectedLevel === 'b1' ? 'B2' : selectedLevel === 'b2' ? 'C1' : selectedLevel === 'c1' ? 'C2' : 'C2'}`}{' '}
-                  words, with a few adjacent levels to adapt to your skills.
+                  Affects challenge mode and sound path difficulty. You can change this later in Settings.
                 </p>
               </div>
             </div>
@@ -344,7 +338,7 @@ export default function SaveSlotScreen({ onSelectSlot }: SaveSlotScreenProps) {
                 }}
                 style={{ '--border-color': '#91722e' } as React.CSSProperties}
               >
-                💾 DIRECT START ({selectedLevel.toUpperCase()})
+                💾 DIRECT START
               </button>
               <button
                 id="onboard-cancel"

@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import type { RoundConfig, PhonicsFormat, SpellingFormat, DefinitionDirection, CefrLevel, RoundLength, GameCategory } from "../types";
 import { useGame } from "../context";
-import { CEFR_LEVEL_LABELS } from "../constants";
-import { useFocusTrap } from '@/lib/hooks/useFocusTrap';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface ModeSelectModalProps {
   label: string;
@@ -16,7 +15,7 @@ interface ModeSelectModalProps {
 export default function ModeSelectModal({ label, category: initialCategory, onStart, onClose }: ModeSelectModalProps) {
   const focusTrapRef = useFocusTrap(true);
   const { save } = useGame();
-  const currentLevel = save?.cefrLevel ?? "a1";
+  const currentLevel: CefrLevel = save?.challengeDifficulty ?? 'b1';
   const [activeCategory, setActiveCategory] = useState<GameCategory>(initialCategory);
 
   useEffect(() => {
@@ -55,7 +54,7 @@ export default function ModeSelectModal({ label, category: initialCategory, onSt
               {label}
             </h2>
             <p className="text-[10px] font-extrabold text-[#C8A44E] uppercase tracking-wider mt-0.5">
-              Target Level: {CEFR_LEVEL_LABELS[currentLevel]}
+              Free Practice
             </p>
           </div>
           <button

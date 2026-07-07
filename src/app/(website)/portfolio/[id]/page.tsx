@@ -225,7 +225,7 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
               {item.tools && item.tools.length > 0 && (
                 <div className="mt-20 pt-12 border-t border-zinc-100 dark:border-slate-800">
                   <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-200 mb-4 flex items-center gap-2">
-                    <i aria-hidden="true" className="fi fi-sr-tools text-blue-500" /> Tools used
+                    <i aria-hidden="true" className="fi fi-sr-gavel text-blue-500" /> Tools used
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {item.tools.map((tool) => (

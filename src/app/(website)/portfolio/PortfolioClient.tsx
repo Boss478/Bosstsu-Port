@@ -178,7 +178,7 @@ export default function PortfolioClient({
                       <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/50 dark:bg-black/60 text-zinc-900 dark:text-zinc-100 text-[10px] font-semibold backdrop-blur-xs shadow-sm">
                         <i
                           aria-hidden="true"
-                          className="fi fi-sr-tools text-blue-500 text-[10px]"
+                          className="fi fi-sr-gavel text-blue-500 text-[10px]"
                         />
                         {item.tools.length}
                       </div>

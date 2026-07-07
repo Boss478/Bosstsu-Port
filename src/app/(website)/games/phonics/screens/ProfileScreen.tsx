@@ -378,7 +378,7 @@ export default function ProfileScreen() {
         {save && (
           <div className="glass-panel p-5 rounded-3xl border border-white/30 dark:border-slate-800 shadow-xs text-left mb-4 space-y-5">
             <div className="flex items-center gap-2 mb-1">
-              <i className="fi fi-sr-chart-line text-indigo-400 text-sm" />
+              <i className="fi fi-sr-chart-pie text-indigo-400 text-sm" />
               <h2
                 className="text-lg font-black text-slate-800 dark:text-white"
                 style={{ fontFamily: 'var(--font-mali)' }}

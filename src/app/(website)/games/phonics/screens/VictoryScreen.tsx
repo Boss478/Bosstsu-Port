@@ -255,7 +255,7 @@ export default function VictoryScreen({
               <StatTile
                 label="Accuracy"
                 value={`${accuracy}%`}
-                icon={<i className="fi fi-sr-medal" />}
+                icon={<i className="fi fi-sr-trophy" />}
                 color="#2EC4B6"
               />
               <StatTile
