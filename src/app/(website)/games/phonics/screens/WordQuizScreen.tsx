@@ -254,10 +254,12 @@ export default function WordQuizScreen() {
       if (phase === 'playing' && currentQuestion?.type === 'ipa-to-word') {
         const key = e.key.toUpperCase();
         if (/^[A-Z]$/.test(key)) {
+          e.preventDefault();
           appendLetter(key);
           return;
         }
         if (e.key === 'Backspace') {
+          e.preventDefault();
           handleBackspaceKey();
           return;
         }
@@ -344,10 +346,15 @@ export default function WordQuizScreen() {
                     </span>
                     {currentQuestion.word.wordClass && (
                       <span className="text-base font-medium text-slate-400 dark:text-slate-500">
-                        ({WORD_CLASS_ABBREV[currentQuestion.word.wordClass.toLowerCase()] ?? currentQuestion.word.wordClass})
+                        (
+                        {WORD_CLASS_ABBREV[currentQuestion.word.wordClass.toLowerCase()] ??
+                          currentQuestion.word.wordClass}
+                        )
                       </span>
                     )}
-                    {currentQuestion.word.dialect && <DialectBadge dialect={currentQuestion.word.dialect} />}
+                    {currentQuestion.word.dialect && (
+                      <DialectBadge dialect={currentQuestion.word.dialect} />
+                    )}
                   </div>
                   <button
                     onClick={() => playWordAudio(currentQuestion!.word.word)}
@@ -496,10 +503,15 @@ export default function WordQuizScreen() {
                           </span>
                           {currentQuestion.word.wordClass && (
                             <span className="text-base font-medium text-slate-400 dark:text-slate-500">
-                              ({WORD_CLASS_ABBREV[currentQuestion.word.wordClass.toLowerCase()] ?? currentQuestion.word.wordClass})
+                              (
+                              {WORD_CLASS_ABBREV[currentQuestion.word.wordClass.toLowerCase()] ??
+                                currentQuestion.word.wordClass}
+                              )
                             </span>
                           )}
-                          {currentQuestion.word.dialect && <DialectBadge dialect={currentQuestion.word.dialect} />}
+                          {currentQuestion.word.dialect && (
+                            <DialectBadge dialect={currentQuestion.word.dialect} />
+                          )}
                         </div>
                       )}
                       {(() => {
@@ -521,10 +533,17 @@ export default function WordQuizScreen() {
                             ✗ Incorrect — The answer of &ldquo;{currentQuestion.word.word}
                             {currentQuestion.word.wordClass && (
                               <span className="text-xs font-medium text-rose-500 dark:text-rose-400 ml-1">
-                                ({WORD_CLASS_ABBREV[currentQuestion.word.wordClass.toLowerCase()] ?? currentQuestion.word.wordClass})
+                                (
+                                {WORD_CLASS_ABBREV[currentQuestion.word.wordClass.toLowerCase()] ??
+                                  currentQuestion.word.wordClass}
+                                )
                               </span>
                             )}
-                            {currentQuestion.word.dialect && <span className="ml-1"><DialectBadge dialect={currentQuestion.word.dialect} /></span>}
+                            {currentQuestion.word.dialect && (
+                              <span className="ml-1">
+                                <DialectBadge dialect={currentQuestion.word.dialect} />
+                              </span>
+                            )}
                             &rdquo; =
                           </>
                         ) : (
@@ -554,10 +573,15 @@ export default function WordQuizScreen() {
                           </span>
                           {currentQuestion.word.wordClass && (
                             <span className="text-base font-medium text-slate-400 dark:text-slate-500">
-                              ({WORD_CLASS_ABBREV[currentQuestion.word.wordClass.toLowerCase()] ?? currentQuestion.word.wordClass})
+                              (
+                              {WORD_CLASS_ABBREV[currentQuestion.word.wordClass.toLowerCase()] ??
+                                currentQuestion.word.wordClass}
+                              )
                             </span>
                           )}
-                          {currentQuestion.word.dialect && <DialectBadge dialect={currentQuestion.word.dialect} />}
+                          {currentQuestion.word.dialect && (
+                            <DialectBadge dialect={currentQuestion.word.dialect} />
+                          )}
                         </div>
                       )}
                       {(() => {

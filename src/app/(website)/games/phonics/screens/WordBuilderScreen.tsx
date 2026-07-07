@@ -726,6 +726,9 @@ function SpellingToIpaTab({
               }}
               placeholder="Type any English word..."
               autoFocus
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck="false"
               className="w-full py-3.5 pl-10 pr-4 rounded-2xl bg-white/60 dark:bg-slate-800/60 border border-white/60 dark:border-slate-700/50 text-sm font-bold text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-[#C8A44E] dark:focus:border-[#C8A44E] focus:ring-2 focus:ring-[#C8A44E]/20 transition-all uppercase"
             />
           </div>
@@ -1137,7 +1140,7 @@ function IpaToWordTab({
                         <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
                           {closestPredictions.map((w) => (
                             <WordPill
-                          key={`${w.word}-${w.dialect || 'default'}`}
+                              key={`${w.word}-${w.dialect || 'default'}`}
                               size="sm"
                               onClick={() => autoSelectPhonemes(w.entry)}
                             >

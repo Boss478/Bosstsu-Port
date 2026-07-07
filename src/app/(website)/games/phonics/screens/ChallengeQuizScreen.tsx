@@ -46,7 +46,7 @@ interface McqWordQuestion {
 
 type ChallengeQuestion = IpaQuestion | McqWordQuestion;
 
-function shuffleArray<T>(arr: T[]): T[] {
+export function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -55,7 +55,7 @@ function shuffleArray<T>(arr: T[]): T[] {
   return a;
 }
 
-function generateQuestions(
+export function generateQuestions(
   pool: WordEntry[],
   directions: QuizDirection[],
   count: number,
@@ -198,11 +198,11 @@ export default function ChallengeQuizScreen({
     [config.groupId],
   );
 
-  const questions = useMemo(() => {
+  const [questions] = useState(() => {
     const count =
       config.mode === 'streak' ? Math.max(100, quizPool.length * 2) : config.roundLength;
     return generateQuestions(quizPool, config.directions, count, config.cefrLevel, wordPool);
-  }, [quizPool, config.directions, config.roundLength, config.mode, config.cefrLevel, wordPool]);
+  });
 
   const [phase, setPhase] = useState<Phase>('playing');
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -453,10 +453,12 @@ export default function ChallengeQuizScreen({
       ) {
         const key = e.key.toUpperCase();
         if (/^[A-Z]$/.test(key)) {
+          e.preventDefault();
           appendLetter(key);
           return;
         }
         if (e.key === 'Backspace') {
+          e.preventDefault();
           handleBackspaceKey();
           return;
         }
@@ -746,8 +748,12 @@ export default function ChallengeQuizScreen({
                       ({WORD_CLASS_ABBREV[q.word.wordClass.toLowerCase()] ?? q.word.wordClass})
                     </span>
                   )}
-                  {q.word.dialect && <span className="ml-1"><DialectBadge dialect={q.word.dialect} /></span>}
-                  {' '}=
+                  {q.word.dialect && (
+                    <span className="ml-1">
+                      <DialectBadge dialect={q.word.dialect} />
+                    </span>
+                  )}{' '}
+                  =
                 </p>
                 <p
                   className="text-4xl font-black text-slate-800 dark:text-white mt-2"

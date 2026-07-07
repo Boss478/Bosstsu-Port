@@ -5,6 +5,13 @@
 
 
 
+## v1.10.59 (2026-07-07)
++ **Fix**: Double letter in IPA→Word quiz (e.preventDefault in keydown handler).
++ **Fix**: Quiz question options reshuffling on data fetch resolve (useState lazy init instead of useMemo).
++ **Test**: 6 new tests for preventDefault behavior + generateQuestions stability.
++ **Export**: Exported `shuffleArray` and `generateQuestions` from ChallengeQuizScreen for testability.
++ **Track**: Added `vocab-group-defs.ts` to git (was untracked, imported by screens).
+
 ## v1.10.58 (2026-07-07)
 + **Dead code removal + CEFR_LEVEL_ORDER consolidation**:
   + * Removed unused `scoreToPlacementTier()` from `question-generators.ts`.
