@@ -1,17 +1,7 @@
-export type Screen = 'menu' | 'game' | 'victory';
+export type Screen = 'menu' | 'level-map' | 'stage-map' | 'game' | 'victory';
 
 export type LevelType = 'match' | 'fill-upper' | 'fill-lower' | 'typing';
 export type DataPool = 'lowercase' | 'thai' | 'phonics';
-
-export interface LevelConfig {
-  name: string;
-  subtitle: string;
-  target: number;
-  type: LevelType;
-  hideCount?: number;
-  dataPool?: DataPool;
-  revert?: boolean;
-}
 
 export interface GameState {
   level: number;
@@ -28,6 +18,51 @@ export interface GameState {
   wrongLetters: string[];
   easyMode: boolean;
   onboardingSeen: boolean[];
+}
+
+export interface SubStageConfig {
+  id: number;
+  name: string;
+  subtitle: string;
+  type: LevelType;
+  dataPool?: DataPool;
+  letterPool?: string[];
+  hideLetters?: string[];
+  revert?: boolean;
+  targetMin: number;
+}
+
+export interface StageConfig {
+  id: number;
+  name: string;
+  subtitle: string;
+  letterGroup: string[];
+  subStages: SubStageConfig[];
+  perLetterMin: number;
+}
+
+export interface LetterTracker {
+  correct: number;
+  total: number;
+}
+
+export interface SubStageProgress {
+  stars: number;
+  completed: boolean;
+  bestScore: number;
+}
+
+export interface StageProgress {
+  unlocked: boolean;
+  subStages: SubStageProgress[];
+  completed: boolean;
+}
+
+export interface MapSaveData {
+  version: number;
+  totalScore: number;
+  stages: StageProgress[];
+  letterTracker: Record<string, LetterTracker>;
 }
 
 export interface GridCell {
@@ -70,7 +105,7 @@ export function initialGameState(): GameState {
     wrongAttempts: 0,
     wrongLetters: [],
     easyMode: false,
-    onboardingSeen: [false, false, false, false, false, false],
+    onboardingSeen: [false, false, false, false, false],
   };
 }
 
@@ -81,5 +116,33 @@ export function emptyRoundData(): RoundData {
     grid: [],
     missingIndices: [],
     activeIndex: -1,
+  };
+}
+
+export function initialStageProgress(unlocked: boolean): StageProgress {
+  return {
+    unlocked,
+    subStages: Array.from({ length: 5 }, () => ({
+      stars: 0,
+      completed: false,
+      bestScore: 0,
+    })),
+    completed: false,
+  };
+}
+
+export function emptyMapSaveData(): MapSaveData {
+  return {
+    version: 3,
+    totalScore: 0,
+    stages: [
+      initialStageProgress(true),
+      initialStageProgress(false),
+      initialStageProgress(false),
+      initialStageProgress(false),
+      initialStageProgress(false),
+      initialStageProgress(false),
+    ],
+    letterTracker: {},
   };
 }

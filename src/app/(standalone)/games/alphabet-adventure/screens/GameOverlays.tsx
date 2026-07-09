@@ -12,6 +12,7 @@ import {
 import { CardFrame } from '../cards/CardFrame';
 import { CardIllustration } from '../cards/CardIllustrations';
 import CardRevealModal from '../beta/screens/CardRevealModal';
+import CaptainAlph from '../characters/CaptainAlph';
 
 interface Props {
   isBeta?: boolean;
@@ -173,6 +174,7 @@ export default function GameOverlays({
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50">
           <div className="animate-in slide-in-from-top-2 duration-300">
             <div className="bg-white/95 dark:bg-zinc-800/95 backdrop-blur-md px-6 py-3 rounded-2xl shadow-2xl border-2 border-orange-400 flex items-center gap-3">
+              <CaptainAlph size={28} />
               <span className="text-lg" aria-hidden="true">
                 🔥
               </span>

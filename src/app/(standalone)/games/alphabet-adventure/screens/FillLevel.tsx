@@ -32,7 +32,7 @@ export default function FillLevel({
           return (
             <div
               key={index}
-              className={`aspect-square flex items-center justify-center rounded-lg md:rounded-xl text-xl md:text-2xl font-black transition-all duration-300 cursor-pointer ${
+              className={`min-w-[48px] min-h-[48px] aspect-square flex items-center justify-center rounded-lg md:rounded-xl text-xl md:text-2xl font-black transition-all duration-300 cursor-pointer ${
                 item.isHidden
                   ? isActive
                     ? 'bg-violet-100 dark:bg-violet-900/40 border-4 border-violet-500 animate-pulse'

@@ -4,6 +4,11 @@
 
 | Version | Key Changes |
 |---------|-------------|
+| v1.10.62 | Alphabet Adventure 14 features: 5 sub-stages (A-F→ALL), save v3, Victory stars/Next Lesson/Stage Complete, practice mode, show instructions, color icons, reduced motion, touch targets, spaced repetition, on-screen keyboard, LetterProgressGrid, mascot reactions, enhanced onboarding. 106 tests. |
+| v1.10.61 | Alphabet Adventure map restructure: stages=game types, sub-stages=letter groups (6×6). Scroll fix. buildStages axis swap. |
+| v1.10.60 | Alphabet Adventure map redesign: linear 6-level → Duolingo-style 6×6 map (36 lessons). New LevelMapScreen/StageMapScreen. Save auto-migrates. Letter pool generators. |
+| v1.10.59 | Fix: double letter in IPA→Word quiz (e.preventDefault() in keydown handler). Fix: quiz options shuffle on data fetch resolve (useState lazy init instead of useMemo). 732 tests. |
+| v1.10.58 | Bug fix batch: e.preventDefault() for both quiz screens, useState lazy init for questions stability. |
 | v1.10.57 | Flaticon rebuild (178 icons, 30KB woff2 — was 94KB). Vocab Path cloud progression (5-tier vertical accordion). Challenge multi-select CEFR + group filters (intersection logic). Fix: sequential str.replace cascade during icon rename (23 files corrupted, restored from git, replaced with single-pass regex). Fix: React duplicate key `charm` (pronunciation-dictionary.json multi-dialect). |
 | v1.10.56 | Vocab Group + CEFR filter for Challenges (ChallengeSelectScreen filter bar, ChallengeGameScreen words prop, ChallengeQuizScreen config-driven generators). |
 | v1.10.55 | Synonym group fallback: `getWordsForGroup` 3-tier fallback (strict→broad+level→broad-only) for synonym groups. `broadWordMatch()` searches synonymOf terms against word+definition+example+synonyms. All 22 synonym groups now serve 3+ words. 4 new tests. `wordGroupMap` remains strict for display accuracy. |

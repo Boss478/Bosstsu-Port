@@ -2,15 +2,12 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { HIGH_SCORE_KEY, PROGRESS_KEY, LEVELS } from '../constants';
+import { HIGH_SCORE_KEY, MAP_SAVE_KEY } from '../constants';
 import { CARD_STORAGE_KEY, loadCollection } from '../cards/cards';
 
 interface Props {
   onStart: () => void;
-  onContinue?: () => void;
   hasProgress?: boolean;
-  easyMode?: boolean;
-  onToggleEasy?: () => void;
   isBeta?: boolean;
   onShowCards?: () => void;
   voiceURI?: string;
@@ -19,10 +16,7 @@ interface Props {
 
 export default function MenuScreen({
   onStart,
-  onContinue,
   hasProgress,
-  easyMode,
-  onToggleEasy,
   isBeta,
   onShowCards,
   voiceURI,
@@ -39,21 +33,25 @@ export default function MenuScreen({
     return 0;
   });
 
-  const savedProgress = useState(() => {
-    if (typeof window === 'undefined') return null;
-    try {
-      const raw = localStorage.getItem(PROGRESS_KEY);
-      if (!raw) return null;
-      return JSON.parse(raw) as { gameState: { level: number; round: number; winsInLevel: number; easyMode?: boolean }; stageStars: number[] };
-    } catch {
-      return null;
-    }
-  })[0];
-
   const cardCount = useState(() => {
     if (typeof window === 'undefined') return 0;
     return loadCollection().cards.length;
   })[0];
+
+  const [easyMode, setEasyMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('alphabet-adventure-easyMode') === 'true';
+    }
+    return false;
+  });
+
+  const toggleEasyMode = () => {
+    const next = !easyMode;
+    setEasyMode(next);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('alphabet-adventure-easyMode', String(next));
+    }
+  };
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
@@ -145,11 +143,10 @@ export default function MenuScreen({
       </div>
 
       <p className="text-sm sm:text-sm md:text-base text-zinc-600 dark:text-zinc-400 max-w-sm sm:max-w-md mx-auto leading-snug">
-        Prepare for an exciting journey through the A-Z islands! Learn and challenge yourself with 6
-        fun levels designed for Grade 1 students.
+        Explore the alphabet islands! Learn letters through fun challenges across 6 stages.
       </p>
       <p className="text-xs sm:text-xs md:text-sm text-zinc-500 dark:text-zinc-500 max-w-sm sm:max-w-md mx-auto">
-        เตรียมพร้อมสำหรับการเดินทางแสนสนุกผ่านเกาะตัวอักษร A-Z เรียนรู้และท้าทายตัวเองไปพร้อมกัน!
+        สํารวจเกาะตัวอักษร! เรียนรู้ผ่านความท้าทายสนุก ๆ ใน 6 ด่าน
       </p>
 
       {highScore > 0 && (
@@ -170,66 +167,23 @@ export default function MenuScreen({
             <p className="text-2xl font-black text-amber-600 dark:text-amber-400">{cardCount}/26</p>
           </div>
         )}
-        {savedProgress && (
+        {hasProgress && (
           <div className="inline-block bg-emerald-50 dark:bg-emerald-900/20 px-5 py-2.5 rounded-2xl border-2 border-emerald-200 dark:border-emerald-800">
             <p className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
               Progress
             </p>
-            <p className="text-lg font-black text-emerald-600 dark:text-emerald-400">
-              Level {savedProgress.gameState.level}
-              {(LEVELS[savedProgress.gameState.level]?.type === 'match'
-                ? ` · ${savedProgress.gameState.round}/${LEVELS[savedProgress.gameState.level]?.target}`
-                : ` · ${savedProgress.gameState.winsInLevel}/${LEVELS[savedProgress.gameState.level]?.target}`) || ''}
-            </p>
+            <p className="text-lg font-black text-emerald-600 dark:text-emerald-400">Map Active</p>
           </div>
         )}
       </div>
 
-      <div className="flex items-center justify-center gap-3 pt-2">
-        <button
-          onClick={onToggleEasy}
-          role="switch"
-          aria-checked={easyMode}
-          className={`px-5 py-2 rounded-2xl text-sm font-black transition-all border-2 ${
-            easyMode
-              ? 'bg-emerald-100 dark:bg-emerald-900/30 border-emerald-400 text-emerald-700 dark:text-emerald-400'
-              : 'bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400'
-          }`}
-        >
-          {easyMode ? (
-            <>
-              <span aria-hidden="true">🐣</span> Easy Mode (KG)
-            </>
-          ) : (
-            'Easy Mode (KG)'
-          )}
-        </button>
-      </div>
-
-      <div
-        className={`${isBeta ? 'flex items-center justify-center gap-3' : 'space-y-2 sm:space-y-3'}`}
-      >
-        {hasProgress && onContinue && (
-          <button
-            onClick={onContinue}
-            className="group relative px-5 sm:px-6 py-2.5 sm:py-3 bg-emerald-600 text-white text-sm sm:text-base md:text-lg font-black rounded-3xl shadow-[0_8px_0_0_rgba(5,150,105,1)] active:shadow-none active:translate-y-2 transition-all duration-150 overflow-hidden"
-          >
-            <span className="relative z-10 flex items-center gap-2">
-              Continue{' '}
-              <i
-                aria-hidden="true"
-                className="fi fi-sr-play transition-transform group-hover:translate-x-1 text-xs sm:text-sm"
-              ></i>
-            </span>
-            <div className="absolute inset-0 bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          </button>
-        )}
+      <div className="flex items-center justify-center pt-2">
         <button
           onClick={onStart}
           className="group relative px-5 sm:px-6 py-2.5 sm:py-3 bg-violet-600 text-white text-sm sm:text-base md:text-lg font-black rounded-3xl shadow-[0_8px_0_0_rgba(109,40,217,1)] active:shadow-none active:translate-y-2 transition-all duration-150 overflow-hidden"
         >
           <span className="relative z-10 flex items-center gap-2">
-            {hasProgress ? 'New Game' : 'Start Game'}{' '}
+            Start Game{' '}
             <i
               aria-hidden="true"
               className="fi fi-sr-play transition-transform group-hover:translate-x-1 text-xs sm:text-sm"
@@ -237,6 +191,30 @@ export default function MenuScreen({
           </span>
           <div className="absolute inset-0 bg-violet-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
         </button>
+      </div>
+
+      <div className="flex items-center justify-center gap-3 pt-1">
+        <button
+          onClick={toggleEasyMode}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+            easyMode ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-600'
+          }`}
+          role="switch"
+          aria-checked={easyMode}
+          aria-label="Practice Mode"
+        >
+          <span
+            className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition-transform ${
+              easyMode ? 'translate-x-[22px]' : 'translate-x-0.5'
+            }`}
+          />
+        </button>
+        <span className="text-xs sm:text-sm font-bold text-zinc-500 dark:text-zinc-400">
+          Practice Mode
+          <span className="ml-1.5 text-[10px] text-zinc-400 dark:text-zinc-500 font-normal">
+            (fewer choices)
+          </span>
+        </span>
       </div>
 
       {onShowCards && (
@@ -255,7 +233,20 @@ export default function MenuScreen({
         </div>
       )}
 
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center gap-2">
+        <button
+          onClick={() => {
+            if (typeof window !== 'undefined') {
+              ['match', 'fill-upper', 'fill-lower', 'typing'].forEach((k) =>
+                localStorage.removeItem(`onboarding_${k}`),
+              );
+            }
+          }}
+          className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/20 text-zinc-500 hover:text-violet-500 text-[10px] font-black uppercase tracking-widest transition-all"
+        >
+          <i aria-hidden="true" className="fi fi-sr-interrogation mr-1 text-xs"></i>
+          SHOW INSTRUCTIONS
+        </button>
         <button
           onClick={() => {
             if (
@@ -264,21 +255,22 @@ export default function MenuScreen({
               )
             ) {
               localStorage.removeItem(CARD_STORAGE_KEY);
-              localStorage.removeItem(PROGRESS_KEY);
+              localStorage.removeItem(MAP_SAVE_KEY);
               localStorage.removeItem(HIGH_SCORE_KEY);
               localStorage.removeItem('alphabet-adventure-voice');
+              localStorage.removeItem('alphabet-adventure-checkpoint');
               window.location.reload();
             }
           }}
-          className="px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 border border-red-500/20"
+          className="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 border border-red-500/20"
         >
           <i aria-hidden="true" className="fi fi-sr-refresh mr-1.5 text-xs"></i>
-          RESET PROGRESS
+          RESET
         </button>
       </div>
 
       <p className="text-sm font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-widest flex items-center justify-center gap-2">
-        Grade 1 • {easyMode ? '5 Levels' : '6 Levels'}
+        6 Stages • 5 Levels Each
         <span className="relative group cursor-help">
           <i
             aria-hidden="true"

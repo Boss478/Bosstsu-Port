@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  type Dispatch,
-  type SetStateAction,
-} from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { CardTier } from '../cards/cards';
 import {
   rollCardDrop,
@@ -17,12 +10,18 @@ import {
   loadCollection,
   saveCollection,
 } from '../cards/cards';
-import type { Screen, GameState, RoundData, FeedbackState, GridCell } from '../types';
+import type {
+  SubStageConfig,
+  GameState,
+  RoundData,
+  FeedbackState,
+  GridCell,
+  LetterTracker,
+} from '../types';
 import { initialGameState, emptyRoundData } from '../types';
 import { pushAnalytics } from '../analytics';
 import { useAnalytics } from '@/lib/analytics';
 import {
-  LEVELS,
   GAME_CONFIG,
   randomPraise,
   streakPraise,
@@ -33,24 +32,30 @@ import {
   generateFillRound,
   generateFillChoices,
   generateTypingRound,
-  PROGRESS_KEY,
-  resetRoundSeed,
 } from '../constants';
+import { loadMapSave } from '../migrateMapSave';
+import { playCardSfx, playSingleCorrect, playWrong } from '../sfx';
 
-function saveProgress(state: GameState, stars: number[]) {
+const CHECKPOINT_KEY = 'alphabet-adventure-checkpoint';
+
+function saveCheckpoint(state: GameState, stageId: number, subStageId: number) {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(PROGRESS_KEY, JSON.stringify({ gameState: state, stageStars: stars }));
+  localStorage.setItem(CHECKPOINT_KEY, JSON.stringify({ stageId, subStageId, gameState: state }));
 }
 
-function clearProgress() {
+function clearCheckpoint() {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem(PROGRESS_KEY);
+  localStorage.removeItem(CHECKPOINT_KEY);
 }
 
-function loadSavedProgress(): { gameState: GameState; stageStars: number[] } | null {
+export function loadCheckpoint(): {
+  stageId: number;
+  subStageId: number;
+  gameState: GameState;
+} | null {
   if (typeof window === 'undefined') return null;
   try {
-    const raw = localStorage.getItem(PROGRESS_KEY);
+    const raw = localStorage.getItem(CHECKPOINT_KEY);
     if (!raw) return null;
     return JSON.parse(raw);
   } catch {
@@ -58,32 +63,40 @@ function loadSavedProgress(): { gameState: GameState; stageStars: number[] } | n
   }
 }
 
-export function useGameActions({
-  playSound,
-  playSequence,
-  setScreen,
-}: {
-  playSound: (type: 'correct' | 'wrong' | 'win') => void;
-  playSequence: (freqs: number[], duration?: number, gainVal?: number) => void;
-  setScreen: Dispatch<SetStateAction<Screen>>;
-}) {
+interface SubStageResult {
+  score: number;
+  correct: number;
+  total: number;
+  stars: number;
+  letterTracker: Record<string, LetterTracker>;
+}
+
+export function useGameActions() {
   const { trackCustomEvent } = useAnalytics();
   const dropPowerRef = useRef(0);
+
+  const subStageRef = useRef<SubStageConfig | null>(null);
+  const onCompleteRef = useRef<((result: SubStageResult) => void) | null>(null);
+  const letterTrackerRef = useRef<Record<string, LetterTracker>>({});
 
   const [gameState, setGameState] = useState<GameState>(initialGameState());
   const [roundData, setRoundData] = useState<RoundData>(emptyRoundData());
   const [feedback, setFeedback] = useState<FeedbackState>({ text: '', type: '' });
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [stageStars, setStageStars] = useState<number[]>([]);
-  const [hasSavedProgress] = useState(() => !!loadSavedProgress());
-  // eslint-disable-next-line react-hooks/refs
+  const [currentStageId, setCurrentStageId] = useState(0);
+  const [currentSubStageId, setCurrentSubStageId] = useState(0);
+
+  const [hasSavedProgress] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const data = loadMapSave();
+    return data.stages.some((s) => s.subStages.some((ss) => ss.completed));
+  });
+
   const [dropPower, setDropPower] = useState(() => {
-    const power = loadCollection().dropPower || 0;
-    dropPowerRef.current = power;
-    return power;
+    if (typeof window === 'undefined') return 0;
+    return loadCollection().dropPower || 0;
   });
   const [dropStreak, setDropStreak] = useState(0);
-  const [easyMode, setEasyMode] = useState(false);
   const [lastCardDropped, setLastCardDropped] = useState<{
     letter: string;
     tier: CardTier;
@@ -104,19 +117,15 @@ export function useGameActions({
   const streakToastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cardRevealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cardDroppedRef = useRef(false);
-  const pendingFinishRef = useRef(0);
-
-  const CARD_TIER_SOUNDS: Record<CardTier, number[]> = {
-    common: [500],
-    uncommon: [500, 700],
-    rare: [500, 700, 900],
-    'ultra-rare': [500, 800, 1100, 1300],
-    legendary: [523, 659, 784, 1047],
-  };
+  const pendingCompleteRef = useRef<SubStageResult | null>(null);
 
   useEffect(() => {
     stateRef.current = gameState;
   });
+
+  useEffect(() => {
+    dropPowerRef.current = dropPower;
+  }, [dropPower]);
 
   useEffect(() => {
     return () => {
@@ -129,20 +138,37 @@ export function useGameActions({
   const showFeedback = useCallback(
     (text: string, type: 'correct' | 'wrong', showCorrect?: string) => {
       setFeedback({ text, type, showCorrect });
-      setTimeout(() => setFeedback({ text: '', type: '' }), GAME_CONFIG.FEEDBACK_DURATION);
+      const duration =
+        type === 'correct'
+          ? GAME_CONFIG.FEEDBACK_DURATION_CORRECT
+          : GAME_CONFIG.FEEDBACK_DURATION_WRONG;
+      setTimeout(() => setFeedback({ text: '', type: '' }), duration);
     },
     [],
   );
 
   const generateRound = useCallback((state: GameState): RoundData => {
-    const config = LEVELS[state.level];
-    if (!config) return emptyRoundData();
+    const sub = subStageRef.current;
+    if (!sub) return emptyRoundData();
+
     const numChoices = state.easyMode ? 2 : 3;
 
-    if (config.type === 'match') {
-      if (config.dataPool === 'thai') {
+    if (sub.type === 'match') {
+      const pool = sub.letterPool;
+      if (!pool) return emptyRoundData();
+
+      const sortedPool = [...pool].sort((a, b) => {
+        const ta = letterTrackerRef.current[a.toUpperCase()];
+        const tb = letterTrackerRef.current[b.toUpperCase()];
+        const accA = ta ? ta.correct / ta.total : 1;
+        const accB = tb ? tb.correct / tb.total : 1;
+        return accA - accB;
+      });
+
+      if (sub.dataPool === 'thai') {
         const { targetLetter, correctChar, choices } = generateThaiRevertRound(
           state.round,
+          sortedPool,
           numChoices,
         );
         return {
@@ -156,9 +182,10 @@ export function useGameActions({
           wrongChoices: [],
         };
       }
-      if (config.dataPool === 'phonics') {
+      if (sub.dataPool === 'phonics') {
         const { targetLetter, correctChar, choices } = generatePhonicsRevertRound(
           state.round,
+          sortedPool,
           numChoices,
         );
         return {
@@ -172,7 +199,11 @@ export function useGameActions({
           wrongChoices: [],
         };
       }
-      const { targetLetter, correctChar, choices } = generateMatchRound(state.round, numChoices);
+      const { targetLetter, correctChar, choices } = generateMatchRound(
+        state.round,
+        sortedPool,
+        numChoices,
+      );
       return {
         targetLetter,
         correctChar,
@@ -182,110 +213,93 @@ export function useGameActions({
         activeIndex: -1,
         wrongChoices: [],
       };
-    } else if (config.type === 'fill-upper' || config.type === 'fill-lower') {
+    } else if (sub.type === 'fill-upper' || sub.type === 'fill-lower') {
       const numFillChoices = state.easyMode ? 3 : 4;
+      const pool = sub.letterPool;
+      const hidden = sub.hideLetters;
+      if (!pool || !hidden) return emptyRoundData();
       const { grid, missingIndices, activeIndex, choices } = generateFillRound(
-        config.type,
+        sub.type,
+        hidden,
+        pool,
         numFillChoices,
       );
       return { choices, grid, missingIndices, activeIndex, wrongChoices: [] };
-    } else if (config.type === 'typing') {
-      const { grid, missingIndices } = generateTypingRound(state.difficulty);
+    } else if (sub.type === 'typing') {
+      const pool = sub.letterPool;
+      if (!pool) return emptyRoundData();
+      const { grid, missingIndices } = generateTypingRound(pool);
       return { grid, missingIndices, activeIndex: -1, choices: [], wrongChoices: [] };
     }
     return emptyRoundData();
   }, []);
 
-  const finishGame = useCallback(
-    (score: number) => {
-      playSound('win');
-      clearProgress();
-      setGameState((prev) => ({ ...prev, score }));
-      setScreen('victory');
-      trackCustomEvent('game_complete', { game: 'alphabet-adventure', score, stars: stageStars });
-    },
-    [playSound, setScreen, trackCustomEvent, stageStars],
-  );
+  const startSubStage = useCallback(
+    (
+      subStage: SubStageConfig,
+      stageId: number,
+      subId: number,
+      onComplete: (result: SubStageResult) => void,
+      easyMode?: boolean,
+    ) => {
+      subStageRef.current = subStage;
+      onCompleteRef.current = onComplete;
+      clearCheckpoint();
 
-  const startGame = useCallback(
-    (savedState?: GameState, savedStars?: number[], easyMode = false) => {
-      resetRoundSeed();
-      clearProgress();
-      const initialState = savedState || { ...initialGameState(), easyMode };
+      const initialState = initialGameState();
+      if (easyMode) initialState.easyMode = true;
+      setCurrentStageId(stageId);
+      setCurrentSubStageId(subId);
       setGameState(initialState);
-      setScreen('game');
       setRoundData(generateRound(initialState));
-      setStageStars(savedStars || []);
-      trackCustomEvent('game_start', {
+      setFeedback({ text: '', type: '' });
+      setIsTransitioning(false);
+      cardDroppedRef.current = false;
+      dropStreakRef.current = 0;
+      setDropStreak(0);
+
+      trackCustomEvent('substage_start', {
         game: 'alphabet-adventure',
-        level: initialState.level,
-        easyMode: initialState.easyMode,
+        stageId,
+        subId,
+        type: subStage.type,
       });
     },
-    [generateRound, setScreen, trackCustomEvent],
+    [generateRound, trackCustomEvent],
   );
 
-  const continueGame = useCallback(() => {
-    const saved = loadSavedProgress();
-    if (saved) {
-      setGameState(saved.gameState);
-      setStageStars(saved.stageStars);
-      setScreen('game');
-      setRoundData(generateRound(saved.gameState));
-    }
-  }, [generateRound, setScreen]);
+  const handleSubStageComplete = useCallback((score: number, correct: number, total: number) => {
+    const sub = subStageRef.current;
+    if (!sub) return;
+    const accuracy = total > 0 ? (correct / total) * 100 : 0;
+    const stars = calcStars(accuracy);
 
-  const handleLevelComplete = useCallback(
-    (score: number, correct: number, total: number) => {
-      playSound('win');
-      pushAnalytics({
-        type: 'win',
-        level: stateRef.current.level,
-        letter: '',
-        streak: stateRef.current.currentStreak,
-      });
-      const accuracy = total > 0 ? (correct / total) * 100 : 0;
-      const stars = calcStars(accuracy);
-      setStageStars((prev) => [...prev, stars]);
-      showFeedback('Level Complete!', 'correct');
+    const result: SubStageResult = {
+      score,
+      correct,
+      total,
+      stars,
+      letterTracker: { ...letterTrackerRef.current },
+    };
 
-      const nextLevel = stateRef.current.level + 1;
-      const maxLevel = stateRef.current.easyMode ? 5 : 6;
-      if (nextLevel > maxLevel) {
-        if (cardDroppedRef.current) {
-          pendingFinishRef.current = score;
-        } else {
-          setTimeout(() => finishGame(score), GAME_CONFIG.FEEDBACK_DURATION + 500);
-        }
-      } else {
-        const nextState: GameState = {
-          ...stateRef.current,
-          level: nextLevel,
-          score,
-          round: 1,
-          winsInLevel: 0,
-          difficulty: GAME_CONFIG.INITIAL_DIFFICULTY,
-          consecutiveErrors: 0,
-          levelCorrect: 0,
-          levelTotal: 0,
-          currentStreak: 0,
-          bestStreak: stateRef.current.bestStreak,
-          wrongAttempts: 0,
-        };
-        setIsTransitioning(true);
-        setGameState(nextState);
-        saveProgress(nextState, stageStars);
-        setTimeout(() => {
-          setRoundData(generateRound(nextState));
-          setIsTransitioning(false);
-        }, GAME_CONFIG.FEEDBACK_DURATION + 500);
-      }
-    },
-    [playSound, showFeedback, generateRound, finishGame, stageStars],
-  );
+    pendingCompleteRef.current = result;
+    onCompleteRef.current?.(result);
+    onCompleteRef.current = null;
+    subStageRef.current = null;
+    clearCheckpoint();
+  }, []);
+
+  const trackLetter = useCallback((letter: string, correct: boolean) => {
+    const t = letterTrackerRef.current;
+    const entry = t[letter] || { correct: 0, total: 0 };
+    t[letter] = { correct: entry.correct + (correct ? 1 : 0), total: entry.total + 1 };
+  }, []);
 
   const advanceMatchRound = useCallback(
     (currentState: GameState, newScore: number, newLevelCorrect: number, newLevelTotal: number) => {
+      const sub = subStageRef.current;
+      if (!sub) return;
+
       const nextRound = currentState.round + 1;
       const newState = {
         ...currentState,
@@ -296,25 +310,24 @@ export function useGameActions({
         wrongAttempts: 0,
       };
 
-      const matchTarget = currentState.easyMode ? 15 : (LEVELS[currentState.level]?.target ?? 35);
-      if (nextRound > matchTarget) {
-        handleLevelComplete(newScore, newLevelCorrect, newLevelTotal);
+      if (nextRound > sub.targetMin) {
+        handleSubStageComplete(newScore, newLevelCorrect, newLevelTotal);
       } else {
         setGameState(newState);
-        saveProgress(newState, stageStars);
+        saveCheckpoint(newState, currentStageId, currentSubStageId);
         setRoundData(generateRound(newState));
       }
     },
-    [generateRound, handleLevelComplete, stageStars],
+    [generateRound, handleSubStageComplete, currentStageId, currentSubStageId],
   );
 
   const handleAnswer = useCallback(
     (selected: string) => {
       if (isTransitioning) return;
-      const config = LEVELS[stateRef.current.level];
-      if (!config) return;
+      const sub = subStageRef.current;
+      if (!sub) return;
 
-      const isMatch = config.type === 'match';
+      const isMatch = sub.type === 'match';
       const correct = isMatch ? roundData.correctChar : roundData.grid[roundData.activeIndex]?.char;
 
       if (selected === correct) {
@@ -326,7 +339,7 @@ export function useGameActions({
         if (tier) {
           cardDropped = true;
           cardDroppedRef.current = true;
-          playSequence(CARD_TIER_SOUNDS[tier]);
+          playCardSfx(tier);
           dropStreakRef.current = Math.max(0, dropStreakRef.current - 5);
           setDropStreak(dropStreakRef.current);
           const newPower = Math.min(10, dropPowerRef.current + 1);
@@ -351,25 +364,29 @@ export function useGameActions({
         }
 
         if (!cardDropped) {
-          playSound('correct');
+          playSingleCorrect();
         }
 
         trackCustomEvent('game_correct', {
           game: 'alphabet-adventure',
-          level: stateRef.current.level,
+          stageId: currentStageId,
+          type: sub.type,
           letter: isMatch ? roundData.targetLetter || correct! : correct!,
           streak: stateRef.current.currentStreak + 1,
-          cardDropped: cardDropped,
+          cardDropped,
         });
         pushAnalytics({
           type: 'correct',
-          level: stateRef.current.level,
-          letter: isMatch ? roundData.targetLetter || correct! : correct!,
+          level: currentStageId,
+          letter: sub.type === 'match' ? roundData.targetLetter || correct! : correct!,
           streak: stateRef.current.currentStreak + 1,
         });
 
+        const letter = isMatch ? roundData.targetLetter || correct! : correct!;
+        trackLetter(letter, true);
+
         const points =
-          config.type === 'typing' ? GAME_CONFIG.SCORE_TYPING_CORRECT : GAME_CONFIG.SCORE_CORRECT;
+          sub.type === 'typing' ? GAME_CONFIG.SCORE_TYPING_CORRECT : GAME_CONFIG.SCORE_CORRECT;
         const newStreak = stateRef.current.currentStreak + 1;
         const newScore = stateRef.current.score + points;
         const newState = {
@@ -403,28 +420,30 @@ export function useGameActions({
           if (nextMissing.length === 0) {
             const newWins = stateRef.current.winsInLevel + 1;
             newState.winsInLevel = newWins;
-            if (newWins >= config.target) {
-              handleLevelComplete(newScore, newState.levelCorrect, newState.levelTotal);
-              saveProgress(newState, stageStars);
+            if (newWins >= sub.targetMin!) {
+              handleSubStageComplete(newScore, newState.levelCorrect, newState.levelTotal);
+              saveCheckpoint(newState, currentStageId, currentSubStageId);
             } else {
               setIsTransitioning(true);
               setGameState(newState);
-              saveProgress(newState, stageStars);
+              saveCheckpoint(newState, currentStageId, currentSubStageId);
               showFeedback(randomPraise('correct'), 'correct');
               setTimeout(() => {
                 setRoundData(generateRound(newState));
                 setIsTransitioning(false);
-              }, GAME_CONFIG.FEEDBACK_DURATION);
+              }, GAME_CONFIG.FEEDBACK_DURATION_CORRECT);
             }
           } else {
-            const isUpper = config.type === 'fill-upper';
-            const alphabet = isUpper
-              ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
-              : 'abcdefghijklmnopqrstuvwxyz'.split('');
+            const pool = sub.letterPool;
+            if (!pool) return;
             const nextActive = nextMissing[0];
+            const alphabet =
+              sub.type === 'fill-upper'
+                ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+                : 'abcdefghijklmnopqrstuvwxyz'.split('');
             const nextCorrect = alphabet[nextActive];
             const numFillChoices = stateRef.current.easyMode ? 3 : 4;
-            const choices = generateFillChoices(nextCorrect, numFillChoices, isUpper);
+            const choices = generateFillChoices(nextCorrect, numFillChoices, pool);
             setRoundData({
               ...roundData,
               grid: newGrid,
@@ -434,7 +453,7 @@ export function useGameActions({
               wrongChoices: [],
             });
             setGameState(newState);
-            saveProgress(newState, stageStars);
+            saveCheckpoint(newState, currentStageId, currentSubStageId);
           }
         }
       } else {
@@ -450,20 +469,26 @@ export function useGameActions({
           clearTimeout(streakToastRef.current);
           streakToastRef.current = null;
         }
-        playSequence([300, 220, 160], 0.1, 0.15);
+        playWrong();
+
         trackCustomEvent('game_wrong', {
           game: 'alphabet-adventure',
-          level: stateRef.current.level,
+          stageId: currentStageId,
+          type: sub.type,
           letter: isMatch ? roundData.targetLetter || correct! : correct!,
         });
         pushAnalytics({
           type: 'wrong',
-          level: stateRef.current.level,
+          level: currentStageId,
           letter: isMatch ? roundData.targetLetter || correct! : correct!,
           streak: 0,
         });
+
+        const letter = isMatch ? roundData.targetLetter || correct! : correct!;
+        trackLetter(letter, false);
+
         const points =
-          config.type === 'typing' ? GAME_CONFIG.SCORE_TYPING_WRONG : GAME_CONFIG.SCORE_WRONG;
+          sub.type === 'typing' ? GAME_CONFIG.SCORE_TYPING_WRONG : GAME_CONFIG.SCORE_WRONG;
         const newWrongLetters = isMatch
           ? roundData.targetLetter
             ? [...stateRef.current.wrongLetters, roundData.targetLetter]
@@ -486,12 +511,12 @@ export function useGameActions({
 
         if (isMatch && newState.wrongAttempts >= GAME_CONFIG.WRONG_LIMIT) {
           showFeedback(`${randomPraise('wrong')} -${points}`, 'wrong', correct);
-          saveProgress(newState, stageStars);
+          saveCheckpoint(newState, currentStageId, currentSubStageId);
           setIsTransitioning(true);
           setTimeout(() => {
             advanceMatchRound(newState, newState.score, newState.levelCorrect, newState.levelTotal);
             setIsTransitioning(false);
-          }, GAME_CONFIG.FEEDBACK_DURATION);
+          }, GAME_CONFIG.FEEDBACK_DURATION_WRONG);
         } else {
           showFeedback(`${randomPraise('wrong')} -${points}`, 'wrong');
         }
@@ -501,20 +526,20 @@ export function useGameActions({
       isTransitioning,
       roundData,
       generateRound,
-      playSound,
-      showFeedback,
-      handleLevelComplete,
+      handleSubStageComplete,
       advanceMatchRound,
-      stageStars,
-      playSequence,
       trackCustomEvent,
+      showFeedback,
+      trackLetter,
+      currentStageId,
+      currentSubStageId,
     ],
   );
 
   const checkTyping = useCallback(() => {
     if (isTransitioning) return;
-    const config = LEVELS[6];
-    if (!config) return;
+    const sub = subStageRef.current;
+    if (!sub || sub.type !== 'typing') return;
 
     let allCorrect = true;
     const newGrid: GridCell[] = roundData.grid.map((item) => {
@@ -527,10 +552,11 @@ export function useGameActions({
     setRoundData({ ...roundData, grid: newGrid });
 
     if (allCorrect) {
-      playSound('correct');
+      playSingleCorrect();
       trackCustomEvent('game_correct', {
         game: 'alphabet-adventure',
-        level: 6,
+        stageId: currentStageId,
+        type: 'typing',
         letter: roundData.grid
           .filter((g) => g.isHidden)
           .map((g) => g.char)
@@ -539,13 +565,16 @@ export function useGameActions({
       });
       pushAnalytics({
         type: 'correct',
-        level: 6,
+        level: currentStageId,
         letter: roundData.grid
           .filter((g) => g.isHidden)
           .map((g) => g.char)
           .join(''),
         streak: stateRef.current.currentStreak + 1,
       });
+
+      roundData.grid.filter((g) => g.isHidden).forEach((g) => trackLetter(g.char, true));
+
       const newScore = stateRef.current.score + GAME_CONFIG.SCORE_TYPING_CORRECT;
       const newWins = stateRef.current.winsInLevel + 1;
       const newDifficulty = Math.min(
@@ -565,6 +594,8 @@ export function useGameActions({
         bestStreak: Math.max(newStreak, stateRef.current.bestStreak),
         wrongAttempts: 0,
       };
+      const pool = sub.letterPool;
+      const target = pool ? pool.length : 26;
 
       if (newStreak === 3 || newStreak === 5 || (newStreak >= 10 && newStreak % 5 === 0)) {
         if (streakToastRef.current) clearTimeout(streakToastRef.current);
@@ -573,18 +604,18 @@ export function useGameActions({
       }
       showFeedback(`${randomPraise('correct')} +${GAME_CONFIG.SCORE_TYPING_CORRECT}`, 'correct');
 
-      if (newWins >= config.target) {
-        handleLevelComplete(newScore, newState.levelCorrect, newState.levelTotal);
-        saveProgress(newState, stageStars);
+      if (newWins >= target) {
+        handleSubStageComplete(newScore, newState.levelCorrect, newState.levelTotal);
+        saveCheckpoint(newState, currentStageId, currentSubStageId);
       } else {
         setIsTransitioning(true);
         setGameState(newState);
-        saveProgress(newState, stageStars);
+        saveCheckpoint(newState, currentStageId, currentSubStageId);
         setTimeout(() => {
-          const round = generateTypingRound(newDifficulty);
+          const round = generateTypingRound(pool || []);
           setRoundData({ choices: [], wrongChoices: [], ...round });
           setIsTransitioning(false);
-        }, GAME_CONFIG.FEEDBACK_DURATION);
+        }, GAME_CONFIG.FEEDBACK_DURATION_CORRECT);
       }
     } else {
       cardDroppedRef.current = false;
@@ -599,10 +630,11 @@ export function useGameActions({
         clearTimeout(streakToastRef.current);
         streakToastRef.current = null;
       }
-      playSequence([300, 220, 160], 0.1, 0.15);
+      playWrong();
       trackCustomEvent('game_wrong', {
         game: 'alphabet-adventure',
-        level: 6,
+        stageId: currentStageId,
+        type: 'typing',
         letter: roundData.grid
           .filter((g) => g.isHidden)
           .map((g) => g.char)
@@ -610,13 +642,16 @@ export function useGameActions({
       });
       pushAnalytics({
         type: 'wrong',
-        level: 6,
+        level: currentStageId,
         letter: roundData.grid
           .filter((g) => g.isHidden)
           .map((g) => g.char)
           .join(''),
         streak: 0,
       });
+
+      roundData.grid.filter((g) => g.isWrong).forEach((g) => trackLetter(g.char, false));
+
       const typingWrongLetters = newGrid.filter((g) => g.isWrong).map((g) => g.char);
       const newErrors = stateRef.current.consecutiveErrors + 1;
       const newState: GameState = {
@@ -628,6 +663,7 @@ export function useGameActions({
         wrongAttempts: stateRef.current.wrongAttempts + 1,
         wrongLetters: [...stateRef.current.wrongLetters, ...typingWrongLetters],
       };
+      const pool = sub.letterPool;
 
       if (newErrors >= GAME_CONFIG.ERROR_THRESHOLD) {
         showFeedback('Difficulty decreased!', 'wrong');
@@ -637,13 +673,13 @@ export function useGameActions({
           consecutiveErrors: 0,
         };
         setGameState(easierState);
-        saveProgress(easierState, stageStars);
+        saveCheckpoint(easierState, currentStageId, currentSubStageId);
         setIsTransitioning(true);
         setTimeout(() => {
-          const round = generateTypingRound(easierState.difficulty);
+          const round = generateTypingRound(pool || []);
           setRoundData({ choices: [], wrongChoices: [], ...round });
           setIsTransitioning(false);
-        }, GAME_CONFIG.FEEDBACK_DURATION + 500);
+        }, GAME_CONFIG.FEEDBACK_DURATION_WRONG + 500);
       } else {
         setGameState(newState);
         showFeedback(randomPraise('wrong'), 'wrong');
@@ -660,11 +696,13 @@ export function useGameActions({
   }, [
     isTransitioning,
     roundData,
-    playSound,
-    showFeedback,
-    handleLevelComplete,
-    stageStars,
+    generateRound,
+    handleSubStageComplete,
     trackCustomEvent,
+    showFeedback,
+    trackLetter,
+    currentStageId,
+    currentSubStageId,
   ]);
 
   const handleSelectCell = useCallback((index: number) => {
@@ -681,34 +719,20 @@ export function useGameActions({
 
   const handleCardKeep = useCallback(() => {
     setCardReveal(null);
-    if (pendingFinishRef.current > 0) {
-      finishGame(pendingFinishRef.current);
-      pendingFinishRef.current = 0;
+    if (pendingCompleteRef.current) {
+      const result = pendingCompleteRef.current;
+      pendingCompleteRef.current = null;
+      onCompleteRef.current?.(result);
+      onCompleteRef.current = null;
     }
-  }, [finishGame]);
-
-  const markOnboardingSeen = useCallback(
-    (level: number) => {
-      setGameState((prev) => {
-        const onboardingSeen = [...prev.onboardingSeen];
-        onboardingSeen[level - 1] = true;
-        const newState = { ...prev, onboardingSeen };
-        saveProgress(newState, stageStars);
-        return newState;
-      });
-    },
-    [stageStars],
-  );
+  }, []);
 
   return {
     gameState,
     roundData,
     feedback,
     isTransitioning,
-    stageStars,
     hasSavedProgress,
-    easyMode,
-    setEasyMode,
     lastCardDropped,
     streakToast,
     cardReveal,
@@ -720,12 +744,12 @@ export function useGameActions({
     effectiveStreak: getEffectiveStreak(dropStreak, dropPower),
     dropStreak,
     handleCardKeep,
-    startGame,
-    continueGame,
+    startSubStage,
     handleAnswer,
     checkTyping,
     handleSelectCell,
     handleTypingInput,
-    markOnboardingSeen,
+    currentStageId,
+    currentSubStageId,
   };
 }

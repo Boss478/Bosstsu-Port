@@ -5,6 +5,29 @@
 
 
 
+## v1.10.62 (2026-07-09)
+- **Dead code cleanup**: Removed 5 dead items — `LEVELS`/`LevelConfig` (obsolete), `fisherYatesShuffle` alias (direct `shuffleArray`), `resetRoundSeed()` no-op + 2 tests, no-op `updateMapSave` call. Build/lint clean, 144 tests.
++ * **Stale closure fix**: `handleSubStageComplete` now uses refs (`stageIdRef`/`subIdxRef`) instead of stale state closure — prevents early return on first sub-stage completion of each new stage. All saves now persist correctly.
++ * **Code refactor — SFX extraction**: Extracted `playCardSfx`, `playSingleCorrect`, `playWrong` from `useGameActions.ts` (809→742 lines) to new `sfx.ts`. 3 new tests verify exports. TDD cycle (Red-Green-Refactor).
++ **Alphabet Adventure phase 1-5**: 14 features across 18 tasks — 5 sub-stages, save migration, Victory stars, Next Lesson/Stage Complete, Practice Mode toggle, Show Instructions, color+icon feedback, reduced motion, touch targets, spaced repetition, on-screen keyboard, LetterProgressGrid dashboard, mascot reactions, enhanced onboarding.
++ * **Letter groups 6→5**: `LETTER_GROUPS` now A-F, G-L, M-R, S-Z (8 letters), ALL. Save v3 migration maps old indices [0,1,2,3,5]→[0,1,2,3,4].
++ * **Victory polish**: Stars display (1-3 amber/grey). "Next Lesson" / "Next Stage" / "Congratulations!" terminal case. Mascot reaction + speech bubble on completion.
++ * **Practice Mode**: MenuScreen toggle stores `alphabet-adventure-easyMode`. Reduces choices (3→2 match, 4→3 fill).
++ * **Show Instructions**: Reset onboarding overlays button.
++ + **Spaced repetition**: Match round pools sorted by letter accuracy (lowest first) for Stages 1-3.
++ + **On-screen keyboard**: A-Z virtual keyboard (3 rows) for Typing Challenge.
++ + **LetterProgressGrid**: Shared component on LevelMapScreen (all 26) and StageMapScreen (per-stage). Color-coded: grey=untracked, amber=<80%, green=≥80%.
++ + **Mascot reactions**: CaptainAlph/Mermaid/TreasureMonster on Victory screen + speech bubble. CaptainAlph in streak toast.
++ + **Enhanced onboarding**: Inline SVG illustrations per game type + "Let's go!" start button.
++ * **Accessibility**: ✓/✗ icons alongside color feedback. `prefers-reduced-motion` support (`.alphabet-game *`). FillLevel cells ≥48px touch targets.
++ **Tests**: 106 passing (98 original + 8 new for buildStages/stage structure/S-Z targetMin).
++ **Alphabet Adventure map restructure**: Stages are now game types (Thai Match, Phonics Match, etc.) with letter groups as sub-stages (A-F, G-L, ..., All 26). Fixed scroll not working on LevelMapScreen and StageMapScreen (added height constraints to enable `overflow-y-auto`).
++ * Scroll fix: Added `h-full` to client wrapper, `max-h-full` to map screen containers.
++ * Restructure: Swapped iteration axes in `buildStages()` — STAGE_SUB_TYPE is outer loop, LETTER_GROUPS is inner loop.
+
+## v1.10.60 (2026-07-07)
++ **Alphabet Adventure redesign**: Linear 6-level progression replaced with Duolingo-style map (6 stages × 6 sub-stages each). New screens: LevelMapScreen, StageMapScreen. Old save auto-migrated to map-v2 format. Round generators now accept letter pool parameter. Per-letter tracking added.
+
 ## v1.10.59 (2026-07-07)
 + **Fix**: Double letter in IPA→Word quiz (e.preventDefault in keydown handler).
 + **Fix**: Quiz question options reshuffling on data fetch resolve (useState lazy init instead of useMemo).

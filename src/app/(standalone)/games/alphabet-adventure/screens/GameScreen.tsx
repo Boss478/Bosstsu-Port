@@ -2,7 +2,6 @@
 
 import { useEffect, useCallback, useRef } from 'react';
 import type { GameState, RoundData, FeedbackState, LevelType, DataPool } from '../types';
-import { LEVELS } from '../constants';
 import MatchLevel from './MatchLevel';
 import FillLevel from './FillLevel';
 import TypingLevel from './TypingLevel';
@@ -25,6 +24,11 @@ interface Props {
   onSpeak: (text: string, lang?: string) => void;
   dropPower?: number;
   effectiveStreak?: number;
+  subStageName?: string;
+  subStageSubtitle?: string;
+  levelType?: LevelType;
+  dataPool?: DataPool;
+  target?: number;
 }
 
 export default function GameScreen({
@@ -45,13 +49,15 @@ export default function GameScreen({
   onShowCards,
   dropPower,
   effectiveStreak,
+  subStageName = 'Lesson',
+  subStageSubtitle = '',
+  levelType = 'match',
+  dataPool,
+  target = 10,
 }: Props) {
   const choiceRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const didAutoSpeak = useRef(false);
   const isFeedbackVisible = feedback.text !== '';
-  const levelConfig = LEVELS[gameState.level];
-  const levelType = levelConfig?.type as LevelType;
-  const dataPool = levelConfig?.dataPool as DataPool | undefined;
   const isThaiText = (dataPool === 'thai' || dataPool === 'phonics') && !roundData.revert;
 
   useEffect(() => {
@@ -63,7 +69,7 @@ export default function GameScreen({
     if (!roundData.revert) didAutoSpeak.current = false;
   }, [roundData.targetLetter, roundData.revert, onSpeak]);
 
-  const effectiveTarget = levelType === 'match' && gameState.easyMode ? 15 : levelConfig.target;
+  const effectiveTarget = levelType === 'match' && gameState.easyMode ? 15 : target;
   const progress = levelType === 'match' ? gameState.levelCorrect : gameState.winsInLevel;
   const progressPct = Math.min(100, (progress / effectiveTarget) * 100);
 
@@ -89,7 +95,15 @@ export default function GameScreen({
         onBack();
       }
     },
-    [isTransitioning, isFeedbackVisible, levelType, roundData.choices, onAnswer, onCheckTyping, onBack],
+    [
+      isTransitioning,
+      isFeedbackVisible,
+      levelType,
+      roundData.choices,
+      onAnswer,
+      onCheckTyping,
+      onBack,
+    ],
   );
 
   useEffect(() => {
@@ -117,7 +131,9 @@ export default function GameScreen({
             }}
             key={i}
             onClick={() => !isTransitioning && !isFeedbackVisible && onAnswer(choice)}
-            disabled={isTransitioning || isFeedbackVisible || roundData.wrongChoices?.includes(choice)}
+            disabled={
+              isTransitioning || isFeedbackVisible || roundData.wrongChoices?.includes(choice)
+            }
             className={[
               'rounded-2xl font-black transition-all border-2 disabled:cursor-not-allowed w-16 h-16 md:w-20 md:h-20 active:shadow-none active:translate-y-1.5',
               roundData.wrongChoices?.includes(choice)
@@ -142,21 +158,21 @@ export default function GameScreen({
               className="flex items-center gap-2 px-4 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-500 hover:text-violet-500 transition-colors"
             >
               <i aria-hidden="true" className="fi fi-sr-angle-left text-xs"></i>
-              <span className="text-xs font-black uppercase tracking-widest">Menu</span>
+              <span className="text-xs font-black uppercase tracking-widest">Back</span>
             </button>
             <div className="w-12 h-12 rounded-2xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-violet-600 dark:text-violet-400 text-xl font-black">
-              {gameState.level}
+              <i className="fi fi-sr-bulb text-lg" />
             </div>
             <div>
               <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
-                LEVEL
+                {levelType === 'match' ? 'MATCH' : levelType === 'typing' ? 'TYPE' : 'FILL'}
               </p>
-              <p className="text-lg font-black text-zinc-800 dark:text-zinc-100">
-                {levelConfig?.name || ''}
-              </p>
-              <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
-                {levelConfig?.subtitle || ''}
-              </p>
+              <p className="text-lg font-black text-zinc-800 dark:text-zinc-100">{subStageName}</p>
+              {subStageSubtitle && (
+                <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                  {subStageSubtitle}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -270,8 +286,8 @@ export default function GameScreen({
 
         <p className="text-xs text-zinc-500 dark:text-zinc-500 font-bold mt-8 tracking-wider uppercase">
           {levelType === 'typing'
-            ? 'Press Enter to check • Esc = Menu'
-            : `Press 1-${roundData.choices.length || 3} to answer • Esc = Menu`}
+            ? 'Press Enter to check • Esc = Back'
+            : `Press 1-${roundData.choices.length || 3} to answer • Esc = Back`}
         </p>
       </div>
 
@@ -286,11 +302,14 @@ export default function GameScreen({
             }`}
           >
             <p
-              className={`text-4xl md:text-6xl font-black ${
+              className={`text-4xl md:text-6xl font-black flex items-center gap-4 ${
                 feedback.type === 'correct' ? 'text-emerald-500' : 'text-rose-500'
               }`}
             >
-              {feedback.text}
+              <span className="text-3xl md:text-5xl">
+                {feedback.type === 'correct' ? '✓' : '✗'}
+              </span>
+              <span>{feedback.text}</span>
             </p>
             {feedback.showCorrect && (
               <p className="text-xl font-bold mt-2 text-zinc-600 dark:text-zinc-400">

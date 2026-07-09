@@ -1,31 +1,44 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { HIGH_SCORE_KEY, PROGRESS_KEY, LEVELS } from '../constants';
-import { getAnalytics, computeLevelStats } from '../analytics';
-import type { LevelStats } from '../analytics';
+import { HIGH_SCORE_KEY } from '../constants';
+import CaptainAlph from '../characters/CaptainAlph';
+import Mermaid from '../characters/Mermaid';
+import TreasureMonster from '../characters/TreasureMonster';
+
+const MASCOTS = [CaptainAlph, Mermaid, TreasureMonster];
+const MASCOT_MESSAGES = [
+  'Amazing work!',
+  "You're on fire!",
+  'Keep it up!',
+  'Brilliant!',
+  'Fantastic!',
+  'Super star!',
+  'Incredible!',
+  'Way to go!',
+  'Awesome job!',
+];
+const STAGE_COMPLETE_MESSAGES = [
+  'Stage Complete! You nailed it!',
+  'One stage down! Keep going!',
+  "You're unstoppable!",
+  'Brilliant work!',
+  'Stage conquered!',
+  'Fantastic job!',
+  'On to the next!',
+];
 
 interface Props {
   score: number;
-  stageStars: number[];
+  stars: number;
   wrongLetters?: string[];
+  stageName?: string;
+  isLastSubStage: boolean;
+  isLastStage: boolean;
   onRestart: () => void;
   onBackToMenu: () => void;
-}
-
-function StarDisplay({ count }: { count: number }) {
-  return (
-    <div className="flex justify-center gap-2">
-      {[1, 2, 3].map((star) => (
-        <i
-          key={star}
-          className={`fi fi-sr-star text-3xl ${
-            star <= count ? 'text-amber-400' : 'text-zinc-200 dark:text-zinc-700'
-          } transition-all duration-500`}
-        />
-      ))}
-    </div>
-  );
+  onNextLesson?: () => void;
+  onNextStage?: () => void;
 }
 
 function Confetti() {
@@ -38,19 +51,30 @@ function Confetti() {
 
     for (let i = 0; i < 60; i++) {
       const el = document.createElement('div');
-      el.className = 'absolute w-2 h-2 rounded-sm';
-      el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-      el.style.left = Math.random() * 100 + '%';
-      el.style.top = '-10px';
-      el.style.opacity = String(0.7 + Math.random() * 0.3);
-      el.style.transform = `rotate(${Math.random() * 360}deg)`;
-      el.style.animation = `confetti-fall ${2 + Math.random() * 3}s linear forwards`;
-      el.style.animationDelay = `${Math.random() * 1.5}s`;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const left = Math.random() * 100;
+      const size = Math.random() * 10 + 5;
+      const duration = Math.random() * 2 + 2;
+      const delay = Math.random() * 3;
+
+      el.style.cssText = `
+        position: absolute;
+        top: -10px;
+        left: ${left}%;
+        width: ${size}px;
+        height: ${size * 0.6}px;
+        background: ${color};
+        border-radius: 2px;
+        animation: confetti-fall ${duration}s ease-out ${delay}s forwards;
+        transform: rotate(${Math.random() * 360}deg);
+      `;
       container.appendChild(el);
       particles.push(el);
     }
 
-    return () => particles.forEach((p) => p.remove());
+    return () => {
+      particles.forEach((p) => p.remove());
+    };
   }, []);
 
   return (
@@ -63,15 +87,24 @@ function Confetti() {
 
 export default function VictoryScreen({
   score,
-  stageStars,
+  stars,
   wrongLetters,
+  stageName,
+  isLastSubStage,
+  isLastStage,
   onRestart,
   onBackToMenu,
+  onNextLesson,
+  onNextStage,
 }: Props) {
-  const [analyticsStats] = useState<LevelStats[]>(() => computeLevelStats(getAnalytics()));
+  const [MascotComponent] = useState(() => MASCOTS[Math.floor(Math.random() * MASCOTS.length)]);
+  const messagePool = isLastSubStage ? STAGE_COMPLETE_MESSAGES : MASCOT_MESSAGES;
+  const [mascotMessage] = useState(
+    () => messagePool[Math.floor(Math.random() * messagePool.length)],
+  );
+
   const [isNewBest] = useState(() => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem(PROGRESS_KEY);
       const key = HIGH_SCORE_KEY;
       const prev = Number(localStorage.getItem(key) ?? '0');
       if (score > prev) {
@@ -81,8 +114,6 @@ export default function VictoryScreen({
     }
     return false;
   });
-
-  const totalStars = stageStars.reduce((sum, s) => sum + s, 0);
 
   return (
     <>
@@ -95,13 +126,34 @@ export default function VictoryScreen({
       `}</style>
       <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-3 sm:p-5 md:p-8 shadow-2xl text-center space-y-2 sm:space-y-3 md:space-y-5 animate-in zoom-in duration-500 relative">
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-emerald-500 animate-pulse tracking-tight">
-          Amazing!
+          {isLastSubStage && isLastStage ? 'Congratulations!' : 'Well Done!'}
         </h1>
         <p className="text-sm sm:text-base md:text-lg text-zinc-600 dark:text-zinc-400 font-bold">
-          คุณพิชิตเกาะตัวอักษรสำเร็จแล้ว!
+          {isLastSubStage ? 'Stage Complete!' : 'Lesson Complete!'}
         </p>
+        {isLastSubStage && stageName && (
+          <p className="text-xs sm:text-sm font-bold text-violet-500 uppercase tracking-widest">
+            {stageName}
+          </p>
+        )}
 
-        <div className="text-5xl sm:text-6xl md:text-7xl rotate-12 py-1 sm:py-2 drop-shadow-2xl">
+        <div
+          className="flex justify-center gap-1 sm:gap-2 py-1 sm:py-2"
+          aria-label={`${stars} out of 3 stars`}
+        >
+          {[1, 2, 3].map((s) => (
+            <svg
+              key={s}
+              className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 ${s <= stars ? 'text-amber-400' : 'text-zinc-300 dark:text-zinc-600'}`}
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+          ))}
+        </div>
+
+        <div className="text-5xl sm:text-6xl md:text-7xl py-1 sm:py-2 drop-shadow-2xl">
           <i aria-hidden="true" className="fi fi-sr-trophy text-amber-500 dark:text-amber-400"></i>
         </div>
 
@@ -113,41 +165,25 @@ export default function VictoryScreen({
           </div>
         )}
 
+        <div className="flex items-center justify-center gap-3 sm:gap-4 py-1 sm:py-2">
+          <MascotComponent size={64} />
+          <div className="relative bg-white dark:bg-zinc-800 px-3 sm:px-4 py-2 sm:py-3 rounded-2xl shadow-lg border-2 border-violet-100 dark:border-violet-900/30 max-w-[200px]">
+            <div className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-white dark:bg-zinc-800 border-l-2 border-b-2 border-violet-100 dark:border-violet-900/30 -rotate-45" />
+            <p className="text-sm sm:text-base font-black text-violet-600 dark:text-violet-400">
+              {mascotMessage}
+            </p>
+          </div>
+        </div>
+
         <div className="bg-violet-50 dark:bg-violet-900/10 p-4 sm:p-5 md:p-6 rounded-3xl inline-block border-2 border-violet-100 dark:border-violet-900/30">
           <p className="text-xs sm:text-sm font-bold text-violet-600/60 dark:text-violet-400/60 uppercase tracking-widest mb-1">
-            Final Score
+            Score
           </p>
           <p className="text-4xl sm:text-5xl md:text-6xl font-black text-violet-600 dark:text-violet-400 tracking-tighter">
             {score}
           </p>
         </div>
 
-        {stageStars.length > 0 && (
-          <div className="space-y-2 sm:space-y-3">
-            <p className="text-xs sm:text-sm font-bold text-zinc-500 dark:text-zinc-400">
-              Level Stars
-            </p>
-            <div className="flex flex-col gap-1 sm:gap-2">
-              {stageStars.map((stars, index) => {
-                const levelNum = index + 1;
-                const levelConfig = LEVELS[levelNum];
-                return (
-                  <div key={levelNum} className="flex items-center justify-center gap-2 sm:gap-3">
-                    <span className="text-[10px] sm:text-xs font-bold text-zinc-500 dark:text-zinc-400 w-20 sm:w-24 md:w-32 text-right">
-                      {levelConfig?.name || `Level ${levelNum}`}
-                    </span>
-                    <StarDisplay count={stars} />
-                  </div>
-                );
-              })}
-            </div>
-            <div className="pt-1 sm:pt-2 border-t-2 border-violet-200 dark:border-violet-800">
-              <p className="text-[10px] sm:text-xs font-bold text-violet-500 dark:text-violet-400">
-                Total: {totalStars} / {stageStars.length * 3} Stars
-              </p>
-            </div>
-          </div>
-        )}
         {wrongLetters && wrongLetters.length > 0 && (
           <div className="pt-1 sm:pt-2">
             <p className="text-[10px] sm:text-xs font-bold text-rose-500 uppercase tracking-widest mb-1 sm:mb-2">
@@ -180,63 +216,36 @@ export default function VictoryScreen({
             </div>
           </div>
         )}
-
-        {analyticsStats.length > 0 && (
-          <div className="pt-1 sm:pt-2 border-t-2 border-zinc-200 dark:border-zinc-700">
-            <p className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">
-              Session Breakdown
-            </p>
-            <div className="space-y-1.5">
-              {analyticsStats.map((stat) => {
-                const levelConfig = LEVELS[stat.level];
-                const name = levelConfig?.name || `Level ${stat.level}`;
-                const totalErrors = Object.values(stat.letterErrors).reduce((a, b) => a + b, 0);
-                return (
-                  <div
-                    key={stat.level}
-                    className="flex items-center justify-between gap-2 text-[11px] font-bold"
-                  >
-                    <span className="text-zinc-600 dark:text-zinc-400 w-20 sm:w-24 text-right">
-                      {name}
-                    </span>
-                    <span
-                      className={`text-xs font-black tabular-nums ${stat.accuracy >= 80 ? 'text-emerald-500' : stat.accuracy >= 50 ? 'text-amber-500' : 'text-rose-500'}`}
-                    >
-                      {stat.accuracy}%
-                    </span>
-                    <span className="text-zinc-500 dark:text-zinc-500 tabular-nums">
-                      {stat.correct}/{stat.total}
-                    </span>
-                    {totalErrors > 0 && (
-                      <span className="text-rose-400 text-[10px]">
-                        ✗
-                        {Object.entries(stat.letterErrors)
-                          .sort(([, a], [, b]) => b - a)
-                          .slice(0, 3)
-                          .map(([l]) => l)
-                          .join(' ')}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="flex flex-col md:flex-row items-center justify-center gap-3 pt-2 sm:pt-3 md:pt-4">
+        {!isLastSubStage && onNextLesson && (
+          <button
+            onClick={onNextLesson}
+            className="px-6 py-2.5 sm:px-8 sm:py-3 md:px-10 md:py-4 bg-emerald-500 text-white text-base sm:text-lg md:text-xl font-black rounded-3xl shadow-[0_8px_0_0_#059669] active:shadow-none active:translate-y-2 transition-all animate-in zoom-in"
+          >
+            Next Lesson
+          </button>
+        )}
+        {isLastSubStage && !isLastStage && onNextStage && (
+          <button
+            onClick={onNextStage}
+            className="px-6 py-2.5 sm:px-8 sm:py-3 md:px-10 md:py-4 bg-amber-500 text-white text-base sm:text-lg md:text-xl font-black rounded-3xl shadow-[0_8px_0_0_#d97706] active:shadow-none active:translate-y-2 transition-all animate-in zoom-in"
+          >
+            Next Stage
+          </button>
+        )}
         <button
           onClick={onRestart}
-          className="px-6 py-2.5 sm:px-8 sm:py-3 md:px-10 md:py-4 bg-emerald-600 text-white text-base sm:text-lg md:text-xl font-black rounded-3xl shadow-[0_8px_0_0_#065f46] active:shadow-none active:translate-y-2 transition-all"
+          className="px-6 py-2.5 sm:px-8 sm:py-3 md:px-10 md:py-4 bg-violet-600 text-white text-base sm:text-lg md:text-xl font-black rounded-3xl shadow-[0_8px_0_0_#5b21b6] active:shadow-none active:translate-y-2 transition-all"
         >
-          Play Again
+          Try Again
         </button>
         <button
           onClick={onBackToMenu}
           className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl text-sm sm:text-base text-zinc-500 hover:text-violet-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-bold transition-all"
         >
-          Back to Menu
+          Back to Map
         </button>
       </div>
     </>
