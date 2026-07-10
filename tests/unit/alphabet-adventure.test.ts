@@ -1147,6 +1147,66 @@ describe("mascot components", () => {
   });
 });
 
+// ─── Phase 6: generateAnalysis ──────────────────────────────────────────
+
+describe("generateAnalysis", () => {
+  it("returns perfect message for 100% accuracy", async () => {
+    const { generateAnalysis } = await import("@/app/(standalone)/games/alphabet-adventure/analysis");
+    const result = generateAnalysis(100, { A: { correct: 5, wrong: 0 }, B: { correct: 3, wrong: 0 } }, ["A", "B"]);
+    expect(result.english).toContain("Perfect");
+    expect(result.thai).toContain("สมบูรณ์แบบ");
+  });
+
+  it("returns excellent message for 95% accuracy with high-accuracy letters as strengths", async () => {
+    const { generateAnalysis } = await import("@/app/(standalone)/games/alphabet-adventure/analysis");
+    const result = generateAnalysis(95, { A: { correct: 10, wrong: 1 } }, ["A"]);
+    expect(result.english).toContain("Excellent");
+    expect(result.thai).toContain("เก่งมาก");
+  });
+
+  it("returns great work message for 75% accuracy", async () => {
+    const { generateAnalysis } = await import("@/app/(standalone)/games/alphabet-adventure/analysis");
+    const result = generateAnalysis(75, { A: { correct: 7, wrong: 3 }, B: { correct: 5, wrong: 5 } }, ["A", "B"]);
+    expect(result.english).toContain("Great work");
+    expect(result.thai).toContain("ดีมาก");
+  });
+
+  it("returns keep going message for 50% accuracy", async () => {
+    const { generateAnalysis } = await import("@/app/(standalone)/games/alphabet-adventure/analysis");
+    const result = generateAnalysis(50, { A: { correct: 1, wrong: 1 } }, ["A"]);
+    expect(result.english).toContain("Keep going");
+    expect(result.thai).toContain("สู้ๆ");
+  });
+
+  it("mentions low-performing letters in to-improve section", async () => {
+    const { generateAnalysis } = await import("@/app/(standalone)/games/alphabet-adventure/analysis");
+    const result = generateAnalysis(70, {
+      A: { correct: 10, wrong: 1 },
+      B: { correct: 1, wrong: 5 },
+    }, ["A", "B"]);
+    expect(result.english).toContain("B");
+    expect(result.english).not.toContain("A");
+    expect(result.thai).toContain("B");
+  });
+
+  it("includes vowel focus advice when vowels underperform consonants", async () => {
+    const { generateAnalysis } = await import("@/app/(standalone)/games/alphabet-adventure/analysis");
+    const result = generateAnalysis(60, {
+      A: { correct: 1, wrong: 5 },
+      B: { correct: 5, wrong: 1 },
+    }, ["A", "B"]);
+    expect(result.english).toContain("vowels");
+    expect(result.thai).toContain("สระ");
+  });
+
+  it("handles empty stats gracefully", async () => {
+    const { generateAnalysis } = await import("@/app/(standalone)/games/alphabet-adventure/analysis");
+    const result = generateAnalysis(0, {}, []);
+    expect(result.english).toBeTruthy();
+    expect(result.thai).toBeTruthy();
+  });
+});
+
 describe("sfx module", () => {
   it("exports playCardSfx as a function", async () => {
     const mod = await import("@/app/(standalone)/games/alphabet-adventure/sfx");
