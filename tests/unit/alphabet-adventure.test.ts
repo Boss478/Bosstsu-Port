@@ -602,7 +602,7 @@ describe("buildStages", () => {
 
   it("sub-stage types are uniform within each stage", () => {
     const stages = buildStages();
-    const expectedTypes = ["match", "match", "match", "fill-upper", "fill-lower", "typing"];
+    const expectedTypes = ["match", "match", "fill-upper", "fill-lower", "match", "typing"];
     for (let i = 0; i < 6; i++) {
       for (const sub of stages[i].subStages) {
         expect(sub.type).toBe(expectedTypes[i]);
@@ -637,19 +637,19 @@ describe("buildStages", () => {
 
   it("sub-stage 0 (A-F) letterPool matches match type stages (uppercase)", () => {
     const stages = buildStages();
-    for (let i = 0; i < 3; i++) {
+    for (const i of [0, 1, 4]) {
       expect(stages[i].subStages[0].letterPool).toEqual(["A", "B", "C", "D", "E", "F"]);
     }
   });
 
   it("sub-stage 0 letterPool is lowercase for fill-lower stage", () => {
     const stages = buildStages();
-    expect(stages[4].subStages[0].letterPool).toEqual(["a", "b", "c", "d", "e", "f"]);
+    expect(stages[3].subStages[0].letterPool).toEqual(["a", "b", "c", "d", "e", "f"]);
   });
 
   it("last sub-stage (All 26) letterPool is 26 letters for match and typing", () => {
     const stages = buildStages();
-    for (let i = 0; i < 3; i++) {
+    for (const i of [0, 1, 4]) {
       expect(stages[i].subStages[4].letterPool).toHaveLength(26);
     }
     expect(stages[5].subStages[4].letterPool).toHaveLength(26);
@@ -657,8 +657,8 @@ describe("buildStages", () => {
 
   it("last sub-stage letterPool hidden for fill is 10 random letters", () => {
     const stages = buildStages();
+    expect(stages[2].subStages[4].letterPool).toHaveLength(10);
     expect(stages[3].subStages[4].letterPool).toHaveLength(10);
-    expect(stages[4].subStages[4].letterPool).toHaveLength(10);
   });
 
   it("every sub-stage has a non-empty letterPool", () => {
@@ -674,33 +674,32 @@ describe("buildStages", () => {
   it("revert is true for Thai Match and Phonics Match stages only", () => {
     const stages = buildStages();
     for (const sub of stages[0].subStages) expect(sub.revert).toBe(true);
-    for (const sub of stages[1].subStages) expect(sub.revert).toBe(true);
-    for (let i = 2; i < 6; i++)
+    for (const sub of stages[4].subStages) expect(sub.revert).toBe(true);
+    for (const i of [1, 2, 3, 5])
       for (const sub of stages[i].subStages) expect(sub.revert).toBe(false);
   });
 
   it("dataPool matches stage game type", () => {
     const stages = buildStages();
     expect(stages[0].subStages[0].dataPool).toBe("thai");
-    expect(stages[1].subStages[0].dataPool).toBe("phonics");
-    expect(stages[2].subStages[0].dataPool).toBe("lowercase");
+    expect(stages[1].subStages[0].dataPool).toBe("lowercase");
+    expect(stages[2].subStages[0].dataPool).toBeUndefined();
     expect(stages[3].subStages[0].dataPool).toBeUndefined();
-    expect(stages[4].subStages[0].dataPool).toBeUndefined();
+    expect(stages[4].subStages[0].dataPool).toBe("phonics");
     expect(stages[5].subStages[0].dataPool).toBeUndefined();
   });
 
   it("fill sub-stages have hideLetters set, match/typing do not", () => {
     const stages = buildStages();
-    for (let i = 0; i < 3; i++)
+    for (const i of [0, 1, 4, 5])
       for (const sub of stages[i].subStages) expect(sub.hideLetters).toBeUndefined();
+    for (const sub of stages[2].subStages) expect(sub.hideLetters).toBeDefined();
     for (const sub of stages[3].subStages) expect(sub.hideLetters).toBeDefined();
-    for (const sub of stages[4].subStages) expect(sub.hideLetters).toBeDefined();
-    for (const sub of stages[5].subStages) expect(sub.hideLetters).toBeUndefined();
   });
 
   it("fill-lower hideLetters are lowercase", () => {
     const stages = buildStages();
-    for (const sub of stages[4].subStages) {
+    for (const sub of stages[3].subStages) {
       for (const letter of sub.hideLetters!) {
         expect(letter).toMatch(/^[a-z]$/);
       }
@@ -709,33 +708,33 @@ describe("buildStages", () => {
 
   it("targetMin for match types with 6-letter groups is PER_LETTER_MIN * 6", () => {
     const stages = buildStages();
-    for (let i = 0; i < 3; i++)
+    for (const i of [0, 1, 4])
       for (let j = 0; j < 3; j++)
         expect(stages[i].subStages[j].targetMin).toBe(PER_LETTER_MIN * 6);
   });
 
   it("targetMin for match type S-Z (8-letter group) is PER_LETTER_MIN * 8", () => {
     const stages = buildStages();
-    for (let i = 0; i < 3; i++)
+    for (const i of [0, 1, 4])
       expect(stages[i].subStages[3].targetMin).toBe(PER_LETTER_MIN * 8);
   });
 
   it("targetMin for last sub-stage (All 26) match types is STAGE6_PER_LETTER_MIN * 26", () => {
     const stages = buildStages();
-    for (let i = 0; i < 3; i++)
+    for (const i of [0, 1, 4])
       expect(stages[i].subStages[4].targetMin).toBe(STAGE6_PER_LETTER_MIN * 26);
   });
 
   it("targetMin for fill types with 6-letter groups equals 6", () => {
     const stages = buildStages();
-    for (const i of [3, 4])
+    for (const i of [2, 3])
       for (let j = 0; j < 3; j++)
         expect(stages[i].subStages[j].targetMin).toBe(6);
   });
 
   it("targetMin for fill type S-Z (8-letter group) equals 8", () => {
     const stages = buildStages();
-    for (const i of [3, 4])
+    for (const i of [2, 3])
       expect(stages[i].subStages[3].targetMin).toBe(8);
   });
 

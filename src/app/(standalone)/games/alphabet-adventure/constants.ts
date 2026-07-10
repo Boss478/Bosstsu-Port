@@ -18,11 +18,11 @@ export const LETTER_GROUPS: string[][] = [
 
 export const SUB_STAGE_NAMES: Array<{ name: string; subtitle: string }> = [
   { name: 'Thai Match', subtitle: 'จับคู่ภาษาไทย' },
-  { name: 'Phonics Match', subtitle: 'จับคู่เสียงอ่าน' },
   { name: 'Letter Match', subtitle: 'จับคู่ตัวอักษร' },
   { name: 'Missing Capitals', subtitle: 'เติมตัวพิมพ์ใหญ่ที่หายไป' },
   { name: 'Missing Lowercase', subtitle: 'เติมตัวพิมพ์เล็กที่หายไป' },
-  { name: 'Typing Challenge', subtitle: 'พิมพ์ตัวอักษร' },
+  { name: 'Phonics Match', subtitle: 'จับคู่เสียงอ่าน' },
+  { name: 'Typing', subtitle: 'พิมพ์ตัวอักษร' },
 ];
 
 const STAGE_SUB_TYPE: Array<{
@@ -31,10 +31,10 @@ const STAGE_SUB_TYPE: Array<{
   revert?: boolean;
 }> = [
   { type: 'match', dataPool: 'thai', revert: true },
-  { type: 'match', dataPool: 'phonics', revert: true },
   { type: 'match', dataPool: 'lowercase' },
   { type: 'fill-upper' },
   { type: 'fill-lower' },
+  { type: 'match', dataPool: 'phonics', revert: true },
   { type: 'typing' },
 ];
 

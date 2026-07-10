@@ -63,12 +63,15 @@ export function loadCheckpoint(): {
   }
 }
 
-interface SubStageResult {
+export interface SubStageResult {
   score: number;
   correct: number;
   total: number;
   stars: number;
   letterTracker: Record<string, LetterTracker>;
+  sessionLetterStats: Record<string, { correct: number; wrong: number }>;
+  bestStreak: number;
+  subStageName: string;
 }
 
 export function useGameActions() {
@@ -78,6 +81,7 @@ export function useGameActions() {
   const subStageRef = useRef<SubStageConfig | null>(null);
   const onCompleteRef = useRef<((result: SubStageResult) => void) | null>(null);
   const letterTrackerRef = useRef<Record<string, LetterTracker>>({});
+  const sessionLetterStatsRef = useRef<Record<string, { correct: number; wrong: number }>>({});
 
   const [gameState, setGameState] = useState<GameState>(initialGameState());
   const [roundData, setRoundData] = useState<RoundData>(emptyRoundData());
@@ -257,6 +261,7 @@ export function useGameActions() {
       cardDroppedRef.current = false;
       dropStreakRef.current = 0;
       setDropStreak(0);
+      sessionLetterStatsRef.current = {};
 
       trackCustomEvent('substage_start', {
         game: 'alphabet-adventure',
@@ -280,6 +285,9 @@ export function useGameActions() {
       total,
       stars,
       letterTracker: { ...letterTrackerRef.current },
+      sessionLetterStats: { ...sessionLetterStatsRef.current },
+      bestStreak: stateRef.current.bestStreak,
+      subStageName: subStageRef.current?.name ?? '',
     };
 
     pendingCompleteRef.current = result;
@@ -293,6 +301,10 @@ export function useGameActions() {
     const t = letterTrackerRef.current;
     const entry = t[letter] || { correct: 0, total: 0 };
     t[letter] = { correct: entry.correct + (correct ? 1 : 0), total: entry.total + 1 };
+    const s = sessionLetterStatsRef.current;
+    if (!s[letter]) s[letter] = { correct: 0, wrong: 0 };
+    if (correct) s[letter].correct++;
+    else s[letter].wrong++;
   }, []);
 
   const advanceMatchRound = useCallback(

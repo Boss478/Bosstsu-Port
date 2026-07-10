@@ -133,7 +133,7 @@ export function initialStageProgress(unlocked: boolean): StageProgress {
 
 export function emptyMapSaveData(): MapSaveData {
   return {
-    version: 3,
+    version: 4,
     totalScore: 0,
     stages: [
       initialStageProgress(true),

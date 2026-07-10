@@ -5,6 +5,10 @@
 
 
 
+## v1.10.63 (2026-07-10)
+- **Stage reorder**: Thai Match (1), Letter Match (2), Missing Capitals (3), Missing Lowercase (4), Phonics Match (5), Typing (6). Stage 6 renamed "Typing Challenge" → "Typing". Save version bumped 3→4 (old saves auto-reset).
+- **Rich Victory screen**: Accuracy gauge (conic gradient), per-letter accuracy grid, Strengths (>80%) / To Improve (<60%) lists, best streak, rule-based bilingual analysis (Thai+English), Stage Complete per-sub-stage table. Per-session letter tracking via `sessionLetterStatsRef`.
+
 ## v1.10.62 (2026-07-09)
 - **Dead code cleanup**: Removed 5 dead items — `LEVELS`/`LevelConfig` (obsolete), `fisherYatesShuffle` alias (direct `shuffleArray`), `resetRoundSeed()` no-op + 2 tests, no-op `updateMapSave` call. Build/lint clean, 144 tests.
 + * **Stale closure fix**: `handleSubStageComplete` now uses refs (`stageIdRef`/`subIdxRef`) instead of stale state closure — prevents early return on first sub-stage completion of each new stage. All saves now persist correctly.

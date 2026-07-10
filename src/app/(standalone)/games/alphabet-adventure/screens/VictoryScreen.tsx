@@ -28,6 +28,83 @@ const STAGE_COMPLETE_MESSAGES = [
   'On to the next!',
 ];
 
+const VOWELS = new Set(['A', 'E', 'I', 'O', 'U']);
+
+function generateAnalysis(
+  accuracyPercent: number,
+  sessionLetterStats: Record<string, { correct: number; wrong: number }>,
+  subStageLetters: string[],
+): { english: string; thai: string } {
+  const highs: string[] = [];
+  const lows: string[] = [];
+  const vowelLows: string[] = [];
+  let vowelSum = 0;
+  let vowelCount = 0;
+  let consonantSum = 0;
+  let consonantCount = 0;
+
+  for (const letter of subStageLetters) {
+    const stats = sessionLetterStats[letter];
+    if (!stats) continue;
+    const total = stats.correct + stats.wrong;
+    if (total === 0) continue;
+    const pct = (stats.correct / total) * 100;
+    if (pct > 80) highs.push(letter);
+    else if (pct < 60) {
+      lows.push(letter);
+      if (VOWELS.has(letter)) vowelLows.push(letter);
+    }
+    if (VOWELS.has(letter)) {
+      vowelSum += pct;
+      vowelCount++;
+    } else {
+      consonantSum += pct;
+      consonantCount++;
+    }
+  }
+
+  const letterCount = highs.length + lows.length;
+  if (accuracyPercent === 100) {
+    return {
+      english: `Perfect! All ${letterCount} letters correct! You're a superstar!`,
+      thai: `สมบูรณ์แบบ! ทั้ง ${letterCount} ตัวอักษรถูกต้อง! คุณคือซุปเปอร์สตาร์!`,
+    };
+  }
+
+  let en = '';
+  let th = '';
+
+  if (accuracyPercent >= 90) {
+    en = `Excellent! You've mastered ${highs.join(', ')}. Keep it up!`;
+    th = `เก่งมาก! คุณทำได้ดีกับ ${highs.join(', ')}! เก่งมาก!`;
+  } else if (accuracyPercent >= 70) {
+    const focus = lows.length > 0 ? lows.join(', ') : 'these letters';
+    en = `Great work! Practice ${focus} a bit more.`;
+    th = `ดีมาก! ฝึก ${focus} อีกนิดนะ`;
+  } else {
+    const focus = lows.length > 0 ? lows.join(', ') : 'these letters';
+    en = `Keep going! Focus on ${focus}. You'll get it!`;
+    th = `สู้ๆ! เน้น ${focus} ให้มากขึ้น! คุณทำได้!`;
+  }
+
+  const vowelAvg = vowelCount > 0 ? vowelSum / vowelCount : 0;
+  const consonantAvg = consonantCount > 0 ? consonantSum / consonantCount : 0;
+  if (vowelCount > 0 && consonantCount > 0 && vowelAvg < consonantAvg && vowelAvg < 70) {
+    const vowelStr = vowelLows.length > 0 ? vowelLows.join(', ') : 'A, E, I, O, U';
+    en += ` Focus on vowels like ${vowelStr}.`;
+    th += ` เน้นสระเช่น ${vowelStr}.`;
+  }
+
+  return { english: en, thai: th };
+}
+
+interface SubStageSummary {
+  name: string;
+  stars: number;
+  accuracy: number;
+  sessionLetterStats: Record<string, { correct: number; wrong: number }>;
+}
+
 interface Props {
   score: number;
   stars: number;
@@ -39,6 +116,11 @@ interface Props {
   onBackToMenu: () => void;
   onNextLesson?: () => void;
   onNextStage?: () => void;
+  accuracyPercent: number;
+  sessionLetterStats: Record<string, { correct: number; wrong: number }>;
+  bestStreak: number;
+  subStageLetters: string[];
+  subStageSummaries?: SubStageSummary[];
 }
 
 function Confetti() {
@@ -96,13 +178,17 @@ export default function VictoryScreen({
   onBackToMenu,
   onNextLesson,
   onNextStage,
+  accuracyPercent,
+  sessionLetterStats,
+  bestStreak,
+  subStageLetters,
+  subStageSummaries,
 }: Props) {
   const [MascotComponent] = useState(() => MASCOTS[Math.floor(Math.random() * MASCOTS.length)]);
   const messagePool = isLastSubStage ? STAGE_COMPLETE_MESSAGES : MASCOT_MESSAGES;
   const [mascotMessage] = useState(
     () => messagePool[Math.floor(Math.random() * messagePool.length)],
   );
-
   const [isNewBest] = useState(() => {
     if (typeof window !== 'undefined') {
       const key = HIGH_SCORE_KEY;
@@ -115,6 +201,50 @@ export default function VictoryScreen({
     return false;
   });
 
+  const letterAccuracies: Record<string, number> = {};
+  for (const letter of subStageLetters) {
+    const stats = sessionLetterStats[letter];
+    if (stats) {
+      const total = stats.correct + stats.wrong;
+      letterAccuracies[letter] = total > 0 ? Math.round((stats.correct / total) * 100) : -1;
+    } else {
+      letterAccuracies[letter] = -1;
+    }
+  }
+
+  const strengths = subStageLetters.filter((l) => letterAccuracies[l] > 80);
+  const toImprove = subStageLetters.filter(
+    (l) => letterAccuracies[l] >= 0 && letterAccuracies[l] < 60,
+  );
+
+  const analysis = generateAnalysis(accuracyPercent, sessionLetterStats, subStageLetters);
+
+  const stageTotalSubs = subStageSummaries?.length ?? 0;
+  const stageTotalAccuracy =
+    stageTotalSubs > 0
+      ? Math.round(subStageSummaries!.reduce((s, ss) => s + ss.accuracy, 0) / stageTotalSubs)
+      : 0;
+  const stageTotalStars =
+    stageTotalSubs > 0
+      ? Math.round(subStageSummaries!.reduce((s, ss) => s + ss.stars, 0) / stageTotalSubs)
+      : 0;
+
+  const accuracyColor =
+    accuracyPercent >= 90
+      ? 'text-emerald-500'
+      : accuracyPercent >= 70
+        ? 'text-amber-500'
+        : 'text-rose-500';
+  const accuracyBg =
+    accuracyPercent >= 90
+      ? 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800'
+      : accuracyPercent >= 70
+        ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800'
+        : 'bg-rose-50 dark:bg-rose-900/10 border-rose-200 dark:border-rose-800';
+  const gaugeConic = `conic-gradient(${
+    accuracyPercent >= 90 ? '#10b981' : accuracyPercent >= 70 ? '#f59e0b' : '#f43f5e'
+  } ${accuracyPercent}%, #e4e4e7 ${accuracyPercent}%)`;
+
   return (
     <>
       <Confetti />
@@ -124,7 +254,7 @@ export default function VictoryScreen({
           100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
       `}</style>
-      <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-3 sm:p-5 md:p-8 shadow-2xl text-center space-y-2 sm:space-y-3 md:space-y-5 animate-in zoom-in duration-500 relative">
+      <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-3 sm:p-5 md:p-8 shadow-2xl text-center space-y-2 sm:space-y-3 md:space-y-5 animate-in zoom-in duration-500 relative max-h-[80vh] overflow-y-auto">
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-emerald-500 animate-pulse tracking-tight">
           {isLastSubStage && isLastStage ? 'Congratulations!' : 'Well Done!'}
         </h1>
@@ -153,8 +283,122 @@ export default function VictoryScreen({
           ))}
         </div>
 
-        <div className="text-5xl sm:text-6xl md:text-7xl py-1 sm:py-2 drop-shadow-2xl">
-          <i aria-hidden="true" className="fi fi-sr-trophy text-amber-500 dark:text-amber-400"></i>
+        <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold">
+          ⭐ ≥70% · ⭐⭐ ≥90% · ⭐⭐⭐ Perfect
+        </p>
+
+        <div className="flex items-center justify-center gap-4 sm:gap-6">
+          <div
+            className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full flex items-center justify-center text-lg sm:text-xl md:text-2xl font-black shadow-inner"
+            style={{ background: gaugeConic }}
+          >
+            <div className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-full bg-white dark:bg-zinc-900 flex items-center justify-center">
+              <span className={`${accuracyColor}`}>{accuracyPercent}%</span>
+            </div>
+          </div>
+          <div className="text-left">
+            <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Accuracy</p>
+            <p className={`text-2xl sm:text-3xl font-black ${accuracyColor}`}>{accuracyPercent}%</p>
+          </div>
+        </div>
+
+        <div className="bg-violet-50 dark:bg-violet-900/10 p-4 sm:p-5 md:p-6 rounded-3xl inline-block border-2 border-violet-100 dark:border-violet-900/30">
+          <p className="text-xs sm:text-sm font-bold text-violet-600/60 dark:text-violet-400/60 uppercase tracking-widest mb-1">
+            Score
+          </p>
+          <p className="text-4xl sm:text-5xl md:text-6xl font-black text-violet-600 dark:text-violet-400 tracking-tighter">
+            {score}
+          </p>
+        </div>
+
+        {bestStreak > 0 && (
+          <div className="flex items-center justify-center gap-2">
+            <i className="fi fi-sr-arrow-trend-up text-emerald-500 text-xl" />
+            <span className="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400">
+              Best Streak: {bestStreak}
+            </span>
+          </div>
+        )}
+
+        <div className={`${accuracyBg} p-3 sm:p-4 rounded-3xl border-2 inline-block min-w-[200px]`}>
+          <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
+            {subStageLetters.map((letter) => {
+              const acc = letterAccuracies[letter];
+              if (acc < 0) {
+                return (
+                  <div
+                    key={letter}
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-300 dark:text-zinc-600 text-xs font-black"
+                  >
+                    —
+                  </div>
+                );
+              }
+              const color =
+                acc > 80
+                  ? 'bg-emerald-500 text-white'
+                  : acc >= 60
+                    ? 'bg-amber-400 text-white'
+                    : 'bg-rose-500 text-white';
+              return (
+                <div
+                  key={letter}
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs font-black relative group"
+                >
+                  <div
+                    className={`w-full h-full rounded-lg flex items-center justify-center ${color}`}
+                  >
+                    {acc}%
+                  </div>
+                  <div className="absolute -top-1 -right-1 text-[9px] font-bold text-zinc-400 dark:text-zinc-500">
+                    {letter}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+          {strengths.length > 0 && (
+            <div className="bg-emerald-50 dark:bg-emerald-900/10 px-3 py-2 rounded-2xl border border-emerald-200 dark:border-emerald-800">
+              <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1">
+                Strong
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {strengths.map((l) => (
+                  <span
+                    key={l}
+                    className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400"
+                  >
+                    {l}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {toImprove.length > 0 && (
+            <div className="bg-rose-50 dark:bg-rose-900/10 px-3 py-2 rounded-2xl border border-rose-200 dark:border-rose-800">
+              <p className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-1">
+                To Improve
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {toImprove.map((l) => (
+                  <span
+                    key={l}
+                    className="text-sm sm:text-base font-black text-rose-600 dark:text-rose-400"
+                  >
+                    {l}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-zinc-50 dark:bg-zinc-800/50 p-3 sm:p-4 rounded-3xl border border-zinc-200 dark:border-zinc-700">
+          <p className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{analysis.english}</p>
+          <p className="text-sm font-bold text-zinc-500 dark:text-zinc-400 mt-1">{analysis.thai}</p>
         </div>
 
         {isNewBest && (
@@ -173,15 +417,6 @@ export default function VictoryScreen({
               {mascotMessage}
             </p>
           </div>
-        </div>
-
-        <div className="bg-violet-50 dark:bg-violet-900/10 p-4 sm:p-5 md:p-6 rounded-3xl inline-block border-2 border-violet-100 dark:border-violet-900/30">
-          <p className="text-xs sm:text-sm font-bold text-violet-600/60 dark:text-violet-400/60 uppercase tracking-widest mb-1">
-            Score
-          </p>
-          <p className="text-4xl sm:text-5xl md:text-6xl font-black text-violet-600 dark:text-violet-400 tracking-tighter">
-            {score}
-          </p>
         </div>
 
         {wrongLetters && wrongLetters.length > 0 && (
@@ -213,6 +448,56 @@ export default function VictoryScreen({
                     )}
                   </span>
                 ))}
+            </div>
+          </div>
+        )}
+
+        {isLastSubStage && subStageSummaries && subStageSummaries.length > 0 && (
+          <div className="pt-2">
+            <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">
+              Stage Summary
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs sm:text-sm">
+                <thead>
+                  <tr className="text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-wider">
+                    <th className="text-left py-1 pr-2">Sub-Stage</th>
+                    <th className="text-center px-1">Stars</th>
+                    <th className="text-center px-1">Accuracy</th>
+                    <th className="text-right pl-2">Top Errors</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subStageSummaries.map((ss, i) => {
+                    const errors = Object.entries(ss.sessionLetterStats)
+                      .filter(([, st]) => st.wrong > 0)
+                      .sort(([, a], [, b]) => b.wrong - a.wrong)
+                      .slice(0, 3)
+                      .map(([l]) => l)
+                      .join(', ');
+                    return (
+                      <tr key={i} className="border-t border-zinc-100 dark:border-zinc-800">
+                        <td className="text-left py-1 pr-2 font-bold">{ss.name}</td>
+                        <td className="text-center px-1">
+                          {'★'.repeat(ss.stars)}
+                          {'☆'.repeat(3 - ss.stars)}
+                        </td>
+                        <td className="text-center px-1">{ss.accuracy}%</td>
+                        <td className="text-right pl-2 text-rose-500">{errors || '—'}</td>
+                      </tr>
+                    );
+                  })}
+                  <tr className="border-t-2 border-zinc-300 dark:border-zinc-600 font-black text-zinc-700 dark:text-zinc-300">
+                    <td className="text-left py-1 pr-2">Total</td>
+                    <td className="text-center px-1">
+                      {'★'.repeat(stageTotalStars)}
+                      {'☆'.repeat(3 - stageTotalStars)}
+                    </td>
+                    <td className="text-center px-1">{stageTotalAccuracy}%</td>
+                    <td className="text-right pl-2">—</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         )}

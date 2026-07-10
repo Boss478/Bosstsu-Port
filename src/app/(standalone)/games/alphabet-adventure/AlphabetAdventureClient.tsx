@@ -5,7 +5,7 @@ import type { Screen, MapSaveData, StageConfig } from './types';
 import { emptyMapSaveData } from './types';
 import { getStage } from './constants';
 import { useAudio } from '@/hooks/useAudio';
-import { useGameActions } from './hooks/useGameActions';
+import { useGameActions, type SubStageResult } from './hooks/useGameActions';
 import { loadMapSave, saveMapSave } from './migrateMapSave';
 import GameScreen from './screens/GameScreen';
 import MenuScreen from './screens/MenuScreen';
@@ -36,6 +36,30 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
   const subIdxRef = useRef(0);
 
   const [lastStars, setLastStars] = useState(0);
+  const [lastSessionStats, setLastSessionStats] = useState<
+    Record<string, { correct: number; wrong: number }>
+  >({});
+  const [lastBestStreak, setLastBestStreak] = useState(0);
+  const [lastAccuracy, setLastAccuracy] = useState(0);
+  const subStageResultsRef = useRef<
+    Record<
+      number,
+      {
+        name: string;
+        stars: number;
+        accuracy: number;
+        sessionLetterStats: Record<string, { correct: number; wrong: number }>;
+      }
+    >
+  >({});
+  const [subStageSummaries, setSubStageSummaries] = useState<
+    Array<{
+      name: string;
+      stars: number;
+      accuracy: number;
+      sessionLetterStats: Record<string, { correct: number; wrong: number }>;
+    }>
+  >([]);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const onboardingTypeRef = useRef<string>('');
 
@@ -107,7 +131,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
   }, []);
 
   const handleSubStageComplete = useCallback(
-    (result: { score: number; correct: number; total: number; stars: number }) => {
+    (result: SubStageResult) => {
       updateMapSave((prev) => {
         const stages = [...prev.stages];
         const stageIdx = stageIdRef.current - 1;
@@ -145,6 +169,21 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
       });
 
       setLastStars(result.stars);
+      setLastSessionStats(result.sessionLetterStats);
+      setLastBestStreak(result.bestStreak);
+      setLastAccuracy(result.total > 0 ? Math.round((result.correct / result.total) * 100) : 0);
+
+      subStageResultsRef.current[subIdxRef.current] = {
+        name: result.subStageName ?? '',
+        stars: result.stars,
+        accuracy: result.total > 0 ? Math.round((result.correct / result.total) * 100) : 0,
+        sessionLetterStats: result.sessionLetterStats,
+      };
+
+      if (subIdxRef.current === 4) {
+        setSubStageSummaries(Object.values(subStageResultsRef.current));
+      }
+
       setScreen('victory');
     },
     [updateMapSave],
@@ -154,6 +193,8 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
     const stage = getStage(stageId);
     if (stage) {
       setSelectedStage(stage);
+      subStageResultsRef.current = {};
+      setSubStageSummaries([]);
       setScreen('stage-map');
     }
   }, []);
@@ -356,6 +397,11 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
               }
             }}
             onBackToMenu={handleBackToLevel}
+            accuracyPercent={lastAccuracy}
+            sessionLetterStats={lastSessionStats}
+            bestStreak={lastBestStreak}
+            subStageLetters={currentSubStage?.letterPool ?? []}
+            subStageSummaries={isLastSubStage ? subStageSummaries : undefined}
           />
         )}
       </div>

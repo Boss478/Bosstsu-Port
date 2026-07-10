@@ -43,7 +43,7 @@ export function migrateOldSave(): MapSaveData {
     }
 
     localStorage.removeItem(PROGRESS_KEY);
-    data.version = 3;
+    data.version = 4;
 
     localStorage.setItem(MAP_SAVE_KEY, JSON.stringify(data));
     return data;
@@ -72,7 +72,8 @@ export function loadMapSave(): MapSaveData {
     const raw = localStorage.getItem(MAP_SAVE_KEY);
     if (!raw) return migrateOldSave();
     const data = JSON.parse(raw) as MapSaveData;
-    return migrateV2ToV3(data);
+    if (data.version < 4) return emptyMapSaveData();
+    return data;
   } catch {
     return emptyMapSaveData();
   }
