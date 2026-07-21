@@ -47,9 +47,10 @@ const MODES: { value: QuizMode; label: string; desc: string; icon: string }[] = 
 interface Props {
   onSubmit: (config: QuizConfig) => void;
   onClose: () => void;
+  compatibility?: Partial<Record<QuizDirection, 'compatible' | 'incompatible'>>;
 }
 
-export function ChallengeConfigModal({ onSubmit, onClose }: Props) {
+export function ChallengeConfigModal({ onSubmit, onClose, compatibility }: Props) {
   const trapRef = useFocusTrap(true);
   const [directions, setDirections] = useState<QuizDirection[]>(getSavedDirections);
   const [mode, setMode] = useState<QuizMode>('number');
@@ -130,6 +131,8 @@ export function ChallengeConfigModal({ onSubmit, onClose }: Props) {
             <div className="grid grid-cols-2 gap-2">
               {ALL_DIRECTIONS.map((d) => {
                 const active = directions.includes(d.value);
+                const compat = compatibility?.[d.value];
+                const isIncompatible = compat === 'incompatible';
                 return (
                   <button
                     key={d.value}
@@ -138,12 +141,19 @@ export function ChallengeConfigModal({ onSubmit, onClose }: Props) {
                       active
                         ? 'bg-indigo-500/10 dark:bg-indigo-500/20 border border-indigo-500'
                         : 'bg-white/50 dark:bg-slate-800/50 border border-white/50 dark:border-slate-700/50 hover:bg-white/80 dark:hover:bg-slate-700/80'
-                    }`}
+                    } ${isIncompatible ? 'opacity-60' : ''}`}
                   >
-                    <span
-                      className={`text-[10px] font-extrabold block ${active ? 'text-indigo-500' : 'text-slate-700 dark:text-slate-200'}`}
-                    >
-                      {d.label}
+                    <span className="flex items-center justify-center gap-1">
+                      <span
+                        className={`text-[10px] font-extrabold block ${active ? 'text-indigo-500' : 'text-slate-700 dark:text-slate-200'}`}
+                      >
+                        {d.label}
+                      </span>
+                      {isIncompatible && (
+                        <span className="text-[10px] text-amber-500" title="No words support this question type with the current selection">
+                          ⚠️
+                        </span>
+                      )}
                     </span>
                     <span className="text-[7px] text-slate-400 dark:text-slate-500 mt-0.5 block">
                       {d.desc}
@@ -302,6 +312,26 @@ export function ChallengeConfigModal({ onSubmit, onClose }: Props) {
             )}
           </div>
         </div>
+
+        {(() => {
+          const incompatibleSelected = directions.filter(
+            (d) => compatibility?.[d] === 'incompatible',
+          );
+          if (incompatibleSelected.length > 0) {
+            return (
+              <div className="p-3 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/30 text-center">
+                <p className="text-[10px] font-bold text-amber-700 dark:text-amber-300">
+                  <i className="fi fi-sr-exclamation mr-1" aria-hidden="true" />
+                  {incompatibleSelected
+                    .map((d) => ALL_DIRECTIONS.find((a) => a.value === d)?.label ?? d)
+                    .join(', ')}{' '}
+                  won&apos;t work with this word selection — disable them or broaden your filters.
+                </p>
+              </div>
+            );
+          }
+          return null;
+        })()}
 
         <button
           onClick={handleSubmit}

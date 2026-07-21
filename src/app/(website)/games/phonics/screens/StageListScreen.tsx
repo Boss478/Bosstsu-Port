@@ -3,13 +3,13 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useGame } from '../context';
-import { getVocabStagesForGroup, getVocabActivitiesForStage } from '../constants';
+import { getVocabStagesForGroup, getVocabActivitiesForStage, getVocabActivitiesForGroup } from '../constants';
 import { VOCAB_GROUP_DEFS, TIER_ORDER } from '../vocab-group-defs';
 import GroupMapView from '../components/GroupMapView';
 import StageSubMap from '../components/StageSubMap';
 import ActivityPath from '../components/ActivityPath';
 import ModeSelectModal from '../components/ModeSelectModal';
-import type { StageData, CefrLevel, VocabTier } from '../types';
+import type { CefrLevel, VocabTier } from '../types';
 
 interface StageListScreenProps {
   mode?: 'sound' | 'vocab';
@@ -39,12 +39,7 @@ export default function StageListScreen({ mode = 'sound' }: StageListScreenProps
   if (mapView === 'groups') {
     return <VocabGroupMapView />;
   }
-  return (
-    <>
-      <VocabStageSubMap />
-      <VocabActivityPath />
-    </>
-  );
+  return <VocabActivityPath mode="vocab" />;
 }
 
 // ── Free Practice FAB ──
@@ -103,8 +98,19 @@ function VocabGroupMapView() {
   const tierRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const groupProgress = useMemo(() => save?.groupProgress ?? {}, [save?.groupProgress]);
+  const activityProgress = useMemo(() => save?.activityProgress ?? {}, [save?.activityProgress]);
   const unlockedGroupIds = useMemo(() => save?.unlockedGroupIds ?? [], [save?.unlockedGroupIds]);
   const placementTier = save?.placementTier;
+
+  const groupActivityCounts = useMemo(() => {
+    const map: Record<string, { total: number; completed: number }> = {};
+    for (const g of VOCAB_GROUP_DEFS) {
+      const activities = getVocabActivitiesForGroup(g.id);
+      const completed = activities.filter((a) => activityProgress[a.id]?.completed).length;
+      map[g.id] = { total: activities.length, completed };
+    }
+    return map;
+  }, [activityProgress]);
 
   const tierData = useMemo(() => {
     return TIER_ORDER.map((tierId) => {
@@ -149,7 +155,7 @@ function VocabGroupMapView() {
 
   return (
     <div className="flex-1 overflow-y-auto overscroll-contain bg-transparent min-h-full">
-      <div className="max-w-lg mx-auto px-4 py-6 pb-36">
+      <div className="w-full md:w-[85%] lg:w-4/5 xl:w-3/4 max-w-7xl mx-auto px-4 py-6 pb-36">
         <div className="text-center mb-6">
           <h1
             className="text-3xl font-extrabold text-slate-800 dark:text-[#F7E1A0] tracking-wide"
@@ -238,6 +244,9 @@ function VocabGroupMapView() {
                         <div className="border-t border-slate-200/50 dark:border-slate-700/30 pt-3 space-y-2">
                           {tier.groups.map((g) => {
                             const done = groupProgress[g.id]?.completedStages > 0;
+                            const pc = groupActivityCounts[g.id];
+                            const count = pc ? `${pc.completed}/${pc.total}` : '';
+                            const pct = pc ? Math.round((pc.completed / Math.max(pc.total, 1)) * 100) : 0;
                             return (
                               <button
                                 key={g.id}
@@ -248,8 +257,11 @@ function VocabGroupMapView() {
                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-200 flex-1">
                                   {g.title}
                                 </span>
+                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 shrink-0">
+                                  {count} ({pct}%)
+                                </span>
                                 {done && (
-                                  <i className="fi fi-sr-check text-emerald-500 text-xs shrink-0" />
+                                  <i className="fi fi-sr-check text-emerald-500 text-xs shrink-0 ml-1" />
                                 )}
                               </button>
                             );
@@ -278,121 +290,6 @@ function VocabGroupMapView() {
   );
 }
 
-// ── Vocab Stage Sub-Map ──
-
-function VocabStageSubMap() {
-  const { save, selectedGroup, selectGroup, selectStage, selectLesson } = useGame();
-  const activityProgress = useMemo(() => save?.activityProgress ?? {}, [save?.activityProgress]);
-
-  const stageNodes = useMemo(() => {
-    if (!selectedGroup) return [];
-    const stages = getVocabStagesForGroup(selectedGroup.id);
-    const accs = Object.values(activityProgress)
-      .map((p) => p.lastAccuracy)
-      .filter((a): a is number => a !== undefined && a !== null);
-    const avgAccuracy = accs.length > 0 ? accs.reduce((a, b) => a + b, 0) / accs.length : undefined;
-    return stages.map((s) => {
-      const activities = getVocabActivitiesForStage(s.id, selectedGroup.id, avgAccuracy);
-      const completedCount = activities.filter((a) => activityProgress[a.id]?.completed).length;
-      return { stage: s, activities, completedCount };
-    });
-  }, [selectedGroup, activityProgress]);
-
-  const handleStageClick = useCallback(
-    (s: StageData) => {
-      selectStage(s);
-      selectLesson(s.lessons[0]!);
-    },
-    [selectStage, selectLesson],
-  );
-
-  if (!selectedGroup) return null;
-
-  const allActivities = stageNodes.flatMap((n) => n.activities);
-  const groupPct =
-    allActivities.length > 0
-      ? Math.round(
-          (allActivities.filter((a) => activityProgress[a.id]?.completed).length /
-            allActivities.length) *
-            100,
-        )
-      : 0;
-
-  return (
-    <div className="flex-1 overflow-y-auto overscroll-contain bg-transparent min-h-full">
-      <div className="max-w-lg mx-auto px-4 py-8 pb-36">
-        <div className="flex items-center gap-3 mb-6">
-          <button
-            onClick={() => selectGroup(null)}
-            className="w-10 h-10 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700/80 flex items-center justify-center transition-all cursor-pointer btn-3d shrink-0"
-            style={{ '--border-color': 'rgba(0,0,0,0.1)' } as React.CSSProperties}
-            aria-label="Back to levels"
-          >
-            <i className="fi fi-sr-angle-left text-sm" />
-          </button>
-          <div className="flex-1 min-w-0">
-            <h1
-              className="text-2xl font-extrabold text-slate-800 dark:text-[#F7E1A0] truncate"
-              style={{ fontFamily: 'var(--font-mali)' }}
-            >
-              {selectedGroup.title}
-            </h1>
-            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-              {'subtitle' in selectedGroup ? selectedGroup.subtitle : (selectedGroup as any).description ?? ''} &middot; {groupPct}% mastered
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          {stageNodes.map((n) => (
-            <button
-              key={n.stage.id}
-              onClick={() => handleStageClick(n.stage)}
-              className="w-full glass-panel rounded-2xl border border-white/20 dark:border-slate-800/60 p-4 text-left hover:brightness-105 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
-            >
-              <div className="flex items-center gap-4">
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-white/20 font-bold text-lg"
-                  style={{
-                    backgroundColor: selectedGroup.color + '20',
-                    color: selectedGroup.color,
-                  }}
-                >
-                  <i className="fi fi-sr-book-open-cover text-lg" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-slate-800 dark:text-white">
-                      {n.stage.title}
-                    </h3>
-                    <span className="text-[11px] font-bold text-slate-400">
-                      {n.completedCount}/{n.activities.length}
-                    </span>
-                  </div>
-                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
-                    {n.stage.subtitle}
-                  </p>
-                  <div className="flex gap-1.5 mt-2">
-                    {n.activities.map((a) => {
-                      const done = !!activityProgress[a.id]?.completed;
-                      return (
-                        <span
-                          key={a.id}
-                          className={`w-2.5 h-2.5 rounded-full transition-all border border-black/5 ${done ? 'bg-gradient-to-br from-[#FFD700] to-[#C8A44E] shadow-sm' : 'bg-white/45 dark:bg-slate-700/40'}`}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Vocab Activity Path ──
 
 const VOCAB_ACTIVITY_COLORS: Record<string, string> = {
@@ -415,11 +312,12 @@ const VOCAB_ACTIVITY_ICONS: Record<string, string> = {
   'vocab-exercise': 'fi fi-sr-gamepad',
 };
 
-function VocabActivityPath() {
+function VocabActivityPath({ mode = 'sound' }: { mode?: 'sound' | 'vocab' }) {
   const {
     save,
     selectedGroup,
     selectedStage,
+    selectGroup,
     selectStage,
     selectLesson,
     selectActivity,
@@ -427,16 +325,30 @@ function VocabActivityPath() {
   } = useGame();
   const activityProgress = useMemo(() => save?.activityProgress ?? {}, [save?.activityProgress]);
 
-  const activities = useMemo(() => {
-    if (!selectedStage) return [];
+  const isVocabMode = mode === 'vocab';
 
+  const activities = useMemo(() => {
+    if (isVocabMode) {
+      if (!selectedGroup) return [];
+      const accs = Object.values(activityProgress)
+        .map((p) => p.lastAccuracy)
+        .filter((a): a is number => a !== undefined && a !== null);
+      const avgAccuracy = accs.length > 0 ? accs.reduce((a, b) => a + b, 0) / accs.length : undefined;
+      return getVocabActivitiesForGroup(selectedGroup.id, avgAccuracy);
+    }
+    if (!selectedStage) return [];
     const gId = selectedGroup?.id ?? 'vocab-all';
     const accs = Object.values(activityProgress)
       .map((p) => p.lastAccuracy)
       .filter((a): a is number => a !== undefined && a !== null);
     const avgAccuracy = accs.length > 0 ? accs.reduce((a, b) => a + b, 0) / accs.length : undefined;
     return getVocabActivitiesForStage(selectedStage.id, gId, avgAccuracy);
-  }, [selectedStage, selectedGroup, activityProgress]);
+  }, [isVocabMode, selectedGroup, selectedStage, activityProgress]);
+
+  const completedCount = useMemo(
+    () => activities.filter((a) => activityProgress[a.id]?.completed).length,
+    [activities, activityProgress],
+  );
 
   const isUnlocked = useCallback(
     (order: number): boolean => {
@@ -452,6 +364,13 @@ function VocabActivityPath() {
     (act: (typeof activities)[number]) => {
       if (!isUnlocked(act.order)) return;
       selectActivity(act);
+
+      if (isVocabMode) {
+        const stages = getVocabStagesForGroup(selectedGroup!.id);
+        const stage = stages.find((s) => s.id === act.phonemeId);
+        if (stage) selectLesson(stage.lessons[0]!);
+      }
+
       const targetLevel: CefrLevel = save?.cefrLevel ?? 'a1';
       if (act.type === 'definitions') {
         startRound({
@@ -468,16 +387,20 @@ function VocabActivityPath() {
         });
       }
     },
-    [isUnlocked, selectActivity, startRound, save],
+    [isUnlocked, isVocabMode, selectActivity, startRound, save, selectedGroup, selectLesson],
   );
 
   const handleBack = useCallback(() => {
-    selectStage(null);
+    if (isVocabMode) {
+      selectGroup(null);
+    } else {
+      selectStage(null);
+    }
     selectLesson(null);
     selectActivity(null);
-  }, [selectStage, selectLesson, selectActivity]);
+  }, [isVocabMode, selectGroup, selectStage, selectLesson, selectActivity]);
 
-  if (!selectedStage) return null;
+  if (isVocabMode ? !selectedGroup : !selectedStage) return null;
   if (typeof window === 'undefined') return null;
 
   return createPortal(
@@ -496,20 +419,30 @@ function VocabActivityPath() {
         <div className="flex items-center gap-4 mb-6">
           <div
             className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-slate-100 dark:border-slate-800"
-            style={{ backgroundColor: '#C8A44E20', color: '#C8A44E' }}
+            style={{
+              backgroundColor: isVocabMode && selectedGroup ? selectedGroup.color + '20' : '#C8A44E20',
+              color: isVocabMode && selectedGroup ? selectedGroup.color : '#C8A44E',
+            }}
           >
-            <i className="fi fi-sr-book-open-cover text-2xl" />
+            <i className={`fi ${isVocabMode && selectedGroup ? selectedGroup.icon : 'fi-sr-book-open-cover'} text-2xl`} />
           </div>
           <div className="flex-1 min-w-0">
             <h2
               className="text-xl font-bold text-slate-800 dark:text-white truncate"
               style={{ fontFamily: 'var(--font-mali)' }}
             >
-              {selectedStage.title}
+              {isVocabMode ? selectedGroup?.title : selectedStage!.title}
             </h2>
             <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
-              {selectedStage.subtitle}
+  {isVocabMode
+    ? ((selectedGroup as any)?.description ?? '')
+    : selectedStage!.subtitle}
             </p>
+            {isVocabMode && (
+              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-1">
+                {completedCount}/{activities.length} ({Math.round((completedCount / Math.max(activities.length, 1)) * 100)}%)
+              </p>
+            )}
           </div>
         </div>
 

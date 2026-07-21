@@ -80,14 +80,20 @@ export default function SessionManager({ session, origin, onToggleCodeFullScreen
           <div className="pt-4 border-t border-zinc-200 dark:border-slate-700">
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Students go to:</p>
             {origin ? (
-              <Link
-                href={`${origin}/study/${session.sessionCode}`}
-                target="_blank"
-                className="inline-flex items-center gap-2 font-mono text-blue-600 dark:text-blue-400 hover:underline text-sm"
-              >
-                {origin}/study/{session.sessionCode}
-                <i aria-hidden="true" className="fi fi-sr-arrow-up-right text-xs" />
-              </Link>
+              <div className="flex items-center justify-center gap-3">
+                <Link
+                  href={`${origin}/study/${session.sessionCode}`}
+                  target="_blank"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all text-sm"
+                >
+                  <i aria-hidden="true" className="fi fi-sr-eye text-xs" />
+                  Preview Student View
+                  <i aria-hidden="true" className="fi fi-sr-arrow-up-right text-xs" />
+                </Link>
+                <span className="text-xs text-zinc-400 dark:text-zinc-500 font-mono select-all">
+                  {origin}/study/{session.sessionCode}
+                </span>
+              </div>
             ) : (
               <span className="font-mono text-blue-600 dark:text-blue-400 text-sm">
                 study/{session.sessionCode}

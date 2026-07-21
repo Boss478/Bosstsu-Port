@@ -149,7 +149,11 @@ export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: Q
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-zinc-400">{t('loading')}</div>
+        <div className="space-y-3 pb-4" style={{ '--sk-base': 'rgba(148,163,184,0.1)', '--sk-shine': 'rgba(148,163,184,0.15)' } as React.CSSProperties}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="skeleton p-4 rounded-xl h-20" />
+          ))}
+        </div>
       ) : (
         <div className="space-y-3 pb-4">
           <div className="flex items-center justify-between mb-2">
@@ -169,7 +173,7 @@ export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: Q
             sorted.map(q => (
               <div
                 key={q._id}
-                className={`p-4 rounded-xl backdrop-blur-sm border shadow-sm transition-colors ${
+                className={`animate-fade-slide-up p-4 rounded-xl backdrop-blur-sm border shadow-sm transition-colors ${
                   q.content?.isAnswered
                     ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
                     : 'bg-white/60 dark:bg-slate-800/60 border-white/60 dark:border-slate-700/50'
@@ -180,7 +184,7 @@ export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: Q
                     <button
                       onClick={() => handleVote(q._id)}
                       disabled={votedIds.has(q._id)}
-                      className={`p-2 rounded-lg transition-colors ${
+                      className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg transition-colors ${
                         votedIds.has(q._id)
                           ? 'text-blue-600 dark:text-blue-400 cursor-default'
                           : 'text-zinc-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'

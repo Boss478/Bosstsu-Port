@@ -80,7 +80,7 @@ export function TapQuestion({
   const [timerPct, setTimerPct] = useState(100);
   const [isRippling, setIsRippling] = useState(false);
 
-  const companion = useGame().companion;
+  const { companion, gridColumns } = useGame();
   const speedMode = question.format === 'speed';
   const feedbackRef = useRef(feedback);
   useEffect(() => {
@@ -190,7 +190,7 @@ export function TapQuestion({
           </>
         )}
         <div
-          className="text-7xl font-extrabold text-slate-800 dark:text-[#F7E1A0] tracking-widest relative z-10 cursor-pointer hover:opacity-80 active:scale-95 transition-all"
+          className="text-6xl md:text-7xl lg:text-8xl font-extrabold text-slate-800 dark:text-[#F7E1A0] tracking-widest relative z-10 cursor-pointer hover:opacity-80 active:scale-95 transition-all"
           style={{ fontFamily: 'var(--font-geist-mono)' }}
           onClick={handleSpeak}
           title="Click to hear the sound"
@@ -202,11 +202,11 @@ export function TapQuestion({
         </p>
       </div>
 
-      <p className="text-center text-xs font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase">
+      <p className="text-center text-xs md:text-sm font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase">
         Which word starts with this sound?
       </p>
 
-      <div className="grid grid-cols-2 gap-3.5 max-w-md mx-auto w-full">
+      <div className="grid gap-5 max-w-4xl mx-auto w-full" style={{ gridTemplateColumns: `repeat(${gridColumns ?? 2}, 1fr)` }}>
         {question.options.map((opt) => {
           const wordData = (mergedWordsOverride || WORDS).find(
             (w) => w.word.toLowerCase() === opt.toLowerCase(),
@@ -503,6 +503,11 @@ export default function GameScreen({ onRoundComplete, bgDownloadState }: GameScr
 
   return (
     <div className="flex-1 flex flex-col bg-gradient-to-b from-[#E0F2FE] via-[#F0FDFA] to-[#FEF3C7] dark:from-[#0B132B] dark:via-[#1B254B] dark:to-[#3E1B5D] overflow-hidden min-h-full justify-between relative">
+      <div className="hidden md:block absolute inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#2EC4B6]/10 dark:bg-[#2EC4B6]/5 rounded-full blur-3xl animate-float-slow" />
+        <div className="absolute top-1/3 -right-32 w-80 h-80 bg-[#C8A44E]/10 dark:bg-[#C8A44E]/5 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '-3s' }} />
+        <div className="absolute -bottom-32 left-1/4 w-72 h-72 bg-[#FF70A6]/10 dark:bg-[#FF70A6]/5 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '-6s' }} />
+      </div>
       <div aria-live="polite" aria-atomic="true" className="sr-only">
         Question {currentIndex + 1} of {totalQuestions}
       </div>
@@ -526,7 +531,7 @@ export default function GameScreen({ onRoundComplete, bgDownloadState }: GameScr
 
       {isCardFlip ? (
         <div className="flex-1 overflow-y-auto overscroll-contain">
-          <div className="flex flex-col justify-center px-6 py-4 max-w-lg mx-auto w-full min-h-full">
+          <div className="flex flex-col justify-center px-6 py-4 w-full md:w-[85%] lg:w-4/5 xl:w-3/4 max-w-7xl mx-auto min-h-full">
             <CardFlipGame
               cards={cardFlipDeck}
               onComplete={() => {
@@ -712,7 +717,7 @@ function ActiveQuestion({
         }
       `}</style>
       <div className="flex-1 overflow-y-auto overscroll-contain">
-        <div className="flex flex-col justify-center px-6 py-4 max-w-lg mx-auto w-full min-h-full">
+        <div className="flex flex-col justify-center px-6 py-4 w-full md:w-[85%] lg:w-4/5 xl:w-3/4 max-w-7xl mx-auto min-h-full">
           {isExercise && exerciseSubQuestion ? (
             exerciseSubQuestion.category === 'ipa-word' ? (
               <IpaToWordQuestionComponent
@@ -931,7 +936,7 @@ function ActiveQuestion({
               : 'bg-white/60 dark:bg-slate-800/60 border-white/60 dark:border-slate-700/50'
         }`}
       >
-        <div className="max-w-md mx-auto flex items-center justify-between gap-4">
+        <div className="w-full md:w-[85%] lg:w-4/5 xl:w-3/4 max-w-4xl mx-auto flex items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
             {feedback === 'correct' && (
               <div className="flex items-center gap-3">

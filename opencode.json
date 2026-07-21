@@ -13,39 +13,30 @@
     "opencode-notify",
     "opencode-vibeguard",
     "opencode-shell-strategy",
-    "opencode-goal-plugin"
+    "opencode-goal-plugin",
+    "opencode-commands",
+    "opencode-pty",
+    "opencode-worktree"
   ],
   "agent": {
     "build": {
       "permission": {
         "task": {
           "*": "deny",
-          "build-error-resolver": "allow",
-          "code-reviewer": "allow",
-          "database-reviewer": "allow",
-          "deploy": "allow",
-          "doc": "allow",
-          "doc-updater": "allow",
-          "docs-lookup": "allow",
-          "explore": "allow",
-          "general": "allow",
           "planner": "allow",
-          "refactor-cleaner": "allow",
-          "security-reviewer": "allow",
-          "triage": "allow",
-          "verify": "allow",
-          "spec-writer": "allow",
           "builder": "allow",
+          "explore": "allow",
+          "code-reviewer": "allow",
           "test-engineer": "allow",
-          "simplifier": "allow",
-          "webperf-auditor": "allow"
+          "deploy": "allow",
+          "triage": "allow",
+          "docs-lookup": "allow"
         }
       }
     },
-    "spec-writer": {
-      "description": "PRD/spec creation specialist. Loads spec-dev skill.",
+    "code-reviewer": {
+      "description": "Expert code review for quality, security, and maintainability.",
       "mode": "subagent",
-      "model": "opencode/deepseek-v4-flash-free",
       "tools": {
         "read": true,
         "glob": true,
@@ -57,7 +48,6 @@
     "builder": {
       "description": "Incremental implementation specialist. Loads implement-task + test-driven-development skills.",
       "mode": "subagent",
-      "model": "opencode/deepseek-v4-flash-free",
       "tools": {
         "read": true,
         "glob": true,
@@ -80,7 +70,6 @@
     "test-engineer": {
       "description": "TDD and test writing specialist. Loads test-driven-development skill.",
       "mode": "subagent",
-      "model": "opencode/deepseek-v4-flash-free",
       "tools": {
         "read": true,
         "glob": true,
@@ -97,22 +86,9 @@
         }
       }
     },
-    "simplifier": {
-      "description": "Code simplification specialist. Loads code-simplification skill.",
+    "verify": {
+      "description": "Pre-completion verification gate — runs build, lint, version/changelog consistency checks.",
       "mode": "subagent",
-      "model": "opencode/deepseek-v4-flash-free",
-      "tools": {
-        "read": true,
-        "glob": true,
-        "grep": true,
-        "write": true,
-        "edit": true
-      }
-    },
-    "webperf-auditor": {
-      "description": "Performance auditing specialist. Loads web-performance skill.",
-      "mode": "subagent",
-      "model": "opencode/deepseek-v4-flash-free",
       "tools": {
         "read": true,
         "glob": true,
@@ -122,8 +98,10 @@
       "permission": {
         "bash": {
           "*": "deny",
-          "npx lighthouse *": "allow",
-          "npm run build": "allow"
+          "npm run build": "allow",
+          "npm run lint": "allow",
+          "npm run typecheck": "allow",
+          "cat *": "allow"
         }
       }
     }
@@ -150,6 +128,12 @@
       "command": "npx",
       "args": ["-y", "chrome-devtools-mcp@latest", "--autoConnect"],
       "enabled": true
+    },
+    "sequential-thinking": {
+      "type": "local",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "enabled": true
     }
   },
   "permission": {
@@ -174,8 +158,8 @@
       "npm run dev": "allow",
       "npm run build": "allow",
       "npm run lint": "allow",
-      "npm test": "allow",
       "npm run typecheck": "allow",
+      "npm test": "allow",
       "git status": "allow",
       "git diff": "allow",
       "git log*": "allow",

@@ -33,7 +33,7 @@ export default function DefinitionQuestion({
   return (
     <div className="flex flex-col items-center justify-center px-4 py-6 text-center">
       {isDefToWord ? (
-        <div className="w-full max-w-sm mb-6">
+        <div className="w-full max-w-4xl mb-6">
           <p className="text-xs font-bold text-[#1C1C1C]/40 dark:text-[#F7E1A0]/40 tracking-widest mb-3 uppercase">{question.blankedExample ? "GAP-FILL" : "DEFINITION"}</p>
           <div className="glass-panel p-6 rounded-3xl border border-white/20 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 left-0 w-2 h-full bg-[#9B59B6]" />
@@ -54,7 +54,7 @@ export default function DefinitionQuestion({
           </div>
         </div>
       ) : (
-        <div className="w-full max-w-sm mb-6">
+        <div className="w-full max-w-4xl mb-6">
           <p className="text-xs font-bold text-[#1C1C1C]/40 dark:text-[#F7E1A0]/40 tracking-widest mb-3 uppercase">WORD</p>
           <div className="glass-panel p-6 rounded-3xl border border-white/20 shadow-sm relative overflow-hidden text-center">
             <div className="absolute top-0 left-0 w-2 h-full bg-[#9B59B6]" />
@@ -77,7 +77,7 @@ export default function DefinitionQuestion({
       </button>
 
       {/* Choice Grid */}
-      <div className="grid grid-cols-1 gap-3.5 w-full max-w-md">
+      <div className="grid grid-cols-1 gap-5 w-full max-w-4xl">
         {question.options.map((option, i) => {
           const isSelected = selectedAnswer === option;
           const isCorrect = option === question.correctAnswer;

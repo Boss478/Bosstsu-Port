@@ -245,6 +245,7 @@ export function useGameActions() {
       subId: number,
       onComplete: (result: SubStageResult) => void,
       easyMode?: boolean,
+      initialTracker?: Record<string, LetterTracker>,
     ) => {
       subStageRef.current = subStage;
       onCompleteRef.current = onComplete;
@@ -262,6 +263,9 @@ export function useGameActions() {
       dropStreakRef.current = 0;
       setDropStreak(0);
       sessionLetterStatsRef.current = {};
+      if (initialTracker && Object.keys(letterTrackerRef.current).length === 0) {
+        letterTrackerRef.current = { ...initialTracker };
+      }
 
       trackCustomEvent('substage_start', {
         game: 'alphabet-adventure',
@@ -394,7 +398,7 @@ export function useGameActions() {
           streak: stateRef.current.currentStreak + 1,
         });
 
-        const letter = isMatch ? roundData.targetLetter || correct! : correct!;
+        const letter = isMatch ? correct!.toUpperCase() : correct!;
         trackLetter(letter, true);
 
         const points =
@@ -496,7 +500,7 @@ export function useGameActions() {
           streak: 0,
         });
 
-        const letter = isMatch ? roundData.targetLetter || correct! : correct!;
+        const letter = isMatch ? correct!.toUpperCase() : correct!;
         trackLetter(letter, false);
 
         const points =

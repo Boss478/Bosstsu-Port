@@ -104,7 +104,7 @@ export default function StageSubMap() {
 
   return (
     <div className="flex-1 overflow-y-auto overscroll-contain bg-transparent min-h-full">
-      <div className="max-w-lg mx-auto px-4 py-8 pb-36">
+      <div className="w-full md:w-[85%] lg:w-4/5 xl:w-3/4 max-w-7xl mx-auto px-4 py-8 pb-36">
         {/* Back + Header */}
         <div className="flex items-center gap-3 mb-6">
           <button

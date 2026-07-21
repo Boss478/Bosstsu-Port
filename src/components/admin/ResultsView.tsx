@@ -146,10 +146,20 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
     setRefreshing(false);
   };
 
-  const displayedResponses = useMemo(() => hasSteps && activeStepTab >= 0
-    ? responses.filter((r: { stepIndex?: number }) => r.stepIndex === activeStepTab)
-    : responses,
-  [responses, hasSteps, activeStepTab]);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const displayedResponses = useMemo(() => {
+    let filtered = hasSteps && activeStepTab >= 0
+      ? responses.filter((r: { stepIndex?: number }) => r.stepIndex === activeStepTab)
+      : responses;
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      filtered = filtered.filter((r: { studentName?: string }) =>
+        r.studentName?.toLowerCase().includes(q)
+      );
+    }
+    return filtered;
+  }, [responses, hasSteps, activeStepTab, searchQuery]);
 
   const handleDelete = async (id: string) => {
     await deleteResponse(id);
@@ -284,14 +294,23 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
 
   return (
     <div id="results-capture-area">
-      <div className="flex items-center justify-between mb-4">
-         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-            {hasSteps && activeStepTab === -1
-              ? <>{t('allSteps')} <span className="bg-zinc-200/60 dark:bg-slate-600/60 rounded-full text-xs px-2 py-0.5 leading-none">{responses.length}</span></>
-              : activeStepType
-                ? <>Step {activeStepTab + 1}: {steps![activeStepTab].title} <span className="bg-zinc-200/60 dark:bg-slate-600/60 rounded-full text-xs px-2 py-0.5 leading-none">{stepCounts[activeStepTab] ?? 0}</span></>
-                : <>{TOOL_LABELS[toolType] || toolType} <span className="bg-zinc-200/60 dark:bg-slate-600/60 rounded-full text-xs px-2 py-0.5 leading-none">{responses.length}</span></>}
-          </h2>
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+          {hasSteps && activeStepTab === -1
+            ? <>{t('allSteps')} <span className="bg-zinc-200/60 dark:bg-slate-600/60 rounded-full text-xs px-2 py-0.5 leading-none">{responses.length}</span></>
+            : activeStepType
+              ? <>Step {activeStepTab + 1}: {steps![activeStepTab].title} <span className="bg-zinc-200/60 dark:bg-slate-600/60 rounded-full text-xs px-2 py-0.5 leading-none">{stepCounts[activeStepTab] ?? 0}</span></>
+              : <>{TOOL_LABELS[toolType] || toolType} <span className="bg-zinc-200/60 dark:bg-slate-600/60 rounded-full text-xs px-2 py-0.5 leading-none">{responses.length}</span></>}
+        </h2>
+        <div className="flex-1 min-w-[160px] max-w-xs">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search by student name..."
+            className="w-full px-3 py-1.5 text-sm rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/60 dark:border-slate-700/50 text-zinc-700 dark:text-zinc-300 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleRefresh}
@@ -407,8 +426,8 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <div style={{ zoom: `${sizePercent}%` }}>
+      <div className="overflow-x-auto overflow-y-visible">
+        <div style={{ transform: `scale(${sizePercent / 100})`, transformOrigin: 'top center' }}>
           {displayedResponses.length === 0 ? (
           <div className="p-12 rounded-2xl bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 text-center">
             <i aria-hidden="true" className="fi fi-sr-inbox text-4xl text-zinc-300 dark:text-zinc-600 block mb-3" />
@@ -595,42 +614,139 @@ function PollResults({ responses, session, onDelete }: { responses: { _id: strin
   );
 }
 
-function QuizResults({ responses, session, onDelete }: { responses: { _id: string; studentName?: string; mascot?: string; content: { score?: number; total?: number; answers?: Record<string, number> } }[]; session: { config: { questions?: { correctAnswer?: number }[] } }; onDelete: (id: string) => void }) {
+function QuizResults({ responses, session, onDelete }: { responses: { _id: string; studentName?: string; mascot?: string; content: { score?: number; total?: number; answers?: Record<string, number> } }[]; session: { config: { questions?: { question?: string; options?: string[]; correctAnswer?: number }[] } }; onDelete: (id: string) => void }) {
+  const [viewMode, setViewMode] = useState<'summary' | 'per-question'>('summary');
   const total = session.config?.questions?.length || 0;
+  const questions = session.config?.questions || [];
+
+  const perQuestionStats = useMemo(() => {
+    return questions.map((q, qi) => {
+      const answerCounts: Record<number, number> = {};
+      let correctCount = 0;
+      responses.forEach(r => {
+        const answer = r.content?.answers?.[String(qi)];
+        if (answer !== undefined) {
+          answerCounts[answer] = (answerCounts[answer] || 0) + 1;
+          if (answer === q.correctAnswer) correctCount++;
+        }
+      });
+      const totalAnswered = Object.values(answerCounts).reduce((a, b) => a + b, 0);
+      return { qi, question: q.question || '', options: q.options || [], correctAnswer: q.correctAnswer, correctCount, totalAnswered, answerCounts };
+    });
+  }, [questions, responses]);
 
   return (
-    <div className="rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm overflow-hidden">
-      <table className="w-full text-left">
-        <thead>
-          <tr className="border-b border-zinc-200/60 dark:border-slate-700/50 text-sm text-zinc-500 dark:text-zinc-400">
-            <th className="p-4 font-medium">Student</th>
-            <th className="p-4 font-medium text-right">Score</th>
-            <th className="p-4 font-medium text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {responses.map((r: { _id: string; studentName?: string; mascot?: string; content: { score?: number; total?: number; answers?: Record<string, number> } }) => (
-            <tr key={r._id} className="border-b last:border-0 border-zinc-100/60 dark:border-slate-700/30">
-              <td className="p-4 font-semibold text-zinc-900 dark:text-zinc-100">
-                <span className="inline-flex items-center gap-1.5">
-                  {r.mascot && (
-                    <span className="w-4 h-4 rounded overflow-hidden shrink-0 inline-block">
-                      <MascotAvatar mascotId={r.mascot} size={16} />
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setViewMode('summary')}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+            viewMode === 'summary'
+              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+              : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-slate-700'
+          }`}
+        >
+          {t('summary')}
+        </button>
+        <button
+          onClick={() => setViewMode('per-question')}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+            viewMode === 'per-question'
+              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+              : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-slate-700'
+          }`}
+        >
+          {t('perQuestion')}
+        </button>
+      </div>
+
+      {viewMode === 'summary' ? (
+        <div className="rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm overflow-hidden">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-zinc-200/60 dark:border-slate-700/50 text-sm text-zinc-500 dark:text-zinc-400">
+                <th className="p-4 font-medium">Student</th>
+                <th className="p-4 font-medium text-right">Score</th>
+                <th className="p-4 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {responses.map((r: { _id: string; studentName?: string; mascot?: string; content: { score?: number; total?: number; answers?: Record<string, number> } }) => (
+                <tr key={r._id} className="border-b last:border-0 border-zinc-100/60 dark:border-slate-700/30">
+                  <td className="p-4 font-semibold text-zinc-900 dark:text-zinc-100">
+                    <span className="inline-flex items-center gap-1.5">
+                      {r.mascot && (
+                        <span className="w-4 h-4 rounded overflow-hidden shrink-0 inline-block">
+                          <MascotAvatar mascotId={r.mascot} size={16} />
+                        </span>
+                      )}
+                      {r.studentName || 'Anonymous'}
                     </span>
-                  )}
-                  {r.studentName || 'Anonymous'}
-                </span>
-              </td>
-              <td className="p-4 text-right font-bold text-blue-600 dark:text-blue-400">
-                {r.content?.score || 0} / {total}
-              </td>
-              <td className="p-4 text-right">
-                <DeleteButton id={r._id} action={deleteResponse} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                  </td>
+                  <td className="p-4 text-right font-bold text-blue-600 dark:text-blue-400">
+                    {r.content?.score || 0} / {total}
+                  </td>
+                  <td className="p-4 text-right">
+                    <DeleteButton id={r._id} action={deleteResponse} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {perQuestionStats.map(stat => {
+            const pct = stat.totalAnswered > 0 ? Math.round((stat.correctCount / stat.totalAnswered) * 100) : 0;
+            const optLabels = stat.options.map((o: string, i: number) => `${String.fromCharCode(65 + i)}. ${o}`);
+            return (
+              <div key={stat.qi} className="p-5 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
+                <div className="flex items-start gap-3 mb-3">
+                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm font-bold flex items-center justify-center">
+                    {stat.qi + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">{stat.question}</p>
+                    <div className="space-y-1">
+                      {stat.options.map((opt: string, oi: number) => {
+                        const isCorrect = oi === stat.correctAnswer;
+                        const count = stat.answerCounts[oi] || 0;
+                        const optPct = stat.totalAnswered > 0 ? Math.round((count / stat.totalAnswered) * 100) : 0;
+                        return (
+                          <div key={oi} className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg ${
+                            isCorrect
+                              ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400'
+                              : 'text-zinc-600 dark:text-zinc-400'
+                          }`}>
+                            <span className={`font-medium ${isCorrect ? 'font-bold' : ''}`}>{optLabels[oi]}</span>
+                            {isCorrect && <span className="fi fi-sr-check text-xs" />}
+                            <span className="ml-auto text-xs">{count} ({optPct}%)</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-zinc-500 dark:text-zinc-400 font-medium">{t('correct', { n: String(stat.correctCount), total: String(stat.totalAnswered) })}</span>
+                    <span className="text-zinc-500 dark:text-zinc-400">{stat.correctCount}/{stat.totalAnswered}</span>
+                  </div>
+                  <div className="h-4 rounded-full bg-zinc-100 dark:bg-slate-700 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-emerald-500 dark:bg-emerald-400 transition-all duration-500"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {perQuestionStats.length === 0 && (
+            <p className="text-sm text-zinc-400 text-center py-8">{t('noQuizQuestions')}</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

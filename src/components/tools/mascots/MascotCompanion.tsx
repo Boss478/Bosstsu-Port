@@ -11,28 +11,25 @@ interface MascotCompanionProps {
   isWaiting?: boolean;
   eventType?: MascotEvent | null;
   eventCount?: number;
+  onSettingsClick?: () => void;
 }
 
 type AnimState = 'idle' | 'thinking' | 'celebrate' | 'correct' | 'wrong';
 
-export default function MascotCompanion({ sessionId, isWaiting, eventType, eventCount }: MascotCompanionProps) {
-  const [mascotId, setMascotId] = useState<string>('');
-  const [animState, setAnimState] = useState<AnimState>('idle');
-  const [activeTimer, setActiveTimer] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastCountRef = useRef<number>(-1);
-
-  useEffect(() => {
+export default function MascotCompanion({ sessionId, isWaiting, eventType, eventCount, onSettingsClick }: MascotCompanionProps) {
+  const [mascotId] = useState<string>(() => {
     const key = getMascotStorageKey(sessionId);
     let id = localStorage.getItem(key);
     if (!id || !ALL_MASCOT_MAP.has(id)) {
       id = getRandomMascot().id;
       localStorage.setItem(key, id);
     }
-    requestAnimationFrame(() => {
-      setMascotId(id);
-    });
-  }, [sessionId]);
+    return id;
+  });
+  const [animState, setAnimState] = useState<AnimState>('idle');
+  const [activeTimer, setActiveTimer] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastCountRef = useRef<number>(-1);
 
   const trigger = useCallback((event: MascotEvent) => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -71,16 +68,23 @@ export default function MascotCompanion({ sessionId, isWaiting, eventType, event
     }
   };
 
+  const mascotData = ALL_MASCOT_MAP.get(mascotId);
+  const accentColor = mascotData?.accentColor ?? '#6366f1';
+
   const glowClass = () => {
     switch (currentAnimState) {
-      case 'correct': return 'ring-2 ring-green-400 shadow-lg shadow-green-400/30';
-      case 'wrong': return 'ring-2 ring-red-400 shadow-lg shadow-red-400/30';
+      case 'correct': return `ring-2 shadow-lg`;
+      case 'wrong': return `ring-2 shadow-lg`;
       default: return '';
     }
   };
 
   return (
     <div
+      onClick={onSettingsClick}
+      onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && onSettingsClick) { e.preventDefault(); onSettingsClick(); } }}
+      role="button"
+      tabIndex={0}
       className={`
         fixed bottom-4 right-4 z-50
         rounded-2xl p-2
@@ -88,13 +92,16 @@ export default function MascotCompanion({ sessionId, isWaiting, eventType, event
         backdrop-blur-sm border border-white/60 dark:border-slate-700/50
         shadow-lg
         transition-shadow duration-300
+        ${onSettingsClick ? 'cursor-pointer hover:bg-white/80 dark:hover:bg-slate-700/60' : ''}
         ${animClass()}
         ${glowClass()}
       `}
-      role="img"
-      aria-label={`Mascot: ${ALL_MASCOT_MAP.get(mascotId)?.name ?? mascotId}`}
+      style={{
+        ...(currentAnimState === 'correct' ? { boxShadow: `0 0 20px ${accentColor}40`, borderColor: accentColor } : {}),
+        ...(currentAnimState === 'wrong' ? { boxShadow: `0 0 20px #ef444440`, borderColor: '#ef4444' } : {}),
+      }}
     >
-      <MascotAvatar mascotId={mascotId} size={96} />
+      <MascotAvatar mascotId={mascotId} size={96} variant="full" animate />
     </div>
   );
 }

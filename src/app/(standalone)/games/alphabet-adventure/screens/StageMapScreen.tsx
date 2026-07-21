@@ -10,6 +10,7 @@ interface Props {
   letterTracker: Record<string, LetterTracker>;
   onSelectSubStage: (subStageId: number) => void;
   onBack: () => void;
+  onShowAnalysis?: () => void;
 }
 
 export default function StageMapScreen({
@@ -18,6 +19,7 @@ export default function StageMapScreen({
   letterTracker,
   onSelectSubStage,
   onBack,
+  onShowAnalysis,
 }: Props) {
   const completedCount = stageProgress.subStages.filter((s) => s.completed).length;
   const totalStars = stageProgress.subStages.reduce((a, b) => a + b.stars, 0);
@@ -42,9 +44,20 @@ export default function StageMapScreen({
         >
           <i aria-hidden="true" className="fi fi-sr-angle-left text-lg"></i>
         </button>
-        <div className="text-right">
-          <h2 className="text-lg font-black text-violet-600 dark:text-violet-400">{stage.name}</h2>
-          <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500">{stage.subtitle}</p>
+        <div className="flex items-center gap-2">
+          {onShowAnalysis && (
+            <button
+              onClick={onShowAnalysis}
+              className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-400 hover:text-violet-500 transition-colors"
+              title="View Analysis"
+            >
+              <i aria-hidden="true" className="fi fi-sr-chart-simple text-base"></i>
+            </button>
+          )}
+          <div className="text-right">
+            <h2 className="text-lg font-black text-violet-600 dark:text-violet-400">{stage.name}</h2>
+            <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500">{stage.subtitle}</p>
+          </div>
         </div>
       </div>
 

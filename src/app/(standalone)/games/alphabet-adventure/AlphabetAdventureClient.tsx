@@ -12,6 +12,7 @@ import MenuScreen from './screens/MenuScreen';
 import VictoryScreen from './screens/VictoryScreen';
 import LevelMapScreen from './screens/LevelMapScreen';
 import StageMapScreen from './screens/StageMapScreen';
+import AnalysisScreen from './screens/AnalysisScreen';
 import GameOverlays from './screens/GameOverlays';
 import CardScreen from './beta/screens/CardScreen';
 import OnboardingOverlay from './screens/OnboardingOverlay';
@@ -60,6 +61,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
       sessionLetterStats: Record<string, { correct: number; wrong: number }>;
     }>
   >([]);
+  const [analysisReturnTo, setAnalysisReturnTo] = useState<Screen>('level-map');
   const [showOnboarding, setShowOnboarding] = useState(false);
   const onboardingTypeRef = useRef<string>('');
 
@@ -161,10 +163,20 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
           };
         }
 
+        const mergedTracker = { ...prev.letterTracker };
+        for (const [letter, stats] of Object.entries(result.letterTracker)) {
+          const existing = mergedTracker[letter];
+          mergedTracker[letter] = {
+            correct: Math.max(stats.correct, existing?.correct ?? 0),
+            total: Math.max(stats.total, existing?.total ?? 0),
+          };
+        }
+
         return {
           ...prev,
           totalScore: prev.totalScore + result.score,
           stages,
+          letterTracker: mergedTracker,
         };
       });
 
@@ -213,7 +225,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
       const easyMode =
         typeof window !== 'undefined' &&
         localStorage.getItem('alphabet-adventure-easyMode') === 'true';
-      startSubStage(subStage, selectedStage.id, subIdx, handleSubStageComplete, easyMode);
+      startSubStage(subStage, selectedStage.id, subIdx, handleSubStageComplete, easyMode, mapData.letterTracker);
       setScreen('game');
     },
     [selectedStage, startSubStage, handleSubStageComplete],
@@ -279,6 +291,15 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
     }
   }, [currentStageId]);
 
+  const handleShowAnalysis = useCallback((returnTo: Screen) => {
+    setAnalysisReturnTo(returnTo);
+    setScreen('analysis');
+  }, []);
+
+  const handleBackFromAnalysis = useCallback(() => {
+    setScreen(analysisReturnTo);
+  }, [analysisReturnTo]);
+
   const currentStage = selectedStage || (currentStageId > 0 ? getStage(currentStageId) : null);
   const currentSubStage =
     currentStage && currentStage.subStages[currentSubIdx]
@@ -289,6 +310,8 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
   const totalSubStages = currentStage?.subStages.length ?? 5;
   const isLastSubStage = currentSubIdx === totalSubStages - 1;
   const isLastStage = currentStageId === 6;
+  const totalStages = mapData.stages.length;
+  const stagesCompleted = mapData.stages.filter((s) => s.completed).length;
 
   return (
     <div
@@ -305,6 +328,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
             hasProgress={hasSavedProgress}
             isBeta={beta}
             onShowCards={() => setShowCards(true)}
+            onShowAnalysis={() => handleShowAnalysis('menu')}
             voiceURI={voiceURI}
             onVoiceChange={handleVoiceChange}
           />
@@ -315,6 +339,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
             mapData={mapData}
             onSelectStage={handleSelectStage}
             onBack={() => setScreen('menu')}
+            onShowAnalysis={() => handleShowAnalysis('level-map')}
           />
         )}
 
@@ -325,6 +350,17 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
             letterTracker={mapData.letterTracker}
             onSelectSubStage={handleSelectSubStage}
             onBack={handleBackToMap}
+            onShowAnalysis={() => handleShowAnalysis('stage-map')}
+          />
+        )}
+
+        {!showCards && screen === 'analysis' && (
+          <AnalysisScreen
+            totalScore={mapData.totalScore}
+            stagesCompleted={stagesCompleted}
+            totalStages={totalStages}
+            letterTracker={mapData.letterTracker}
+            onBack={handleBackFromAnalysis}
           />
         )}
 

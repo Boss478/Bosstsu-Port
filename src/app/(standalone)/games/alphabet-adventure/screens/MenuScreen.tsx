@@ -10,6 +10,7 @@ interface Props {
   hasProgress?: boolean;
   isBeta?: boolean;
   onShowCards?: () => void;
+  onShowAnalysis?: () => void;
   voiceURI?: string;
   onVoiceChange?: (uri: string) => void;
 }
@@ -19,6 +20,7 @@ export default function MenuScreen({
   hasProgress,
   isBeta,
   onShowCards,
+  onShowAnalysis,
   voiceURI,
   onVoiceChange,
 }: Props) {
@@ -232,6 +234,19 @@ export default function MenuScreen({
           </button>
         </div>
       )}
+
+      <div className="flex items-center justify-center">
+        <button
+          onClick={onShowAnalysis}
+          className="group relative px-5 sm:px-6 py-2.5 sm:py-3 bg-violet-500 text-white text-sm sm:text-base md:text-lg font-black rounded-3xl shadow-[0_8px_0_0_rgba(124,58,237,1)] active:shadow-none active:translate-y-2 transition-all duration-150 overflow-hidden"
+          title="View Progress Analysis"
+        >
+          <span className="relative z-10 flex items-center gap-2">
+            <i aria-hidden="true" className="fi fi-sr-chart-simple text-xs sm:text-sm"></i> Analysis
+          </span>
+          <div className="absolute inset-0 bg-violet-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        </button>
+      </div>
 
       <div className="flex items-center justify-center gap-2">
         <button

@@ -16,6 +16,21 @@ interface ISessionConfig {
     options?: string[];
     correctAnswer?: number;
   }>;
+  forceTier?: 'max' | 'ultra' | 'high' | 'medium' | 'low' | 'fast';
+  customTierConfig?: Partial<{
+    backdropBlur: number;
+    fps: number;
+    transitions: boolean;
+    pollIntervalMs: number;
+    particles: boolean;
+    imageQuality: number;
+    hoverEffects: boolean;
+    debounceMs: number;
+    skeleton: boolean;
+    shadows: boolean;
+    gradients: boolean;
+    imageLoading: 'eager' | 'lazy';
+  }>;
 }
 
 interface IStep {
@@ -41,6 +56,12 @@ interface IToolSession extends Document {
   responseCount: number;
   createdAt: Date;
   kickedStudents: string[];
+  focusData: Array<{
+    entries: Array<{ timestamp: number; type: 'visible' | 'hidden' }>;
+    totalMs: number;
+    userAgent: string;
+    submittedAt: Date;
+  }>;
 }
 
 const StepConfigFields = {
@@ -84,6 +105,15 @@ const ToolSessionSchema = new Schema(
     lastActiveStep: { type: Number, default: -1 },
     allowStudentNavigation: { type: Boolean, default: false },
     kickedStudents: [{ type: String }],
+    focusData: [{
+      entries: [{
+        timestamp: { type: Number },
+        type: { type: String, enum: ['visible', 'hidden'] },
+      }],
+      totalMs: { type: Number },
+      userAgent: { type: String },
+      submittedAt: { type: Date },
+    }],
   },
   { timestamps: true }
 );

@@ -62,6 +62,8 @@ const toolStrings = {
 
 
   sessionEnded: { th: 'ห้องเรียนปิดแล้ว', en: 'Session Ended' },
+  sessionComplete: { th: 'เสร็จสิ้น!', en: 'Session Complete!' },
+  seeYouNextTime: { th: 'ไว้เจอกันครั้งหน้าครับ/ค่ะ!', en: 'See you next time!' },
   sessionClosedThankYou: { th: 'ห้องเรียนนี้ถูกปิดโดยครูแล้ว ขอบคุณสำหรับการมีส่วนร่วม!', en: 'This session has been closed by the teacher. Thank you for participating!' },
   backToHome: { th: 'กลับหน้าหลัก', en: 'Back to Home' },
   toolTypeNotFound: { th: 'ไม่พบประเภทเครื่องมือ', en: 'Tool type not found' },
@@ -81,6 +83,9 @@ const toolStrings = {
   yourFullName: { th: 'ชื่อ-นามสกุลของคุณ', en: 'Your full name' },
   fileUploadOptional: { th: 'อัปโหลดไฟล์ (ไม่บังคับ, สูงสุด 10MB)', en: 'File Upload (optional, max 10MB)' },
   clickToUploadFile: { th: 'คลิกเพื่ออัปโหลดไฟล์', en: 'Click to upload a file' },
+  tapToSelectFile: { th: 'แตะเพื่อเลือกไฟล์', en: 'Tap to select a file' },
+  noPostsYet: { th: 'ยังไม่มีโพสต์', en: 'No posts yet' },
+  beFirstToPost: { th: 'เป็นคนแรกที่โพสต์ไอเดีย!', en: 'Be the first to post an idea!' },
   file: { th: 'ไฟล์', en: 'File' },
   downloadAttachedFile: { th: 'ดาวน์โหลดไฟล์แนบ', en: 'Download attached file' },
   previewFile: { th: 'ดูไฟล์', en: 'Preview File' },
@@ -115,6 +120,13 @@ const toolStrings = {
   removeAllResults: { th: 'ลบผลลัพธ์ทั้งหมด', en: 'Remove All Results' },
   removeAllResultsConfirm: { th: 'คุณแน่ใจหรือไม่? จะลบผลลัพธ์ทั้งหมดของห้องเรียนนี้ รวมถึงทุกขั้นตอน การกระทำนี้ไม่สามารถยกเลิกได้', en: 'Are you sure? This will delete all results for this session, including all steps. This action cannot be undone.' },
   removeAllResultsSuccess: { th: 'ลบผลลัพธ์ทั้งหมดสำเร็จ', en: 'All results removed successfully' },
+  summary: { th: 'สรุป', en: 'Summary' },
+  perQuestion: { th: 'รายข้อ', en: 'Per Question' },
+  correct: { th: 'ถูก', en: 'Correct' },
+  incorrect: { th: 'ผิด', en: 'Incorrect' },
+  toastSubmitted: { th: 'ส่งเรียบร้อย!', en: 'Submitted!' },
+  toastCorrect: { th: 'ตอบถูกต้อง!', en: 'Correct!' },
+  toastError: { th: 'เกิดข้อผิดพลาด', en: 'Something went wrong' },
 } as const;
 
 export type ToolStringKey = keyof typeof toolStrings;

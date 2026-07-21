@@ -243,6 +243,15 @@ body {
 @utility animate-float-up {
   animation: float-up 25s linear infinite;
 }
+@keyframes float-slow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -20px) scale(1.05); }
+  50% { transform: translate(-20px, 10px) scale(0.95); }
+  75% { transform: translate(15px, 25px) scale(1.02); }
+}
+@utility animate-float-slow {
+  animation: float-slow 20s ease-in-out infinite;
+}
 /* ─── Homepage Scrolling Animations ─── */
 @keyframes fadeLeft {
   from {
@@ -643,6 +652,14 @@ textarea,
   .phonics-game .animate-card-flip-enter,
   .phonics-game .animate-hint-slide-up {
     animation: none !important;
+  }
+}
+
+/* ─── Teacher Tools reduced motion ──────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-slide-up {
+    animation: none !important;
+    opacity: 1 !important;
   }
 }
 
@@ -1318,3 +1335,13 @@ textarea,
 @utility animate-glitch-reveal {
   animation: glitch-reveal 0.4s ease-out forwards;
 }
+
+/* ─── Tiered Glassmorphism ────────────────────────────────────────────────── */
+@utility glass-tier {
+  background: var(--glass-bg, rgba(255, 255, 255, 0.1));
+  backdrop-filter: blur(var(--glass-blur, 12px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
+  box-shadow: var(--glass-shadow, 0 4px 6px -1px rgba(0, 0, 0, 0.05));
+  border: var(--glass-border, 1px solid rgba(255, 255, 255, 0.2));
+}
+

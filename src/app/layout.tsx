@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "../fonts/flaticon-subset.css";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { DeviceTierProvider } from "@/lib/device-tier-provider";
 import { CONFIG } from "@/lib/config";
 
 const geistSans = localFont({
@@ -52,7 +53,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${mali.variable} antialiased`}
       >
         <ThemeProvider>
-          {children}
+          <DeviceTierProvider>
+            {children}
+          </DeviceTierProvider>
         </ThemeProvider>
       </body>
     </html>

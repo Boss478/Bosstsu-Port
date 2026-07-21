@@ -1,30 +1,13 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { getAudioCacheEntry, setAudioCacheEntry } from '@/lib/audio-cache-db';
 
 const MUTED_KEY = 'boss478-muted';
-const AUDIO_CACHE_KEY = 'phonics-dict-cache';
 const VOICE_KEY = 'boss478-voice-uri';
 const ALT_VOICE_KEY = 'alphabet-adventure-voice';
 const SPEECH_RATE_KEY = 'boss478-speech-rate';
 const SPEECH_PITCH_KEY = 'boss478-speech-pitch';
-
-function loadAudioCache(): Record<string, string> {
-  if (typeof window === 'undefined') return {};
-  try {
-    return JSON.parse(localStorage.getItem(AUDIO_CACHE_KEY) ?? '{}');
-  } catch {
-    return {};
-  }
-}
-
-function saveAudioCache(cache: Record<string, string>) {
-  try {
-    localStorage.setItem(AUDIO_CACHE_KEY, JSON.stringify(cache));
-  } catch {
-    // quota exceeded
-  }
-}
 
 let audioFetchQueue: Promise<void> = Promise.resolve();
 const memAudioCache = new Map<string, string | null>();
@@ -33,14 +16,18 @@ async function fetchWordAudioUrl(word: string): Promise<string | null> {
   const key = word.toLowerCase();
   const memCached = memAudioCache.get(key);
   if (memCached !== undefined) return memCached;
-  const persisted = loadAudioCache();
-  if (key in persisted) {
-    const url = persisted[key] || null;
-    if (!url || url.startsWith("data:")) {
+
+  try {
+    const persisted = await getAudioCacheEntry(key);
+    if (persisted !== undefined) {
+      const url = persisted || null;
       memAudioCache.set(key, url);
       return url;
     }
+  } catch {
+    // IndexedDB unavailable, fall through to API fetch
   }
+
   const url = await new Promise<string | null>((resolve) => {
     audioFetchQueue = audioFetchQueue.then(async () => {
       try {
@@ -55,9 +42,9 @@ async function fetchWordAudioUrl(word: string): Promise<string | null> {
       }
     });
   });
+
   memAudioCache.set(key, url);
-  persisted[key] = url ?? '';
-  saveAudioCache(persisted);
+  setAudioCacheEntry(key, url ?? ''); // fire-and-forget
   return url;
 }
 

@@ -9,7 +9,6 @@ import QuestionChoiceButton from '../components/QuestionChoiceButton';
 import { PHONEMES, WORD_CLASS_ABBREV } from '../constants';
 import { DialectBadge } from '../components/DialectBadge';
 import { WORDS } from '../words';
-import { getWordsForGroup } from '../vocab-group-defs';
 import { formatPhonemeIpa } from '../utils/ipaUtils';
 import { useAudio } from '@/hooks/useAudio';
 import {
@@ -188,14 +187,16 @@ export default function ChallengeQuizScreen({
   const { playWordAudio } = useAudio();
   const allWordEntries = useAllWordEntries();
 
-  const quizPool = useMemo(
-    () => allWordEntries.filter((w) => w.phonemeIds.length > 0 && w.ipa?.length),
-    [allWordEntries],
-  );
+  const quizPool = useMemo(() => {
+    const base = allWordEntries.filter((w) => w.phonemeIds.length > 0 && w.ipa?.length);
+    if (!config.wordPool) return base;
+    const poolWords = new Set(config.wordPool.map((w) => w.word));
+    return base.filter((w) => poolWords.has(w.word));
+  }, [allWordEntries, config.wordPool]);
 
   const wordPool = useMemo(
-    () => (config.groupId ? getWordsForGroup(config.groupId) : undefined),
-    [config.groupId],
+    () => config.wordPool ?? undefined,
+    [config.wordPool],
   );
 
   const [questions] = useState(() => {
@@ -630,7 +631,7 @@ export default function ChallengeQuizScreen({
             </div>
           )}
           {q.type === 'def-to-word' && (
-            <div className="glass-panel p-4 rounded-3xl border border-white/20 shadow-sm max-w-sm mx-auto">
+            <div className="glass-panel p-4 rounded-3xl border border-white/20 shadow-sm max-w-4xl mx-auto">
               <p className="text-base font-bold text-slate-800 dark:text-slate-100 leading-relaxed">
                 {q.prompt}
               </p>
@@ -707,7 +708,7 @@ export default function ChallengeQuizScreen({
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3.5 max-w-md mx-auto w-full">
+        <div className="grid grid-cols-2 gap-5 max-w-4xl mx-auto w-full">
           {q.options.map((opt) => (
             <QuestionChoiceButton
               key={opt}

@@ -10,6 +10,8 @@ import type {
   CompanionId,
 } from './types';
 import { WORDS } from './words';
+import { getGroupDef } from './vocab-group-defs';
+export { CEFR_LEVEL_ORDER } from './levels';
 
 // ─── Version ─────────────────────────────────────────────────────────────────
 export const SAVE_VERSION = 3;
@@ -30,8 +32,6 @@ export const GAME_CONFIG = {
   DEFINITION_MIX_ADAPTIVE: true,
   SAVE_INDICATOR_MS: 3000, // how long to show the save indicator
 } as const;
-
-export const CEFR_LEVEL_ORDER = ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'] as const;
 
 export const CEFR_LEVEL_LABELS: Record<string, string> = {
   a1: 'A1 (Beginner)',
@@ -760,10 +760,21 @@ const VOCAB_GROUP_MAP: Record<string, string> = {
   'vocab-c2': 'c2',
 };
 
+const TIER_TO_CEFR: Record<string, string> = {
+  easy: 'a1',
+  'easy-medium': 'a2',
+  medium: 'b1',
+  'medium-hard': 'b2',
+  hard: 'c1',
+};
+
 export function getVocabStagesForGroup(groupId: string): StageData[] {
   const level = VOCAB_GROUP_MAP[groupId];
-  if (!level) return [];
-  return VOCAB_STAGES.filter((s) => s.id.startsWith(`vocab-${level}`));
+  if (level) return VOCAB_STAGES.filter((s) => s.id.startsWith(`vocab-${level}`));
+  const groupDef = getGroupDef(groupId);
+  if (!groupDef) return [];
+  const cefrLevel = TIER_TO_CEFR[groupDef.tier] ?? groupDef.minLevel ?? 'a1';
+  return VOCAB_STAGES.filter((s) => s.id.startsWith(`vocab-${cefrLevel}`));
 }
 
 const CEFR_BASE_LENGTHS: Record<string, number> = {
@@ -783,6 +794,17 @@ function getVocabActivityLength(cefrLevel: string, lastAccuracy?: number): numbe
     else if (lastAccuracy > 0.8) adjustment = -2;
   }
   return Math.max(4, Math.min(14, base + adjustment));
+}
+
+export function getVocabActivitiesForGroup(groupId: string, lastAccuracy?: number): ActivityData[] {
+  const stages = getVocabStagesForGroup(groupId);
+  let order = 0;
+  return stages.flatMap((s) =>
+    getVocabActivitiesForStage(s.id, groupId, lastAccuracy).map((act) => ({
+      ...act,
+      order: order++,
+    })),
+  );
 }
 
 export function getVocabActivitiesForStage(
@@ -1321,6 +1343,36 @@ export const COMPANIONS: Record<string, CompanionData> = {
         2: 'Each vowel sound is one syllable.',
         3: 'Clap once for each vowel sound you hear in the word.',
       },
+      synonyms: {
+        1: 'A word that walks in the shadow of another shares its meaning.',
+        2: 'Look for the option that could replace the target without changing the sentence.',
+        3: 'The synonym is hiding among the choices — find the word with overlapping meaning.',
+      },
+      antonyms: {
+        1: 'Opposites reveal truth. Seek the word that stands in contrast.',
+        2: 'Which option means the reverse of the target? Fire and ice.',
+        3: 'The antonym is the one that cannot coexist in meaning.',
+      },
+      'fill-blank': {
+        1: 'The missing piece completes the puzzle. Let context be your guide.',
+        2: 'What kind of word fits the tone and meaning of the sentence?',
+        3: 'Try each option in the blank. Only one sounds right in context.',
+      },
+      'word-assoc': {
+        1: 'Every word has a nature. Is it a person, an action, or a description?',
+        2: 'Think about what job the word does in a sentence.',
+        3: 'Nouns name things, verbs do actions, adjectives describe.',
+      },
+      collocations: {
+        1: 'Some words keep company more than others. Find the natural pair.',
+        2: 'Which word commonly sits beside the target in everyday speech?',
+        3: 'Think of phrases you have heard. Which combination sounds familiar?',
+      },
+      'vocab-exercise': {
+        1: 'Draw from all you have learned. The answer is within your knowledge.',
+        2: 'Review the patterns — synonyms, definitions, and context are all clues.',
+        3: 'Trust what you know. The correct choice will resonate with understanding.',
+      },
     },
   },
   mira: {
@@ -1371,6 +1423,36 @@ export const COMPANIONS: Record<string, CompanionData> = {
         1: 'Say the word out loud and count how many times your chin drops!',
         2: 'Clap for each vowel sound you hear — each clap is one syllable!',
         3: 'Every vowel in the spelling makes its own syllable!',
+      },
+      synonyms: {
+        1: 'Woohoo! Think of another word that means the exact same thing!',
+        2: 'Which option shares the same meaning? You know this one!',
+        3: 'Replace the target word with each option — which one says the same thing?',
+      },
+      antonyms: {
+        1: 'Opposite time! What is the reverse of this word?',
+        2: 'Which choice means the total opposite? Think contrast!',
+        3: 'If the target is hot, find cold. Think about opposites!',
+      },
+      'fill-blank': {
+        1: 'The sentence is missing a word — which one makes it shine?',
+        2: 'Read the sentence with each option. Feel which one fits best!',
+        3: 'Context is your friend! What kind of word belongs here?',
+      },
+      'word-assoc': {
+        1: 'What kind of word is it? A thing, an action, or a description?',
+        2: 'Think about what the word DOES in a sentence!',
+        3: 'Nouns = things, verbs = actions, adjectives = describing words!',
+      },
+      collocations: {
+        1: 'Some words love hanging out together! Find the best friend!',
+        2: 'Which word naturally goes with the target? You have heard this pair before!',
+        3: 'Think of common phrases. Which combo sounds right to your ear?',
+      },
+      'vocab-exercise': {
+        1: 'You have got this! Use everything you have learned so far!',
+        2: 'Think about meanings, context, and word types — all the clues!',
+        3: 'You know the answer — trust yourself and go for it!',
       },
     },
   },
@@ -1423,6 +1505,36 @@ export const COMPANIONS: Record<string, CompanionData> = {
         2: 'Each vowel phoneme forms a syllable nucleus.',
         3: 'Run syllabification algorithm: count vowel phonemes in word.',
       },
+      synonyms: {
+        1: 'Querying semantic thesaurus. Locating words with overlapping meaning vectors.',
+        2: 'Synonym match requires semantic field alignment. Identify the closest lexical neighbor.',
+        3: 'Cross-reference each option against target definition. One shares the meaning signature.',
+      },
+      antonyms: {
+        1: 'Antonym detection: scanning for lexical opposition in semantic space.',
+        2: 'Words with inverse meaning are polarized in the semantic field. Detect the polarity.',
+        3: 'Run opposition analysis on each option against target lexeme.',
+      },
+      'fill-blank': {
+        1: 'Contextual gap analysis: identifying optimal syntactic and semantic filler.',
+        2: 'Evaluate each candidate for grammatical compatibility and semantic fit.',
+        3: 'Test each word in the blank position. Only one satisfies all constraints.',
+      },
+      'word-assoc': {
+        1: 'Part-of-speech classification: determine grammatical category of target word.',
+        2: 'Analyzing morphosyntactic features to classify word type.',
+        3: 'Noun: entity. Verb: action. Adjective: attribute. Run classification.',
+      },
+      collocations: {
+        1: 'Collocation analysis: identifying high-probability word pairings in corpus.',
+        2: 'Bigram frequency analysis: which word statistically co-occurs with target?',
+        3: 'Common lexical pairings are stored in phrase database. Query matches.',
+      },
+      'vocab-exercise': {
+        1: 'Running comprehensive vocabulary assessment. Deploying all lexical tools.',
+        2: 'Integrating synonym, antonym, and contextual analysis for optimal selection.',
+        3: 'All systems operational. Apply learned patterns to identify correct response.',
+      },
     },
   },
   fox: {
@@ -1473,6 +1585,36 @@ export const COMPANIONS: Record<string, CompanionData> = {
         1: 'Count the beats in the word by tapping your finger.',
         2: 'Each vowel cluster is one syllable. Find the vowels.',
         3: 'Every time you hear a new vowel sound, that is a new syllable.',
+      },
+      synonyms: {
+        1: 'A clever word shares its meaning in disguise. Find the imposter that means the same.',
+        2: 'Which option could swap places with the target and keep the sentence meaningful?',
+        3: 'One of these words shares a definition with the target. Tricky, but you will spot it.',
+      },
+      antonyms: {
+        1: 'Every word has its rival. Find the word that opposes the target.',
+        2: 'Think in opposites — if the target is day, the rival is night.',
+        3: 'The antonym is the mirror image. Which option reflects the opposite?',
+      },
+      'fill-blank': {
+        1: 'The sentence has a missing piece. Solve the puzzle by reading the clues around it.',
+        2: 'Each option changes the sentence meaning. Which one feels intentional?',
+        3: 'A clever trick: read the sentence without the blank and feel which word fits the trail.',
+      },
+      'word-assoc': {
+        1: 'Every word has a hidden identity. Is it a thing, an action, or a quality?',
+        2: 'Cunning observation: words that name are nouns, words that do are verbs.',
+        3: 'The word class is the key to understanding how it works in a sentence.',
+      },
+      collocations: {
+        1: 'Words travel in pairs. Find the partner that walks beside the target.',
+        2: 'Some pairs are so common they feel natural. Trust your ear for language.',
+        3: 'Think of phrases you know. Which word completes the expected duo?',
+      },
+      'vocab-exercise': {
+        1: 'Time to put it all together. Use every trick you have learned.',
+        2: 'Synonyms, antonyms, context — all tools are in your kit. Use them wisely.',
+        3: 'The answer is hidden in plain sight. You have all the clues you need.',
       },
     },
   },
@@ -1525,6 +1667,36 @@ export const COMPANIONS: Record<string, CompanionData> = {
         2: 'Each time your chin drops, that is a syllable!',
         3: 'Count the vowel sounds — that is how many syllables!',
       },
+      synonyms: {
+        1: 'Purr... find the word that means the same thing. You have seen this before!',
+        2: 'Which option can stand in for the target? They are meaning-buddies!',
+        3: 'A synonym is a word that shares the same idea. Curl up and think about it.',
+      },
+      antonyms: {
+        1: 'Meow! Find the word that is the opposite of the target!',
+        2: 'If the target is big, the opposite is small. Easy like a catnap!',
+        3: 'Opposites attract! Look for the word that contradicts the target.',
+      },
+      'fill-blank': {
+        1: 'A missing word in the sentence. Which one makes it purr-fect?',
+        2: 'Try each option in the blank. Which one feels cozy and right?',
+        3: 'Cats know — the best word fits the context like curling up in a sunbeam.',
+      },
+      'word-assoc': {
+        1: 'Every word has a role to play. Is it a thing, an action, or describing something?',
+        2: 'Nouns name things like toys. Verbs are actions like pouncing.',
+        3: 'Words that describe are adjectives — like fluffy or warm!',
+      },
+      collocations: {
+        1: 'Some words love to nap together! Pick the word that pairs naturally.',
+        2: 'Think of common cat phrases. Which combo sounds most familiar?',
+        3: 'The right pair feels natural — like milk and catnip!',
+      },
+      'vocab-exercise': {
+        1: 'Time to use your word senses! You know more than you think, meow!',
+        2: 'Think about all the clues: meaning, opposites, context. You are a smart kitty!',
+        3: 'Trust your instincts. The answer is just a paw-reach away!',
+      },
     },
   },
   bear: {
@@ -1575,6 +1747,36 @@ export const COMPANIONS: Record<string, CompanionData> = {
         1: 'Say the word slowly and feel each beat like a heartbeat.',
         2: 'Clap once for each vowel sound you hear. Each clap is a syllable.',
         3: 'Every vowel in the word makes one syllable. Count them.',
+      },
+      synonyms: {
+        1: 'Take your time. There is a word here that means the same as the target.',
+        2: 'Think of other words you know that are similar. One of the options matches.',
+        3: 'The synonym shares a meaning. Read each option gently and find the familiar one.',
+      },
+      antonyms: {
+        1: 'No rush. Find the word that means the opposite. It will feel different.',
+        2: 'Opposites are like day and night. Which option stands apart from the target?',
+        3: 'The antonym is the one that cannot mean the same thing. You will sense it.',
+      },
+      'fill-blank': {
+        1: 'The sentence has a quiet space waiting for the right word.',
+        2: 'Read the sentence softly with each option. One will feel like it belongs.',
+        3: 'Think about the meaning of the sentence. The right word completes it warmly.',
+      },
+      'word-assoc': {
+        1: 'Words are like trees — some are names, some are actions, some describe.',
+        2: 'Nouns are things you can hold. Verbs are things you can do. Adjectives tell how.',
+        3: 'Rest a moment and think: does this word name, act, or describe?',
+      },
+      collocations: {
+        1: 'Some words walk together in the forest. Find the natural companion.',
+        2: 'Think of simple phrases you have heard. Which pair sounds calm and familiar?',
+        3: 'The right collocation feels like home. Trust your gentle intuition.',
+      },
+      'vocab-exercise': {
+        1: 'You have come so far. Breathe and use everything you know.',
+        2: 'Each clue — meaning, opposites, context — is a stepping stone. Follow them.',
+        3: 'Be kind to yourself. The answer is already in your heart.',
       },
     },
   },
@@ -1627,6 +1829,36 @@ export const COMPANIONS: Record<string, CompanionData> = {
         2: 'Say the word and clap for each vowel sound you hear!',
         3: 'Count the vowel sounds — that is the syllable count!',
       },
+      synonyms: {
+        1: 'Hop to it! Find the word that means the same as the target!',
+        2: 'Which option shares the same meaning? You know this one — jump on it!',
+        3: 'A synonym is a meaning-buddy! Spot the one that matches!',
+      },
+      antonyms: {
+        1: 'Bunny bounce! Find the word that means the OPPOSITE!',
+        2: 'Think fast — if the target is fast, the opposite is slow! Zoom!',
+        3: 'Antonyms are like hopping left when the target goes right!',
+      },
+      'fill-blank': {
+        1: 'The sentence needs a word! Which one hops in perfectly?',
+        2: 'Try each word in the blank. One fits like a bunny in a burrow!',
+        3: 'Context is the clue! What kind of word makes the sentence bounce?',
+      },
+      'word-assoc': {
+        1: 'Quick! Is this word a thing, an action, or what something is like?',
+        2: 'Nouns name everything you see! Verbs are actions — hop, jump, run!',
+        3: 'Adjectives describe — like fluffy, fast, and fun!',
+      },
+      collocations: {
+        1: 'Some words love to play together! Find the best hopping partner!',
+        2: 'Which word naturally tags along with the target? Think of common pairs!',
+        3: 'You have heard these word pairs before — they just sound right together!',
+      },
+      'vocab-exercise': {
+        1: 'Super vocab test! Use ALL your word powers!',
+        2: 'Synonyms, opposites, context — you have got all the tools! Hop to the answer!',
+        3: 'You are a vocab superstar! The right answer is hopping right toward you!',
+      },
     },
   },
   penguin: {
@@ -1677,6 +1909,36 @@ export const COMPANIONS: Record<string, CompanionData> = {
         1: 'Break the ice. Say the word slowly and count its beats.',
         2: 'Each vowel sound is one solid syllable. No rush.',
         3: 'Count the vowel sounds in the word — that is your answer.',
+      },
+      synonyms: {
+        1: 'Stay cool. There is a word here that shares the same meaning as the target.',
+        2: 'Slide through the options calmly. One has the same definition.',
+        3: 'The synonym matches the meaning of the target. Keep it chill and spot it.',
+      },
+      antonyms: {
+        1: 'Cool challenge. Find the word that is the opposite of the target.',
+        2: 'Opposites are like ice and fire. Which option contrasts the most?',
+        3: 'The antonym is the one that does not agree in meaning. Smooth detection.',
+      },
+      'fill-blank': {
+        1: 'The sentence has a frosty gap. Which word slides in perfectly?',
+        2: 'Read the sentence with each option. The coolest fit is the correct one.',
+        3: 'Context is your compass. What kind of word keeps the sentence chill?',
+      },
+      'word-assoc': {
+        1: 'Glide through the options. Is this word a name, an action, or a description?',
+        2: 'Nouns are solid like icebergs. Verbs slide and move. Adjectives describe the view.',
+        3: 'Identify the part of speech. Stay cool and classify.',
+      },
+      collocations: {
+        1: 'Words travel in icy pairs. Find the natural partner of the target.',
+        2: 'Which word glides together with the target in common speech?',
+        3: 'Trust your ear for natural pairs. Some combos just feel cool together.',
+      },
+      'vocab-exercise': {
+        1: 'Cool and steady. Use all your vocab skills — you have got this.',
+        2: 'Think about meaning, opposition, and context. Slide through the clues.',
+        3: 'Keep your focus. The answer is waiting calmly for you.',
       },
     },
   },
@@ -1729,6 +1991,36 @@ export const COMPANIONS: Record<string, CompanionData> = {
         2: 'Each vowel nucleus forms one syllable. Counting...',
         3: 'Syllable count equals number of vowel phonemes detected.',
       },
+      synonyms: {
+        1: 'Beep! Scanning Earth synonym database. Searching for meaning match.',
+        2: 'Cosmic correlation: this word shares semantic DNA with the target.',
+        3: 'Identify which option contains the same meaning signature. Engage logic.',
+      },
+      antonyms: {
+        1: 'Opposite polarity detected. Scanning for anti-meaning signal.',
+        2: 'In the cosmic balance, every word has a reverse. Find the opposing force.',
+        3: 'The antonym radiates the opposite frequency. Tune your sensor.',
+      },
+      'fill-blank': {
+        1: 'Sentence anomaly detected. Word required to stabilize meaning.',
+        2: 'Insert each candidate into the void. One eliminates the semantic gap.',
+        3: 'The correct word aligns with the contextual gravity of the sentence.',
+      },
+      'word-assoc': {
+        1: 'Classifying Earth word type. Querying noun/verb/adjective database.',
+        2: 'Nouns label objects. Verbs describe action. Adjectives add cosmic qualities.',
+        3: 'Run classification subroutine on target word. Identify grammatical nature.',
+      },
+      'collocations': {
+        1: 'Analyzing word pair bonding patterns in Earth linguistic corpus.',
+        2: 'Some words form natural alliances. Detect the compatible partner.',
+        3: 'Common phrase database suggests one pairing has high probability.',
+      },
+      'vocab-exercise': {
+        1: 'Comprehensive vocabulary test initiated. Deploy all Earth language modules.',
+        2: 'Integrating synonym, antonym, and context data. Computing optimal choice.',
+        3: 'All signals point to one answer. Trust the cosmic data stream.',
+      },
     },
   },
   ninja: {
@@ -1780,6 +2072,36 @@ export const COMPANIONS: Record<string, CompanionData> = {
         2: 'Every vowel is a hidden node. Count them in shadow.',
         3: 'The number of vowel sounds equals the number of syllables.',
       },
+      synonyms: {
+        1: 'A stealth mission: find the word that shares the target meaning.',
+        2: 'Observe each option silently. One mirrors the targets definition.',
+        3: 'Strike with precision — the synonym walks the same path as the target.',
+      },
+      antonyms: {
+        1: 'The target has a shadow rival. Seek the word of opposition.',
+        2: 'Opposites reveal the path. Which option stands in direct contrast?',
+        3: 'The antonym is the mirror image. Strike away from the targets meaning.',
+      },
+      'fill-blank': {
+        1: 'The sentence hides a gap. Only one word fits with precision.',
+        2: 'Test each option in the void. One completes the mission cleanly.',
+        3: 'Context reveals all. Let the sentences meaning guide your strike.',
+      },
+      'word-assoc': {
+        1: 'Know your target: thing, action, or description? Classify in silence.',
+        2: 'Nouns are solid. Verbs move. Adjectives shape. Identify the type.',
+        3: 'The part of speech is the first step on the path to mastery.',
+      },
+      collocations: {
+        1: 'Words move in pairs like shadow warriors. Find the natural ally.',
+        2: 'Some pairings are forged by common use. Detect the familiar bond.',
+        3: 'The right collocation is a perfect strike. Trust your training.',
+      },
+      'vocab-exercise': {
+        1: 'The final test. Use all your discipline and focus.',
+        2: 'Every clue — meaning, opposition, context — sharpens your blade.',
+        3: 'A true ninja trusts their knowledge. The answer is within you.',
+      },
     },
   },
   robot: {
@@ -1830,6 +2152,36 @@ export const COMPANIONS: Record<string, CompanionData> = {
         1: 'Syllable boundary detection scanning for vowel nuclei.',
         2: 'Each vowel phoneme marks a syllable nucleus. Tallying count.',
         3: 'Result: syllable count equals number of vowel phonemes detected.',
+      },
+      synonyms: {
+        1: 'Processing synonym request. Scanning lexical database for meaning match.',
+        2: 'Cross-referencing each options definition against target. Identify overlap.',
+        3: 'Semantic alignment confirmed: one option shares the target meaning vector.',
+      },
+      antonyms: {
+        1: 'Antonym analysis initialized. Searching for lexical opposition.',
+        2: 'Inverse meaning detection: evaluate each options semantic polarity.',
+        3: 'Opposite match criteria satisfied by one entry. Identify the contrast.',
+      },
+      'fill-blank': {
+        1: 'Contextual gap analysis. Evaluating candidates for syntactic compatibility.',
+        2: 'Insert each option into blank position. Testing semantic coherence.',
+        3: 'Optimal filler selected based on grammatical and contextual fit.',
+      },
+      'word-assoc': {
+        1: 'Part-of-speech classification engaged. Analyzing lexical attributes.',
+        2: 'Noun: designates entity. Verb: designates action. Adjective: designates property.',
+        3: 'Classification complete. Outputting word type result.',
+      },
+      collocations: {
+        1: 'Collocation retrieval: querying common word pairing database.',
+        2: 'Co-occurrence probability calculated for each candidate pair.',
+        3: 'Highest-probability pairing identified. Confirm lexical relationship.',
+      },
+      'vocab-exercise': {
+        1: 'Comprehensive vocabulary assessment initialized. All systems online.',
+        2: 'Integrating multi-source lexical data for optimal response selection.',
+        3: 'Analysis complete. Apply learned vocabulary patterns to identify correct choice.',
       },
     },
   },

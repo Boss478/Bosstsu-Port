@@ -31,7 +31,7 @@ export default function MascotSelector({ selectedId, onSelect }: MascotSelectorP
                 }
               `}
             >
-              <MascotAvatar mascotId={m.id} size={64} />
+              <MascotAvatar mascotId={m.id} size={64} variant="head" />
               <span className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-tight">
                 {m.nameTh}
               </span>

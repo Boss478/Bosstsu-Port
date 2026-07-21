@@ -61,7 +61,7 @@ export default function SpellingQuestion({
       <p className="text-xs font-bold text-[#1C1C1C]/40 dark:text-[#F7E1A0]/40 tracking-widest mb-3 uppercase">SPELL THE WORD</p>
       
       {/* Definition card */}
-      <div className="glass-panel p-6 rounded-3xl w-full max-w-sm mb-6 border border-white/20 shadow-sm relative overflow-hidden">
+      <div className="glass-panel p-6 rounded-3xl w-full max-w-4xl mb-6 border border-white/20 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-2 h-full bg-[#C8A44E]" />
         <p className="text-lg font-bold text-slate-800 dark:text-slate-100 leading-relaxed">
           {question.word.definition}
@@ -80,7 +80,7 @@ export default function SpellingQuestion({
       </button>
 
       {/* Choice Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 w-full max-w-md">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-4xl">
         {choices.map((option, i) => {
           const isSelected = selectedAnswer === option;
           const isCorrect = option === question.word.word;
@@ -181,7 +181,7 @@ function TilesSpelling({
       <p className="text-xs font-bold text-[#1C1C1C]/40 dark:text-[#F7E1A0]/40 tracking-widest mb-3 uppercase">SPELL THE WORD — TILES</p>
       
       {/* Definition card */}
-      <div className="glass-panel p-6 rounded-3xl w-full max-w-sm mb-6 border border-white/20 shadow-sm relative overflow-hidden">
+      <div className="glass-panel p-6 rounded-3xl w-full max-w-4xl mb-6 border border-white/20 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-2 h-full bg-[#2EC4B6]" />
         <p className="text-lg font-bold text-slate-800 dark:text-slate-100 leading-relaxed">
           {word.definition}
@@ -200,7 +200,7 @@ function TilesSpelling({
       </button>
 
       {/* Answer zone: Interactive Keycaps */}
-      <div className={`w-full max-w-sm min-h-[72px] p-4 mb-4 rounded-3xl glass-panel flex flex-wrap justify-center items-center gap-2 border-2 transition-colors duration-300 ${
+      <div className={`w-full max-w-4xl min-h-[72px] p-4 mb-4 rounded-3xl glass-panel flex flex-wrap justify-center items-center gap-2 border-2 transition-colors duration-300 ${
         feedback === "correct" ? "border-emerald-400 bg-emerald-500/10" : 
         feedback === "wrong" ? "border-rose-400 bg-rose-500/10" : "border-white/20"
       }`}>
@@ -230,7 +230,7 @@ function TilesSpelling({
       )}
 
       {/* Tile grid */}
-      <div className="flex flex-wrap justify-center gap-2.5 mb-6 max-w-sm">
+      <div className="flex flex-wrap justify-center gap-2.5 mb-6 max-w-4xl">
         {shuffledTiles.map((phoneme, i) => {
           // Track usage correctly to allow duplicates
           const used = selectedTiles.filter((t) => t === phoneme).length >

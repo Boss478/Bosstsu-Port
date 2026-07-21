@@ -48,10 +48,19 @@ export type DefinitionDirection = 'def-to-word' | 'word-to-def';
 // ─── Vocab Group Types ────────────────────────────────────────────────────
 export type VocabTier = 'easy' | 'easy-medium' | 'medium' | 'medium-hard' | 'hard';
 
+export interface VocabCategory {
+  id: string;
+  title: string;
+  sortOrder: number;
+  icon: string;
+  color: string;
+}
+
 export interface VocabGroupDef {
   id: string;
   title: string;
   tier: VocabTier;
+  categoryId: string;
   sortOrder: number;
   color: string;
   icon: string;
@@ -352,7 +361,9 @@ export interface QuizConfig {
   speedRunDuration: number;
   speedRunBonus: number;
   cefrLevel?: CefrLevel;
+  /** @deprecated use wordPool instead */
   groupId?: string;
+  wordPool?: WordData[];
 }
 
 // ─── Achievement System ────────────────────────────────────────────────────
@@ -500,7 +511,7 @@ export interface SaveData {
   totalCorrects: number;
   phonemeCoins: number;
   phonemeStats: Record<string, { correct: number; total: number; lastSeen: number }>;
-  settings: { muted: boolean; glassLevel: number };
+  settings: { muted: boolean; glassLevel: number; gridColumns?: 2 | 3; companionSnap?: 'left' | 'right' | 'free' };
   tutorialCompleted: boolean;
   totalRoundsPlayed: number;
   bestStreak: number;

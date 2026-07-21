@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 export default function StudyEnterPage() {
@@ -8,10 +8,10 @@ export default function StudyEnterPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = code.trim().toUpperCase();
+  const submitCode = useCallback(async (codeToSubmit: string) => {
+    const trimmed = codeToSubmit.trim().toUpperCase();
     if (trimmed.length !== 5) return;
 
     setLoading(true);
@@ -37,6 +37,19 @@ export default function StudyEnterPage() {
     } finally {
       setLoading(false);
     }
+  }, [router]);
+
+  useEffect(() => {
+    if (code.length === 5) {
+      debounceRef.current = setTimeout(() => submitCode(code), 300);
+      return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    }
+  }, [code, submitCode]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    await submitCode(code);
   };
 
   return (

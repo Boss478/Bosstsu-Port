@@ -1,12 +1,45 @@
+import type { SpriteData } from './mascot-sprites';
+import {
+  AVATAR_FOX_HEAD, AVATAR_CAT_HEAD, AVATAR_BEAR_HEAD,
+  AVATAR_BUNNY_HEAD, AVATAR_PENGUIN_HEAD,
+  AVATAR_ALIEN_HEAD, AVATAR_NINJA_HEAD,
+  AVATAR_DOG_HEAD, AVATAR_GHOST_HEAD,
+  FOX_IDLE, CAT_IDLE, BEAR_IDLE, BUNNY_IDLE, PENGUIN_IDLE,
+  ALIEN_IDLE, NINJA_IDLE,
+  DOG_IDLE, GHOST_IDLE,
+} from './mascot-sprites';
+import { PHONICS_MASCOTS } from './mascot-bridge';
+
+export interface AnimParams {
+  breatheHeight: number;
+  breatheSpeed: number;
+  blinkInterval: number;
+  blinkDuration: number;
+}
+
 export interface Mascot {
   id: string;
   name: string;
   nameTh: string;
   palette: string[];
   data: string[];
+  spriteData?: { head: SpriteData; full: SpriteData };
+  animParams: AnimParams;
+  accentColor: string;
+  spriteAccessory?: string;
 }
 
-import { PHONICS_MASCOTS } from './mascot-bridge';
+const SPRITE_MAP: Record<string, { head: SpriteData; full: SpriteData }> = {
+  fox: { head: AVATAR_FOX_HEAD, full: FOX_IDLE },
+  cat: { head: AVATAR_CAT_HEAD, full: CAT_IDLE },
+  bear: { head: AVATAR_BEAR_HEAD, full: BEAR_IDLE },
+  bunny: { head: AVATAR_BUNNY_HEAD, full: BUNNY_IDLE },
+  penguin: { head: AVATAR_PENGUIN_HEAD, full: PENGUIN_IDLE },
+  alien: { head: AVATAR_ALIEN_HEAD, full: ALIEN_IDLE },
+  ninja: { head: AVATAR_NINJA_HEAD, full: NINJA_IDLE },
+  dog: { head: AVATAR_DOG_HEAD, full: DOG_IDLE },
+  ghost: { head: AVATAR_GHOST_HEAD, full: GHOST_IDLE },
+};
 
 const MASCOTS: Mascot[] = [
   {
@@ -14,6 +47,10 @@ const MASCOTS: Mascot[] = [
     name: 'Fox',
     nameTh: 'จิ้งจอก',
     palette: ['transparent', '#E85D26', '#222222', '#FFFFFF', '#F5A623'],
+    spriteData: SPRITE_MAP.fox,
+    animParams: { breatheHeight: 4, breatheSpeed: 2.5, blinkInterval: 3500, blinkDuration: 150 },
+    accentColor: '#E85D26',
+    spriteAccessory: 'fox_leaf',
     data: [
       '00000000000000000000000000000000',
       '00000000000000000000000000000000',
@@ -54,6 +91,10 @@ const MASCOTS: Mascot[] = [
     name: 'Cat',
     nameTh: 'แมว',
     palette: ['transparent', '#9E9E9E', '#66BB6A', '#FFFFFF', '#222222', '#FF8A80'],
+    spriteData: SPRITE_MAP.cat,
+    animParams: { breatheHeight: 4, breatheSpeed: 3, blinkInterval: 4000, blinkDuration: 180 },
+    accentColor: '#66BB6A',
+    spriteAccessory: 'yarn',
     data: [
       '00000000000000000000000000000000',
       '00000000000000000000000000000000',
@@ -94,6 +135,10 @@ const MASCOTS: Mascot[] = [
     name: 'Bear',
     nameTh: 'หมี',
     palette: ['transparent', '#8D6E63', '#222222', '#FFFFFF', '#5D4037'],
+    spriteData: SPRITE_MAP.bear,
+    animParams: { breatheHeight: 3, breatheSpeed: 3.5, blinkInterval: 4000, blinkDuration: 200 },
+    accentColor: '#8D6E63',
+    spriteAccessory: 'honey_pot',
     data: [
       '00000000000000000000000000000000',
       '00000000000000000000000000000000',
@@ -134,6 +179,10 @@ const MASCOTS: Mascot[] = [
     name: 'Bunny',
     nameTh: 'กระต่าย',
     palette: ['transparent', '#FFF3E0', '#F48FB1', '#222222'],
+    spriteData: SPRITE_MAP.bunny,
+    animParams: { breatheHeight: 6, breatheSpeed: 1.8, blinkInterval: 2500, blinkDuration: 120 },
+    accentColor: '#F48FB1',
+    spriteAccessory: 'carrot',
     data: [
       '00000000000000000000000000000000',
       '00000000000000000000000000000000',
@@ -174,6 +223,10 @@ const MASCOTS: Mascot[] = [
     name: 'Penguin',
     nameTh: 'เพนกวิน',
     palette: ['transparent', '#37474F', '#FFFFFF', '#FF9800', '#222222'],
+    spriteData: SPRITE_MAP.penguin,
+    animParams: { breatheHeight: 3, breatheSpeed: 2.5, blinkInterval: 3500, blinkDuration: 150 },
+    accentColor: '#37474F',
+    spriteAccessory: 'scarf',
     data: [
       '00000000000000000000000000000000',
       '00000000000000000000000000000000',
@@ -199,46 +252,6 @@ const MASCOTS: Mascot[] = [
       '00000001111122222222221111110000',
       '00000001111122222222221111110000',
       '00000001111122222222221111110000',
-      '00000001111111111111111100000000',
-      '00000001111111111111111100000000',
-      '00000001111111111111111100000000',
-      '00000000111111111111111110000000',
-      '00000000001111111111110000000000',
-      '00000000000011111111000000000000',
-      '00000000000000000000000000000000',
-      '00000000000000000000000000000000',
-    ],
-  },
-  {
-    id: 'robot',
-    name: 'Robot',
-    nameTh: 'หุ่นยนต์',
-    palette: ['transparent', '#546E7A', '#EF5350', '#FFFFFF', '#B0BEC5'],
-    data: [
-      '00000000000000000000000000000000',
-      '00000000000000000000000000000000',
-      '00000000000000020000000000000000',
-      '00000000000000222000000000000000',
-      '00000000000000111000000000000000',
-      '00000000000000111000000000000000',
-      '00000000000001111000000000000000',
-      '00000000000011111100000000000000',
-      '00000000000111111110000000000000',
-      '00000000001111111111000000000000',
-      '00000001111111111111111100000000',
-      '00000001111111111111111100000000',
-      '00000001111111111111111100000000',
-      '00000001111111111111111100000000',
-      '00000001111122333223332111110000',
-      '00000001111122333223332111110000',
-      '00000001111111111111111100000000',
-      '00000001111111111111111100000000',
-      '00000001111134444444443111110000',
-      '00000001111134222222443111110000',
-      '00000001111134444444443111110000',
-      '00000001111111111111111100000000',
-      '00000001111144444444441111110000',
-      '00000001111144444444441111110000',
       '00000001111111111111111100000000',
       '00000001111111111111111100000000',
       '00000001111111111111111100000000',
@@ -254,6 +267,10 @@ const MASCOTS: Mascot[] = [
     name: 'Alien',
     nameTh: 'เอเลี่ยน',
     palette: ['transparent', '#66BB6A', '#FFFFFF', '#222222', '#AB47BC'],
+    spriteData: SPRITE_MAP.alien,
+    animParams: { breatheHeight: 5, breatheSpeed: 2.5, blinkInterval: 3000, blinkDuration: 150 },
+    accentColor: '#A5D6A7',
+    spriteAccessory: 'goggles',
     data: [
       '00000000000000000000000000000000',
       '00000000000000000000000000000000',
@@ -294,6 +311,10 @@ const MASCOTS: Mascot[] = [
     name: 'Ninja',
     nameTh: 'นินจา',
     palette: ['transparent', '#37474F', '#EF5350', '#FFFFFF', '#222222'],
+    spriteData: SPRITE_MAP.ninja,
+    animParams: { breatheHeight: 2, breatheSpeed: 2.5, blinkInterval: 4000, blinkDuration: 100 },
+    accentColor: '#222222',
+    spriteAccessory: 'katana',
     data: [
       '00000000000000000000000000000000',
       '00000000000000000000000000000000',
@@ -328,6 +349,27 @@ const MASCOTS: Mascot[] = [
       '00000000000000000000000000000000',
       '00000000000000000000000000000000',
     ],
+  },
+  {
+    id: 'dog',
+    name: 'Dog',
+    nameTh: 'หมา',
+    palette: ['transparent', '#8D6E63', '#5D4037', '#FFF3E0', '#222222', '#F48FB1'],
+    spriteData: SPRITE_MAP.dog,
+    animParams: { breatheHeight: 4, breatheSpeed: 2.5, blinkInterval: 3500, blinkDuration: 150 },
+    accentColor: '#8D6E63',
+    spriteAccessory: 'fox_leaf',
+    data: Array<string>(32).fill('00000000000000000000000000000000'),
+  },
+  {
+    id: 'ghost',
+    name: 'Ghost',
+    nameTh: 'ผี',
+    palette: ['transparent', '#1C1C1C', '#FFFFFF', '#F0F0F0', '#9B59B6'],
+    spriteData: SPRITE_MAP.ghost,
+    animParams: { breatheHeight: 3, breatheSpeed: 2, blinkInterval: 4000, blinkDuration: 120 },
+    accentColor: '#FFFFFF',
+    data: Array<string>(32).fill('00000000000000000000000000000000'),
   },
 ];
 

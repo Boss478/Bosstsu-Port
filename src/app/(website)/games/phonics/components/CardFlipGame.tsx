@@ -102,7 +102,7 @@ export default function CardFlipGame({ cards: initialCards, onComplete, speak, p
       </p>
 
       <div
-        className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-sm"
+        className="grid grid-cols-2 md:grid-cols-4 gap-5 w-full max-w-4xl"
         role="group"
         aria-label="Card flip game — match phonemes to words"
       >

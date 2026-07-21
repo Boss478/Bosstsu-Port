@@ -6,6 +6,7 @@ import { VOCAB_GROUP_DEFS } from '../vocab-group-defs';
 import { CEFR_LEVEL_ORDER } from '../constants';
 import { useAudio } from '@/hooks/useAudio';
 import { useTheme } from '@/components/ThemeProvider';
+import { clearAudioCache } from '@/lib/audio-cache-db';
 
 export default function SettingsScreen() {
   const { theme, toggleTheme } = useTheme();
@@ -25,6 +26,10 @@ export default function SettingsScreen() {
     setSpeechPitch,
     activeSlot,
     startRound,
+    gridColumns,
+    setGridColumns,
+    companionSnap,
+    setCompanionSnap,
   } = useGame();
   const [saved, setSaved] = useState(false);
   const [showRename, setShowRename] = useState(false);
@@ -59,14 +64,17 @@ export default function SettingsScreen() {
     setTimeout(() => setSaved(false), 2000);
   }
 
-  const handleClearAudioCache = () => {
+  const handleClearAudioCache = async () => {
     playSound('correct');
     localStorage.removeItem('phonics-stage-1-loaded');
     for (let i = 1; i <= 11; i++) {
       localStorage.removeItem(`phonics-stage-${i}-loaded`);
       localStorage.removeItem(`phonics-stage-${i}-loading`);
     }
-    localStorage.removeItem('phonics-dict-cache');
+    try {
+      localStorage.removeItem('phonics-dict-cache');
+    } catch {}
+    await clearAudioCache();
     alert('Audio cache cleared! The page will now reload to redownload Stage 1 sounds.');
     window.location.reload();
   };
@@ -236,6 +244,63 @@ export default function SettingsScreen() {
                   <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 min-w-[40px]">
                     Opaque
                   </span>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-white/40 dark:border-slate-700/40">
+                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-2 text-left">
+                  Grid Columns
+                </label>
+                <div className="flex gap-2">
+                  {([2, 3] as const).map((n) => (
+                    <button
+                      key={n}
+                      className={`flex-1 py-2 rounded-xl text-xs font-bold tracking-wider transition-all active:scale-95 cursor-pointer ${
+                        gridColumns === n
+                          ? 'bg-[#C8A44E] text-white shadow-sm'
+                          : 'bg-white/60 dark:bg-slate-800/60 border border-white/60 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700/80'
+                      }`}
+                      onClick={() => {
+                        setGridColumns(n);
+                        if (save) {
+                          persistSave({ ...save, settings: { ...save.settings, gridColumns: n } });
+                        }
+                        playSound('correct');
+                      }}
+                    >
+                      {n} Columns
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-white/40 dark:border-slate-700/40">
+                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-2 text-left">
+                  Companion Position
+                </label>
+                <div className="flex gap-2">
+                  {(['left', 'free', 'right'] as const).map((pos) => (
+                    <button
+                      key={pos}
+                      className={`flex-1 py-2 rounded-xl text-xs font-bold tracking-wider transition-all active:scale-95 cursor-pointer capitalize ${
+                        companionSnap === pos
+                          ? 'bg-[#C8A44E] text-white shadow-sm'
+                          : 'bg-white/60 dark:bg-slate-800/60 border border-white/60 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700/80'
+                      }`}
+                      onClick={() => {
+                        setCompanionSnap(pos);
+                        if (save) {
+                          persistSave({
+                            ...save,
+                            settings: { ...save.settings, companionSnap: pos },
+                          });
+                        }
+                        playSound('correct');
+                      }}
+                    >
+                      {pos === 'free' ? 'Draggable' : pos}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>

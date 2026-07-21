@@ -23,7 +23,7 @@ export default function QuestionChoiceButton({
   const isCorrect = value === correctAnswer;
 
   let btnClass =
-    "w-full px-4 py-5 font-bold text-sm tracking-wide text-center rounded-2xl backdrop-blur-xs border-2 transition-all btn-3d shadow-sm cursor-pointer ";
+    "w-full px-4 py-5 font-bold text-sm md:text-base lg:text-lg tracking-wide text-center rounded-2xl backdrop-blur-xs border-2 transition-all btn-3d shadow-sm cursor-pointer ";
   let borderStyle: React.CSSProperties = { "--border-color": "rgba(0,0,0,0.12)" } as React.CSSProperties;
 
   if (feedback === "correct" && isCorrect) {

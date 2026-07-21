@@ -5,6 +5,7 @@ import type { GraphemePatternQuestion as GraphemePatternQuestionType, CompanionI
 import { COMPANIONS, QUESTION_CARD_CLASSES } from '../constants';
 import CompanionHint from './CompanionHint';
 import QuestionChoiceButton from './QuestionChoiceButton';
+import { useGame } from '../context';
 
 interface Props {
   question: GraphemePatternQuestionType;
@@ -26,6 +27,7 @@ export default function GraphemePatternQuestion({
   selectedAnswer,
   setSelectedAnswer,
 }: Props) {
+  const gridColumns = useGame().gridColumns ?? 2;
   const feedbackRef = useRef(feedback);
   useEffect(() => {
     feedbackRef.current = feedback;
@@ -79,7 +81,7 @@ export default function GraphemePatternQuestion({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3.5 max-w-md mx-auto w-full">
+      <div className="grid gap-5 max-w-4xl mx-auto w-full" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
         {question.options.map((opt) => (
           <QuestionChoiceButton
             key={opt}

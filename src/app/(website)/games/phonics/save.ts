@@ -53,7 +53,7 @@ export function getDefaultSave(name: string): SaveData {
     totalCorrects: 0,
     phonemeCoins: 0,
     phonemeStats: {},
-    settings: { muted: false, glassLevel: 25 },
+    settings: { muted: false, glassLevel: 25, gridColumns: 2, companionSnap: 'free' },
     tutorialCompleted: false,
     totalRoundsPlayed: 0,
     bestStreak: 0,
@@ -120,6 +120,12 @@ export function loadSave(slot: number): SaveData | null {
     }
     if (typeof data.settings.glassLevel !== 'number') {
       data.settings = { ...data.settings, glassLevel: 25 };
+    }
+    if (data.settings.gridColumns !== 2 && data.settings.gridColumns !== 3) {
+      data.settings = { ...data.settings, gridColumns: 2 };
+    }
+    if (data.settings.companionSnap !== 'left' && data.settings.companionSnap !== 'right') {
+      data.settings = { ...data.settings, companionSnap: 'free' };
     }
     if (typeof data.tutorialCompleted !== 'boolean') {
       data.tutorialCompleted = false;

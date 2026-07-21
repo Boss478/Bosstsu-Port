@@ -1,10 +1,25 @@
+import type { SpriteData } from './mascot-sprites';
 import type { Mascot } from './mascot-data';
+import {
+  AVATAR_NOX_HEAD, AVATAR_MIRA_HEAD, AVATAR_CHIP_HEAD,
+  MASCOT_IDLE, MIRA_IDLE, CHIP_IDLE,
+} from './mascot-sprites';
+
+const BRIDGE_SPRITES: Record<string, { head: SpriteData; full: SpriteData }> = {
+  nox: { head: AVATAR_NOX_HEAD, full: MASCOT_IDLE },
+  mira: { head: AVATAR_MIRA_HEAD, full: MIRA_IDLE },
+  chip: { head: AVATAR_CHIP_HEAD, full: CHIP_IDLE },
+};
 
 export const PHONICS_MASCOTS: Mascot[] = [
   {
     id: 'nox',
     name: 'Nox',
     nameTh: 'นกซ์',
+    spriteData: BRIDGE_SPRITES.nox,
+    animParams: { breatheHeight: 3, breatheSpeed: 3, blinkInterval: 4000, blinkDuration: 150 },
+    accentColor: '#C8A44E',
+    spriteAccessory: 'monocle',
     palette: [
       'transparent',
       '#1C1C1C',
@@ -54,6 +69,10 @@ export const PHONICS_MASCOTS: Mascot[] = [
     id: 'mira',
     name: 'Mira',
     nameTh: 'มิร่า',
+    spriteData: BRIDGE_SPRITES.mira,
+    animParams: { breatheHeight: 5, breatheSpeed: 2, blinkInterval: 3500, blinkDuration: 150 },
+    accentColor: '#9B59B6',
+    spriteAccessory: 'star_wand',
     palette: [
       'transparent',
       '#1C1C1C',
@@ -103,6 +122,10 @@ export const PHONICS_MASCOTS: Mascot[] = [
     id: 'chip',
     name: 'Chip',
     nameTh: 'ชิพ',
+    spriteData: BRIDGE_SPRITES.chip,
+    animParams: { breatheHeight: 2, breatheSpeed: 1.5, blinkInterval: 2500, blinkDuration: 100 },
+    accentColor: '#5DADE2',
+    spriteAccessory: 'antenna_glow',
     palette: [
       'transparent',
       '#1C1C1C',

@@ -207,7 +207,11 @@ export default function PadletBoard({ session, stepIndex, studentName: propName,
       </div>
 
       {loading && posts.length === 0 ? (
-        <div className="text-center py-12 text-zinc-400">{t('loading')}</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" style={{ '--sk-base': 'rgba(148,163,184,0.1)', '--sk-shine': 'rgba(148,163,184,0.15)' } as React.CSSProperties}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="skeleton p-4 rounded-xl h-32" />
+          ))}
+        </div>
       ) : (
         <div className="space-y-4 pb-4">
           <div className="flex items-center justify-end">
@@ -220,9 +224,23 @@ export default function PadletBoard({ session, stepIndex, studentName: propName,
               <i className={`fi fi-sr-refresh text-sm ${refreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
+          {posts.length === 0 ? (
+            <div className="p-12 rounded-2xl bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm text-center">
+              {mascot && (
+                <div className="w-16 h-16 mx-auto mb-4 opacity-60">
+                  <MascotAvatar mascotId={mascot} size={64} />
+                </div>
+              )}
+              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <i aria-hidden="true" className="fi fi-sr-grid text-xl text-blue-500" />
+              </div>
+              <p className="text-zinc-500 dark:text-zinc-400 font-medium mb-1">{t('noPostsYet')}</p>
+              <p className="text-sm text-zinc-400 dark:text-zinc-500">{t('beFirstToPost')}</p>
+            </div>
+          ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {posts.map(post => (
-            <div key={post._id} className="p-4 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
+            <div key={post._id} className="animate-fade-slide-up p-4 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
               <div className="flex items-center gap-1.5 mb-2">
                 {post.mascot && (
                   <div className="w-5 h-5 rounded overflow-hidden shrink-0">
@@ -251,6 +269,7 @@ export default function PadletBoard({ session, stepIndex, studentName: propName,
             </div>
           ))}
           </div>
+          )}
           <div ref={bottomRef} />
         </div>
       )}

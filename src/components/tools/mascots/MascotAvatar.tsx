@@ -1,48 +1,79 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { ALL_MASCOT_MAP } from './mascot-data';
+import { drawSprite, blinkSprite, ACC_SPRITES } from './mascot-sprites';
 
 interface MascotAvatarProps {
   mascotId: string;
   size?: number;
+  variant?: 'head' | 'full';
+  animate?: boolean;
 }
 
-export default function MascotAvatar({ mascotId, size = 64 }: MascotAvatarProps) {
-    const mascot = ALL_MASCOT_MAP.get(mascotId);
+export default function MascotAvatar({
+  mascotId,
+  size = 64,
+  variant = 'head',
+  animate = false,
+}: MascotAvatarProps) {
+  const mascot = ALL_MASCOT_MAP.get(mascotId);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [blinking, setBlinking] = useState(false);
 
   const actualSize = Math.floor(size / 32) * 32 || 32;
+  const params = mascot?.animParams;
 
   useEffect(() => {
-  const mascot = ALL_MASCOT_MAP.get(mascotId);
-    const canvas = canvasRef.current;
-    if (!mascot || !canvas) return;
+    if (!animate || !params) return;
+    const interval = setInterval(() => {
+      setBlinking(true);
+      setTimeout(() => setBlinking(false), params.blinkDuration);
+    }, params.blinkInterval);
+    return () => clearInterval(interval);
+  }, [animate, params?.blinkInterval, params?.blinkDuration]);
 
+  useEffect(() => {
+    const mascot = ALL_MASCOT_MAP.get(mascotId);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const scale = actualSize / 32;
-    const rows = mascot.data.length;
-    if (rows === 0) return;
+    ctx.clearRect(0, 0, 32, 32);
 
-    canvas.width = actualSize;
-    canvas.height = actualSize;
+    if (!mascot) return;
 
-    ctx.imageSmoothingEnabled = false;
-
-    for (let y = 0; y < rows; y++) {
-      const row = mascot.data[y];
-      if (!row) continue;
-      for (let x = 0; x < row.length; x++) {
-        const idx = parseInt(row[x]!, 10);
-        const color = mascot.palette[idx];
-        if (!color || color === 'transparent') continue;
-        ctx.fillStyle = color;
-        ctx.fillRect(x * scale, y * scale, scale, scale);
+    if (mascot.spriteData) {
+      const sprite = mascot.spriteData[variant];
+      const displaySprite = blinking && variant === 'head'
+        ? blinkSprite(sprite, mascotId)
+        : sprite;
+      drawSprite(ctx, displaySprite, 0, 0, 1);
+      const accId = mascot.spriteAccessory;
+      if (accId) {
+        const accSprite = ACC_SPRITES[accId];
+        if (accSprite) {
+          drawSprite(ctx, accSprite, 0, 0, 1);
+        }
+      }
+    } else {
+      const rows = mascot.data.length;
+      if (rows === 0) return;
+      const scale = 32 / 32;
+      for (let y = 0; y < rows; y++) {
+        const row = mascot.data[y];
+        if (!row) continue;
+        for (let x = 0; x < row.length; x++) {
+          const idx = parseInt(row[x]!, 10);
+          const color = mascot.palette[idx];
+          if (!color || color === 'transparent') continue;
+          ctx.fillStyle = color;
+          ctx.fillRect(x * scale, y * scale, scale, scale);
+        }
       }
     }
-  }, [mascotId, actualSize]);
+  }, [mascotId, variant, blinking]);
 
   if (!mascot) {
     return (
@@ -58,7 +89,15 @@ export default function MascotAvatar({ mascotId, size = 64 }: MascotAvatarProps)
   return (
     <canvas
       ref={canvasRef}
-      style={{ width: actualSize, height: actualSize, imageRendering: 'pixelated' }}
+      width={32}
+      height={32}
+      className="image-rendering-pixelated"
+      style={{
+        width: actualSize,
+        height: actualSize,
+        '--breathe-height': params ? `${params.breatheHeight}px` : undefined,
+        '--breathe-speed': params ? `${params.breatheSpeed}s` : undefined,
+      } as React.CSSProperties}
     />
   );
 }

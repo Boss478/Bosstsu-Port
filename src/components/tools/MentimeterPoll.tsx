@@ -15,6 +15,7 @@ interface MentimeterPollProps {
 export default function MentimeterPoll({ session, stepIndex, mascot, onMascotEvent }: MentimeterPollProps) {
   const [responses, setResponses] = useState<{ _id: string; content: { selectedOption?: string; word?: string } }[]>([]);
   const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
   const [word, setWord] = useState('');
   const [customMode, setCustomMode] = useState(false);
@@ -51,8 +52,9 @@ export default function MentimeterPoll({ session, stepIndex, mascot, onMascotEve
       if (typeof data.totalCount === 'number') {
         setTotalCount(data.totalCount);
       }
+      setLoading(false);
     } catch {
-      // silent fail for polling
+      setLoading(false);
     }
   };
 
@@ -246,6 +248,19 @@ export default function MentimeterPoll({ session, stepIndex, mascot, onMascotEve
         )}
       </div>
 
+      {loading ? (
+        <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm" style={{ '--sk-base': 'rgba(148,163,184,0.1)', '--sk-shine': 'rgba(148,163,184,0.15)' } as React.CSSProperties}>
+          <div className="space-y-3">
+            {pollMode === 'mcq' ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="skeleton h-12 rounded-xl w-full" />
+              ))
+            ) : (
+              <div className="skeleton h-16 rounded-xl w-full" />
+            )}
+          </div>
+        </div>
+      ) : (
       <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-bold text-zinc-900 dark:text-zinc-100">{t('liveResults')}</h2>
@@ -309,7 +324,7 @@ export default function MentimeterPoll({ session, stepIndex, mascot, onMascotEve
               sortedWords.map(([w, count]) => (
                 <span
                   key={w}
-                  className="px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-800"
+                  className="animate-fade-slide-up px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-800"
                   style={{ fontSize: `${Math.min(1 + count * 0.3, 2.5)}rem` }}
                 >
                   {w} ({count})
@@ -319,6 +334,7 @@ export default function MentimeterPoll({ session, stepIndex, mascot, onMascotEve
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

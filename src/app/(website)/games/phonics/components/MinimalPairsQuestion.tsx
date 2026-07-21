@@ -5,6 +5,7 @@ import type { MinimalPairsQuestion as MinimalPairsQuestionType, CompanionId } fr
 import { COMPANIONS, QUESTION_CARD_CLASSES } from '../constants';
 import CompanionHint from './CompanionHint';
 import QuestionChoiceButton from './QuestionChoiceButton';
+import { useGame } from '../context';
 
 interface Props {
   question: MinimalPairsQuestionType;
@@ -27,6 +28,7 @@ export default function MinimalPairsQuestion({
   selectedAnswer,
   setSelectedAnswer,
 }: Props) {
+  const gridColumns = useGame().gridColumns ?? 2;
   const feedbackRef = useRef(feedback);
   useEffect(() => {
     feedbackRef.current = feedback;
@@ -72,7 +74,7 @@ export default function MinimalPairsQuestion({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3.5 max-w-md mx-auto w-full">
+      <div className="grid gap-5 max-w-4xl mx-auto w-full" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
         {question.options.map((opt) => (
           <QuestionChoiceButton
             key={opt}

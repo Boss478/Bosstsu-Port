@@ -5,7 +5,7 @@ import { useGame } from '../context';
 import { CHALLENGE_TYPES, CEFR_LEVEL_ORDER } from '../constants';
 import { ChallengeConfigModal } from '../components/ChallengeConfigModal';
 import { getWordsForGroup, VOCAB_GROUP_DEFS, TIER_ORDER } from '../vocab-group-defs';
-import type { QuizConfig, CefrLevel, WordData, VocabTier } from '../types';
+import type { QuizConfig, QuizDirection, CefrLevel, WordData, VocabTier } from '../types';
 import { WORDS } from '../words';
 
 interface Props {
@@ -92,6 +92,29 @@ export default function ChallengeSelectScreen({ onLaunch, onStartQuiz }: Props) 
   const activeLevel: CefrLevel = level;
   const isEmptyPool = wordPool !== undefined && wordPool.length === 0;
   const poolSize = wordPool !== undefined ? wordPool.length : WORDS.length;
+
+  const poolCompatibility = useMemo((): Record<QuizDirection, 'compatible' | 'incompatible'> => {
+    if (!wordPool) {
+      return {
+        'word-to-ipa': 'compatible',
+        'ipa-to-word': 'compatible',
+        'word-to-def': 'compatible',
+        'def-to-word': 'compatible',
+        synonyms: 'compatible',
+        stress: 'compatible',
+        antonyms: 'compatible',
+      };
+    }
+    return {
+      'word-to-ipa': 'compatible',
+      'ipa-to-word': 'compatible',
+      'word-to-def': 'compatible',
+      'def-to-word': 'compatible',
+      synonyms: wordPool.some((w) => w.synonyms.length >= 1) ? 'compatible' : 'incompatible',
+      stress: wordPool.some((w) => (w.stress?.length ?? 0) >= 2) ? 'compatible' : 'incompatible',
+      antonyms: wordPool.some((w) => w.antonyms.length >= 1) ? 'compatible' : 'incompatible',
+    };
+  }, [wordPool]);
 
   const tierGroupIds = useMemo(() => {
     const map: Record<string, string[]> = {};
@@ -348,9 +371,10 @@ export default function ChallengeSelectScreen({ onLaunch, onStartQuiz }: Props) 
 
             {showConfig && (
               <ChallengeConfigModal
+                compatibility={poolCompatibility}
                 onSubmit={(config) => {
                   setShowConfig(false);
-                  onStartQuiz({ ...config, cefrLevel: activeLevel, groupId: undefined });
+                  onStartQuiz({ ...config, cefrLevel: activeLevel, wordPool: wordPool ?? undefined });
                 }}
                 onClose={() => setShowConfig(false)}
               />

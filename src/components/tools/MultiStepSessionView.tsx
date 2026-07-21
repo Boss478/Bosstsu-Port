@@ -7,12 +7,20 @@ import AssignmentForm from './AssignmentForm';
 import QABoard from './QABoard';
 import QuickQuiz from './QuickQuiz';
 import ExitTicketForm from './ExitTicketForm';
-import MascotSelector from './mascots/MascotSelector';
+import ToolErrorBoundary from './ErrorBoundary';
+import ToastContainer from './ToastContainer';
+import { useToast } from '@/hooks/useToast';
 import MascotAvatar from './mascots/MascotAvatar';
+import StudentSetupScreen from './StudentSetupScreen';
 import MascotCompanion, { type MascotEvent } from './mascots/MascotCompanion';
+import StudentSettings from './StudentSettings';
 import { getMascotStorageKey, loadMascotId, saveMascotId, getRandomMascot } from './mascots/mascot-data';
 import { t } from '@/lib/tool-translations';
-import { getStudentToken } from '@/lib/client-token';
+import { useSSE } from '@/lib/use-sse';
+import { useDeviceTier } from '@/lib/device-tier-provider';
+import { useFocusTrack } from '@/lib/use-focus-track';
+import BroadcastBanner from './BroadcastBanner';
+import ConnectionDot from './ConnectionDot';
 
 interface MultiStepSessionViewProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,16 +31,16 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
   const totalSteps = session.steps?.length ?? 0;
   const [currentStep, setCurrentStep] = useState(session.currentStep ?? 0);
   const [transitioning, setTransitioning] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [studentName, setStudentName] = useState('');
   const [nameConfirmed, setNameConfirmed] = useState(false);
   const [selectedMascot, setSelectedMascot] = useState<string | null>(null);
   const [showMascotPicker, setShowMascotPicker] = useState(false);
   const [mascotEventType, setMascotEventType] = useState<MascotEvent | null>(null);
   const [mascotEventCount, setMascotEventCount] = useState(0);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const toast = useToast();
 
   const nameStorageKey = `tool_name_${session._id}`;
-  const isVisible = useRef(true);
   const latestStepRef = useRef(currentStep);
   const nameConfirmedRef = useRef(nameConfirmed);
 
@@ -62,6 +70,38 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
     }
   }, [session._id, session.requireStudentName, enableMascots]);
 
+  const { broadcastMessage, connected, clearBroadcast } = useSSE(session._id, {
+    onStepChange: (newStep) => {
+      if (newStep !== latestStepRef.current) {
+        setTransitioning(true);
+        setTimeout(() => {
+          setCurrentStep(newStep);
+          latestStepRef.current = newStep;
+          setTransitioning(false);
+        }, 300);
+      }
+    },
+    onKicked: () => {
+      if (session.requireStudentName) {
+        localStorage.removeItem(nameStorageKey);
+        setStudentName('');
+        setNameConfirmed(false);
+      } else {
+        window.location.href = '/study';
+      }
+    },
+  });
+
+  const { setForceTier, setCustomConfig, forced } = useDeviceTier();
+
+  useEffect(() => {
+    const cfg = session.config;
+    if (cfg?.forceTier) setForceTier(cfg.forceTier);
+    if (cfg?.customTierConfig) setCustomConfig(cfg.customTierConfig);
+  }, [session.config, setForceTier, setCustomConfig]);
+
+  useFocusTrack(session._id, nameConfirmed);
+
   const handleConfirmName = () => {
     localStorage.setItem(nameStorageKey, studentName);
     setNameConfirmed(true);
@@ -84,115 +124,44 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
   const handleMascotEvent = useCallback((event: MascotEvent) => {
     setMascotEventType(event);
     setMascotEventCount((c) => c + 1);
+    const msg = event === 'celebrate' ? t('toastSubmitted')
+      : event === 'correct' ? t('toastCorrect')
+      : t('toastError');
+    toast.show(msg, event === 'wrong' ? 'error' : 'success');
   }, []);
 
-  // Race condition fix: poll unconditionally, never gated on nameConfirmed
-  const pollStep = useCallback(async () => {
-    if (!isVisible.current) return;
-    try {
-      const token = getStudentToken();
-      const res = await fetch(`/api/tools/step?sessionId=${session._id}&studentToken=${encodeURIComponent(token)}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      if (data.kicked) {
-        if (session.requireStudentName && nameConfirmedRef.current) {
-          localStorage.removeItem(nameStorageKey);
-          setStudentName('');
-          setNameConfirmed(false);
-          return;
-        }
-        if (!session.requireStudentName) {
-          window.location.href = '/study';
-          return;
-        }
-      }
-      if (data.currentStep !== latestStepRef.current) {
-        setTransitioning(true);
-        setTimeout(() => {
-          setCurrentStep(data.currentStep);
-          latestStepRef.current = data.currentStep;
-          setTransitioning(false);
-        }, 300);
-      }
-    } catch {
-      // silent
-    }
-  }, [session._id, nameStorageKey]);
+  const needsMascotSetup = enableMascots && showMascotPicker && !session.requireStudentName;
+  const needsNameSetup = session.requireStudentName && !nameConfirmed;
 
-  useEffect(() => {
-    const interval = setInterval(pollStep, 10000);
-    const onVisibility = () => { isVisible.current = !document.hidden; };
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => { clearInterval(interval); document.removeEventListener('visibilitychange', onVisibility); };
-  }, [pollStep]);
-
-  const requirePicker = enableMascots && showMascotPicker && !session.requireStudentName;
-  if (requirePicker) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950">
-        <div className="max-w-md w-full p-6 text-center">
-          <h2 className="text-xl font-bold text-zinc-700 dark:text-zinc-300">
-            {t('yourName')}
-          </h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1 mb-4">{session.title}</p>
-          <MascotSelector selectedId={selectedMascot} onSelect={handleMascotSelect} />
-          <button
-            onClick={handleMascotPickerDone}
-            className="w-full mt-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all"
-          >
-            เข้าร่วม
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (session.requireStudentName && !nameConfirmed) {
+  if (needsMascotSetup || needsNameSetup) {
     return (
       <>
-        <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950">
-          <div className="text-center max-w-md w-full p-6">
-            <i aria-hidden="true" className="fi fi-sr-user text-4xl text-blue-400 block mb-4" />
-            <h2 className="text-xl font-bold text-zinc-700 dark:text-zinc-300">
-              {t('yourName')}
-            </h2>
-            <input
-              type="text"
-              value={studentName}
-              onChange={(e) => setStudentName(e.target.value)}
-              placeholder={t('yourNameOptional')}
-              className="w-full mt-3 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-              autoFocus
-            />
-            {enableMascots && (
-              <div className="mt-4">
-                <MascotSelector selectedId={selectedMascot} onSelect={handleMascotSelect} />
-              </div>
-            )}
-            <button
-              onClick={handleConfirmName}
-              disabled={!studentName.trim()}
-              className="w-full mt-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold rounded-xl transition-all disabled:cursor-not-allowed"
-            >
-              {currentStep < 0 ? 'เข้าร่วม' : 'ยืนยัน'}
-            </button>
-            <p className="text-zinc-500 dark:text-zinc-400 mt-6 text-sm">{t('sessionCode')}</p>
-            <p className="text-zinc-400 mt-1 text-5xl font-bold tracking-[0.15em] font-mono select-all">
-              {session.sessionCode}
-            </p>
-            <button
-              onClick={async () => { setRefreshing(true); await pollStep(); setRefreshing(false); }}
-              disabled={refreshing}
-              className="mt-8 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-all disabled:opacity-50"
-            >
-              <i className={`fi fi-sr-refresh text-sm ${refreshing ? 'animate-spin' : ''}`} />
-              {t('refresh')}
-            </button>
-          </div>
-        </div>
+        <StudentSettings open={settingsOpen} onOpenChange={setSettingsOpen} selectedMascot={selectedMascot} onMascotSelect={(id) => { setSelectedMascot(id); saveMascotId(session._id, id); }} />
+        <StudentSetupScreen
+          studentName={studentName}
+          onNameChange={setStudentName}
+          selectedMascot={selectedMascot}
+          onMascotSelect={handleMascotSelect}
+          onConfirm={session.requireStudentName ? handleConfirmName : handleMascotPickerDone}
+          requireName={session.requireStudentName}
+          enableMascots={enableMascots}
+          sessionTitle={session.title}
+          confirmLabel={session.requireStudentName ? (currentStep < 0 ? 'เข้าร่วม' : 'ยืนยัน') : 'เข้าร่วม'}
+        >
+          {session.requireStudentName && (
+            <>
+              <p className="text-zinc-500 dark:text-zinc-400 mt-6 text-sm">{t('sessionCode')}</p>
+              <p className="text-zinc-400 -mt-3 text-5xl font-bold tracking-[0.15em] font-mono select-all">
+                {session.sessionCode}
+              </p>
+
+            </>
+          )}
+        </StudentSetupScreen>
         {enableMascots && selectedMascot && (
-          <MascotCompanion sessionId={session._id} eventType={mascotEventType} eventCount={mascotEventCount} />
+          <MascotCompanion sessionId={session._id} eventType={mascotEventType} eventCount={mascotEventCount} onSettingsClick={() => setSettingsOpen(true)} />
         )}
+        <ToastContainer toasts={toast.toasts} onDismiss={toast.dismiss} />
       </>
     );
   }
@@ -200,6 +169,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
   if (currentStep < 0) {
     return (
       <>
+        <StudentSettings open={settingsOpen} onOpenChange={setSettingsOpen} selectedMascot={selectedMascot} onMascotSelect={(id) => { setSelectedMascot(id); saveMascotId(session._id, id); }} />
         <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950">
           <div className="text-center max-w-md w-full p-6">
             <i aria-hidden="true" className="fi fi-sr-hourglass text-4xl text-blue-400 animate-pulse block mb-4" />
@@ -228,19 +198,13 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
             <p className="text-zinc-400 mt-1 text-5xl font-bold tracking-[0.15em] font-mono select-all">
               {session.sessionCode}
             </p>
-            <button
-              onClick={async () => { setRefreshing(true); await pollStep(); setRefreshing(false); }}
-              disabled={refreshing}
-              className="mt-8 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-all disabled:opacity-50"
-            >
-              <i className={`fi fi-sr-refresh text-sm ${refreshing ? 'animate-spin' : ''}`} />
-              {t('refresh')}
-            </button>
+
           </div>
         </div>
         {enableMascots && selectedMascot && (
-          <MascotCompanion sessionId={session._id} isWaiting eventType={mascotEventType} eventCount={mascotEventCount} />
+          <MascotCompanion sessionId={session._id} isWaiting eventType={mascotEventType} eventCount={mascotEventCount} onSettingsClick={() => setSettingsOpen(true)} />
         )}
+        <ToastContainer toasts={toast.toasts} onDismiss={toast.dismiss} />
       </>
     );
   }
@@ -262,6 +226,15 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
 
   return (
     <>
+      {broadcastMessage && (
+        <BroadcastBanner
+          message={broadcastMessage.message}
+          messageType={broadcastMessage.messageType}
+          duration={broadcastMessage.duration}
+          onDismiss={clearBroadcast}
+        />
+      )}
+      <StudentSettings open={settingsOpen} onOpenChange={setSettingsOpen} selectedMascot={selectedMascot} />
       <div className={`min-h-screen flex flex-col bg-blue-50 dark:bg-slate-950 transition-opacity duration-300 ${transitioning ? 'opacity-0' : 'opacity-100'}`}>
         <div className="p-4 max-w-5xl mx-auto w-full">
           <div className="text-center mb-3">
@@ -331,8 +304,12 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
         </div>
       </div>
       {enableMascots && selectedMascot && (
-        <MascotCompanion sessionId={session._id} eventType={mascotEventType} eventCount={mascotEventCount} />
+        <MascotCompanion sessionId={session._id} eventType={mascotEventType} eventCount={mascotEventCount} onSettingsClick={() => setSettingsOpen(true)} />
       )}
+      <ToastContainer toasts={toast.toasts} onDismiss={toast.dismiss} />
+      <div className="fixed bottom-4 right-4 z-40">
+        <ConnectionDot status={connected} forced={forced} />
+      </div>
     </>
   );
 }
@@ -348,17 +325,17 @@ function renderTool(
   const s = session as { type?: string; config?: unknown };
   switch (s.type) {
     case 'padlet':
-      return <PadletBoard session={session} stepIndex={stepIndex} studentName={studentName} mascot={mascot} onMascotEvent={onMascotEvent} />;
+      return <ToolErrorBoundary key="padlet"><PadletBoard session={session} stepIndex={stepIndex} studentName={studentName} mascot={mascot} onMascotEvent={onMascotEvent} /></ToolErrorBoundary>;
     case 'poll':
-      return <MentimeterPoll session={session} stepIndex={stepIndex} mascot={mascot} onMascotEvent={onMascotEvent} />;
+      return <ToolErrorBoundary key="poll"><MentimeterPoll session={session} stepIndex={stepIndex} mascot={mascot} onMascotEvent={onMascotEvent} /></ToolErrorBoundary>;
     case 'assignment':
-      return <AssignmentForm session={session} stepIndex={stepIndex} studentName={studentName} mascot={mascot} onMascotEvent={onMascotEvent} />;
+      return <ToolErrorBoundary key="assignment"><AssignmentForm session={session} stepIndex={stepIndex} studentName={studentName} mascot={mascot} onMascotEvent={onMascotEvent} /></ToolErrorBoundary>;
     case 'qa_board':
-      return <QABoard session={session} stepIndex={stepIndex} mascot={mascot} onMascotEvent={onMascotEvent} />;
+      return <ToolErrorBoundary key="qa_board"><QABoard session={session} stepIndex={stepIndex} mascot={mascot} onMascotEvent={onMascotEvent} /></ToolErrorBoundary>;
     case 'quiz':
-      return <QuickQuiz session={session} stepIndex={stepIndex} studentName={studentName} mascot={mascot} onMascotEvent={onMascotEvent} />;
+      return <ToolErrorBoundary key="quiz"><QuickQuiz session={session} stepIndex={stepIndex} studentName={studentName} mascot={mascot} onMascotEvent={onMascotEvent} /></ToolErrorBoundary>;
     case 'exit_ticket':
-      return <ExitTicketForm session={session} stepIndex={stepIndex} studentName={studentName} mascot={mascot} onMascotEvent={onMascotEvent} />;
+      return <ToolErrorBoundary key="exit_ticket"><ExitTicketForm session={session} stepIndex={stepIndex} studentName={studentName} mascot={mascot} onMascotEvent={onMascotEvent} /></ToolErrorBoundary>;
     default:
       return <div className="text-center py-20 text-zinc-400">{t('toolTypeNotFound')}</div>;
   }

@@ -11,6 +11,7 @@ import { formatError } from '@/lib/error-code';
 import { generateUniqueSessionCode } from '@/lib/session-code';
 import type { ToolType } from '@/models/ToolSession';
 import { trackServerEvent } from '@/lib/analytics/server';
+import { notifyStepChange } from '@/lib/sse-server';
 
 const TOOL_TYPES: ToolType[] = ['padlet', 'poll', 'assignment', 'qa_board', 'quiz', 'exit_ticket'];
 
@@ -45,6 +46,8 @@ const quickStartSchema = z
       .optional(),
     allowStudentNavigation: z.boolean().optional(),
     requireStudentName: z.boolean().optional(),
+    forceTier: z.string().optional(),
+    customTierConfig: z.unknown().optional(),
   })
   .strict();
 
@@ -70,6 +73,10 @@ export async function quickStartSession(formData: FormData) {
     steps: formData.get('steps') ? JSON.parse(formData.get('steps') as string) : undefined,
     allowStudentNavigation: formData.get('allowStudentNavigation') === 'on',
     requireStudentName: formData.get('requireStudentName') === 'on',
+    forceTier: (formData.get('forceTier') as string) || undefined,
+    customTierConfig: formData.get('customTierConfig')
+      ? JSON.parse(formData.get('customTierConfig') as string)
+      : undefined,
   };
 
   const parsed = quickStartSchema.safeParse(raw);
@@ -96,6 +103,8 @@ export async function quickStartSession(formData: FormData) {
     if (parsed.data.allowCustomChoices) config.allowCustomChoices = parsed.data.allowCustomChoices;
     if (parsed.data.questions) config.questions = parsed.data.questions;
     if (formData.get('enableMascots') === 'off') config.enableMascots = false;
+    if (parsed.data.forceTier) config.forceTier = parsed.data.forceTier;
+    if (parsed.data.customTierConfig) config.customTierConfig = parsed.data.customTierConfig;
 
     const isMultiStep = parsed.data.steps && parsed.data.steps.length > 0;
     const sessionData: Record<string, unknown> = {
@@ -173,6 +182,10 @@ export async function updateSession(sessionId: string, formData: FormData) {
     if (formData.get('enableMascots') === 'off') {
       setData['config.enableMascots'] = false;
     }
+    const forceTier = formData.get('forceTier') as string;
+    if (forceTier) setData['config.forceTier'] = forceTier;
+    const customTierConfig = formData.get('customTierConfig') as string;
+    if (customTierConfig) setData['config.customTierConfig'] = JSON.parse(customTierConfig);
 
     await ToolSession.findByIdAndUpdate(sessionId, { $set: setData });
     await trackServerEvent({
@@ -662,6 +675,8 @@ export async function advanceStep(sessionId: string, stepIndex: number) {
       currentStep: stepIndex,
       lastActiveStep: savedLastActive,
     });
+
+    notifyStepChange(sessionId, stepIndex);
 
     revalidatePath('/admin/tools');
     revalidatePath(`/admin/tools/sessions/${sessionId}`);

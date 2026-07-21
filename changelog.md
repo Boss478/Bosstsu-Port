@@ -5,6 +5,35 @@
 
 
 
+## v1.10.66 (2026-07-19)
++ * **Computer Lab Optimization — SSE + 6-tier device detection + broadcast + focus**:
+  + * **SSE over HTTP polling**: Shared `Map<sessionId, Set<controller>>` module (`src/lib/sse-server.ts`), `/api/tools/step/sse` endpoint (heartbeat 30s, idle timeout 15min), client `useSSE` hook with exponential backoff fallback polling. Eliminates 99.9% of DB reads for step sync.
+  + * **6-tier device detection**: Canvas benchmark (2s timeout) + Navigator API → `max/ultra/high/medium/low/fast`. 12 control dimensions (backdropBlur, fps, transitions, poll interval, particles, image quality, hover effects, debounce, skeleton, shadows, gradients, image loading). Weighted GPU 40%/CPU 35%/Memory 15%/Connection 10%. Memory redistribution when `deviceMemory` undefined.
+  + * **DeviceTierProvider** (`src/lib/device-tier-provider.tsx`): React context at layout level, auto-detect on mount, supports `setForceTier(tier)` and `setCustomConfig(overrides)` at runtime. Student views (ToolSessionView, MultiStepSessionView) read `session.config.forceTier`/`customTierConfig` on mount.
+  + * **Rate limiting**: 30 req/10s per `IP:studentToken:sessionId` on `/api/tools/step` GET, `Retry-After` header.
+  + * **Teacher Broadcast**: Admin `BroadcastBar` component with message/timer/sticky types. POST `/api/tools/broadcast` → `broadcastToSession()` → SSE event. Student `BroadcastBanner` with countdown (timer), auto-dismiss (message), persistent (sticky).
+  + * **Connection health dot**: `ConnectionDot` component showing connected/polling/disconnected status + forced-tier indicator.
+  + * **Focus tracking**: `useFocusTrack` hook tracks visibility changes client-side, POSTs focus data via `sendBeacon` to `/api/tools/focus`. Stored in `ToolSession.focusData[]`.
+  + * **Admin force-tier UI**: QuickStartModal performance tier dropdown (Auto/Max/Ultra/High/Medium/Low/Fast/Custom) with expandable 11-setting grid.
+  + * **CSS `.glass-tier` utility**: Tailwind 4 `@utility` using CSS custom properties (`--glass-blur`, `--glass-bg`, `--glass-shadow`, `--glass-border`).
+  + * **Model change**: Added `forceTier` and `customTierConfig` to `ISessionConfig`, `focusData` array to `IToolSession`.
++ * **UX Phase 1 — Teacher Tools (7 items)**:
+  + * **Auto-submit session code**: `/study` page auto-submits on 5th character (300ms debounce), replacing manual button press.
+  + * **Mobile touch targets**: Q&A Board upvote button `min-h-[44px]` for WCAG mobile compliance.
+  + * **Session preview button**: Prominent "Preview" button in SessionManager showing student URL and QR.
+  + * **File upload zone**: Larger drop zone, upload icon, tap-to-select hint.
+  + * **Student search in results**: Real-time name filter input in ResultsView header bar.
+  + * **CSS zoom → scale()**: Replaced non-standard `zoom` CSS with `transform: scale()` + `transformOrigin` in results grid.
+  + * **Padlet empty state**: Illustrated empty state with mascot avatar and "be the first to post" translation.
++ * **Mascot system refactor** (prerequisite): `MascotAvatar` rewritten with `variant` (head/full), blink animation, accessories, per-character accent glow in `MascotCompanion`.
+
+## v1.10.64 (2026-07-13)
++ * **Desktop width + responsive UI**: All screens use responsive width containers (`md:w-5/6 lg:w-3/5 xl:w-1/2 max-w-7xl`). HUD, speech bubble, fonts respond to breakpoints. Animated gradient backgrounds for desktop.
++ * **Vocab stages fix**: `getVocabStagesForGroup` falls back to `TIER_TO_CEFR` lookup for topic-based group IDs. Fixes "Animals & Pets" showing no stages.
++ * **Companion hint expansion**: 198 new hint strings across 11 companions for 6 missing categories (synonyms, antonyms, fill-blank, word-assoc, collocations, vocab-exercise). Fallback chain `cat → definitions → phonics` prevents empty hints.
++ * **Grid columns toggle**: Settings → 2 or 3 columns for answer grids. Applied across 9 question components + TapQuestion.
++ * **Companion snap-to-side**: Settings → Left/Draggable/Right positioning. Drag to exit snap mode.
+
 ## v1.10.63 (2026-07-10)
 - **Stage reorder**: Thai Match (1), Letter Match (2), Missing Capitals (3), Missing Lowercase (4), Phonics Match (5), Typing (6). Stage 6 renamed "Typing Challenge" → "Typing". Save version bumped 3→4 (old saves auto-reset).
 - **Rich Victory screen**: Accuracy gauge (conic gradient), per-letter accuracy grid, Strengths (>80%) / To Improve (<60%) lists, best streak, rule-based bilingual analysis (Thai+English), Stage Complete per-sub-stage table. Per-session letter tracking via `sessionLetterStatsRef`.

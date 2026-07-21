@@ -363,13 +363,17 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
                   )
                 )}
                 {(!isEditing || !existingFileUrl || removeCurrentFile) && (
-                  <label className="flex items-center gap-3 w-full px-4 py-5 rounded-xl bg-white dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors cursor-pointer">
-                    <i aria-hidden="true" className="fi fi-sr-cloud-upload text-xl text-zinc-400" />
-                    <span className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
+                  <label className="flex flex-col items-center gap-2 w-full px-4 py-8 rounded-xl bg-white dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-600 active:border-blue-500 transition-all cursor-pointer">
+                    <i aria-hidden="true" className="fi fi-sr-cloud-upload text-3xl text-zinc-300 dark:text-zinc-600" />
+                    <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       {fileName || t('clickToUploadFile')}
+                    </span>
+                    <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                      {t('tapToSelectFile')}
                     </span>
                     <input
                       type="file"
+                      accept="image/jpeg,image/png,application/pdf,image/gif,image/webp,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                       onChange={e => {
                         const f = e.target.files?.[0];
                         if (f) {

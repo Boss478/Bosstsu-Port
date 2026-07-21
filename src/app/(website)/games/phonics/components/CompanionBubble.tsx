@@ -45,7 +45,12 @@ const TOOL_SCREEN_HINT_CATEGORIES: Record<string, string> = {
 function getHintForRound(companionId: string, round: GameRound | null, level: number): string {
   if (!round) return '';
   const cat = round.config.category;
-  return COMPANIONS[companionId]?.hints?.[cat]?.[level] ?? '';
+  const FALLBACK_CATEGORIES = ['definitions', 'phonics'] as const;
+  for (const c of [cat, ...FALLBACK_CATEGORIES]) {
+    const hint = COMPANIONS[companionId]?.hints?.[c]?.[level];
+    if (hint) return hint;
+  }
+  return '';
 }
 
 function getHintForCategory(companionId: string, category: GameCategory, level: number): string {
@@ -66,7 +71,8 @@ function useMobile(): boolean {
 }
 
 export default function CompanionBubble() {
-  const { companion, round, tab, save, persistSave, screen } = useGame();
+  const { companion, round, tab, save, persistSave, screen, companionSnap, setCompanionSnap } =
+    useGame();
   const isMobile = useMobile();
   const COMPANION_SIZE = isMobile ? COMPANION_MOBILE_SIZE : COMPANION_DESKTOP_SIZE;
   const [message, setMessage] = useState('');
@@ -353,7 +359,11 @@ export default function CompanionBubble() {
     dragRef.current = { startX: e.clientX, startY: e.clientY, elX: rect.left, elY: rect.top };
     clickSuppressed.current = false;
     setDragging(true);
-  }, []);
+    if (companionSnap !== 'free') {
+      setPos({ x: rect.left, y: rect.top });
+      setCompanionSnap('free');
+    }
+  }, [companionSnap, setCompanionSnap]);
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
@@ -389,15 +399,21 @@ export default function CompanionBubble() {
   return (
     <div
       ref={elRef}
-      className={`fixed z-40 select-none touch-none ${dragging ? 'z-[60]' : ''}`}
-      style={pos ? { left: pos.x, top: pos.y } : { bottom: 24, right: 24 }}
+      className={`fixed z-40 select-none touch-none ${dragging ? 'z-[60]' : ''} ${companionSnap === 'left' ? 'left-4 top-1/2 -translate-y-1/2' : companionSnap === 'right' ? 'right-4 top-1/2 -translate-y-1/2' : ''}`}
+      style={
+        companionSnap === 'free'
+          ? pos
+            ? { left: pos.x, top: pos.y }
+            : { bottom: 24, right: 24 }
+          : undefined
+      }
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
     >
       {visible && message && (
         <div
-          className={`absolute bottom-full right-0 mb-3 w-[230px] glass-heavy rounded-2xl p-4 border shadow-xl text-xs leading-relaxed text-slate-800 dark:text-slate-100 pointer-events-none ${bubbleStyles.style.typographyClass} ${entered ? entranceClass : 'animate-slide-up-drawer'}`}
+          className={`absolute bottom-full right-0 mb-3 w-[230px] md:w-[320px] lg:w-[400px] glass-heavy rounded-2xl p-4 border shadow-xl text-xs md:text-sm leading-relaxed text-slate-800 dark:text-slate-100 pointer-events-none ${bubbleStyles.style.typographyClass} ${entered ? entranceClass : 'animate-slide-up-drawer'}`}
           style={{ borderColor: `${bubbleStyles.style.accentColor}66` }}
         >
           <div

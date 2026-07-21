@@ -66,6 +66,9 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
   const [allowStudentNavigation, setAllowStudentNavigation] = useState(false);
   const [requireStudentName, setRequireStudentName] = useState(false);
   const [enableMascots, setEnableMascots] = useState(true);
+  const [forceTier, setForceTier] = useState<string>('');
+  const [customTierConfig, setCustomTierConfig] = useState<Record<string, unknown>>({});
+  const [showAdvancedTier, setShowAdvancedTier] = useState(false);
   const [templates, setTemplates] = useState<Array<{ _id: string; title: string; config: Record<string, unknown> }>>([]);
   const [templateFeedback, setTemplateFeedback] = useState<string | null>(null);
   const [pickerTemplates, setPickerTemplates] = useState<Array<{ _id: string; title: string; type: string; config: Record<string, unknown> }>>([]);
@@ -109,6 +112,8 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
         : []);
       setSteps(stepsArr as StepConfig[]);
       setMaxSubmissions((cfg.maxSubmissions as number) || 0);
+      setForceTier((cfg.forceTier as string) || '');
+      setCustomTierConfig((cfg.customTierConfig as Record<string, unknown>) || {});
       return;
     }
     setMode('single');
@@ -129,6 +134,9 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
     setMainTitle('');
     setDescription('');
     setMaxSubmissions(0);
+    setForceTier('');
+    setCustomTierConfig({});
+    setShowAdvancedTier(false);
   };
 
   useEffect(() => {
@@ -173,6 +181,11 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
             correctAnswer: q.correctAnswer >= 0 ? q.correctAnswer : undefined,
           }));
       }
+    }
+    if (forceTier) config.forceTier = forceTier;
+    const customKeys = Object.keys(customTierConfig).filter(k => customTierConfig[k] !== '' && customTierConfig[k] !== undefined);
+    if (customKeys.length > 0) {
+      config.customTierConfig = customKeys.reduce((acc, k) => ({ ...acc, [k]: customTierConfig[k] }), {});
     }
     return config;
   };
@@ -330,6 +343,13 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
     if (!enableMascots) formData.set('enableMascots', 'off');
     if (maxSubmissions > 0) formData.set('maxSubmissions', String(maxSubmissions));
     if (description) formData.set('description', description);
+    if (forceTier) formData.set('forceTier', forceTier);
+    const customKeys = Object.keys(customTierConfig).filter(k => customTierConfig[k] !== '' && customTierConfig[k] !== undefined);
+    if (customKeys.length > 0) {
+      formData.set('customTierConfig', JSON.stringify(
+        customKeys.reduce((acc, k) => ({ ...acc, [k]: customTierConfig[k] }), {})
+      ));
+    }
     if (isEditing && editingSession) {
       const result = await updateSession(editingSession._id, formData);
       setPending(false);
@@ -366,6 +386,13 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
     if (requireStudentName) formData.set('requireStudentName', 'on');
     if (!enableMascots) formData.set('enableMascots', 'off');
     if (maxSubmissions > 0) formData.set('maxSubmissions', String(maxSubmissions));
+    if (forceTier) formData.set('forceTier', forceTier);
+    const customKeys = Object.keys(customTierConfig).filter(k => customTierConfig[k] !== '' && customTierConfig[k] !== undefined);
+    if (customKeys.length > 0) {
+      formData.set('customTierConfig', JSON.stringify(
+        customKeys.reduce((acc, k) => ({ ...acc, [k]: customTierConfig[k] }), {})
+      ));
+    }
     formData.set('type', steps[0].type);
     formData.set('title', mainTitle.trim() || steps[0].title);
     if (description.trim()) formData.set('description', description.trim());
@@ -693,6 +720,69 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
           <label htmlFor="enableMascots" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
             แสดงมาสคอต
           </label>
+        </div>
+        <div className="space-y-2 border-t border-zinc-200 dark:border-zinc-700 pt-3">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+              ระดับประสิทธิภาพ <span className="text-zinc-400 text-xs">(Performance Tier)</span>
+            </label>
+            {forceTier && (
+              <span className="text-[10px] text-amber-500 font-medium">⚠ กำลังบังคับใช้</span>
+            )}
+          </div>
+          <select
+            value={forceTier}
+            onChange={e => { setForceTier(e.target.value); setShowAdvancedTier(e.target.value === 'custom'); }}
+            className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">อัตโนมัติ (Auto Detect)</option>
+            <option value="max">Max (100%) — อุปกรณ์ประสิทธิภาพสูง</option>
+            <option value="ultra">Ultra (90%)</option>
+            <option value="high">High (75%)</option>
+            <option value="medium">Medium (50%)</option>
+            <option value="low">Low (25%) — อุปกรณ์รุ่นเก่า</option>
+            <option value="fast">Fast (0-10%) — ประหยัดทรัพยากรสูงสุด</option>
+            <option value="custom">กำหนดเอง (Custom)</option>
+          </select>
+          {showAdvancedTier && (
+            <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-zinc-50 dark:bg-slate-900/50 border border-zinc-200 dark:border-slate-700/50">
+              {[
+                { key: 'backdropBlur', label: 'Blur', type: 'range', min: 0, max: 24 },
+                { key: 'fps', label: 'FPS', type: 'range', min: 10, max: 60 },
+                { key: 'transitions', label: 'Transitions', type: 'checkbox' },
+                { key: 'pollIntervalMs', label: 'Poll (ms)', type: 'range', min: 5000, max: 20000, step: 1000 },
+                { key: 'particles', label: 'Particles', type: 'checkbox' },
+                { key: 'imageQuality', label: 'Image %', type: 'range', min: 10, max: 100, step: 5 },
+                { key: 'hoverEffects', label: 'Hover FX', type: 'checkbox' },
+                { key: 'debounceMs', label: 'Debounce', type: 'range', min: 100, max: 800, step: 50 },
+                { key: 'skeleton', label: 'Skeleton', type: 'checkbox' },
+                { key: 'shadows', label: 'Shadows', type: 'checkbox' },
+                { key: 'gradients', label: 'Gradients', type: 'checkbox' },
+              ].map(({ key, label, type, ...rest }) => (
+                <div key={key} className="flex items-center gap-2">
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400 w-20">{label}</span>
+                  {type === 'checkbox' ? (
+                    <input
+                      type="checkbox"
+                      checked={!!customTierConfig[key]}
+                      onChange={e => setCustomTierConfig(prev => ({ ...prev, [key]: e.target.checked }))}
+                      className="accent-blue-500"
+                    />
+                  ) : (
+                    <input
+                      type="range"
+                      min={(rest as { min: number }).min}
+                      max={(rest as { min: number; max: number }).max}
+                      step={(rest as { step?: number }).step ?? 1}
+                      value={(customTierConfig[key] as number) ?? (rest as { min: number }).min}
+                      onChange={e => setCustomTierConfig(prev => ({ ...prev, [key]: Number(e.target.value) }))}
+                      className="flex-1"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <div className="space-y-1">
           <label htmlFor="qs-maxSubmissions" className="text-sm font-medium text-zinc-600 dark:text-zinc-400">

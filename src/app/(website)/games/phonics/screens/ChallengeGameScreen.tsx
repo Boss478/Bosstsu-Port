@@ -331,7 +331,7 @@ function RhymeTimeGame({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto">
+      <div className="grid grid-cols-2 gap-5 max-w-4xl mx-auto">
         {current.options.map((option) => {
           const isSelected = selectedAnswer === option;
           const isCorrectAnswer = option === current.correctAnswer;

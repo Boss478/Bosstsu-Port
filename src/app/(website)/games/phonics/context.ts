@@ -50,6 +50,11 @@ export interface GameContextValue {
   // Settings
   muted: boolean;
   toggleMute: () => void;
+  // Settings
+  gridColumns: 2 | 3;
+  setGridColumns: (cols: 2 | 3) => void;
+  companionSnap: 'left' | 'right' | 'free';
+  setCompanionSnap: (snap: 'left' | 'right' | 'free') => void;
   // Voice settings
   voiceURI: string;
   setVoiceURI: (uri: string) => void;

@@ -8,6 +8,7 @@ interface Props {
   mapData: MapSaveData;
   onSelectStage: (stageId: number) => void;
   onBack: () => void;
+  onShowAnalysis?: () => void;
 }
 
 function avgStageStars(progress: StageProgress): number {
@@ -17,7 +18,7 @@ function avgStageStars(progress: StageProgress): number {
   return Math.round(total / completed.length);
 }
 
-export default function LevelMapScreen({ mapData, onSelectStage, onBack }: Props) {
+export default function LevelMapScreen({ mapData, onSelectStage, onBack, onShowAnalysis }: Props) {
   const stages = getStages();
   const stageIds = [1, 2, 3, 4, 5, 6];
 
@@ -37,11 +38,22 @@ export default function LevelMapScreen({ mapData, onSelectStage, onBack }: Props
         >
           <i aria-hidden="true" className="fi fi-sr-angle-left text-lg"></i>
         </button>
-        <div className="text-right">
-          <h2 className="text-lg font-black text-violet-600 dark:text-violet-400">Alphabet Map</h2>
-          <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500">
-            {mapData.stages.filter((s) => s.completed).length}/6 Stages
-          </p>
+        <div className="flex items-center gap-2">
+          {onShowAnalysis && (
+            <button
+              onClick={onShowAnalysis}
+              className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-400 hover:text-violet-500 transition-colors"
+              title="View Analysis"
+            >
+              <i aria-hidden="true" className="fi fi-sr-chart-simple text-base"></i>
+            </button>
+          )}
+          <div className="text-right">
+            <h2 className="text-lg font-black text-violet-600 dark:text-violet-400">Alphabet Map</h2>
+            <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500">
+              {mapData.stages.filter((s) => s.completed).length}/6 Stages
+            </p>
+          </div>
         </div>
       </div>
 

@@ -1118,6 +1118,87 @@ export const AVATAR_PENGUIN_HEAD: SpriteData = generateDetailedPenguinHead();
 export const AVATAR_ALIEN_HEAD: SpriteData = generateDetailedAlienHead();
 export const AVATAR_NINJA_HEAD: SpriteData = generateDetailedNinjaHead();
 
+// ─── Dog ──────────────────────────────────────────────────────────────────────
+function generateDetailedDog(): SpriteData {
+  const { drawEllipse, pixels, build } = createRenderer();
+  drawEllipse(16, 25, 8, 6, 42, 1);
+  drawEllipse(16, 26, 4, 4, 43);
+  drawEllipse(12, 30, 3, 1.5, 43, 1);
+  drawEllipse(20, 30, 3, 1.5, 43, 1);
+  drawEllipse(8, 10, 4, 7, 49, 1);
+  drawEllipse(24, 10, 4, 7, 49, 1);
+  drawEllipse(8, 10, 2.5, 4, 44);
+  drawEllipse(24, 10, 2.5, 4, 44);
+  drawEllipse(16, 15, 10, 9, 42, 1);
+  drawEllipse(16, 17, 5, 4, 43, 1);
+  drawEllipse(11, 13, 1.5, 2, 1);
+  drawEllipse(21, 13, 1.5, 2, 1);
+  pixels[12][12] = 2;
+  pixels[20][12] = 2;
+  drawEllipse(16, 16, 1.5, 1, 1);
+  pixels[15][18] = 1;
+  pixels[16][18] = 1;
+  pixels[17][18] = 1;
+  drawEllipse(16, 20, 1.5, 2, 44, 1);
+  pixels[10][16] = 44;
+  pixels[22][16] = 44;
+  return build();
+}
+function generateDetailedDogHead(): SpriteData {
+  const { drawEllipse, pixels, build } = createRenderer();
+  drawEllipse(8, 10, 4, 7, 49, 1);
+  drawEllipse(24, 10, 4, 7, 49, 1);
+  drawEllipse(8, 10, 2.5, 4, 44);
+  drawEllipse(24, 10, 2.5, 4, 44);
+  drawEllipse(16, 16, 10, 10, 42, 1);
+  drawEllipse(16, 18, 5, 4, 43, 1);
+  drawEllipse(11, 14, 1.5, 2, 1);
+  drawEllipse(21, 14, 1.5, 2, 1);
+  pixels[12][13] = 2;
+  pixels[20][13] = 2;
+  drawEllipse(16, 17, 1.5, 1, 1);
+  pixels[15][19] = 1;
+  pixels[16][19] = 1;
+  pixels[17][19] = 1;
+  drawEllipse(16, 21, 1.5, 2, 44, 1);
+  pixels[10][17] = 44;
+  pixels[22][17] = 44;
+  return build();
+}
+export const DOG_IDLE: SpriteData = generateDetailedDog();
+export const AVATAR_DOG_HEAD: SpriteData = generateDetailedDogHead();
+
+// ─── Ghost ────────────────────────────────────────────────────────────────────
+function generateDetailedGhost(): SpriteData {
+  const { drawEllipse, pixels, build } = createRenderer();
+  drawEllipse(16, 15, 10, 10, 2, 1);
+  drawEllipse(10, 26, 5, 3, 2, 1);
+  drawEllipse(16, 27, 5, 3, 2, 1);
+  drawEllipse(22, 26, 5, 3, 2, 1);
+  drawEllipse(12, 14, 2.5, 3.5, 1);
+  drawEllipse(20, 14, 2.5, 3.5, 1);
+  pixels[13][13] = 2;
+  pixels[19][13] = 2;
+  drawEllipse(16, 19, 3, 2, 1);
+  pixels[9][17] = 44;
+  pixels[23][17] = 44;
+  return build();
+}
+function generateDetailedGhostHead(): SpriteData {
+  const { drawEllipse, pixels, build } = createRenderer();
+  drawEllipse(16, 16, 10, 12, 2, 1);
+  drawEllipse(12, 14, 2.5, 3.5, 1);
+  drawEllipse(20, 14, 2.5, 3.5, 1);
+  pixels[13][13] = 2;
+  pixels[19][13] = 2;
+  drawEllipse(16, 19, 3, 2, 1);
+  pixels[9][17] = 44;
+  pixels[23][17] = 44;
+  return build();
+}
+export const GHOST_IDLE: SpriteData = generateDetailedGhost();
+export const AVATAR_GHOST_HEAD: SpriteData = generateDetailedGhostHead();
+
 export const HEAD_ACC_Y_OFFSET: Record<string, number> = {
   nox: 4,
   mira: 6,
@@ -1130,6 +1211,8 @@ export const HEAD_ACC_Y_OFFSET: Record<string, number> = {
   alien: 1,
   ninja: 4,
   robot: 0,
+  dog: 4,
+  ghost: 4,
 };
 
 export const HEAD_CONFIG = {
@@ -1144,6 +1227,8 @@ export const HEAD_CONFIG = {
   alien: { x: 0, y: 0, scale: 1 },
   ninja: { x: 0, y: 0, scale: 1 },
   robot: { x: 0, y: 0, scale: 1 },
+  dog: { x: 0, y: 0, scale: 1 },
+  ghost: { x: 0, y: 0, scale: 1 },
 };
 
 // ─── Accessory Sprites ──────────────────────────────────────────────────────────

@@ -74,6 +74,8 @@ export default function PhonicsClient() {
   const [save, setSaveState] = useState<SaveData | null>(null);
   const [round, setRound] = useState<GameRound | null>(null);
   const [companion, setCompanion] = useState<CompanionId>('nox');
+  const [gridColumns, setGridColumns] = useState<2 | 3>(2);
+  const [companionSnap, setCompanionSnap] = useState<'left' | 'right' | 'free'>('free');
   const [selectedStage, setSelectedStage] = useState<StageData | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<StageLesson | null>(null);
   const [mapView, setMapView] = useState<MapView>('groups');
@@ -819,6 +821,10 @@ export default function PhonicsClient() {
     nextQuestion,
     companion,
     setCompanion,
+    gridColumns,
+    setGridColumns,
+    companionSnap,
+    setCompanionSnap,
     muted,
     toggleMute,
     voiceURI,
