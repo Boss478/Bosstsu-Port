@@ -3,6 +3,54 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import type { FillBlankQuestion as FillBlankQ, WordAssocQuestion as WordAssocQ, CompanionId, WordData } from '@/app/(website)/games/phonics/types';
 
+import { GameContext } from '@/app/(website)/games/phonics/context';
+import type { GameContextValue } from '@/app/(website)/games/phonics/context';
+
+const mockGameContext: GameContextValue = {
+  gridColumns: 2,
+  setGridColumns: () => {},
+  screen: 'map',
+  setScreen: () => {},
+  tab: 'groups',
+  setTab: () => {},
+  mapView: 'groups',
+  setMapView: () => {},
+  selectedGroup: null,
+  selectGroup: () => {},
+  selectedActivity: null,
+  selectActivity: () => {},
+  activeSlot: 'guest',
+  save: null,
+  persistSave: () => {},
+  deleteSaveSlot: () => {},
+  selectedStage: null,
+  selectStage: () => {},
+  selectedLesson: null,
+  selectLesson: () => {},
+  round: null,
+  startRound: () => {},
+  answerQuestion: () => {},
+  nextQuestion: () => {},
+  companion: 'mira',
+  setCompanion: () => {},
+  muted: false,
+  toggleMute: () => {},
+  companionSnap: 'right',
+  setCompanionSnap: () => {},
+  voiceURI: '',
+  setVoiceURI: () => {},
+  voices: [],
+  speechRate: 1,
+  setSpeechRate: () => {},
+  speechPitch: 1,
+  setSpeechPitch: () => {},
+  prefetchWords: async () => {},
+};
+
+function withCtx(ui: React.ReactElement) {
+  return <GameContext.Provider value={mockGameContext}>{ui}</GameContext.Provider>;
+}
+
 vi.mock('@/app/(website)/games/phonics/components/QuestionChoiceButton', () => ({
   default: ({ value, onClick, children }: { value: string; onClick: () => void; children: React.ReactNode }) => (
     <button data-testid={`choice-${value}`} onClick={onClick}>
@@ -90,7 +138,7 @@ describe('FillBlankQuestion component', () => {
 
   async function renderComponent(feedback: 'correct' | 'wrong' | null = null, selectedAnswer: string | null = null) {
     const FillBlankQuestion = (await import('@/app/(website)/games/phonics/components/FillBlankQuestion')).default;
-    return render(
+    return render(withCtx(
       <FillBlankQuestion
         question={question}
         feedback={feedback}
@@ -102,7 +150,7 @@ describe('FillBlankQuestion component', () => {
         selectedAnswer={selectedAnswer}
         setSelectedAnswer={setSelectedAnswer}
       />,
-    );
+    ));
   }
 
   it('renders blanked sentence', async () => {
@@ -180,7 +228,7 @@ describe('WordAssocQuestion component', () => {
 
   async function renderComponent(feedback: 'correct' | 'wrong' | null = null, selectedAnswer: string | null = null) {
     const WordAssocQuestion = (await import('@/app/(website)/games/phonics/components/WordAssocQuestion')).default;
-    return render(
+    return render(withCtx(
       <WordAssocQuestion
         question={question}
         feedback={feedback}
@@ -192,7 +240,7 @@ describe('WordAssocQuestion component', () => {
         selectedAnswer={selectedAnswer}
         setSelectedAnswer={setSelectedAnswer}
       />,
-    );
+    ));
   }
 
   it('renders the word', async () => {
