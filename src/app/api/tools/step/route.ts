@@ -32,15 +32,23 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
-    const s = session as { currentStep?: number; steps?: unknown[]; allowStudentNavigation?: boolean; kickedStudents?: string[] };
+    const s = session as {
+      currentStep?: number;
+      steps?: unknown[];
+      allowStudentNavigation?: boolean;
+      kickedStudents?: string[];
+    };
     const kicked = studentToken ? (s.kickedStudents ?? []).includes(studentToken) : false;
 
-    return NextResponse.json({
-      currentStep: s.currentStep ?? -1,
-      totalSteps: s.steps?.length ?? 1,
-      allowStudentNavigation: s.allowStudentNavigation ?? false,
-      kicked,
-    }, { headers: { 'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=30' } });
+    return NextResponse.json(
+      {
+        currentStep: s.currentStep ?? -1,
+        totalSteps: s.steps?.length ?? 1,
+        allowStudentNavigation: s.allowStudentNavigation ?? false,
+        kicked,
+      },
+      { headers: { 'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=30' } },
+    );
   } catch {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
@@ -61,15 +69,13 @@ export async function PATCH(req: NextRequest) {
     }
 
     await dbConnect();
-    const session = await ToolSession.findById(sessionId)
-      .select('steps')
-      .lean();
+    const session = await ToolSession.findById(sessionId).select('steps').lean();
 
     if (!session) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
-    const totalSteps = ((session as { steps?: unknown[] }).steps?.length) ?? 1;
+    const totalSteps = (session as { steps?: unknown[] }).steps?.length ?? 1;
     if (stepIndex < -1 || stepIndex >= totalSteps) {
       return NextResponse.json({ error: 'Invalid step index' }, { status: 400 });
     }

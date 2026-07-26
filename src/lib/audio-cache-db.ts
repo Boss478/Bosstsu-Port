@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 const DB_NAME = 'boss478-audio-cache';
 const STORE_NAME = 'dict-cache';

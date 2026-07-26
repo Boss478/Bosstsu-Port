@@ -1,48 +1,53 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function StudyEnterPage() {
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const submitCode = useCallback(async (codeToSubmit: string) => {
-    const trimmed = codeToSubmit.trim().toUpperCase();
-    if (trimmed.length !== 5) return;
+  const submitCode = useCallback(
+    async (codeToSubmit: string) => {
+      const trimmed = codeToSubmit.trim().toUpperCase();
+      if (trimmed.length !== 5) return;
 
-    setLoading(true);
-    setError(null);
+      setLoading(true);
+      setError(null);
 
-    try {
-      const res = await fetch(`/api/tools/session?code=${trimmed}`);
-      
-      if (res.status === 404) {
-        setError("ไม่พบห้องเรียน");
-      } else if (res.ok) {
-        const data = await res.json();
-        if (!data.isActive) {
-          setError("ห้องเรียนสิ้นสุดแล้ว");
+      try {
+        const res = await fetch(`/api/tools/session?code=${trimmed}`);
+
+        if (res.status === 404) {
+          setError('ไม่พบห้องเรียน');
+        } else if (res.ok) {
+          const data = await res.json();
+          if (!data.isActive) {
+            setError('ห้องเรียนสิ้นสุดแล้ว');
+          } else {
+            router.push(`/study/${trimmed}`);
+          }
         } else {
-          router.push(`/study/${trimmed}`);
+          setError('เกิดข้อผิดพลาด กรุลาลองใหม่');
         }
-      } else {
-        setError("เกิดข้อผิดพลาด กรุลาลองใหม่");
+      } catch {
+        setError('เกิดข้อผิดพลาด กรุลาลองใหม่');
+      } finally {
+        setLoading(false);
       }
-    } catch {
-      setError("เกิดข้อผิดพลาด กรุลาลองใหม่");
-    } finally {
-      setLoading(false);
-    }
-  }, [router]);
+    },
+    [router],
+  );
 
   useEffect(() => {
     if (code.length === 5) {
       debounceRef.current = setTimeout(() => submitCode(code), 300);
-      return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+      return () => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+      };
     }
   }, [code, submitCode]);
 
@@ -94,7 +99,7 @@ export default function StudyEnterPage() {
                   กำลังตรวจสอบ...
                 </>
               ) : (
-                "เข้าห้อง"
+                'เข้าห้อง'
               )}
             </button>
           </form>

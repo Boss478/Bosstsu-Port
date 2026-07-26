@@ -342,7 +342,9 @@ export default function SettingsScreen() {
                   persistSave({
                     ...save,
                     groupProgress: {},
-                    unlockedGroupIds: VOCAB_GROUP_DEFS.filter((g) => g.tier === 'easy').slice(0, 4).map((g) => g.id),
+                    unlockedGroupIds: VOCAB_GROUP_DEFS.filter((g) => g.tier === 'easy')
+                      .slice(0, 4)
+                      .map((g) => g.id),
                   });
                   playSound('correct');
                 }}

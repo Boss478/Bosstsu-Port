@@ -95,7 +95,7 @@ export default function AdminSidebar({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-[background-color,color,transform] active:scale-95 active:translate-x-0.5 active:duration-150 ${
                     isActive
                       ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm'
                       : 'text-zinc-600 dark:text-zinc-400 hover:bg-blue-50 dark:hover:bg-slate-800/50 hover:text-zinc-900 dark:hover:text-zinc-200'

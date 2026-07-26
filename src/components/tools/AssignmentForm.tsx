@@ -13,7 +13,13 @@ interface AssignmentFormProps {
   onMascotEvent?: (event: 'celebrate' | 'correct' | 'wrong') => void;
 }
 
-export default function AssignmentForm({ session, stepIndex, studentName: propName, mascot, onMascotEvent }: AssignmentFormProps) {
+export default function AssignmentForm({
+  session,
+  stepIndex,
+  studentName: propName,
+  mascot,
+  onMascotEvent,
+}: AssignmentFormProps) {
   const [studentName, setStudentName] = useState(propName || '');
   const [answer, setAnswer] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -88,7 +94,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
         editFormData.set('responseId', responseId);
         editFormData.set('editToken', editToken);
         editFormData.set('content', JSON.stringify({ answer: answer.trim() }));
-        
+
         if (removeCurrentFile && file) {
           editFormData.set('action', 'replace');
           editFormData.set('file', file);
@@ -98,7 +104,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
           editFormData.set('action', 'replace');
           editFormData.set('file', file);
         }
-        
+
         const res = await fetch('/api/tools/edit', {
           method: 'PATCH',
           headers: {
@@ -117,11 +123,14 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
             const stored = localStorage.getItem(STORAGE_KEY);
             if (stored) {
               const parsed = JSON.parse(stored);
-              localStorage.setItem(STORAGE_KEY, JSON.stringify({ 
-                ...parsed, 
-                content: { answer: answer.trim() },
-                fileUrl: data.fileUrl || null,
-              }));
+              localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify({
+                  ...parsed,
+                  content: { answer: answer.trim() },
+                  fileUrl: data.fileUrl || null,
+                }),
+              );
             }
           }
         }
@@ -159,13 +168,16 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
           setFileUrl(data.fileUrl || null);
           onMascotEvent?.('celebrate');
           if (typeof window !== 'undefined') {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({
-              responseId: data.id,
-              editToken: data.editToken,
-              studentName,
-              content: { answer: answer.trim() },
-              fileUrl: data.fileUrl || null,
-            }));
+            localStorage.setItem(
+              STORAGE_KEY,
+              JSON.stringify({
+                responseId: data.id,
+                editToken: data.editToken,
+                studentName,
+                content: { answer: answer.trim() },
+                fileUrl: data.fileUrl || null,
+              }),
+            );
           }
         }
       }
@@ -181,7 +193,9 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-lg w-full space-y-4">
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{session.title}</h1>
+            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+              {session.title}
+            </h1>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm font-mono">
               <i aria-hidden="true" className="fi fi-sr-check-circle" />
               {t('submitted')}
@@ -190,12 +204,18 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
 
           <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('name')}</label>
-              <p className="text-zinc-900 dark:text-zinc-100 font-medium flex items-center gap-1.5">{studentName || t('anonymous')}</p>
+              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                {t('name')}
+              </label>
+              <p className="text-zinc-900 dark:text-zinc-100 font-medium flex items-center gap-1.5">
+                {studentName || t('anonymous')}
+              </p>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('answer')}</label>
+              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                {t('answer')}
+              </label>
               <div className="p-4 rounded-xl bg-zinc-50 dark:bg-slate-900 text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
                 {answer}
               </div>
@@ -203,7 +223,9 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
 
             {fileUrl && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('file')}</label>
+                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  {t('file')}
+                </label>
                 <button
                   onClick={() => handlePreviewFile(fileUrl)}
                   className="flex items-center gap-2 text-blue-600 hover:underline"
@@ -225,11 +247,11 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
         </div>
 
         {previewFileUrl && (
-          <div 
+          <div
             className="fixed inset-0 z-150 flex items-center justify-center bg-black/10 p-4 animate-fade-in-up"
             onClick={() => setPreviewFileUrl(null)}
           >
-            <button 
+            <button
               type="button"
               className="absolute top-4 right-4 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full w-12 h-12 flex items-center justify-center transition-all z-10"
               onClick={(e) => {
@@ -239,7 +261,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
             >
               <i aria-hidden="true" className="fi fi-sr-cross text-xl flex" />
             </button>
-            <div 
+            <div
               className="relative w-full h-full max-w-4xl max-h-[90vh] flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
@@ -259,7 +281,10 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
               )}
               {previewFileType === 'other' && (
                 <div className="text-center p-8 bg-white dark:bg-slate-800 rounded-lg">
-                  <i aria-hidden="true" className="fi fi-sr-file text-6xl text-zinc-300 dark:text-zinc-600 mb-4 block" />
+                  <i
+                    aria-hidden="true"
+                    className="fi fi-sr-file text-6xl text-zinc-300 dark:text-zinc-600 mb-4 block"
+                  />
                   <p className="text-zinc-500 dark:text-zinc-400">{t('noPreviewAvailable')}</p>
                 </div>
               )}
@@ -274,7 +299,9 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="max-w-lg w-full">
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{session.title}</h1>
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+            {session.title}
+          </h1>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm font-mono">
             <i aria-hidden="true" className="fi fi-sr-file-upload" />
             {session.sessionCode}
@@ -283,21 +310,23 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
 
         <form onSubmit={(e) => handleSubmit(e, isEditing)} className="space-y-4">
           <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-4">
-            <h3 className="font-bold text-zinc-900 dark:text-zinc-100">{session.config?.prompt || t('submitYourAssignment')}</h3>
+            <h3 className="font-bold text-zinc-900 dark:text-zinc-100">
+              {session.config?.prompt || t('submitYourAssignment')}
+            </h3>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 {t('name')} <span className="text-red-500">*</span>
               </label>
               {!propName && (
-              <input
-                type="text"
-                value={studentName}
-                onChange={e => setStudentName(e.target.value)}
-                required
-                placeholder={t('yourFullName')}
-                className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+                <input
+                  type="text"
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                  required
+                  placeholder={t('yourFullName')}
+                  className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               )}
             </div>
 
@@ -307,7 +336,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
               </label>
               <textarea
                 value={answer}
-                onChange={e => setAnswer(e.target.value)}
+                onChange={(e) => setAnswer(e.target.value)}
                 required
                 rows={6}
                 placeholder={t('typeYourAnswerHere')}
@@ -324,7 +353,10 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
                     </label>
                     <div className="flex items-center justify-between p-4 rounded-xl bg-zinc-50 dark:bg-slate-900 border border-zinc-200 dark:border-slate-700">
                       <div className="flex items-center gap-3">
-                        <i aria-hidden="true" className="fi fi-sr-file text-xl text-blue-600 dark:text-blue-400" />
+                        <i
+                          aria-hidden="true"
+                          className="fi fi-sr-file text-xl text-blue-600 dark:text-blue-400"
+                        />
                         <span className="text-sm text-zinc-700 dark:text-zinc-300 truncate max-w-[200px]">
                           {existingFileUrl.split('/').pop()}
                         </span>
@@ -335,7 +367,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
                           <input
                             type="file"
                             accept="image/jpeg,image/png,application/pdf,image/gif,image/webp,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                            onChange={e => {
+                            onChange={(e) => {
                               const f = e.target.files?.[0];
                               if (f) {
                                 setFile(f);
@@ -347,7 +379,11 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
                         </label>
                         <button
                           type="button"
-                          onClick={() => { setRemoveCurrentFile(true); setFile(null); setFileName(''); }}
+                          onClick={() => {
+                            setRemoveCurrentFile(true);
+                            setFile(null);
+                            setFileName('');
+                          }}
                           className="px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
                         >
                           {t('removeFile')}
@@ -364,7 +400,10 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
                 )}
                 {(!isEditing || !existingFileUrl || removeCurrentFile) && (
                   <label className="flex flex-col items-center gap-2 w-full px-4 py-8 rounded-xl bg-white dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-600 active:border-blue-500 transition-all cursor-pointer">
-                    <i aria-hidden="true" className="fi fi-sr-cloud-upload text-3xl text-zinc-300 dark:text-zinc-600" />
+                    <i
+                      aria-hidden="true"
+                      className="fi fi-sr-cloud-upload text-3xl text-zinc-300 dark:text-zinc-600"
+                    />
                     <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       {fileName || t('clickToUploadFile')}
                     </span>
@@ -374,7 +413,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
                     <input
                       type="file"
                       accept="image/jpeg,image/png,application/pdf,image/gif,image/webp,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                      onChange={e => {
+                      onChange={(e) => {
                         const f = e.target.files?.[0];
                         if (f) {
                           setFile(f);
@@ -389,7 +428,9 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
             )}
 
             {error && (
-              <p className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">{error}</p>
+              <p className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
+                {error}
+              </p>
             )}
           </div>
 
@@ -397,7 +438,10 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
             {isEditing && (
               <button
                 type="button"
-                onClick={() => { setIsEditing(false); setError(null); }}
+                onClick={() => {
+                  setIsEditing(false);
+                  setError(null);
+                }}
                 className="flex-1 py-3 bg-zinc-100 dark:bg-slate-800 text-zinc-600 dark:text-zinc-400 font-bold rounded-xl hover:bg-zinc-200 transition-colors"
               >
                 {t('cancel')}
@@ -414,11 +458,11 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
         </form>
 
         {previewFileUrl && (
-          <div 
+          <div
             className="fixed inset-0 z-150 flex items-center justify-center bg-black/10 p-4 animate-fade-in-up"
             onClick={() => setPreviewFileUrl(null)}
           >
-            <button 
+            <button
               type="button"
               className="absolute top-4 right-4 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full w-12 h-12 flex items-center justify-center transition-all z-10"
               onClick={(e) => {
@@ -428,7 +472,7 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
             >
               <i aria-hidden="true" className="fi fi-sr-cross text-xl flex" />
             </button>
-            <div 
+            <div
               className="relative w-full h-full max-w-4xl max-h-[90vh] flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
@@ -448,7 +492,10 @@ export default function AssignmentForm({ session, stepIndex, studentName: propNa
               )}
               {previewFileType === 'other' && (
                 <div className="text-center p-8 bg-white dark:bg-slate-800 rounded-lg">
-                  <i aria-hidden="true" className="fi fi-sr-file text-6xl text-zinc-300 dark:text-zinc-600 mb-4 block" />
+                  <i
+                    aria-hidden="true"
+                    className="fi fi-sr-file text-6xl text-zinc-300 dark:text-zinc-600 mb-4 block"
+                  />
                   <p className="text-zinc-500 dark:text-zinc-400">{t('noPreviewAvailable')}</p>
                 </div>
               )}

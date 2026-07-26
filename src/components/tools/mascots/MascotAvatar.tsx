@@ -46,9 +46,7 @@ export default function MascotAvatar({
 
     if (mascot.spriteData) {
       const sprite = mascot.spriteData[variant];
-      const displaySprite = blinking && variant === 'head'
-        ? blinkSprite(sprite, mascotId)
-        : sprite;
+      const displaySprite = blinking && variant === 'head' ? blinkSprite(sprite, mascotId) : sprite;
       drawSprite(ctx, displaySprite, 0, 0, 1);
       const accId = mascot.spriteAccessory;
       if (accId) {
@@ -81,7 +79,11 @@ export default function MascotAvatar({
         style={{ width: actualSize, height: actualSize }}
         className="bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center"
       >
-        <i aria-hidden="true" className="fi fi-sr-user text-zinc-400 dark:text-zinc-500" style={{ fontSize: size * 0.4 }} />
+        <i
+          aria-hidden="true"
+          className="fi fi-sr-user text-zinc-400 dark:text-zinc-500"
+          style={{ fontSize: size * 0.4 }}
+        />
       </div>
     );
   }
@@ -92,12 +94,14 @@ export default function MascotAvatar({
       width={32}
       height={32}
       className="image-rendering-pixelated"
-      style={{
-        width: actualSize,
-        height: actualSize,
-        '--breathe-height': params ? `${params.breatheHeight}px` : undefined,
-        '--breathe-speed': params ? `${params.breatheSpeed}s` : undefined,
-      } as React.CSSProperties}
+      style={
+        {
+          width: actualSize,
+          height: actualSize,
+          '--breathe-height': params ? `${params.breatheHeight}px` : undefined,
+          '--breathe-speed': params ? `${params.breatheSpeed}s` : undefined,
+        } as React.CSSProperties
+      }
     />
   );
 }

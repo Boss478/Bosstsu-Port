@@ -3,16 +3,77 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { quickStartSession, updateSession, updateSessionSteps, saveTemplate, getTemplates } from '@/app/admin/tools/actions';
+import {
+  quickStartSession,
+  updateSession,
+  updateSessionSteps,
+  saveTemplate,
+  getTemplates,
+} from '@/app/admin/tools/actions';
 import { t } from '@/lib/tool-translations';
 
 const TOOL_TYPES = [
-  { value: 'padlet', label: 'Padlet (Idea Board)', desc: 'Collect ideas on a digital board · Brainstorming, sharing work, visual collaboration', icon: 'fi-sr-grid', helpTh: 'นักเรียนโพสต์ไอเดีย รูปภาพ หรือลิงก์บนบอร์ดดิจิทัลร่วมกัน', helpEn: 'Students post ideas, images, or links on a shared digital board.', usageTh: 'เหมาะสำหรับ: ระดมสมอง, แชร์ผลงาน, Brainstorming', usageEn: 'Best for: Brainstorming, sharing work, visual collaboration' },
-  { value: 'poll', label: 'Poll (Mentimeter)', desc: 'MCQ or word cloud voting · Opinion polls, understanding checks, quick feedback', icon: 'fi-sr-chart-pie', helpTh: 'สร้างคำถามแบบเลือกตอบหรือ Word Cloud นักเรียนโหวตและเห็นผลลัพธ์แบบเรียลไทม์', helpEn: 'Create MCQ or word cloud polls. Students vote and see live results.', usageTh: 'เหมาะสำหรับ: สำรวจความคิดเห็น, เช็คความเข้าใจ, Quick feedback', usageEn: 'Best for: Opinion polls, understanding checks, quick feedback' },
-  { value: 'assignment', label: 'Assignment', desc: 'Text answers + file upload · Homework, project submissions, work requiring file attachments', icon: 'fi-sr-file-upload', helpTh: 'นักเรียนส่งคำตอบเป็นข้อความและอัปโหลดไฟล์ (PDF, รูปภาพ) ได้', helpEn: 'Students submit text answers and optionally upload files (PDF, images).', usageTh: 'เหมาะสำหรับ: การบ้าน, ส่งโปรเจกต์, งานที่ต้องมีไฟล์ประกอบ', usageEn: 'Best for: Homework, project submissions, work requiring file attachments' },
-  { value: 'qa_board', label: 'Q&A Board', desc: 'Anonymous Q&A with voting · Post-lesson Q&A, identifying common confusions', icon: 'fi-sr-interrogation', helpTh: 'นักเรียนตั้งคำถามแบบไม่ระบุตัวตน โหวตคำถามที่อยากได้คำตอบมากที่สุด', helpEn: 'Students ask questions anonymously. Vote on questions they want answered most.', usageTh: 'เหมาะสำหรับ: ถาม-ตอบหลังเรียน, ระบุจุดที่สับสนร่วมกัน', usageEn: 'Best for: Post-lesson Q&A, identifying common confusions' },
-  { value: 'quiz', label: 'Quick Quiz', desc: 'Multiple choice quiz with scoring · Comprehension tests, formative assessment', icon: 'fi-sr-graduation-cap', helpTh: 'สร้างควิซแบบเลือกตอบหลายข้อ นักเรียนได้คะแนนและฟีดแบ็กทันที', helpEn: 'Create multi-question MCQ quizzes. Students get instant scores and feedback.', usageTh: 'เหมาะสำหรับ: ทดสอบความเข้าใจ, ประเมินผลระหว่างเรียน', usageEn: 'Best for: Comprehension tests, formative assessment' },
-  { value: 'exit_ticket', label: 'Exit Ticket', desc: '3-field reflection form · Lesson wrap-up, end-of-class reflection', icon: 'fi-sr-ticket', helpTh: 'แบบฟอร์มสะท้อนการเรียนรู้ 3 ช่อง: สิ่งที่เรียนรู้, คำถามที่ยังมี, สิ่งที่อยากรู้เพิ่ม', helpEn: '3-field reflection form: What I learned, Questions I still have, What I want to know more.', usageTh: 'เหมาะสำหรับ: สรุปบทเรียน, สะท้อนการเรียนรู้ท้ายคาบ', usageEn: 'Best for: Lesson wrap-up, end-of-class reflection' },
+  {
+    value: 'padlet',
+    label: 'Padlet (Idea Board)',
+    desc: 'Collect ideas on a digital board · Brainstorming, sharing work, visual collaboration',
+    icon: 'fi-sr-grid',
+    helpTh: 'นักเรียนโพสต์ไอเดีย รูปภาพ หรือลิงก์บนบอร์ดดิจิทัลร่วมกัน',
+    helpEn: 'Students post ideas, images, or links on a shared digital board.',
+    usageTh: 'เหมาะสำหรับ: ระดมสมอง, แชร์ผลงาน, Brainstorming',
+    usageEn: 'Best for: Brainstorming, sharing work, visual collaboration',
+  },
+  {
+    value: 'poll',
+    label: 'Poll (Mentimeter)',
+    desc: 'MCQ or word cloud voting · Opinion polls, understanding checks, quick feedback',
+    icon: 'fi-sr-chart-pie',
+    helpTh: 'สร้างคำถามแบบเลือกตอบหรือ Word Cloud นักเรียนโหวตและเห็นผลลัพธ์แบบเรียลไทม์',
+    helpEn: 'Create MCQ or word cloud polls. Students vote and see live results.',
+    usageTh: 'เหมาะสำหรับ: สำรวจความคิดเห็น, เช็คความเข้าใจ, Quick feedback',
+    usageEn: 'Best for: Opinion polls, understanding checks, quick feedback',
+  },
+  {
+    value: 'assignment',
+    label: 'Assignment',
+    desc: 'Text answers + file upload · Homework, project submissions, work requiring file attachments',
+    icon: 'fi-sr-file-upload',
+    helpTh: 'นักเรียนส่งคำตอบเป็นข้อความและอัปโหลดไฟล์ (PDF, รูปภาพ) ได้',
+    helpEn: 'Students submit text answers and optionally upload files (PDF, images).',
+    usageTh: 'เหมาะสำหรับ: การบ้าน, ส่งโปรเจกต์, งานที่ต้องมีไฟล์ประกอบ',
+    usageEn: 'Best for: Homework, project submissions, work requiring file attachments',
+  },
+  {
+    value: 'qa_board',
+    label: 'Q&A Board',
+    desc: 'Anonymous Q&A with voting · Post-lesson Q&A, identifying common confusions',
+    icon: 'fi-sr-interrogation',
+    helpTh: 'นักเรียนตั้งคำถามแบบไม่ระบุตัวตน โหวตคำถามที่อยากได้คำตอบมากที่สุด',
+    helpEn: 'Students ask questions anonymously. Vote on questions they want answered most.',
+    usageTh: 'เหมาะสำหรับ: ถาม-ตอบหลังเรียน, ระบุจุดที่สับสนร่วมกัน',
+    usageEn: 'Best for: Post-lesson Q&A, identifying common confusions',
+  },
+  {
+    value: 'quiz',
+    label: 'Quick Quiz',
+    desc: 'Multiple choice quiz with scoring · Comprehension tests, formative assessment',
+    icon: 'fi-sr-graduation-cap',
+    helpTh: 'สร้างควิซแบบเลือกตอบหลายข้อ นักเรียนได้คะแนนและฟีดแบ็กทันที',
+    helpEn: 'Create multi-question MCQ quizzes. Students get instant scores and feedback.',
+    usageTh: 'เหมาะสำหรับ: ทดสอบความเข้าใจ, ประเมินผลระหว่างเรียน',
+    usageEn: 'Best for: Comprehension tests, formative assessment',
+  },
+  {
+    value: 'exit_ticket',
+    label: 'Exit Ticket',
+    desc: '3-field reflection form · Lesson wrap-up, end-of-class reflection',
+    icon: 'fi-sr-ticket',
+    helpTh: 'แบบฟอร์มสะท้อนการเรียนรู้ 3 ช่อง: สิ่งที่เรียนรู้, คำถามที่ยังมี, สิ่งที่อยากรู้เพิ่ม',
+    helpEn:
+      '3-field reflection form: What I learned, Questions I still have, What I want to know more.',
+    usageTh: 'เหมาะสำหรับ: สรุปบทเรียน, สะท้อนการเรียนรู้ท้ายคาบ',
+    usageEn: 'Best for: Lesson wrap-up, end-of-class reflection',
+  },
 ];
 
 const NAMED_TOOL_TYPES = ['padlet', 'assignment', 'exit_ticket'];
@@ -38,7 +99,11 @@ interface QuickStartModalProps {
   onClose?: () => void;
 }
 
-export default function QuickStartModal({ editingSession, onSuccess, onClose }: QuickStartModalProps) {
+export default function QuickStartModal({
+  editingSession,
+  onSuccess,
+  onClose,
+}: QuickStartModalProps) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<'single' | 'multi'>('single');
   const [step, setStep] = useState<'main-title' | 'type' | 'config' | 'templates'>('type');
@@ -69,9 +134,13 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
   const [forceTier, setForceTier] = useState<string>('');
   const [customTierConfig, setCustomTierConfig] = useState<Record<string, unknown>>({});
   const [showAdvancedTier, setShowAdvancedTier] = useState(false);
-  const [templates, setTemplates] = useState<Array<{ _id: string; title: string; config: Record<string, unknown> }>>([]);
+  const [templates, setTemplates] = useState<
+    Array<{ _id: string; title: string; config: Record<string, unknown> }>
+  >([]);
   const [templateFeedback, setTemplateFeedback] = useState<string | null>(null);
-  const [pickerTemplates, setPickerTemplates] = useState<Array<{ _id: string; title: string; type: string; config: Record<string, unknown> }>>([]);
+  const [pickerTemplates, setPickerTemplates] = useState<
+    Array<{ _id: string; title: string; type: string; config: Record<string, unknown> }>
+  >([]);
   const [loadingPicker, setLoadingPicker] = useState(false);
   const [pickerSearch, setPickerSearch] = useState('');
   const [mainTitle, setMainTitle] = useState('');
@@ -104,12 +173,24 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
       setAllowFileUpload(cfg.allowFileUpload === true);
       setPollMode((cfg.pollMode as 'mcq' | 'wordcloud') || 'mcq');
       setAllowCustomChoices(cfg.allowCustomChoices === true);
-      const rawOptions = ((cfg.questions as Array<{ options?: string[] }>)?.[0]?.options as string[]) || [];
+      const rawOptions =
+        ((cfg.questions as Array<{ options?: string[] }>)?.[0]?.options as string[]) || [];
       setPollOptions(rawOptions.length ? rawOptions : ['', '']);
-      const rawQuiz = (cfg.questions as Array<{ question?: string; options?: string[]; correctAnswer?: number }>) || [];
-      setQuizQuestions(rawQuiz.length > 0
-        ? rawQuiz.map(q => ({ question: q.question || '', options: q.options || [], correctAnswer: q.correctAnswer ?? -1 }))
-        : []);
+      const rawQuiz =
+        (cfg.questions as Array<{
+          question?: string;
+          options?: string[];
+          correctAnswer?: number;
+        }>) || [];
+      setQuizQuestions(
+        rawQuiz.length > 0
+          ? rawQuiz.map((q) => ({
+              question: q.question || '',
+              options: q.options || [],
+              correctAnswer: q.correctAnswer ?? -1,
+            }))
+          : [],
+      );
       setSteps(stepsArr as StepConfig[]);
       setMaxSubmissions((cfg.maxSubmissions as number) || 0);
       setForceTier((cfg.forceTier as string) || '');
@@ -165,27 +246,32 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
     if (pollMode) config.pollMode = pollMode;
     if (allowCustomChoices) config.allowCustomChoices = true;
     if (pollMode === 'mcq' && selectedType === 'poll') {
-      const hasCustomOptions = pollOptions.some(o => o.trim());
+      const hasCustomOptions = pollOptions.some((o) => o.trim());
       if (hasCustomOptions) {
-        config.questions = [{ options: pollOptions.filter(o => o.trim()) }];
+        config.questions = [{ options: pollOptions.filter((o) => o.trim()) }];
       }
     }
     if (selectedType === 'quiz') {
-      const hasQuestions = quizQuestions.some(q => q.question.trim());
+      const hasQuestions = quizQuestions.some((q) => q.question.trim());
       if (hasQuestions) {
         config.questions = quizQuestions
-          .filter(q => q.question.trim())
-          .map(q => ({
+          .filter((q) => q.question.trim())
+          .map((q) => ({
             question: q.question.trim(),
-            options: q.options.filter(o => o.trim()),
+            options: q.options.filter((o) => o.trim()),
             correctAnswer: q.correctAnswer >= 0 ? q.correctAnswer : undefined,
           }));
       }
     }
     if (forceTier) config.forceTier = forceTier;
-    const customKeys = Object.keys(customTierConfig).filter(k => customTierConfig[k] !== '' && customTierConfig[k] !== undefined);
+    const customKeys = Object.keys(customTierConfig).filter(
+      (k) => customTierConfig[k] !== '' && customTierConfig[k] !== undefined,
+    );
     if (customKeys.length > 0) {
-      config.customTierConfig = customKeys.reduce((acc, k) => ({ ...acc, [k]: customTierConfig[k] }), {});
+      config.customTierConfig = customKeys.reduce(
+        (acc, k) => ({ ...acc, [k]: customTierConfig[k] }),
+        {},
+      );
     }
     return config;
   };
@@ -279,7 +365,14 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
     setLoadingPicker(true);
     try {
       const data = await getTemplates();
-      setPickerTemplates(data as Array<{ _id: string; title: string; type: string; config: Record<string, unknown> }>);
+      setPickerTemplates(
+        data as Array<{
+          _id: string;
+          title: string;
+          type: string;
+          config: Record<string, unknown>;
+        }>,
+      );
     } catch {
       // silent
     } finally {
@@ -289,12 +382,20 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
     setPickerSearch('');
   };
 
-  const handleSelectTemplate = (template: { _id: string; title: string; type: string; config: Record<string, unknown> }) => {
-    setSteps(prev => [...prev, {
-      type: template.type,
-      title: template.title,
-      config: template.config as Record<string, unknown>,
-    }]);
+  const handleSelectTemplate = (template: {
+    _id: string;
+    title: string;
+    type: string;
+    config: Record<string, unknown>;
+  }) => {
+    setSteps((prev) => [
+      ...prev,
+      {
+        type: template.type,
+        title: template.title,
+        config: template.config as Record<string, unknown>,
+      },
+    ]);
     setStep('type');
     setError(null);
   };
@@ -323,32 +424,40 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
     if (allowCustomChoices) formData.set('allowCustomChoices', 'on');
     if (requireStudentName) formData.set('requireStudentName', 'on');
     if (pollMode === 'mcq' && selectedType === 'poll') {
-      const hasCustomOptions = pollOptions.some(o => o.trim());
+      const hasCustomOptions = pollOptions.some((o) => o.trim());
       if (hasCustomOptions) {
         formData.set('questions', JSON.stringify([{ options: pollOptions }]));
       }
     }
     if (selectedType === 'quiz') {
-      const hasQuestions = quizQuestions.some(q => q.question.trim());
+      const hasQuestions = quizQuestions.some((q) => q.question.trim());
       if (hasQuestions) {
-        formData.set('questions', JSON.stringify(quizQuestions
-          .filter(q => q.question.trim())
-          .map(q => ({
-            question: q.question.trim(),
-            options: q.options.filter(o => o.trim()),
-            correctAnswer: q.correctAnswer >= 0 ? q.correctAnswer : undefined,
-          }))));
+        formData.set(
+          'questions',
+          JSON.stringify(
+            quizQuestions
+              .filter((q) => q.question.trim())
+              .map((q) => ({
+                question: q.question.trim(),
+                options: q.options.filter((o) => o.trim()),
+                correctAnswer: q.correctAnswer >= 0 ? q.correctAnswer : undefined,
+              })),
+          ),
+        );
       }
     }
     if (!enableMascots) formData.set('enableMascots', 'off');
     if (maxSubmissions > 0) formData.set('maxSubmissions', String(maxSubmissions));
     if (description) formData.set('description', description);
     if (forceTier) formData.set('forceTier', forceTier);
-    const customKeys = Object.keys(customTierConfig).filter(k => customTierConfig[k] !== '' && customTierConfig[k] !== undefined);
+    const customKeys = Object.keys(customTierConfig).filter(
+      (k) => customTierConfig[k] !== '' && customTierConfig[k] !== undefined,
+    );
     if (customKeys.length > 0) {
-      formData.set('customTierConfig', JSON.stringify(
-        customKeys.reduce((acc, k) => ({ ...acc, [k]: customTierConfig[k] }), {})
-      ));
+      formData.set(
+        'customTierConfig',
+        JSON.stringify(customKeys.reduce((acc, k) => ({ ...acc, [k]: customTierConfig[k] }), {})),
+      );
     }
     if (isEditing && editingSession) {
       const result = await updateSession(editingSession._id, formData);
@@ -387,11 +496,14 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
     if (!enableMascots) formData.set('enableMascots', 'off');
     if (maxSubmissions > 0) formData.set('maxSubmissions', String(maxSubmissions));
     if (forceTier) formData.set('forceTier', forceTier);
-    const customKeys = Object.keys(customTierConfig).filter(k => customTierConfig[k] !== '' && customTierConfig[k] !== undefined);
+    const customKeys = Object.keys(customTierConfig).filter(
+      (k) => customTierConfig[k] !== '' && customTierConfig[k] !== undefined,
+    );
     if (customKeys.length > 0) {
-      formData.set('customTierConfig', JSON.stringify(
-        customKeys.reduce((acc, k) => ({ ...acc, [k]: customTierConfig[k] }), {})
-      ));
+      formData.set(
+        'customTierConfig',
+        JSON.stringify(customKeys.reduce((acc, k) => ({ ...acc, [k]: customTierConfig[k] }), {})),
+      );
     }
     formData.set('type', steps[0].type);
     formData.set('title', mainTitle.trim() || steps[0].title);
@@ -425,7 +537,9 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
     getTemplates(selectedType)
       .then((data) => {
         if (!ac.signal.aborted) {
-          setTemplates(data as Array<{ _id: string; title: string; config: Record<string, unknown> }>);
+          setTemplates(
+            data as Array<{ _id: string; title: string; config: Record<string, unknown> }>,
+          );
         }
       })
       .catch(() => {});
@@ -452,14 +566,17 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
         </div>
       )}
       <div className="space-y-2">
-        <label htmlFor="qs-title" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+        <label
+          htmlFor="qs-title"
+          className="text-sm font-semibold text-zinc-700 dark:text-zinc-300"
+        >
           Title <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
           id="qs-title"
           value={title}
-          onChange={e => setTitle(e.target.value)}
+          onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. Week 5 Brainstorm"
           className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           autoFocus
@@ -467,14 +584,23 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="qs-prompt" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+        <label
+          htmlFor="qs-prompt"
+          className="text-sm font-semibold text-zinc-700 dark:text-zinc-300"
+        >
           Prompt / Instructions
         </label>
         <textarea
           id="qs-prompt"
           value={prompt}
-          onChange={e => setPrompt(e.target.value)}
-          placeholder={selectedType === 'padlet' ? 'Share your ideas about...' : selectedType === 'poll' ? 'Vote for the best option!' : 'Enter any instructions for students...'}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder={
+            selectedType === 'padlet'
+              ? 'Share your ideas about...'
+              : selectedType === 'poll'
+                ? 'Vote for the best option!'
+                : 'Enter any instructions for students...'
+          }
           rows={3}
           className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
         />
@@ -482,9 +608,11 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
 
       {selectedType === 'poll' && (
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Poll Mode</label>
+          <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+            Poll Mode
+          </label>
           <div className="flex gap-3">
-            {(['mcq', 'wordcloud'] as const).map(m => (
+            {(['mcq', 'wordcloud'] as const).map((m) => (
               <label
                 key={m}
                 className={`flex-1 flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-all ${
@@ -512,10 +640,13 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                   type="checkbox"
                   id="allowCustomChoices"
                   checked={allowCustomChoices}
-                  onChange={e => setAllowCustomChoices(e.target.checked)}
+                  onChange={(e) => setAllowCustomChoices(e.target.checked)}
                   className="accent-blue-500 w-4 h-4"
                 />
-                <label htmlFor="allowCustomChoices" className="text-sm text-zinc-700 dark:text-zinc-300">
+                <label
+                  htmlFor="allowCustomChoices"
+                  className="text-sm text-zinc-700 dark:text-zinc-300"
+                >
                   Allow students to add custom choices
                 </label>
               </div>
@@ -532,7 +663,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                       <input
                         type="text"
                         value={opt}
-                        onChange={e => {
+                        onChange={(e) => {
                           const newOpts = [...pollOptions];
                           newOpts[idx] = e.target.value;
                           setPollOptions(newOpts);
@@ -568,16 +699,23 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
 
       {selectedType === 'quiz' && (
         <div className="space-y-3">
-          <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Quiz Questions</label>
+          <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+            Quiz Questions
+          </label>
           <div className="space-y-3">
             {quizQuestions.map((q, qi) => (
-              <div key={qi} className="p-3 rounded-xl bg-zinc-50 dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 space-y-2">
+              <div
+                key={qi}
+                className="p-3 rounded-xl bg-zinc-50 dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 space-y-2"
+              >
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400 shrink-0">Q{qi + 1}</span>
+                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400 shrink-0">
+                    Q{qi + 1}
+                  </span>
                   <input
                     type="text"
                     value={q.question}
-                    onChange={e => {
+                    onChange={(e) => {
                       const copy = [...quizQuestions];
                       copy[qi] = { ...copy[qi], question: e.target.value };
                       setQuizQuestions(copy);
@@ -611,7 +749,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                         <input
                           type="text"
                           value={opt}
-                          onChange={e => {
+                          onChange={(e) => {
                             const copy = [...quizQuestions];
                             const newOpts = [...copy[qi].options];
                             newOpts[oi] = e.target.value;
@@ -626,7 +764,10 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                             type="button"
                             onClick={() => {
                               const copy = [...quizQuestions];
-                              copy[qi] = { ...copy[qi], options: copy[qi].options.filter((_, i) => i !== oi) };
+                              copy[qi] = {
+                                ...copy[qi],
+                                options: copy[qi].options.filter((_, i) => i !== oi),
+                              };
                               if (copy[qi].correctAnswer === oi) copy[qi].correctAnswer = -1;
                               else if (copy[qi].correctAnswer > oi) copy[qi].correctAnswer--;
                               setQuizQuestions(copy);
@@ -657,7 +798,12 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
           </div>
           <button
             type="button"
-            onClick={() => setQuizQuestions([...quizQuestions, { question: '', options: ['', ''], correctAnswer: -1 }])}
+            onClick={() =>
+              setQuizQuestions([
+                ...quizQuestions,
+                { question: '', options: ['', ''], correctAnswer: -1 },
+              ])
+            }
             className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
           >
             <i aria-hidden="true" className="fi fi-sr-plus text-xs" />
@@ -672,7 +818,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
             type="checkbox"
             id="allowFileUpload"
             checked={allowFileUpload}
-            onChange={e => setAllowFileUpload(e.target.checked)}
+            onChange={(e) => setAllowFileUpload(e.target.checked)}
             className="accent-blue-500 w-4 h-4"
           />
           <label htmlFor="allowFileUpload" className="text-sm text-zinc-700 dark:text-zinc-300">
@@ -682,136 +828,182 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
       )}
 
       {mode === 'single' && (
-      <div className="space-y-3 pt-3 border-t border-zinc-200 dark:border-slate-700">
-        <div className="space-y-2">
-          <label htmlFor="qs-description" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-            Description <span className="text-zinc-400 text-xs">(optional)</span>
-          </label>
-          <textarea
-            id="qs-description"
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            placeholder="e.g. A quick comprehension check after the grammar lesson"
-            rows={2}
-            className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="requireStudentName"
-            checked={requireStudentName}
-            onChange={e => setRequireStudentName(e.target.checked)}
-            disabled={selectedType === 'assignment'}
-            className="accent-blue-500 w-4 h-4"
-          />
-          <label htmlFor="requireStudentName" className={`text-sm font-medium ${selectedType === 'assignment' ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-700 dark:text-zinc-300'}`}>
-            ต้องใส่ชื่อ
-          </label>
-        </div>
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="enableMascots"
-            checked={enableMascots}
-            onChange={e => setEnableMascots(e.target.checked)}
-            className="accent-blue-500 w-4 h-4"
-          />
-          <label htmlFor="enableMascots" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            แสดงมาสคอต
-          </label>
-        </div>
-        <div className="space-y-2 border-t border-zinc-200 dark:border-zinc-700 pt-3">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-              ระดับประสิทธิภาพ <span className="text-zinc-400 text-xs">(Performance Tier)</span>
+        <div className="space-y-3 pt-3 border-t border-zinc-200 dark:border-slate-700">
+          <div className="space-y-2">
+            <label
+              htmlFor="qs-description"
+              className="text-sm font-semibold text-zinc-700 dark:text-zinc-300"
+            >
+              Description <span className="text-zinc-400 text-xs">(optional)</span>
             </label>
-            {forceTier && (
-              <span className="text-[10px] text-amber-500 font-medium">⚠ กำลังบังคับใช้</span>
+            <textarea
+              id="qs-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="e.g. A quick comprehension check after the grammar lesson"
+              rows={2}
+              className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="requireStudentName"
+              checked={requireStudentName}
+              onChange={(e) => setRequireStudentName(e.target.checked)}
+              disabled={selectedType === 'assignment'}
+              className="accent-blue-500 w-4 h-4"
+            />
+            <label
+              htmlFor="requireStudentName"
+              className={`text-sm font-medium ${selectedType === 'assignment' ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-700 dark:text-zinc-300'}`}
+            >
+              ต้องใส่ชื่อ
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="enableMascots"
+              checked={enableMascots}
+              onChange={(e) => setEnableMascots(e.target.checked)}
+              className="accent-blue-500 w-4 h-4"
+            />
+            <label
+              htmlFor="enableMascots"
+              className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
+              แสดงมาสคอต
+            </label>
+          </div>
+          <div className="space-y-2 border-t border-zinc-200 dark:border-zinc-700 pt-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                ระดับประสิทธิภาพ <span className="text-zinc-400 text-xs">(Performance Tier)</span>
+              </label>
+              {forceTier && (
+                <span className="text-[10px] text-amber-500 font-medium">⚠ กำลังบังคับใช้</span>
+              )}
+            </div>
+            <select
+              value={forceTier}
+              onChange={(e) => {
+                setForceTier(e.target.value);
+                setShowAdvancedTier(e.target.value === 'custom');
+              }}
+              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">อัตโนมัติ (Auto Detect)</option>
+              <option value="max">Max (100%) — อุปกรณ์ประสิทธิภาพสูง</option>
+              <option value="ultra">Ultra (90%)</option>
+              <option value="high">High (75%)</option>
+              <option value="medium">Medium (50%)</option>
+              <option value="low">Low (25%) — อุปกรณ์รุ่นเก่า</option>
+              <option value="fast">Fast (0-10%) — ประหยัดทรัพยากรสูงสุด</option>
+              <option value="custom">กำหนดเอง (Custom)</option>
+            </select>
+            {showAdvancedTier && (
+              <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-zinc-50 dark:bg-slate-900/50 border border-zinc-200 dark:border-slate-700/50">
+                {[
+                  { key: 'backdropBlur', label: 'Blur', type: 'range', min: 0, max: 24 },
+                  { key: 'fps', label: 'FPS', type: 'range', min: 10, max: 60 },
+                  { key: 'transitions', label: 'Transitions', type: 'checkbox' },
+                  {
+                    key: 'pollIntervalMs',
+                    label: 'Poll (ms)',
+                    type: 'range',
+                    min: 5000,
+                    max: 20000,
+                    step: 1000,
+                  },
+                  { key: 'particles', label: 'Particles', type: 'checkbox' },
+                  {
+                    key: 'imageQuality',
+                    label: 'Image %',
+                    type: 'range',
+                    min: 10,
+                    max: 100,
+                    step: 5,
+                  },
+                  { key: 'hoverEffects', label: 'Hover FX', type: 'checkbox' },
+                  {
+                    key: 'debounceMs',
+                    label: 'Debounce',
+                    type: 'range',
+                    min: 100,
+                    max: 800,
+                    step: 50,
+                  },
+                  { key: 'skeleton', label: 'Skeleton', type: 'checkbox' },
+                  { key: 'shadows', label: 'Shadows', type: 'checkbox' },
+                  { key: 'gradients', label: 'Gradients', type: 'checkbox' },
+                ].map(({ key, label, type, ...rest }) => (
+                  <div key={key} className="flex items-center gap-2">
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400 w-20">{label}</span>
+                    {type === 'checkbox' ? (
+                      <input
+                        type="checkbox"
+                        checked={!!customTierConfig[key]}
+                        onChange={(e) =>
+                          setCustomTierConfig((prev) => ({ ...prev, [key]: e.target.checked }))
+                        }
+                        className="accent-blue-500"
+                      />
+                    ) : (
+                      <input
+                        type="range"
+                        min={(rest as { min: number }).min}
+                        max={(rest as { min: number; max: number }).max}
+                        step={(rest as { step?: number }).step ?? 1}
+                        value={(customTierConfig[key] as number) ?? (rest as { min: number }).min}
+                        onChange={(e) =>
+                          setCustomTierConfig((prev) => ({
+                            ...prev,
+                            [key]: Number(e.target.value),
+                          }))
+                        }
+                        className="flex-1"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
           </div>
-          <select
-            value={forceTier}
-            onChange={e => { setForceTier(e.target.value); setShowAdvancedTier(e.target.value === 'custom'); }}
-            className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">อัตโนมัติ (Auto Detect)</option>
-            <option value="max">Max (100%) — อุปกรณ์ประสิทธิภาพสูง</option>
-            <option value="ultra">Ultra (90%)</option>
-            <option value="high">High (75%)</option>
-            <option value="medium">Medium (50%)</option>
-            <option value="low">Low (25%) — อุปกรณ์รุ่นเก่า</option>
-            <option value="fast">Fast (0-10%) — ประหยัดทรัพยากรสูงสุด</option>
-            <option value="custom">กำหนดเอง (Custom)</option>
-          </select>
-          {showAdvancedTier && (
-            <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-zinc-50 dark:bg-slate-900/50 border border-zinc-200 dark:border-slate-700/50">
-              {[
-                { key: 'backdropBlur', label: 'Blur', type: 'range', min: 0, max: 24 },
-                { key: 'fps', label: 'FPS', type: 'range', min: 10, max: 60 },
-                { key: 'transitions', label: 'Transitions', type: 'checkbox' },
-                { key: 'pollIntervalMs', label: 'Poll (ms)', type: 'range', min: 5000, max: 20000, step: 1000 },
-                { key: 'particles', label: 'Particles', type: 'checkbox' },
-                { key: 'imageQuality', label: 'Image %', type: 'range', min: 10, max: 100, step: 5 },
-                { key: 'hoverEffects', label: 'Hover FX', type: 'checkbox' },
-                { key: 'debounceMs', label: 'Debounce', type: 'range', min: 100, max: 800, step: 50 },
-                { key: 'skeleton', label: 'Skeleton', type: 'checkbox' },
-                { key: 'shadows', label: 'Shadows', type: 'checkbox' },
-                { key: 'gradients', label: 'Gradients', type: 'checkbox' },
-              ].map(({ key, label, type, ...rest }) => (
-                <div key={key} className="flex items-center gap-2">
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400 w-20">{label}</span>
-                  {type === 'checkbox' ? (
-                    <input
-                      type="checkbox"
-                      checked={!!customTierConfig[key]}
-                      onChange={e => setCustomTierConfig(prev => ({ ...prev, [key]: e.target.checked }))}
-                      className="accent-blue-500"
-                    />
-                  ) : (
-                    <input
-                      type="range"
-                      min={(rest as { min: number }).min}
-                      max={(rest as { min: number; max: number }).max}
-                      step={(rest as { step?: number }).step ?? 1}
-                      value={(customTierConfig[key] as number) ?? (rest as { min: number }).min}
-                      onChange={e => setCustomTierConfig(prev => ({ ...prev, [key]: Number(e.target.value) }))}
-                      className="flex-1"
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="space-y-1">
+            <label
+              htmlFor="qs-maxSubmissions"
+              className="text-sm font-medium text-zinc-600 dark:text-zinc-400"
+            >
+              Max submissions per student{' '}
+              <span className="text-zinc-400 text-xs">(0 = unlimited)</span>
+            </label>
+            <input
+              type="number"
+              id="qs-maxSubmissions"
+              min={0}
+              max={100}
+              value={maxSubmissions}
+              onChange={(e) => setMaxSubmissions(Math.max(0, parseInt(e.target.value) || 0))}
+              className="w-24 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
         </div>
-        <div className="space-y-1">
-          <label htmlFor="qs-maxSubmissions" className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-            Max submissions per student <span className="text-zinc-400 text-xs">(0 = unlimited)</span>
-          </label>
-          <input
-            type="number"
-            id="qs-maxSubmissions"
-            min={0}
-            max={100}
-            value={maxSubmissions}
-            onChange={e => setMaxSubmissions(Math.max(0, parseInt(e.target.value) || 0))}
-            className="w-24 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-      </div>
       )}
     </>
   );
 
   const renderToolGrid = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {TOOL_TYPES.map(tool => (
+      {TOOL_TYPES.map((tool) => (
         <div key={tool.value} className="relative z-0 hover:z-50">
           <div
             onClick={() => handleTypeSelect(tool.value)}
             role="button"
             tabIndex={0}
-            onKeyDown={e => { if (e.key === 'Enter') handleTypeSelect(tool.value); }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleTypeSelect(tool.value);
+            }}
             className={`w-full p-4 rounded-xl text-left transition-all cursor-pointer ${
               selectedType === tool.value
                 ? 'border-2 border-blue-500 bg-blue-50 dark:bg-blue-900/20'
@@ -820,7 +1012,9 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
           >
             <div className="flex items-center gap-3 mb-1">
               <i className={`fi ${tool.icon} text-blue-500 dark:text-blue-400 text-lg`} />
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">{tool.label}</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">
+                {tool.label}
+              </span>
             </div>
             <p className="text-xs text-zinc-400 dark:text-zinc-500 pl-8">{tool.desc}</p>
           </div>
@@ -836,14 +1030,12 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
           key={idx}
           className="flex items-center gap-2 p-3 rounded-xl bg-zinc-50 dark:bg-slate-900 border border-zinc-200 dark:border-slate-700"
         >
-          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 w-6">
-            {idx + 1}
-          </span>
+          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 w-6">{idx + 1}</span>
           <span className="flex-1 text-sm font-medium text-zinc-700 dark:text-zinc-300 truncate">
             {s.title}
           </span>
           <span className="text-xs text-zinc-400 dark:text-zinc-500">
-            {TOOL_TYPES.find(tt => tt.value === s.type)?.label.split(' ')[0]}
+            {TOOL_TYPES.find((tt) => tt.value === s.type)?.label.split(' ')[0]}
           </span>
           <div className="flex items-center gap-1">
             <button
@@ -896,12 +1088,14 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
           <span className="text-xs font-bold text-blue-600 dark:text-blue-400 w-5 shrink-0 text-center">
             {idx + 1}
           </span>
-          <i className={`fi ${TOOL_TYPES.find(t => t.value === s.type)?.icon || 'fi-sr-box'} text-xs text-zinc-400 shrink-0`} />
+          <i
+            className={`fi ${TOOL_TYPES.find((t) => t.value === s.type)?.icon || 'fi-sr-box'} text-xs text-zinc-400 shrink-0`}
+          />
           <span className="flex-1 text-sm font-medium text-zinc-700 dark:text-zinc-300 truncate">
             {s.title}
           </span>
           <span className="text-xs text-zinc-400 dark:text-zinc-500 shrink-0">
-            {TOOL_TYPES.find(tt => tt.value === s.type)?.label.split(' ')[0]}
+            {TOOL_TYPES.find((tt) => tt.value === s.type)?.label.split(' ')[0]}
           </span>
         </div>
       ))}
@@ -911,7 +1105,11 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
   const renderModeToggle = () => (
     <div className="flex gap-2 mb-4">
       <button
-        onClick={() => { setMode('single'); setStep('type'); setQuizQuestions([]); }}
+        onClick={() => {
+          setMode('single');
+          setStep('type');
+          setQuizQuestions([]);
+        }}
         className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
           mode === 'single'
             ? 'bg-blue-600 text-white'
@@ -921,7 +1119,11 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
         {t('singleTool')}
       </button>
       <button
-        onClick={() => { setMode('multi'); setStep('type'); setQuizQuestions([]); }}
+        onClick={() => {
+          setMode('multi');
+          setStep('type');
+          setQuizQuestions([]);
+        }}
         className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
           mode === 'multi'
             ? 'bg-blue-600 text-white'
@@ -934,10 +1136,16 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
   );
 
   const renderTemplatePicker = () => {
-    const grouped = TOOL_TYPES.reduce<Record<string, Array<{ _id: string; title: string; type: string; config: Record<string, unknown> }>>>((acc, tool) => {
-      const matching = pickerTemplates.filter(t =>
-        t.type === tool.value &&
-        (pickerSearch === '' || t.title.toLowerCase().includes(pickerSearch.toLowerCase()))
+    const grouped = TOOL_TYPES.reduce<
+      Record<
+        string,
+        Array<{ _id: string; title: string; type: string; config: Record<string, unknown> }>
+      >
+    >((acc, tool) => {
+      const matching = pickerTemplates.filter(
+        (t) =>
+          t.type === tool.value &&
+          (pickerSearch === '' || t.title.toLowerCase().includes(pickerSearch.toLowerCase())),
       );
       if (matching.length > 0) {
         acc[tool.value] = matching;
@@ -949,9 +1157,14 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
       <div className="space-y-4">
         {pickerTemplates.length === 0 && !loadingPicker ? (
           <div className="text-center py-8 text-zinc-500 dark:text-zinc-400">
-            <i aria-hidden="true" className="fi fi-sr-drawer text-3xl mb-3 block text-zinc-300 dark:text-zinc-600" />
+            <i
+              aria-hidden="true"
+              className="fi fi-sr-drawer text-3xl mb-3 block text-zinc-300 dark:text-zinc-600"
+            />
             <p className="text-sm">No saved templates.</p>
-            <p className="text-xs mt-1">Save a step as a template using the 💾 icon in the step builder.</p>
+            <p className="text-xs mt-1">
+              Save a step as a template using the 💾 icon in the step builder.
+            </p>
           </div>
         ) : loadingPicker ? (
           <div className="flex items-center justify-center py-8">
@@ -960,26 +1173,33 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
         ) : (
           <>
             <div className="relative">
-              <i aria-hidden="true" className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm" />
+              <i
+                aria-hidden="true"
+                className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm"
+              />
               <input
                 type="text"
                 value={pickerSearch}
-                onChange={e => setPickerSearch(e.target.value)}
+                onChange={(e) => setPickerSearch(e.target.value)}
                 placeholder="Search templates..."
                 className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               />
             </div>
             {Object.keys(grouped).length === 0 ? (
-              <p className="text-center text-sm text-zinc-400 py-4">No templates match your search.</p>
+              <p className="text-center text-sm text-zinc-400 py-4">
+                No templates match your search.
+              </p>
             ) : (
               Object.entries(grouped).map(([type, items]) => (
                 <div key={type}>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-2 flex items-center gap-1">
-                    <i className={`fi ${TOOL_TYPES.find(t => t.value === type)?.icon || 'fi-sr-box'} text-xs`} />
-                    {TOOL_TYPES.find(t => t.value === type)?.label || type}
+                    <i
+                      className={`fi ${TOOL_TYPES.find((t) => t.value === type)?.icon || 'fi-sr-box'} text-xs`}
+                    />
+                    {TOOL_TYPES.find((t) => t.value === type)?.label || type}
                   </h3>
                   <div className="grid grid-cols-1 gap-2">
-                    {items.map(item => (
+                    {items.map((item) => (
                       <button
                         key={item._id}
                         onClick={() => handleSelectTemplate(item)}
@@ -1008,27 +1228,33 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
         Enter a name and optional description for your multi-step session
       </div>
       <div className="space-y-2">
-        <label htmlFor="qs-mainTitle" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+        <label
+          htmlFor="qs-mainTitle"
+          className="text-sm font-semibold text-zinc-700 dark:text-zinc-300"
+        >
           Session Title <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
           id="qs-mainTitle"
           value={mainTitle}
-          onChange={e => setMainTitle(e.target.value)}
+          onChange={(e) => setMainTitle(e.target.value)}
           placeholder="e.g. Week 5 Review Activities"
           className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           autoFocus
         />
       </div>
       <div className="space-y-2">
-        <label htmlFor="qs-multi-description" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+        <label
+          htmlFor="qs-multi-description"
+          className="text-sm font-semibold text-zinc-700 dark:text-zinc-300"
+        >
           Description <span className="text-zinc-400 text-xs">(optional)</span>
         </label>
         <textarea
           id="qs-multi-description"
           value={description}
-          onChange={e => setDescription(e.target.value)}
+          onChange={(e) => setDescription(e.target.value)}
           placeholder="e.g. A set of warm-up activities before the main lesson"
           rows={2}
           className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
@@ -1040,10 +1266,13 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
           type="checkbox"
           id="requireStudentName"
           checked={requireStudentName}
-          onChange={e => setRequireStudentName(e.target.checked)}
+          onChange={(e) => setRequireStudentName(e.target.checked)}
           className="accent-blue-500 w-4 h-4"
         />
-        <label htmlFor="requireStudentName" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <label
+          htmlFor="requireStudentName"
+          className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+        >
           ต้องใส่ชื่อ
         </label>
       </div>
@@ -1053,16 +1282,22 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
           type="checkbox"
           id="qs-multi-enableMascots"
           checked={enableMascots}
-          onChange={e => setEnableMascots(e.target.checked)}
+          onChange={(e) => setEnableMascots(e.target.checked)}
           className="accent-blue-500 w-4 h-4"
         />
-        <label htmlFor="qs-multi-enableMascots" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <label
+          htmlFor="qs-multi-enableMascots"
+          className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+        >
           แสดงมาสคอต
         </label>
       </div>
 
       <div className="space-y-1">
-        <label htmlFor="qs-multi-maxSubmissions" className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+        <label
+          htmlFor="qs-multi-maxSubmissions"
+          className="text-sm font-medium text-zinc-600 dark:text-zinc-400"
+        >
           Max submissions per student <span className="text-zinc-400 text-xs">(0 = unlimited)</span>
         </label>
         <input
@@ -1071,7 +1306,7 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
           min={0}
           max={100}
           value={maxSubmissions}
-          onChange={e => setMaxSubmissions(Math.max(0, parseInt(e.target.value) || 0))}
+          onChange={(e) => setMaxSubmissions(Math.max(0, parseInt(e.target.value) || 0))}
           className="w-24 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
@@ -1091,20 +1326,26 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
       )}
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-          <div className="fixed inset-0 bg-black/10" onClick={handleDismiss} />
-          <div className="relative w-full max-w-lg bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/50 shadow-2xl overflow-hidden">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="fixed inset-0 bg-black/10 animate-fade-in" onClick={handleDismiss} />
+          <div className="relative w-full max-w-lg bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/50 shadow-2xl overflow-hidden animate-popup-enter">
             <div className="flex items-center justify-between p-5 border-b border-zinc-200/60 dark:border-slate-700/50">
               <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
                 {isEditing
                   ? 'Edit Session'
                   : step === 'main-title'
-                  ? 'Session Title'
-                  : step === 'type'
-                  ? 'Select Tool Type'
-                  : step === 'templates'
-                  ? 'Select Template'
-                  : (editingStepIndex >= 0 ? 'Edit Step' : 'Configure Step')}
+                    ? 'Session Title'
+                    : step === 'type'
+                      ? 'Select Tool Type'
+                      : step === 'templates'
+                        ? 'Select Template'
+                        : editingStepIndex >= 0
+                          ? 'Edit Step'
+                          : 'Configure Step'}
               </h2>
               <button
                 onClick={handleDismiss}
@@ -1145,18 +1386,22 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                 <div className="space-y-4">
                   <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-sm text-blue-700 dark:text-blue-400">
                     <i aria-hidden="true" className="fi fi-sr-info-circle mr-1" />
-                    {TOOL_TYPES.find(tt => tt.value === selectedType)?.label}
+                    {TOOL_TYPES.find((tt) => tt.value === selectedType)?.label}
                   </div>
                   {renderConfigFields()}
                   {templateFeedback && (
-                    <p className="text-sm text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-xl">{templateFeedback}</p>
+                    <p className="text-sm text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-xl">
+                      {templateFeedback}
+                    </p>
                   )}
                 </div>
               )}
 
               {error && (
                 <div className="mt-4">
-                  <p className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 p-3 rounded-xl">{error}</p>
+                  <p className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 p-3 rounded-xl">
+                    {error}
+                  </p>
                 </div>
               )}
             </div>
@@ -1165,7 +1410,10 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
               {step === 'config' && (
                 <>
                   <button
-                    onClick={() => { setStep('type'); setEditingStepIndex(-1); }}
+                    onClick={() => {
+                      setStep('type');
+                      setEditingStepIndex(-1);
+                    }}
                     className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
                   >
                     <i aria-hidden="true" className="fi fi-sr-arrow-left mr-1" />
@@ -1177,7 +1425,15 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                     className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-all disabled:opacity-50"
                   >
                     <i className={`fi fi-sr-${mode === 'multi' ? 'plus' : 'play'} text-sm`} />
-                    {pending ? 'Saving...' : mode === 'multi' ? (editingStepIndex >= 0 ? 'Update Step' : 'Add Step') : isEditing ? 'Save Changes' : t('startSession')}
+                    {pending
+                      ? 'Saving...'
+                      : mode === 'multi'
+                        ? editingStepIndex >= 0
+                          ? 'Update Step'
+                          : 'Add Step'
+                        : isEditing
+                          ? 'Save Changes'
+                          : t('startSession')}
                   </button>
                 </>
               )}
@@ -1195,13 +1451,16 @@ export default function QuickStartModal({ editingSession, onSuccess, onClose }: 
                       <input
                         type="checkbox"
                         checked={allowStudentNavigation}
-                        onChange={e => setAllowStudentNavigation(e.target.checked)}
+                        onChange={(e) => setAllowStudentNavigation(e.target.checked)}
                         className="accent-blue-500 w-4 h-4"
                       />
                       Allow students to switch each question manually
                     </label>
                     <button
-                      onClick={() => { setStep('main-title'); setError(null); }}
+                      onClick={() => {
+                        setStep('main-title');
+                        setError(null);
+                      }}
                       className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-all"
                     >
                       Next

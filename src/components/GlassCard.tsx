@@ -23,11 +23,11 @@ export default function GlassCard({
 }) {
   return (
     <Tag
-      className={`rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm ${
+      className={`rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm dark:shadow-black/20 transition-colors duration-500 ${
         VARIANT_STYLES[variant]
       } ${
         hover
-          ? 'hover:bg-white/80 dark:hover:bg-slate-700/80 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200'
+          ? `hover:bg-white/80 dark:hover:bg-slate-700/80 hover:-translate-y-0.5 hover:shadow-md dark:hover:shadow-black/40 transition-[background-color,border-color,transform,box-shadow] duration-200 ease-spring${as !== 'div' ? ' active:scale-[0.98] active:shadow-lg active:duration-150' : ''}`
           : ''
       } ${className}`}
     >

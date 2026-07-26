@@ -215,9 +215,9 @@ export default function StageManagerModal({
   if (view === 'delete-confirm') {
     const deletingStep = initialSteps[deletingIndex];
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4" role="dialog" aria-modal="true">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4 animate-fade-in" role="dialog" aria-modal="true">
         <div
-          className="w-full max-w-md rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl overflow-hidden"
+          className="w-full max-w-md rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl overflow-hidden animate-popup-enter"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-6">
@@ -267,9 +267,9 @@ export default function StageManagerModal({
 
     if (showTypeSelection) {
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4 animate-fade-in" role="dialog" aria-modal="true">
           <div
-            className="w-full max-w-2xl rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl overflow-hidden"
+            className="w-full max-w-2xl rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl overflow-hidden animate-popup-enter"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6">
@@ -311,9 +311,9 @@ export default function StageManagerModal({
     }
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4" role="dialog" aria-modal="true">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4 animate-fade-in" role="dialog" aria-modal="true">
         <div
-          className="w-full max-w-2xl rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl overflow-hidden"
+          className="w-full max-w-2xl rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl overflow-hidden animate-popup-enter"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-6 max-h-[85vh] overflow-y-auto">
@@ -631,9 +631,9 @@ export default function StageManagerModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4 animate-fade-in" role="dialog" aria-modal="true">
       <div
-        className="w-full max-w-2xl rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl overflow-hidden"
+        className="w-full max-w-2xl rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl overflow-hidden animate-popup-enter"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-6">

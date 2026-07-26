@@ -131,7 +131,10 @@ function canvasBenchmark(): Promise<number> {
       canvas.width = BENCHMARK_PIXELS;
       canvas.height = BENCHMARK_PIXELS;
       const ctx = canvas.getContext('2d');
-      if (!ctx) { resolve(25); return; }
+      if (!ctx) {
+        resolve(25);
+        return;
+      }
 
       const timeoutId = setTimeout(() => resolve(25), CANVAS_TIMEOUT_MS);
       const start = performance.now();
@@ -142,7 +145,8 @@ function canvasBenchmark(): Promise<number> {
           Math.random() * BENCHMARK_PIXELS,
           Math.random() * BENCHMARK_PIXELS,
           Math.random() * 30 + 5,
-          0, Math.PI * 2,
+          0,
+          Math.PI * 2,
         );
         ctx.fillStyle = `rgba(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255},0.5)`;
         ctx.fill();
@@ -194,7 +198,8 @@ function getNavigatorScores(): { cpu: number; memory: number; connection: number
   }
 
   const conn = (nav.connection || nav.mozConnection || nav.webkitConnection) as
-    { effectiveType?: string; downlink?: number } | undefined;
+    | { effectiveType?: string; downlink?: number }
+    | undefined;
   if (conn) {
     const { effectiveType, downlink } = conn;
     if (effectiveType === '4g' && (downlink ?? 0) >= 10) connection = 100;

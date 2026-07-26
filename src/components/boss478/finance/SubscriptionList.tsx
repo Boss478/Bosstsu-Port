@@ -1,22 +1,20 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import SubscriptionForm from './SubscriptionForm';
 import { CONFIG, getCategoryLabel } from '@/lib/config';
 import { formatShortDate } from '@/lib/format';
+import {
+  useSubscriptions,
+  useUpdateSubscription,
+  useDeleteSubscription,
+  useCreateTransaction,
+  type SubscriptionData,
+} from '@/hooks/use-finance';
+import { financeKeys } from '@/lib/query/keys';
 
 const { MONTHLY_NORMALIZER } = CONFIG.FINANCE;
-
-interface Subscription {
-  _id: string;
-  name: string;
-  amount: number;
-  billingCycle: string;
-  category: string;
-  nextBillingDate: string;
-  active: boolean;
-  description?: string;
-}
 
 interface Props {
   refreshKey: number;
@@ -33,68 +31,49 @@ function advanceBillingDate(date: Date, cycle: string): Date {
   return d;
 }
 
-export default function SubscriptionList({ refreshKey }: Props) {
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function SubscriptionList({ refreshKey: _refreshKey }: Props) {
+  const qc = useQueryClient();
+  const { data: subscriptions = [], isLoading, error } = useSubscriptions();
+  const updateSubscription = useUpdateSubscription();
+  const deleteSubscription = useDeleteSubscription();
+  const createTransaction = useCreateTransaction();
+
   const [showForm, setShowForm] = useState(false);
-  const [editingSub, setEditingSub] = useState<Subscription | null>(null);
+  const [editingSub, setEditingSub] = useState<SubscriptionData | null>(null);
   const [renewingId, setRenewingId] = useState<string | null>(null);
   const [renewDate, setRenewDate] = useState('');
   const [showCancelled, setShowCancelled] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
 
-  const fetchSubscriptions = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch('/boss478/finance/api/subscriptions');
-      if (!res.ok) throw new Error('Failed to fetch');
-      const data = await res.json();
-      setSubscriptions(data.subscriptions);
-    } catch {
-      setError('Could not load subscriptions');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  function invalidateAll() {
+    qc.invalidateQueries({ queryKey: financeKeys.subscriptions() });
+    qc.invalidateQueries({ queryKey: financeKeys.transactions() });
+  }
 
-  useEffect(() => {
-    fetchSubscriptions();
-  }, [fetchSubscriptions, refreshKey]);
-
-  function startRenew(sub: Subscription) {
+  function startRenew(sub: SubscriptionData) {
     setRenewingId(sub._id);
     setRenewDate(advanceBillingDate(new Date(sub.nextBillingDate), sub.billingCycle).toISOString().split('T')[0]);
   }
 
-  async function handleRenew(sub: Subscription) {
+  async function handleRenew(sub: SubscriptionData) {
     const today = new Date().toISOString().slice(0, 10);
     try {
-      const patchRes = await fetch(`/boss478/finance/api/subscriptions?id=${sub._id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nextBillingDate: new Date(renewDate).toISOString() }),
+      await updateSubscription.mutateAsync({
+        _id: sub._id,
+        nextBillingDate: new Date(renewDate).toISOString(),
       });
-      if (!patchRes.ok) throw new Error('Failed to advance billing date');
-
-      const postRes = await fetch('/boss478/finance/api/transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'expense',
-          amount: sub.amount,
-          category: sub.category,
-          description: sub.name,
-          date: today,
-        }),
+      await createTransaction.mutateAsync({
+        type: 'expense',
+        amount: sub.amount,
+        category: sub.category,
+        description: sub.name,
+        date: today,
       });
-      if (!postRes.ok) throw new Error('Failed to create expense');
-
       setRenewingId(null);
       setRenewDate('');
-      fetchSubscriptions();
+      invalidateAll();
     } catch {
-      setError('Renew failed. Expense was not recorded.');
+      setLocalError('Renew failed. Expense was not recorded.');
     }
   }
 
@@ -104,32 +83,16 @@ export default function SubscriptionList({ refreshKey }: Props) {
   }
 
   async function handleCancel(id: string) {
-    setError(null);
-    try {
-      const res = await fetch(`/boss478/finance/api/subscriptions?id=${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ active: false }),
-      });
-      if (!res.ok) throw new Error('Failed to cancel');
-      fetchSubscriptions();
-    } catch {
-      setError('Failed to cancel subscription');
-    }
+    setLocalError(null);
+    updateSubscription.mutate({ _id: id, active: false });
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Delete this subscription?')) return;
-    try {
-      const res = await fetch(`/boss478/finance/api/subscriptions?id=${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete');
-      fetchSubscriptions();
-    } catch {
-      setError('Failed to delete');
-    }
+    deleteSubscription.mutate(id);
   }
 
-  const monthlyCost = (sub: Subscription) => {
+  const monthlyCost = (sub: SubscriptionData) => {
     const normalizer = MONTHLY_NORMALIZER[sub.billingCycle as keyof typeof MONTHLY_NORMALIZER] || 1;
     return sub.amount * normalizer;
   };
@@ -146,7 +109,7 @@ export default function SubscriptionList({ refreshKey }: Props) {
   const activeSubs = subscriptions.filter((s) => s.active);
   const cancelledSubs = subscriptions.filter((s) => !s.active);
 
-  if (loading && subscriptions.length === 0) {
+  if (isLoading && subscriptions.length === 0) {
     return (
       <div className="space-y-3">
         {[...Array(3)].map((_, i) => (
@@ -171,13 +134,13 @@ export default function SubscriptionList({ refreshKey }: Props) {
         </button>
       </div>
 
-      {error && (
+      {(localError || error) && (
         <div className="mb-3 px-3 py-2 rounded-lg bg-red-50/80 dark:bg-red-900/30 border border-red-200/60 text-sm text-red-600 dark:text-red-400">
-          {error}
+          {localError || 'Could not load subscriptions'}
         </div>
       )}
 
-      {!loading && subscriptions.length === 0 ? (
+      {!isLoading && subscriptions.length === 0 ? (
         <div className="py-12 text-center">
           <i aria-hidden="true" className="fi fi-sr-refresh text-3xl text-zinc-300 dark:text-zinc-600 mb-3 block" />
           <p className="text-zinc-400 dark:text-zinc-500 text-sm">No subscriptions yet</p>
@@ -331,7 +294,7 @@ export default function SubscriptionList({ refreshKey }: Props) {
             description: editingSub.description || '',
           } : null}
           onClose={() => { setShowForm(false); setEditingSub(null); }}
-          onSaved={() => { setShowForm(false); setEditingSub(null); fetchSubscriptions(); }}
+          onSaved={() => { setShowForm(false); setEditingSub(null); invalidateAll(); }}
         />
       )}
     </div>

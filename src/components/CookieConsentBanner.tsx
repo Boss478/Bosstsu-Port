@@ -6,25 +6,34 @@ import { getConsent, setConsent } from '@/lib/analytics/consent';
 
 export default function CookieConsentBanner() {
   const [visible, setVisible] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
     if (getConsent() === null) setVisible(true); // eslint-disable-line react-hooks/set-state-in-effect
   }, []);
 
-  if (!visible) return null;
+  if (!visible && !isClosing) return null;
 
   const handleAccept = () => {
     setConsent('accepted');
-    setVisible(false);
+    setIsClosing(true);
+    setTimeout(() => {
+      setVisible(false);
+      setIsClosing(false);
+    }, 800);
   };
 
   const handleDecline = () => {
     setConsent('rejected');
-    setVisible(false);
+    setIsClosing(true);
+    setTimeout(() => {
+      setVisible(false);
+      setIsClosing(false);
+    }, 800);
   };
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-3xl p-4 rounded-full bg-white/30 dark:bg-slate-900/30 backdrop-blur-[1px] hover:backdrop-blur-xs transition-all border border-blue-200/30 dark:border-slate-600/40 shadow-2xl shadow-blue-500/10 bg-gradient-to-br from-white/30 to-white/5 dark:from-slate-800/30 dark:to-slate-900/20">
+    <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-3xl p-4 rounded-full bg-white/30 dark:bg-slate-900/30 backdrop-blur-[1px] hover:backdrop-blur-xs transition-all border border-blue-200/30 dark:border-slate-600/40 shadow-2xl shadow-blue-500/10 bg-gradient-to-br from-white/30 to-white/5 dark:from-slate-800/30 dark:to-slate-900/20 ${isClosing ? 'animate-exit-bottom' : 'animate-enter-bottom'}`}>
       <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 px-2">
         <div className="text-sm text-zinc-600 dark:text-zinc-400 flex-1 text-center sm:text-left leading-relaxed">
           <p>ไซต์นี้ใช้ข้อมูลการใช้งานเพื่อปรับปรุงประสบการณ์ของคุณ</p>

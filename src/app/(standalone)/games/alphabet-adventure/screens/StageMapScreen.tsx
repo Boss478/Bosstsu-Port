@@ -55,7 +55,9 @@ export default function StageMapScreen({
             </button>
           )}
           <div className="text-right">
-            <h2 className="text-lg font-black text-violet-600 dark:text-violet-400">{stage.name}</h2>
+            <h2 className="text-lg font-black text-violet-600 dark:text-violet-400">
+              {stage.name}
+            </h2>
             <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500">{stage.subtitle}</p>
           </div>
         </div>

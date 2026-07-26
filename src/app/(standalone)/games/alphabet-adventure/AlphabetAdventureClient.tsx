@@ -225,7 +225,14 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
       const easyMode =
         typeof window !== 'undefined' &&
         localStorage.getItem('alphabet-adventure-easyMode') === 'true';
-      startSubStage(subStage, selectedStage.id, subIdx, handleSubStageComplete, easyMode, mapData.letterTracker);
+      startSubStage(
+        subStage,
+        selectedStage.id,
+        subIdx,
+        handleSubStageComplete,
+        easyMode,
+        mapData.letterTracker,
+      );
       setScreen('game');
     },
     [selectedStage, startSubStage, handleSubStageComplete],

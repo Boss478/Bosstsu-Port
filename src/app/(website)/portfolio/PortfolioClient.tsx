@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { type PortfolioItem } from './data';
@@ -9,6 +8,11 @@ import Breadcrumb from '@/components/Breadcrumb';
 import { Pagination } from '@/components/Pagination';
 import { EmptyState } from '@/components/EmptyState';
 import { useListNavigation } from '@/hooks/useListNavigation';
+import { useListFilter } from '@/hooks/useListFilter';
+import SearchInput from '@/components/SearchInput';
+import FilterBar from '@/components/FilterBar';
+import SortSelect from '@/components/SortSelect';
+import { LISTING_IMAGE_SIZES } from '@/lib/constants';
 
 interface PortfolioClientProps {
   items: PortfolioItem[];
@@ -35,26 +39,20 @@ export default function PortfolioClient({
     basePath: '/portfolio',
     filterKey: 'tag',
   });
-  const [localQuery, setLocalQuery] = useState(activeQuery);
-  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const filteredItems = useMemo(() => {
-    if (!localQuery) return items;
-    const q = localQuery.toLowerCase();
-    return items.filter((item) => item.title.toLowerCase().includes(q));
-  }, [items, localQuery]);
-
-  useEffect(() => {
-    clearTimeout(syncTimeoutRef.current);
-    syncTimeoutRef.current = setTimeout(() => {
-      if (localQuery !== activeQuery) searchBy(localQuery, activeTag, sort);
-    }, 800);
-    return () => clearTimeout(syncTimeoutRef.current);
-  }, [localQuery]);
-
-  const handlePageChange = (page: number) => {
-    navigateToPage(page, activeTag, sort);
-  };
+  const {
+    localQuery,
+    setLocalQuery,
+    filteredItems,
+    handlePageChange,
+  } = useListFilter({
+    items,
+    activeQuery,
+    activeFilter: activeTag,
+    sort,
+    onFilterChange: searchBy,
+    onPageChange: navigateToPage,
+  });
 
   const allTags = ['ทั้งหมด', ...uniqueTags];
 
@@ -76,48 +74,27 @@ export default function PortfolioClient({
 
       <section id="portfolio-filter-bar" className="px-4 pb-6">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-3">
-          <div className="relative w-64">
-            <i
-              aria-hidden="true"
-              className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-sm"
-            />
-            <input
-              type="text"
-              placeholder="ค้นหา..."
-              value={localQuery}
-              onChange={(e) => setLocalQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-full text-sm bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-300 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
-            />
-          </div>
+          <SearchInput value={localQuery} onChange={setLocalQuery} />
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-            {allTags.map((tag) => (
-              <button
-                key={tag}
-                onClick={() => filterBy(tag, sort)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 border ${
-                  activeTag === tag
-                    ? 'bg-blue-500 text-white shadow-md shadow-blue-500/25'
-                    : 'bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-300 hover:bg-blue-100 dark:hover:bg-slate-700'
-                }`}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
+          <FilterBar
+            allItems={allTags}
+            activeItem={activeTag}
+            sort={sort}
+            onFilter={filterBy}
+          />
 
-          <select
+          <SortSelect
             value={sort}
-            onChange={(e) => changeSort(e.target.value, activeTag)}
-            className="ml-auto px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-slate-700 hover:border-blue-300 focus:outline-hidden cursor-pointer"
-          >
-            <option value="desc">ใหม่สุด</option>
-            <option value="asc">เก่าสุด</option>
-          </select>
+            onChange={(value) => changeSort(value, activeTag)}
+            options={[
+              { value: 'desc', label: 'ใหม่สุด' },
+              { value: 'asc', label: 'เก่าสุด' },
+            ]}
+          />
         </div>
       </section>
 
-      <section id="portfolio-grid" className="pt-8 pb-20 px-4 bg-white/70 dark:bg-slate-900">
+      <section id="portfolio-grid" className="grid-section">
         <div className="max-w-7xl mx-auto pt-8">
           {filteredItems.length === 0 ? (
             <EmptyState
@@ -126,12 +103,13 @@ export default function PortfolioClient({
               icon="fi-sr-briefcase"
             />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredItems.map((item) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {filteredItems.map((item, index) => (
                 <Link
                   key={item.id}
                   href={`/portfolio/${item.id}`}
-                  className="group flex flex-col bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/10 overflow-hidden shadow-xl shadow-blue-900/5 dark:shadow-black/20 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-blue-900/10 dark:hover:shadow-black/40 hover:bg-white/60 dark:hover:bg-slate-800/60"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                  className="group flex flex-col bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/10 overflow-hidden shadow-xl shadow-blue-900/5 dark:shadow-black/20 transition-[color,background-color,transform,box-shadow] duration-500 ease-spring hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-blue-900/10 dark:hover:shadow-black/40 hover:bg-white/60 dark:hover:bg-slate-800/60 animate-scale-up active:scale-[0.98] active:shadow-lg active:duration-150"
                   suppressHydrationWarning
                 >
                   <div
@@ -144,7 +122,7 @@ export default function PortfolioClient({
                           src={item.cover}
                           alt={item.title}
                           fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                          sizes={LISTING_IMAGE_SIZES}
                           className="object-cover group-hover:scale-105 transition-transform duration-500 z-10"
                           onError={(e) => {
                             e.currentTarget.style.display = 'none';

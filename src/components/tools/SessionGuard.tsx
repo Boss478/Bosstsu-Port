@@ -22,18 +22,17 @@ export default function SessionGuard({ session, mascotId }: SessionGuardProps) {
           </div>
         )}
         {!mascotId && (
-          <i aria-hidden="true" className="fi fi-sr-clock text-6xl text-zinc-300 dark:text-zinc-600 block mb-4" />
+          <i
+            aria-hidden="true"
+            className="fi fi-sr-clock text-6xl text-zinc-300 dark:text-zinc-600 block mb-4"
+          />
         )}
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
           {t('sessionComplete')}
         </h1>
-        <p className="text-zinc-500 dark:text-zinc-400 mb-6">
-          {t('seeYouNextTime')}
-        </p>
+        <p className="text-zinc-500 dark:text-zinc-400 mb-6">{t('seeYouNextTime')}</p>
         <div className="space-y-3">
-          <p className="text-sm text-zinc-400">
-            {session.sessionCode}
-          </p>
+          <p className="text-sm text-zinc-400">{session.sessionCode}</p>
           {session.endedAt && (
             <p className="text-xs text-zinc-400">
               {new Date(session.endedAt).toLocaleString('th-TH')}

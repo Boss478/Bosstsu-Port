@@ -41,7 +41,10 @@ const toolStrings = {
   typeAnswerEnter: { th: 'พิมพ์คำตอบแล้วกด Enter...', en: 'Type your answer and press Enter...' },
 
   questions: { th: 'คำถาม', en: 'Questions' },
-  noQuestionsYet: { th: 'ยังไม่มีคำถาม เป็นคนแรกสิ!', en: 'No questions yet. Be the first to ask!' },
+  noQuestionsYet: {
+    th: 'ยังไม่มีคำถาม เป็นคนแรกสิ!',
+    en: 'No questions yet. Be the first to ask!',
+  },
   askAnonymously: { th: 'ถามคำถามของคุณแบบไม่ระบุตัวตน!', en: 'Ask your questions anonymously!' },
   typeYourQuestion: { th: 'พิมพ์คำถามของคุณ...', en: 'Type your question...' },
   votes: { th: 'โหวต', en: 'votes' },
@@ -60,11 +63,13 @@ const toolStrings = {
   previous: { th: 'ย้อนกลับ', en: 'Previous' },
   next: { th: 'ถัดไป', en: 'Next' },
 
-
   sessionEnded: { th: 'ห้องเรียนปิดแล้ว', en: 'Session Ended' },
   sessionComplete: { th: 'เสร็จสิ้น!', en: 'Session Complete!' },
   seeYouNextTime: { th: 'ไว้เจอกันครั้งหน้าครับ/ค่ะ!', en: 'See you next time!' },
-  sessionClosedThankYou: { th: 'ห้องเรียนนี้ถูกปิดโดยครูแล้ว ขอบคุณสำหรับการมีส่วนร่วม!', en: 'This session has been closed by the teacher. Thank you for participating!' },
+  sessionClosedThankYou: {
+    th: 'ห้องเรียนนี้ถูกปิดโดยครูแล้ว ขอบคุณสำหรับการมีส่วนร่วม!',
+    en: 'This session has been closed by the teacher. Thank you for participating!',
+  },
   backToHome: { th: 'กลับหน้าหลัก', en: 'Back to Home' },
   toolTypeNotFound: { th: 'ไม่พบประเภทเครื่องมือ', en: 'Tool type not found' },
   sessionTimeout: { th: 'หมดเวลาเช็คอิน', en: 'Session Timeout' },
@@ -81,7 +86,10 @@ const toolStrings = {
   name: { th: 'ชื่อ', en: 'Name' },
   typeYourAnswerHere: { th: 'พิมพ์คำตอบของคุณที่นี่...', en: 'Type your answer here...' },
   yourFullName: { th: 'ชื่อ-นามสกุลของคุณ', en: 'Your full name' },
-  fileUploadOptional: { th: 'อัปโหลดไฟล์ (ไม่บังคับ, สูงสุด 10MB)', en: 'File Upload (optional, max 10MB)' },
+  fileUploadOptional: {
+    th: 'อัปโหลดไฟล์ (ไม่บังคับ, สูงสุด 10MB)',
+    en: 'File Upload (optional, max 10MB)',
+  },
   clickToUploadFile: { th: 'คลิกเพื่ออัปโหลดไฟล์', en: 'Click to upload a file' },
   tapToSelectFile: { th: 'แตะเพื่อเลือกไฟล์', en: 'Tap to select a file' },
   noPostsYet: { th: 'ยังไม่มีโพสต์', en: 'No posts yet' },
@@ -95,12 +103,24 @@ const toolStrings = {
   noPreviewAvailable: { th: 'ไม่สามารถดูตัวอย่างไฟล์นี้ได้', en: 'No preview available' },
   submitYourAssignment: { th: 'ส่งงานของคุณ', en: 'Submit your assignment' },
 
-  learnedToday: { th: '1. สิ่งที่คุณเรียนรู้วันนี้คืออะไร?', en: '1. What is one thing you learned today?' },
+  learnedToday: {
+    th: '1. สิ่งที่คุณเรียนรู้วันนี้คืออะไร?',
+    en: '1. What is one thing you learned today?',
+  },
   learnedPlaceholder: { th: 'วันนี้ฉันเรียนรู้เรื่อง...', en: 'Today I learned about...' },
-  questionStillHave: { th: '2. คำถามที่คุณยังมีอยู่คืออะไร?', en: '2. What is one question you still have?' },
+  questionStillHave: {
+    th: '2. คำถามที่คุณยังมีอยู่คืออะไร?',
+    en: '2. What is one question you still have?',
+  },
   questionPlaceholder: { th: 'ฉันยังไม่เข้าใจเรื่อง...', en: "I still don't understand..." },
-  wantToKnowMore: { th: '3. สิ่งที่คุณอยากรู้เพิ่มเติมคืออะไร?', en: '3. What is one thing you want to know more about?' },
-  wantToKnowPlaceholder: { th: 'ฉันอยากรู้เพิ่มเติมเรื่อง...', en: 'I want to learn more about...' },
+  wantToKnowMore: {
+    th: '3. สิ่งที่คุณอยากรู้เพิ่มเติมคืออะไร?',
+    en: '3. What is one thing you want to know more about?',
+  },
+  wantToKnowPlaceholder: {
+    th: 'ฉันอยากรู้เพิ่มเติมเรื่อง...',
+    en: 'I want to learn more about...',
+  },
 
   attemptLeft: { th: 'ครั้งที่ {current} จาก {max}', en: 'Attempt {current} of {max}' },
   attemptsRemaining: { th: 'เหลืออีก {n} ครั้ง', en: '{n} attempts remaining' },
@@ -112,13 +132,22 @@ const toolStrings = {
   goToStep: { th: 'ไปที่ขั้นตอน', en: 'Go to Step' },
   allSteps: { th: 'ทุกขั้นตอน', en: 'All Steps' },
   step: { th: 'ขั้นตอน', en: 'Step' },
-  allowStudentNavigation: { th: 'อนุญาตให้นักเรียนเลื่อนขั้นตอนเอง', en: 'Allow students to navigate steps' },
+  allowStudentNavigation: {
+    th: 'อนุญาตให้นักเรียนเลื่อนขั้นตอนเอง',
+    en: 'Allow students to navigate steps',
+  },
   addStep: { th: 'เพิ่มขั้นตอน', en: 'Add Step' },
   singleTool: { th: 'Single Session', en: 'Single Session' },
   multiStep: { th: 'Multi Session', en: 'Multi Session' },
-  deleteConfirm: { th: 'คุณแน่ใจหรือไม่ว่าต้องการลบ? การกระทำนี้ไม่สามารถยกเลิกได้', en: 'Are you sure you want to delete? This action cannot be undone.' },
+  deleteConfirm: {
+    th: 'คุณแน่ใจหรือไม่ว่าต้องการลบ? การกระทำนี้ไม่สามารถยกเลิกได้',
+    en: 'Are you sure you want to delete? This action cannot be undone.',
+  },
   removeAllResults: { th: 'ลบผลลัพธ์ทั้งหมด', en: 'Remove All Results' },
-  removeAllResultsConfirm: { th: 'คุณแน่ใจหรือไม่? จะลบผลลัพธ์ทั้งหมดของห้องเรียนนี้ รวมถึงทุกขั้นตอน การกระทำนี้ไม่สามารถยกเลิกได้', en: 'Are you sure? This will delete all results for this session, including all steps. This action cannot be undone.' },
+  removeAllResultsConfirm: {
+    th: 'คุณแน่ใจหรือไม่? จะลบผลลัพธ์ทั้งหมดของห้องเรียนนี้ รวมถึงทุกขั้นตอน การกระทำนี้ไม่สามารถยกเลิกได้',
+    en: 'Are you sure? This will delete all results for this session, including all steps. This action cannot be undone.',
+  },
   removeAllResultsSuccess: { th: 'ลบผลลัพธ์ทั้งหมดสำเร็จ', en: 'All results removed successfully' },
   summary: { th: 'สรุป', en: 'Summary' },
   perQuestion: { th: 'รายข้อ', en: 'Per Question' },

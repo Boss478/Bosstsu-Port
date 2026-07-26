@@ -1,29 +1,30 @@
-import type { Metadata } from "next";
-import localFont from "next/font/local";
-import "../fonts/flaticon-subset.css";
-import "./globals.css";
-import { ThemeProvider } from "@/components/ThemeProvider";
-import { DeviceTierProvider } from "@/lib/device-tier-provider";
-import { CONFIG } from "@/lib/config";
+import type { Metadata } from 'next';
+import localFont from 'next/font/local';
+import '../fonts/flaticon-subset.css';
+import './globals.css';
+import { ThemeProvider } from '@/components/ThemeProvider';
+import { DeviceTierProvider } from '@/lib/device-tier-provider';
+import QueryProvider from '@/lib/query/providers';
+import { CONFIG } from '@/lib/config';
 
 const geistSans = localFont({
-  src: "../fonts/Geist-Variable.woff2",
-  variable: "--font-geist-sans",
+  src: '../fonts/Geist-Variable.woff2',
+  variable: '--font-geist-sans',
 });
 
 const geistMono = localFont({
-  src: "../fonts/GeistMono-Variable.woff2",
-  variable: "--font-geist-mono",
+  src: '../fonts/GeistMono-Variable.woff2',
+  variable: '--font-geist-mono',
 });
 
 const mali = localFont({
   src: [
-    { path: "../fonts/Mali-Regular.woff2", weight: "400", style: "normal" },
-    { path: "../fonts/Mali-Medium.woff2", weight: "500", style: "normal" },
-    { path: "../fonts/Mali-SemiBold.woff2", weight: "600", style: "normal" },
-    { path: "../fonts/Mali-Bold.woff2", weight: "700", style: "normal" },
+    { path: '../fonts/Mali-Regular.woff2', weight: '400', style: 'normal' },
+    { path: '../fonts/Mali-Medium.woff2', weight: '500', style: 'normal' },
+    { path: '../fonts/Mali-SemiBold.woff2', weight: '600', style: 'normal' },
+    { path: '../fonts/Mali-Bold.woff2', weight: '700', style: 'normal' },
   ],
-  variable: "--font-mali",
+  variable: '--font-mali',
 });
 
 export const metadata: Metadata = {
@@ -31,13 +32,11 @@ export const metadata: Metadata = {
   description: CONFIG.SITE.DESCRIPTION,
   icons: {
     icon: [
-      { url: "/icon/favicon.ico", sizes: "any" },
-      { url: "/icon/icon.png", type: "image/png" }
+      { url: '/icon/favicon.ico', sizes: 'any' },
+      { url: '/icon/icon.png', type: 'image/png' },
     ],
-    apple: [
-      { url: "/icon/apple-icon.png", type: "image/png", sizes: "180x180" }
-    ]
-  }
+    apple: [{ url: '/icon/apple-icon.png', type: 'image/png', sizes: '180x180' }],
+  },
 };
 
 export default function RootLayout({
@@ -47,16 +46,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="th" suppressHydrationWarning>
-      <head>
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${mali.variable} antialiased`}
-      >
-        <ThemeProvider>
-          <DeviceTierProvider>
-            {children}
-          </DeviceTierProvider>
-        </ThemeProvider>
+      <head></head>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${mali.variable} antialiased`}>
+        <QueryProvider>
+          <ThemeProvider>
+            <DeviceTierProvider>{children}</DeviceTierProvider>
+          </ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   );

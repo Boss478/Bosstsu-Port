@@ -79,7 +79,9 @@ export default function PhonicsClient() {
   const [selectedStage, setSelectedStage] = useState<StageData | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<StageLesson | null>(null);
   const [mapView, setMapView] = useState<MapView>('groups');
-  const [selectedGroup, setSelectedGroup] = useState<SimilarSoundGroup | VocabGroupDef | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<SimilarSoundGroup | VocabGroupDef | null>(
+    null,
+  );
   const [selectedActivity, setSelectedActivity] = useState<ActivityData | null>(null);
   const [isFirstJoinLoading, setIsFirstJoinLoading] = useState(false);
   const [firstJoinLoaded, setFirstJoinLoaded] = useState(0);
@@ -539,8 +541,7 @@ export default function PhonicsClient() {
       const correctCount = round.results.filter((r) => r.correct).length;
       const pct = round.results.length > 0 ? correctCount / round.results.length : 0;
       const unlockCount = computePlacementUnlockCount(pct);
-      const easyGroups = VOCAB_GROUP_DEFS
-        .filter((g) => g.tier === 'easy')
+      const easyGroups = VOCAB_GROUP_DEFS.filter((g) => g.tier === 'easy')
         .sort((a, b) => a.sortOrder - b.sortOrder)
         .slice(0, unlockCount)
         .map((g) => g.id);
@@ -639,11 +640,20 @@ export default function PhonicsClient() {
     }
 
     // Group progress tracking for vocab rounds
-    if (!round.config.isPlacement && round.config.category === 'definitions' && round.config.groupId) {
+    if (
+      !round.config.isPlacement &&
+      round.config.category === 'definitions' &&
+      round.config.groupId
+    ) {
       const accuracy =
         round.results.length > 0 ? Math.round((round.corrects / round.results.length) * 100) : 0;
       const groupId = round.config.groupId;
-      const existing = updated.groupProgress[groupId] ?? { completedStages: 0, totalStages: 1, bestAccuracy: 0, stageProgress: {} };
+      const existing = updated.groupProgress[groupId] ?? {
+        completedStages: 0,
+        totalStages: 1,
+        bestAccuracy: 0,
+        stageProgress: {},
+      };
       updated = {
         ...updated,
         groupProgress: {
@@ -668,9 +678,7 @@ export default function PhonicsClient() {
           const currentIdx = tierOrder.indexOf(group.tier);
           if (currentIdx < tierOrder.length - 1) {
             const nextTier = tierOrder[currentIdx + 1];
-            const nextGroups = VOCAB_GROUP_DEFS
-              .filter((g) => g.tier === nextTier)
-              .map((g) => g.id);
+            const nextGroups = VOCAB_GROUP_DEFS.filter((g) => g.tier === nextTier).map((g) => g.id);
             updated = {
               ...updated,
               unlockedGroupIds: [...updated.unlockedGroupIds, ...nextGroups],

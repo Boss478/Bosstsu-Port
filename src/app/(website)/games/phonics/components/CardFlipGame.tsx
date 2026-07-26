@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useEffect, useRef } from "react";
-import type { CardFlipCard, CardFlipState } from "../types";
+import { useState, useCallback, useEffect, useRef } from 'react';
+import type { CardFlipCard, CardFlipState } from '../types';
 
 interface Props {
   cards: CardFlipCard[];
@@ -10,7 +10,12 @@ interface Props {
   playWordAudio: (word: string) => Promise<void>;
 }
 
-export default function CardFlipGame({ cards: initialCards, onComplete, speak, playWordAudio }: Props) {
+export default function CardFlipGame({
+  cards: initialCards,
+  onComplete,
+  speak,
+  playWordAudio,
+}: Props) {
   const [state, setState] = useState<CardFlipState>(() => ({
     cards: initialCards.map((c) => ({ ...c, flipped: false, matched: false })),
     selected: [],
@@ -25,72 +30,75 @@ export default function CardFlipGame({ cards: initialCards, onComplete, speak, p
   useEffect(() => {
     if (state.pairsRemaining === 0 && state.matched.length > 0) {
       if (matchAnnounceRef.current) {
-        matchAnnounceRef.current.textContent = "All pairs matched!";
+        matchAnnounceRef.current.textContent = 'All pairs matched!';
       }
       const timer = setTimeout(onComplete, 800);
       return () => clearTimeout(timer);
     }
   }, [state.pairsRemaining, state.matched.length, onComplete]);
 
-  const handleCardTap = useCallback((index: number) => {
-    const card = state.cards[index];
-    if (checkingRef.current || card.flipped || card.matched) return;
+  const handleCardTap = useCallback(
+    (index: number) => {
+      const card = state.cards[index];
+      if (checkingRef.current || card.flipped || card.matched) return;
 
-    const newCards = state.cards.map((c, i) => (i === index ? { ...c, flipped: true } : c));
-    const newSelected = [...state.selected, index];
-    const newFlips = state.flips + 1;
+      const newCards = state.cards.map((c, i) => (i === index ? { ...c, flipped: true } : c));
+      const newSelected = [...state.selected, index];
+      const newFlips = state.flips + 1;
 
-    if (newSelected.length === 2) {
-      checkingRef.current = true;
-      const first = newCards[newSelected[0]];
-      const second = newCards[newSelected[1]];
+      if (newSelected.length === 2) {
+        checkingRef.current = true;
+        const first = newCards[newSelected[0]];
+        const second = newCards[newSelected[1]];
 
-      if (first.matchId === second.matchId) {
-        const matchedCards = newCards.map((c) =>
-          c.matchId === first.matchId ? { ...c, matched: true } : c
-        );
-        setState({
-          cards: matchedCards,
-          selected: [],
-          matched: [...state.matched, newSelected[0], newSelected[1]],
-          flips: newFlips,
-          pairsRemaining: state.pairsRemaining - 1,
-        });
-        checkingRef.current = false;
-        if (matchAnnounceRef.current) {
-          matchAnnounceRef.current.textContent = `Match found: ${first.label} + ${second.label}`;
+        if (first.matchId === second.matchId) {
+          const matchedCards = newCards.map((c) =>
+            c.matchId === first.matchId ? { ...c, matched: true } : c,
+          );
+          setState({
+            cards: matchedCards,
+            selected: [],
+            matched: [...state.matched, newSelected[0], newSelected[1]],
+            flips: newFlips,
+            pairsRemaining: state.pairsRemaining - 1,
+          });
+          checkingRef.current = false;
+          if (matchAnnounceRef.current) {
+            matchAnnounceRef.current.textContent = `Match found: ${first.label} + ${second.label}`;
+          }
+          playWordAudio(first.ttsText);
+        } else {
+          setState((prev) => ({
+            ...prev,
+            cards: newCards,
+            selected: newSelected,
+            flips: newFlips,
+          }));
+          setTimeout(() => {
+            setState((prev) => ({
+              ...prev,
+              cards: prev.cards.map((c, i) =>
+                newSelected.includes(i) ? { ...c, flipped: false } : c,
+              ),
+              selected: [],
+            }));
+            checkingRef.current = false;
+            if (matchAnnounceRef.current) {
+              matchAnnounceRef.current.textContent = 'No match — try again';
+            }
+          }, 800);
         }
-        playWordAudio(first.ttsText);
       } else {
-        setState((prev) => ({
-          ...prev,
+        setState({
+          ...state,
           cards: newCards,
           selected: newSelected,
           flips: newFlips,
-        }));
-        setTimeout(() => {
-          setState((prev) => ({
-            ...prev,
-            cards: prev.cards.map((c, i) =>
-              newSelected.includes(i) ? { ...c, flipped: false } : c
-            ),
-            selected: [],
-          }));
-          checkingRef.current = false;
-          if (matchAnnounceRef.current) {
-            matchAnnounceRef.current.textContent = "No match — try again";
-          }
-        }, 800);
+        });
       }
-    } else {
-      setState({
-        ...state,
-        cards: newCards,
-        selected: newSelected,
-        flips: newFlips,
-      });
-    }
-  }, [state, playWordAudio]);
+    },
+    [state, playWordAudio],
+  );
 
   return (
     <div className="flex flex-col items-center justify-center px-4 py-6">
@@ -107,17 +115,18 @@ export default function CardFlipGame({ cards: initialCards, onComplete, speak, p
         aria-label="Card flip game — match phonemes to words"
       >
         {state.cards.map((card, i) => (
-          <div
-            key={card.id}
-            className="perspective-1000 w-full aspect-square"
-          >
+          <div key={card.id} className="perspective-1000 w-full aspect-square">
             <button
               onClick={() => handleCardTap(i)}
               disabled={card.matched}
               className={`relative w-full h-full preserve-3d transition-transform duration-500 rounded-2xl cursor-pointer ${
-                card.flipped || card.matched ? "rotate-y-180" : ""
-              } ${card.matched ? "ring-4 ring-emerald-400 dark:ring-emerald-500 ring-offset-2 dark:ring-offset-slate-900" : ""}`}
-              aria-label={card.flipped || card.matched ? `${card.label} — ${card.matched ? "matched" : "face up"}` : "Face-down card"}
+                card.flipped || card.matched ? 'rotate-y-180' : ''
+              } ${card.matched ? 'ring-4 ring-emerald-400 dark:ring-emerald-500 ring-offset-2 dark:ring-offset-slate-900' : ''}`}
+              aria-label={
+                card.flipped || card.matched
+                  ? `${card.label} — ${card.matched ? 'matched' : 'face up'}`
+                  : 'Face-down card'
+              }
               aria-pressed={card.flipped || card.matched}
             >
               {/* Front Face (revealed card content) */}
@@ -137,12 +146,7 @@ export default function CardFlipGame({ cards: initialCards, onComplete, speak, p
           </div>
         ))}
       </div>
-      <div
-        ref={matchAnnounceRef}
-        className="sr-only"
-        aria-live="polite"
-        aria-atomic="true"
-      />
+      <div ref={matchAnnounceRef} className="sr-only" aria-live="polite" aria-atomic="true" />
     </div>
   );
 }

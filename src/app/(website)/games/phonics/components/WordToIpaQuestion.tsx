@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { WordToIpaQuestion as WordToIpaQuestionType, CompanionId } from "../types";
-import { COMPANIONS, QUESTION_CARD_CLASSES, WORD_CLASS_ABBREV } from "../constants";
-import CompanionHint from "./CompanionHint";
-import QuestionChoiceButton from "./QuestionChoiceButton";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { WordToIpaQuestion as WordToIpaQuestionType, CompanionId } from '../types';
+import { COMPANIONS, QUESTION_CARD_CLASSES, WORD_CLASS_ABBREV } from '../constants';
+import CompanionHint from './CompanionHint';
+import QuestionChoiceButton from './QuestionChoiceButton';
 import { useGame } from '../context';
 
 interface Props {
   question: WordToIpaQuestionType;
-  feedback: "correct" | "wrong" | null;
+  feedback: 'correct' | 'wrong' | null;
   companion: CompanionId;
   hintCount: number;
   onHint: () => void;
@@ -30,7 +30,9 @@ export default function WordToIpaQuestion({
 }: Props) {
   const gridColumns = useGame().gridColumns ?? 2;
   const feedbackRef = useRef(feedback);
-  useEffect(() => { feedbackRef.current = feedback; }, [feedback]);
+  useEffect(() => {
+    feedbackRef.current = feedback;
+  }, [feedback]);
 
   const [wrongAttempts, setWrongAttempts] = useState(0);
   const [hintLevel, setHintLevel] = useState(0);
@@ -39,19 +41,24 @@ export default function WordToIpaQuestion({
     playWordAudio(question.word.word);
   }, [playWordAudio, question.word.word]);
 
-  const handleSelect = useCallback((opt: string) => {
-    if (feedbackRef.current) return;
-    speak(opt);
-    setSelectedAnswer(opt);
-    if (opt !== question.correctAnswer) {
-      setWrongAttempts((n) => n + 1);
-      if (wrongAttempts + 1 >= 2) setHintLevel((l) => Math.min(l + 1, 3));
-    }
-  }, [speak, setSelectedAnswer, question.correctAnswer, wrongAttempts]);
+  const handleSelect = useCallback(
+    (opt: string) => {
+      if (feedbackRef.current) return;
+      speak(opt);
+      setSelectedAnswer(opt);
+      if (opt !== question.correctAnswer) {
+        setWrongAttempts((n) => n + 1);
+        if (wrongAttempts + 1 >= 2) setHintLevel((l) => Math.min(l + 1, 3));
+      }
+    },
+    [speak, setSelectedAnswer, question.correctAnswer, wrongAttempts],
+  );
 
   const displayHint =
     hintLevel > 0
-      ? COMPANIONS[companion]?.hints?.phonics?.[hintLevel] ?? COMPANIONS[companion]?.hints?.definitions?.[hintLevel] ?? null
+      ? (COMPANIONS[companion]?.hints?.phonics?.[hintLevel] ??
+        COMPANIONS[companion]?.hints?.definitions?.[hintLevel] ??
+        null)
       : null;
 
   return (
@@ -75,7 +82,10 @@ export default function WordToIpaQuestion({
         </p>
       </div>
 
-      <div className="grid gap-5 max-w-4xl mx-auto w-full" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
+      <div
+        className="grid gap-5 max-w-4xl mx-auto w-full"
+        style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}
+      >
         {question.options.map((opt) => (
           <QuestionChoiceButton
             key={opt}
@@ -85,17 +95,15 @@ export default function WordToIpaQuestion({
             value={opt}
             onClick={() => handleSelect(opt)}
           >
-            <span className="font-mono text-lg" style={{ fontFamily: "var(--font-geist-mono)" }}>{opt}</span>
+            <span className="font-mono text-lg" style={{ fontFamily: 'var(--font-geist-mono)' }}>
+              {opt}
+            </span>
           </QuestionChoiceButton>
         ))}
       </div>
 
       {displayHint && (
-        <CompanionHint
-          hint={displayHint}
-          companion={companion}
-          feedback={feedback}
-        />
+        <CompanionHint hint={displayHint} companion={companion} feedback={feedback} />
       )}
     </div>
   );

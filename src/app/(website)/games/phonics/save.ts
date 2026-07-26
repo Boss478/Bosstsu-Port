@@ -66,7 +66,9 @@ export function getDefaultSave(name: string): SaveData {
     activityProgress: {},
     unlockedCompanions: ['nox', 'mira', 'chip'],
     // v4 — Vocab Groups
-    unlockedGroupIds: getGroupsByTier('easy').slice(0, 4).map(g => g.id),
+    unlockedGroupIds: getGroupsByTier('easy')
+      .slice(0, 4)
+      .map((g) => g.id),
     groupProgress: {},
     placementTier: undefined,
     challengeDifficulty: 'b1',
@@ -107,7 +109,9 @@ export function loadSave(slot: number): SaveData | null {
     }
     // v4 backfill
     if (!data.unlockedGroupIds || data.unlockedGroupIds.length === 0) {
-      data.unlockedGroupIds = getGroupsByTier('easy').slice(0, 4).map(g => g.id);
+      data.unlockedGroupIds = getGroupsByTier('easy')
+        .slice(0, 4)
+        .map((g) => g.id);
     }
     if (!data.groupProgress) {
       data.groupProgress = {};

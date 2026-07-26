@@ -1,32 +1,40 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { shuffleArray } from "@/lib/shuffle";
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { shuffleArray } from '@/lib/shuffle';
 import {
   generatePhonemeMatchRound,
   generateSoundSortQuestions,
   generateRhymeTimeQuestions,
   generateSpeedSpellQuestions,
   generateSyllableSmashQuestions,
-} from "../question-generators";
-import { CHALLENGE_TYPES, CHALLENGE_ROUND_LENGTHS, SIMILAR_SOUND_GROUPS } from "../constants";
-import type { PhonemeMatchQuestion, SoundSortQuestion, RhymeQuestion, SpeedSpellQuestion, SyllableQuestion, CefrLevel, WordData } from "../types";
+} from '../question-generators';
+import { CHALLENGE_TYPES, CHALLENGE_ROUND_LENGTHS, SIMILAR_SOUND_GROUPS } from '../constants';
+import type {
+  PhonemeMatchQuestion,
+  SoundSortQuestion,
+  RhymeQuestion,
+  SpeedSpellQuestion,
+  SyllableQuestion,
+  CefrLevel,
+  WordData,
+} from '../types';
 
 interface ChallengeGameScreenProps {
-  challengeType: "phoneme-match" | "sound-sort" | "rhyme-time" | "speed-spell" | "syllable-smash";
-  difficulty: "easy" | "medium" | "hard";
+  challengeType: 'phoneme-match' | 'sound-sort' | 'rhyme-time' | 'speed-spell' | 'syllable-smash';
+  difficulty: 'easy' | 'medium' | 'hard';
   level: string;
   words?: WordData[];
   onComplete: (results: { score: number; totalCorrect: number; totalAttempts: number }) => void;
   onBack: () => void;
 }
 
-type GamePhase = "playing" | "feedback" | "finished";
+type GamePhase = 'playing' | 'feedback' | 'finished';
 
 interface PhonemeMatchCard {
   id: string;
   text: string;
-  type: "ipa" | "word";
+  type: 'ipa' | 'word';
   matchId: string;
   flipped: boolean;
   matched: boolean;
@@ -34,7 +42,7 @@ interface PhonemeMatchCard {
 
 function getChallengeColor(type: string): string {
   const ct = CHALLENGE_TYPES.find((c) => c.id === type);
-  return ct?.color ?? "#2EC4B6";
+  return ct?.color ?? '#2EC4B6';
 }
 
 function getChallengeTitle(type: string): string {
@@ -74,7 +82,7 @@ function PhonemeMatchGame({
       cardList.push({
         id: `ipa-${idx}`,
         text: pair.ipa,
-        type: "ipa",
+        type: 'ipa',
         matchId: pair.phonemeId,
         flipped: false,
         matched: false,
@@ -82,7 +90,7 @@ function PhonemeMatchGame({
       cardList.push({
         id: `word-${idx}`,
         text: pair.word,
-        type: "word",
+        type: 'word',
         matchId: pair.phonemeId,
         flipped: false,
         matched: false,
@@ -127,9 +135,7 @@ function PhonemeMatchGame({
 
     if (isMatch) {
       setCards((prev) =>
-        prev.map((c) =>
-          c.id === selected || c.id === cardId ? { ...c, matched: true } : c
-        )
+        prev.map((c) => (c.id === selected || c.id === cardId ? { ...c, matched: true } : c)),
       );
       setMatches((m) => m + 1);
       setSelected(null);
@@ -138,9 +144,7 @@ function PhonemeMatchGame({
       lockRef.current = true;
       setTimeout(() => {
         setCards((prev) =>
-          prev.map((c) =>
-            c.id === selected || c.id === cardId ? { ...c, flipped: false } : c
-          )
+          prev.map((c) => (c.id === selected || c.id === cardId ? { ...c, flipped: false } : c)),
         );
         setFeedbackWrong([]);
         setSelected(null);
@@ -149,7 +153,7 @@ function PhonemeMatchGame({
     }
   }
 
-  const color = getChallengeColor("phoneme-match");
+  const color = getChallengeColor('phoneme-match');
 
   return (
     <div className="space-y-6">
@@ -167,25 +171,30 @@ function PhonemeMatchGame({
               disabled={card.matched}
               className={`
                 h-20 rounded-2xl font-bold text-base sm:text-lg transition-all duration-300
-                ${card.matched
-                  ? "bg-green-400/30 dark:bg-green-500/20 border-green-400/50 text-green-700 dark:text-green-300 cursor-default scale-95 opacity-70"
-                  : card.flipped
-                    ? isFeedbackWrong
-                      ? "bg-red-400/30 dark:bg-red-500/20 border-red-400/50 text-red-700 dark:text-red-300 scale-105"
-                      : isSelected
-                        ? "ring-2 ring-offset-2 ring-offset-transparent"
-                        : "bg-white/50 dark:bg-slate-800/50 text-slate-800 dark:text-white"
-                    : "bg-white/30 dark:bg-slate-800/30 text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-800/50"
+                ${
+                  card.matched
+                    ? 'bg-green-400/30 dark:bg-green-500/20 border-green-400/50 text-green-700 dark:text-green-300 cursor-default scale-95 opacity-70'
+                    : card.flipped
+                      ? isFeedbackWrong
+                        ? 'bg-red-400/30 dark:bg-red-500/20 border-red-400/50 text-red-700 dark:text-red-300 scale-105'
+                        : isSelected
+                          ? 'ring-2 ring-offset-2 ring-offset-transparent'
+                          : 'bg-white/50 dark:bg-slate-800/50 text-slate-800 dark:text-white'
+                      : 'bg-white/30 dark:bg-slate-800/30 text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-800/50'
                 }
                 glass-panel border-2
-                ${!card.matched && !card.flipped ? "border-white/20 dark:border-slate-700/50" : ""}
-                ${isSelected ? "border-blue-400/60" : ""}
-                ${isFeedbackWrong ? "border-red-400/60" : ""}
-                ${card.matched ? "border-green-400/50" : ""}
+                ${!card.matched && !card.flipped ? 'border-white/20 dark:border-slate-700/50' : ''}
+                ${isSelected ? 'border-blue-400/60' : ''}
+                ${isFeedbackWrong ? 'border-red-400/60' : ''}
+                ${card.matched ? 'border-green-400/50' : ''}
               `}
-              style={isSelected && !isFeedbackWrong ? { borderColor: color, boxShadow: `0 0 0 2px ${color}40` } : {}}
+              style={
+                isSelected && !isFeedbackWrong
+                  ? { borderColor: color, boxShadow: `0 0 0 2px ${color}40` }
+                  : {}
+              }
             >
-              <span className={card.type === "ipa" ? "text-lg" : "text-sm"}>{card.text}</span>
+              <span className={card.type === 'ipa' ? 'text-lg' : 'text-sm'}>{card.text}</span>
             </button>
           );
         })}
@@ -208,13 +217,11 @@ function SoundSortGame({
   const total = allWords.length;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [correct, setCorrect] = useState(0);
-  const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
+  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const lockRef = useRef(false);
 
   const currentWord = allWords[currentIndex];
-  const currentQuestion = questions.find((q) =>
-    q.words.some((w) => w.word === currentWord?.word)
-  );
+  const currentQuestion = questions.find((q) => q.words.some((w) => w.word === currentWord?.word));
   const groups = currentQuestion ? getSoundSortGroups(currentQuestion) : [];
 
   function handleGroupClick(groupId: string) {
@@ -223,7 +230,7 @@ function SoundSortGame({
 
     const isCorrect = groupId === currentWord.correctGroup;
     if (isCorrect) setCorrect((c) => c + 1);
-    setFeedback(isCorrect ? "correct" : "wrong");
+    setFeedback(isCorrect ? 'correct' : 'wrong');
 
     setTimeout(() => {
       setFeedback(null);
@@ -247,13 +254,13 @@ function SoundSortGame({
         </p>
         <div
           className={`text-3xl font-black text-slate-800 dark:text-white py-6 px-8 inline-block rounded-3xl glass-panel border-white/20 transition-all duration-300 ${
-            feedback === "correct"
-              ? "bg-green-400/20 dark:bg-green-500/20 scale-105"
-              : feedback === "wrong"
-                ? "bg-red-400/20 dark:bg-red-500/20 scale-105"
-                : ""
+            feedback === 'correct'
+              ? 'bg-green-400/20 dark:bg-green-500/20 scale-105'
+              : feedback === 'wrong'
+                ? 'bg-red-400/20 dark:bg-red-500/20 scale-105'
+                : ''
           }`}
-          style={{ fontFamily: "var(--font-mali)" }}
+          style={{ fontFamily: 'var(--font-mali)' }}
         >
           {currentWord.word}
         </div>
@@ -288,7 +295,7 @@ function RhymeTimeGame({
   const total = questions.length;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [correct, setCorrect] = useState(0);
-  const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
+  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const lockRef = useRef(false);
 
@@ -302,7 +309,7 @@ function RhymeTimeGame({
 
     const isCorrect = option === current.correctAnswer;
     if (isCorrect) setCorrect((c) => c + 1);
-    setFeedback(isCorrect ? "correct" : "wrong");
+    setFeedback(isCorrect ? 'correct' : 'wrong');
 
     setTimeout(() => {
       setFeedback(null);
@@ -325,7 +332,7 @@ function RhymeTimeGame({
         </p>
         <div
           className="text-3xl font-black text-slate-800 dark:text-white py-6 px-8 inline-block rounded-3xl glass-panel border-white/20"
-          style={{ fontFamily: "var(--font-mali)" }}
+          style={{ fontFamily: 'var(--font-mali)' }}
         >
           {current.targetWord}
         </div>
@@ -335,15 +342,18 @@ function RhymeTimeGame({
         {current.options.map((option) => {
           const isSelected = selectedAnswer === option;
           const isCorrectAnswer = option === current.correctAnswer;
-          let btnClass = "glass-panel p-4 rounded-2xl border text-lg font-bold text-slate-800 dark:text-white transition-all duration-300";
+          let btnClass =
+            'glass-panel p-4 rounded-2xl border text-lg font-bold text-slate-800 dark:text-white transition-all duration-300';
           if (feedback && isSelected) {
-            btnClass += feedback === "correct"
-              ? " bg-green-400/30 dark:bg-green-500/20 border-green-400/50 scale-105"
-              : " bg-red-400/30 dark:bg-red-500/20 border-red-400/50 scale-105";
+            btnClass +=
+              feedback === 'correct'
+                ? ' bg-green-400/30 dark:bg-green-500/20 border-green-400/50 scale-105'
+                : ' bg-red-400/30 dark:bg-red-500/20 border-red-400/50 scale-105';
           } else if (feedback && isCorrectAnswer && !isSelected) {
-            btnClass += " bg-green-400/20 dark:bg-green-500/10 border-green-400/30";
+            btnClass += ' bg-green-400/20 dark:bg-green-500/10 border-green-400/30';
           } else {
-            btnClass += " border-white/20 dark:border-slate-700/50 hover:scale-[1.02] active:scale-[0.98]";
+            btnClass +=
+              ' border-white/20 dark:border-slate-700/50 hover:scale-[1.02] active:scale-[0.98]';
           }
           return (
             <button
@@ -372,44 +382,41 @@ function SpeedSpellGame({
 }: {
   questions: SpeedSpellQuestion[];
   onComplete: (correct: number, total: number) => void;
-  difficulty: "easy" | "medium" | "hard";
+  difficulty: 'easy' | 'medium' | 'hard';
 }) {
   const total = questions.length;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [correct, setCorrect] = useState(0);
-  const [inputBuffer, setInputBuffer] = useState("");
+  const [inputBuffer, setInputBuffer] = useState('');
   const [timeRemaining, setTimeRemaining] = useState(0);
-  const [feedback, setFeedback] = useState<"correct" | "wrong" | "timeout" | null>(null);
+  const [feedback, setFeedback] = useState<'correct' | 'wrong' | 'timeout' | null>(null);
   const [tiles, setTiles] = useState<{ letter: string; id: number; used: boolean }[]>([]);
   const lockRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const current = questions[currentIndex];
-  const wordText = current?.word.word ?? "";
+  const wordText = current?.word.word ?? '';
   const correctAnswer = wordText;
 
-  const initQuestion = useCallback(
-    (q: SpeedSpellQuestion) => {
-      const letters = q.word.word.split("");
-      const extraLetters: string[] = [];
-      const vowels = "aeiou";
-      for (let i = 0; i < Math.min(3, 5 - letters.length); i++) {
-        extraLetters.push(vowels[Math.floor(Math.random() * vowels.length)]);
-      }
-      const allTiles = [...letters, ...extraLetters];
-      setTiles(
-        shuffleArray(allTiles).map((letter, i) => ({
-          letter,
-          id: i,
-          used: false,
-        }))
-      );
-      setInputBuffer("");
-      setTimeRemaining(Math.floor(q.timeLimitMs / 1000));
-      setFeedback(null);
-    },
-    []
-  );
+  const initQuestion = useCallback((q: SpeedSpellQuestion) => {
+    const letters = q.word.word.split('');
+    const extraLetters: string[] = [];
+    const vowels = 'aeiou';
+    for (let i = 0; i < Math.min(3, 5 - letters.length); i++) {
+      extraLetters.push(vowels[Math.floor(Math.random() * vowels.length)]);
+    }
+    const allTiles = [...letters, ...extraLetters];
+    setTiles(
+      shuffleArray(allTiles).map((letter, i) => ({
+        letter,
+        id: i,
+        used: false,
+      })),
+    );
+    setInputBuffer('');
+    setTimeRemaining(Math.floor(q.timeLimitMs / 1000));
+    setFeedback(null);
+  }, []);
 
   useEffect(() => {
     if (current) initQuestion(current);
@@ -436,15 +443,13 @@ function SpeedSpellGame({
   function handleTimeout() {
     if (lockRef.current) return;
     lockRef.current = true;
-    setFeedback("timeout");
+    setFeedback('timeout');
     setTimeout(() => advance(false), 800);
   }
 
   function handleTileClick(tileId: number) {
     if (lockRef.current || feedback) return;
-    setTiles((prev) =>
-      prev.map((t) => (t.id === tileId ? { ...t, used: true } : t))
-    );
+    setTiles((prev) => prev.map((t) => (t.id === tileId ? { ...t, used: true } : t)));
     const tile = tiles.find((t) => t.id === tileId);
     if (tile) setInputBuffer((prev) => prev + tile.letter);
   }
@@ -452,7 +457,7 @@ function SpeedSpellGame({
   function handleClear() {
     if (lockRef.current || feedback) return;
     setTiles((prev) => prev.map((t) => ({ ...t, used: false })));
-    setInputBuffer("");
+    setInputBuffer('');
   }
 
   function handleCheck() {
@@ -462,7 +467,7 @@ function SpeedSpellGame({
 
     const isCorrect = inputBuffer === correctAnswer;
     if (isCorrect) setCorrect((c) => c + 1);
-    setFeedback(isCorrect ? "correct" : "wrong");
+    setFeedback(isCorrect ? 'correct' : 'wrong');
 
     setTimeout(() => advance(isCorrect), 800);
   }
@@ -499,7 +504,7 @@ function SpeedSpellGame({
             className="h-full rounded-full transition-all duration-1000"
             style={{
               width: `${timerPct}%`,
-              backgroundColor: timerPct > 30 ? getChallengeColor("speed-spell") : "#E74C3C",
+              backgroundColor: timerPct > 30 ? getChallengeColor('speed-spell') : '#E74C3C',
             }}
           />
         </div>
@@ -510,15 +515,15 @@ function SpeedSpellGame({
 
       <div
         className={`text-2xl font-black text-center py-4 px-6 rounded-2xl glass-panel border max-w-xs mx-auto transition-all duration-300 min-h-[3.5rem] tracking-wider ${
-          feedback === "correct"
-            ? "border-green-400/50 bg-green-400/20"
-            : feedback === "wrong" || feedback === "timeout"
-              ? "border-red-400/50 bg-red-400/20"
-              : "border-white/20 dark:border-slate-700/50"
-        } ${inputBuffer.length > 0 ? "text-slate-800 dark:text-white" : "text-slate-400 dark:text-slate-500"}`}
-        style={{ fontFamily: "var(--font-mali)" }}
+          feedback === 'correct'
+            ? 'border-green-400/50 bg-green-400/20'
+            : feedback === 'wrong' || feedback === 'timeout'
+              ? 'border-red-400/50 bg-red-400/20'
+              : 'border-white/20 dark:border-slate-700/50'
+        } ${inputBuffer.length > 0 ? 'text-slate-800 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}
+        style={{ fontFamily: 'var(--font-mali)' }}
       >
-        {inputBuffer || (feedback ? correctAnswer : "\u200B")}
+        {inputBuffer || (feedback ? correctAnswer : '\u200B')}
       </div>
 
       <div className="flex flex-wrap justify-center gap-2 max-w-xs mx-auto min-h-[4rem]">
@@ -529,11 +534,11 @@ function SpeedSpellGame({
             disabled={tile.used || !!feedback}
             className={`w-11 h-11 rounded-xl text-lg font-bold transition-all ${
               tile.used
-                ? "bg-transparent text-transparent pointer-events-none"
-                : "bg-white/50 dark:bg-slate-800/50 text-slate-800 dark:text-white border border-white/30 dark:border-slate-700/50 hover:scale-110 active:scale-95 shadow-sm"
+                ? 'bg-transparent text-transparent pointer-events-none'
+                : 'bg-white/50 dark:bg-slate-800/50 text-slate-800 dark:text-white border border-white/30 dark:border-slate-700/50 hover:scale-110 active:scale-95 shadow-sm'
             }`}
           >
-            {tile.used ? "" : tile.letter}
+            {tile.used ? '' : tile.letter}
           </button>
         ))}
       </div>
@@ -550,7 +555,7 @@ function SpeedSpellGame({
           onClick={handleCheck}
           disabled={lockRef.current || !!feedback || inputBuffer.length === 0}
           className="px-6 py-2 rounded-xl text-sm font-bold text-white border transition-all disabled:opacity-30"
-          style={{ backgroundColor: getChallengeColor("speed-spell") }}
+          style={{ backgroundColor: getChallengeColor('speed-spell') }}
         >
           Check
         </button>
@@ -573,7 +578,7 @@ function SyllableSmashGame({
   const total = questions.length;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [correct, setCorrect] = useState(0);
-  const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
+  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const lockRef = useRef(false);
 
@@ -587,7 +592,7 @@ function SyllableSmashGame({
 
     const isCorrect = option === current.correctAnswer;
     if (isCorrect) setCorrect((c) => c + 1);
-    setFeedback(isCorrect ? "correct" : "wrong");
+    setFeedback(isCorrect ? 'correct' : 'wrong');
 
     setTimeout(() => {
       setFeedback(null);
@@ -611,7 +616,7 @@ function SyllableSmashGame({
         <div className="flex items-center justify-center gap-3">
           <div
             className="text-3xl font-black text-slate-800 dark:text-white py-6 px-8 rounded-3xl glass-panel border-white/20"
-            style={{ fontFamily: "var(--font-mali)" }}
+            style={{ fontFamily: 'var(--font-mali)' }}
           >
             {current.word}
           </div>
@@ -623,15 +628,18 @@ function SyllableSmashGame({
         {current.options.map((option) => {
           const isSelected = selectedAnswer === option;
           const isCorrectAnswer = option === current.correctAnswer;
-          let btnClass = "glass-panel p-5 rounded-2xl border text-2xl font-black text-slate-800 dark:text-white transition-all duration-300";
+          let btnClass =
+            'glass-panel p-5 rounded-2xl border text-2xl font-black text-slate-800 dark:text-white transition-all duration-300';
           if (feedback && isSelected) {
-            btnClass += feedback === "correct"
-              ? " bg-green-400/30 dark:bg-green-500/20 border-green-400/50 scale-105"
-              : " bg-red-400/30 dark:bg-red-500/20 border-red-400/50 scale-105";
+            btnClass +=
+              feedback === 'correct'
+                ? ' bg-green-400/30 dark:bg-green-500/20 border-green-400/50 scale-105'
+                : ' bg-red-400/30 dark:bg-red-500/20 border-red-400/50 scale-105';
           } else if (feedback && isCorrectAnswer && !isSelected) {
-            btnClass += " bg-green-400/20 dark:bg-green-500/10 border-green-400/30";
+            btnClass += ' bg-green-400/20 dark:bg-green-500/10 border-green-400/30';
           } else {
-            btnClass += " border-white/20 dark:border-slate-700/50 hover:scale-[1.02] active:scale-[0.98]";
+            btnClass +=
+              ' border-white/20 dark:border-slate-700/50 hover:scale-[1.02] active:scale-[0.98]';
           }
           return (
             <button
@@ -661,7 +669,7 @@ export default function ChallengeGameScreen({
   onComplete,
   onBack,
 }: ChallengeGameScreenProps) {
-  const [phase, setPhase] = useState<GamePhase>("playing");
+  const [phase, setPhase] = useState<GamePhase>('playing');
   const [score, setScore] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [total, setTotal] = useState(0);
@@ -677,32 +685,32 @@ export default function ChallengeGameScreen({
     const roundCount = CHALLENGE_ROUND_LENGTHS[challengeType]?.[difficulty] ?? 8;
 
     switch (challengeType) {
-      case "phoneme-match": {
+      case 'phoneme-match': {
         const data = generatePhonemeMatchRound(difficulty, cefrLevel, words);
         setPhonemeMatchData(data);
         setTotal(data.gridSize * 2);
         break;
       }
-      case "sound-sort": {
+      case 'sound-sort': {
         const data = generateSoundSortQuestions(1, cefrLevel, words);
         setSoundSortData(data);
         const wordCount = data.reduce((acc, q) => acc + q.words.length, 0);
         setTotal(wordCount);
         break;
       }
-      case "rhyme-time": {
+      case 'rhyme-time': {
         const data = generateRhymeTimeQuestions(roundCount, cefrLevel, words);
         setRhymeData(data);
         setTotal(data.length);
         break;
       }
-      case "speed-spell": {
+      case 'speed-spell': {
         const data = generateSpeedSpellQuestions(roundCount, cefrLevel, difficulty, words);
         setSpeedSpellData(data);
         setTotal(data.length);
         break;
       }
-      case "syllable-smash": {
+      case 'syllable-smash': {
         const data = generateSyllableSmashQuestions(roundCount, cefrLevel, words);
         setSyllableData(data);
         setTotal(data.length);
@@ -716,13 +724,13 @@ export default function ChallengeGameScreen({
     setCorrect(gameCorrect);
     setTotal(gameAttempts);
     setScore(gameScore);
-    setPhase("finished");
+    setPhase('finished');
   }
 
   const color = getChallengeColor(challengeType);
   const title = getChallengeTitle(challengeType);
 
-  if (phase === "finished") {
+  if (phase === 'finished') {
     return (
       <div className="flex-1 overflow-y-auto overscroll-contain bg-transparent min-h-full">
         <div className="max-w-md mx-auto px-6 py-12 pb-36 text-center">
@@ -731,12 +739,16 @@ export default function ChallengeGameScreen({
               className="w-20 h-20 rounded-full flex items-center justify-center text-4xl text-white mx-auto mb-4"
               style={{ backgroundColor: color }}
             >
-              <i className={CHALLENGE_TYPES.find((c) => c.id === challengeType)?.icon ?? "fi fi-sr-star"} />
+              <i
+                className={
+                  CHALLENGE_TYPES.find((c) => c.id === challengeType)?.icon ?? 'fi fi-sr-star'
+                }
+              />
             </div>
 
             <h2
               className="text-2xl font-black text-slate-800 dark:text-white mb-2"
-              style={{ fontFamily: "var(--font-mali)" }}
+              style={{ fontFamily: 'var(--font-mali)' }}
             >
               Challenge Complete!
             </h2>
@@ -765,7 +777,7 @@ export default function ChallengeGameScreen({
               </button>
               <button
                 onClick={() => {
-                  setPhase("playing");
+                  setPhase('playing');
                   setScore(0);
                   setCorrect(0);
                   setTotal(0);
@@ -800,12 +812,12 @@ export default function ChallengeGameScreen({
 
           <div className="flex items-center gap-2">
             <i
-              className={`${CHALLENGE_TYPES.find((c) => c.id === challengeType)?.icon ?? "fi fi-sr-star"} text-sm`}
+              className={`${CHALLENGE_TYPES.find((c) => c.id === challengeType)?.icon ?? 'fi fi-sr-star'} text-sm`}
               style={{ color }}
             />
             <h1
               className="text-lg font-black text-slate-800 dark:text-white"
-              style={{ fontFamily: "var(--font-mali)" }}
+              style={{ fontFamily: 'var(--font-mali)' }}
             >
               {title}
             </h1>
@@ -819,7 +831,7 @@ export default function ChallengeGameScreen({
           </div>
         </div>
 
-        {total > 0 && phase === "playing" && (
+        {total > 0 && phase === 'playing' && (
           <div className="mb-6">
             <div className="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
               <div
@@ -836,7 +848,7 @@ export default function ChallengeGameScreen({
           </div>
         )}
 
-        {phonemeMatchData && challengeType === "phoneme-match" && (
+        {phonemeMatchData && challengeType === 'phoneme-match' && (
           <PhonemeMatchGame
             key={JSON.stringify(phonemeMatchData.pairs.map((p) => p.phonemeId))}
             question={phonemeMatchData}
@@ -844,7 +856,7 @@ export default function ChallengeGameScreen({
           />
         )}
 
-        {soundSortData && challengeType === "sound-sort" && (
+        {soundSortData && challengeType === 'sound-sort' && (
           <SoundSortGame
             key={soundSortData.length}
             questions={soundSortData}
@@ -852,7 +864,7 @@ export default function ChallengeGameScreen({
           />
         )}
 
-        {rhymeData && challengeType === "rhyme-time" && (
+        {rhymeData && challengeType === 'rhyme-time' && (
           <RhymeTimeGame
             key={rhymeData.length}
             questions={rhymeData}
@@ -860,7 +872,7 @@ export default function ChallengeGameScreen({
           />
         )}
 
-        {speedSpellData && challengeType === "speed-spell" && (
+        {speedSpellData && challengeType === 'speed-spell' && (
           <SpeedSpellGame
             key={speedSpellData.length}
             questions={speedSpellData}
@@ -869,7 +881,7 @@ export default function ChallengeGameScreen({
           />
         )}
 
-        {syllableData && challengeType === "syllable-smash" && (
+        {syllableData && challengeType === 'syllable-smash' && (
           <SyllableSmashGame
             key={syllableData.length}
             questions={syllableData}

@@ -1,7 +1,13 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { detectDeviceTier, getTierConfig, type Tier, type TierConfig, type DeviceScore } from '@/lib/device-tier';
+import {
+  detectDeviceTier,
+  getTierConfig,
+  type Tier,
+  type TierConfig,
+  type DeviceScore,
+} from '@/lib/device-tier';
 
 interface DeviceTierContextValue {
   tier: Tier;
@@ -15,13 +21,11 @@ interface DeviceTierContextValue {
 
 const DeviceTierContext = createContext<DeviceTierContextValue | null>(null);
 
-export function DeviceTierProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export function DeviceTierProvider({ children }: { children: ReactNode }) {
   const [forceTier, setForceTier] = useState<Tier | undefined>(undefined);
-  const [customOverrides, setCustomOverrides] = useState<Partial<TierConfig> | undefined>(undefined);
+  const [customOverrides, setCustomOverrides] = useState<Partial<TierConfig> | undefined>(
+    undefined,
+  );
   const [state, setState] = useState<DeviceTierContextValue>({
     tier: 'medium',
     config: getTierConfig('medium'),
@@ -73,11 +77,7 @@ export function DeviceTierProvider({
     setCustomConfig: setCustomConfigCallback,
   };
 
-  return (
-    <DeviceTierContext.Provider value={value}>
-      {children}
-    </DeviceTierContext.Provider>
-  );
+  return <DeviceTierContext.Provider value={value}>{children}</DeviceTierContext.Provider>;
 }
 
 export function useDeviceTier(): DeviceTierContextValue {

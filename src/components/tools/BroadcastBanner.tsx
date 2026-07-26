@@ -9,7 +9,12 @@ interface BroadcastBannerProps {
   onDismiss: () => void;
 }
 
-export default function BroadcastBanner({ message, messageType, duration, onDismiss }: BroadcastBannerProps) {
+export default function BroadcastBanner({
+  message,
+  messageType,
+  duration,
+  onDismiss,
+}: BroadcastBannerProps) {
   const [timer, setTimer] = useState(duration ?? 0);
   const [visible, setVisible] = useState(true);
 
@@ -18,7 +23,10 @@ export default function BroadcastBanner({ message, messageType, duration, onDism
     setTimer(duration ?? 0);
 
     if (messageType === 'message' && duration) {
-      const t = setTimeout(() => { setVisible(false); onDismiss(); }, duration * 1000);
+      const t = setTimeout(() => {
+        setVisible(false);
+        onDismiss();
+      }, duration * 1000);
       return () => clearTimeout(t);
     }
   }, [message, messageType, duration, onDismiss]);
@@ -47,14 +55,19 @@ export default function BroadcastBanner({ message, messageType, duration, onDism
   };
 
   return (
-    <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-lg backdrop-blur-sm ${typeStyles[messageType]} animate-slide-down`}>
-      <i className={`fi ${messageType === 'timer' ? 'fi-sr-hourglass' : messageType === 'sticky' ? 'fi-sr-pin' : 'fi-sr-megaphone'} text-lg`} />
+    <div
+      className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-lg backdrop-blur-sm ${typeStyles[messageType]} animate-slide-down`}
+    >
+      <i
+        className={`fi ${messageType === 'timer' ? 'fi-sr-hourglass' : messageType === 'sticky' ? 'fi-sr-pin' : 'fi-sr-megaphone'} text-lg`}
+      />
       <span className="text-sm font-medium">{message}</span>
-      {messageType === 'timer' && (
-        <span className="text-lg font-bold tabular-nums">{timer}s</span>
-      )}
+      {messageType === 'timer' && <span className="text-lg font-bold tabular-nums">{timer}s</span>}
       <button
-        onClick={() => { setVisible(false); onDismiss(); }}
+        onClick={() => {
+          setVisible(false);
+          onDismiss();
+        }}
         className="ml-2 p-1 rounded-full hover:bg-white/20 transition-colors"
       >
         <i className="fi fi-sr-cross text-sm" />

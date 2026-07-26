@@ -161,7 +161,7 @@ export default function PhotoLightbox({ photos, initialIndex, onClose }: PhotoLi
 
   return (
     <div
-      className="fixed inset-0 z-100 flex items-center justify-center bg-black/10"
+      className="fixed inset-0 z-100 flex items-center justify-center bg-black/10 backdrop-blur-sm animate-fade-in"
       role="dialog"
       aria-modal="true"
       onClick={onClose}
@@ -221,7 +221,7 @@ export default function PhotoLightbox({ photos, initialIndex, onClose }: PhotoLi
 
 
       <div
-        className={`relative inline-flex flex-col items-center justify-center transition-transform duration-300 ease-out ${
+        className={`relative inline-flex flex-col items-center justify-center animate-scale-up transition-transform duration-300 ease-out ${
           showInfo ? "md:-translate-x-[106px] lg:-translate-x-[126px]" : ""
         }`}
         onClick={(e) => e.stopPropagation()}

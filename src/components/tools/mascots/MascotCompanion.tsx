@@ -16,7 +16,13 @@ interface MascotCompanionProps {
 
 type AnimState = 'idle' | 'thinking' | 'celebrate' | 'correct' | 'wrong';
 
-export default function MascotCompanion({ sessionId, isWaiting, eventType, eventCount, onSettingsClick }: MascotCompanionProps) {
+export default function MascotCompanion({
+  sessionId,
+  isWaiting,
+  eventType,
+  eventCount,
+  onSettingsClick,
+}: MascotCompanionProps) {
   const [mascotId] = useState<string>(() => {
     const key = getMascotStorageKey(sessionId);
     let id = localStorage.getItem(key);
@@ -51,20 +57,27 @@ export default function MascotCompanion({ sessionId, isWaiting, eventType, event
   }, [eventCount, eventType, trigger]);
 
   useEffect(() => {
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, []);
 
-  const currentAnimState = activeTimer ? animState : (isWaiting ? 'thinking' : 'idle');
+  const currentAnimState = activeTimer ? animState : isWaiting ? 'thinking' : 'idle';
 
   if (!mascotId) return null;
 
   const animClass = () => {
     switch (currentAnimState) {
-      case 'thinking': return 'animate-think';
-      case 'celebrate': return 'animate-celebrate';
-      case 'correct': return 'animate-celebrate';
-      case 'wrong': return 'animate-shake';
-      default: return 'animate-breathe';
+      case 'thinking':
+        return 'animate-think';
+      case 'celebrate':
+        return 'animate-celebrate';
+      case 'correct':
+        return 'animate-celebrate';
+      case 'wrong':
+        return 'animate-shake';
+      default:
+        return 'animate-breathe';
     }
   };
 
@@ -73,16 +86,24 @@ export default function MascotCompanion({ sessionId, isWaiting, eventType, event
 
   const glowClass = () => {
     switch (currentAnimState) {
-      case 'correct': return `ring-2 shadow-lg`;
-      case 'wrong': return `ring-2 shadow-lg`;
-      default: return '';
+      case 'correct':
+        return `ring-2 shadow-lg`;
+      case 'wrong':
+        return `ring-2 shadow-lg`;
+      default:
+        return '';
     }
   };
 
   return (
     <div
       onClick={onSettingsClick}
-      onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && onSettingsClick) { e.preventDefault(); onSettingsClick(); } }}
+      onKeyDown={(e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && onSettingsClick) {
+          e.preventDefault();
+          onSettingsClick();
+        }
+      }}
       role="button"
       tabIndex={0}
       className={`
@@ -97,8 +118,12 @@ export default function MascotCompanion({ sessionId, isWaiting, eventType, event
         ${glowClass()}
       `}
       style={{
-        ...(currentAnimState === 'correct' ? { boxShadow: `0 0 20px ${accentColor}40`, borderColor: accentColor } : {}),
-        ...(currentAnimState === 'wrong' ? { boxShadow: `0 0 20px #ef444440`, borderColor: '#ef4444' } : {}),
+        ...(currentAnimState === 'correct'
+          ? { boxShadow: `0 0 20px ${accentColor}40`, borderColor: accentColor }
+          : {}),
+        ...(currentAnimState === 'wrong'
+          ? { boxShadow: `0 0 20px #ef444440`, borderColor: '#ef4444' }
+          : {}),
       }}
     >
       <MascotAvatar mascotId={mascotId} size={96} variant="full" animate />

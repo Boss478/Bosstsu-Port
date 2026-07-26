@@ -5,6 +5,31 @@
 
 
 
+## v1.10.69 (2026-07-26)
++ * **Code refactor — 3 cleanups**:
+  + * **Zombie transitions**: Removed 12 dead `transition-all` overrides in Header, Pagination, filter buttons, PrivateDashboardClient — classes that were overridden by later `transition-transform` with no effect.
+  + * **Dead animation utilities**: Removed 8 unused `@utility` + `@keyframes` blocks from globals.css (`card-flip-enter`, `count-up`, `fade-left`, `fade-right`, `float-island`, `glitch-reveal`, `pulse-ring`, `wrong-shake`) — ~80 lines of dead CSS.
+  + * **Listing client refactor**: Created 5 shared artifacts (`useListFilter` hook, `SearchInput`, `FilterBar`, `SortSelect`, `LISTING_IMAGE_SIZES` + `grid-section`). Migrated all 3 listing clients (Portfolio, Gallery, Resources). Fixed Resources `allLabel: 'All'` bug (dirty URL when `?type=All`). ~167 lines of inline duplication removed.
++ * **Press feedback 150ms + transition scoping**: Reduced active state duration from 300ms→150ms across all cards, buttons, and links. Replaced `transition-all` with scoped `transition-[transform,box-shadow,...]` to avoid repaint cascades.
++ * **CookieConsent direction swap**: Banner now slides up from below on show, slides down to below on hide (was inverted).
+
+## v1.10.68 (2026-07-26)
++ * **TanStack Query adoption — Phases 1-5 (18 tasks)**:
+  + **Phase 1 — Foundation**: Installed `@tanstack/react-query@5.101.4` + devtools. Created `lib/query/providers.tsx` (singleton QueryClient, lazy-loaded Devtools), `lib/query/keys.ts` (typed key factories for stocks/finance/tools/analytics), and wired QueryProvider into root layout.
+  + **Phase 2 — Finance module**: Migrated BudgetList, TransactionList, SubscriptionList, FinanceClient, FinanceSummary, SubscriptionForm, TransactionForm, QuickAddBar from raw `useEffect`+`fetch()` to `useQuery`/`useMutation` hooks. Optimistic updates for all CRUD operations. Created `hooks/use-finance.ts` with typed query/mutation hooks.
+  + **Phase 3 — Stocks dashboard**: Created `hooks/use-stocks.ts` with stock quotes/history/holdings/watchlist hooks. Migrated StockDataContext internals to compose TQ hooks — removed manual Map cache, TTL, historyCacheVersion counter, custom setInterval polling, and exponential backoff. Migrated DashboardSummary to use stock + finance hooks.
+  + **Phase 4 — Classroom tools**: Migrated PadletBoard, MentimeterPoll, QuickQuiz, QABoard (10s polling via `refetchInterval` + `useMutation` for submits). Migrated ResultsView (configurable polling + step-aware merging) and StudentList to useQuery.
+  + **Phase 5 — Analytics**: Replaced custom setTimeout chain + visibility logic in AnalyticsDashboardClient with `useQuery` + `refetchInterval` + `refetchIntervalInBackground: false`.
+  + **Scope**: ~20 components migrated, ~1200 lines of fetch boilerplate reduced. 5 components deferred (ExitTicketForm, AssignmentForm, BroadcastBar, ExportButton, PhotoLightbox).
+
+## v1.10.67 (2026-07-26)
++ * **Animation Polish V2 — Phases 1-3 (12 fixes)**:
+  + * **Header dropdown**: Fixed transition override — replaced `transition-all` with explicit `transition-[opacity,transform]` + `pointer-events-none` for smooth opacity/transform animation without property cascade conflict.
+  + * **Modal entrances (4 modals)**: Added `animate-fade-in` backdrop + `animate-scale-up`/`animate-popup-enter` content to PhotoLightbox, StockDetailModal, QuickStartModal, StageManagerModal (4 instances). Added `backdrop-blur-sm` overlay to PhotoLightbox. Added `--backdrop-blur-0: 0` to @theme for animated blur support.
+  + * **Card press feedback**: `active:scale-[0.98] active:shadow-lg` on Card.tsx, PortfolioClient, GalleryClient, ResourcesClient. GlassCard hover variant conditionally applies `active:scale-[0.98] active:shadow-lg` when `as !== 'div'`.
+  + * **Button/link press feedback**: `active:scale-95 active:shadow-lg` on Hero 3 CTAs. `active:scale-95 active:translate-x-0.5` on AdminSidebar nav links. `active:scale-95` on Footer (6 links) and Breadcrumb (2 links).
+  + * **CookieConsentBanner show/hide symmetry**: Replaced instant unmount with `isClosing` state pattern — `animate-slide-down` enter, `animate-slide-up` exit (800ms). `setConsent()` fires synchronously before exit animation to prevent data-loss window.
+
 ## v1.10.66 (2026-07-19)
 + * **Computer Lab Optimization — SSE + 6-tier device detection + broadcast + focus**:
   + * **SSE over HTTP polling**: Shared `Map<sessionId, Set<controller>>` module (`src/lib/sse-server.ts`), `/api/tools/step/sse` endpoint (heartbeat 30s, idle timeout 15min), client `useSSE` hook with exponential backoff fallback polling. Eliminates 99.9% of DB reads for step sync.

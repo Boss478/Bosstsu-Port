@@ -72,7 +72,9 @@ export default function AnalysisScreen({
             <p className="text-2xl font-black text-violet-600 dark:text-violet-400">{totalScore}</p>
           </div>
           <div className="bg-amber-50 dark:bg-amber-900/10 p-3 rounded-2xl border border-amber-100 dark:border-amber-900/30">
-            <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Progress</p>
+            <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">
+              Progress
+            </p>
             <p className="text-2xl font-black text-amber-600 dark:text-amber-400">
               {stagesCompleted}/{totalStages}
             </p>
@@ -113,7 +115,9 @@ export default function AnalysisScreen({
                   key={letter}
                   className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-[10px] font-black"
                 >
-                  <div className={`w-full h-full rounded-lg flex items-center justify-center ${color}`}>
+                  <div
+                    className={`w-full h-full rounded-lg flex items-center justify-center ${color}`}
+                  >
                     {acc}%
                   </div>
                 </div>
@@ -150,10 +154,7 @@ export default function AnalysisScreen({
               </p>
               <div className="flex flex-wrap gap-1">
                 {toImprove.map((l) => (
-                  <span
-                    key={l}
-                    className="text-sm font-black text-rose-600 dark:text-rose-400"
-                  >
+                  <span key={l} className="text-sm font-black text-rose-600 dark:text-rose-400">
                     {l}
                   </span>
                 ))}
@@ -164,9 +165,7 @@ export default function AnalysisScreen({
 
         {totalAttempts > 0 && (
           <div className="bg-zinc-50 dark:bg-zinc-800/50 p-3 sm:p-4 rounded-3xl border border-zinc-200 dark:border-zinc-700">
-            <p className="text-sm font-bold text-zinc-700 dark:text-zinc-300">
-              {analysis.english}
-            </p>
+            <p className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{analysis.english}</p>
             <p className="text-sm font-bold text-zinc-500 dark:text-zinc-400 mt-1">
               {analysis.thai}
             </p>

@@ -352,18 +352,21 @@ export default function CompanionBubble() {
     return () => window.removeEventListener('phonics:companion-wrong-answer', handler);
   }, [hintCategory, showThinkingHint]);
 
-  const onPointerDown = useCallback((e: React.PointerEvent) => {
-    const el = elRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    dragRef.current = { startX: e.clientX, startY: e.clientY, elX: rect.left, elY: rect.top };
-    clickSuppressed.current = false;
-    setDragging(true);
-    if (companionSnap !== 'free') {
-      setPos({ x: rect.left, y: rect.top });
-      setCompanionSnap('free');
-    }
-  }, [companionSnap, setCompanionSnap]);
+  const onPointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      const el = elRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      dragRef.current = { startX: e.clientX, startY: e.clientY, elX: rect.left, elY: rect.top };
+      clickSuppressed.current = false;
+      setDragging(true);
+      if (companionSnap !== 'free') {
+        setPos({ x: rect.left, y: rect.top });
+        setCompanionSnap('free');
+      }
+    },
+    [companionSnap, setCompanionSnap],
+  );
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {

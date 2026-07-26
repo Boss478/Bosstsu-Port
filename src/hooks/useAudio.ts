@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { getAudioCacheEntry, setAudioCacheEntry } from '@/lib/audio-cache-db';
 
 const MUTED_KEY = 'boss478-muted';
@@ -31,10 +31,11 @@ async function fetchWordAudioUrl(word: string): Promise<string | null> {
   const url = await new Promise<string | null>((resolve) => {
     audioFetchQueue = audioFetchQueue.then(async () => {
       try {
-        const res = await fetch(
-          `/api/dictionary?word=${encodeURIComponent(key)}`,
-        );
-        if (!res.ok) { resolve(null); return; }
+        const res = await fetch(`/api/dictionary?word=${encodeURIComponent(key)}`);
+        if (!res.ok) {
+          resolve(null);
+          return;
+        }
         const data = await res.json();
         resolve(data.audioUrl ?? null);
       } catch {
@@ -67,7 +68,9 @@ function createLRUCache<K, V>(maxSize: number) {
         if (firstKey !== undefined) map.delete(firstKey);
       }
     },
-    has(key: K) { return map.has(key); },
+    has(key: K) {
+      return map.has(key);
+    },
   };
 }
 
@@ -75,10 +78,10 @@ const decodedAudioCache = createLRUCache<string, AudioBuffer | null>(200);
 
 async function decodeAudioDataUrl(ctx: AudioContext, dataUrl: string): Promise<AudioBuffer | null> {
   try {
-    if (dataUrl.startsWith("data:")) {
-      const parts = dataUrl.split(",");
+    if (dataUrl.startsWith('data:')) {
+      const parts = dataUrl.split(',');
       if (parts.length > 1) {
-        const isBase64 = parts[0].includes("base64");
+        const isBase64 = parts[0].includes('base64');
         const rawData = parts[1];
         let arrayBuffer: ArrayBuffer;
         if (isBase64) {
@@ -105,13 +108,16 @@ async function decodeAudioDataUrl(ctx: AudioContext, dataUrl: string): Promise<A
     const arrayBuffer = await res.arrayBuffer();
     return await ctx.decodeAudioData(arrayBuffer);
   } catch (err) {
-    console.error("Failed to decode audio data URL:", err);
+    console.error('Failed to decode audio data URL:', err);
     return null;
   }
 }
 
-async function getOrDecodeAudioBuffer(ctx: AudioContext, word: string): Promise<AudioBuffer | null> {
-  if (word.startsWith("data:")) {
+async function getOrDecodeAudioBuffer(
+  ctx: AudioContext,
+  word: string,
+): Promise<AudioBuffer | null> {
+  if (word.startsWith('data:')) {
     return await decodeAudioDataUrl(ctx, word);
   }
 
@@ -121,7 +127,7 @@ async function getOrDecodeAudioBuffer(ctx: AudioContext, word: string): Promise<
 
   try {
     const url = await fetchWordAudioUrl(key);
-    if (url && url.startsWith("data:")) {
+    if (url && url.startsWith('data:')) {
       const buffer = await decodeAudioDataUrl(ctx, url);
       if (buffer) {
         decodedAudioCache.set(key, buffer);
@@ -129,7 +135,7 @@ async function getOrDecodeAudioBuffer(ctx: AudioContext, word: string): Promise<
       }
     }
   } catch (err) {
-    console.error("Error in getOrDecodeAudioBuffer:", err);
+    console.error('Error in getOrDecodeAudioBuffer:', err);
   }
   decodedAudioCache.set(key, null);
   return null;
@@ -175,22 +181,25 @@ export function useAudio() {
   }, []);
 
   const playSound = useCallback(
-    (type: "correct" | "wrong" | "win" | "tada") => {
+    (type: 'correct' | 'wrong' | 'win' | 'tada') => {
       if (muted) return;
       const ctx = getCtx();
       if (!ctx) return;
       const now = ctx.currentTime;
 
       const cleanup = (source: AudioScheduledSourceNode, gain: GainNode) => {
-        source.onended = () => { source.disconnect(); gain.disconnect(); };
+        source.onended = () => {
+          source.disconnect();
+          gain.disconnect();
+        };
       };
 
-      if (type === "correct") {
+      if (type === 'correct') {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.connect(gain);
         gain.connect(ctx.destination);
-        osc.type = "sine";
+        osc.type = 'sine';
         osc.frequency.setValueAtTime(600, now);
         osc.frequency.exponentialRampToValueAtTime(1000, now + 0.1);
         gain.gain.setValueAtTime(0.2, now);
@@ -198,12 +207,12 @@ export function useAudio() {
         cleanup(osc, gain);
         osc.start(now);
         osc.stop(now + 0.5);
-      } else if (type === "wrong") {
+      } else if (type === 'wrong') {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.connect(gain);
         gain.connect(ctx.destination);
-        osc.type = "sawtooth";
+        osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(150, now);
         osc.frequency.linearRampToValueAtTime(100, now + 0.3);
         gain.gain.setValueAtTime(0.2, now);
@@ -211,7 +220,7 @@ export function useAudio() {
         cleanup(osc, gain);
         osc.start(now);
         osc.stop(now + 0.3);
-      } else if (type === "win") {
+      } else if (type === 'win') {
         [400, 500, 600, 800].forEach((freq, i) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -223,13 +232,13 @@ export function useAudio() {
           osc.start(now + i * 0.1);
           osc.stop(now + i * 0.1 + 0.2);
         });
-      } else if (type === "tada") {
+      } else if (type === 'tada') {
         [523, 659, 784, 1047].forEach((freq, i) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.connect(gain);
           gain.connect(ctx.destination);
-          osc.type = "sine";
+          osc.type = 'sine';
           osc.frequency.setValueAtTime(freq, now + i * 0.12);
           gain.gain.setValueAtTime(0.01, now + i * 0.12);
           gain.gain.linearRampToValueAtTime(0.2, now + i * 0.12 + 0.05);
@@ -240,7 +249,7 @@ export function useAudio() {
         });
       }
     },
-    [muted, getCtx]
+    [muted, getCtx],
   );
 
   const playSequence = useCallback(
@@ -254,30 +263,36 @@ export function useAudio() {
         const gain = ctx.createGain();
         osc.connect(gain);
         gain.connect(ctx.destination);
-        osc.type = "sine";
+        osc.type = 'sine';
         osc.frequency.value = freq;
         gain.gain.setValueAtTime(gainVal, now + i * noteDuration);
         gain.gain.exponentialRampToValueAtTime(0.01, now + i * noteDuration + noteDuration);
-        osc.onended = () => { osc.disconnect(); gain.disconnect(); };
+        osc.onended = () => {
+          osc.disconnect();
+          gain.disconnect();
+        };
         osc.start(now + i * noteDuration);
         osc.stop(now + i * noteDuration + noteDuration);
       });
     },
-    [muted, getCtx]
+    [muted, getCtx],
   );
 
   const [speechUnavailable] = useState(() => {
     if (typeof window !== 'undefined') {
-      return !('speechSynthesis' in window) && !('AudioContext' in window || 'webkitAudioContext' in window);
+      return (
+        !('speechSynthesis' in window) &&
+        !('AudioContext' in window || 'webkitAudioContext' in window)
+      );
     }
     return false;
   });
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [voiceURI, setVoiceURIBase] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem(VOICE_KEY) ?? localStorage.getItem(ALT_VOICE_KEY) ?? "";
+      return localStorage.getItem(VOICE_KEY) ?? localStorage.getItem(ALT_VOICE_KEY) ?? '';
     }
-    return "";
+    return '';
   });
   const storedVoiceRef = useRef(voiceURI);
 
@@ -315,12 +330,12 @@ export function useAudio() {
     };
     updateVoices();
     window.speechSynthesis.addEventListener('voiceschanged', updateVoices);
-    
+
     // Polling backup to ensure voices are loaded even if the event is missed
     const t1 = setTimeout(updateVoices, 100);
     const t2 = setTimeout(updateVoices, 500);
     const t3 = setTimeout(updateVoices, 1000);
-    
+
     return () => {
       window.speechSynthesis.removeEventListener('voiceschanged', updateVoices);
       clearTimeout(t1);
@@ -356,43 +371,47 @@ export function useAudio() {
   }, []);
 
   const speak = useCallback(
-    (text: string, lang = "en-US") => {
+    (text: string, lang = 'en-US') => {
       if (muted) return;
-      if (!("speechSynthesis" in window)) return;
+      if (!('speechSynthesis' in window)) return;
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = lang;
       utterance.rate = storedRateRef.current;
       utterance.pitch = storedPitchRef.current;
-      
+
       const currentVoices = window.speechSynthesis.getVoices();
       const stored = storedVoiceRef.current;
       let matchedVoice: SpeechSynthesisVoice | undefined;
 
       if (stored) {
-        matchedVoice = currentVoices.find(v => v.voiceURI === stored);
+        matchedVoice = currentVoices.find((v) => v.voiceURI === stored);
       }
-      
+
       if (!matchedVoice) {
         // Fallback: search for voices matching the requested language
-        const langPrefix = lang.split("-")[0].toLowerCase();
-        const langVoices = currentVoices.filter(v => v.lang.toLowerCase().startsWith(langPrefix));
+        const langPrefix = lang.split('-')[0].toLowerCase();
+        const langVoices = currentVoices.filter((v) => v.lang.toLowerCase().startsWith(langPrefix));
         if (langVoices.length > 0) {
-          if (langPrefix === "en") {
+          if (langPrefix === 'en') {
             // Prioritize high-quality English voices
-            matchedVoice = langVoices.find(v => 
-              v.name.includes("Google") || 
-              v.name.includes("Natural") || 
-              v.name.includes("Samantha") || 
-              v.name.includes("Premium")
-            ) || langVoices[0];
-          } else if (langPrefix === "th") {
+            matchedVoice =
+              langVoices.find(
+                (v) =>
+                  v.name.includes('Google') ||
+                  v.name.includes('Natural') ||
+                  v.name.includes('Samantha') ||
+                  v.name.includes('Premium'),
+              ) || langVoices[0];
+          } else if (langPrefix === 'th') {
             // Prioritize high-quality Thai voices (e.g. Google, Narisa, Premwadee)
-            matchedVoice = langVoices.find(v =>
-              v.name.includes("Google") ||
-              v.name.includes("Narisa") ||
-              v.name.includes("Premwadee") ||
-              v.name.includes("Premium")
-            ) || langVoices[0];
+            matchedVoice =
+              langVoices.find(
+                (v) =>
+                  v.name.includes('Google') ||
+                  v.name.includes('Narisa') ||
+                  v.name.includes('Premwadee') ||
+                  v.name.includes('Premium'),
+              ) || langVoices[0];
           } else {
             matchedVoice = langVoices[0];
           }
@@ -407,7 +426,7 @@ export function useAudio() {
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);
     },
-    [muted]
+    [muted],
   );
 
   const playWordAudio = useCallback(
@@ -425,7 +444,10 @@ export function useAudio() {
           gain.gain.value = 0.5;
           source.connect(gain);
           gain.connect(ctx.destination);
-          source.onended = () => { source.disconnect(); gain.disconnect(); };
+          source.onended = () => {
+            source.disconnect();
+            gain.disconnect();
+          };
           source.start(0);
           source.stop(ctx.currentTime + buffer.duration);
         } catch {
@@ -435,7 +457,7 @@ export function useAudio() {
         speak(word);
       }
     },
-    [muted, getCtx, speak]
+    [muted, getCtx, speak],
   );
 
   const playPhonemeAudio = useCallback(
@@ -461,7 +483,10 @@ export function useAudio() {
         source.connect(gain);
         gain.connect(ctx.destination);
 
-        source.onended = () => { source.disconnect(); gain.disconnect(); };
+        source.onended = () => {
+          source.disconnect();
+          gain.disconnect();
+        };
 
         const now = ctx.currentTime;
         const fadeEnd = trimDurationMs / 1000;
@@ -477,7 +502,7 @@ export function useAudio() {
         speak(fallbackText);
       }
     },
-    [muted, getCtx, speak]
+    [muted, getCtx, speak],
   );
 
   const prefetchWords = useCallback(
@@ -487,7 +512,7 @@ export function useAudio() {
         onProgress?.(words.length, words.length);
         return;
       }
-      
+
       let loaded = 0;
       const total = words.length;
       if (total === 0) {
@@ -506,11 +531,28 @@ export function useAudio() {
             loaded++;
             onProgress?.(loaded, total);
           }
-        })
+        }),
       );
     },
-    [getCtx]
+    [getCtx],
   );
 
-  return { playSound, speak, playWordAudio, playPhonemeAudio, muted, toggleMute, playSequence, voiceURI, setVoiceURI, voices, prefetchWords, speechRate, setSpeechRate, speechPitch, setSpeechPitch, speechUnavailable } as const;
+  return {
+    playSound,
+    speak,
+    playWordAudio,
+    playPhonemeAudio,
+    muted,
+    toggleMute,
+    playSequence,
+    voiceURI,
+    setVoiceURI,
+    voices,
+    prefetchWords,
+    speechRate,
+    setSpeechRate,
+    speechPitch,
+    setSpeechPitch,
+    speechUnavailable,
+  } as const;
 }

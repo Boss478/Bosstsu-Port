@@ -49,7 +49,9 @@ export default function LevelMapScreen({ mapData, onSelectStage, onBack, onShowA
             </button>
           )}
           <div className="text-right">
-            <h2 className="text-lg font-black text-violet-600 dark:text-violet-400">Alphabet Map</h2>
+            <h2 className="text-lg font-black text-violet-600 dark:text-violet-400">
+              Alphabet Map
+            </h2>
             <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500">
               {mapData.stages.filter((s) => s.completed).length}/6 Stages
             </p>

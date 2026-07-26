@@ -371,7 +371,7 @@ describe('getWordsForGroup two-tier fallback', () => {
     const synIds = VOCAB_GROUP_DEFS
       .filter(g => g.synonymOf?.length)
       .map(g => g.id);
-    expect(synIds.length).toBe(22);
+    expect(synIds.length).toBe(24);
     for (const id of synIds) {
       const words = getWordsForGroup(id);
       expect(words.length).toBeGreaterThanOrEqual(3);

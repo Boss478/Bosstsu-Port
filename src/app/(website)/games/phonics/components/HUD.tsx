@@ -11,8 +11,13 @@ interface HUDProps {
 }
 
 export default function HUD({
-  current, total, score, streak,
-  muted, onToggleMute, onSettings,
+  current,
+  total,
+  score,
+  streak,
+  muted,
+  onToggleMute,
+  onSettings,
 }: HUDProps) {
   return (
     <div className="flex items-center justify-between px-5 py-4 glass-light border-b border-white/20 dark:border-slate-800/80 shadow-xs relative z-20">
@@ -37,7 +42,9 @@ export default function HUD({
           aria-label={muted ? 'Unmute' : 'Mute'}
           style={{ '--border-color': 'rgba(0,0,0,0.1)' } as React.CSSProperties}
         >
-          <i className={`fi ${muted ? 'fi-sr-volume-mute' : 'fi-sr-volume'} text-sm md:text-base`} />
+          <i
+            className={`fi ${muted ? 'fi-sr-volume-mute' : 'fi-sr-volume'} text-sm md:text-base`}
+          />
         </button>
         <button
           id="game-settings-btn"

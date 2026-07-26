@@ -45,7 +45,7 @@ export default class ToolErrorBoundary extends Component<Props, State> {
             </p>
             <button
               onClick={this.handleReset}
-              className="w-full py-2.5 rounded-xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 active:scale-95 transition-all"
+              className="w-full py-2.5 rounded-xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 active:scale-95 transition-[background-color,transform] active:duration-150"
             >
               Try Again
             </button>

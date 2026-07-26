@@ -511,7 +511,12 @@ export interface SaveData {
   totalCorrects: number;
   phonemeCoins: number;
   phonemeStats: Record<string, { correct: number; total: number; lastSeen: number }>;
-  settings: { muted: boolean; glassLevel: number; gridColumns?: 2 | 3; companionSnap?: 'left' | 'right' | 'free' };
+  settings: {
+    muted: boolean;
+    glassLevel: number;
+    gridColumns?: 2 | 3;
+    companionSnap?: 'left' | 'right' | 'free';
+  };
   tutorialCompleted: boolean;
   totalRoundsPlayed: number;
   bestStreak: number;

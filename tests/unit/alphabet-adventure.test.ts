@@ -36,7 +36,6 @@ import {
 } from "@/app/(standalone)/games/alphabet-adventure/cards/cards";
 import { masteryLevel } from "@/app/(standalone)/games/alphabet-adventure/screens/LetterProgressGrid";
 import { KEYBOARD_ROWS } from "@/app/(standalone)/games/alphabet-adventure/screens/TypingLevel";
-import { migrateV2ToV3, loadMapSave } from "@/app/(standalone)/games/alphabet-adventure/migrateMapSave";
 import { emptyMapSaveData } from "@/app/(standalone)/games/alphabet-adventure/types";
 import type { MapSaveData, LetterTracker } from "@/app/(standalone)/games/alphabet-adventure/types";
 
@@ -797,80 +796,7 @@ function makeV2Save(): MapSaveData {
   };
 }
 
-describe("save migration v2→v3", () => {
-  it("maps old 6 sub-stages to new 5, dropping old[4]", () => {
-    const v2 = makeV2Save();
-    const v3 = migrateV2ToV3(v2);
-    for (const stage of v3.stages) {
-      expect(stage.subStages).toHaveLength(5);
-    }
-  });
 
-  it("preserves old indices [0,1,2,3,5] as new [0,1,2,3,4]", () => {
-    const v2 = makeV2Save();
-    const oldSubs = v2.stages[0].subStages.map((s) => ({ ...s }));
-    const v3 = migrateV2ToV3(v2);
-    const newSubs = v3.stages[0].subStages;
-    expect(newSubs[0].stars).toBe(oldSubs[0].stars);
-    expect(newSubs[1].stars).toBe(oldSubs[1].stars);
-    expect(newSubs[2].stars).toBe(oldSubs[2].stars);
-    expect(newSubs[3].stars).toBe(oldSubs[3].stars);
-    expect(newSubs[4].stars).toBe(oldSubs[5].stars);
-  });
-
-  it("drops old index 4 (does not appear in new)", () => {
-    const v2 = makeV2Save();
-    v2.stages[0].subStages[4].stars = 1;
-    v2.stages[0].subStages[4].bestScore = 10;
-    const v3 = migrateV2ToV3(v2);
-    const newSubs = v3.stages[0].subStages;
-    expect(newSubs[4].stars).not.toBe(1);
-    expect(newSubs[4].bestScore).not.toBe(10);
-  });
-
-  it("preserves completion state from old indices", () => {
-    const v2 = makeV2Save();
-    const oldSubs = v2.stages[0].subStages.map((s) => ({ ...s }));
-    const v3 = migrateV2ToV3(v2);
-    const newSubs = v3.stages[0].subStages;
-    expect(newSubs[0].completed).toBe(oldSubs[0].completed);
-    expect(newSubs[1].completed).toBe(oldSubs[1].completed);
-    expect(newSubs[2].completed).toBe(oldSubs[2].completed);
-    expect(newSubs[3].completed).toBe(oldSubs[3].completed);
-    expect(newSubs[4].completed).toBe(oldSubs[5].completed);
-  });
-
-  it("sets version to 3", () => {
-    const v2 = makeV2Save();
-    const v3 = migrateV2ToV3(v2);
-    expect(v3.version).toBe(3);
-  });
-
-  it("returns v3 data unchanged", () => {
-    const v3Data = emptyMapSaveData();
-    v3Data.version = 3;
-    const result = migrateV2ToV3(v3Data);
-    expect(result.version).toBe(3);
-    expect(result.stages).toHaveLength(6);
-  });
-
-  it("handles saves with 5 sub-stages (already migrated)", () => {
-    const v3Data = emptyMapSaveData();
-    v3Data.version = 3;
-    const result = migrateV2ToV3(v3Data);
-    for (const stage of result.stages) {
-      expect(stage.subStages).toHaveLength(5);
-    }
-  });
-
-  it("preserves totalScore and letterTracker", () => {
-    const v2 = makeV2Save();
-    v2.letterTracker = { A: { correct: 5, total: 6 }, Z: { correct: 1, total: 5 } };
-    const v3 = migrateV2ToV3(v2);
-    expect(v3.totalScore).toBe(100);
-    expect(v3.letterTracker).toEqual({ A: { correct: 5, total: 6 }, Z: { correct: 1, total: 5 } });
-  });
-});
 
 // ─── Phase 2: EasyMode Choice Reduction ────────────────────────────────
 

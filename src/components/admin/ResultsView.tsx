@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import ExportButton from './ExportButton';
 import DeleteButton from './DeleteButton';
 import { deleteResponse, deleteAllResponses, toggleQAAnswered } from '@/app/admin/tools/actions';
 import { t } from '@/lib/tool-translations';
+import { toolKeys } from '@/lib/query/keys';
 import MascotAvatar from '@/components/tools/mascots/MascotAvatar';
 
 interface ResultsViewProps {
@@ -29,18 +31,13 @@ const TOOL_LABELS: Record<string, string> = {
 };
 
 export default function ResultsView({ session, initialResponses, fullScreen, onToggleFullScreen, refreshInterval = 15000, sessionCurrentStep = -1, refreshTrigger }: ResultsViewProps) {
+  const qc = useQueryClient();
   const [responses, setResponses] = useState(initialResponses);
   const [refreshing, setRefreshing] = useState(false);
   const [columnsPerRow, setColumnsPerRow] = useState<number | null>(null);
   const [sizePercent, setSizePercent] = useState(100);
   const [previewFileUrl, setPreviewFileUrl] = useState<string | null>(null);
   const [previewFileType, setPreviewFileType] = useState<'image' | 'pdf' | 'other' | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    fetchResponses();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshTrigger]);
 
   const steps = session.steps as Array<{ type: string; title: string; config?: Record<string, unknown> }> | undefined;
   const hasSteps = steps && steps.length > 1;
@@ -79,7 +76,6 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
   const handleStepTabClick = (idx: number) => {
     userChangedTab.current = true;
     setActiveStepTab(idx);
-    fetchResponses(idx);
   };
 
   const getFileType = (url: string | undefined): 'image' | 'pdf' | 'other' => {
@@ -96,53 +92,45 @@ export default function ResultsView({ session, initialResponses, fullScreen, onT
     setPreviewFileUrl(url);
   };
 
-   const fetchResponses = async (customStepIndex?: number) => {
-     try {
-       const stepIdx = customStepIndex ?? (hasSteps ? activeStepTab : undefined);
-       const stepParam = stepIdx !== undefined && stepIdx >= 0 ? `&stepIndex=${stepIdx}` : '';
-       const res = await fetch(`/api/tools/poll?sessionId=${session._id}${stepParam}`);
-       const data = await res.json();
-       if (data.responses) {
-         setResponses(prev => {
-           // If fetching a specific step, replace only that step's data
-           if (stepIdx !== undefined && stepIdx >= 0 && hasSteps) {
-             const others = prev.filter((r: any) => {
-               const rStepIdx = r.stepIndex;
-               return rStepIdx === undefined || rStepIdx < 0 || rStepIdx !== stepIdx;
-             });
-             return [...others, ...data.responses];
-           }
-           // If fetching all steps (e.g., all steps view or single step), replace all
-           return data.responses;
-         });
-       }
-     } catch {
-       // silent fail
-     }
-   };
+  const queryKey = toolKeys.poll(`${session._id}_${activeStepTab}`);
+
+  const { data: pollData, isFetching } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const stepIdx = hasSteps && activeStepTab >= 0 ? activeStepTab : undefined;
+      const stepParam = stepIdx !== undefined ? `&stepIndex=${stepIdx}` : '';
+      const res = await fetch(`/api/tools/poll?sessionId=${session._id}${stepParam}`);
+      if (!res.ok) throw new Error('Failed');
+      return res.json();
+    },
+    refetchInterval: refreshInterval,
+    refetchIntervalInBackground: false,
+  });
 
   useEffect(() => {
-    const handleVisibility = () => {
-      if (document.visibilityState === 'hidden') {
-        if (intervalRef.current) clearInterval(intervalRef.current);
-      } else {
-        fetchResponses();
-        intervalRef.current = setInterval(fetchResponses, refreshInterval);
+    if (!pollData?.responses) return;
+    const stepIdx = hasSteps && activeStepTab >= 0 ? activeStepTab : undefined;
+    setResponses(prev => {
+      if (stepIdx !== undefined && hasSteps) {
+        const others = prev.filter((r: any) => {
+          const rStepIdx = r.stepIndex;
+          return rStepIdx === undefined || rStepIdx < 0 || rStepIdx !== stepIdx;
+        });
+        return [...others, ...pollData.responses];
       }
-    };
+      return pollData.responses;
+    });
+  }, [pollData, activeStepTab, hasSteps]);
 
-    document.addEventListener('visibilitychange', handleVisibility);
-    intervalRef.current = setInterval(fetchResponses, refreshInterval);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibility);
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [fetchResponses, refreshInterval]);
+  useEffect(() => {
+    if (refreshTrigger) {
+      qc.invalidateQueries({ queryKey });
+    }
+  }, [refreshTrigger, qc, queryKey]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchResponses();
+    await qc.invalidateQueries({ queryKey });
     setRefreshing(false);
   };
 

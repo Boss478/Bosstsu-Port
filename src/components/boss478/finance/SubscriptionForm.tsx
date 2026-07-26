@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from 'react';
 import { CONFIG } from '@/lib/config';
+import { useCreateSubscription, useUpdateSubscription } from '@/hooks/use-finance';
 
 const CATEGORIES = CONFIG.FINANCE.CATEGORIES.expense;
 const CYCLES = CONFIG.FINANCE.BILLING_CYCLES;
@@ -29,8 +30,10 @@ export default function SubscriptionForm({ onClose, onSaved, editing }: Props) {
     editing?.nextBillingDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   );
   const [description, setDescription] = useState(editing?.description || '');
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const createSubscription = useCreateSubscription();
+  const updateSubscription = useUpdateSubscription();
+  const saving = createSubscription.isPending || updateSubscription.isPending;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -50,32 +53,30 @@ export default function SubscriptionForm({ onClose, onSaved, editing }: Props) {
       return;
     }
 
-    setSaving(true);
     try {
-      const url = editing
-        ? `/boss478/finance/api/subscriptions?id=${editing.id}`
-        : '/boss478/finance/api/subscriptions';
-      const res = await fetch(url, {
-        method: editing ? 'PATCH' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      if (editing) {
+        await updateSubscription.mutateAsync({
+          _id: editing.id,
           name: name.trim(),
           amount: amt,
           billingCycle,
           category,
           nextBillingDate,
           description: description.trim(),
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to save');
+        });
+      } else {
+        await createSubscription.mutateAsync({
+          name: name.trim(),
+          amount: amt,
+          billingCycle,
+          category,
+          nextBillingDate,
+          description: description.trim(),
+        });
       }
       onSaved();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save');
-    } finally {
-      setSaving(false);
     }
   }
 

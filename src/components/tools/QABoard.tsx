@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { t } from '@/lib/tool-translations';
 import { getStudentToken } from '@/lib/client-token';
+import { toolKeys } from '@/lib/query/keys';
 import MascotAvatar from './mascots/MascotAvatar';
 
 interface QABoardProps {
@@ -28,97 +30,79 @@ interface Question {
 }
 
 export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: QABoardProps) {
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [question, setQuestion] = useState('');
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [votedIds, setVotedIds] = useState<Set<string>>(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem(`voted_qa_${session._id}`) : null;
     return new Set<string>(saved ? JSON.parse(saved) : []);
   });
 
-  const fetchQuestions = async () => {
-    try {
+  const queryKey = toolKeys.poll(session._id);
+
+  const { data: questions = [], isLoading, refetch } = useQuery({
+    queryKey,
+    queryFn: async () => {
       const stepParam = stepIndex !== undefined ? `&stepIndex=${stepIndex}` : '';
       const res = await fetch(`/api/tools/poll?sessionId=${session._id}${stepParam}`);
       const data = await res.json();
-      if (data.responses) {
-        setQuestions(data.responses);
-      }
-      setLoading(false);
-    } catch {
-      setLoading(false);
-    }
-  };
+      return (data.responses || []) as Question[];
+    },
+    refetchInterval: 10_000,
+  });
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchQuestions();
-    setRefreshing(false);
-  };
-
-  useEffect(() => {
-    fetchQuestions();
-    const interval = setInterval(fetchQuestions, 10000);
-    return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session._id]);
-
-  const handleSubmit = async () => {
-    if (!question.trim()) return;
-    setSubmitting(true);
-    setError(null);
-    try {
+  const submitMutation = useMutation({
+    mutationFn: async () => {
       const res = await fetch(`/api/tools/poll?sessionId=${session._id}`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'student-token': getStudentToken(),
-        },
+        headers: { 'Content-Type': 'application/json', 'student-token': getStudentToken() },
         body: JSON.stringify({
           content: { question: question.trim(), upvotes: 0, isAnswered: false },
           ...(mascot && { mascot }),
           ...(stepIndex !== undefined && { stepIndex }),
         }),
       });
-      const data = await res.json();
-      if (data.error) {
-        setError(data.error);
-      } else {
-        setQuestion('');
-        onMascotEvent?.('celebrate');
-        fetchQuestions();
-      }
-    } catch {
-      setError(t('failedToSubmitSimple'));
-    } finally {
-      setSubmitting(false);
-    }
-  };
+      return res.json();
+    },
+    onSuccess: (data) => {
+      if (data.error) { setError(data.error); return; }
+      setQuestion('');
+      onMascotEvent?.('celebrate');
+      qc.invalidateQueries({ queryKey });
+    },
+    onError: () => setError(t('failedToSubmitSimple')),
+  });
 
-  const handleVote = async (questionId: string) => {
-    if (votedIds.has(questionId)) return;
-    const formData = new FormData();
-    formData.append('responseId', questionId);
-    formData.append('action', 'vote');
-    try {
+  const voteMutation = useMutation({
+    mutationFn: async (questionId: string) => {
+      const formData = new FormData();
+      formData.append('responseId', questionId);
+      formData.append('action', 'vote');
       const res = await fetch('/api/tools/edit', {
         method: 'PATCH',
         headers: { 'student-token': getStudentToken() },
         body: formData,
       });
-      if (res.ok) {
-        const newVoted = new Set(votedIds);
-        newVoted.add(questionId);
-        setVotedIds(newVoted);
-        localStorage.setItem(`voted_qa_${session._id}`, JSON.stringify([...newVoted]));
-        fetchQuestions();
-      }
-    } catch {
-      // silent
-    }
+      if (!res.ok) throw new Error('Failed');
+      return questionId;
+    },
+    onSuccess: (questionId) => {
+      const newVoted = new Set(votedIds);
+      newVoted.add(questionId);
+      setVotedIds(newVoted);
+      localStorage.setItem(`voted_qa_${session._id}`, JSON.stringify([...newVoted]));
+      qc.invalidateQueries({ queryKey });
+    },
+  });
+
+  const handleSubmit = () => {
+    if (!question.trim()) return;
+    setError(null);
+    submitMutation.mutate();
+  };
+
+  const handleVote = (questionId: string) => {
+    if (votedIds.has(questionId)) return;
+    voteMutation.mutate(questionId);
   };
 
   const sorted = useMemo(() => [...questions].sort((a, b) => (b.content?.upvotes || 0) - (a.content?.upvotes || 0)), [questions]);
@@ -141,14 +125,14 @@ export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: Q
         {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
         <button
           onClick={handleSubmit}
-          disabled={submitting || !question.trim()}
+          disabled={submitMutation.isPending || !question.trim()}
           className="mt-3 w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50"
         >
-          {submitting ? t('submitting') : t('submitQuestion')}
+          {submitMutation.isPending ? t('submitting') : t('submitQuestion')}
         </button>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="space-y-3 pb-4" style={{ '--sk-base': 'rgba(148,163,184,0.1)', '--sk-shine': 'rgba(148,163,184,0.15)' } as React.CSSProperties}>
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="skeleton p-4 rounded-xl h-20" />
@@ -159,12 +143,12 @@ export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: Q
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-bold text-zinc-900 dark:text-zinc-100">{t('questions')}</h2>
             <button
-              onClick={handleRefresh}
-              disabled={refreshing}
+              onClick={() => refetch()}
+              disabled={isLoading}
               className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 text-zinc-400 transition-colors disabled:opacity-50"
               title={t('refresh')}
             >
-              <i className={`fi fi-sr-refresh text-sm ${refreshing ? 'animate-spin' : ''}`} />
+              <i className={`fi fi-sr-refresh text-sm ${isLoading ? 'animate-spin' : ''}`} />
             </button>
           </div>
           {sorted.length === 0 ? (

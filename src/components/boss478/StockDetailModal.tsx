@@ -31,9 +31,9 @@ export default function StockDetailModal({ symbol, onClose }: StockDetailModalPr
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto">
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={onClose} />
 
-      <div className="relative z-10 w-full max-w-5xl mx-4 my-4 sm:my-8">
+      <div className="relative z-10 w-full max-w-5xl mx-4 my-4 sm:my-8 animate-scale-up">
         <div className="rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-xl overflow-hidden">
           <div className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-zinc-200/60 dark:border-slate-700/50 px-4 sm:px-6 py-3 flex items-center justify-between">
             <button

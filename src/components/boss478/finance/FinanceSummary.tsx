@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { CONFIG } from '@/lib/config';
 import { formatShortDate } from '@/lib/format';
+import { useBudgets } from '@/hooks/use-finance';
 
 const EXPENSE_CATS = CONFIG.FINANCE.CATEGORIES.expense;
 
@@ -131,24 +132,14 @@ function CollapsiblePanel({ title, icon, defaultOpen = false, children }: { titl
 }
 
 export default function FinanceSummary({ data, transactions, loading, error }: Props) {
-  const [budgets, setBudgets] = useState<Map<string, number>>(new Map());
-  const [budgetsLoading, setBudgetsLoading] = useState(false);
-
-  useEffect(() => {
-    if (!data) return;
-    setBudgetsLoading(true);
-    fetch(`/boss478/finance/api/budgets?month=${data.month}`)
-      .then((r) => r.json())
-      .then((res) => {
-        const map = new Map<string, number>();
-        for (const b of res.budget?.budgets || []) {
-          map.set(b.category, b.limit);
-        }
-        setBudgets(map);
-      })
-      .catch(() => {})
-      .finally(() => setBudgetsLoading(false));
-  }, [data?.month]);
+  const month = data?.month ?? '';
+  const { data: budgetData, isLoading: budgetsLoading } = useBudgets(month);
+  const budgets = new Map<string, number>();
+  if (budgetData) {
+    for (const b of budgetData.budgets) {
+      budgets.set(b.category, b.limit);
+    }
+  }
 
   if (loading) {
     return (

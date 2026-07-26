@@ -8,7 +8,9 @@ export const TIER_ORDER: VocabTier[] = ['easy', 'easy-medium', 'medium', 'medium
 
 export const VOCAB_CATEGORIES = CATEGORY_DATA as VocabCategory[];
 
-export const VOCAB_CATEGORY_MAP = new Map<string, VocabCategory>(VOCAB_CATEGORIES.map((c) => [c.id, c]));
+export const VOCAB_CATEGORY_MAP = new Map<string, VocabCategory>(
+  VOCAB_CATEGORIES.map((c) => [c.id, c]),
+);
 
 export function getCategoryDef(id: string): VocabCategory | undefined {
   return VOCAB_CATEGORY_MAP.get(id);

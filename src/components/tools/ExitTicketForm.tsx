@@ -14,7 +14,13 @@ interface ExitTicketFormProps {
 
 type StepKey = 'learned' | 'question' | 'wantToKnow';
 
-export default function ExitTicketForm({ session, stepIndex, studentName: propName, mascot, onMascotEvent }: ExitTicketFormProps) {
+export default function ExitTicketForm({
+  session,
+  stepIndex,
+  studentName: propName,
+  mascot,
+  onMascotEvent,
+}: ExitTicketFormProps) {
   const [studentName, setStudentName] = useState(propName || '');
   const [learned, setLearned] = useState('');
   const [question, setQuestion] = useState('');
@@ -44,13 +50,17 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
     try {
       const res = await fetch(`/api/tools/poll?sessionId=${session._id}`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'student-token': getStudentToken(),
         },
         body: JSON.stringify({
           studentName: studentName.trim() || undefined,
-          content: { learned: learned.trim(), question: question.trim(), wantToKnow: wantToKnow.trim() },
+          content: {
+            learned: learned.trim(),
+            question: question.trim(),
+            wantToKnow: wantToKnow.trim(),
+          },
           ...(mascot && { mascot }),
           ...(stepIndex !== undefined && { stepIndex }),
         }),
@@ -73,15 +83,22 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
     if (isAnimating.current) return;
     isAnimating.current = true;
     setCurrentStep(step);
-    setTimeout(() => { isAnimating.current = false; }, 350);
+    setTimeout(() => {
+      isAnimating.current = false;
+    }, 350);
   };
 
   if (submitted) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-lg w-full p-8 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-lg text-center">
-          <i aria-hidden="true" className="fi fi-sr-check-circle text-6xl text-emerald-500 block mb-4" />
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{t('submittedTitle')}</h2>
+          <i
+            aria-hidden="true"
+            className="fi fi-sr-check-circle text-6xl text-emerald-500 block mb-4"
+          />
+          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+            {t('submittedTitle')}
+          </h2>
           <p className="text-zinc-500 dark:text-zinc-400">{t('thankYouReflection')}</p>
         </div>
       </div>
@@ -130,7 +147,7 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
         </label>
         <textarea
           value={learned}
-          onChange={e => setLearned(e.target.value)}
+          onChange={(e) => setLearned(e.target.value)}
           required
           rows={3}
           placeholder={t('learnedPlaceholder')}
@@ -145,7 +162,7 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
         </label>
         <textarea
           value={question}
-          onChange={e => setQuestion(e.target.value)}
+          onChange={(e) => setQuestion(e.target.value)}
           required
           rows={3}
           placeholder={t('questionPlaceholder')}
@@ -160,7 +177,7 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
         </label>
         <textarea
           value={wantToKnow}
-          onChange={e => setWantToKnow(e.target.value)}
+          onChange={(e) => setWantToKnow(e.target.value)}
           required
           rows={3}
           placeholder={t('wantToKnowPlaceholder')}
@@ -178,7 +195,9 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="max-w-2xl w-full">
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{session.title}</h1>
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+            {session.title}
+          </h1>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm font-mono">
             <i aria-hidden="true" className="fi fi-sr-ticket" />
             {session.sessionCode}
@@ -192,19 +211,17 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
                 {t('yourNameOptional')}
               </label>
               {!propName && (
-              <input
-                type="text"
-                value={studentName}
-                onChange={e => setStudentName(e.target.value)}
-                placeholder={t('anonymousPlaceholder')}
-                className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+                <input
+                  type="text"
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                  placeholder={t('anonymousPlaceholder')}
+                  className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               )}
             </div>
 
-            <div className="hidden sm:block space-y-4">
-              {allFields}
-            </div>
+            <div className="hidden sm:block space-y-4">{allFields}</div>
 
             <div className="block sm:hidden space-y-4">
               <div className="space-y-2">
@@ -212,25 +229,30 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
                   {t('yourNameOptional')}
                 </label>
                 {!propName && (
-                <input
-                  type="text"
-                  value={studentName}
-                  onChange={e => setStudentName(e.target.value)}
-                  placeholder={t('anonymousPlaceholder')}
-                  className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                  <input
+                    type="text"
+                    value={studentName}
+                    onChange={(e) => setStudentName(e.target.value)}
+                    placeholder={t('anonymousPlaceholder')}
+                    className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
                 )}
               </div>
 
               <div key={currentField.key} className={`animate-slide-left`}>
                 <div className="space-y-2">
-                  <label className={`text-sm font-bold text-${currentField.color}-600 dark:text-${currentField.color}-400 flex items-center gap-2`}>
-                    <i aria-hidden="true" className={`fi ${currentField.icon} text-${currentField.color}-500`} />
+                  <label
+                    className={`text-sm font-bold text-${currentField.color}-600 dark:text-${currentField.color}-400 flex items-center gap-2`}
+                  >
+                    <i
+                      aria-hidden="true"
+                      className={`fi ${currentField.icon} text-${currentField.color}-500`}
+                    />
                     {currentField.label}
                   </label>
                   <textarea
                     value={currentField.value}
-                    onChange={e => currentField.set(e.target.value)}
+                    onChange={(e) => currentField.set(e.target.value)}
                     required={currentField.required}
                     rows={4}
                     placeholder={currentField.placeholder}
@@ -247,8 +269,7 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
                   disabled={currentStep === 0}
                   className="px-4 py-2 rounded-xl bg-zinc-200 dark:bg-slate-700 text-zinc-700 dark:text-zinc-300 font-medium disabled:opacity-30 transition-all"
                 >
-                  <i aria-hidden="true" className="fi fi-sr-angle-left" />
-                  {' '}{t('previous')}
+                  <i aria-hidden="true" className="fi fi-sr-angle-left" /> {t('previous')}
                 </button>
 
                 <div className="flex items-center gap-1.5">
@@ -267,8 +288,7 @@ export default function ExitTicketForm({ session, stepIndex, studentName: propNa
                     disabled={!currentField.value.trim()}
                     className="px-4 py-2 rounded-xl bg-blue-600 text-white font-medium disabled:opacity-30 transition-all"
                   >
-                    {t('next')}{' '}
-                    <i aria-hidden="true" className="fi fi-sr-angle-right" />
+                    {t('next')} <i aria-hidden="true" className="fi fi-sr-angle-right" />
                   </button>
                 ) : (
                   <button

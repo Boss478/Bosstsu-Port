@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { toBlob } from 'html-to-image';
 import type { AnalyticsStats } from '@/app/actions/admin';
 import { formatNumber } from '@/lib/analytics/format';
 import { exportCSV } from '@/lib/analytics/export';
+import { analyticsKeys } from '@/lib/query/keys';
 import {
   TrafficVerticalChart,
   DeviceDonutChart,
@@ -25,14 +27,25 @@ export default function AnalyticsDashboardClient({
 }: {
   stats: AnalyticsStats;
 }) {
-  const [stats, setStats] = useState(initialStats);
-  const [refreshing, setRefreshing] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [exporting, setExporting] = useState<'jpg' | 'png' | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const exportRef = useRef<HTMLDivElement>(null);
   const exportBtnRef = useRef<HTMLDivElement>(null);
   const [intervalSec, setIntervalSec] = useState(10);
+
+  const { data: stats = initialStats, isFetching, dataUpdatedAt, refetch } = useQuery({
+    queryKey: analyticsKeys.stats(),
+    queryFn: async () => {
+      const res = await fetch('/admin/analytics/api/data');
+      if (!res.ok) throw new Error('Failed');
+      return (await res.json()) as AnalyticsStats;
+    },
+    refetchInterval: intervalSec * 1000,
+    refetchIntervalInBackground: false,
+  });
+
+  const lastUpdated = dataUpdatedAt ? new Date(dataUpdatedAt) : null;
+  const refreshing = isFetching;
 
   const filledTrafficData = useMemo(() => {
     const today = new Date();
@@ -52,25 +65,6 @@ export default function AnalyticsDashboardClient({
   useEffect(() => {
     const stored = localStorage.getItem(INTERVAL_STORAGE_KEY);
     if (stored) setIntervalSec(Number(stored));
-  }, []);
-
-  useEffect(() => {
-    setLastUpdated(new Date());
-  }, []);
-
-  const refresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      const res = await fetch('/admin/analytics/api/data');
-      if (res.ok) {
-        const data = (await res.json()) as AnalyticsStats;
-        setStats(data);
-        setLastUpdated(new Date());
-      }
-    } catch {
-    } finally {
-      setRefreshing(false);
-    }
   }, []);
 
   const handleExportImage = useCallback(async (format: 'jpg' | 'png') => {
@@ -95,36 +89,6 @@ export default function AnalyticsDashboardClient({
   useEffect(() => {
     localStorage.setItem(INTERVAL_STORAGE_KEY, String(intervalSec));
   }, [intervalSec]);
-
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
-    let active = true;
-
-    function schedule(ms: number) {
-      timer = setTimeout(async () => {
-        if (!active) return;
-        await refresh();
-        if (active) schedule(isFocused() ? intervalSec * 1000 : Math.min(30, intervalSec) * 1000);
-      }, ms);
-    }
-
-    function isFocused() {
-      return !document.hidden;
-    }
-
-    function onVisibility() {
-      clearTimeout(timer);
-      schedule(isFocused() ? intervalSec * 1000 : Math.min(30, intervalSec) * 1000);
-    }
-
-    schedule(intervalSec * 1000);
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => {
-      active = false;
-      clearTimeout(timer);
-      document.removeEventListener('visibilitychange', onVisibility);
-    };
-  }, [refresh, intervalSec]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -174,11 +138,11 @@ export default function AnalyticsDashboardClient({
               </div>
               <div className="flex gap-2">
                 <button
-                  onClick={refresh}
-                  disabled={refreshing}
+                  onClick={() => refetch()}
+                  disabled={isFetching}
                   className="px-3 py-1.5 text-sm rounded-xl border border-zinc-300 dark:border-slate-600 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-1 disabled:opacity-50"
                 >
-                  <i aria-hidden="true" className={`fi fi-sr-refresh text-xs ${refreshing ? 'animate-spin' : ''}`} />
+                  <i aria-hidden="true" className={`fi fi-sr-refresh text-xs ${isFetching ? 'animate-spin' : ''}`} />
                   รีเฟรช
                 </button>
                 <div className="relative" ref={exportBtnRef}>

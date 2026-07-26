@@ -19,7 +19,12 @@ export default function BroadcastBar({ sessionId }: BroadcastBarProps) {
       await fetch('/api/tools/broadcast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, message: message.trim(), messageType, duration: messageType === 'timer' ? duration : undefined }),
+        body: JSON.stringify({
+          sessionId,
+          message: message.trim(),
+          messageType,
+          duration: messageType === 'timer' ? duration : undefined,
+        }),
       });
       setMessage('');
     } catch {
@@ -37,7 +42,9 @@ export default function BroadcastBar({ sessionId }: BroadcastBarProps) {
         onChange={(e) => setMessage(e.target.value)}
         placeholder="ประกาศถึงนักเรียน..."
         className="flex-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
-        onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') handleSend();
+        }}
       />
       <select
         value={messageType}

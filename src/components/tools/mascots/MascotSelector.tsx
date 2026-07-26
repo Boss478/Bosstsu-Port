@@ -25,9 +25,10 @@ export default function MascotSelector({ selectedId, onSelect }: MascotSelectorP
               aria-label={`Select ${m.name} mascot`}
               className={`
                 flex flex-col items-center gap-1 p-2 rounded-xl transition-all cursor-pointer
-                ${isSelected
-                  ? 'bg-blue-100 dark:bg-blue-900/40 ring-2 ring-blue-500 scale-105'
-                  : 'bg-white/40 dark:bg-slate-800/40 hover:bg-zinc-100 dark:hover:bg-slate-700/50 hover:scale-105'
+                ${
+                  isSelected
+                    ? 'bg-blue-100 dark:bg-blue-900/40 ring-2 ring-blue-500 scale-105'
+                    : 'bg-white/40 dark:bg-slate-800/40 hover:bg-zinc-100 dark:hover:bg-slate-700/50 hover:scale-105'
                 }
               `}
             >

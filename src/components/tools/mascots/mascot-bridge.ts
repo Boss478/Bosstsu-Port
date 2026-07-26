@@ -1,8 +1,12 @@
 import type { SpriteData } from './mascot-sprites';
 import type { Mascot } from './mascot-data';
 import {
-  AVATAR_NOX_HEAD, AVATAR_MIRA_HEAD, AVATAR_CHIP_HEAD,
-  MASCOT_IDLE, MIRA_IDLE, CHIP_IDLE,
+  AVATAR_NOX_HEAD,
+  AVATAR_MIRA_HEAD,
+  AVATAR_CHIP_HEAD,
+  MASCOT_IDLE,
+  MIRA_IDLE,
+  CHIP_IDLE,
 } from './mascot-sprites';
 
 const BRIDGE_SPRITES: Record<string, { head: SpriteData; full: SpriteData }> = {

@@ -17,7 +17,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
         <li className="flex items-center">
           <Link
             href="/"
-            className="flex items-center text-zinc-500 hover:text-blue-600 dark:text-zinc-400 dark:hover:text-blue-400 transition-colors"
+            className="flex items-center text-zinc-500 hover:text-blue-600 dark:text-zinc-400 dark:hover:text-blue-400 transition-[color,transform] active:scale-95 active:duration-150"
           >
             <i aria-hidden="true" className="fi fi-sr-home text-xs" />
           </Link>
@@ -29,7 +29,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
             {item.href ? (
               <Link
                 href={item.href}
-                className="flex items-center gap-1.5 text-sm font-medium text-zinc-600 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400 transition-colors"
+                className="flex items-center gap-1.5 text-sm font-medium text-zinc-600 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400 transition-[color,transform] active:scale-95 active:duration-150"
               >
                 {item.icon && <i className={`${item.icon} text-xs`} />}
                 {item.label}

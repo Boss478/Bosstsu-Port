@@ -31,10 +31,7 @@ const POLL_SUCCESS_THRESHOLD = 3;
 const TAB_HIDE_TIMEOUT_MS = 2 * 60 * 1000;
 const DEFAULT_POLL_INTERVAL = 10000;
 
-export function useSSE(
-  sessionId: string,
-  options: UseSSEOptions = {},
-): UseSSEResult {
+export function useSSE(sessionId: string, options: UseSSEOptions = {}): UseSSEResult {
   const [currentStep, setCurrentStep] = useState(-1);
   const [kicked, setKicked] = useState(false);
   const [connected, setConnected] = useState<ConnectionStatus>('disconnected');
@@ -76,7 +73,9 @@ export function useSSE(
             }
             optionsRef.current.onStepChange?.(data.currentStep);
           }
-        } catch { /* ignore malformed */ }
+        } catch {
+          /* ignore malformed */
+        }
       });
 
       es.addEventListener('broadcast', (e: MessageEvent) => {
@@ -89,7 +88,9 @@ export function useSSE(
               duration: data.duration,
             });
           }
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       });
 
       es.onopen = () => {
@@ -209,5 +210,11 @@ export function useSSE(
     };
   }, [connectSSE, clearPolling]);
 
-  return { currentStep, kicked, connected, broadcastMessage, clearBroadcast: () => setBroadcastMessage(null) };
+  return {
+    currentStep,
+    kicked,
+    connected,
+    broadcastMessage,
+    clearBroadcast: () => setBroadcastMessage(null),
+  };
 }

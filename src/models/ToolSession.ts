@@ -73,11 +73,13 @@ const StepConfigFields = {
   maxFileSize: { type: Number, default: 10 * 1024 * 1024 },
   pollMode: { type: String, enum: ['mcq', 'wordcloud'], default: 'mcq' },
   allowCustomChoices: { type: Boolean, default: false },
-  questions: [{
-    question: { type: String },
-    options: [String],
-    correctAnswer: { type: Number },
-  }],
+  questions: [
+    {
+      question: { type: String },
+      options: [String],
+      correctAnswer: { type: Number },
+    },
+  ],
 };
 
 const ToolSessionSchema = new Schema(
@@ -96,26 +98,36 @@ const ToolSessionSchema = new Schema(
     endedAt: { type: Date },
     participantCount: { type: Number, default: 0 },
     responseCount: { type: Number, default: 0 },
-    steps: [{
-      type: { type: String, required: true, enum: ['padlet', 'poll', 'assignment', 'qa_board', 'quiz', 'exit_ticket', 'discussion'] },
-      title: { type: String, required: true },
-      config: StepConfigFields,
-    }],
+    steps: [
+      {
+        type: {
+          type: String,
+          required: true,
+          enum: ['padlet', 'poll', 'assignment', 'qa_board', 'quiz', 'exit_ticket', 'discussion'],
+        },
+        title: { type: String, required: true },
+        config: StepConfigFields,
+      },
+    ],
     currentStep: { type: Number, default: -1 },
     lastActiveStep: { type: Number, default: -1 },
     allowStudentNavigation: { type: Boolean, default: false },
     kickedStudents: [{ type: String }],
-    focusData: [{
-      entries: [{
-        timestamp: { type: Number },
-        type: { type: String, enum: ['visible', 'hidden'] },
-      }],
-      totalMs: { type: Number },
-      userAgent: { type: String },
-      submittedAt: { type: Date },
-    }],
+    focusData: [
+      {
+        entries: [
+          {
+            timestamp: { type: Number },
+            type: { type: String, enum: ['visible', 'hidden'] },
+          },
+        ],
+        totalMs: { type: Number },
+        userAgent: { type: String },
+        submittedAt: { type: Date },
+      },
+    ],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 ToolSessionSchema.index({ isActive: 1, sessionCode: 1 });

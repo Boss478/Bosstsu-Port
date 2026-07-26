@@ -2,21 +2,13 @@
 
 import { useState, FormEvent } from 'react';
 import { CONFIG } from '@/lib/config';
+import { useCreateTransaction } from '@/hooks/use-finance';
 
 const INCOME_CATS = CONFIG.FINANCE.CATEGORIES.income;
 const EXPENSE_CATS = CONFIG.FINANCE.CATEGORIES.expense;
 
-interface QuickTransaction {
-  _id: string;
-  type: 'income' | 'expense';
-  amount: number;
-  category: string;
-  description?: string;
-  date: string;
-}
-
 interface Props {
-  onAdd: (tx: QuickTransaction) => void;
+  onAdd: () => void;
 }
 
 export default function QuickAddBar({ onAdd }: Props) {
@@ -24,8 +16,9 @@ export default function QuickAddBar({ onAdd }: Props) {
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const createTransaction = useCreateTransaction();
+  const saving = createTransaction.isPending;
 
   const categories = type === 'income' ? INCOME_CATS : EXPENSE_CATS;
 
@@ -50,24 +43,18 @@ export default function QuickAddBar({ onAdd }: Props) {
       return;
     }
 
-    setSaving(true);
     try {
-      const res = await fetch('/boss478/finance/api/transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, amount: num, category, description: description || undefined, date: new Date().toISOString() }),
+      await createTransaction.mutateAsync({
+        type,
+        amount: num,
+        category,
+        description: description || undefined,
+        date: new Date().toISOString(),
       });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to save');
-      }
-      const data = await res.json();
-      onAdd(data.transaction);
+      onAdd();
       reset();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save');
-    } finally {
-      setSaving(false);
     }
   }
 

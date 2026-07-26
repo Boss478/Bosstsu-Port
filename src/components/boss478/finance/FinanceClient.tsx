@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, Component, type ReactNode } from 'react';
+import { useState, useEffect, useMemo, useCallback, Component, type ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import FinanceSummary from './FinanceSummary';
 import TransactionList from './TransactionList';
 import SubscriptionList from './SubscriptionList';
@@ -14,17 +15,11 @@ import {
   getPeriodRange,
   PAY_DAY_KEY,
 } from '@/lib/period';
+import { useTransactions, useSubscriptions } from '@/hooks/use-finance';
+import { financeKeys } from '@/lib/query/keys';
+import type { TransactionData } from '@/hooks/use-finance';
 
 const { MONTHLY_NORMALIZER } = CONFIG.FINANCE;
-
-interface Transaction {
-  _id: string;
-  type: 'income' | 'expense';
-  amount: number;
-  category: string;
-  description?: string;
-  date: string;
-}
 
 class FinanceErrorBoundary extends Component<
   { children: ReactNode; tabName: string },
@@ -78,21 +73,10 @@ function writePayDay(payDay: number | null) {
 }
 
 export default function FinanceClient() {
+  const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [payDay, setPayDayState] = useState<number | null>(null);
   const [month, setMonth] = useState('');
-  const [summaryData, setSummaryData] = useState<{
-    incomeTotal: number;
-    expenseTotal: number;
-    subscriptionTotal: number;
-    allExpense: number;
-    netRemaining: number;
-    month: string;
-  } | null>(null);
-  const [summaryTransactions, setSummaryTransactions] = useState<Transaction[]>([]);
-  const [summaryLoading, setSummaryLoading] = useState(true);
-  const [summaryError, setSummaryError] = useState<string | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
   const [showPayDayEditor, setShowPayDayEditor] = useState(false);
   const [payDayInput, setPayDayInput] = useState('');
 
@@ -117,68 +101,53 @@ export default function FinanceClient() {
     }
   }
 
-  const fetchSummary = useCallback(async () => {
-    setSummaryLoading(true);
-    setSummaryError(null);
-    try {
-      let txUrl = '';
-      if (payDay) {
-        const range = getPeriodRange(payDay, month);
-        txUrl = `/boss478/finance/api/transactions?startDate=${range.start.toISOString()}&endDate=${range.end.toISOString()}`;
-      } else {
-        txUrl = `/boss478/finance/api/transactions?month=${month}`;
-      }
-
-      const [txRes, subRes] = await Promise.all([
-        fetch(txUrl),
-        fetch('/boss478/finance/api/subscriptions'),
-      ]);
-
-      if (!txRes.ok || !subRes.ok) throw new Error('Failed to fetch summary');
-
-      const { transactions } = await txRes.json();
-      setSummaryTransactions(transactions);
-      const { subscriptions } = await subRes.json();
-
-      const incomeTotal = transactions
-        .filter((t: { type: string }) => t.type === 'income')
-        .reduce((s: number, t: { amount: number }) => s + t.amount, 0);
-
-      const expenseTotal = transactions
-        .filter((t: { type: string }) => t.type === 'expense')
-        .reduce((s: number, t: { amount: number }) => s + t.amount, 0);
-
-      const subscriptionTotal = subscriptions
-        .filter((s: { active: boolean }) => s.active)
-        .reduce((sum: number, s: { amount: number; billingCycle: string }) => {
-          const norm = MONTHLY_NORMALIZER[s.billingCycle as keyof typeof MONTHLY_NORMALIZER] || 1;
-          return sum + s.amount * norm;
-        }, 0);
-
-      const allExpense = expenseTotal + subscriptionTotal;
-
-      setSummaryData({
-        incomeTotal,
-        expenseTotal,
-        subscriptionTotal,
-        allExpense,
-        netRemaining: incomeTotal - allExpense,
-        month,
-      });
-    } catch {
-      setSummaryError('Could not load summary');
-    } finally {
-      setSummaryLoading(false);
+  const txFilters = useMemo(() => {
+    if (!month) return {};
+    if (payDay) {
+      const range = getPeriodRange(payDay, month);
+      return {
+        startDate: range.start.toISOString(),
+        endDate: range.end.toISOString(),
+      };
     }
+    return { month };
   }, [payDay, month]);
 
-  useEffect(() => {
-    if (month) {
-      fetchSummary();
-    }
-  }, [fetchSummary, refreshKey, month]);
+  const { data: summaryTransactions = [], isLoading: txLoading, error: txError } = useTransactions(txFilters);
+  const { data: subscriptions = [], isLoading: subLoading } = useSubscriptions();
+  const summaryLoading = txLoading || subLoading;
 
-  const goPrev = useCallback(() => {
+  const summaryData = useMemo(() => {
+    if (!month) return null;
+
+    const incomeTotal = summaryTransactions
+      .filter((t) => t.type === 'income')
+      .reduce((s, t) => s + t.amount, 0);
+
+    const expenseTotal = summaryTransactions
+      .filter((t) => t.type === 'expense')
+      .reduce((s, t) => s + t.amount, 0);
+
+    const subscriptionTotal = subscriptions
+      .filter((s) => s.active)
+      .reduce((sum, s) => {
+        const norm = MONTHLY_NORMALIZER[s.billingCycle as keyof typeof MONTHLY_NORMALIZER] || 1;
+        return sum + s.amount * norm;
+      }, 0);
+
+    const allExpense = expenseTotal + subscriptionTotal;
+
+    return {
+      incomeTotal,
+      expenseTotal,
+      subscriptionTotal,
+      allExpense,
+      netRemaining: incomeTotal - allExpense,
+      month,
+    };
+  }, [summaryTransactions, subscriptions, month]);
+
+  const goPrev = () => {
     if (payDay) {
       setMonth(getPreviousPeriodKey(payDay, month));
     } else {
@@ -186,9 +155,9 @@ export default function FinanceClient() {
       const d = new Date(y, m - 2, 1);
       setMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
     }
-  }, [payDay, month]);
+  };
 
-  const goNext = useCallback(() => {
+  const goNext = () => {
     if (payDay) {
       setMonth(getNextPeriodKey(payDay, month));
     } else {
@@ -196,7 +165,7 @@ export default function FinanceClient() {
       const d = new Date(y, m, 1);
       setMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
     }
-  }, [payDay, month]);
+  };
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-8">
@@ -271,7 +240,7 @@ export default function FinanceClient() {
               />
             )}
             <button
-              onClick={() => { setRefreshKey((k) => k + 1); }}
+              onClick={() => qc.invalidateQueries({ queryKey: financeKeys.all })}
               className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
             >
               <i aria-hidden="true" className="fi fi-sr-rotate-left text-xs text-zinc-600 dark:text-zinc-400" />
@@ -324,18 +293,14 @@ export default function FinanceClient() {
             data={summaryData}
             transactions={summaryTransactions}
             loading={summaryLoading}
-            error={summaryError}
+            error={txError ? 'Could not load summary' : null}
           />
         </div>
       )}
 
       {activeTab === 'transactions' && (
         <FinanceErrorBoundary tabName="Transactions">
-          <TransactionList
-            refreshKey={refreshKey}
-            payDay={payDay}
-            month={month}
-          />
+          <TransactionList refreshKey={0} payDay={payDay} month={month} />
         </FinanceErrorBoundary>
       )}
 
@@ -347,7 +312,7 @@ export default function FinanceClient() {
 
       {activeTab === 'subscriptions' && (
         <FinanceErrorBoundary tabName="Subscriptions">
-          <SubscriptionList refreshKey={refreshKey} />
+          <SubscriptionList refreshKey={0} />
         </FinanceErrorBoundary>
       )}
     </div>

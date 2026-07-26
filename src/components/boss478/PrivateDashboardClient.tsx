@@ -1,6 +1,6 @@
 'use client';
 
-import { Component, type ReactNode } from 'react';
+import { Component, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { StockDataProvider, useStockData, PERIOD_CONFIG } from './StockDataContext';
 import MarketOverview from './MarketOverview';
 import PortfolioTracker from './PortfolioTracker';
@@ -52,6 +52,27 @@ const TABS = [
 
 function DashboardInner() {
   const { activeTab, setActiveTab, period, setPeriod, manualRefresh, isLoading, lastUpdated, setRefreshInterval, refreshInterval, failedYahooCalls, marketState } = useStockData();
+  const tabBarRef = useRef<HTMLDivElement>(null);
+  const [indicatorX, setIndicatorX] = useState(0);
+  const [indicatorW, setIndicatorW] = useState(0);
+
+  const updateIndicator = useCallback(() => {
+    if (!tabBarRef.current) return;
+    const btn = tabBarRef.current.querySelector(`[data-tab-id="${activeTab}"]`) as HTMLElement | null;
+    if (!btn) return;
+    const cr = tabBarRef.current.getBoundingClientRect();
+    const br = btn.getBoundingClientRect();
+    setIndicatorX(br.left - cr.left);
+    setIndicatorW(br.width);
+  }, [activeTab]);
+
+  useEffect(() => {
+    updateIndicator();
+  }, [updateIndicator]);
+
+  const handleTabClick = useCallback((id: string) => {
+    setActiveTab(id);
+  }, [setActiveTab]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
@@ -64,7 +85,7 @@ function DashboardInner() {
           <button
             onClick={manualRefresh}
             disabled={isLoading}
-            className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-transform duration-75 active:scale-95"
           >
             <i className={`fi fi-sr-rotate-left text-sm text-zinc-600 dark:text-zinc-400 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
@@ -80,15 +101,20 @@ function DashboardInner() {
         </div>
       </div>
 
-      <div className="hidden md:flex items-center gap-1 mb-6 p-1 rounded-xl bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 w-fit">
+      <div ref={tabBarRef} className="hidden md:flex items-center gap-1 mb-6 p-1 rounded-xl bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 w-fit relative">
+        <div
+          className="absolute top-1 bottom-1 bg-blue-600 rounded-lg shadow-sm pointer-events-none transition-transform duration-300 ease-out"
+          style={{ width: indicatorW, transform: `translateX(${indicatorX}px)` }}
+        />
         {TABS.map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 cursor-pointer ${
+            data-tab-id={tab.id}
+            onClick={() => handleTabClick(tab.id)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-transform duration-75 active:scale-95 flex items-center gap-2 cursor-pointer relative z-10 ${
               activeTab === tab.id
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-white/50 dark:hover:bg-slate-700/50'
+                ? 'text-white'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
             }`}
           >
             <i className={`fi ${tab.icon}`} />
@@ -104,7 +130,7 @@ function DashboardInner() {
             <button
               key={p.value}
               onClick={() => setPeriod(p.value)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-transform duration-75 active:scale-95 cursor-pointer ${
                 period === p.value
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200'
@@ -145,18 +171,25 @@ function DashboardInner() {
         </div>
       )}
 
-      <TabErrorBoundary tabName="Overview">
-        {activeTab === 'overview' && <MarketOverview />}
-      </TabErrorBoundary>
-      <TabErrorBoundary tabName="Portfolio">
-        {activeTab === 'portfolio' && <PortfolioTracker />}
-      </TabErrorBoundary>
-      <TabErrorBoundary tabName="Charts">
-        {activeTab === 'charts' && <ChartViews />}
-      </TabErrorBoundary>
-      <TabErrorBoundary tabName="Watchlist">
-        {activeTab === 'watchlist' && <Watchlist />}
-      </TabErrorBoundary>
+      <div className="grid grid-rows-[1fr]">
+        {TABS.map(tab => (
+          <div
+            key={tab.id}
+            className={`col-start-1 row-start-1 transition-all duration-300 ${
+              activeTab === tab.id
+                ? 'opacity-100 translate-x-0 z-10'
+                : 'opacity-0 translate-x-4 pointer-events-none'
+            }`}
+          >
+            <TabErrorBoundary tabName={tab.label}>
+              {tab.id === 'overview' && <MarketOverview />}
+              {tab.id === 'portfolio' && <PortfolioTracker />}
+              {tab.id === 'charts' && <ChartViews />}
+              {tab.id === 'watchlist' && <Watchlist />}
+            </TabErrorBoundary>
+          </div>
+        ))}
+      </div>
 
       <BottomNavBar tabs={TABS} />
     </div>

@@ -2011,7 +2011,7 @@ export const COMPANIONS: Record<string, CompanionData> = {
         2: 'Nouns label objects. Verbs describe action. Adjectives add cosmic qualities.',
         3: 'Run classification subroutine on target word. Identify grammatical nature.',
       },
-      'collocations': {
+      collocations: {
         1: 'Analyzing word pair bonding patterns in Earth linguistic corpus.',
         2: 'Some words form natural alliances. Detect the compatible partner.',
         3: 'Common phrase database suggests one pairing has high probability.',

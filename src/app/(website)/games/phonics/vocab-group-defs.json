@@ -1850,11 +1850,7 @@
     "color": "#FDCB6E",
     "icon": "fi-sr-smile",
     "description": "joyful, cheerful, delighted, elated",
-    "synonymOf": [
-      "happy",
-      "glad",
-      "joyful"
-    ],
+    "synonymOf": ["happy", "glad", "joyful"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -1876,11 +1872,7 @@
     "color": "#5DADE2",
     "icon": "fi-sr-frown",
     "description": "unhappy, gloomy, miserable, sorrowful",
-    "synonymOf": [
-      "sad",
-      "unhappy",
-      "sorrowful"
-    ],
+    "synonymOf": ["sad", "unhappy", "sorrowful"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -1902,11 +1894,7 @@
     "color": "#E74C3C",
     "icon": "fi-sr-angry",
     "description": "furious, irritated, enraged, livid",
-    "synonymOf": [
-      "angry",
-      "mad",
-      "furious"
-    ],
+    "synonymOf": ["angry", "mad", "furious"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -1928,11 +1916,7 @@
     "color": "#E17055",
     "icon": "fi-sr-laugh",
     "description": "humorous, hilarious, amusing, witty",
-    "synonymOf": [
-      "funny",
-      "humorous",
-      "hilarious"
-    ],
+    "synonymOf": ["funny", "humorous", "hilarious"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -1954,12 +1938,7 @@
     "color": "#6C5CE7",
     "icon": "fi-sr-surprise",
     "description": "frightened, terrified, alarmed, anxious",
-    "synonymOf": [
-      "scared",
-      "afraid",
-      "frightened",
-      "terrified"
-    ],
+    "synonymOf": ["scared", "afraid", "frightened", "terrified"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -5925,11 +5904,7 @@
     "color": "#00CEC9",
     "icon": "fi-sr-bulb",
     "description": "intelligent, clever, brilliant, sharp",
-    "synonymOf": [
-      "smart",
-      "intelligent",
-      "clever"
-    ],
+    "synonymOf": ["smart", "intelligent", "clever"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -5951,12 +5926,7 @@
     "color": "#00B894",
     "icon": "fi-sr-heart",
     "description": "gentle, compassionate, caring, thoughtful",
-    "synonymOf": [
-      "kind",
-      "nice",
-      "gentle",
-      "caring"
-    ],
+    "synonymOf": ["kind", "nice", "gentle", "caring"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -5978,11 +5948,7 @@
     "color": "#E74C3C",
     "icon": "fi-sr-shield",
     "description": "courageous, fearless, daring, valiant",
-    "synonymOf": [
-      "brave",
-      "courageous",
-      "fearless"
-    ],
+    "synonymOf": ["brave", "courageous", "fearless"],
     "minLevel": "b1",
     "maxLevel": "c1",
     "activityTypes": [
@@ -6004,11 +5970,7 @@
     "color": "#F39C12",
     "icon": "fi-sr-crown",
     "description": "renowned, celebrated, prominent, notable",
-    "synonymOf": [
-      "famous",
-      "well-known",
-      "renowned"
-    ],
+    "synonymOf": ["famous", "well-known", "renowned"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -6030,11 +5992,7 @@
     "color": "#27AE60",
     "icon": "fi-sr-check",
     "description": "truthful, sincere, genuine, candid",
-    "synonymOf": [
-      "honest",
-      "truthful",
-      "sincere"
-    ],
+    "synonymOf": ["honest", "truthful", "sincere"],
     "minLevel": "b1",
     "maxLevel": "c1",
     "activityTypes": [
@@ -6056,12 +6014,7 @@
     "color": "#2D3436",
     "icon": "fi-sr-gym",
     "description": "powerful, mighty, robust, sturdy, resilient",
-    "synonymOf": [
-      "strong",
-      "powerful",
-      "mighty",
-      "robust"
-    ],
+    "synonymOf": ["strong", "powerful", "mighty", "robust"],
     "minLevel": "b1",
     "maxLevel": "c1",
     "activityTypes": [
@@ -6098,13 +6051,7 @@
       "exercise"
     ],
     "baseLength": 4,
-    "synonymOf": [
-      "small",
-      "tiny",
-      "little",
-      "miniature",
-      "minute"
-    ]
+    "synonymOf": ["small", "tiny", "little", "miniature", "minute"]
   },
   {
     "id": "big-synonyms",
@@ -6114,11 +6061,7 @@
     "color": "#2D3436",
     "icon": "fi-sr-expand",
     "description": "Synonyms for large, enormous, huge, massive",
-    "synonymOf": [
-      "big",
-      "large",
-      "huge"
-    ],
+    "synonymOf": ["big", "large", "huge"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -6155,13 +6098,7 @@
       "exercise"
     ],
     "baseLength": 4,
-    "synonymOf": [
-      "large",
-      "huge",
-      "enormous",
-      "massive",
-      "gigantic"
-    ]
+    "synonymOf": ["large", "huge", "enormous", "massive", "gigantic"]
   },
   {
     "id": "good-synonyms",
@@ -6171,11 +6108,7 @@
     "color": "#27AE60",
     "icon": "fi-sr-thumbs-up",
     "description": "excellent, superb, outstanding, first-rate",
-    "synonymOf": [
-      "good",
-      "great",
-      "excellent"
-    ],
+    "synonymOf": ["good", "great", "excellent"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -6197,11 +6130,7 @@
     "color": "#E74C3C",
     "icon": "fi-sr-thumbs-down",
     "description": "terrible, awful, dreadful, lousy",
-    "synonymOf": [
-      "bad",
-      "poor",
-      "terrible"
-    ],
+    "synonymOf": ["bad", "poor", "terrible"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -6223,11 +6152,7 @@
     "color": "#E84393",
     "icon": "fi-sr-heart",
     "description": "gorgeous, stunning, lovely, breathtaking",
-    "synonymOf": [
-      "beautiful",
-      "pretty",
-      "gorgeous"
-    ],
+    "synonymOf": ["beautiful", "pretty", "gorgeous"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -6249,11 +6174,7 @@
     "color": "#0984E3",
     "icon": "fi-sr-rocket",
     "description": "quick, rapid, swift, speedy",
-    "synonymOf": [
-      "fast",
-      "quick",
-      "rapid"
-    ],
+    "synonymOf": ["fast", "quick", "rapid"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -6275,11 +6196,7 @@
     "color": "#F39C12",
     "icon": "fi-sr-star",
     "description": "significant, crucial, vital, essential",
-    "synonymOf": [
-      "important",
-      "significant",
-      "crucial"
-    ],
+    "synonymOf": ["important", "significant", "crucial"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -6301,11 +6218,7 @@
     "color": "#6C5CE7",
     "icon": "fi-sr-puzzle-piece",
     "description": "hard, challenging, tough, arduous",
-    "synonymOf": [
-      "difficult",
-      "hard",
-      "tough"
-    ],
+    "synonymOf": ["difficult", "hard", "tough"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -6327,11 +6240,7 @@
     "color": "#A29BFE",
     "icon": "fi-sr-question",
     "description": "odd, peculiar, bizarre, weird, unusual",
-    "synonymOf": [
-      "strange",
-      "weird",
-      "odd"
-    ],
+    "synonymOf": ["strange", "weird", "odd"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -6353,12 +6262,7 @@
     "color": "#636E72",
     "icon": "fi-sr-moon",
     "description": "silent, still, tranquil, peaceful, calm",
-    "synonymOf": [
-      "quiet",
-      "silent",
-      "calm",
-      "peaceful"
-    ],
+    "synonymOf": ["quiet", "silent", "calm", "peaceful"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -6380,11 +6284,7 @@
     "color": "#636E72",
     "icon": "fi-sr-hourglass",
     "description": "ancient, elderly, aged, antique, vintage",
-    "synonymOf": [
-      "old",
-      "ancient",
-      "elderly"
-    ],
+    "synonymOf": ["old", "ancient", "elderly"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [
@@ -6406,12 +6306,7 @@
     "color": "#00CEC9",
     "icon": "fi-sr-sparkles",
     "description": "modern, recent, fresh, novel, contemporary",
-    "synonymOf": [
-      "new",
-      "modern",
-      "recent",
-      "fresh"
-    ],
+    "synonymOf": ["new", "modern", "recent", "fresh"],
     "minLevel": "a2",
     "maxLevel": "c1",
     "activityTypes": [

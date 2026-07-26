@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from 'react';
 import { CONFIG } from '@/lib/config';
+import { useCreateTransaction, useUpdateTransaction } from '@/hooks/use-finance';
 
 const INCOME_CATS = CONFIG.FINANCE.CATEGORIES.income;
 const EXPENSE_CATS = CONFIG.FINANCE.CATEGORIES.expense;
@@ -28,8 +29,10 @@ export default function TransactionForm({ editing, onClose, onSaved }: Props) {
     description: editing?.description || '',
     date: editing?.date || new Date().toISOString().split('T')[0],
   });
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const createTransaction = useCreateTransaction();
+  const updateTransaction = useUpdateTransaction();
+  const saving = createTransaction.isPending || updateTransaction.isPending;
 
   const categories = form.type === 'income' ? INCOME_CATS : EXPENSE_CATS;
 
@@ -47,25 +50,28 @@ export default function TransactionForm({ editing, onClose, onSaved }: Props) {
       return;
     }
 
-    setSaving(true);
     try {
-      const url = editing
-        ? `/boss478/finance/api/transactions?id=${editing.id}`
-        : '/boss478/finance/api/transactions';
-      const res = await fetch(url, {
-        method: editing ? 'PATCH' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, amount }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to save');
+      if (editing) {
+        await updateTransaction.mutateAsync({
+          _id: editing.id,
+          type: form.type,
+          amount,
+          category: form.category,
+          description: form.description,
+          date: form.date,
+        });
+      } else {
+        await createTransaction.mutateAsync({
+          type: form.type,
+          amount,
+          category: form.category,
+          description: form.description,
+          date: form.date,
+        });
       }
       onSaved();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save');
-    } finally {
-      setSaving(false);
     }
   }
 

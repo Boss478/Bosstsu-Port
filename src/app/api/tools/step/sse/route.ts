@@ -47,7 +47,11 @@ export async function GET(req: NextRequest) {
         closed = true;
         if (heartbeatInterval) clearInterval(heartbeatInterval);
         cleanup();
-        try { controller.close(); } catch { /* already closed */ }
+        try {
+          controller.close();
+        } catch {
+          /* already closed */
+        }
       };
 
       const stepPayload = JSON.stringify({ type: 'step', currentStep: initialStep, kicked });

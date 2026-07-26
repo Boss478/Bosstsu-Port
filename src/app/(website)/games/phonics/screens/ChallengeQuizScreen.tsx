@@ -194,10 +194,7 @@ export default function ChallengeQuizScreen({
     return base.filter((w) => poolWords.has(w.word));
   }, [allWordEntries, config.wordPool]);
 
-  const wordPool = useMemo(
-    () => config.wordPool ?? undefined,
-    [config.wordPool],
-  );
+  const wordPool = useMemo(() => config.wordPool ?? undefined, [config.wordPool]);
 
   const [questions] = useState(() => {
     const count =

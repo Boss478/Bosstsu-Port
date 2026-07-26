@@ -15,7 +15,12 @@ import { useToast } from '@/hooks/useToast';
 import StudentSetupScreen from './StudentSetupScreen';
 import MascotCompanion, { type MascotEvent } from './mascots/MascotCompanion';
 import StudentSettings from './StudentSettings';
-import { getMascotStorageKey, loadMascotId, saveMascotId, getRandomMascot } from './mascots/mascot-data';
+import {
+  getMascotStorageKey,
+  loadMascotId,
+  saveMascotId,
+  getRandomMascot,
+} from './mascots/mascot-data';
 import { t } from '@/lib/tool-translations';
 import { useSSE } from '@/lib/use-sse';
 import { useDeviceTier } from '@/lib/device-tier-provider';
@@ -42,7 +47,9 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
 
   const nameStorageKey = `tool_name_${session._id}`;
   const nameConfirmedRef = useRef(nameConfirmed);
-  useEffect(() => { nameConfirmedRef.current = nameConfirmed; }, [nameConfirmed]);
+  useEffect(() => {
+    nameConfirmedRef.current = nameConfirmed;
+  }, [nameConfirmed]);
 
   useEffect(() => {
     if (session.requireStudentName) {
@@ -112,9 +119,12 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
   const handleMascotEvent = useCallback((event: MascotEvent) => {
     setMascotEventType(event);
     setMascotEventCount((c) => c + 1);
-    const msg = event === 'celebrate' ? t('toastSubmitted')
-      : event === 'correct' ? t('toastCorrect')
-      : t('toastError');
+    const msg =
+      event === 'celebrate'
+        ? t('toastSubmitted')
+        : event === 'correct'
+          ? t('toastCorrect')
+          : t('toastError');
     toast.show(msg, event === 'wrong' ? 'error' : 'success');
   }, []);
 
@@ -122,7 +132,15 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
     return (
       <>
         <SessionGuard session={session} mascotId={enableMascots ? selectedMascot : null} />
-        <StudentSettings open={settingsOpen} onOpenChange={setSettingsOpen} selectedMascot={selectedMascot} onMascotSelect={(id) => { setSelectedMascot(id); saveMascotId(session._id, id); }} />
+        <StudentSettings
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          selectedMascot={selectedMascot}
+          onMascotSelect={(id) => {
+            setSelectedMascot(id);
+            saveMascotId(session._id, id);
+          }}
+        />
       </>
     );
   }
@@ -144,7 +162,15 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
           enableMascots={enableMascots}
           sessionTitle={session.title}
         />
-        <StudentSettings open={settingsOpen} onOpenChange={setSettingsOpen} selectedMascot={selectedMascot} onMascotSelect={(id) => { setSelectedMascot(id); saveMascotId(session._id, id); }} />
+        <StudentSettings
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          selectedMascot={selectedMascot}
+          onMascotSelect={(id) => {
+            setSelectedMascot(id);
+            saveMascotId(session._id, id);
+          }}
+        />
         {enableMascots && selectedMascot && (
           <MascotCompanion
             sessionId={session._id}
@@ -180,8 +206,19 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
           onDismiss={clearBroadcast}
         />
       )}
-      <StudentSettings open={settingsOpen} onOpenChange={setSettingsOpen} selectedMascot={selectedMascot} />
-      {renderTool(session, sharedProps, enableMascots, selectedMascot, mascotEventType, mascotEventCount)}
+      <StudentSettings
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        selectedMascot={selectedMascot}
+      />
+      {renderTool(
+        session,
+        sharedProps,
+        enableMascots,
+        selectedMascot,
+        mascotEventType,
+        mascotEventCount,
+      )}
       {enableMascots && selectedMascot && (
         <MascotCompanion
           sessionId={session._id}
@@ -205,7 +242,7 @@ function renderTool(
   enableMascots: boolean,
   selectedMascot: string | null,
   mascotEventType: MascotEvent | null,
-  mascotEventCount: number
+  mascotEventCount: number,
 ) {
   const props = sharedProps as {
     session: unknown;
@@ -216,17 +253,51 @@ function renderTool(
 
   switch (session.type) {
     case 'padlet':
-      return <ToolErrorBoundary key="padlet"><PadletBoard {...props} /></ToolErrorBoundary>;
+      return (
+        <ToolErrorBoundary key="padlet">
+          <PadletBoard {...props} />
+        </ToolErrorBoundary>
+      );
     case 'poll':
-      return <ToolErrorBoundary key="poll"><MentimeterPoll session={session} mascot={props.mascot} onMascotEvent={props.onMascotEvent} /></ToolErrorBoundary>;
+      return (
+        <ToolErrorBoundary key="poll">
+          <MentimeterPoll
+            session={session}
+            mascot={props.mascot}
+            onMascotEvent={props.onMascotEvent}
+          />
+        </ToolErrorBoundary>
+      );
     case 'assignment':
-      return <ToolErrorBoundary key="assignment"><AssignmentForm {...props} /></ToolErrorBoundary>;
+      return (
+        <ToolErrorBoundary key="assignment">
+          <AssignmentForm {...props} />
+        </ToolErrorBoundary>
+      );
     case 'qa_board':
-      return <ToolErrorBoundary key="qa_board"><QABoard session={session} mascot={props.mascot} onMascotEvent={props.onMascotEvent} /></ToolErrorBoundary>;
+      return (
+        <ToolErrorBoundary key="qa_board">
+          <QABoard session={session} mascot={props.mascot} onMascotEvent={props.onMascotEvent} />
+        </ToolErrorBoundary>
+      );
     case 'quiz':
-      return <ToolErrorBoundary key="quiz"><QuickQuiz session={session} stepIndex={undefined} studentName={props.studentName} mascot={props.mascot} onMascotEvent={props.onMascotEvent} /></ToolErrorBoundary>;
+      return (
+        <ToolErrorBoundary key="quiz">
+          <QuickQuiz
+            session={session}
+            stepIndex={undefined}
+            studentName={props.studentName}
+            mascot={props.mascot}
+            onMascotEvent={props.onMascotEvent}
+          />
+        </ToolErrorBoundary>
+      );
     case 'exit_ticket':
-      return <ToolErrorBoundary key="exit_ticket"><ExitTicketForm {...props} /></ToolErrorBoundary>;
+      return (
+        <ToolErrorBoundary key="exit_ticket">
+          <ExitTicketForm {...props} />
+        </ToolErrorBoundary>
+      );
     default:
       return (
         <div className="min-h-screen flex items-center justify-center">

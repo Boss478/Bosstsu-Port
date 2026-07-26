@@ -112,7 +112,11 @@ function resetIdleTimer(sessionId: string): void {
       if (!sessionClients) return;
 
       Array.from(sessionClients).forEach((controller) => {
-        try { controller.close(); } catch { /* already closed */ }
+        try {
+          controller.close();
+        } catch {
+          /* already closed */
+        }
       });
 
       clients.delete(sessionId);

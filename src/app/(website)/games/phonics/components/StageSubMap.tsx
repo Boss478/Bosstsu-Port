@@ -56,7 +56,8 @@ export default function StageSubMap() {
   const { save, selectedGroup, selectGroup, selectStage, selectLesson } = useGame();
   const activityProgress = useMemo(() => save?.activityProgress ?? {}, [save?.activityProgress]);
 
-  const grp = selectedGroup && 'phonemeIds' in selectedGroup ? (selectedGroup as SimilarSoundGroup) : null;
+  const grp =
+    selectedGroup && 'phonemeIds' in selectedGroup ? (selectedGroup as SimilarSoundGroup) : null;
 
   const phonemeNodes = useMemo(() => {
     if (!grp) return [];

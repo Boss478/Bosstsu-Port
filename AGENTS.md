@@ -94,7 +94,34 @@ KVM1 VPS (1 vCPU, 4GB RAM). DB pool: 3 (do not raise). Rate limit: 5 logins/15mi
 
 ---
 
+## Session End — Memory Capture
+
+Run `/capture <summary>` at session end to persist learnings:
+
+### What to Capture
+- **Decisions**: Why choices were made, alternatives rejected
+- **Bugs**: Root cause, how found, how fixed
+- **Patterns**: Reusable conventions discovered
+- **Gotchas**: Non-obvious behavior or pitfalls
+
+### Where It Goes
+| Destination | Path | Purpose |
+|-------------|------|---------|
+| Local memory | `.agents/memory.md` | Quick lookup next session |
+| Obsidian vault | `obsidian-vault/boss-project/` | Long-term persistence |
+| Session report | `.agents/report/report-{date}.md` | Full session record |
+
+### Format
+Append to `.agents/memory.md`:
+```markdown
+## YYYY-MM-DD — Brief Title
+- **Decision/Pattern**: What | Why
+- **Bug/Issue**: Root cause | Fix
+- **Gotcha**: Non-obvious behavior
+```
+
 ## Prompt Efficiency
+
 
 - **Prefer `question` with preset options** for cacheable prompts
 - **Batch related edits** to maintain cache continuity

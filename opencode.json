@@ -1,7 +1,84 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "lsp": true,
-  "instructions": ["AGENTS.md"],
+  "instructions": [
+    "AGENTS.md"
+  ],
+  "permission": {
+    "*": "ask",
+    "read": {
+      "*": "allow",
+      ".env": "ask",
+      ".env.production": "ask",
+      "*secret*": "ask",
+      "*password*": "ask",
+      "*credential*": "ask",
+      "*key*": "ask",
+      "*token*": "ask",
+      "*auth*": "ask"
+    },
+    "edit": {
+      "*": "allow",
+      ".env": "ask",
+      ".env.local": "allow",
+      ".env.development": "allow",
+      ".env.example": "allow",
+      ".env.production": "ask",
+      ".env.staging": "ask",
+      "*secret*": "ask",
+      "*password*": "ask",
+      "*credential*": "ask",
+      "*key*": "ask",
+      "*token*": "ask",
+      "*auth*": "ask",
+      "*.pem": "ask",
+      ".ssh/**": "ask",
+      ".aws/**": "ask",
+      "node_modules/**": "ask",
+      ".next/**": "ask",
+      "dist/**": "ask",
+      "coverage/**": "ask",
+      "package-lock.json": "ask",
+      "yarn.lock": "ask",
+      "pnpm-lock.yaml": "ask"
+    },
+    "glob": "allow",
+    "grep": "allow",
+    "bash": {
+      "*": "ask",
+      "git status *": "allow",
+      "git diff *": "allow",
+      "git log *": "allow",
+      "git add *": "allow",
+      "git commit *": "ask",
+      "git push *": "ask",
+      "ls *": "allow",
+      "cat *": "allow",
+      "pwd *": "allow",
+      "echo *": "allow",
+      "cd *": "allow",
+      "cp *": "allow",
+      "mv *": "allow",
+      "mkdir *": "allow",
+      "kill *": "allow",
+      "chmod *": "ask",
+      "docker *": "ask",
+      "npm run dev *": "allow",
+      "npm run build *": "allow",
+      "npm run lint *": "allow",
+      "npm run typecheck *": "allow",
+      "npm test *": "allow",
+      "curl *": "allow",
+      "rm -rf *": "ask",
+      "rm -r *": "ask",
+      "sudo *": "ask"
+    },
+    "webfetch": "allow",
+    "websearch": "allow",
+    "question": "allow",
+    "task": "allow",
+    "skill": "allow",
+    "execute": "allow"
+  },
   "command": {
     "goal": {
       "description": "Set a session-scoped goal and auto-continue until complete.",
@@ -9,166 +86,57 @@
       "agent": "build"
     }
   },
-  "plugin": [
-    "opencode-notify",
-    "opencode-vibeguard",
-    "opencode-shell-strategy",
-    "opencode-goal-plugin",
-    "opencode-commands",
-    "opencode-pty",
-    "opencode-worktree"
-  ],
-  "agent": {
-    "build": {
-      "permission": {
-        "task": {
-          "*": "deny",
-          "planner": "allow",
-          "builder": "allow",
-          "explore": "allow",
-          "code-reviewer": "allow",
-          "test-engineer": "allow",
-          "deploy": "allow",
-          "triage": "allow",
-          "docs-lookup": "allow"
-        }
-      }
-    },
-    "code-reviewer": {
-      "description": "Expert code review for quality, security, and maintainability.",
-      "mode": "subagent",
-      "tools": {
-        "read": true,
-        "glob": true,
-        "grep": true,
-        "write": true,
-        "edit": true
-      }
-    },
-    "builder": {
-      "description": "Incremental implementation specialist. Loads implement-task + test-driven-development skills.",
-      "mode": "subagent",
-      "tools": {
-        "read": true,
-        "glob": true,
-        "grep": true,
-        "write": true,
-        "edit": true,
-        "bash": true
-      },
-      "permission": {
-        "bash": {
-          "*": "deny",
-          "npm run build": "allow",
-          "npm run lint": "allow",
-          "npm run dev": "allow",
-          "npm test": "allow",
-          "npm run *": "allow"
-        }
-      }
-    },
-    "test-engineer": {
-      "description": "TDD and test writing specialist. Loads test-driven-development skill.",
-      "mode": "subagent",
-      "tools": {
-        "read": true,
-        "glob": true,
-        "grep": true,
-        "write": true,
-        "edit": true,
-        "bash": true
-      },
-      "permission": {
-        "bash": {
-          "*": "deny",
-          "npm test": "allow",
-          "npm run *": "allow"
-        }
-      }
-    },
-    "verify": {
-      "description": "Pre-completion verification gate — runs build, lint, version/changelog consistency checks.",
-      "mode": "subagent",
-      "tools": {
-        "read": true,
-        "glob": true,
-        "grep": true,
-        "bash": true
-      },
-      "permission": {
-        "bash": {
-          "*": "deny",
-          "npm run build": "allow",
-          "npm run lint": "allow",
-          "npm run typecheck": "allow",
-          "cat *": "allow"
-        }
-      }
-    }
-  },
   "mcp": {
     "context7": {
       "type": "remote",
-      "url": "https://mcp.context7.com/mcp"
+      "url": "https://mcp.context7.com/mcp",
+      "enabled": true
     },
     "gh_grep": {
       "type": "remote",
-      "url": "https://mcp.grep.app"
+      "url": "https://mcp.grep.app",
+      "enabled": true
     },
     "obsidian": {
       "type": "local",
-      "enabled": true,
-      "command": ["uvx", "--with", "fastmcp==2.13.3", "obsidian-mcp"],
+      "command": [
+        "uvx",
+        "--with",
+        "fastmcp==2.13.3",
+        "obsidian-mcp"
+      ],
       "environment": {
         "OBSIDIAN_VAULT_PATH": "/Users/boss123/obsidian-vault"
-      }
+      },
+      "enabled": true
     },
     "chrome-devtools": {
       "type": "local",
-      "command": "npx",
-      "args": ["-y", "chrome-devtools-mcp@latest", "--autoConnect"],
+      "command": [
+        "npx",
+        "-y",
+        "chrome-devtools-mcp@latest",
+        "--autoConnect"
+      ],
+      "enabled": true
+    },
+    "playwright": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@playwright/mcp@latest"
+      ],
       "enabled": true
     },
     "sequential-thinking": {
       "type": "local",
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
       "enabled": true
-    }
-  },
-  "permission": {
-    "read": "allow",
-    "glob": "allow",
-    "grep": "allow",
-    "webfetch": "allow",
-    "websearch": "allow",
-    "todowrite": "allow",
-    "question": "allow",
-    "task": "allow",
-    "skill": "allow",
-    "edit": "ask",
-    "external_directory": {
-      "~/obsidian-vault/**": "allow"
-    },
-    "bash": {
-      "*": "ask",
-      "rm -rf *": "ask",
-      "rm -r *": "ask",
-      "sudo *": "ask",
-      "npm run dev": "allow",
-      "npm run build": "allow",
-      "npm run lint": "allow",
-      "npm run typecheck": "allow",
-      "npm test": "allow",
-      "git status": "allow",
-      "git diff": "allow",
-      "git log*": "allow",
-      "docker compose ps": "allow",
-      "curl *": "allow"
-    },
-    "external_directory": {
-      "~/obsidian-vault/**": "allow",
-      "~/.opencode/agent-skills/**": "allow"
     }
   }
 }

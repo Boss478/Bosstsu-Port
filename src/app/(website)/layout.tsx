@@ -1,8 +1,10 @@
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import ScrollProgress from '@/components/ScrollProgress';
 import dynamic from 'next/dynamic';
 import { AnalyticsProvider } from '@/lib/analytics';
 import CookieConsentBanner from '@/components/CookieConsentBanner';
+import PageEnterWrapper from '@/components/PageEnterWrapper';
 
 const BackToTop = dynamic(() => import('@/components/BackToTop'));
 
@@ -21,10 +23,13 @@ export default function WebsiteLayout({
       >
         ข้ามไปที่เนื้อหาหลัก
       </a>
+      <ScrollProgress />
       <Header />
-      <main id="main-content" className="min-h-screen bg-blue-50 dark:bg-slate-950">
-        {children}
-      </main>
+      <PageEnterWrapper>
+        <main id="main-content" className="min-h-screen bg-blue-50 dark:bg-slate-950">
+          {children}
+        </main>
+      </PageEnterWrapper>
       <BackToTop />
       <Footer />
       <CookieConsentBanner />

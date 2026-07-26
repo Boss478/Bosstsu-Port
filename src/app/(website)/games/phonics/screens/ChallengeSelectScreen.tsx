@@ -83,7 +83,8 @@ export default function ChallengeSelectScreen({ onLaunch, onStartQuiz }: Props) 
     const hasGroups = selectedGroupIds.size > 0;
     if (!hasLevels && !hasGroups) return undefined;
     if (hasLevels && !hasGroups) return WORDS.filter((w) => selectedLevels.has(w.level));
-    if (!hasLevels && hasGroups) return Array.from(selectedGroupIds).flatMap((id) => getWordsForGroup(id));
+    if (!hasLevels && hasGroups)
+      return Array.from(selectedGroupIds).flatMap((id) => getWordsForGroup(id));
     const groupWords = Array.from(selectedGroupIds).flatMap((id) => getWordsForGroup(id));
     const groupSet = new Set(groupWords.map((w) => w.word));
     return WORDS.filter((w) => selectedLevels.has(w.level) && groupSet.has(w.word));
@@ -217,7 +218,10 @@ export default function ChallengeSelectScreen({ onLaunch, onStartQuiz }: Props) 
                   onClick={() => setExpandedTier(isOpen ? null : tier)}
                   className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-[11px] font-bold text-slate-500 dark:text-slate-400 hover:bg-white/20 dark:hover:bg-slate-700/20 cursor-pointer transition-all"
                 >
-                  <i className={`fi fi-sr-angle-small-${isOpen ? 'down' : 'right'} text-xs transition-transform`} aria-hidden="true" />
+                  <i
+                    className={`fi fi-sr-angle-small-${isOpen ? 'down' : 'right'} text-xs transition-transform`}
+                    aria-hidden="true"
+                  />
                   {TIER_LABELS[tier]}
                   {tierSelectedCount > 0 && (
                     <span className="ml-auto text-[10px] text-indigo-500 dark:text-indigo-300">
@@ -258,12 +262,16 @@ export default function ChallengeSelectScreen({ onLaunch, onStartQuiz }: Props) 
                                 : 'bg-white/30 dark:bg-slate-700/30 text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-600/50 border border-transparent'
                             }`}
                           >
-                            <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center text-[8px] transition-all ${
-                              isSelected
-                                ? 'bg-indigo-500 border-indigo-500 text-white'
-                                : 'border-slate-400 dark:border-slate-500'
-                            }`}>
-                              {isSelected && <i className="fi fi-sr-check text-[8px]" aria-hidden="true" />}
+                            <span
+                              className={`w-3.5 h-3.5 rounded border flex items-center justify-center text-[8px] transition-all ${
+                                isSelected
+                                  ? 'bg-indigo-500 border-indigo-500 text-white'
+                                  : 'border-slate-400 dark:border-slate-500'
+                              }`}
+                            >
+                              {isSelected && (
+                                <i className="fi fi-sr-check text-[8px]" aria-hidden="true" />
+                              )}
                             </span>
                             {gid.replace(/-/g, ' ')}
                           </button>
@@ -374,7 +382,11 @@ export default function ChallengeSelectScreen({ onLaunch, onStartQuiz }: Props) 
                 compatibility={poolCompatibility}
                 onSubmit={(config) => {
                   setShowConfig(false);
-                  onStartQuiz({ ...config, cefrLevel: activeLevel, wordPool: wordPool ?? undefined });
+                  onStartQuiz({
+                    ...config,
+                    cefrLevel: activeLevel,
+                    wordPool: wordPool ?? undefined,
+                  });
                 }}
                 onClose={() => setShowConfig(false)}
               />
@@ -476,22 +488,20 @@ export default function ChallengeSelectScreen({ onLaunch, onStartQuiz }: Props) 
                             isEmptyPool ? 'opacity-50 cursor-not-allowed' : ''
                           }`}
                           style={{
-                            backgroundColor:
-                              isEmptyPool
-                                ? '#94a3b8'
-                                : d === 'easy'
-                                  ? '#2EC4B6'
-                                  : d === 'medium'
-                                    ? '#FFBA08'
-                                    : '#E74C3C',
-                            borderColor:
-                              isEmptyPool
-                                ? '#64748b'
-                                : d === 'easy'
-                                  ? '#1a8a7e'
-                                  : d === 'medium'
-                                    ? '#d49a00'
-                                    : '#c0392b',
+                            backgroundColor: isEmptyPool
+                              ? '#94a3b8'
+                              : d === 'easy'
+                                ? '#2EC4B6'
+                                : d === 'medium'
+                                  ? '#FFBA08'
+                                  : '#E74C3C',
+                            borderColor: isEmptyPool
+                              ? '#64748b'
+                              : d === 'easy'
+                                ? '#1a8a7e'
+                                : d === 'medium'
+                                  ? '#d49a00'
+                                  : '#c0392b',
                             color: '#fff',
                           }}
                         >

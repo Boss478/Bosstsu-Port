@@ -1,24 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getCurrentPeriodKey, getPeriodRange, formatPeriodLabel, PAY_DAY_KEY } from '@/lib/period';
-
-interface StockSummary {
-  holdingsCount: number;
-  portfolioValue: number;
-  portfolioPl: number;
-  portfolioPlPercent: number;
-  bestHolding: string | null;
-  worstHolding: string | null;
-}
-
-interface BudgetSummary {
-  incomeTotal: number;
-  expenseTotal: number;
-  subscriptionTotal: number;
-  balance: number;
-  label: string;
-}
+import { useHoldings, useStockQuotes } from '@/hooks/use-stocks';
+import { useTransactions, useSubscriptions } from '@/hooks/use-finance';
 
 const MONTHLY_NORMALIZER: Record<string, number> = {
   weekly: 52 / 12,
@@ -49,138 +34,87 @@ export default function DashboardSummary() {
   const monthKey = payDay ? getCurrentPeriodKey(payDay) : new Date().toISOString().slice(0, 7);
   const displayLabel = payDay ? formatPeriodLabel(payDay, monthKey) : monthKey;
 
-  const [stock, setStock] = useState<StockSummary | null>(null);
-  const [stockLoading, setStockLoading] = useState(true);
-  const [stockError, setStockError] = useState<string | null>(null);
+  const txFilters = useMemo(() => {
+    if (!loaded || !monthKey) return {};
+    if (payDay) {
+      const range = getPeriodRange(payDay, monthKey);
+      return {
+        startDate: range.start.toISOString(),
+        endDate: range.end.toISOString(),
+      };
+    }
+    return { month: monthKey };
+  }, [loaded, payDay, monthKey]);
 
-  const [budget, setBudget] = useState<BudgetSummary | null>(null);
-  const [budgetLoading, setBudgetLoading] = useState(true);
-  const [budgetError, setBudgetError] = useState<string | null>(null);
+  const { data: holdingsData, isLoading: holdingsLoading, error: holdingsError } = useHoldings();
+  const { data: quotesData } = useStockQuotes(holdingsData?.map((h) => h.symbol) ?? []);
+  const { data: transactionsData, isLoading: txLoading, error: txError } = useTransactions(txFilters);
+  const { data: subscriptionsData, isLoading: subLoading } = useSubscriptions();
 
-  useEffect(() => {
-    if (!loaded) return;
-    let cancelled = false;
-
-    async function fetchStock() {
-      try {
-        const holdingsRes = await fetch('/boss478/api/holdings');
-        if (!holdingsRes.ok) throw new Error('Failed to fetch holdings');
-
-        const body = await holdingsRes.json();
-        const holdings: any[] = body.holdings ?? [];
-
-        if (!holdings.length) {
-          if (!cancelled) {
-            setStock({
-              holdingsCount: 0, portfolioValue: 0, portfolioPl: 0,
-              portfolioPlPercent: 0, bestHolding: null, worstHolding: null,
-            });
-          }
-          return;
-        }
-
-        const symbols = holdings.map((h: any) => h.symbol);
-        const quotesRes = await fetch('/api/stocks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'quotes', symbols }),
-        });
-
-        let quotes: any[] = [];
-        if (quotesRes.ok) {
-          const q = await quotesRes.json();
-          quotes = q.quotes ?? [];
-        }
-
-        const enriched = holdings.map((h: any) => {
-          const current = quotes.find((q: any) => q.symbol === h.symbol);
-          const price = h.manualPrice ?? current?.price ?? 0;
-          const totalCost = h.shares * h.avgCost;
-          const totalValue = h.shares * price;
-          const pl = totalValue - totalCost;
-          const plPercent = totalCost > 0 ? (pl / totalCost) * 100 : 0;
-          return { symbol: h.symbol, totalValue, totalCost, pl, plPercent };
-        });
-
-        const totalValue = enriched.reduce((s, h) => s + h.totalValue, 0);
-        const totalCost = enriched.reduce((s, h) => s + h.totalCost, 0);
-        const totalPl = totalValue - totalCost;
-        const totalPlPercent = totalCost > 0 ? (totalPl / totalCost) * 100 : 0;
-        const sorted = [...enriched].sort((a, b) => b.plPercent - a.plPercent);
-
-        if (!cancelled) {
-          setStock({
-            holdingsCount: holdings.length,
-            portfolioValue: totalValue,
-            portfolioPl: totalPl,
-            portfolioPlPercent: totalPlPercent,
-            bestHolding: sorted[0]?.symbol ?? null,
-            worstHolding: sorted[sorted.length - 1]?.symbol ?? null,
-          });
-        }
-      } catch {
-        if (!cancelled) setStockError('Could not load portfolio data');
-      } finally {
-        if (!cancelled) setStockLoading(false);
-      }
+  const stock = useMemo(() => {
+    if (!holdingsData || !holdingsData.length) {
+      return {
+        holdingsCount: 0, portfolioValue: 0, portfolioPl: 0,
+        portfolioPlPercent: 0, bestHolding: null as string | null, worstHolding: null as string | null,
+      };
     }
 
-    async function fetchBudget() {
-      try {
-        const [subRes] = await Promise.all([
-          fetch('/boss478/finance/api/subscriptions'),
-        ]);
+    const quotes = quotesData?.quotes ?? [];
+    const enriched = holdingsData.map((h) => {
+      const current = quotes.find((q) => q.symbol === h.symbol);
+      const price = h.manualPrice ?? current?.price ?? 0;
+      const totalCost = h.shares * h.avgCost;
+      const totalValue = h.shares * price;
+      const pl = totalValue - totalCost;
+      const plPercent = totalCost > 0 ? (pl / totalCost) * 100 : 0;
+      return { symbol: h.symbol, totalValue, totalCost, pl, plPercent };
+    });
 
-        if (!subRes.ok) throw new Error('Failed to fetch');
+    const totalValue = enriched.reduce((s, h) => s + h.totalValue, 0);
+    const totalCost = enriched.reduce((s, h) => s + h.totalCost, 0);
+    const totalPl = totalValue - totalCost;
+    const totalPlPercent = totalCost > 0 ? (totalPl / totalCost) * 100 : 0;
+    const sorted = [...enriched].sort((a, b) => b.plPercent - a.plPercent);
 
-        let txUrl: string;
-        if (payDay) {
-          const range = getPeriodRange(payDay, monthKey);
-          txUrl = `/boss478/finance/api/transactions?startDate=${range.start.toISOString()}&endDate=${range.end.toISOString()}`;
-        } else {
-          txUrl = `/boss478/finance/api/transactions?month=${monthKey}`;
-        }
+    return {
+      holdingsCount: holdingsData.length,
+      portfolioValue: totalValue,
+      portfolioPl: totalPl,
+      portfolioPlPercent: totalPlPercent,
+      bestHolding: sorted[0]?.symbol ?? null,
+      worstHolding: sorted[sorted.length - 1]?.symbol ?? null,
+    };
+  }, [holdingsData, quotesData]);
 
-        const txRes = await fetch(txUrl);
-        if (!txRes.ok) throw new Error('Failed to fetch');
+  const budget = useMemo(() => {
+    if (!transactionsData) return null;
 
-        const { transactions } = await txRes.json();
-        const { subscriptions } = await subRes.json();
+    const incomeTotal = transactionsData
+      .filter((t) => t.type === 'income')
+      .reduce((s, t) => s + t.amount, 0);
+    const expenseTotal = transactionsData
+      .filter((t) => t.type === 'expense')
+      .reduce((s, t) => s + t.amount, 0);
+    const subscriptionTotal = (subscriptionsData ?? [])
+      .filter((s) => s.active)
+      .reduce((sum, s) => {
+        const n = MONTHLY_NORMALIZER[s.billingCycle as keyof typeof MONTHLY_NORMALIZER] ?? 1;
+        return sum + s.amount * n;
+      }, 0);
 
-        const incomeTotal = (transactions ?? [])
-          .filter((t: any) => t.type === 'income')
-          .reduce((s: number, t: any) => s + t.amount, 0);
-        const expenseTotal = (transactions ?? [])
-          .filter((t: any) => t.type === 'expense')
-          .reduce((s: number, t: any) => s + t.amount, 0);
-        const subscriptionTotal = (subscriptions ?? [])
-          .filter((s: any) => s.active)
-          .reduce((sum: number, s: any) => {
-            const n = MONTHLY_NORMALIZER[s.billingCycle as keyof typeof MONTHLY_NORMALIZER] ?? 1;
-            return sum + s.amount * n;
-          }, 0);
+    return {
+      incomeTotal,
+      expenseTotal,
+      subscriptionTotal,
+      balance: incomeTotal - expenseTotal - subscriptionTotal,
+      label: displayLabel,
+    };
+  }, [transactionsData, subscriptionsData, displayLabel]);
 
-        if (!cancelled) {
-          setBudget({
-            incomeTotal,
-            expenseTotal,
-            subscriptionTotal,
-            balance: incomeTotal - expenseTotal - subscriptionTotal,
-            label: displayLabel,
-          });
-        }
-      } catch {
-        if (!cancelled) setBudgetError('Could not load budget data');
-      } finally {
-        if (!cancelled) setBudgetLoading(false);
-      }
-    }
-
-    fetchStock();
-    fetchBudget();
-
-    return () => { cancelled = true; };
-  }, [loaded, payDay, monthKey, displayLabel]);
+  const stockLoading = holdingsLoading || (!holdingsData && !holdingsError);
+  const stockError = holdingsError ? 'Could not load portfolio data' : null;
+  const budgetLoading = txLoading || subLoading || (!transactionsData && !txError);
+  const budgetError = txError ? 'Could not load budget data' : null;
 
   return (
     <div className="mb-8">

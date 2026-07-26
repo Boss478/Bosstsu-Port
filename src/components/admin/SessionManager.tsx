@@ -12,7 +12,11 @@ interface SessionManagerProps {
   onToggleCodeFullScreen?: () => void;
 }
 
-export default function SessionManager({ session, origin, onToggleCodeFullScreen }: SessionManagerProps) {
+export default function SessionManager({
+  session,
+  origin,
+  onToggleCodeFullScreen,
+}: SessionManagerProps) {
   const [pending, setPending] = useState(false);
 
   const handleEnd = async () => {

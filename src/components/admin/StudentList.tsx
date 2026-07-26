@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { deleteStudentResponses } from '@/app/admin/tools/actions';
+import { toolKeys } from '@/lib/query/keys';
 import MascotAvatar from '@/components/tools/mascots/MascotAvatar';
 
 interface Participant {
@@ -18,32 +20,18 @@ interface StudentListProps {
 }
 
 export default function StudentList({ sessionId, onStudentRemoved }: StudentListProps) {
-  const [participants, setParticipants] = useState<Participant[]>([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
   const [removing, setRemoving] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const queryKey = toolKeys.participants(sessionId);
 
-  const fetchParticipants = useCallback(async () => {
-    try {
+  const { data: participants = [], isLoading, refetch } = useQuery({
+    queryKey,
+    queryFn: async () => {
       const res = await fetch(`/api/tools/participants?sessionId=${sessionId}`);
       const data = await res.json();
-      setParticipants(data.participants || []);
-    } catch (err) {
-      console.error('Fetch participants error:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [sessionId]);
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchParticipants();
-    setRefreshing(false);
-  };
-
-  useEffect(() => {
-    fetchParticipants();
-  }, [fetchParticipants]);
+      return (data.participants || []) as Participant[];
+    },
+  });
 
   const handleRemove = async (studentToken: string) => {
     if (!confirm('Remove this student and all their responses?')) return;
@@ -51,7 +39,7 @@ export default function StudentList({ sessionId, onStudentRemoved }: StudentList
     const result = await deleteStudentResponses(sessionId, studentToken);
     setRemoving(null);
     if (!result?.error) {
-      setParticipants((prev) => prev.filter((p) => p.studentToken !== studentToken));
+      qc.invalidateQueries({ queryKey });
       onStudentRemoved?.();
     } else {
       alert(result.error);
@@ -63,15 +51,15 @@ export default function StudentList({ sessionId, onStudentRemoved }: StudentList
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
         <h3 className="font-semibold text-zinc-700 dark:text-zinc-300">Participants ({participants.length})</h3>
         <button
-          onClick={handleRefresh}
-          disabled={refreshing}
+          onClick={() => refetch()}
+          disabled={isLoading}
           className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 text-zinc-400 transition-colors disabled:opacity-50"
           title="Refresh participants"
         >
-          <i className={`fi fi-sr-refresh text-xs ${refreshing ? 'animate-spin' : ''}`} />
+          <i className={`fi fi-sr-refresh text-xs ${isLoading ? 'animate-spin' : ''}`} />
         </button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <div className="text-center text-zinc-400 py-8">
           <i aria-hidden="true" className="fi fi-sr-spinner animate-spin text-xl" />
         </div>
@@ -90,16 +78,11 @@ export default function StudentList({ sessionId, onStudentRemoved }: StudentList
             </thead>
             <tbody>
               {participants.map((p) => (
-                <tr
-                  key={p.studentToken}
-                  className="border-b border-zinc-100 dark:border-zinc-800 last:border-0 hover:bg-zinc-50 dark:hover:bg-slate-700/30"
-                >
+                <tr key={p.studentToken} className="border-b border-zinc-100 dark:border-zinc-800 last:border-0 hover:bg-zinc-50 dark:hover:bg-slate-700/30">
                   <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">
                     <div className="flex items-center gap-2">
                       {p.mascot ? (
-                        <div className="w-5 h-5 rounded overflow-hidden shrink-0">
-                          <MascotAvatar mascotId={p.mascot} size={20} />
-                        </div>
+                        <div className="w-5 h-5 rounded overflow-hidden shrink-0"><MascotAvatar mascotId={p.mascot} size={20} /></div>
                       ) : (
                         <i aria-hidden="true" className="fi fi-sr-user text-xs text-zinc-400" />
                       )}
@@ -118,9 +101,7 @@ export default function StudentList({ sessionId, onStudentRemoved }: StudentList
                     >
                       {removing === p.studentToken ? (
                         <i aria-hidden="true" className="fi fi-sr-spinner animate-spin" />
-                      ) : (
-                        'Remove'
-                      )}
+                      ) : 'Remove'}
                     </button>
                   </td>
                 </tr>

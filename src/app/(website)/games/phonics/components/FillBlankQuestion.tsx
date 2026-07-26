@@ -68,7 +68,10 @@ export default function FillBlankQuestion({
         </p>
       </div>
 
-      <div className="grid gap-5 max-w-4xl mx-auto w-full" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
+      <div
+        className="grid gap-5 max-w-4xl mx-auto w-full"
+        style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}
+      >
         {question.options.map((opt) => (
           <QuestionChoiceButton
             key={opt}

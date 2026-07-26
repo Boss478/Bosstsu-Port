@@ -206,7 +206,10 @@ export function TapQuestion({
         Which word starts with this sound?
       </p>
 
-      <div className="grid gap-5 max-w-4xl mx-auto w-full" style={{ gridTemplateColumns: `repeat(${gridColumns ?? 2}, 1fr)` }}>
+      <div
+        className="grid gap-5 max-w-4xl mx-auto w-full"
+        style={{ gridTemplateColumns: `repeat(${gridColumns ?? 2}, 1fr)` }}
+      >
         {question.options.map((opt) => {
           const wordData = (mergedWordsOverride || WORDS).find(
             (w) => w.word.toLowerCase() === opt.toLowerCase(),
@@ -505,8 +508,14 @@ export default function GameScreen({ onRoundComplete, bgDownloadState }: GameScr
     <div className="flex-1 flex flex-col bg-gradient-to-b from-[#E0F2FE] via-[#F0FDFA] to-[#FEF3C7] dark:from-[#0B132B] dark:via-[#1B254B] dark:to-[#3E1B5D] overflow-hidden min-h-full justify-between relative">
       <div className="hidden md:block absolute inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#2EC4B6]/10 dark:bg-[#2EC4B6]/5 rounded-full blur-3xl animate-float-slow" />
-        <div className="absolute top-1/3 -right-32 w-80 h-80 bg-[#C8A44E]/10 dark:bg-[#C8A44E]/5 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '-3s' }} />
-        <div className="absolute -bottom-32 left-1/4 w-72 h-72 bg-[#FF70A6]/10 dark:bg-[#FF70A6]/5 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '-6s' }} />
+        <div
+          className="absolute top-1/3 -right-32 w-80 h-80 bg-[#C8A44E]/10 dark:bg-[#C8A44E]/5 rounded-full blur-3xl animate-float-slow"
+          style={{ animationDelay: '-3s' }}
+        />
+        <div
+          className="absolute -bottom-32 left-1/4 w-72 h-72 bg-[#FF70A6]/10 dark:bg-[#FF70A6]/5 rounded-full blur-3xl animate-float-slow"
+          style={{ animationDelay: '-6s' }}
+        />
       </div>
       <div aria-live="polite" aria-atomic="true" className="sr-only">
         Question {currentIndex + 1} of {totalQuestions}

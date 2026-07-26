@@ -14,7 +14,12 @@ import MascotAvatar from './mascots/MascotAvatar';
 import StudentSetupScreen from './StudentSetupScreen';
 import MascotCompanion, { type MascotEvent } from './mascots/MascotCompanion';
 import StudentSettings from './StudentSettings';
-import { getMascotStorageKey, loadMascotId, saveMascotId, getRandomMascot } from './mascots/mascot-data';
+import {
+  getMascotStorageKey,
+  loadMascotId,
+  saveMascotId,
+  getRandomMascot,
+} from './mascots/mascot-data';
 import { t } from '@/lib/tool-translations';
 import { useSSE } from '@/lib/use-sse';
 import { useDeviceTier } from '@/lib/device-tier-provider';
@@ -46,8 +51,12 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
 
   const enableMascots = session.config?.enableMascots !== false;
 
-  useEffect(() => { latestStepRef.current = currentStep; }, [currentStep]);
-  useEffect(() => { nameConfirmedRef.current = nameConfirmed; }, [nameConfirmed]);
+  useEffect(() => {
+    latestStepRef.current = currentStep;
+  }, [currentStep]);
+  useEffect(() => {
+    nameConfirmedRef.current = nameConfirmed;
+  }, [nameConfirmed]);
 
   useEffect(() => {
     if (session.requireStudentName) {
@@ -124,9 +133,12 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
   const handleMascotEvent = useCallback((event: MascotEvent) => {
     setMascotEventType(event);
     setMascotEventCount((c) => c + 1);
-    const msg = event === 'celebrate' ? t('toastSubmitted')
-      : event === 'correct' ? t('toastCorrect')
-      : t('toastError');
+    const msg =
+      event === 'celebrate'
+        ? t('toastSubmitted')
+        : event === 'correct'
+          ? t('toastCorrect')
+          : t('toastError');
     toast.show(msg, event === 'wrong' ? 'error' : 'success');
   }, []);
 
@@ -136,7 +148,15 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
   if (needsMascotSetup || needsNameSetup) {
     return (
       <>
-        <StudentSettings open={settingsOpen} onOpenChange={setSettingsOpen} selectedMascot={selectedMascot} onMascotSelect={(id) => { setSelectedMascot(id); saveMascotId(session._id, id); }} />
+        <StudentSettings
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          selectedMascot={selectedMascot}
+          onMascotSelect={(id) => {
+            setSelectedMascot(id);
+            saveMascotId(session._id, id);
+          }}
+        />
         <StudentSetupScreen
           studentName={studentName}
           onNameChange={setStudentName}
@@ -146,7 +166,9 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
           requireName={session.requireStudentName}
           enableMascots={enableMascots}
           sessionTitle={session.title}
-          confirmLabel={session.requireStudentName ? (currentStep < 0 ? 'เข้าร่วม' : 'ยืนยัน') : 'เข้าร่วม'}
+          confirmLabel={
+            session.requireStudentName ? (currentStep < 0 ? 'เข้าร่วม' : 'ยืนยัน') : 'เข้าร่วม'
+          }
         >
           {session.requireStudentName && (
             <>
@@ -154,12 +176,16 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
               <p className="text-zinc-400 -mt-3 text-5xl font-bold tracking-[0.15em] font-mono select-all">
                 {session.sessionCode}
               </p>
-
             </>
           )}
         </StudentSetupScreen>
         {enableMascots && selectedMascot && (
-          <MascotCompanion sessionId={session._id} eventType={mascotEventType} eventCount={mascotEventCount} onSettingsClick={() => setSettingsOpen(true)} />
+          <MascotCompanion
+            sessionId={session._id}
+            eventType={mascotEventType}
+            eventCount={mascotEventCount}
+            onSettingsClick={() => setSettingsOpen(true)}
+          />
         )}
         <ToastContainer toasts={toast.toasts} onDismiss={toast.dismiss} />
       </>
@@ -169,11 +195,24 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
   if (currentStep < 0) {
     return (
       <>
-        <StudentSettings open={settingsOpen} onOpenChange={setSettingsOpen} selectedMascot={selectedMascot} onMascotSelect={(id) => { setSelectedMascot(id); saveMascotId(session._id, id); }} />
+        <StudentSettings
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          selectedMascot={selectedMascot}
+          onMascotSelect={(id) => {
+            setSelectedMascot(id);
+            saveMascotId(session._id, id);
+          }}
+        />
         <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950">
           <div className="text-center max-w-md w-full p-6">
-            <i aria-hidden="true" className="fi fi-sr-hourglass text-4xl text-blue-400 animate-pulse block mb-4" />
-            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{session.title}</h1>
+            <i
+              aria-hidden="true"
+              className="fi fi-sr-hourglass text-4xl text-blue-400 animate-pulse block mb-4"
+            />
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+              {session.title}
+            </h1>
             {session.description && (
               <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">{session.description}</p>
             )}
@@ -198,11 +237,16 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
             <p className="text-zinc-400 mt-1 text-5xl font-bold tracking-[0.15em] font-mono select-all">
               {session.sessionCode}
             </p>
-
           </div>
         </div>
         {enableMascots && selectedMascot && (
-          <MascotCompanion sessionId={session._id} isWaiting eventType={mascotEventType} eventCount={mascotEventCount} onSettingsClick={() => setSettingsOpen(true)} />
+          <MascotCompanion
+            sessionId={session._id}
+            isWaiting
+            eventType={mascotEventType}
+            eventCount={mascotEventCount}
+            onSettingsClick={() => setSettingsOpen(true)}
+          />
         )}
         <ToastContainer toasts={toast.toasts} onDismiss={toast.dismiss} />
       </>
@@ -210,7 +254,12 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
   }
 
   const step = session.steps?.[currentStep];
-  const stepConfig = { ...session, type: step?.type, config: step?.config, title: step?.title || session.title };
+  const stepConfig = {
+    ...session,
+    type: step?.type,
+    config: step?.config,
+    title: step?.title || session.title,
+  };
 
   const handlePrevStep = () => {
     if (currentStep > 0 && session.allowStudentNavigation) {
@@ -234,8 +283,14 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
           onDismiss={clearBroadcast}
         />
       )}
-      <StudentSettings open={settingsOpen} onOpenChange={setSettingsOpen} selectedMascot={selectedMascot} />
-      <div className={`min-h-screen flex flex-col bg-blue-50 dark:bg-slate-950 transition-opacity duration-300 ${transitioning ? 'opacity-0' : 'opacity-100'}`}>
+      <StudentSettings
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        selectedMascot={selectedMascot}
+      />
+      <div
+        className={`min-h-screen flex flex-col bg-blue-50 dark:bg-slate-950 transition-opacity duration-300 ${transitioning ? 'opacity-0' : 'opacity-100'}`}
+      >
         <div className="p-4 max-w-5xl mx-auto w-full">
           <div className="text-center mb-3">
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{session.title}</h1>
@@ -296,7 +351,13 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
         )}
 
         <div className="flex-1">
-          {renderTool(stepConfig, currentStep, studentName, enableMascots && selectedMascot ? selectedMascot : undefined, enableMascots ? handleMascotEvent : undefined)}
+          {renderTool(
+            stepConfig,
+            currentStep,
+            studentName,
+            enableMascots && selectedMascot ? selectedMascot : undefined,
+            enableMascots ? handleMascotEvent : undefined,
+          )}
         </div>
 
         <div className="text-center py-4 text-sm text-zinc-400 font-mono">
@@ -304,7 +365,12 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
         </div>
       </div>
       {enableMascots && selectedMascot && (
-        <MascotCompanion sessionId={session._id} eventType={mascotEventType} eventCount={mascotEventCount} onSettingsClick={() => setSettingsOpen(true)} />
+        <MascotCompanion
+          sessionId={session._id}
+          eventType={mascotEventType}
+          eventCount={mascotEventCount}
+          onSettingsClick={() => setSettingsOpen(true)}
+        />
       )}
       <ToastContainer toasts={toast.toasts} onDismiss={toast.dismiss} />
       <div className="fixed bottom-4 right-4 z-40">
@@ -325,17 +391,75 @@ function renderTool(
   const s = session as { type?: string; config?: unknown };
   switch (s.type) {
     case 'padlet':
-      return <ToolErrorBoundary key="padlet"><PadletBoard session={session} stepIndex={stepIndex} studentName={studentName} mascot={mascot} onMascotEvent={onMascotEvent} /></ToolErrorBoundary>;
+      return (
+        <ToolErrorBoundary key="padlet">
+          <PadletBoard
+            session={session}
+            stepIndex={stepIndex}
+            studentName={studentName}
+            mascot={mascot}
+            onMascotEvent={onMascotEvent}
+          />
+        </ToolErrorBoundary>
+      );
     case 'poll':
-      return <ToolErrorBoundary key="poll"><MentimeterPoll session={session} stepIndex={stepIndex} mascot={mascot} onMascotEvent={onMascotEvent} /></ToolErrorBoundary>;
+      return (
+        <ToolErrorBoundary key="poll">
+          <MentimeterPoll
+            session={session}
+            stepIndex={stepIndex}
+            mascot={mascot}
+            onMascotEvent={onMascotEvent}
+          />
+        </ToolErrorBoundary>
+      );
     case 'assignment':
-      return <ToolErrorBoundary key="assignment"><AssignmentForm session={session} stepIndex={stepIndex} studentName={studentName} mascot={mascot} onMascotEvent={onMascotEvent} /></ToolErrorBoundary>;
+      return (
+        <ToolErrorBoundary key="assignment">
+          <AssignmentForm
+            session={session}
+            stepIndex={stepIndex}
+            studentName={studentName}
+            mascot={mascot}
+            onMascotEvent={onMascotEvent}
+          />
+        </ToolErrorBoundary>
+      );
     case 'qa_board':
-      return <ToolErrorBoundary key="qa_board"><QABoard session={session} stepIndex={stepIndex} mascot={mascot} onMascotEvent={onMascotEvent} /></ToolErrorBoundary>;
+      return (
+        <ToolErrorBoundary key="qa_board">
+          <QABoard
+            session={session}
+            stepIndex={stepIndex}
+            mascot={mascot}
+            onMascotEvent={onMascotEvent}
+          />
+        </ToolErrorBoundary>
+      );
     case 'quiz':
-      return <ToolErrorBoundary key="quiz"><QuickQuiz session={session} stepIndex={stepIndex} studentName={studentName} mascot={mascot} onMascotEvent={onMascotEvent} /></ToolErrorBoundary>;
+      return (
+        <ToolErrorBoundary key="quiz">
+          <QuickQuiz
+            session={session}
+            stepIndex={stepIndex}
+            studentName={studentName}
+            mascot={mascot}
+            onMascotEvent={onMascotEvent}
+          />
+        </ToolErrorBoundary>
+      );
     case 'exit_ticket':
-      return <ToolErrorBoundary key="exit_ticket"><ExitTicketForm session={session} stepIndex={stepIndex} studentName={studentName} mascot={mascot} onMascotEvent={onMascotEvent} /></ToolErrorBoundary>;
+      return (
+        <ToolErrorBoundary key="exit_ticket">
+          <ExitTicketForm
+            session={session}
+            stepIndex={stepIndex}
+            studentName={studentName}
+            mascot={mascot}
+            onMascotEvent={onMascotEvent}
+          />
+        </ToolErrorBoundary>
+      );
     default:
       return <div className="text-center py-20 text-zinc-400">{t('toolTypeNotFound')}</div>;
   }

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import TransactionForm from './TransactionForm';
 import QuickAddBar from './QuickAddBar';
 import { getCategoryLabel } from '@/lib/config';
@@ -13,15 +14,8 @@ import {
   getPeriodRange,
   isCurrentPeriod,
 } from '@/lib/period';
-
-interface Transaction {
-  _id: string;
-  type: 'income' | 'expense';
-  amount: number;
-  category: string;
-  description?: string;
-  date: string;
-}
+import { useTransactions, useDeleteTransaction } from '@/hooks/use-finance';
+import { financeKeys } from '@/lib/query/keys';
 
 interface Props {
   refreshKey: number;
@@ -29,10 +23,8 @@ interface Props {
   month?: string;
 }
 
-export default function TransactionList({ refreshKey, payDay, month: externalMonth }: Props) {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function TransactionList({ refreshKey: _refreshKey, payDay, month: externalMonth }: Props) {
+  const qc = useQueryClient();
   const [month, setMonth] = useState(externalMonth || (payDay ? getCurrentPeriodKey(payDay) : new Date().toISOString().slice(0, 7)));
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
@@ -48,43 +40,29 @@ export default function TransactionList({ refreshKey, payDay, month: externalMon
     }
   }, [payDay]);
 
-  const fetchTransactions = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams();
-      if (payDay) {
-        const range = getPeriodRange(payDay, month);
-        params.set('startDate', range.start.toISOString());
-        params.set('endDate', range.end.toISOString());
-      } else {
-        params.set('month', month);
-      }
-      if (typeFilter !== 'all') params.set('type', typeFilter);
-      const res = await fetch(`/boss478/finance/api/transactions?${params}`);
-      if (!res.ok) throw new Error('Failed to fetch');
-      const data = await res.json();
-      setTransactions(data.transactions);
-    } catch {
-      setError('Could not load transactions');
-    } finally {
-      setLoading(false);
+  const txFilters = useMemo(() => {
+    const f: Record<string, string> = {};
+    if (payDay) {
+      const range = getPeriodRange(payDay, month);
+      f.startDate = range.start.toISOString();
+      f.endDate = range.end.toISOString();
+    } else {
+      f.month = month;
     }
+    if (typeFilter !== 'all') f.type = typeFilter;
+    return f;
   }, [month, typeFilter, payDay]);
 
-  useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions, refreshKey]);
+  const { data: transactions = [], isLoading, error } = useTransactions(txFilters);
+  const deleteTransaction = useDeleteTransaction();
+
+  function invalidateTx() {
+    qc.invalidateQueries({ queryKey: financeKeys.transactions() });
+  }
 
   async function handleDelete(id: string) {
     if (!confirm('Delete this transaction?')) return;
-    try {
-      const res = await fetch(`/boss478/finance/api/transactions?id=${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete');
-      fetchTransactions();
-    } catch {
-      setError('Failed to delete');
-    }
+    deleteTransaction.mutate(id);
   }
 
   const fmt = (n: number) =>
@@ -95,7 +73,7 @@ export default function TransactionList({ refreshKey, payDay, month: externalMon
     return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   };
 
-  if (loading && transactions.length === 0) {
+  if (isLoading && transactions.length === 0) {
     return (
       <div className="space-y-3">
         {[...Array(5)].map((_, i) => (
@@ -154,33 +132,23 @@ export default function TransactionList({ refreshKey, payDay, month: externalMon
         </div>
       </div>
 
-      {payDay ? (
-        isCurrentPeriod(payDay, month) && (
-          <QuickAddBar onAdd={(tx) => setTransactions((prev) => [tx, ...prev])} />
-        )
-      ) : (
-        month === new Date().toISOString().slice(0, 7) && (
-          <QuickAddBar onAdd={(tx) => setTransactions((prev) => [tx, ...prev])} />
-        )
+      {(payDay ? isCurrentPeriod(payDay, month) : month === new Date().toISOString().slice(0, 7)) && (
+        <QuickAddBar onAdd={invalidateTx} />
       )}
 
-      {payDay ? (
-        !isCurrentPeriod(payDay, month) && (
-          <p className="text-xs text-zinc-400 mb-3">{formatPeriodLabel(payDay, month)}</p>
-        )
-      ) : (
-        month !== new Date().toISOString().slice(0, 7) && (
-          <p className="text-xs text-zinc-400 mb-3">{monthLabel(month)}</p>
-        )
+      {!(payDay ? isCurrentPeriod(payDay, month) : month === new Date().toISOString().slice(0, 7)) && (
+        <p className="text-xs text-zinc-400 mb-3">
+          {payDay ? formatPeriodLabel(payDay, month) : monthLabel(month)}
+        </p>
       )}
 
       {error && (
         <div className="mb-3 px-3 py-2 rounded-lg bg-red-50/80 dark:bg-red-900/30 border border-red-200/60 text-sm text-red-600 dark:text-red-400">
-          {error}
+          Could not load transactions
         </div>
       )}
 
-      {!loading && transactions.length === 0 ? (
+      {!isLoading && transactions.length === 0 ? (
         <div className="py-12 text-center">
           <i aria-hidden="true" className="fi fi-sr-empty text-3xl text-zinc-300 dark:text-zinc-600 mb-3 block" />
           <p className="text-zinc-400 dark:text-zinc-500 text-sm">No transactions yet</p>
@@ -254,7 +222,7 @@ export default function TransactionList({ refreshKey, payDay, month: externalMon
         <TransactionForm
           editing={editing || undefined}
           onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => { setShowForm(false); setEditing(null); fetchTransactions(); }}
+          onSaved={() => { setShowForm(false); setEditing(null); invalidateTx(); }}
         />
       )}
     </div>

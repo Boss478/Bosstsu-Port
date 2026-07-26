@@ -150,7 +150,10 @@ export function ChallengeConfigModal({ onSubmit, onClose, compatibility }: Props
                         {d.label}
                       </span>
                       {isIncompatible && (
-                        <span className="text-[10px] text-amber-500" title="No words support this question type with the current selection">
+                        <span
+                          className="text-[10px] text-amber-500"
+                          title="No words support this question type with the current selection"
+                        >
                           ⚠️
                         </span>
                       )}
