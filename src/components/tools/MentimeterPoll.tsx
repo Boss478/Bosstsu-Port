@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { t } from '@/lib/tool-translations';
 import { getStudentToken } from '@/lib/client-token';
-import { toolKeys } from '@/lib/query/keys';
+import { useToolPoll } from '@/hooks/use-tool-poll';
 
 interface MentimeterPollProps {
   session: any;
@@ -28,8 +28,6 @@ export default function MentimeterPoll({
   const [error, setError] = useState<string | null>(null);
 
   const STORAGE_KEY = `poll_voted_${session._id}`;
-  const queryKey = toolKeys.poll(session._id);
-
   useEffect(() => {
     if (typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEY)) {
       setSubmitted(true);
@@ -44,19 +42,7 @@ export default function MentimeterPoll({
   const allowCustom = session.config?.allowCustomChoices || false;
   const questionText = session.config?.questions?.[0]?.question;
 
-  const { data: pollData, isLoading, refetch } = useQuery({
-    queryKey,
-    queryFn: async () => {
-      const stepParam = stepIndex !== undefined ? `&stepIndex=${stepIndex}` : '';
-      const res = await fetch(`/api/tools/poll?sessionId=${session._id}${stepParam}`);
-      const data = await res.json();
-      return {
-        responses: data.responses || [],
-        totalCount: typeof data.totalCount === 'number' ? data.totalCount : 0,
-      };
-    },
-    refetchInterval: 10_000,
-  });
+  const { data: pollData, isLoading, refetch, queryKey } = useToolPoll(session._id, stepIndex);
 
   const responses = pollData?.responses ?? [];
   const totalCount = pollData?.totalCount ?? 0;

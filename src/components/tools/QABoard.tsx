@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useMemo } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { t } from '@/lib/tool-translations';
 import { getStudentToken } from '@/lib/client-token';
-import { toolKeys } from '@/lib/query/keys';
+import { useToolPoll } from '@/hooks/use-tool-poll';
 import MascotAvatar from './mascots/MascotAvatar';
 
 interface QABoardProps {
@@ -37,18 +37,8 @@ export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: Q
     return new Set<string>(saved ? JSON.parse(saved) : []);
   });
 
-  const queryKey = toolKeys.poll(session._id);
-
-  const { data: questions = [], isLoading, refetch } = useQuery({
-    queryKey,
-    queryFn: async () => {
-      const stepParam = stepIndex !== undefined ? `&stepIndex=${stepIndex}` : '';
-      const res = await fetch(`/api/tools/poll?sessionId=${session._id}${stepParam}`);
-      const data = await res.json();
-      return (data.responses || []) as Question[];
-    },
-    refetchInterval: 10_000,
-  });
+  const { data: pollData, isLoading, refetch, queryKey } = useToolPoll(session._id, stepIndex);
+  const questions = (pollData?.responses || []) as Question[];
 
   const submitMutation = useMutation({
     mutationFn: async () => {

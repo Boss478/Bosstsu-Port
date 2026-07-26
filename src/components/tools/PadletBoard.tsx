@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { t } from '@/lib/tool-translations';
 import { getStudentToken } from '@/lib/client-token';
-import { toolKeys } from '@/lib/query/keys';
+import { useToolPoll } from '@/hooks/use-tool-poll';
 import MascotAvatar from './mascots/MascotAvatar';
 
 interface PadletBoardProps {
@@ -43,7 +43,6 @@ export default function PadletBoard({
   const [ownPosts, setOwnPosts] = useState<OwnPost[]>([]);
 
   const STORAGE_KEY = `padlet_${session._id}`;
-  const queryKey = toolKeys.poll(session._id);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -57,16 +56,8 @@ export default function PadletBoard({
   const isOwnPost = (postId: string) => ownPosts.some((p) => p._id === postId);
   const getOwnToken = (postId: string) => ownPosts.find((p) => p._id === postId)?.editToken;
 
-  const { data: posts = [], isLoading, refetch } = useQuery({
-    queryKey,
-    queryFn: async () => {
-      const stepParam = stepIndex !== undefined ? `&stepIndex=${stepIndex}` : '';
-      const res = await fetch(`/api/tools/poll?sessionId=${session._id}${stepParam}`);
-      const data = await res.json();
-      return (data.responses || []) as Post[];
-    },
-    refetchInterval: 10_000,
-  });
+  const { data: pollData, isLoading, refetch, queryKey } = useToolPoll(session._id, stepIndex);
+  const posts = (pollData?.responses || []) as Post[];
 
   const submitMutation = useMutation({
     mutationFn: async () => {

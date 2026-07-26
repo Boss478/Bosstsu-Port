@@ -5,6 +5,9 @@
 
 
 
+## v1.10.70 (2026-07-26)
++ * **useToolPoll hook extracted**: Consolidated 3-component polling pattern (PadletBoard, MentimeterPoll, QABoard) into `hooks/use-tool-poll.ts` — removed ~40 lines of duplicated `useQuery`+`refetchInterval`+`toolKeys` boilerplate per component.
+
 ## v1.10.69 (2026-07-26)
 + * **Code refactor — 3 cleanups**:
   + * **Zombie transitions**: Removed 12 dead `transition-all` overrides in Header, Pagination, filter buttons, PrivateDashboardClient — classes that were overridden by later `transition-transform` with no effect.
