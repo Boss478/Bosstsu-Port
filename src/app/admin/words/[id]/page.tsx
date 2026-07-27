@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import dbConnect, { serializeDoc } from '@/lib/db';
-import WordOverride from '@/models/Word';
+import WordOverride from '@/models/WordOverride';
 import Breadcrumb from '@/components/Breadcrumb';
 import WordForm from '@/components/admin/WordForm';
 import { upsertWordOverride } from '../actions';

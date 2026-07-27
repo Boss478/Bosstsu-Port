@@ -80,6 +80,21 @@ const StepConfigFields = {
       correctAnswer: { type: Number },
     },
   ],
+  forceTier: { type: String, enum: ['max', 'ultra', 'high', 'medium', 'low', 'fast'] },
+  customTierConfig: {
+    backdropBlur: { type: Number },
+    fps: { type: Number },
+    transitions: { type: Boolean },
+    pollIntervalMs: { type: Number },
+    particles: { type: Boolean },
+    imageQuality: { type: Number },
+    hoverEffects: { type: Boolean },
+    debounceMs: { type: Number },
+    skeleton: { type: Boolean },
+    shadows: { type: Boolean },
+    gradients: { type: Boolean },
+    imageLoading: { type: String, enum: ['eager', 'lazy'] },
+  },
 };
 
 const ToolSessionSchema = new Schema(

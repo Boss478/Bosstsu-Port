@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import dbConnect from '@/lib/db';
-import WordOverride from '@/models/Word';
+import WordOverride from '@/models/WordOverride';
 import Breadcrumb from '@/components/Breadcrumb';
 import DeleteButton from '@/components/admin/DeleteButton';
 import ToggleStatus from '@/components/admin/ToggleStatus';

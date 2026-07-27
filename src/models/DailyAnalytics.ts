@@ -11,7 +11,7 @@ export interface EventStat {
 }
 
 export interface DeviceStat {
-  type: string;
+  name: string;
   count: number;
 }
 
@@ -47,7 +47,7 @@ const DailyAnalyticsSchema: Schema = new Schema(
     uniqueVisitors: { type: Number, default: 0 },
     topPages: [{ path: String, count: Number }],
     topEvents: [{ eventName: String, count: Number }],
-    deviceBreakdown: [{ type: String, count: Number }],
+    deviceBreakdown: [{ name: String, count: Number }],
     referrerBreakdown: [{ referrer: String, count: Number }],
     osBreakdown: [{ name: String, count: Number }],
     deviceModelBreakdown: [{ name: String, count: Number }],

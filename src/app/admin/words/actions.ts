@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import dbConnect from '@/lib/db';
-import WordOverride from '@/models/Word';
+import WordOverride from '@/models/WordOverride';
 import { parseNumberArray } from '@/lib/validation';
 import { parseTagString as parseWordArray } from '@/lib/format';
 import { ROUTES } from '@/lib/routes';

@@ -18,5 +18,10 @@ export default defineConfig({
     include: ['tests/**/*.test.{ts,tsx}'],
     testTimeout: 10000,
     fileParallelism: false,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text-summary', 'lcov'],
+      exclude: ['tests/unit/phonics/**'],
+    },
   },
 });

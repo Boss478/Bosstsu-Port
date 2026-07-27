@@ -1,22 +1,22 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import type { QuizConfig, QuizDirection, CefrLevel, PhonemeData, WordData } from '../types';
-import { useAllWordEntries, type WordEntry } from '../hooks/useAllWordEntries';
+import type { QuizConfig, PhonemeData } from '../types';
+import { useAllWordEntries } from '../hooks/useAllWordEntries';
 import { PhonemeSoundboard } from '../components/PhonemeSoundboard';
 import { LetterTileKeyboard } from '../components/LetterTileKeyboard';
 import QuestionChoiceButton from '../components/QuestionChoiceButton';
 import { PHONEMES, WORD_CLASS_ABBREV } from '../constants';
 import { DialectBadge } from '../components/DialectBadge';
-import { WORDS } from '../words';
 import { formatPhonemeIpa } from '../utils/ipaUtils';
 import { useAudio } from '@/hooks/useAudio';
 import {
-  generateDefinitionQuestions,
-  generateSynonymQuestions,
-  generateAntonymQuestions,
-  generateStressQuestions,
-} from '../question-generators';
+  generateQuestions,
+  type ChallengeQuestion,
+  type IpaQuestion,
+  type McqWordQuestion,
+} from '../challenge-quiz-questions';
+import ChallengeResults from '../components/ChallengeResults';
 
 interface Props {
   config: QuizConfig;
@@ -26,157 +26,6 @@ interface Props {
 }
 
 type Phase = 'playing' | 'feedback' | 'results';
-
-interface IpaQuestion {
-  kind: 'ipa';
-  type: 'word-to-ipa' | 'ipa-to-word';
-  word: WordEntry;
-}
-
-interface McqWordQuestion {
-  kind: 'mcq';
-  type: 'word-to-def' | 'def-to-word' | 'synonyms' | 'stress' | 'antonyms';
-  correctAnswer: string;
-  options: string[];
-  word: WordData;
-  prompt: string;
-  subtitle?: string;
-}
-
-type ChallengeQuestion = IpaQuestion | McqWordQuestion;
-
-export function shuffleArray<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-export function generateQuestions(
-  pool: WordEntry[],
-  directions: QuizDirection[],
-  count: number,
-  cefrLevel?: CefrLevel,
-  wordPool?: WordData[],
-): ChallengeQuestion[] {
-  const ipaDirs = directions.filter((d) => d === 'word-to-ipa' || d === 'ipa-to-word') as (
-    | 'word-to-ipa'
-    | 'ipa-to-word'
-  )[];
-  const wordDirs = directions.filter(
-    (d) =>
-      d === 'word-to-def' ||
-      d === 'def-to-word' ||
-      d === 'synonyms' ||
-      d === 'stress' ||
-      d === 'antonyms',
-  );
-
-  if (ipaDirs.length === 0 && wordDirs.length === 0) return [];
-
-  const shuffled = pool.length > 0 ? shuffleArray(pool) : [];
-
-  const wordQPool: McqWordQuestion[] = [];
-  const mcqCount = wordDirs.length > 0 ? Math.max(10, Math.ceil(count * 0.6)) : 0;
-
-  const lvl = cefrLevel ?? 'all';
-  const wp = wordPool ?? WORDS;
-
-  if (wordDirs.includes('word-to-def')) {
-    const qs = generateDefinitionQuestions('word-to-def', mcqCount, lvl, undefined, wp);
-    wordQPool.push(
-      ...qs.map((q) => ({
-        kind: 'mcq' as const,
-        type: 'word-to-def' as const,
-        correctAnswer: q.correctAnswer,
-        options: q.options,
-        word: q.word,
-        prompt: q.word.word,
-        subtitle: `Which definition matches "${q.word.word}"?`,
-      })),
-    );
-  }
-  if (wordDirs.includes('def-to-word')) {
-    const qs = generateDefinitionQuestions('def-to-word', mcqCount, lvl, undefined, wp);
-    wordQPool.push(
-      ...qs.map((q) => ({
-        kind: 'mcq' as const,
-        type: 'def-to-word' as const,
-        correctAnswer: q.correctAnswer,
-        options: q.options,
-        word: q.word,
-        prompt: q.word.definition,
-        subtitle: 'Which word matches this definition?',
-      })),
-    );
-  }
-  if (wordDirs.includes('synonyms')) {
-    const qs = generateSynonymQuestions(mcqCount, lvl, undefined, wp);
-    wordQPool.push(
-      ...qs.map((q) => ({
-        kind: 'mcq' as const,
-        type: 'synonyms' as const,
-        correctAnswer: q.correctAnswer,
-        options: q.options,
-        word: q.word,
-        prompt: q.word.word,
-        subtitle: `Which is a synonym of "${q.word.word}"?`,
-      })),
-    );
-  }
-  if (wordDirs.includes('stress')) {
-    const qs = generateStressQuestions(mcqCount, lvl, undefined, wp);
-    wordQPool.push(
-      ...qs.map((q) => ({
-        kind: 'mcq' as const,
-        type: 'stress' as const,
-        correctAnswer: q.correctAnswer,
-        options: q.options,
-        word: q.word,
-        prompt: q.word.word,
-        subtitle: `Which stress pattern matches "${q.word.word}"?`,
-      })),
-    );
-  }
-  if (wordDirs.includes('antonyms')) {
-    const qs = generateAntonymQuestions(mcqCount, lvl, undefined, wp);
-    wordQPool.push(
-      ...qs.map((q) => ({
-        kind: 'mcq' as const,
-        type: 'antonyms' as const,
-        correctAnswer: q.correctAnswer,
-        options: q.options,
-        word: q.word,
-        prompt: q.word.word,
-        subtitle: `Which is an antonym of "${q.word.word}"?`,
-      })),
-    );
-  }
-
-  const shuffledWordQs = shuffleArray(wordQPool);
-  let wordIdx = 0;
-  const questions: ChallengeQuestion[] = [];
-
-  for (let i = 0; i < count; i++) {
-    const hasIpa = ipaDirs.length > 0;
-    const hasWord = wordIdx < shuffledWordQs.length;
-    if (!hasIpa && !hasWord) break;
-
-    const pickIpa = hasIpa && (!hasWord || Math.random() < 0.5);
-    if (pickIpa) {
-      const type = ipaDirs[Math.floor(Math.random() * ipaDirs.length)];
-      const word = shuffled[i % shuffled.length];
-      if (word) questions.push({ kind: 'ipa', type, word });
-    } else if (hasWord) {
-      questions.push(shuffledWordQs[wordIdx]);
-      wordIdx++;
-    }
-  }
-
-  return questions;
-}
 
 export default function ChallengeQuizScreen({
   config,
@@ -953,73 +802,15 @@ export default function ChallengeQuizScreen({
       )}
 
       {phase === 'results' && (
-        <div className="flex-1 flex items-center justify-center p-5">
-          <div className="w-full max-w-sm bg-white/95 dark:bg-slate-900/95 border border-white/50 dark:border-slate-800/50 rounded-3xl p-6 shadow-2xl space-y-5 text-center">
-            <div className="w-16 h-16 rounded-full bg-[#C8A44E]/20 flex items-center justify-center mx-auto">
-              <i
-                className={`fi fi-sr-${score >= incorrect ? 'trophy' : 'flag'} text-2xl text-[#C8A44E]`}
-              />
-            </div>
-
-            <h2
-              className="text-lg font-extrabold text-slate-800 dark:text-[#F7E1A0]"
-              style={{ fontFamily: 'var(--font-mali)' }}
-            >
-              Quiz Complete!
-            </h2>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 p-3">
-                <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">{score}</p>
-                <p className="text-[8px] font-extrabold text-emerald-500/70 uppercase tracking-widest">
-                  Correct
-                </p>
-              </div>
-              <div className="rounded-2xl bg-rose-50 dark:bg-rose-900/20 p-3">
-                <p className="text-sm font-black text-rose-600 dark:text-rose-400">{incorrect}</p>
-                <p className="text-[8px] font-extrabold text-rose-500/70 uppercase tracking-widest">
-                  Incorrect
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/50 p-3">
-              <p className="text-lg font-black text-slate-700 dark:text-slate-200">
-                {totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0}%
-              </p>
-              <p className="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest">
-                Accuracy
-              </p>
-            </div>
-
-            {bestStreak > 0 && (
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
-                Best streak: {bestStreak}
-              </p>
-            )}
-
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={handlePlayAgain}
-                className="w-full py-3 rounded-2xl bg-gradient-to-r from-[#C8A44E] to-[#D4B06A] text-white text-[10px] font-extrabold tracking-wider uppercase shadow-lg hover:shadow-xl active:scale-[0.97] transition-all cursor-pointer"
-              >
-                Play Again
-              </button>
-              <button
-                onClick={onBack}
-                className="w-full py-3 rounded-2xl bg-white/60 dark:bg-slate-800/60 border border-white/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 text-[10px] font-extrabold tracking-wider uppercase hover:bg-white/80 dark:hover:bg-slate-700/80 active:scale-[0.97] transition-all cursor-pointer"
-              >
-                Back to Challenge List
-              </button>
-              <button
-                onClick={onBackToBuilder}
-                className="w-full py-3 rounded-2xl bg-white/60 dark:bg-slate-800/60 border border-white/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 text-[10px] font-extrabold tracking-wider uppercase hover:bg-white/80 dark:hover:bg-slate-700/80 active:scale-[0.97] transition-all cursor-pointer"
-              >
-                Back to Custom Build
-              </button>
-            </div>
-          </div>
-        </div>
+        <ChallengeResults
+          score={score}
+          incorrect={incorrect}
+          totalQuestions={totalQuestions}
+          bestStreak={bestStreak}
+          onPlayAgain={handlePlayAgain}
+          onBack={onBack}
+          onBackToBuilder={onBackToBuilder}
+        />
       )}
     </div>
   );

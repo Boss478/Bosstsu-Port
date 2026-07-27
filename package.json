@@ -1,6 +1,6 @@
 {
   "name": "boss478",
-  "version": "1.10.70",
+  "version": "1.10.71",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack -p 3300",
@@ -55,6 +55,8 @@
     "@next/bundle-analyzer": "^16.2.9",
     "@playwright/test": "^1.62.0",
     "@tailwindcss/postcss": "^4.3.1",
+    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/react": "^16.3.2",
     "@types/archiver": "^7.0.0",
     "@types/node": "^20",
     "@types/qrcode": "^1.5.6",

@@ -12,29 +12,19 @@ export const dynamic = 'force-dynamic';
 import SearchFilter from '@/components/admin/SearchFilter';
 import PageSizeSelector from '@/components/admin/PageSizeSelector';
 import { CONFIG } from '@/lib/config';
+import { parseListParams } from '@/lib/admin-crud';
 
 export default async function PortfolioListPage({
   searchParams,
 }: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   await dbConnect();
 
-  const resolvedSearchParams = await searchParams;
-  const page = typeof resolvedSearchParams.page === 'string' ? parseInt(resolvedSearchParams.page) : 1;
-  const limit = typeof resolvedSearchParams.limit === 'string'
-    ? Math.min(parseInt(resolvedSearchParams.limit), 250)
-    : CONFIG.PAGINATION.DEFAULT_LIMIT;
-  const skip = (page - 1) * limit;
-
-  const search = typeof resolvedSearchParams.q === 'string' ? resolvedSearchParams.q : '';
-  const sortParam = typeof resolvedSearchParams.sort === 'string' ? resolvedSearchParams.sort : 'latest';
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let sortQuery: any = { date: -1 };
-  if (sortParam === 'oldest') sortQuery = { date: 1 };
-  if (sortParam === 'name_asc') sortQuery = { title: 1 };
-  if (sortParam === 'name_desc') sortQuery = { title: -1 };
+  const { page, limit, skip, search, sortQuery, buildPaginationQuery } = await parseListParams(
+    searchParams,
+    { limit: CONFIG.PAGINATION.DEFAULT_LIMIT },
+  );
 
   const query = search ? { title: { $regex: search, $options: 'i' } } : {};
 
@@ -44,14 +34,6 @@ export default async function PortfolioListPage({
   ]);
 
   const totalPages = Math.ceil(total / limit);
-
-  function buildPaginationQuery(newPage: number): Record<string, string | number> {
-    const params: Record<string, string | number> = { page: newPage };
-    if (resolvedSearchParams.q && typeof resolvedSearchParams.q === 'string') params.q = resolvedSearchParams.q;
-    if (resolvedSearchParams.sort && typeof resolvedSearchParams.sort === 'string') params.sort = resolvedSearchParams.sort;
-    if (resolvedSearchParams.limit && typeof resolvedSearchParams.limit === 'string') params.limit = resolvedSearchParams.limit;
-    return params;
-  }
 
   return (
     <div className="min-h-screen bg-blue-50 dark:bg-slate-950 pt-28 pb-12 px-4">
@@ -163,34 +145,44 @@ export default async function PortfolioListPage({
           </table>
         </div>
 
-        {/* Pagination */
-        totalPages > 1 && (
-          <div className="mt-8 flex justify-center gap-2">
-            <Link
-              href={page <= 1 ? '#' : { pathname: '/admin/portfolio', query: buildPaginationQuery(page - 1) }}
-              className={`p-2 rounded-lg border ${
-                page <= 1
-                  ? 'pointer-events-none opacity-50 border-zinc-200 dark:border-slate-700'
-                  : 'bg-white dark:bg-slate-800 border-zinc-200 dark:border-slate-700 hover:bg-zinc-50'
-              }`}
-            >
-              <i aria-hidden="true" className="fi fi-sr-angle-left" />
-            </Link>
-            <span className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-300">
-              Page {page} of {totalPages}
-            </span>
-            <Link
-              href={page >= totalPages ? '#' : { pathname: '/admin/portfolio', query: buildPaginationQuery(page + 1) }}
-              className={`p-2 rounded-lg border ${
-                page >= totalPages
-                  ? 'pointer-events-none opacity-50 border-zinc-200 dark:border-slate-700'
-                  : 'bg-white dark:bg-slate-800 border-zinc-200 dark:border-slate-700 hover:bg-zinc-50'
-              }`}
-            >
-              <i aria-hidden="true" className="fi fi-sr-angle-right" />
-            </Link>
-          </div>
-        )}
+        {
+          /* Pagination */
+          totalPages > 1 && (
+            <div className="mt-8 flex justify-center gap-2">
+              <Link
+                href={
+                  page <= 1
+                    ? '#'
+                    : { pathname: '/admin/portfolio', query: buildPaginationQuery(page - 1) }
+                }
+                className={`p-2 rounded-lg border ${
+                  page <= 1
+                    ? 'pointer-events-none opacity-50 border-zinc-200 dark:border-slate-700'
+                    : 'bg-white dark:bg-slate-800 border-zinc-200 dark:border-slate-700 hover:bg-zinc-50'
+                }`}
+              >
+                <i aria-hidden="true" className="fi fi-sr-angle-left" />
+              </Link>
+              <span className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-300">
+                Page {page} of {totalPages}
+              </span>
+              <Link
+                href={
+                  page >= totalPages
+                    ? '#'
+                    : { pathname: '/admin/portfolio', query: buildPaginationQuery(page + 1) }
+                }
+                className={`p-2 rounded-lg border ${
+                  page >= totalPages
+                    ? 'pointer-events-none opacity-50 border-zinc-200 dark:border-slate-700'
+                    : 'bg-white dark:bg-slate-800 border-zinc-200 dark:border-slate-700 hover:bg-zinc-50'
+                }`}
+              >
+                <i aria-hidden="true" className="fi fi-sr-angle-right" />
+              </Link>
+            </div>
+          )
+        }
       </div>
     </div>
   );

@@ -2,10 +2,22 @@ import mongoose from 'mongoose';
 
 // Run: MONGODB_URI="mongodb://..." npx tsx scripts/seed.ts
 // Or: npm run seed
+//
+// WARNING: This script DELETES ALL EXISTING DATA from 9 collections.
+// You must pass --confirm to proceed.
+// See AGENTS.md — Database Rules.
 
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) {
   console.error('ERROR: MONGODB_URI environment variable is required');
+  process.exit(1);
+}
+
+if (!process.argv.includes('--confirm')) {
+  console.error(
+    '\n\x1b[31m⚠  WARNING: This script deletes all existing data from 9 collections.\x1b[0m',
+  );
+  console.error('\x1b[33m   Pass --confirm to proceed: npm run seed -- --confirm\x1b[0m\n');
   process.exit(1);
 }
 

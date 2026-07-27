@@ -5,7 +5,7 @@ import Portfolio from '@/models/Portfolio';
 import Gallery from '@/models/Gallery';
 import Learning from '@/models/Learning';
 import Game from '@/models/Game';
-import WordOverride from '@/models/Word';
+import WordOverride from '@/models/WordOverride';
 import AnalyticsEvent from '@/models/AnalyticsEvent';
 import DailyAnalytics from '@/models/DailyAnalytics';
 import { CONFIG } from '@/lib/config';
@@ -128,7 +128,7 @@ export interface AnalyticsStats {
   topEvents: { eventName: string; count: number }[];
   today: Record<string, unknown> | null;
   viewsOverTime: { date: string; views: number }[];
-  deviceBreakdown: { type: string; count: number }[];
+  deviceBreakdown: { name: string; count: number }[];
   referrerBreakdown: { referrer: string; count: number }[];
   trends: { todayViews: number; yesterdayViews: number; changePercent: number };
   hourlyDistribution: { hour: number; views: number }[];

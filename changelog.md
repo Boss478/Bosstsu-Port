@@ -5,6 +5,14 @@
 
 
 
+## v1.10.71 (2026-07-27)
++ * **Tech debt sprint (Phase 1-5) — 12 items resolved**:
+  + * **Security fixes (S1-S3)**: Added `verifyAuth()` to `/api/tools/broadcast` (SSE message injection vector) and `/api/words/overrides` (public data exposure). Fixed analytics API returning 401 for non-auth errors → 500.
+  + * **Schema integrity (C1-C5)**: Fixed `ToolSession.ts` interface/schema drift (`forceTier`/`customTierConfig` silently dropped on save). Harmonized `DailyAnalytics.ts` key naming. Renamed `Word.ts` → `WordOverride.ts` to match model identity. Removed redundant toolresponse index. Added `--confirm` guard to seed script.
+  + * **Testing (T1-T3)**: Added auth-failure tests for broadcast + word-overrides routes. Added 14 model unit tests for ToolSession, DailyAnalytics, WordOverride. Established coverage baseline (58% lines). Installed `@testing-library/react` (fixed 2 pre-existing test failures).
+  + * **Code quality (C6-C10, C12-C14)**: Added `.heics`/`.heifs` to server HEIC detection. Extracted `parseListParams` shared pagination utility + refactored portfolio list page. Fixed rate-limiter IP fallback (`'unknown'` → `'unknown-{uaHash}'`). Removed legacy `STOCK_*` env fallbacks. Bumped 20+ patch/minor deps.
+  + * **God component split (A1)**: Extracted `ChallengeResults` + `challenge-quiz-questions` from `ChallengeQuizScreen` (1026→812 lines).
+
 ## v1.10.70 (2026-07-26)
 + * **useToolPoll hook extracted**: Consolidated 3-component polling pattern (PadletBoard, MentimeterPoll, QABoard) into `hooks/use-tool-poll.ts` — removed ~40 lines of duplicated `useQuery`+`refetchInterval`+`toolKeys` boilerplate per component.
 

@@ -97,7 +97,7 @@ function deviceBreakdownAggregation(since: Date): PipelineStage[] {
   return [
     { $match: { timestamp: { $gte: since } } },
     { $group: { _id: '$deviceType', count: { $sum: 1 } } },
-    { $project: { _id: 0, type: '$_id', count: 1 } },
+    { $project: { _id: 0, name: '$_id', count: 1 } },
   ];
 }
 

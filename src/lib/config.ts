@@ -68,7 +68,7 @@ export const CONFIG = {
     ENABLED: true, // set false to reject HEIC uploads entirely
     OUTPUT_FORMAT: 'JPEG' as const, // 'JPEG' or 'PNG' — target format after HEIC conversion
     OUTPUT_QUALITY: 0.9, // 0.0–1.0 — heic-convert library quality after conversion
-    EXTENSIONS: ['.heic', '.heif'] as const, // detected by file extension (catches wrong MIME types from Safari/iOS)
+    EXTENSIONS: ['.heic', '.heif', '.heics', '.heifs'] as const, // detected by file extension (catches wrong MIME types from Safari/iOS)
   },
 
   // ─── Database ─────────────────────────────────────────────────────────

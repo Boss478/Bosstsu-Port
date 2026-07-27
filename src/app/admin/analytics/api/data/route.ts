@@ -8,6 +8,6 @@ export async function GET() {
     const stats = await getAnalyticsStats();
     return NextResponse.json(stats);
   } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
