@@ -43,7 +43,6 @@ token-usage-output.txt
 # testing
 /coverage
 /tmp/
-/tests/
 
 # misc
 .DS_Store
@@ -64,7 +63,7 @@ Tasks/
 .claude/plans/
 .claude/report/
 .agents/
-.opencode/goals/
+.opencode/
 .codesight/
 
 # Session memory (Remember plugin)

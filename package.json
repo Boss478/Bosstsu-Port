@@ -18,7 +18,6 @@
     "assemble-words": "npx tsx scripts/assemble-words.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "eval": ".agents/evals/run-evals.sh",
     "prepare": "husky"
   },
   "lint-staged": {
