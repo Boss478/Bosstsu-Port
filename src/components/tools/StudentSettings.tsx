@@ -262,7 +262,7 @@ export default function StudentSettings({
       {open && (
         <div className="fixed inset-0 z-[60] flex items-start justify-center p-4 pt-[10vh] overflow-y-auto">
           <div
-            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/10"
             onClick={() => setOpen(false)}
           />
           <div className="relative w-full max-w-sm max-h-[75vh] overflow-y-auto overscroll-contain rounded-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl p-5 space-y-4">

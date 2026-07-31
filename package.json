@@ -1,12 +1,13 @@
 {
   "name": "boss478",
-  "version": "1.10.72",
+  "version": "1.10.73",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack -p 3300",
     "build": "NODE_ENV=production next build",
     "start": "next start",
     "lint": "eslint",
+  "typecheck": "npx tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
     "analyze": "ANALYZE=true npm run build",

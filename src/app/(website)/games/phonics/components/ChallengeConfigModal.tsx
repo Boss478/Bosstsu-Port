@@ -99,7 +99,7 @@ export function ChallengeConfigModal({ onSubmit, onClose, compatibility }: Props
       role="dialog"
       aria-modal="true"
       aria-labelledby="challenge-config-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4 animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

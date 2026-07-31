@@ -76,7 +76,7 @@ export default function TransactionForm({ editing, onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/10" onClick={onClose}>
       <div
         className="w-full max-w-md rounded-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl p-6"
         onClick={(e) => e.stopPropagation()}

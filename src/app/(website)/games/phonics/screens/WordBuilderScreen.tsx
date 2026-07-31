@@ -181,7 +181,7 @@ export default function WordBuilderScreen() {
 
       {isSettingsOpen &&
         createPortal(
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10">
             <div className="bg-white/95 dark:bg-slate-900/95 border border-white/50 dark:border-slate-800/50 rounded-3xl p-6 shadow-2xl max-w-md w-full mx-4 space-y-5">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Settings</h3>

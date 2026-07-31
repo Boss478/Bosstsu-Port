@@ -161,7 +161,7 @@ export default function PhotoLightbox({ photos, initialIndex, onClose }: PhotoLi
 
   return (
     <div
-      className="fixed inset-0 z-100 flex items-center justify-center bg-black/10 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-100 flex items-center justify-center bg-black/10 animate-fade-in"
       role="dialog"
       aria-modal="true"
       onClick={onClose}

@@ -140,7 +140,7 @@ export default function OnboardingOverlay({ name, type, onDismiss }: Props) {
   const Illustration = ILLUSTRATIONS[type] || MatchIllustration;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 p-4">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/10 animate-in fade-in duration-300 p-4">
       <div className="bg-white dark:bg-zinc-800 rounded-[2rem] p-8 md:p-10 max-w-sm w-full text-center space-y-6 shadow-2xl animate-in zoom-in duration-300">
         <div className="w-16 h-16 rounded-2xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-violet-600 dark:text-violet-400 text-3xl font-black mx-auto">
           <i className="fi fi-sr-bulb text-2xl" />

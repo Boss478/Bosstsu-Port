@@ -129,7 +129,7 @@ export default function FlashcardMenuScreen() {
   return (
     <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl shadow-blue-100/50 dark:shadow-black/40 text-center animate-float relative overflow-hidden">
       {isLoading && (
-        <div className="absolute inset-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in">
+        <div className="absolute inset-0 z-50 bg-black/10 flex flex-col items-center justify-center animate-in fade-in">
           <i aria-hidden="true" className="fi fi-sr-spinner animate-spin text-5xl text-blue-500 mb-4"></i>
           <p className="text-zinc-800 dark:text-zinc-200 font-bold text-lg animate-pulse">Loading Vocabulary...</p>
         </div>

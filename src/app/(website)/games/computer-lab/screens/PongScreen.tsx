@@ -278,13 +278,13 @@ export default function PongScreen({ onNavigate }: ScreenShellProps) {
           }}
         />
         {gs === "start" && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 rounded-lg">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/10 rounded-lg">
             <p className="text-green-400 text-3xl font-black tracking-widest mb-4">PONG</p>
             <p className="text-green-300/80 text-sm animate-pulse">Press SPACE to start</p>
           </div>
         )}
         {gs === "gameover" && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 rounded-lg gap-3">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/10 rounded-lg gap-3">
             <p className="text-yellow-400 text-xl font-black">
               {winner === "left" ? "YOU WIN!" : "AI WINS!"}
             </p>

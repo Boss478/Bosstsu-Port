@@ -247,7 +247,7 @@ export default function SimComponentPopup({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10" onClick={onClose}>
       <div
         className="bg-zinc-900 border border-zinc-700 rounded-xl max-w-sm w-full mx-3 animate-popup-enter overflow-hidden"
         onClick={(e) => e.stopPropagation()}

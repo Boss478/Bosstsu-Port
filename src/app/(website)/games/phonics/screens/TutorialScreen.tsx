@@ -40,7 +40,7 @@ export default function TutorialScreen({ onComplete, onStartPractice }: Tutorial
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 cursor-pointer"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4 cursor-pointer"
       onClick={handleAdvance}
     >
       <div

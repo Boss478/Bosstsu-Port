@@ -38,7 +38,7 @@ export default function ModeSelectModal({ label, category: initialCategory, onSt
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/10"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       aria-modal="true"
       role="dialog"

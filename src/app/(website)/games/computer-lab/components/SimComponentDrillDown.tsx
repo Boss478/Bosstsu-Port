@@ -280,7 +280,7 @@ export default function SimComponentDrillDown({ componentId, cpuState, gpuState,
   }, [componentId, cpuState, gpuState, ramState, ssdState, hddState]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10" onClick={onClose}>
       <div
         className="bg-zinc-900 border border-zinc-700 rounded-xl overflow-hidden max-w-lg w-full mx-4"
         onClick={(e) => e.stopPropagation()}

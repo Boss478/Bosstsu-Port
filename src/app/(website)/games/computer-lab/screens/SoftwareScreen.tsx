@@ -210,7 +210,7 @@ export default function SoftwareScreen({ onNavigate }: ScreenShellProps) {
         </div>
 
         {showContinue && (
-          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/10 flex items-center justify-center z-50">
             <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-8 max-w-xs w-full mx-4 text-center space-y-5">
               <p className="text-emerald-400 text-lg font-bold">{t("stage2.correct", lang, mode)}</p>
               <p className="text-zinc-300 text-sm">{t("stage2.continue", lang, mode)}</p>

@@ -66,7 +66,7 @@ export function QuizConfigModal({ onStart, onClose }: QuizConfigModalProps) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="quiz-config-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4 animate-fade-in"
     >
       <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5 transform scale-100 transition-transform duration-200 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">

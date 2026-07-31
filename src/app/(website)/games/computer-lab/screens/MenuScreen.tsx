@@ -164,7 +164,7 @@ export default function MenuScreen({ onNavigate }: ScreenShellProps) {
 
       {/* Settings panel */}
       {showSettings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowSettings(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10" onClick={() => setShowSettings(false)}>
           <div
             className="bg-zinc-900 border border-zinc-700 rounded-xl max-w-xs w-full mx-3 p-4 animate-popup-enter"
             onClick={(e) => e.stopPropagation()}
@@ -197,7 +197,7 @@ export default function MenuScreen({ onNavigate }: ScreenShellProps) {
 
       {/* Software warning */}
       {showSoftwareWarning && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/10 flex items-center justify-center z-50">
           <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 max-w-xs w-full mx-4 text-center space-y-4">
             <p className="text-amber-400 text-base font-bold">Software Stage Under Development</p>
             <p className="text-zinc-300 text-sm">

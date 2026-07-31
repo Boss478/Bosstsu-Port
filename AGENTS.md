@@ -23,7 +23,7 @@ Key paths: `(website)/` (public), `admin/` (CMS), `api/` (routes).
 | `npm run dev` | Dev server (port 3300, `--webpack`) |
 | `npm run build` | Final verification |
 | `npm run lint` | ESLint 9 flat config |
-| `npm run typecheck` | TypeScript strict check |
+| `npm run typecheck` | TypeScript strict check (`npx tsc --noEmit`) |
 | `npm run seed` | Seed MongoDB via `scripts/seed.ts` |
 | `npm run eval` | Run eval harness (pass feature: `npm run eval -- auth`) |
 
@@ -70,6 +70,12 @@ Key paths: `(website)/` (public), `admin/` (CMS), `api/` (routes).
 
 ---
 
+## UI Rules
+
+- **Modal overlays**: darken background only (`bg-black/10`), no `backdrop-blur` on the overlay. (Modal panel surfaces may keep their own glass blur.)
+
+---
+
 ## Known Gotchas
 
 - `aspect-video` + flex col → height 0. Use `h-48 shrink-0` or `min-h-[Npx]`
@@ -77,7 +83,8 @@ Key paths: `(website)/` (public), `admin/` (CMS), `api/` (routes).
 - `bufferCommands: false` → queries hard-fail on unready connections
 - `sharp` in `serverExternalPackages` (can't run edge)
 - Thai descenders (ภ ว ม ห ฤ ร) at 2xl+: avoid `bg-clip-text`, `leading-tight`; use `leading-relaxed`
-- Next.js 16 ESLint strict rules: pre-commit hook enforces `react-hooks/immutability` (no ref.current = val in render top-level) and `react-hooks/set-state-in-effect` (no setState synchronously in effect body). Use lazy state initializers (`useState(() => ...)`) for localStorage loads.
+- Next.js 16 ESLint strict rules: pre-commit hook enforces `react-hooks/immutability` (no ref.current = val in render top-level) and `react-hooks/set-state-in-effect` (no setState synchronously in effect body). Use lazy state initializers (`useState(() => ...)`) for localStorage loads **in client-only trees**.
+- **Hydration mismatch from localStorage**: `useState(() => localStorage.getItem(...))` in an SSR'd tree diverges — server renders the default, client hydrates the real value, React regenerates the tree (console error). Interactive/game pages: wrap the client in a `'use client'` shell using `next/dynamic(..., { ssr: false })` (see `*Shell.tsx`). `ssr: false` is **not allowed in Server Components** — pages that export `metadata` must import the shell. If SSR is required, load localStorage in an effect via `startTransition(() => setState(...))`.
 
 ---
 

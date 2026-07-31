@@ -5,6 +5,9 @@
 
 
 
+## v1.10.73 (2026-07-31)
++ * **Modal overlay design rule — darken only**: Added "UI Rules" to AGENTS.md — modal overlays use `bg-black/10` (10% darken), no `backdrop-blur` on the overlay (panel surfaces may keep glass blur). Converted all full-screen modal/dialog overlays (27 files) from blur + heavy dims to `bg-black/10` no-blur: boss478 (StockDetailModal, PhotoLightbox, finance forms, StudentSettings), alphabet-adventure (OnboardingOverlay, CardRevealModal), phonics (config/quiz/word/profile/bottom-sheet modals, tutorial), spellchecker (loading mask, hint modal), computer-lab (settings, warning, component popups, pong dialogs). Drops `backdrop-filter` GPU cost on the 1-vCPU VPS and low-end devices.
+
 ## v1.10.72 (2026-07-31)
 + * **Game hydration fix — ssr:false shells**: Alphabet Adventure (main + BETA) and Number Game pages rendered localStorage-derived state (high score, card count, map progress, per-range bests) only on the client, so server HTML (defaults) diverged at hydration → "Hydration failed" + full tree regeneration whenever the player had saved progress. Added `'use client'` shells (`AlphabetAdventureShell.tsx`, `AlphabetAdventureBetaShell.tsx`, `NumberGameShell.tsx`) wrapping the clients in `next/dynamic(..., { ssr: false })`; the pages stay server components to keep `metadata` exports. This structurally removes the divergence class (not just the reported instance) and offloads menu SSR from the 1-vCPU server.
 

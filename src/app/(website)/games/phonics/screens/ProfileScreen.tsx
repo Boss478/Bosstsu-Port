@@ -407,7 +407,7 @@ export default function ProfileScreen() {
       {/* Companion Selection Modal */}
       {showCompanionModal && save && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 animate-fade-in"
           onClick={() => setShowCompanionModal(false)}
         >
           <div
@@ -480,7 +480,7 @@ export default function ProfileScreen() {
       {/* Buy Modal */}
       {selectedCompanionData && !justBought && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/10"
           onClick={() => setLockedClickId(null)}
         >
           <div
@@ -537,7 +537,7 @@ export default function ProfileScreen() {
 
       {/* Post-purchase "Ask to select" Modal */}
       {justBoughtData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10">
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-72 shadow-2xl border border-white/20 dark:border-slate-700">
             <div className="text-center mb-4">
               <i className="fi fi-sr-sparkles text-3xl text-[#C8A44E] mb-2 block" />
@@ -572,7 +572,7 @@ export default function ProfileScreen() {
       {/* Rename Slot Modal */}
       {showRename && save && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 animate-fade-in"
           onClick={() => setShowRename(false)}
         >
           <div
@@ -623,7 +623,7 @@ export default function ProfileScreen() {
       {/* Delete Confirmation Modal */}
       {confirmDelete && save && typeof activeSlot === 'number' && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 animate-fade-in"
           onClick={() => setConfirmDelete(false)}
         >
           <div
@@ -667,7 +667,7 @@ export default function ProfileScreen() {
       {/* Change Level Modal */}
       {isChangingLevel && save && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/10"
           onClick={() => setIsChangingLevel(false)}
         >
           <div

@@ -170,7 +170,7 @@ export default function FlashcardPlayingScreen() {
 
               {/* Hint Modal Overlay (Practice mode only) */}
               {feedbackHint && (
-                <div className="absolute inset-0 bg-white/90 dark:bg-slate-900/95 rounded-2xl flex flex-col items-center justify-center p-6 animate-in fade-in">
+                <div className="absolute inset-0 bg-black/10 rounded-2xl flex flex-col items-center justify-center p-6 animate-in fade-in">
                   <i aria-hidden="true" className="fi fi-sr-cross-circle text-5xl text-rose-500 mb-4 drop-shadow-sm"></i>
                   <p className="text-zinc-500 dark:text-zinc-400 font-bold mb-2">Incorrect. The answer is:</p>
                   <div className="flex flex-col items-center gap-2">

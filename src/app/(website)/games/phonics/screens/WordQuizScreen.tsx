@@ -713,7 +713,7 @@ export default function WordQuizScreen() {
       {isSortSettingsOpen &&
         typeof window !== 'undefined' &&
         createPortal(
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4 animate-fade-in">
             <div
               className="w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5"
               style={{ fontFamily: 'var(--font-mali)' }}

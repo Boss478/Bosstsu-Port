@@ -288,7 +288,7 @@ export default function LibraryScreen() {
         typeof window !== 'undefined' &&
         createPortal(
           <div
-            className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end justify-center animate-fade-in"
+            className="fixed inset-0 z-50 bg-black/10 flex items-end justify-center animate-fade-in"
             onClick={() => setSelectedPhoneme(null)}
           >
             <div

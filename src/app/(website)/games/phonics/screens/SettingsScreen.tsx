@@ -404,7 +404,7 @@ export default function SettingsScreen() {
           {/* Rename Modal */}
           {showRename && (
             <div
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/10"
               onClick={() => setShowRename(false)}
             >
               <div
@@ -452,7 +452,7 @@ export default function SettingsScreen() {
           {/* Delete Confirmation Modal */}
           {showDelete && (
             <div
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/10"
               onClick={() => setShowDelete(false)}
             >
               <div

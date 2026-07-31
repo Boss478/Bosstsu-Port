@@ -211,7 +211,7 @@ export default function SaveSlotScreen({ onSelectSlot }: SaveSlotScreenProps) {
 
       {/* Modern Deletion Confirmation Overlay Dialog */}
       {confirmDelete !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/10 animate-fade-in">
           <div className="bg-white dark:bg-slate-900 max-w-sm w-full p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl animate-scale-up text-center">
             <div className="w-16 h-16 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center text-2xl mx-auto mb-4 animate-bounce">
               <i className="fi fi-sr-exclamation" />
@@ -250,7 +250,7 @@ export default function SaveSlotScreen({ onSelectSlot }: SaveSlotScreenProps) {
       {/* Welcome Onboarding Modal */}
       {onboardingSlot !== null && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/10 animate-fade-in"
           onClick={() => setOnboardingSlot(null)}
         >
           <div
