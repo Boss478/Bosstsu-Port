@@ -1,4 +1,4 @@
-import AlphabetAdventureClient from '../AlphabetAdventureClient';
+import AlphabetAdventureBetaShell from './AlphabetAdventureBetaShell';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,5 +9,5 @@ export const metadata = {
 };
 
 export default function AlphabetAdventureBetaPage() {
-  return <AlphabetAdventureClient beta />;
+  return <AlphabetAdventureBetaShell />;
 }

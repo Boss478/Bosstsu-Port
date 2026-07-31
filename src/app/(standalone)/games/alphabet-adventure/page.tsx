@@ -1,7 +1,4 @@
-import nextDynamic from 'next/dynamic';
-const AlphabetAdventureClient = nextDynamic(() => import('./AlphabetAdventureClient'), {
-  loading: () => <div className="min-h-screen bg-slate-950 animate-pulse" />,
-});
+import AlphabetAdventureShell from './AlphabetAdventureShell';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,5 +9,5 @@ export const metadata = {
 };
 
 export default function AlphabetAdventurePage() {
-  return <AlphabetAdventureClient />;
+  return <AlphabetAdventureShell />;
 }

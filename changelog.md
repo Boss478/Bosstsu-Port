@@ -5,6 +5,9 @@
 
 
 
+## v1.10.72 (2026-07-31)
++ * **Game hydration fix — ssr:false shells**: Alphabet Adventure (main + BETA) and Number Game pages rendered localStorage-derived state (high score, card count, map progress, per-range bests) only on the client, so server HTML (defaults) diverged at hydration → "Hydration failed" + full tree regeneration whenever the player had saved progress. Added `'use client'` shells (`AlphabetAdventureShell.tsx`, `AlphabetAdventureBetaShell.tsx`, `NumberGameShell.tsx`) wrapping the clients in `next/dynamic(..., { ssr: false })`; the pages stay server components to keep `metadata` exports. This structurally removes the divergence class (not just the reported instance) and offloads menu SSR from the 1-vCPU server.
+
 ## v1.10.71 (2026-07-27)
 + * **Tech debt sprint (Phase 1-5) — 12 items resolved**:
   + * **Security fixes (S1-S3)**: Added `verifyAuth()` to `/api/tools/broadcast` (SSE message injection vector) and `/api/words/overrides` (public data exposure). Fixed analytics API returning 401 for non-auth errors → 500.
