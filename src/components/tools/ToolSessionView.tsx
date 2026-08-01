@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, startTransition } from 'react';
 import PadletBoard from './PadletBoard';
 import MentimeterPoll from './MentimeterPoll';
 import AssignmentForm from './AssignmentForm';
@@ -55,8 +55,10 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
     if (session.requireStudentName) {
       const saved = localStorage.getItem(nameStorageKey);
       if (saved) {
-        setStudentName(saved);
-        setNameConfirmed(true);
+        startTransition(() => {
+          setStudentName(saved);
+          setNameConfirmed(true);
+        });
       }
     }
   }, [session.requireStudentName, nameStorageKey]);
@@ -64,15 +66,17 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
   useEffect(() => {
     if (!enableMascots) return;
     const id = loadMascotId(session._id);
-    setSelectedMascot(id);
+    startTransition(() => {
+      setSelectedMascot(id);
 
-    if (!session.requireStudentName) {
-      const key = getMascotStorageKey(session._id);
-      const existing = localStorage.getItem(key);
-      if (!existing) {
-        setShowMascotPicker(true);
+      if (!session.requireStudentName) {
+        const key = getMascotStorageKey(session._id);
+        const existing = localStorage.getItem(key);
+        if (!existing) {
+          setShowMascotPicker(true);
+        }
       }
-    }
+    });
   }, [session._id, session.requireStudentName, enableMascots]);
 
   const { broadcastMessage, connected, clearBroadcast } = useSSE(session._id, {
@@ -82,7 +86,7 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
         setStudentName('');
         setNameConfirmed(false);
       } else {
-        window.location.href = '/study';
+        window.location.assign('/study');
       }
     },
   });
@@ -245,7 +249,20 @@ function renderTool(
   mascotEventCount: number,
 ) {
   const props = sharedProps as {
-    session: unknown;
+    session: {
+      _id: string;
+      title?: string;
+      type?: string;
+      sessionCode?: string;
+      requireStudentName?: boolean;
+      config?: {
+        prompt?: string;
+        pollMode?: string;
+        allowCustomChoices?: boolean;
+        maxSubmissions?: number;
+        questions?: Array<{ options?: unknown[] }>;
+      };
+    };
     studentName: string;
     mascot?: string;
     onMascotEvent?: (e: MascotEvent) => void;

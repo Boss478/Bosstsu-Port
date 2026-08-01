@@ -35,6 +35,10 @@ export interface Holding {
   manualPrice?: number;
 }
 
+export type PortfolioHolding = Holding;
+export type ExtendedStockData = StockQuote;
+export type Period = '1d' | '5d' | '1w' | '1m' | '3m' | '6m' | 'ytd' | '1y' | '5y' | 'all';
+
 export interface MarketIndex {
   symbol: string;
   name: string;
@@ -122,7 +126,12 @@ export function useWatchlist() {
 export function useAddHolding() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { symbol: string; shares: number; avgCost: number; manualPrice?: number }) => {
+    mutationFn: async (data: {
+      symbol: string;
+      shares: number;
+      avgCost: number;
+      manualPrice?: number;
+    }) => {
       const res = await fetch('/boss478/api/holdings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -7,12 +7,12 @@ import {
   useMemo,
   useCallback,
   useEffect,
+  startTransition,
   type ReactNode,
 } from 'react';
 import { useQueryClient, useQueries } from '@tanstack/react-query';
 import {
   useStockQuotes,
-  useStockHistory,
   useHoldings,
   useWatchlist,
   useAddHolding,
@@ -59,7 +59,12 @@ interface StockDataContextValue {
   addToWatchlist: (symbol: string) => void;
   removeFromWatchlist: (symbol: string) => void;
   updateHolding: (symbol: string, updates: Partial<Omit<PortfolioHolding, 'symbol'>>) => void;
-  addHolding: (symbol: string, shares: number, avgCost: number, manualPrice?: number) => Promise<boolean>;
+  addHolding: (
+    symbol: string,
+    shares: number,
+    avgCost: number,
+    manualPrice?: number,
+  ) => Promise<boolean>;
   removeHolding: (symbol: string) => Promise<boolean>;
   marketState: { thai: { open: boolean; label: string }; us: { open: boolean; label: string } };
   activeTab: TabId;
@@ -78,10 +83,26 @@ interface StockDataContextValue {
 const StockDataContext = createContext<StockDataContextValue | null>(null);
 
 const THAI_SYMBOLS = [
-  'PTT.BK', 'AOT.BK', 'CPALL.BK', 'ADVANC.BK', 'KBANK.BK',
-  'PTTEP.BK', 'SCB.BK', 'BBL.BK', 'BDMS.BK', 'BH.BK',
-  'GULF.BK', 'INTUCH.BK', 'TRUE.BK', 'OR.BK', 'MINT.BK',
-  'CRC.BK', 'CPN.BK', 'KTB.BK', 'TISCO.BK', 'HMPRO.BK',
+  'PTT.BK',
+  'AOT.BK',
+  'CPALL.BK',
+  'ADVANC.BK',
+  'KBANK.BK',
+  'PTTEP.BK',
+  'SCB.BK',
+  'BBL.BK',
+  'BDMS.BK',
+  'BH.BK',
+  'GULF.BK',
+  'INTUCH.BK',
+  'TRUE.BK',
+  'OR.BK',
+  'MINT.BK',
+  'CRC.BK',
+  'CPN.BK',
+  'KTB.BK',
+  'TISCO.BK',
+  'HMPRO.BK',
 ];
 
 const US_SYMBOLS = ['TSM', 'GOOGL', 'NVDA', 'AAPL', 'MSFT', 'META', 'AMD'];
@@ -102,17 +123,18 @@ export function StockDataProvider({ children }: { children: ReactNode }) {
   const [period, setPeriod] = useState<Period>('1m');
   const [refreshInterval, setRefreshInterval] = useState<number | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [marketClock, setMarketClock] = useState(Date.now());
+  const [marketClock, setMarketClock] = useState(() => Date.now());
 
   useEffect(() => {
     const id = setInterval(() => setMarketClock(Date.now()), 60_000);
     return () => clearInterval(id);
   }, []);
 
-  const { data: quotesData, isLoading: quotesLoading, isFetching } = useStockQuotes(
-    DEFAULT_SYMBOLS,
-    refreshInterval ?? false,
-  );
+  const {
+    data: quotesData,
+    isLoading: quotesLoading,
+    isFetching,
+  } = useStockQuotes(DEFAULT_SYMBOLS, refreshInterval ?? false);
   const { data: holdingsData, isLoading: holdingsLoading } = useHoldings();
   const { data: watchlistData, isLoading: watchlistLoading } = useWatchlist();
   const addHoldingMutation = useAddHolding();
@@ -126,7 +148,7 @@ export function StockDataProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!quotesLoading && !isFetching) {
-      setLastUpdated(new Date());
+      startTransition(() => setLastUpdated(new Date()));
     }
   }, [quotesLoading, isFetching]);
 
@@ -191,7 +213,12 @@ export function StockDataProvider({ children }: { children: ReactNode }) {
   );
 
   const addHolding = useCallback(
-    async (symbol: string, shares: number, avgCost: number, manualPrice?: number): Promise<boolean> => {
+    async (
+      symbol: string,
+      shares: number,
+      avgCost: number,
+      manualPrice?: number,
+    ): Promise<boolean> => {
       try {
         await addHoldingMutation.mutateAsync({ symbol, shares, avgCost, manualPrice });
         return true;

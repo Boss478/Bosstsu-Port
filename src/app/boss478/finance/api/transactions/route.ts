@@ -11,9 +11,12 @@ const VALID_CATEGORIES: string[] = [
 ];
 
 function validate(data: Record<string, unknown>): string | null {
-  if (data.amount !== undefined && (typeof data.amount !== 'number' || data.amount <= 0)) return formatError('F05');
-  if (data.category !== undefined && !VALID_CATEGORIES.includes(data.category as string)) return formatError('F01');
-  if (data.type !== undefined && !['income', 'expense'].includes(data.type as string)) return formatError('F01');
+  if (data.amount !== undefined && (typeof data.amount !== 'number' || data.amount <= 0))
+    return formatError('F05');
+  if (data.category !== undefined && !VALID_CATEGORIES.includes(data.category as string))
+    return formatError('F01');
+  if (data.type !== undefined && !['income', 'expense'].includes(data.type as string))
+    return formatError('F01');
   return null;
 }
 
@@ -74,7 +77,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const transaction = await Transaction.create({
-      type: body.type as string,
+      type: body.type as 'income' | 'expense',
       amount: body.amount as number,
       category: body.category as string,
       description: (body.description as string) || '',
@@ -116,7 +119,11 @@ export async function PATCH(request: NextRequest) {
   if (body.date) update.date = new Date(body.date as string);
 
   try {
-    const transaction = await Transaction.findByIdAndUpdate(id, { $set: update }, { new: true, runValidators: true }).lean();
+    const transaction = await Transaction.findByIdAndUpdate(
+      id,
+      { $set: update },
+      { new: true, runValidators: true },
+    ).lean();
     if (!transaction) {
       return NextResponse.json({ error: formatError('F03') }, { status: 404 });
     }

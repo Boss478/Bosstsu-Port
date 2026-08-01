@@ -115,7 +115,7 @@ export default function VictoryScreen({
   const levelChange = useMemo(() => {
     if (!save || round.config.isPlacement || round.config.category !== 'definitions') return null;
     const prevIdx = (CEFR_LEVEL_ORDER as readonly CefrLevel[]).indexOf(round.config.level);
-    const nextIdx = (CEFR_LEVEL_ORDER as readonly CefrLevel[]).indexOf(save.cefrLevel);
+    const nextIdx = (CEFR_LEVEL_ORDER as readonly CefrLevel[]).indexOf(save.cefrLevel ?? 'a1');
     if (prevIdx === -1 || nextIdx === -1 || prevIdx === nextIdx) return null;
     return nextIdx > prevIdx ? 'upgrade' : 'downgrade';
   }, [save, round.config.level, round.config.category, round.config.isPlacement]);

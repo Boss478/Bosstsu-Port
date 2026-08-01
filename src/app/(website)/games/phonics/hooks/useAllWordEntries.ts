@@ -7,6 +7,8 @@ import type { DictEntry } from '../types';
 import { computeEntries } from '@/lib/word-merge';
 import type { WordEntry, OverrideDoc } from '@/lib/word-merge';
 
+export type { WordEntry };
+
 const PRONUNCIATION_DICT = dictData as DictEntry[];
 
 export function useAllWordEntries(): WordEntry[] {

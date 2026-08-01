@@ -126,7 +126,8 @@ export interface SimilarSoundGroup {
   order: number;
 }
 
-export type Tab = 'sound' | 'vocab' | 'word-builder' | 'library' | 'shop' | 'profile';
+export type Tab =
+  'sound' | 'vocab' | 'word-builder' | 'library' | 'shop' | 'profile' | 'challenges';
 
 // ─── New Question Formats ────────────────────────────────────────────────────
 export interface PracticeQuestion {
@@ -538,6 +539,8 @@ export interface SaveData {
   groupProgress: Record<string, GroupProgress>;
   placementTier?: VocabTier;
   challengeDifficulty: CefrLevel;
+  cefrLevel?: CefrLevel;
+  cefrUpgradeStreak?: number;
   // v3 — Phonics Expansion
   achievements: Record<AchievementId, BadgeRecord>;
   challengeStats: Record<string, ChallengeStats>; // keyed by challenge type

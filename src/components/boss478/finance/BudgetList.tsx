@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, type ReactNode } from 'react';
+import { useState, useEffect, useMemo, startTransition } from 'react';
 import { CONFIG } from '@/lib/config';
 import { formatShortDate } from '@/lib/format';
 import {
@@ -59,7 +59,13 @@ function CategoryRow({
   transactions: TransactionData[];
   descriptions: string[];
   budgetLimit: number;
-  onQuickAdd: (data: { type: string; amount: number; category: string; description: string; date: string }) => Promise<void>;
+  onQuickAdd: (data: {
+    type: string;
+    amount: number;
+    category: string;
+    description: string;
+    date: string;
+  }) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -79,7 +85,13 @@ function CategoryRow({
     if (!num || num <= 0) return;
     setAddSaving(true);
     try {
-      await onQuickAdd({ type, amount: num, category: cat.value, description: addDesc, date: addDate });
+      await onQuickAdd({
+        type,
+        amount: num,
+        category: cat.value,
+        description: addDesc,
+        date: addDate,
+      });
       setAddAmount('');
       setAddDesc('');
       setAddDate(new Date().toISOString().split('T')[0]);
@@ -96,19 +108,25 @@ function CategoryRow({
         onClick={() => setIsExpanded((v) => !v)}
         className="flex items-center gap-3 p-3 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
       >
-        <i className={`fi fi-sr-angle-right text-xs text-zinc-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+        <i
+          className={`fi fi-sr-angle-right text-xs text-zinc-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+        />
         <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{cat.label}</span>
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-100/60 dark:bg-zinc-700/40">
-          <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">Total</span>
-          <span className={`text-sm font-bold ${overBudget ? 'text-red-500' : 'text-zinc-700 dark:text-zinc-200'}`}>
+          <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">
+            Total
+          </span>
+          <span
+            className={`text-sm font-bold ${overBudget ? 'text-red-500' : 'text-zinc-700 dark:text-zinc-200'}`}
+          >
             ฿{fmt(total)}
           </span>
-          {budgetLimit > 0 && (
-            <span className="text-xs text-zinc-400">/ ฿{fmt(budgetLimit)}</span>
-          )}
+          {budgetLimit > 0 && <span className="text-xs text-zinc-400">/ ฿{fmt(budgetLimit)}</span>}
         </div>
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-          <span className="text-[9px] font-medium text-zinc-400 uppercase tracking-wider">Limit</span>
+          <span className="text-[9px] font-medium text-zinc-400 uppercase tracking-wider">
+            Limit
+          </span>
           <span className="text-xs text-zinc-400">฿</span>
           <input
             type="number"
@@ -140,7 +158,10 @@ function CategoryRow({
             </div>
           )}
 
-          <form onSubmit={handleQuickAdd} className="flex flex-wrap items-center gap-2 mb-3 p-2 rounded bg-white/40 dark:bg-slate-700/30">
+          <form
+            onSubmit={handleQuickAdd}
+            className="flex flex-wrap items-center gap-2 mb-3 p-2 rounded bg-white/40 dark:bg-slate-700/30"
+          >
             <div className="flex-1 min-w-[120px] relative">
               <input
                 type="text"
@@ -157,7 +178,9 @@ function CategoryRow({
               </datalist>
             </div>
             <div className="relative w-20">
-              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-zinc-400">฿</span>
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-zinc-400">
+                ฿
+              </span>
               <input
                 type="number"
                 step="0.01"
@@ -189,20 +212,28 @@ function CategoryRow({
           ) : (
             <div className="space-y-1 max-h-48 overflow-y-auto">
               {transactions.map((tx) => (
-                <div key={tx._id} className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-white/40 dark:hover:bg-slate-700/30 group">
+                <div
+                  key={tx._id}
+                  className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-white/40 dark:hover:bg-slate-700/30 group"
+                >
                   <span className="text-[10px] text-zinc-400 w-16 shrink-0">
                     {formatShortDate(tx.date)}
                   </span>
                   <span className="text-xs text-zinc-600 dark:text-zinc-400 flex-1 truncate">
                     {tx.description || ''}
                   </span>
-                  <span className={`text-xs font-medium shrink-0 ${
-                    tx.type === 'expense' ? 'text-red-500' : 'text-emerald-500'
-                  }`}>
+                  <span
+                    className={`text-xs font-medium shrink-0 ${
+                      tx.type === 'expense' ? 'text-red-500' : 'text-emerald-500'
+                    }`}
+                  >
                     {tx.type === 'expense' ? '-' : '+'}฿{fmt(tx.amount)}
                   </span>
                   <button
-                    onClick={(e) => { e.stopPropagation(); onDelete(tx._id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(tx._id);
+                    }}
                     className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-red-100 dark:hover:bg-red-900/40 transition-opacity cursor-pointer"
                   >
                     <i aria-hidden="true" className="fi fi-sr-trash text-[10px] text-red-400" />
@@ -217,15 +248,18 @@ function CategoryRow({
   );
 }
 
-export default function BudgetList({ month: externalMonth, payDay }: { month?: string; payDay?: number | null } = {}) {
+export default function BudgetList({
+  month: externalMonth,
+  payDay,
+}: { month?: string; payDay?: number | null } = {}) {
   const [month, setMonth] = useState(externalMonth || new Date().toISOString().slice(0, 7));
   const [budgets, setBudgets] = useState<Map<string, number>>(new Map());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [, setExpandedCategories] = useState<Set<string>>(new Set());
 
-  const txFilters = useMemo(() => {
+  const txFilters = useMemo((): Record<string, string> => {
     if (payDay) {
       const range = getPeriodRange(payDay, month);
       return {
@@ -250,30 +284,38 @@ export default function BudgetList({ month: externalMonth, payDay }: { month?: s
       for (const b of budgetsQuery.data.budgets) {
         map.set(b.category, b.limit);
       }
-      setBudgets(map);
+      startTransition(() => setBudgets(map));
     }
   }, [budgetsQuery.data]);
 
   useEffect(() => {
     if (budgetsQuery.error || transactionsQuery.error) {
-      setError('Could not load data');
+      startTransition(() => setError('Could not load data'));
     }
   }, [budgetsQuery.error, transactionsQuery.error]);
 
   useEffect(() => {
-    if (externalMonth) setMonth(externalMonth);
+    if (externalMonth) startTransition(() => setMonth(externalMonth));
   }, [externalMonth]);
 
   useEffect(() => {
-    setExpandedCategories(new Set());
+    startTransition(() => setExpandedCategories(new Set()));
   }, [month]);
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
     deleteTransaction.mutate(id);
   }
 
-  async function handleQuickAdd(data: { type: string; amount: number; category: string; description: string; date: string }) {
-    await createTransaction.mutateAsync(data as Parameters<typeof createTransaction.mutateAsync>[0]);
+  async function handleQuickAdd(data: {
+    type: string;
+    amount: number;
+    category: string;
+    description: string;
+    date: string;
+  }) {
+    await createTransaction.mutateAsync(
+      data as Parameters<typeof createTransaction.mutateAsync>[0],
+    );
   }
 
   async function handleSave() {
@@ -317,13 +359,6 @@ export default function BudgetList({ month: externalMonth, payDay }: { month?: s
     }
   }
 
-  function setLimit(category: string, value: string) {
-    const next = new Map(budgets);
-    const num = parseFloat(value);
-    next.set(category, isNaN(num) ? 0 : num);
-    setBudgets(next);
-  }
-
   const allTransactions = transactionsQuery.data ?? [];
 
   if (isPending) {
@@ -345,7 +380,10 @@ export default function BudgetList({ month: externalMonth, payDay }: { month?: s
               onClick={() => setMonth(getPreviousPeriodKey(payDay, month))}
               className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
             >
-              <i aria-hidden="true" className="fi fi-sr-angle-left text-xs text-zinc-600 dark:text-zinc-400" />
+              <i
+                aria-hidden="true"
+                className="fi fi-sr-angle-left text-xs text-zinc-600 dark:text-zinc-400"
+              />
             </button>
             <span className="px-3 py-1.5 rounded-lg text-sm bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-700 dark:text-zinc-300 font-medium min-w-[200px] text-center">
               {formatPeriodLabel(payDay, month)}
@@ -354,7 +392,10 @@ export default function BudgetList({ month: externalMonth, payDay }: { month?: s
               onClick={() => setMonth(getNextPeriodKey(payDay, month))}
               className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
             >
-              <i aria-hidden="true" className="fi fi-sr-angle-right text-xs text-zinc-600 dark:text-zinc-400" />
+              <i
+                aria-hidden="true"
+                className="fi fi-sr-angle-right text-xs text-zinc-600 dark:text-zinc-400"
+              />
             </button>
           </>
         ) : (
@@ -421,8 +462,12 @@ export default function BudgetList({ month: externalMonth, payDay }: { month?: s
           </h3>
           <div className="space-y-1">
             {INCOME_CATS.map((cat) => {
-              const catTx = allTransactions.filter((t) => t.category === cat.value && t.type === 'income');
-              const catDescs = Array.from(new Set(catTx.map((t) => t.description || '').filter(Boolean)));
+              const catTx = allTransactions.filter(
+                (t) => t.category === cat.value && t.type === 'income',
+              );
+              const catDescs = Array.from(
+                new Set(catTx.map((t) => t.description || '').filter(Boolean)),
+              );
               return (
                 <CategoryRow
                   key={cat.value}
@@ -449,8 +494,12 @@ export default function BudgetList({ month: externalMonth, payDay }: { month?: s
           </h3>
           <div className="space-y-1">
             {EXPENSE_CATS.map((cat) => {
-              const catTx = allTransactions.filter((t) => t.category === cat.value && t.type === 'expense');
-              const catDescs = Array.from(new Set(catTx.map((t) => t.description || '').filter(Boolean)));
+              const catTx = allTransactions.filter(
+                (t) => t.category === cat.value && t.type === 'expense',
+              );
+              const catDescs = Array.from(
+                new Set(catTx.map((t) => t.description || '').filter(Boolean)),
+              );
               return (
                 <CategoryRow
                   key={cat.value}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, Component, type ReactNode } from 'react';
+import { useState, useEffect, useMemo, Component, type ReactNode, startTransition } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import FinanceSummary from './FinanceSummary';
 import TransactionList from './TransactionList';
@@ -17,7 +17,6 @@ import {
 } from '@/lib/period';
 import { useTransactions, useSubscriptions } from '@/hooks/use-finance';
 import { financeKeys } from '@/lib/query/keys';
-import type { TransactionData } from '@/hooks/use-finance';
 
 const { MONTHLY_NORMALIZER } = CONFIG.FINANCE;
 
@@ -39,7 +38,9 @@ class FinanceErrorBoundary extends Component<
     if (this.state.hasError) {
       return (
         <div className="p-5 rounded-xl border border-red-200/60 dark:border-red-700/50 bg-red-50/60 dark:bg-red-900/30 text-center">
-          <p className="text-sm text-red-600 dark:text-red-400">Something went wrong in {this.props.tabName}</p>
+          <p className="text-sm text-red-600 dark:text-red-400">
+            Something went wrong in {this.props.tabName}
+          </p>
           <p className="text-xs text-zinc-400 mt-1">Try refreshing the page</p>
         </div>
       );
@@ -82,12 +83,14 @@ export default function FinanceClient() {
 
   useEffect(() => {
     const pd = readPayDay();
-    setPayDayState(pd);
-    if (pd) {
-      setMonth(getCurrentPeriodKey(pd));
-    } else {
-      setMonth(new Date().toISOString().slice(0, 7));
-    }
+    startTransition(() => {
+      setPayDayState(pd);
+      if (pd) {
+        setMonth(getCurrentPeriodKey(pd));
+      } else {
+        setMonth(new Date().toISOString().slice(0, 7));
+      }
+    });
   }, []);
 
   function setPayDay(pd: number | null) {
@@ -101,7 +104,7 @@ export default function FinanceClient() {
     }
   }
 
-  const txFilters = useMemo(() => {
+  const txFilters = useMemo((): Record<string, string> => {
     if (!month) return {};
     if (payDay) {
       const range = getPeriodRange(payDay, month);
@@ -113,7 +116,11 @@ export default function FinanceClient() {
     return { month };
   }, [payDay, month]);
 
-  const { data: summaryTransactions = [], isLoading: txLoading, error: txError } = useTransactions(txFilters);
+  const {
+    data: summaryTransactions = [],
+    isLoading: txLoading,
+    error: txError,
+  } = useTransactions(txFilters);
   const { data: subscriptions = [], isLoading: subLoading } = useSubscriptions();
   const summaryLoading = txLoading || subLoading;
 
@@ -216,9 +223,15 @@ export default function FinanceClient() {
                   onClick={goPrev}
                   className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
                 >
-                  <i aria-hidden="true" className="fi fi-sr-angle-left text-xs text-zinc-600 dark:text-zinc-400" />
+                  <i
+                    aria-hidden="true"
+                    className="fi fi-sr-angle-left text-xs text-zinc-600 dark:text-zinc-400"
+                  />
                 </button>
-                <span className="px-3 py-1.5 rounded-lg text-sm bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-700 dark:text-zinc-300 font-medium min-w-[200px] text-center" title={formatPeriodLabel(payDay, month)}>
+                <span
+                  className="px-3 py-1.5 rounded-lg text-sm bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-700 dark:text-zinc-300 font-medium min-w-[200px] text-center"
+                  title={formatPeriodLabel(payDay, month)}
+                >
                   {(() => {
                     const r = getPeriodRange(payDay, month);
                     return `${r.start.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()} — ${r.end.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}`;
@@ -228,7 +241,10 @@ export default function FinanceClient() {
                   onClick={goNext}
                   className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
                 >
-                  <i aria-hidden="true" className="fi fi-sr-angle-right text-xs text-zinc-600 dark:text-zinc-400" />
+                  <i
+                    aria-hidden="true"
+                    className="fi fi-sr-angle-right text-xs text-zinc-600 dark:text-zinc-400"
+                  />
                 </button>
               </>
             ) : (
@@ -243,19 +259,30 @@ export default function FinanceClient() {
               onClick={() => qc.invalidateQueries({ queryKey: financeKeys.all })}
               className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
             >
-              <i aria-hidden="true" className="fi fi-sr-rotate-left text-xs text-zinc-600 dark:text-zinc-400" />
+              <i
+                aria-hidden="true"
+                className="fi fi-sr-rotate-left text-xs text-zinc-600 dark:text-zinc-400"
+              />
             </button>
             <div className="relative">
               <button
-                onClick={() => { setShowPayDayEditor(!showPayDayEditor); setPayDayInput(payDay ? String(payDay) : ''); }}
+                onClick={() => {
+                  setShowPayDayEditor(!showPayDayEditor);
+                  setPayDayInput(payDay ? String(payDay) : '');
+                }}
                 className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
                 title="Period settings"
               >
-                <i aria-hidden="true" className="fi fi-sr-settings text-xs text-zinc-600 dark:text-zinc-400" />
+                <i
+                  aria-hidden="true"
+                  className="fi fi-sr-settings text-xs text-zinc-600 dark:text-zinc-400"
+                />
               </button>
               {showPayDayEditor && (
                 <div className="absolute top-full right-0 mt-2 z-50 w-64 p-4 rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl">
-                  <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-3">Period Settings</p>
+                  <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-3">
+                    Period Settings
+                  </p>
                   <div className="flex items-center gap-2 mb-3">
                     <label className="text-xs text-zinc-500 shrink-0">Pay day:</label>
                     <input

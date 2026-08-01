@@ -130,16 +130,8 @@ function AchievementsSection({ save }: { save: SaveData | null }) {
 }
 
 export default function ProfileScreen() {
-  const {
-    save,
-    persistSave,
-    companion,
-    setCompanion,
-    setTab,
-    activeSlot,
-    setScreen,
-    deleteSaveSlot,
-  } = useGame();
+  const { save, persistSave, companion, setCompanion, setTab, activeSlot, deleteSaveSlot } =
+    useGame();
   const { playSound } = useAudio();
   const [lockedClickId, setLockedClickId] = useState<CompanionId | null>(null);
   const [justBought, setJustBought] = useState<CompanionId | null>(null);

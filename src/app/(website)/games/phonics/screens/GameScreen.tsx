@@ -352,7 +352,7 @@ export default function GameScreen({ onRoundComplete, bgDownloadState }: GameScr
   const initialWordsArray = useMemo(() => {
     const words = new Set<string>();
     questions.forEach((q) => {
-      if ('word' in q && q.word?.word) words.add(q.word.word);
+      if ('word' in q && typeof q.word !== 'string' && q.word?.word) words.add(q.word.word);
       if (q.category === 'exercise') {
         const ex = q as { data: { word?: { word: string } } };
         if (ex.data?.word?.word) words.add(ex.data.word.word);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, startTransition } from 'react';
 import { getCurrentPeriodKey, getPeriodRange, formatPeriodLabel, PAY_DAY_KEY } from '@/lib/period';
 import { useHoldings, useStockQuotes } from '@/hooks/use-stocks';
 import { useTransactions, useSubscriptions } from '@/hooks/use-finance';
@@ -15,8 +15,7 @@ const MONTHLY_NORMALIZER: Record<string, number> = {
 const fmt = (n: number) =>
   n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const fmtPct = (n: number) =>
-  (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+const fmtPct = (n: number) => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
 
 export default function DashboardSummary() {
   const [payDay, setPayDay] = useState<number | null>(null);
@@ -26,15 +25,17 @@ export default function DashboardSummary() {
     if (typeof window !== 'undefined') {
       const raw = localStorage.getItem(PAY_DAY_KEY);
       const pd = raw ? parseInt(raw, 10) : null;
-      setPayDay(pd && pd >= 1 && pd <= 31 ? pd : null);
-      setLoaded(true);
+      startTransition(() => {
+        setPayDay(pd && pd >= 1 && pd <= 31 ? pd : null);
+        setLoaded(true);
+      });
     }
   }, []);
 
   const monthKey = payDay ? getCurrentPeriodKey(payDay) : new Date().toISOString().slice(0, 7);
   const displayLabel = payDay ? formatPeriodLabel(payDay, monthKey) : monthKey;
 
-  const txFilters = useMemo(() => {
+  const txFilters = useMemo((): Record<string, string> => {
     if (!loaded || !monthKey) return {};
     if (payDay) {
       const range = getPeriodRange(payDay, monthKey);
@@ -48,14 +49,22 @@ export default function DashboardSummary() {
 
   const { data: holdingsData, isLoading: holdingsLoading, error: holdingsError } = useHoldings();
   const { data: quotesData } = useStockQuotes(holdingsData?.map((h) => h.symbol) ?? []);
-  const { data: transactionsData, isLoading: txLoading, error: txError } = useTransactions(txFilters);
+  const {
+    data: transactionsData,
+    isLoading: txLoading,
+    error: txError,
+  } = useTransactions(txFilters);
   const { data: subscriptionsData, isLoading: subLoading } = useSubscriptions();
 
   const stock = useMemo(() => {
     if (!holdingsData || !holdingsData.length) {
       return {
-        holdingsCount: 0, portfolioValue: 0, portfolioPl: 0,
-        portfolioPlPercent: 0, bestHolding: null as string | null, worstHolding: null as string | null,
+        holdingsCount: 0,
+        portfolioValue: 0,
+        portfolioPl: 0,
+        portfolioPlPercent: 0,
+        bestHolding: null as string | null,
+        worstHolding: null as string | null,
       };
     }
 
@@ -144,17 +153,31 @@ export default function DashboardSummary() {
                 <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
                   ${fmt(stock.portfolioValue)}
                 </span>
-                <span className={`text-sm font-medium ${stock.portfolioPl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                <span
+                  className={`text-sm font-medium ${stock.portfolioPl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
+                >
                   {fmtPct(stock.portfolioPlPercent)}
                 </span>
               </div>
               <div className="text-xs text-zinc-500 dark:text-zinc-400 space-y-0.5">
-                <p>{stock.holdingsCount} holding{stock.holdingsCount !== 1 ? 's' : ''}</p>
+                <p>
+                  {stock.holdingsCount} holding{stock.holdingsCount !== 1 ? 's' : ''}
+                </p>
                 {stock.bestHolding && (
-                  <p>Best: <span className="text-green-600 dark:text-green-400 font-medium">{stock.bestHolding}</span></p>
+                  <p>
+                    Best:{' '}
+                    <span className="text-green-600 dark:text-green-400 font-medium">
+                      {stock.bestHolding}
+                    </span>
+                  </p>
                 )}
                 {stock.worstHolding && (
-                  <p>Worst: <span className="text-red-600 dark:text-red-400 font-medium">{stock.worstHolding}</span></p>
+                  <p>
+                    Worst:{' '}
+                    <span className="text-red-600 dark:text-red-400 font-medium">
+                      {stock.worstHolding}
+                    </span>
+                  </p>
                 )}
               </div>
             </div>
@@ -180,20 +203,32 @@ export default function DashboardSummary() {
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs">
                 <span className="text-zinc-500 dark:text-zinc-400">Income</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-medium">฿{fmt(budget.incomeTotal)}</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                  ฿{fmt(budget.incomeTotal)}
+                </span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-zinc-500 dark:text-zinc-400">Expenses</span>
-                <span className="text-red-600 dark:text-red-400 font-medium">฿{fmt(budget.expenseTotal)}</span>
+                <span className="text-red-600 dark:text-red-400 font-medium">
+                  ฿{fmt(budget.expenseTotal)}
+                </span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-zinc-500 dark:text-zinc-400">Subscriptions</span>
-                <span className="text-amber-600 dark:text-amber-400 font-medium">฿{fmt(budget.subscriptionTotal)}</span>
+                <span className="text-amber-600 dark:text-amber-400 font-medium">
+                  ฿{fmt(budget.subscriptionTotal)}
+                </span>
               </div>
               <hr className="border-white/60 dark:border-slate-700/50 my-1" />
               <div className="flex justify-between text-sm font-semibold">
                 <span className="text-zinc-700 dark:text-zinc-300">Balance</span>
-                <span className={budget.balance >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'}>
+                <span
+                  className={
+                    budget.balance >= 0
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : 'text-red-600 dark:text-red-400'
+                  }
+                >
                   ฿{fmt(budget.balance)}
                 </span>
               </div>

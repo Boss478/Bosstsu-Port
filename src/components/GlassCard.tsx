@@ -27,7 +27,7 @@ export default function GlassCard({
         VARIANT_STYLES[variant]
       } ${
         hover
-          ? `hover:bg-white/80 dark:hover:bg-slate-700/80 hover:-translate-y-0.5 hover:shadow-md dark:hover:shadow-black/40 transition-[background-color,border-color,transform,box-shadow] duration-200 ease-spring${as !== 'div' ? ' active:scale-[0.98] active:shadow-lg active:duration-150' : ''}`
+          ? `hover:bg-white/80 dark:hover:bg-slate-700/80 hover:-translate-y-0.5 hover:shadow-md dark:hover:shadow-black/40 transition-[background-color,border-color,transform,box-shadow] duration-200 ease-spring${Tag !== 'div' ? ' active:scale-[0.98] active:shadow-lg active:duration-150' : ''}`
           : ''
       } ${className}`}
     >

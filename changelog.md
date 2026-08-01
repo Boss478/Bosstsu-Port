@@ -5,6 +5,13 @@
 
 
 
+## v1.10.76 (2026-08-01)
++ * **Admin forms refactor — shared submit hook**: Extracted duplicated submit/abort/progress/batchId logic from Gallery/Game/Learning/Portfolio forms into `hooks/use-form-submit.ts` (progress, status text, 401 handling, "Upload aborted" handling). Split the 755-line `admin/tools/actions.ts` into per-domain server actions — `actions/{session,stage,step,response,template}.ts` — with a barrel index.
++ * **Tools polling**: `useToolPoll` accepts a custom interval; Poll components use 3s polling.
++ * **Test suite (new)**: 40+ test files under `tests/` — admin routes (login, gallery, games, portfolio, resources, tools, words), API (upload, words, stocks, tools poll/session/step/respond/participants/export, pyodide, process-words), e2e smoke (public pages), games (phonemeSearch), unit (models, phonics, tools), k6 load script. Vitest timeout 10s→30s (3 previously-flaky tests now stable).
++ * **Typecheck debt resolved (72 pre-existing errors → 0)**: finance (`EnrichedHolding` type gaps in PortfolioTracker/MarketOverview, filter param typing, mongoose-9 create literals, GlassCard `as`→`Tag`, `TabId` typing, unused imports), phonics (`SaveData.cefrLevel`/`cefrUpgradeStreak`, `WordEntry` export from useAllWordEntries, union narrowing in GameScreen, `Tab` widened for 'challenges'), tools/admin (`fetchResponses` restored in ResultsView, `useQueryClient` in QABoard, missing `useCallback` import).
++ * **Lint hygiene**: react-hooks violations fixed via `startTransition` (QuickQuiz, MultiStepSessionView), typed QuickQuiz session prop, eslint now ignores `.agents/**` + `coverage/**`.
+
 ## v1.10.75 (2026-08-01)
 + * **Alphabet Adventure — Card drop economy rebalance (Rare+ from correct answers)**:
   + * Per-correct roll gains a streak-gated rare+ ramp (`RAMP_DROP`): 0.05% floor even at chain 0, quadratic to 2.0% combined by chain 20 (Rare 60 / Ultra 30 / Legendary 10 split), checked before the common/uncommon table on the raw chain. Card obtain still applies chain −5, self-limiting streak re-farming.

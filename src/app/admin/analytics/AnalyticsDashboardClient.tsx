@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, startTransition } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toBlob } from 'html-to-image';
 import type { AnalyticsStats } from '@/app/actions/admin';
@@ -33,7 +33,12 @@ export default function AnalyticsDashboardClient({
   const exportBtnRef = useRef<HTMLDivElement>(null);
   const [intervalSec, setIntervalSec] = useState(10);
 
-  const { data: stats = initialStats, isFetching, dataUpdatedAt, refetch } = useQuery({
+  const {
+    data: stats = initialStats,
+    isFetching,
+    dataUpdatedAt,
+    refetch,
+  } = useQuery({
     queryKey: analyticsKeys.stats(),
     queryFn: async () => {
       const res = await fetch('/admin/analytics/api/data');
@@ -64,7 +69,7 @@ export default function AnalyticsDashboardClient({
 
   useEffect(() => {
     const stored = localStorage.getItem(INTERVAL_STORAGE_KEY);
-    if (stored) setIntervalSec(Number(stored));
+    if (stored) startTransition(() => setIntervalSec(Number(stored)));
   }, []);
 
   const handleExportImage = useCallback(async (format: 'jpg' | 'png') => {
@@ -126,7 +131,9 @@ export default function AnalyticsDashboardClient({
                   className="px-2 py-1.5 rounded-xl border border-zinc-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/80 text-zinc-700 dark:text-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                 >
                   {INTERVAL_OPTIONS.map((s) => (
-                    <option key={s} value={s}>{s}s</option>
+                    <option key={s} value={s}>
+                      {s}s
+                    </option>
                   ))}
                 </select>
                 <span
@@ -142,7 +149,10 @@ export default function AnalyticsDashboardClient({
                   disabled={isFetching}
                   className="px-3 py-1.5 text-sm rounded-xl border border-zinc-300 dark:border-slate-600 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-1 disabled:opacity-50"
                 >
-                  <i aria-hidden="true" className={`fi fi-sr-refresh text-xs ${isFetching ? 'animate-spin' : ''}`} />
+                  <i
+                    aria-hidden="true"
+                    className={`fi fi-sr-refresh text-xs ${isFetching ? 'animate-spin' : ''}`}
+                  />
                   รีเฟรช
                 </button>
                 <div className="relative" ref={exportBtnRef}>
@@ -157,10 +167,16 @@ export default function AnalyticsDashboardClient({
                   {exportOpen && (
                     <div className="absolute right-0 top-full mt-1 z-20 w-36 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg overflow-hidden">
                       <button
-                        onClick={() => { setExportOpen(false); exportCSV(stats); }}
+                        onClick={() => {
+                          setExportOpen(false);
+                          exportCSV(stats);
+                        }}
                         className="w-full px-3 py-2 text-sm text-left text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-slate-700 flex items-center gap-2 transition-colors"
                       >
-                        <i aria-hidden="true" className="fi fi-sr-file-csv text-xs text-green-500" />
+                        <i
+                          aria-hidden="true"
+                          className="fi fi-sr-file-csv text-xs text-green-500"
+                        />
                         CSV
                       </button>
                       <button
@@ -186,9 +202,17 @@ export default function AnalyticsDashboardClient({
 
           <div id="analytics-export-area" ref={exportRef}>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <SummaryCard label="Total Views" value={formatNumber(total)} trend={stats.trends.changePercent} />
+              <SummaryCard
+                label="Total Views"
+                value={formatNumber(total)}
+                trend={stats.trends.changePercent}
+              />
               <SummaryCard label="Total Events" value={formatNumber(stats.totalEvents)} />
-              <SummaryCard label="Today Views" value={formatNumber(todayViews)} trend={stats.trends.changePercent} />
+              <SummaryCard
+                label="Today Views"
+                value={formatNumber(todayViews)}
+                trend={stats.trends.changePercent}
+              />
               <SummaryCard label="Today Visitors" value={formatNumber(todayVisitors)} />
             </div>
 
@@ -231,7 +255,9 @@ export default function AnalyticsDashboardClient({
                         return (
                           <div key={i} className="flex-1 text-center">
                             {showLabel && (
-                              <span className="text-[9px] text-zinc-400 leading-tight block">{i}:00</span>
+                              <span className="text-[9px] text-zinc-400 leading-tight block">
+                                {i}:00
+                              </span>
                             )}
                           </div>
                         );
@@ -270,7 +296,9 @@ export default function AnalyticsDashboardClient({
                   <div className="space-y-2">
                     {stats.topPages.map((p) => (
                       <div key={p.path} className="flex items-center justify-between text-sm">
-                        <span className="text-zinc-700 dark:text-zinc-300 truncate max-w-[70%]">{p.path}</span>
+                        <span className="text-zinc-700 dark:text-zinc-300 truncate max-w-[70%]">
+                          {p.path}
+                        </span>
                         <span className="text-zinc-500 dark:text-zinc-400 shrink-0 ml-2">
                           {formatNumber(p.count)} ({((p.count / total) * 100).toFixed(1)}%)
                         </span>
@@ -292,7 +320,9 @@ export default function AnalyticsDashboardClient({
                     {stats.topEvents.map((e) => (
                       <div key={e.eventName} className="flex items-center justify-between text-sm">
                         <span className="text-zinc-700 dark:text-zinc-300">{e.eventName}</span>
-                        <span className="text-zinc-500 dark:text-zinc-400">{formatNumber(e.count)}</span>
+                        <span className="text-zinc-500 dark:text-zinc-400">
+                          {formatNumber(e.count)}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -303,7 +333,11 @@ export default function AnalyticsDashboardClient({
             </div>
 
             <div className="grid md:grid-cols-2 gap-6 mb-6">
-              <DonutChartCard data={stats.osBreakdown} title="ระบบปฏิบัติการ (OS)" icon="fi fi-sr-layer-plus" />
+              <DonutChartCard
+                data={stats.osBreakdown}
+                title="ระบบปฏิบัติการ (OS)"
+                icon="fi fi-sr-layer-plus"
+              />
               <GlassCard>
                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
                   รุ่นอุปกรณ์ (Device Models)

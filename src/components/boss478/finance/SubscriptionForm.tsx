@@ -2,7 +2,11 @@
 
 import { useState, FormEvent } from 'react';
 import { CONFIG } from '@/lib/config';
-import { useCreateSubscription, useUpdateSubscription } from '@/hooks/use-finance';
+import {
+  useCreateSubscription,
+  useUpdateSubscription,
+  type SubscriptionData,
+} from '@/hooks/use-finance';
 
 const CATEGORIES = CONFIG.FINANCE.CATEGORIES.expense;
 const CYCLES = CONFIG.FINANCE.BILLING_CYCLES;
@@ -27,7 +31,9 @@ export default function SubscriptionForm({ onClose, onSaved, editing }: Props) {
   const [billingCycle, setBillingCycle] = useState(editing?.billingCycle || 'monthly');
   const [category, setCategory] = useState(editing?.category || '');
   const [nextBillingDate, setNextBillingDate] = useState(
-    editing?.nextBillingDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    () =>
+      editing?.nextBillingDate ||
+      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   );
   const [description, setDescription] = useState(editing?.description || '');
   const [error, setError] = useState('');
@@ -59,7 +65,7 @@ export default function SubscriptionForm({ onClose, onSaved, editing }: Props) {
           _id: editing.id,
           name: name.trim(),
           amount: amt,
-          billingCycle,
+          billingCycle: billingCycle as SubscriptionData['billingCycle'],
           category,
           nextBillingDate,
           description: description.trim(),
@@ -68,10 +74,11 @@ export default function SubscriptionForm({ onClose, onSaved, editing }: Props) {
         await createSubscription.mutateAsync({
           name: name.trim(),
           amount: amt,
-          billingCycle,
+          billingCycle: billingCycle as SubscriptionData['billingCycle'],
           category,
           nextBillingDate,
           description: description.trim(),
+          active: true,
         });
       }
       onSaved();
@@ -83,7 +90,10 @@ export default function SubscriptionForm({ onClose, onSaved, editing }: Props) {
   const cycleLabel = (c: string) => c.charAt(0).toUpperCase() + c.slice(1);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/10" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/10"
+      onClick={onClose}
+    >
       <div
         className="w-full max-w-md rounded-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl p-6"
         onClick={(e) => e.stopPropagation()}
@@ -92,7 +102,10 @@ export default function SubscriptionForm({ onClose, onSaved, editing }: Props) {
           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
             {editing ? 'Edit Subscription' : 'Add Subscription'}
           </h3>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 cursor-pointer">
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 cursor-pointer"
+          >
             <i aria-hidden="true" className="fi fi-sr-cross text-sm text-zinc-500" />
           </button>
         </div>
@@ -118,7 +131,9 @@ export default function SubscriptionForm({ onClose, onSaved, editing }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Amount (THB)</label>
+              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                Amount (THB)
+              </label>
               <input
                 type="number"
                 step="0.01"
@@ -131,14 +146,18 @@ export default function SubscriptionForm({ onClose, onSaved, editing }: Props) {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Billing Cycle</label>
+              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                Billing Cycle
+              </label>
               <select
                 value={billingCycle}
                 onChange={(e) => setBillingCycle(e.target.value)}
                 className="mt-1 w-full px-3 py-2 rounded-lg bg-white/60 dark:bg-slate-800/60 border border-zinc-200 dark:border-slate-600 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
               >
                 {CYCLES.map((c) => (
-                  <option key={c} value={c}>{cycleLabel(c)}</option>
+                  <option key={c} value={c}>
+                    {cycleLabel(c)}
+                  </option>
                 ))}
               </select>
             </div>
@@ -146,7 +165,9 @@ export default function SubscriptionForm({ onClose, onSaved, editing }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Category</label>
+              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                Category
+              </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
@@ -155,12 +176,16 @@ export default function SubscriptionForm({ onClose, onSaved, editing }: Props) {
               >
                 <option value="">Select</option>
                 {CATEGORIES.map((c) => (
-                  <option key={c.value} value={c.value}>{c.label}</option>
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Next Billing</label>
+              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                Next Billing
+              </label>
               <input
                 type="date"
                 value={nextBillingDate}
