@@ -2,10 +2,22 @@
 
 import type { CardTier } from './cards/cards';
 
+let _audioCtx: AudioContext | null = null;
+
+function getAudioContext(): AudioContext {
+  if (!_audioCtx) {
+    _audioCtx = new AudioContext();
+  }
+  if (_audioCtx.state === 'suspended') {
+    _audioCtx.resume();
+  }
+  return _audioCtx;
+}
+
 export function playCardSfx(tier: CardTier) {
   if (typeof window === 'undefined') return;
   try {
-    const ctx = new AudioContext();
+    const ctx = getAudioContext();
     const notes = {
       common: [500],
       uncommon: [500, 700],
@@ -33,7 +45,7 @@ export function playCardSfx(tier: CardTier) {
 export function playSingleCorrect() {
   if (typeof window === 'undefined') return;
   try {
-    const ctx = new AudioContext();
+    const ctx = getAudioContext();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.frequency.value = 600;
@@ -52,7 +64,7 @@ export function playSingleCorrect() {
 export function playWrong() {
   if (typeof window === 'undefined') return;
   try {
-    const ctx = new AudioContext();
+    const ctx = getAudioContext();
     [300, 220, 160].forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();

@@ -1,5 +1,7 @@
 'use client';
 
+import { safeGetJSON, safeSetJSON } from '@/lib/storage';
+
 const ANALYTICS_KEY = 'alphabet-adventure-analytics';
 const MAX_EVENTS = 5000;
 const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
@@ -13,31 +15,18 @@ export interface AnalyticsEvent {
 }
 
 export function pushAnalytics(event: Omit<AnalyticsEvent, 'ts'>) {
-  if (typeof window === 'undefined') return;
-  try {
-    const raw = localStorage.getItem(ANALYTICS_KEY);
-    const events: AnalyticsEvent[] = raw ? JSON.parse(raw) : [];
-    events.push({ ...event, ts: Date.now() });
-    if (events.length > MAX_EVENTS) {
-      events.splice(0, events.length - MAX_EVENTS);
-    }
-    localStorage.setItem(ANALYTICS_KEY, JSON.stringify(events));
-  } catch {
-    return;
+  const events = safeGetJSON<AnalyticsEvent[]>(ANALYTICS_KEY) ?? [];
+  events.push({ ...event, ts: Date.now() });
+  if (events.length > MAX_EVENTS) {
+    events.splice(0, events.length - MAX_EVENTS);
   }
+  safeSetJSON(ANALYTICS_KEY, events);
 }
 
 export function getAnalytics(): AnalyticsEvent[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(ANALYTICS_KEY);
-    if (!raw) return [];
-    const events: AnalyticsEvent[] = JSON.parse(raw);
-    const cutoff = Date.now() - MAX_AGE_MS;
-    return events.filter((e) => e.ts > cutoff);
-  } catch {
-    return [];
-  }
+  const events = safeGetJSON<AnalyticsEvent[]>(ANALYTICS_KEY) ?? [];
+  const cutoff = Date.now() - MAX_AGE_MS;
+  return events.filter((e) => e.ts > cutoff);
 }
 
 export interface LevelStats {

@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import type { CardTier } from '../cards/cards';
 import {
   rollCardDrop,
+  rollWinDrop,
+  resolveDropTier,
   pickLetter,
   addCard,
   getEffectiveStreak,
@@ -21,11 +23,14 @@ import type {
 import { initialGameState, emptyRoundData } from '../types';
 import { pushAnalytics } from '../analytics';
 import { useAnalytics } from '@/lib/analytics';
+import { safeGetJSON, safeSetJSON, safeRemove } from '@/lib/storage';
 import {
   GAME_CONFIG,
   randomPraise,
   streakPraise,
   calcStars,
+  ALPHABET_UPPER,
+  ALPHABET_LOWER,
   generateMatchRound,
   generateThaiRevertRound,
   generatePhonicsRevertRound,
@@ -35,17 +40,16 @@ import {
 } from '../constants';
 import { loadMapSave } from '../migrateMapSave';
 import { playCardSfx, playSingleCorrect, playWrong } from '../sfx';
+import { checkAndAward, type Achievement, type AchievementContext } from '../achievements';
 
 const CHECKPOINT_KEY = 'alphabet-adventure-checkpoint';
 
 function saveCheckpoint(state: GameState, stageId: number, subStageId: number) {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(CHECKPOINT_KEY, JSON.stringify({ stageId, subStageId, gameState: state }));
+  safeSetJSON(CHECKPOINT_KEY, { stageId, subStageId, gameState: state });
 }
 
 function clearCheckpoint() {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem(CHECKPOINT_KEY);
+  safeRemove(CHECKPOINT_KEY);
 }
 
 export function loadCheckpoint(): {
@@ -53,14 +57,7 @@ export function loadCheckpoint(): {
   subStageId: number;
   gameState: GameState;
 } | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = localStorage.getItem(CHECKPOINT_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
+  return safeGetJSON<{ stageId: number; subStageId: number; gameState: GameState }>(CHECKPOINT_KEY);
 }
 
 export interface SubStageResult {
@@ -91,21 +88,12 @@ export function useGameActions() {
   const [currentSubStageId, setCurrentSubStageId] = useState(0);
 
   const [hasSavedProgress] = useState(() => {
-    if (typeof window === 'undefined') return false;
     const data = loadMapSave();
     return data.stages.some((s) => s.subStages.some((ss) => ss.completed));
   });
 
-  const [dropPower, setDropPower] = useState(() => {
-    if (typeof window === 'undefined') return 0;
-    return loadCollection().dropPower || 0;
-  });
+  const [dropPower, setDropPower] = useState(() => loadCollection().dropPower || 0);
   const [dropStreak, setDropStreak] = useState(0);
-  const [lastCardDropped, setLastCardDropped] = useState<{
-    letter: string;
-    tier: CardTier;
-    isNew: boolean;
-  } | null>(null);
   const [streakToast, setStreakToast] = useState('');
   const [cardReveal, setCardReveal] = useState<{
     letter: string;
@@ -114,14 +102,28 @@ export function useGameActions() {
   } | null>(null);
   const [showDebug, setShowDebug] = useState(false);
   const [showCollectionOverlay, setShowCollectionOverlay] = useState(false);
+  const [newAchievements, setNewAchievements] = useState<Achievement[]>([]);
 
   const stateRef = useRef(gameState);
   const dropStreakRef = useRef(0);
-  const cardToastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const streakToastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cardRevealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cardDroppedRef = useRef(false);
+  const revealPendingRef = useRef(false);
   const pendingCompleteRef = useRef<SubStageResult | null>(null);
+
+  const runAchievementCheck = useCallback(() => {
+    const ctx: AchievementContext = {
+      cardCount: loadCollection().cards.length,
+      currentStreak: stateRef.current.currentStreak,
+      stagesCompleted: loadMapSave().stages.filter((s) => s.completed).length,
+      totalScore: loadMapSave().totalScore,
+    };
+    const unlocked = checkAndAward(ctx);
+    if (unlocked.length > 0) {
+      setNewAchievements((prev) => [...prev, ...unlocked]);
+    }
+  }, []);
 
   useEffect(() => {
     stateRef.current = gameState;
@@ -133,7 +135,6 @@ export function useGameActions() {
 
   useEffect(() => {
     return () => {
-      if (cardToastRef.current) clearTimeout(cardToastRef.current);
       if (streakToastRef.current) clearTimeout(streakToastRef.current);
       if (cardRevealTimerRef.current) clearTimeout(cardRevealTimerRef.current);
     };
@@ -277,29 +278,93 @@ export function useGameActions() {
     [generateRound, trackCustomEvent],
   );
 
-  const handleSubStageComplete = useCallback((score: number, correct: number, total: number) => {
-    const sub = subStageRef.current;
-    if (!sub) return;
-    const accuracy = total > 0 ? (correct / total) * 100 : 0;
-    const stars = calcStars(accuracy);
+  const startPracticeSession = useCallback(
+    (letters: string[], onComplete: (result: SubStageResult) => void) => {
+      if (letters.length === 0) return;
 
-    const result: SubStageResult = {
-      score,
-      correct,
-      total,
-      stars,
-      letterTracker: { ...letterTrackerRef.current },
-      sessionLetterStats: { ...sessionLetterStatsRef.current },
-      bestStreak: stateRef.current.bestStreak,
-      subStageName: subStageRef.current?.name ?? '',
-    };
+      const practiceConfig: SubStageConfig = {
+        id: 0,
+        name: 'Practice',
+        subtitle: letters.join(' '),
+        type: 'match',
+        letterPool: letters,
+        targetMin: letters.length * 5,
+      };
 
-    pendingCompleteRef.current = result;
-    onCompleteRef.current?.(result);
-    onCompleteRef.current = null;
-    subStageRef.current = null;
-    clearCheckpoint();
-  }, []);
+      subStageRef.current = practiceConfig;
+      onCompleteRef.current = onComplete;
+      clearCheckpoint();
+
+      const initialState = initialGameState();
+      initialState.easyMode = true;
+      setCurrentStageId(0);
+      setCurrentSubStageId(0);
+      setGameState(initialState);
+      setRoundData(generateRound(initialState));
+      setFeedback({ text: '', type: '' });
+      setIsTransitioning(false);
+      cardDroppedRef.current = false;
+      dropStreakRef.current = 0;
+      setDropStreak(0);
+      sessionLetterStatsRef.current = {};
+    },
+    [generateRound],
+  );
+
+  const applyCardDrop = useCallback(
+    (tier: CardTier) => {
+      playCardSfx(tier);
+      dropStreakRef.current = Math.max(0, dropStreakRef.current - 5);
+      setDropStreak(dropStreakRef.current);
+      const newPower = Math.min(10, dropPowerRef.current + 1);
+      dropPowerRef.current = newPower;
+      setDropPower(newPower);
+      const collection = loadCollection();
+      collection.dropPower = newPower;
+      saveCollection(collection);
+      const letter = pickLetter(tier, collection);
+      const { isNew } = addCard(letter, tier);
+      revealPendingRef.current = true;
+      setIsTransitioning(true);
+      setCardReveal({ letter, tier, isNew });
+    },
+    [setDropStreak, setDropPower, setCardReveal, setIsTransitioning],
+  );
+
+  const handleSubStageComplete = useCallback(
+    (score: number, correct: number, total: number) => {
+      const sub = subStageRef.current;
+      if (!sub) return;
+
+      const winTier = rollWinDrop();
+      if (winTier) {
+        cardDroppedRef.current = true;
+        applyCardDrop(resolveDropTier(winTier));
+      }
+
+      const accuracy = total > 0 ? (correct / total) * 100 : 0;
+      const stars = calcStars(accuracy);
+
+      const result: SubStageResult = {
+        score,
+        correct,
+        total,
+        stars,
+        letterTracker: { ...letterTrackerRef.current },
+        sessionLetterStats: { ...sessionLetterStatsRef.current },
+        bestStreak: stateRef.current.bestStreak,
+        subStageName: subStageRef.current?.name ?? '',
+      };
+
+      pendingCompleteRef.current = result;
+      if (revealPendingRef.current) return;
+      onCompleteRef.current?.(result);
+      onCompleteRef.current = null;
+      subStageRef.current = null;
+      clearCheckpoint();
+    },
+    [applyCardDrop],
+  );
 
   const trackLetter = useCallback((letter: string, correct: boolean) => {
     const t = letterTrackerRef.current;
@@ -355,28 +420,7 @@ export function useGameActions() {
         if (tier) {
           cardDropped = true;
           cardDroppedRef.current = true;
-          playCardSfx(tier);
-          dropStreakRef.current = Math.max(0, dropStreakRef.current - 5);
-          setDropStreak(dropStreakRef.current);
-          const newPower = Math.min(10, dropPowerRef.current + 1);
-
-          dropPowerRef.current = newPower;
-          setDropPower(newPower);
-          const collection = loadCollection();
-          collection.dropPower = newPower;
-          saveCollection(collection);
-          const letter = pickLetter(tier);
-          const { isNew } = addCard(letter, tier);
-          if (stateRef.current.easyMode) {
-            if (cardToastRef.current) clearTimeout(cardToastRef.current);
-            setLastCardDropped({ letter, tier, isNew });
-            cardToastRef.current = setTimeout(() => setLastCardDropped(null), 2500);
-          } else {
-            if (cardRevealTimerRef.current) clearTimeout(cardRevealTimerRef.current);
-            cardRevealTimerRef.current = setTimeout(() => {
-              setCardReveal({ letter, tier, isNew });
-            }, 2000);
-          }
+          applyCardDrop(resolveDropTier(tier));
         }
 
         if (!cardDropped) {
@@ -419,6 +463,7 @@ export function useGameActions() {
           streakToastRef.current = setTimeout(() => setStreakToast(''), 1500);
         }
         showFeedback(`${randomPraise('correct')} +${points}`, 'correct');
+        runAchievementCheck();
 
         if (isMatch) {
           advanceMatchRound(newState, newScore, newState.levelCorrect + 1, newState.levelTotal + 1);
@@ -444,19 +489,17 @@ export function useGameActions() {
               setGameState(newState);
               saveCheckpoint(newState, currentStageId, currentSubStageId);
               showFeedback(randomPraise('correct'), 'correct');
+              runAchievementCheck();
               setTimeout(() => {
                 setRoundData(generateRound(newState));
-                setIsTransitioning(false);
+                if (!revealPendingRef.current) setIsTransitioning(false);
               }, GAME_CONFIG.FEEDBACK_DURATION_CORRECT);
             }
           } else {
             const pool = sub.letterPool;
             if (!pool) return;
             const nextActive = nextMissing[0];
-            const alphabet =
-              sub.type === 'fill-upper'
-                ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
-                : 'abcdefghijklmnopqrstuvwxyz'.split('');
+            const alphabet = sub.type === 'fill-upper' ? ALPHABET_UPPER : ALPHABET_LOWER;
             const nextCorrect = alphabet[nextActive];
             const numFillChoices = stateRef.current.easyMode ? 3 : 4;
             const choices = generateFillChoices(nextCorrect, numFillChoices, pool);
@@ -549,6 +592,8 @@ export function useGameActions() {
       trackLetter,
       currentStageId,
       currentSubStageId,
+      runAchievementCheck,
+      applyCardDrop,
     ],
   );
 
@@ -619,6 +664,7 @@ export function useGameActions() {
         streakToastRef.current = setTimeout(() => setStreakToast(''), 1500);
       }
       showFeedback(`${randomPraise('correct')} +${GAME_CONFIG.SCORE_TYPING_CORRECT}`, 'correct');
+      runAchievementCheck();
 
       if (newWins >= target) {
         handleSubStageComplete(newScore, newState.levelCorrect, newState.levelTotal);
@@ -630,7 +676,7 @@ export function useGameActions() {
         setTimeout(() => {
           const round = generateTypingRound(pool || []);
           setRoundData({ choices: [], wrongChoices: [], ...round });
-          setIsTransitioning(false);
+          if (!revealPendingRef.current) setIsTransitioning(false);
         }, GAME_CONFIG.FEEDBACK_DURATION_CORRECT);
       }
     } else {
@@ -712,13 +758,13 @@ export function useGameActions() {
   }, [
     isTransitioning,
     roundData,
-    generateRound,
     handleSubStageComplete,
     trackCustomEvent,
     showFeedback,
     trackLetter,
     currentStageId,
     currentSubStageId,
+    runAchievementCheck,
   ]);
 
   const handleSelectCell = useCallback((index: number) => {
@@ -734,6 +780,8 @@ export function useGameActions() {
   }, []);
 
   const handleCardKeep = useCallback(() => {
+    revealPendingRef.current = false;
+    setIsTransitioning(false);
     setCardReveal(null);
     if (pendingCompleteRef.current) {
       const result = pendingCompleteRef.current;
@@ -741,31 +789,48 @@ export function useGameActions() {
       onCompleteRef.current?.(result);
       onCompleteRef.current = null;
     }
-  }, []);
+  }, [setIsTransitioning]);
 
-  return {
+  const effectiveStreak = getEffectiveStreak(dropStreak, dropPower);
+
+  const game = {
     gameState,
     roundData,
     feedback,
     isTransitioning,
     hasSavedProgress,
-    lastCardDropped,
+  };
+
+  const cardSystem = {
     streakToast,
     cardReveal,
-    showDebug,
     showCollectionOverlay,
-    setShowDebug,
     setShowCollectionOverlay,
     dropPower,
-    effectiveStreak: getEffectiveStreak(dropStreak, dropPower),
+    effectiveStreak,
     dropStreak,
     handleCardKeep,
+    newAchievements,
+  };
+
+  const debug = {
+    showDebug,
+    setShowDebug,
+  };
+
+  const actions = {
     startSubStage,
+    startPracticeSession,
     handleAnswer,
     checkTyping,
     handleSelectCell,
     handleTypingInput,
+  };
+
+  const ids = {
     currentStageId,
     currentSubStageId,
   };
+
+  return { game, cardSystem, debug, actions, ids };
 }

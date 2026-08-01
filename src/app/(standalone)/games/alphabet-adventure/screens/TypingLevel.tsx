@@ -1,6 +1,7 @@
 'use client';
 
 import type { RoundData } from '../types';
+import ChunkyButton from './ChunkyButton';
 
 interface Props {
   roundData: RoundData;
@@ -56,9 +57,9 @@ export default function TypingLevel({
         ))}
       </div>
 
-      <div className="grid gap-1.5 justify-center">
+      <div className="grid gap-1 sm:gap-1.5 justify-center">
         {KEYBOARD_ROWS.map((row, ri) => (
-          <div key={ri} className="flex gap-1.5 justify-center">
+          <div key={ri} className="flex flex-wrap gap-1 sm:gap-1.5 justify-center">
             {row.map((letter) => (
               <button
                 key={letter}
@@ -67,7 +68,7 @@ export default function TypingLevel({
                     onTypingInput?.(firstEmptyIdx, letter);
                   }
                 }}
-                className="min-w-[32px] h-[42px] sm:min-w-[38px] sm:h-[48px] rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/40 text-zinc-700 dark:text-zinc-300 font-black text-sm sm:text-base transition-all active:scale-90 border border-zinc-200 dark:border-zinc-700 disabled:opacity-30"
+                className="min-w-[36px] h-[44px] sm:min-w-[44px] sm:h-[48px] rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/40 text-zinc-700 dark:text-zinc-300 font-black text-sm sm:text-base transition-all active:scale-90 border border-zinc-200 dark:border-zinc-700 disabled:opacity-30 touch-manipulation"
               >
                 {letter}
               </button>
@@ -77,13 +78,14 @@ export default function TypingLevel({
       </div>
 
       <div className="text-center pt-2">
-        <button
+        <ChunkyButton
+          variant="fuchsia"
           onClick={() => !isFeedbackVisible && onCheckTyping()}
           disabled={isTransitioning || isFeedbackVisible}
-          className="px-10 py-4 bg-fuchsia-600 text-white text-xl font-black rounded-2xl shadow-[0_8px_0_0_#9d174d] active:shadow-none active:translate-y-2 transition-all flex items-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-10 py-4 text-xl rounded-2xl flex items-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Check Answers <i aria-hidden="true" className="fi fi-sr-checkbox"></i>
-        </button>
+          Check Answers <span aria-hidden="true">☑️</span>
+        </ChunkyButton>
       </div>
     </div>
   );

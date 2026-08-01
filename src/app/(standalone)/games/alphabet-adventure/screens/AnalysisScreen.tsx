@@ -1,7 +1,12 @@
 'use client';
 
+import { useRef } from 'react';
 import type { LetterTracker } from '../types';
 import { generateAnalysis, type SessionLetterStats } from '../analysis';
+import { ALPHABET_UPPER } from '../constants';
+import { useScrollHint } from '../hooks/useScrollHint';
+import ScrollHint from './ScrollHint';
+import ChunkyButton from './ChunkyButton';
 
 interface Props {
   totalScore: number;
@@ -9,9 +14,8 @@ interface Props {
   totalStages: number;
   letterTracker: Record<string, LetterTracker>;
   onBack: () => void;
+  onStartPractice?: (letters: string[]) => void;
 }
-
-const ALL_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 export default function AnalysisScreen({
   totalScore,
@@ -19,7 +23,11 @@ export default function AnalysisScreen({
   totalStages,
   letterTracker,
   onBack,
+  onStartPractice,
 }: Props) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { hasMore, atBottom, scrollDown } = useScrollHint(scrollRef);
+
   const allSessionStats: Record<string, SessionLetterStats> = {};
   let totalCorrect = 0;
   let totalAttempts = 0;
@@ -31,13 +39,15 @@ export default function AnalysisScreen({
 
   const overallAccuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
 
-  const activeLetters = ALL_LETTERS.filter((l) => letterTracker[l] && letterTracker[l].total > 0);
+  const activeLetters = ALPHABET_UPPER.filter(
+    (l) => letterTracker[l] && letterTracker[l].total > 0,
+  );
   const analysis = generateAnalysis(overallAccuracy, allSessionStats, activeLetters);
 
   const letterAccuracies: Record<string, number> = {};
   const strengths: string[] = [];
   const toImprove: string[] = [];
-  for (const letter of ALL_LETTERS) {
+  for (const letter of ALPHABET_UPPER) {
     const lt = letterTracker[letter];
     if (!lt || lt.total === 0) {
       letterAccuracies[letter] = -1;
@@ -58,9 +68,12 @@ export default function AnalysisScreen({
 
   return (
     <div className="flex flex-col items-center justify-center min-h-full p-4">
-      <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-[2.5rem] p-5 md:p-8 shadow-2xl text-center space-y-4 md:space-y-5 max-h-[85vh] overflow-y-auto">
+      <div
+        ref={scrollRef}
+        className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-[2.5rem] p-5 md:p-8 shadow-2xl text-center space-y-4 md:space-y-5 max-h-[calc(100dvh-2rem)] overflow-y-auto"
+      >
         <div className="flex items-center justify-center gap-2">
-          <i className="fi fi-sr-chart-simple text-2xl text-violet-500" />
+          <span className="text-2xl">📊</span>
           <h1 className="text-2xl sm:text-3xl font-black text-violet-600 dark:text-violet-400">
             Analysis
           </h1>
@@ -91,41 +104,48 @@ export default function AnalysisScreen({
         )}
 
         <div className="bg-emerald-50 dark:bg-emerald-900/10 p-3 sm:p-4 rounded-3xl border-2 border-emerald-100 dark:border-emerald-900/30">
-          <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
-            {ALL_LETTERS.map((letter) => {
+          <div className="grid grid-cols-6 md:grid-cols-9 gap-1.5 sm:gap-2">
+            {ALPHABET_UPPER.map((letter) => {
               const acc = letterAccuracies[letter];
-              if (acc < 0) {
-                return (
-                  <div
-                    key={letter}
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-300 dark:text-zinc-600 text-[10px] font-black"
-                  >
-                    {letter}
-                  </div>
-                );
-              }
               const color =
-                acc > 80
-                  ? 'bg-emerald-500 text-white'
-                  : acc >= 60
-                    ? 'bg-amber-400 text-white'
-                    : 'bg-rose-500 text-white';
+                acc < 0
+                  ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500'
+                  : acc > 80
+                    ? 'bg-emerald-500 text-white shadow-xs'
+                    : acc >= 60
+                      ? 'bg-amber-400 text-white shadow-xs'
+                      : 'bg-rose-500 text-white shadow-xs';
               return (
                 <div
                   key={letter}
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-[10px] font-black"
+                  title={acc < 0 ? `${letter}: Untested` : `${letter}: ${acc}% accuracy`}
+                  className="group relative h-10 rounded-xl flex items-center justify-center cursor-pointer transition-transform hover:scale-110"
                 >
                   <div
-                    className={`w-full h-full rounded-lg flex items-center justify-center ${color}`}
+                    className={`w-full h-full rounded-xl flex items-center justify-center font-black transition-all ${color}`}
                   >
-                    {acc}%
+                    {acc >= 0 ? (
+                      <>
+                        <span className="group-hover:hidden text-xs sm:text-sm">{letter}</span>
+                        <span className="hidden group-hover:block text-sm font-black animate-in fade-in duration-150">
+                          {acc}%
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-xs sm:text-sm">{letter}</span>
+                    )}
+                  </div>
+
+                  {/* Tooltip on hover */}
+                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center justify-center px-2.5 py-1 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-bold rounded-md whitespace-nowrap shadow-lg z-20 pointer-events-none">
+                    {letter}: {acc < 0 ? 'Untested' : `${acc}%`}
                   </div>
                 </div>
               );
             })}
           </div>
-          <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 mt-2">
-            Per-letter accuracy (ABCDEFGHIJKLMNOPQRSTUVWXYZ)
+          <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 mt-2.5">
+            Per-letter accuracy (Hover or tap letter to see percentage)
           </p>
         </div>
 
@@ -179,12 +199,25 @@ export default function AnalysisScreen({
           </div>
         )}
 
-        <button
+        {onStartPractice && toImprove.length > 0 && (
+          <ChunkyButton
+            variant="rose"
+            onClick={() => onStartPractice(toImprove)}
+            className="px-6 py-3 sm:px-8 sm:py-3.5 text-sm sm:text-base rounded-3xl flex items-center justify-center gap-2 mx-auto"
+          >
+            🎯 Practice {toImprove.length} Weak Letter{toImprove.length > 1 ? 's' : ''}
+          </ChunkyButton>
+        )}
+
+        <ChunkyButton
+          variant="violet"
           onClick={onBack}
-          className="px-6 py-2.5 sm:px-8 sm:py-3 bg-violet-600 text-white text-sm sm:text-base font-black rounded-3xl shadow-[0_8px_0_0_#5b21b6] active:shadow-none active:translate-y-2 transition-all"
+          className="px-6 py-2.5 sm:px-8 sm:py-3 text-sm sm:text-base rounded-3xl"
         >
           Back
-        </button>
+        </ChunkyButton>
+
+        {hasMore && !atBottom && <ScrollHint onScrollDown={scrollDown} roundedBottom />}
       </div>
     </div>
   );

@@ -8,9 +8,8 @@ import {
   RAMP_DROP,
   rampTierRate,
 } from '../constants';
-import { loadCollection, TIER_LABELS, CARD_WORDS, isHolographicTier } from '../cards/cards';
-import { CardFrame } from '../cards/CardFrame';
-import { CardIllustration } from '../cards/CardIllustrations';
+import { loadCollection, TIER_LABELS, getCardWord, TOTAL_CARD_SLOTS } from '../cards/cards';
+import { CardWordIllustration } from '../cards/CardWordArt';
 import CardRevealModal from '../beta/screens/CardRevealModal';
 import CaptainAlph from '../characters/CaptainAlph';
 
@@ -27,7 +26,6 @@ interface Props {
   showDebug: boolean;
   showCollectionOverlay: boolean;
   streakToast: string;
-  lastCardDropped: { letter: string; tier: CardTier; isNew: boolean } | null;
   cardReveal: { letter: string; tier: CardTier; isNew: boolean } | null;
   dropStreak: number;
   dropPower: number;
@@ -36,6 +34,7 @@ interface Props {
   onToggleDebug: () => void;
   onCloseCollection: () => void;
   onViewFullCollection: () => void;
+  onViewAllCards: () => void;
   onCardKeep: () => void;
   playSequence: (frequencies: number[], noteDuration?: number, gainVal?: number) => void;
 }
@@ -45,7 +44,6 @@ export default function GameOverlays({
   showDebug,
   showCollectionOverlay,
   streakToast,
-  lastCardDropped,
   cardReveal,
   dropStreak,
   dropPower,
@@ -54,8 +52,8 @@ export default function GameOverlays({
   onToggleDebug,
   onCloseCollection,
   onViewFullCollection,
+  onViewAllCards,
   onCardKeep,
-  playSequence,
 }: Props) {
   return (
     <>
@@ -74,6 +72,13 @@ export default function GameOverlays({
               <span aria-hidden="true" className="text-xs">
                 🃏
               </span>
+            </button>
+            <button
+              onClick={onViewAllCards}
+              className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-white text-[10px] font-black uppercase tracking-widest shadow-lg transition-all animate-pulse"
+              title="Show All Cards"
+            >
+              SHOW ALL CARDS
             </button>
           </>
         )}
@@ -160,13 +165,15 @@ export default function GameOverlays({
               return (
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold text-zinc-300">{total} / 26 cards</span>
+                    <span className="text-xs font-bold text-zinc-300">
+                      {total} / {TOTAL_CARD_SLOTS} cards
+                    </span>
                     <span className="text-xs font-bold text-amber-400">{col.totalPoints} pts</span>
                   </div>
                   <div className="h-1.5 rounded-full bg-zinc-700 overflow-hidden">
                     <div
                       className="h-full rounded-full bg-violet-500 transition-all"
-                      style={{ width: `${(total / 26) * 100}%` }}
+                      style={{ width: `${(total / TOTAL_CARD_SLOTS) * 100}%` }}
                     />
                   </div>
                   {recent.length > 0 && (
@@ -180,7 +187,11 @@ export default function GameOverlays({
                             key={`${card.letter}-${card.tier}`}
                             className="flex items-center gap-1.5 bg-zinc-800/60 px-2 py-1 rounded-lg"
                           >
-                            <CardIllustration letter={card.letter} size={20} />
+                            <CardWordIllustration
+                              word={getCardWord(card.letter, card.tier)}
+                              letter={card.letter}
+                              size={20}
+                            />
                             <span className="text-xs font-bold text-zinc-300">{card.letter}</span>
                           </div>
                         ))}
@@ -217,88 +228,6 @@ export default function GameOverlays({
             </div>
           </div>
         </div>
-      )}
-
-      {lastCardDropped && (
-        <>
-          <div className="fixed inset-x-0 bottom-[15%] z-50 pointer-events-none flex justify-center">
-            {(() => {
-              const emojiKey = lastCardDropped.letter.toUpperCase();
-              const word = CARD_WORDS[emojiKey] || '';
-              const label = TIER_LABELS[lastCardDropped.tier] || lastCardDropped.tier;
-              const tierSparkleColor: Record<string, string> = {
-                common: '#a1a1aa',
-                uncommon: '#4ade80',
-                rare: '#60a5fa',
-                'ultra-rare': '#c084fc',
-                legendary: '#fbbf24',
-              };
-              const sparkleColor = tierSparkleColor[lastCardDropped.tier] || '#a1a1aa';
-              return (
-                <div className="animate-in zoom-in duration-300" style={{ width: '120px' }}>
-                  <div
-                    className="absolute -top-1 -left-1 w-1.5 h-1.5 rounded-full pointer-events-none opacity-0"
-                    style={{
-                      backgroundColor: sparkleColor,
-                      animation: 'sparkle-pop 1s ease-out forwards',
-                      animationDelay: '0s',
-                    }}
-                  />
-                  <div
-                    className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full pointer-events-none opacity-0"
-                    style={{
-                      backgroundColor: sparkleColor,
-                      animation: 'sparkle-pop 1s ease-out forwards',
-                      animationDelay: '0.15s',
-                    }}
-                  />
-                  <div
-                    className="absolute -bottom-1 -left-1 w-1.5 h-1.5 rounded-full pointer-events-none opacity-0"
-                    style={{
-                      backgroundColor: sparkleColor,
-                      animation: 'sparkle-pop 1s ease-out forwards',
-                      animationDelay: '0.3s',
-                    }}
-                  />
-                  <div
-                    className="absolute -bottom-1 -right-1 w-1.5 h-1.5 rounded-full pointer-events-none opacity-0"
-                    style={{
-                      backgroundColor: sparkleColor,
-                      animation: 'sparkle-pop 1s ease-out forwards',
-                      animationDelay: '0.45s',
-                    }}
-                  />
-                  <CardFrame
-                    tier={lastCardDropped.tier}
-                    size="toast"
-                    namePlate={`${word} · ${label}`}
-                    holographic={isHolographicTier(lastCardDropped.tier)}
-                  >
-                    <div className="flex flex-col items-center gap-0.5">
-                      <div className="-mt-7 -mb-4">
-                        <CardIllustration letter={lastCardDropped.letter} size={60} />
-                      </div>
-                      <span className="text-base font-black leading-none text-zinc-800 drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)]">
-                        {lastCardDropped.letter}
-                      </span>
-                    </div>
-                    {lastCardDropped.isNew && (
-                      <span className="absolute top-1 right-1 text-[8px] font-black text-amber-600 bg-amber-100 px-1 rounded animate-pulse z-20">
-                        NEW!
-                      </span>
-                    )}
-                  </CardFrame>
-                  <div className="text-center -mt-0.5">
-                    <span className="inline-block px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-400 text-[9px] font-black uppercase tracking-widest shadow-lg animate-in zoom-in duration-300">
-                      +1 Drop Power
-                    </span>
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-          <style>{`@keyframes sparkle-pop{0%{transform:scale(0);opacity:0}40%{transform:scale(1.2);opacity:1}100%{transform:scale(0.3);opacity:0}}`}</style>
-        </>
       )}
 
       {cardReveal && (

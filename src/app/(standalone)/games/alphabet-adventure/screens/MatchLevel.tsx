@@ -2,6 +2,7 @@
 
 import { type MutableRefObject } from 'react';
 import type { RoundData } from '../types';
+import ChunkyButton from './ChunkyButton';
 
 interface Props {
   roundData: RoundData;
@@ -40,10 +41,9 @@ export default function MatchLevel({
               tabIndex={0}
               aria-label="Listen to pronunciation"
             >
-              <i
-                aria-hidden="true"
-                className="fi fi-sr-volume text-5xl text-amber-500 animate-pulse"
-              ></i>
+              <span aria-hidden="true" className="text-5xl animate-pulse">
+                🔊
+              </span>
               <span className="text-xl md:text-2xl font-black text-amber-700 dark:text-amber-300 text-center leading-snug">
                 {roundData.targetLetter}
               </span>
@@ -90,26 +90,31 @@ export default function MatchLevel({
               className="absolute -bottom-3 left-1/2 -translate-x-1/2 p-3 rounded-xl bg-violet-100 dark:bg-violet-900/40 hover:bg-violet-200 dark:hover:bg-violet-800/60 text-violet-600 dark:text-violet-400 shadow-lg hover:scale-110 transition-all"
               title="Listen"
             >
-              <i aria-hidden="true" className="fi fi-sr-volume text-xl"></i>
+              <span aria-hidden="true" className="text-xl">
+                🔊
+              </span>
             </button>
           </>
         )}
       </div>
       <div className="flex flex-wrap justify-center gap-6">
         {roundData.choices.map((choice, i) => (
-          <button
-            // eslint-disable-next-line react-compiler/react-compiler
+          <ChunkyButton
             ref={(el) => {
+              // eslint-disable-next-line react-compiler/react-compiler
               choiceRefs.current[i] = el;
             }}
             key={i}
             onClick={() => !isTransitioning && !isFeedbackVisible && onAnswer(choice)}
-            disabled={isTransitioning || isFeedbackVisible || roundData.wrongChoices?.includes(choice)}
-            className={`relative rounded-3xl font-black transition-all duration-150 border-2 disabled:cursor-not-allowed ${
+            disabled={
+              isTransitioning || isFeedbackVisible || roundData.wrongChoices?.includes(choice)
+            }
+            variant={roundData.wrongChoices?.includes(choice) ? 'rose' : 'white'}
+            className={`relative rounded-3xl transition-all duration-150 border-2 disabled:cursor-not-allowed ${
               roundData.wrongChoices?.includes(choice)
-                ? 'bg-rose-500 text-white border-rose-500 shadow-[0_8px_0_0_#be123c] dark:shadow-[0_8px_0_0_#be123c] disabled:opacity-100'
-                : 'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 shadow-[0_8px_0_0_#e4e4e7] dark:shadow-[0_8px_0_0_#27272a] hover:bg-violet-50 dark:hover:bg-violet-900/20 border-zinc-100 dark:border-zinc-800 disabled:opacity-50'
-            } active:shadow-none active:translate-y-2 ${
+                ? 'border-rose-500 disabled:opacity-100'
+                : 'border-zinc-100 dark:border-zinc-800 disabled:opacity-50'
+            } ${
               isThaiText
                 ? 'min-w-[7rem] px-4 py-3 text-xl md:text-2xl'
                 : 'w-24 h-24 md:w-28 md:h-28 text-5xl'
@@ -119,7 +124,7 @@ export default function MatchLevel({
               {i + 1}
             </span>
             {choice}
-          </button>
+          </ChunkyButton>
         ))}
       </div>
     </div>

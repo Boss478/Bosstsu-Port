@@ -1,4 +1,12 @@
-export type Screen = 'menu' | 'level-map' | 'stage-map' | 'game' | 'victory' | 'analysis';
+export type Screen =
+  | 'menu'
+  | 'level-map'
+  | 'stage-map'
+  | 'game'
+  | 'victory'
+  | 'analysis'
+  | 'letter-explorer'
+  | 'achievements';
 
 export type LevelType = 'match' | 'fill-upper' | 'fill-lower' | 'typing';
 export type DataPool = 'lowercase' | 'thai' | 'phonics';

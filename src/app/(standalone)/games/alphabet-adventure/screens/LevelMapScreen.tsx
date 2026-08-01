@@ -1,8 +1,9 @@
 'use client';
 
 import type { MapSaveData, StageProgress } from '../types';
-import { getStages } from '../constants';
+import { getStages, ALPHABET_UPPER } from '../constants';
 import LetterProgressGrid from './LetterProgressGrid';
+import BackButton from './BackButton';
 
 interface Props {
   mapData: MapSaveData;
@@ -31,13 +32,7 @@ export default function LevelMapScreen({ mapData, onSelectStage, onBack, onShowA
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-4 sm:p-6 md:p-8 shadow-2xl text-center animate-in fade-in slide-in-from-bottom-8 duration-700 relative min-h-[600px] max-h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
-        <button
-          onClick={onBack}
-          className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-500 hover:text-violet-500 transition-colors"
-          title="Back"
-        >
-          <i aria-hidden="true" className="fi fi-sr-angle-left text-lg"></i>
-        </button>
+        <BackButton onClick={onBack} title="Back" />
         <div className="flex items-center gap-2">
           {onShowAnalysis && (
             <button
@@ -45,7 +40,9 @@ export default function LevelMapScreen({ mapData, onSelectStage, onBack, onShowA
               className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-400 hover:text-violet-500 transition-colors"
               title="View Analysis"
             >
-              <i aria-hidden="true" className="fi fi-sr-chart-simple text-base"></i>
+              <span aria-hidden="true" className="text-base">
+                📊
+              </span>
             </button>
           )}
           <div className="text-right">
@@ -60,7 +57,7 @@ export default function LevelMapScreen({ mapData, onSelectStage, onBack, onShowA
       </div>
 
       <div className="mb-6">
-        <div className="flex items-center justify-between text-xs font-bold text-zinc-400 dark:text-zinc-500 mb-1">
+        <div className="flex items-center justify-between text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1">
           <span>Total Progress</span>
           <span>
             {totalStars}/{maxStars}
@@ -91,7 +88,7 @@ export default function LevelMapScreen({ mapData, onSelectStage, onBack, onShowA
               <div key={id} className="flex flex-col items-center w-full">
                 {i > 0 && (
                   <div
-                    className={`w-1 h-8 sm:h-12 ${unlocked ? 'bg-violet-300 dark:bg-violet-700' : 'bg-zinc-200 dark:bg-zinc-700'}`}
+                    className={`w-1 h-8 sm:h-12 ${unlocked ? 'bg-violet-300 dark:bg-violet-700' : 'bg-zinc-300 dark:bg-zinc-600'}`}
                   />
                 )}
                 <button
@@ -102,7 +99,7 @@ export default function LevelMapScreen({ mapData, onSelectStage, onBack, onShowA
                       ? completed
                         ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700 hover:shadow-lg hover:scale-[1.02] cursor-pointer'
                         : 'bg-violet-50 dark:bg-violet-900/20 border-violet-200 dark:border-violet-700 hover:shadow-lg hover:scale-[1.02] cursor-pointer'
-                      : 'bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 opacity-60 cursor-not-allowed'
+                      : 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 cursor-not-allowed'
                   }`}
                 >
                   <div className="flex items-center gap-4">
@@ -112,17 +109,17 @@ export default function LevelMapScreen({ mapData, onSelectStage, onBack, onShowA
                           ? completed
                             ? 'bg-emerald-100 dark:bg-emerald-800 border-emerald-300 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300'
                             : 'bg-violet-100 dark:bg-violet-800 border-violet-300 dark:border-violet-600 text-violet-700 dark:text-violet-300'
-                          : 'bg-zinc-100 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 text-zinc-400 dark:text-zinc-500'
+                          : 'bg-zinc-200 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400'
                       }`}
                     >
                       {unlocked ? (
                         completed ? (
-                          <i className="fi fi-sr-check text-xl" />
+                          <span className="text-xl">✅</span>
                         ) : (
                           id
                         )
                       ) : (
-                        <i className="fi fi-sr-lock text-lg" />
+                        <span className="text-lg">🔒</span>
                       )}
                     </div>
                     <div className="flex-1 text-left min-w-0">
@@ -131,16 +128,14 @@ export default function LevelMapScreen({ mapData, onSelectStage, onBack, onShowA
                           className={`text-base sm:text-lg font-black truncate ${
                             unlocked
                               ? 'text-zinc-800 dark:text-white'
-                              : 'text-zinc-400 dark:text-zinc-500'
+                              : 'text-zinc-500 dark:text-zinc-400'
                           }`}
                         >
                           {stage.name}
                         </h3>
-                        {completed && (
-                          <i className="fi fi-sr-badge-check text-emerald-500 text-sm shrink-0" />
-                        )}
+                        {completed && <span className="text-sm shrink-0">✅</span>}
                       </div>
-                      <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500 mt-0.5">
+                      <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mt-0.5">
                         {stage.subtitle}
                       </p>
                       {unlocked && (
@@ -153,7 +148,7 @@ export default function LevelMapScreen({ mapData, onSelectStage, onBack, onShowA
                               style={{ width: `${pct}%` }}
                             />
                           </div>
-                          <span className="text-[10px] font-bold text-zinc-400 shrink-0">
+                          <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 shrink-0">
                             {progress.subStages.filter((s) => s.completed).length}/
                             {progress.subStages.length}
                           </span>
@@ -161,16 +156,9 @@ export default function LevelMapScreen({ mapData, onSelectStage, onBack, onShowA
                       )}
                     </div>
                     {unlocked && (
-                      <div className="flex gap-0.5 shrink-0">
+                      <div className="flex gap-0.5 shrink-0 text-xs">
                         {[1, 2, 3].map((s) => (
-                          <i
-                            key={s}
-                            className={`text-xs ${
-                              stars >= s
-                                ? 'text-amber-400 fi fi-sr-star'
-                                : 'text-zinc-200 dark:text-zinc-700 fi fi-sr-star'
-                            }`}
-                          />
+                          <span key={s}>{stars >= s ? '⭐' : '⚪'}</span>
                         ))}
                       </div>
                     )}
@@ -183,10 +171,7 @@ export default function LevelMapScreen({ mapData, onSelectStage, onBack, onShowA
       </div>
 
       <div className="mt-4 mb-6 mx-2">
-        <LetterProgressGrid
-          letters={'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')}
-          letterTracker={mapData.letterTracker}
-        />
+        <LetterProgressGrid letters={ALPHABET_UPPER} letterTracker={mapData.letterTracker} />
       </div>
     </div>
   );

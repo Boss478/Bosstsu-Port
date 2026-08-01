@@ -2,9 +2,9 @@
 
 import { startTransition, useState, useEffect, useRef, useCallback } from 'react';
 import type { Screen, MapSaveData, StageConfig } from './types';
-import { emptyMapSaveData } from './types';
 import { getStage } from './constants';
 import { useAudio } from '@/hooks/useAudio';
+import { safeGetString, safeSetString, safeRemove } from '@/lib/storage';
 import { useGameActions, type SubStageResult } from './hooks/useGameActions';
 import { loadMapSave, saveMapSave } from './migrateMapSave';
 import GameScreen from './screens/GameScreen';
@@ -15,6 +15,9 @@ import StageMapScreen from './screens/StageMapScreen';
 import AnalysisScreen from './screens/AnalysisScreen';
 import GameOverlays from './screens/GameOverlays';
 import CardScreen from './beta/screens/CardScreen';
+import AllCardsModal from './beta/screens/AllCardsModal';
+import LetterExplorerScreen from './screens/LetterExplorerScreen';
+import AchievementsScreen from './screens/AchievementsScreen';
 import OnboardingOverlay from './screens/OnboardingOverlay';
 
 interface Props {
@@ -25,10 +28,8 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
   const [screen, setScreen] = useState<Screen>('menu');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showCards, setShowCards] = useState(false);
-  const [mapData, setMapData] = useState<MapSaveData>(() => {
-    if (typeof window === 'undefined') return emptyMapSaveData();
-    return loadMapSave();
-  });
+  const [showAllCards, setShowAllCards] = useState(false);
+  const [mapData, setMapData] = useState<MapSaveData>(() => loadMapSave());
 
   const [selectedStage, setSelectedStage] = useState<StageConfig | null>(null);
   const [currentStageId, setCurrentStageId] = useState(0);
@@ -63,37 +64,44 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
   >([]);
   const [analysisReturnTo, setAnalysisReturnTo] = useState<Screen>('level-map');
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [practiceLetters, setPracticeLetters] = useState<string[]>([]);
+  const [achievementToast, setAchievementToast] = useState<{
+    name: string;
+    icon: string;
+  } | null>(null);
+  const achievedRef = useRef<Set<string>>(new Set());
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onboardingTypeRef = useRef<string>('');
 
   const containerRef = useRef<HTMLDivElement>(null);
   const { speak, muted, toggleMute, playSequence, voiceURI, setVoiceURI } = useAudio();
 
   const {
-    gameState,
-    roundData,
-    feedback,
-    isTransitioning,
-    hasSavedProgress,
-    lastCardDropped,
-    streakToast,
-    cardReveal,
-    showDebug,
-    showCollectionOverlay,
-    setShowDebug,
-    setShowCollectionOverlay,
-    dropPower,
-    effectiveStreak,
-    dropStreak,
-    handleCardKeep,
-    startSubStage,
-    handleAnswer,
-    checkTyping,
-    handleSelectCell,
-    handleTypingInput,
+    game: { gameState, roundData, feedback, isTransitioning, hasSavedProgress },
+    cardSystem: {
+      streakToast,
+      cardReveal,
+      showCollectionOverlay,
+      setShowCollectionOverlay,
+      dropPower,
+      effectiveStreak,
+      dropStreak,
+      handleCardKeep,
+      newAchievements,
+    },
+    debug: { showDebug, setShowDebug },
+    actions: {
+      startSubStage,
+      startPracticeSession,
+      handleAnswer,
+      checkTyping,
+      handleSelectCell,
+      handleTypingInput,
+    },
   } = useGameActions();
 
   useEffect(() => {
-    const savedVoice = localStorage.getItem('alphabet-adventure-voice');
+    const savedVoice = safeGetString('alphabet-adventure-voice');
     if (savedVoice) setVoiceURI(savedVoice);
   }, [setVoiceURI]);
 
@@ -102,6 +110,28 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
     document.addEventListener('fullscreenchange', handleFsChange);
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
+
+  useEffect(() => {
+    const fresh = newAchievements.filter((a) => !achievedRef.current.has(a.id));
+    if (fresh.length === 0) return;
+
+    let idx = 0;
+    const showNext = () => {
+      if (idx >= fresh.length) return;
+      setAchievementToast({ name: fresh[idx].name, icon: fresh[idx].icon });
+      achievedRef.current.add(fresh[idx].id);
+      idx++;
+      toastTimerRef.current = setTimeout(() => {
+        setAchievementToast(null);
+        toastTimerRef.current = setTimeout(showNext, 400);
+      }, 2500);
+    };
+    showNext();
+
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, [newAchievements]);
 
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -116,10 +146,8 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
   const handleVoiceChange = useCallback(
     (uri: string) => {
       setVoiceURI(uri);
-      if (typeof window !== 'undefined') {
-        if (uri) localStorage.setItem('alphabet-adventure-voice', uri);
-        else localStorage.removeItem('alphabet-adventure-voice');
-      }
+      if (uri) safeSetString('alphabet-adventure-voice', uri);
+      else safeRemove('alphabet-adventure-voice');
     },
     [setVoiceURI],
   );
@@ -222,9 +250,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
       stageIdRef.current = selectedStage.id;
       subIdxRef.current = subIdx;
 
-      const easyMode =
-        typeof window !== 'undefined' &&
-        localStorage.getItem('alphabet-adventure-easyMode') === 'true';
+      const easyMode = safeGetString('alphabet-adventure-easyMode') === 'true';
       startSubStage(
         subStage,
         selectedStage.id,
@@ -235,7 +261,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
       );
       setScreen('game');
     },
-    [selectedStage, startSubStage, handleSubStageComplete],
+    [selectedStage, startSubStage, handleSubStageComplete, mapData.letterTracker],
   );
 
   useEffect(() => {
@@ -248,10 +274,9 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
           onboardingTypeRef.current = typeKey;
           const seenKey = `onboarding_${typeKey}`;
           const seen = mapData.stages.some((s) => s.subStages.some((ss) => ss.completed));
-          const firstTime =
-            !seen && typeof window !== 'undefined' && !localStorage.getItem(seenKey);
+          const firstTime = !seen && !safeGetString(seenKey);
           if (firstTime && typeKey) {
-            localStorage.setItem(seenKey, '1');
+            safeSetString(seenKey, '1');
             startTransition(() => setShowOnboarding(true));
           }
         }
@@ -261,7 +286,23 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
 
   const closeOnboarding = useCallback(() => setShowOnboarding(false), []);
 
+  const handleStartPractice = useCallback(
+    (letters: string[]) => {
+      setPracticeLetters(letters);
+      startPracticeSession(letters, (result) => {
+        setLastStars(result.stars);
+        setLastSessionStats(result.sessionLetterStats);
+        setLastBestStreak(result.bestStreak);
+        setLastAccuracy(result.total > 0 ? Math.round((result.correct / result.total) * 100) : 0);
+        setScreen('victory');
+      });
+      setScreen('game');
+    },
+    [startPracticeSession],
+  );
+
   const handleBackToMap = useCallback(() => {
+    setPracticeLetters([]);
     setSelectedStage(null);
     setCurrentStageId(0);
     setCurrentSubIdx(0);
@@ -271,6 +312,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
   }, []);
 
   const handleBackToLevel = useCallback(() => {
+    setPracticeLetters([]);
     if (selectedStage) {
       setScreen('stage-map');
     } else {
@@ -320,14 +362,26 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
   const totalStages = mapData.stages.length;
   const stagesCompleted = mapData.stages.filter((s) => s.completed).length;
 
+  const reviewPrompt =
+    screen === 'victory' && Object.keys(lastSessionStats).length > 0
+      ? {
+          weakLetters: Object.entries(lastSessionStats)
+            .filter(([, s]) => s.wrong > 0)
+            .map(([l]) => l),
+          onStartReview: (letters: string[]) => handleStartPractice(letters),
+        }
+      : undefined;
+
   return (
     <div
       ref={containerRef}
       className="alphabet-game flex flex-col items-center justify-center p-4 transition-colors duration-500 fixed inset-0 overflow-hidden overscroll-none bg-violet-50 dark:bg-zinc-950"
       style={{ fontFamily: "'Mali', sans-serif", contain: 'layout style paint' }}
     >
-      <div className="w-full max-w-3xl mx-auto relative h-full">
+      <div className="w-full max-w-3xl mx-auto relative h-full flex flex-col justify-center">
         {showCards && <CardScreen onBack={() => setShowCards(false)} playSequence={playSequence} />}
+
+        {showAllCards && <AllCardsModal onClose={() => setShowAllCards(false)} />}
 
         {!showCards && screen === 'menu' && (
           <MenuScreen
@@ -335,7 +389,10 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
             hasProgress={hasSavedProgress}
             isBeta={beta}
             onShowCards={() => setShowCards(true)}
+            onShowAllCards={() => setShowAllCards(true)}
             onShowAnalysis={() => handleShowAnalysis('menu')}
+            onShowExplorer={() => setScreen('letter-explorer')}
+            onShowAchievements={() => setScreen('achievements')}
             voiceURI={voiceURI}
             onVoiceChange={handleVoiceChange}
           />
@@ -361,6 +418,18 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
           />
         )}
 
+        {!showCards && screen === 'letter-explorer' && (
+          <LetterExplorerScreen
+            onBack={() => setScreen('menu')}
+            onSpeak={speak}
+            voiceURI={voiceURI}
+          />
+        )}
+
+        {!showCards && screen === 'achievements' && (
+          <AchievementsScreen onBack={() => setScreen('menu')} />
+        )}
+
         {!showCards && screen === 'analysis' && (
           <AnalysisScreen
             totalScore={mapData.totalScore}
@@ -368,6 +437,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
             totalStages={totalStages}
             letterTracker={mapData.letterTracker}
             onBack={handleBackFromAnalysis}
+            onStartPractice={handleStartPractice}
           />
         )}
 
@@ -385,7 +455,6 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
               showDebug={showDebug}
               showCollectionOverlay={showCollectionOverlay}
               streakToast={streakToast}
-              lastCardDropped={lastCardDropped}
               cardReveal={cardReveal}
               dropStreak={dropStreak}
               dropPower={dropPower}
@@ -394,9 +463,27 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
               onToggleDebug={() => setShowDebug((v) => !v)}
               onCloseCollection={() => setShowCollectionOverlay(false)}
               onViewFullCollection={() => setShowCards(true)}
+              onViewAllCards={() => setShowAllCards(true)}
               onCardKeep={handleCardKeep}
               playSequence={playSequence}
             />
+            {achievementToast && (
+              <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[150] pointer-events-none">
+                <div className="animate-in slide-in-from-top-4 fade-in duration-500">
+                  <div className="bg-white dark:bg-zinc-800 border-2 border-yellow-400 dark:border-yellow-500 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3">
+                    <span className="text-3xl animate-bounce">{achievementToast.icon}</span>
+                    <div>
+                      <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest">
+                        Achievement Unlocked!
+                      </p>
+                      <p className="text-base font-black text-zinc-800 dark:text-zinc-100">
+                        {achievementToast.name}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             <GameScreen
               gameState={gameState}
               roundData={roundData}
@@ -435,7 +522,9 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
             onNextLesson={handleNextLesson}
             onNextStage={handleNextStage}
             onRestart={() => {
-              if (currentStage) {
+              if (practiceLetters.length > 0) {
+                handleStartPractice(practiceLetters);
+              } else if (currentStage) {
                 handleSelectSubStage(currentSubIdx);
               }
             }}
@@ -443,8 +532,11 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
             accuracyPercent={lastAccuracy}
             sessionLetterStats={lastSessionStats}
             bestStreak={lastBestStreak}
-            subStageLetters={currentSubStage?.letterPool ?? []}
+            subStageLetters={
+              practiceLetters.length > 0 ? practiceLetters : (currentSubStage?.letterPool ?? [])
+            }
             subStageSummaries={isLastSubStage ? subStageSummaries : undefined}
+            reviewPrompt={reviewPrompt}
           />
         )}
       </div>

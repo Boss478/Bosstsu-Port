@@ -5,6 +5,17 @@
 
 
 
+## v1.10.77 (2026-08-01)
++ * **Alphabet Adventure — 95-slot card collection complete + full art review**:
+  + * **Card set finalized (rev 3)**: `TIER_LETTERS` defines all 95 slots (21/21/19/17/17 per tier); `CARD_WORDS` covers 95/95 words (U-UR "Unicycle" + V-UR "Van" added, completing the wordless gaps); `TOTAL_CARD_SLOTS` = 95; cascade drop + no-dupe `pickLetter` keep full-set promise until 95 owned.
+  + * **Per-word SVG art (93 new)**: six chunk files under `cards/art/` (ArtAtoC → ArtUtoZ) drawn in the `CardIllustrations` style (viewBox 0 0 100 100, drop-shadow); `CardWordArt.tsx` merges them and falls back to letter art; consumers wired: CardScreen, GameOverlays (toast), CardRevealModal, LetterExplorer.
+  + * **Card-obtain reveal flow fixed**: reveal now fires immediately on drop (was queued), `isTransitioning` pauses all input during the reveal, completion is deferred via `pendingCompleteRef` and fired in `handleCardKeep`; two round-transition `setTimeout` resets guarded by `revealPendingRef` so the reveal can't be skipped or double-fired; easy mode uses the same path.
+  + * **"SHOW ALL CARDS" modal (beta)**: `AllCardsModal` shows the full 95-card set grouped by tier with ✅ collected / 🔒 locked states and a 🎨 Color ↔ ⬛ B&W toggle; launched from a beta-only "SHOW ALL CARDS" button (top-right in-game cluster + full-width on the menu).
+  + * **Achievements ladder retuned** to 10/25/50/75/95 (`card_10` … `card_95`).
+  + * **A-Z mode fix**: `rarestOwnedTierFor` in CardScreen picks the rarest tier that still has uncollected letters for the current letter (was picking owned-only tiers, freezing A-Z drops).
+  + * **Card art review pass**: ~40 cards redrawn/improved one-by-one with the user — Dog, Ear, Fish, Girl, Snake, Water, Ant (red), Fox, Horse, Juice (slice on rim), Kangaroo, Unicorn, Watermelon, Axe, Egg, Monkey, Penguin (bowtie), Tiger, Whale, Yellow (paint splash), Alligator (open jaw), Dolphin, Elephant, Giraffe, Ninja, Onion, Quartz, X-Ray, Zebra, Dragon, Elf, Jellyfish, King, Ostrich, Queen, Sun, Volcano, Wizard, Yoyo, Zombie; Leg redraw reverted to original per user.
++ * **U-UR / V-UR words + art**: `Unicycle` (wheel + fork + pedals) and `Van` (flat cartoon matching the Car style) — all 95 slots now carry a word.
+
 ## v1.10.76 (2026-08-01)
 + * **Admin forms refactor — shared submit hook**: Extracted duplicated submit/abort/progress/batchId logic from Gallery/Game/Learning/Portfolio forms into `hooks/use-form-submit.ts` (progress, status text, 401 handling, "Upload aborted" handling). Split the 755-line `admin/tools/actions.ts` into per-domain server actions — `actions/{session,stage,step,response,template}.ts` — with a barrel index.
 + * **Tools polling**: `useToolPoll` accepts a custom interval; Poll components use 3s polling.

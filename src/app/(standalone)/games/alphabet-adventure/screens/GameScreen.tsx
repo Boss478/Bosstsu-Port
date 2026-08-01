@@ -157,11 +157,23 @@ export default function GameScreen({
               onClick={onBack}
               className="flex items-center gap-2 px-4 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-500 hover:text-violet-500 transition-colors"
             >
-              <i aria-hidden="true" className="fi fi-sr-angle-left text-xs"></i>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.75 19.5L8.25 12l7.5-7.5"
+                />
+              </svg>
               <span className="text-xs font-black uppercase tracking-widest">Back</span>
             </button>
             <div className="w-12 h-12 rounded-2xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-violet-600 dark:text-violet-400 text-xl font-black">
-              <i className="fi fi-sr-bulb text-lg" />
+              <span className="text-lg">💡</span>
             </div>
             <div>
               <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
@@ -200,10 +212,7 @@ export default function GameScreen({
                 className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 hover:scale-110 transition-all"
                 title="Card Collection"
               >
-                <i
-                  aria-hidden="true"
-                  className="fi fi-sr-template text-violet-600 dark:text-violet-400 text-lg"
-                ></i>
+                <span className="text-lg">🃏</span>
               </button>
             )}
             <button
@@ -211,9 +220,7 @@ export default function GameScreen({
               className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/30 hover:scale-110 transition-all"
               title={muted ? 'Unmute' : 'Mute'}
             >
-              <i
-                className={`fi ${muted ? 'fi-sr-cross-circle' : 'fi-sr-volume'} text-fuchsia-600 dark:text-fuchsia-400 text-lg`}
-              ></i>
+              <span className="text-lg">{muted ? '🔇' : '🔊'}</span>
             </button>
             <button
               onClick={onToggleFullscreen}

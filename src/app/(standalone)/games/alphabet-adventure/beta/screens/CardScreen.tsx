@@ -1,20 +1,23 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, startTransition } from 'react';
 import type { CardTier, CardCollection } from '../../cards/cards';
 import {
   TIER_ORDER,
   TIER_LABELS,
   TIER_LETTERS,
   loadCollection,
-  CARD_WORDS,
+  getCardWord,
   isHolographicTier,
 } from '../../cards/cards';
-import { CardIllustration } from '../../cards/CardIllustrations';
+import { CardWordIllustration } from '../../cards/CardWordArt';
 import { CardFrame } from '../../cards/CardFrame';
+import { ALPHABET_UPPER } from '../../constants';
 import CaptainAlph from '../../characters/CaptainAlph';
 import Mermaid from '../../characters/Mermaid';
 import TreasureMonster from '../../characters/TreasureMonster';
+import BackButton from '../../screens/BackButton';
+import ChunkyButton from '../../screens/ChunkyButton';
 
 interface Props {
   onBack: () => void;
@@ -27,7 +30,6 @@ const MASCOT_UNLOCK_POINTS = [0, 10, 20];
 
 const LETTER_TIER: Record<string, CardTier> = {};
 TIER_ORDER.forEach((t) => TIER_LETTERS[t].forEach((l) => (LETTER_TIER[l] = t)));
-const ALL_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 const TIER_BG_FILL: Record<CardTier, string> = {
   common: 'bg-zinc-400',
@@ -53,11 +55,11 @@ function CollectedCardFace({
     <div className="relative w-full aspect-[5/7] cursor-default transition-all duration-200 hover:-translate-y-2 hover:scale-[1.04] hover:drop-shadow-2xl">
       <CardFrame
         tier={tier}
-        namePlate={`${CARD_WORDS[letter] || ''} · ${TIER_LABELS[tier]}`}
+        namePlate={`${getCardWord(letter, tier)} · ${TIER_LABELS[tier]}`}
         holographic={isHolo}
       >
         <div className="-mt-8 -mb-8">
-          <CardIllustration letter={letter} size={125} />
+          <CardWordIllustration word={getCardWord(letter, tier)} letter={letter} size={125} />
         </div>
         <span className="text-4xl font-black leading-none text-zinc-800 drop-shadow-[0_2px_3px_rgba(255,255,255,0.9)]">
           {letter}
@@ -89,21 +91,18 @@ function UncollectedCardBack({ tier }: { tier: CardTier }) {
 }
 
 export default function CardScreen({ onBack, playSequence }: Props) {
-  const [collection, setCollection] = useState<CardCollection>({
-    cards: [],
-    totalPoints: 0,
-    dropPower: 0,
-  });
+  const [collection] = useState<CardCollection>(() => loadCollection());
   const [mounted, setMounted] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>('tier');
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showTop, setShowTop] = useState(false);
 
   useEffect(() => {
-    setCollection(loadCollection());
-    setMounted(true);
+    startTransition(() => {
+      setMounted(true);
+    });
     playSequence?.([523, 659, 784], 0.12, 0.08);
-  }, []);
+  }, [playSequence]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -165,6 +164,15 @@ export default function CardScreen({ onBack, playSequence }: Props) {
     return null;
   })();
 
+  const rarestOwnedTierFor = (letter: string): CardTier => {
+    for (let i = TIER_ORDER.length - 1; i >= 0; i--) {
+      if (collection.cards.some((c) => c.letter === letter && c.tier === TIER_ORDER[i])) {
+        return TIER_ORDER[i];
+      }
+    }
+    return LETTER_TIER[letter];
+  };
+
   const renderCard = (letter: string, tier: CardTier, idx: number) => {
     const card = collection.cards.find((c) => c.letter === letter && c.tier === tier);
     return (
@@ -213,13 +221,7 @@ export default function CardScreen({ onBack, playSequence }: Props) {
         <div className="relative z-10 space-y-8">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <button
-              onClick={onBack}
-              className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-500 hover:text-violet-500 transition-colors"
-              aria-label="Back to game"
-            >
-              <i aria-hidden="true" className="fi fi-sr-angle-left text-lg"></i>
-            </button>
+            <BackButton onClick={onBack} ariaLabel="Back to game" />
             <h1 className="text-3xl md:text-4xl font-black text-violet-600 dark:text-violet-400">
               Card Collection
             </h1>
@@ -368,7 +370,7 @@ export default function CardScreen({ onBack, playSequence }: Props) {
                       className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto"
                       style={{ perspective: '1200px' }}
                     >
-                      {cardSlots.map(({ letter, card, idx }) => renderCard(letter, tier, idx))}
+                      {cardSlots.map(({ letter, idx }) => renderCard(letter, tier, idx))}
                     </div>
                   </div>
                 );
@@ -518,7 +520,7 @@ export default function CardScreen({ onBack, playSequence }: Props) {
                     (b.lastCollected ?? 0) - (a.lastCollected ?? 0) ||
                     a.letter.localeCompare(b.letter),
                 )
-                .map((card, i) => {
+                .map((card) => {
                   const idx = globalCardIndex++;
                   return (
                     <div
@@ -539,10 +541,9 @@ export default function CardScreen({ onBack, playSequence }: Props) {
               className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto"
               style={{ perspective: '1200px' }}
             >
-              {ALL_LETTERS.map((letter) => {
-                const tier = LETTER_TIER[letter];
+              {ALPHABET_UPPER.map((letter) => {
                 const idx = globalCardIndex++;
-                return renderCard(letter, tier, idx);
+                return renderCard(letter, rarestOwnedTierFor(letter), idx);
               })}
             </div>
           )}
@@ -566,12 +567,13 @@ export default function CardScreen({ onBack, playSequence }: Props) {
           )}
 
           {/* Back button */}
-          <button
+          <ChunkyButton
             onClick={onBack}
-            className="px-10 py-4 bg-violet-600 text-white text-lg font-black rounded-2xl shadow-[0_8px_0_0_#5b21b6] active:shadow-none active:translate-y-2 transition-all hover:bg-violet-500"
+            variant="violet"
+            className="px-10 py-4 text-lg rounded-2xl"
           >
             Back to Game
-          </button>
+          </ChunkyButton>
         </div>
 
         {/* Back to top */}
@@ -580,7 +582,15 @@ export default function CardScreen({ onBack, playSequence }: Props) {
             onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
             className="fixed bottom-6 right-6 z-20 w-12 h-12 rounded-full bg-violet-600 text-white shadow-2xl flex items-center justify-center hover:bg-violet-500 transition-all animate-in slide-in-from-bottom-2 duration-300"
           >
-            <i aria-hidden="true" className="fi fi-sr-angle-up text-lg"></i>
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+            </svg>
           </button>
         )}
       </div>

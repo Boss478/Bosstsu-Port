@@ -2,7 +2,7 @@
 
 import { type FC } from 'react';
 
-type IllustrationProps = { size?: number };
+export type IllustrationProps = { size?: number };
 
 const A: FC<IllustrationProps> = ({ size = 48 }) => (
   <svg

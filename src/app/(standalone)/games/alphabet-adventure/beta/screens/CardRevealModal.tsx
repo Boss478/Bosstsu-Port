@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import type { CardTier } from '../../cards/cards';
-import { CARD_WORDS, TIER_LABELS, isHolographicTier } from '../../cards/cards';
-import { CardIllustration } from '../../cards/CardIllustrations';
+import { getCardWord, TIER_LABELS, isHolographicTier } from '../../cards/cards';
+import { CardWordIllustration } from '../../cards/CardWordArt';
 import { CardFrame } from '../../cards/CardFrame';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 
@@ -50,7 +50,7 @@ export default function CardRevealModal({ letter, tier, isNew, onKeep }: Props) 
     return () => window.removeEventListener('keydown', onKey);
   }, [onKeep]);
 
-  const word = CARD_WORDS[letter] || '';
+  const word = getCardWord(letter, tier);
 
   return (
     <div
@@ -109,7 +109,7 @@ export default function CardRevealModal({ letter, tier, isNew, onKeep }: Props) 
                 </span>
               )}
               <div className="-mt-10 -mb-12">
-                <CardIllustration letter={letter} size={200} />
+                <CardWordIllustration word={word} letter={letter} size={200} />
               </div>
               <span className="text-6xl font-black leading-none text-zinc-800 drop-shadow-[0_3px_5px_rgba(255,255,255,0.9)]">
                 {letter}
