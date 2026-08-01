@@ -1,6 +1,13 @@
 import { shuffleArray } from '@/lib/shuffle';
-import { CARD_DROP_RATES, interpolateRate } from '../constants';
+import {
+  CARD_DROP_RATES,
+  WIN_DROP_RATES,
+  interpolateRate,
+  RAMP_DROP,
+  rampRate,
+} from '../constants';
 import type { CardTier } from '../constants';
+import { safeGetJSON, safeSetJSON } from '@/lib/storage';
 
 export type { CardTier };
 
@@ -85,19 +92,11 @@ function emptyCollection(): CardCollection {
 }
 
 export function loadCollection(): CardCollection {
-  if (typeof window === 'undefined') return emptyCollection();
-  try {
-    const raw = localStorage.getItem(CARD_STORAGE_KEY);
-    if (!raw) return emptyCollection();
-    return JSON.parse(raw);
-  } catch {
-    return emptyCollection();
-  }
+  return safeGetJSON<CardCollection>(CARD_STORAGE_KEY) ?? emptyCollection();
 }
 
 export function saveCollection(collection: CardCollection): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(CARD_STORAGE_KEY, JSON.stringify(collection));
+  safeSetJSON(CARD_STORAGE_KEY, collection);
 }
 
 export function addCard(
@@ -123,7 +122,21 @@ export function getEffectiveStreak(dropStreak: number, dropPower: number): numbe
   return Math.min(10, dropStreak + dropPower);
 }
 
+export function rollRampDrop(dropStreak: number): CardTier | null {
+  if (Math.random() * 100 >= rampRate(dropStreak)) return null;
+  const roll = Math.random() * 100;
+  let cumulative = 0;
+  for (const { tier, weight } of RAMP_DROP.split) {
+    cumulative += weight;
+    if (roll < cumulative) return tier;
+  }
+  return null;
+}
+
 export function rollCardDrop(dropStreak: number, dropPower: number): CardTier | null {
+  const rampTier = rollRampDrop(dropStreak);
+  if (rampTier) return rampTier;
+
   const clamped = getEffectiveStreak(dropStreak, dropPower);
   const roll = Math.random() * 100;
   let cumulative = 0;
@@ -135,13 +148,49 @@ export function rollCardDrop(dropStreak: number, dropPower: number): CardTier | 
 
   return null;
 }
+
+export function rollWinDrop(): CardTier | null {
+  const roll = Math.random() * 100;
+  let cumulative = 0;
+
+  for (const { tier, base } of WIN_DROP_RATES) {
+    cumulative += base;
+    if (roll < cumulative) return tier;
+  }
+
+  return null;
+}
+
+// Cascade: a drop on a full tier (all its letters collected) converts up to the
+// next collectible tier. Falls back to the original tier once all 130 are owned.
+export function resolveDropTier(
+  tier: CardTier,
+  collection: CardCollection = loadCollection(),
+): CardTier {
+  let t: CardTier = tier;
+  while (t) {
+    const owned = new Set(collection.cards.filter((c) => c.tier === t).map((c) => c.letter));
+    if (TIER_LETTERS[t].some((l) => !owned.has(l))) return t;
+    const ni = TIER_ORDER.indexOf(t) + 1;
+    if (ni >= TIER_ORDER.length) break;
+    t = TIER_ORDER[ni];
+  }
+  return tier;
+}
 const tierLetterPools = new Map<CardTier, string[]>();
 
-export function pickLetter(tier: CardTier): string {
+// Picks an uncollected letter of the tier (skips already-owned letters) so
+// cascade keeps its no-dupe promise until the full 130-card set is complete.
+export function pickLetter(tier: CardTier, collection: CardCollection): string {
   let pool = tierLetterPools.get(tier);
   if (!pool || pool.length === 0) {
     pool = shuffleArray(TIER_LETTERS[tier]);
     tierLetterPools.set(tier, pool);
   }
-  return pool.pop()!;
+  const owned = new Set(collection.cards.filter((c) => c.tier === tier).map((c) => c.letter));
+  let letter = pool.pop()!;
+  while (pool.length > 0 && owned.has(letter)) {
+    letter = pool.pop()!;
+  }
+  return letter;
 }

@@ -1,8 +1,8 @@
 import type { StageConfig } from './types';
 import { shuffleArray } from '@/lib/shuffle';
 
-const ALPHABET_UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-const ALPHABET_LOWER = 'abcdefghijklmnopqrstuvwxyz'.split('');
+export const ALPHABET_UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+export const ALPHABET_LOWER = 'abcdefghijklmnopqrstuvwxyz'.split('');
 
 export const PER_LETTER_MIN = 5;
 export const STAGE6_PER_LETTER_MIN = 3;
@@ -13,7 +13,7 @@ export const LETTER_GROUPS: string[][] = [
   'GHIJKL'.split(''),
   'MNOPQR'.split(''),
   'STUVWXYZ'.split(''),
-  'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
+  ALPHABET_UPPER,
 ];
 
 export const SUB_STAGE_NAMES: Array<{ name: string; subtitle: string }> = [
@@ -315,14 +315,45 @@ export function generateFillRound(
 
 export type CardTier = 'common' | 'uncommon' | 'rare' | 'ultra-rare' | 'legendary';
 
+// Per-correct answer roll (streak-interpolated): common/uncommon only, plus the
+// rare+ ramp below (RAMP_DROP). Level-clear rare+ comes from WIN_DROP_RATES.
 export const CARD_DROP_RATES: Array<{ tier: CardTier | null; base: number; max: number }> = [
-  { tier: null, base: 90, max: 75 },
-  { tier: 'common', base: 5.5, max: 7.0 },
-  { tier: 'uncommon', base: 2.7, max: 8.0 },
-  { tier: 'rare', base: 1.2, max: 6.0 },
-  { tier: 'ultra-rare', base: 0.5, max: 2.5 },
-  { tier: 'legendary', base: 0.1, max: 1.5 },
+  { tier: null, base: 93, max: 82 },
+  { tier: 'common', base: 3, max: 6 },
+  { tier: 'uncommon', base: 2, max: 4.5 },
 ];
+
+// Sub-stage clear roll (fixed): rare+ only.
+export const WIN_DROP_RATES: Array<{ tier: CardTier | null; base: number; max: number }> = [
+  { tier: null, base: 15, max: 15 },
+  { tier: 'rare', base: 43, max: 43 },
+  { tier: 'ultra-rare', base: 30, max: 30 },
+  { tier: 'legendary', base: 12, max: 12 },
+];
+
+// Streak-gated rare+ ramp on the per-correct roll: never zero (floor at chain 0),
+// quadratic to `cap`% combined by chain 20, split by weight across rare tiers.
+// Uses the raw drop streak; checked before the CARD_DROP_RATES table roll.
+export const RAMP_DROP = {
+  floor: 0.05,
+  cap: 2.0,
+  split: [
+    { tier: 'rare' as CardTier, weight: 60 },
+    { tier: 'ultra-rare' as CardTier, weight: 30 },
+    { tier: 'legendary' as CardTier, weight: 10 },
+  ],
+};
+
+export function rampRate(streak: number): number {
+  const t = Math.min(streak, 20) / 20;
+  return RAMP_DROP.floor + (RAMP_DROP.cap - RAMP_DROP.floor) * t * t;
+}
+
+export function rampTierRate(tier: CardTier, streak: number): number {
+  const entry = RAMP_DROP.split.find((r) => r.tier === tier);
+  if (!entry) return 0;
+  return (rampRate(streak) * entry.weight) / 100;
+}
 
 export function interpolateRate(base: number, max: number, streak: number): number {
   const t = Math.min(streak, 20) / 20;

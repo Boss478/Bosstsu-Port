@@ -5,6 +5,20 @@
 
 
 
+## v1.10.75 (2026-08-01)
++ * **Alphabet Adventure — Card drop economy rebalance (Rare+ from correct answers)**:
+  + * Per-correct roll gains a streak-gated rare+ ramp (`RAMP_DROP`): 0.05% floor even at chain 0, quadratic to 2.0% combined by chain 20 (Rare 60 / Ultra 30 / Legendary 10 split), checked before the common/uncommon table on the raw chain. Card obtain still applies chain −5, self-limiting streak re-farming.
+  + * Win table trimmed to None 15 / Rare 43 / Ultra 30 / Legendary 12 to hold the 60–70% replay target across skill levels.
+  + * Debug HUD Per-correct section now shows live Rare/Ultra/Legendary ramp rates at the current chain.
+  + * All rates validated by an exact-mechanics simulator (20k runs × 3 kid profiles): end-of-run collection 67.6% (smart) / 66.3% (typical) / 64.9% (struggling) — inside the 65–70 / 63–67 / 60–65 design bands.
+
+## v1.10.74 (2026-08-01)
++ * **Alphabet Adventure — Engagement & Education initiative (4 phases, 16 tasks)**:
+  + * **P0 Quick Wins**: Keyboard keys enlarged (36→44px mobile, 44→48px desktop) + `flex-wrap` overflow safety + `touch-manipulation`; AudioContext refactored to a singleton with auto-`resume()` for iOS Safari (replaces 3× `new AudioContext()`); `useGameActions` 20+ return values grouped into `game`/`cardSystem`/`debug`/`actions`/`ids`; onboarding auto-dismiss 4s→8s.
+  + * **Letter Explorer (Soundboard)**: New full-screen 26-letter grid with card illustrations — tap a letter to hear its sound + word via TTS, expanded detail panel with "Listen Again". Launched via 🔤 button on the main menu.
+  + * **Review Mode**: 🎯 "Practice N Weak Letters" button on the Analysis screen (letters below 60% accuracy) starts a no-save, easy-mode practice session; VictoryScreen gains a post-stage prompt suggesting practice of letters missed that round.
+  + * **Achievement System**: 20 badges (bronze/silver/gold/platinum) covering card collection, streaks, stage completion, perfect lessons, score milestones, and vowel mastery. Single centralized `checkAndAward()` called only from correct-answer paths; unlock toast + bounce animation; dedicated Achievements panel (🏆) showing tiered badges with unlock dates.
+
 ## v1.10.73 (2026-07-31)
 + * **Modal overlay design rule — darken only**: Added "UI Rules" to AGENTS.md — modal overlays use `bg-black/10` (10% darken), no `backdrop-blur` on the overlay (panel surfaces may keep glass blur). Converted all full-screen modal/dialog overlays (27 files) from blur + heavy dims to `bg-black/10` no-blur: boss478 (StockDetailModal, PhotoLightbox, finance forms, StudentSettings), alphabet-adventure (OnboardingOverlay, CardRevealModal), phonics (config/quiz/word/profile/bottom-sheet modals, tutorial), spellchecker (loading mask, hint modal), computer-lab (settings, warning, component popups, pong dialogs). Drops `backdrop-filter` GPU cost on the 1-vCPU VPS and low-end devices.
 
