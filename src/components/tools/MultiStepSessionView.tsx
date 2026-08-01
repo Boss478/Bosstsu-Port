@@ -1,6 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, startTransition } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { toolKeys } from '@/lib/query/keys';
+import StepIndicator from './StepIndicator';
 import PadletBoard from './PadletBoard';
 import MentimeterPoll from './MentimeterPoll';
 import AssignmentForm from './AssignmentForm';
@@ -44,6 +47,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
   const [mascotEventCount, setMascotEventCount] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const toast = useToast();
+  const qc = useQueryClient();
 
   const nameStorageKey = `tool_name_${session._id}`;
   const latestStepRef = useRef(currentStep);
@@ -62,8 +66,10 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
     if (session.requireStudentName) {
       const saved = localStorage.getItem(nameStorageKey);
       if (saved) {
-        setStudentName(saved);
-        setNameConfirmed(true);
+        startTransition(() => {
+          setStudentName(saved);
+          setNameConfirmed(true);
+        });
       }
     }
   }, [session.requireStudentName, nameStorageKey]);
@@ -71,12 +77,14 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
   useEffect(() => {
     if (!enableMascots) return;
     const id = loadMascotId(session._id);
-    setSelectedMascot(id);
+    startTransition(() => {
+      setSelectedMascot(id);
 
-    if (!session.requireStudentName) {
-      const existing = localStorage.getItem(getMascotStorageKey(session._id));
-      if (!existing) setShowMascotPicker(true);
-    }
+      if (!session.requireStudentName) {
+        const existing = localStorage.getItem(getMascotStorageKey(session._id));
+        if (!existing) setShowMascotPicker(true);
+      }
+    });
   }, [session._id, session.requireStudentName, enableMascots]);
 
   const { broadcastMessage, connected, clearBroadcast } = useSSE(session._id, {
@@ -87,6 +95,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
           setCurrentStep(newStep);
           latestStepRef.current = newStep;
           setTransitioning(false);
+          qc.invalidateQueries({ queryKey: toolKeys.poll(session._id) });
         }, 300);
       }
     },
@@ -96,7 +105,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
         setStudentName('');
         setNameConfirmed(false);
       } else {
-        window.location.href = '/study';
+        window.location.assign('/study');
       }
     },
   });
@@ -130,17 +139,20 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
     setShowMascotPicker(false);
   };
 
-  const handleMascotEvent = useCallback((event: MascotEvent) => {
-    setMascotEventType(event);
-    setMascotEventCount((c) => c + 1);
-    const msg =
-      event === 'celebrate'
-        ? t('toastSubmitted')
-        : event === 'correct'
-          ? t('toastCorrect')
-          : t('toastError');
-    toast.show(msg, event === 'wrong' ? 'error' : 'success');
-  }, []);
+  const handleMascotEvent = useCallback(
+    (event: MascotEvent) => {
+      setMascotEventType(event);
+      setMascotEventCount((c) => c + 1);
+      const msg =
+        event === 'celebrate'
+          ? t('toastSubmitted')
+          : event === 'correct'
+            ? t('toastCorrect')
+            : t('toastError');
+      toast.show(msg, event === 'wrong' ? 'error' : 'success');
+    },
+    [toast],
+  );
 
   const needsMascotSetup = enableMascots && showMascotPicker && !session.requireStudentName;
   const needsNameSetup = session.requireStudentName && !nameConfirmed;
@@ -298,20 +310,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
               <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{session.description}</p>
             )}
           </div>
-          <div className="flex items-center gap-2 justify-center">
-            {session.steps?.map((_: unknown, i: number) => (
-              <div
-                key={i}
-                className={`w-3 h-3 rounded-full transition-all ${
-                  i === currentStep
-                    ? 'bg-blue-600 scale-125'
-                    : i < currentStep
-                      ? 'bg-blue-300 dark:bg-blue-700'
-                      : 'bg-zinc-300 dark:bg-zinc-600'
-                }`}
-              />
-            ))}
-          </div>
+          <StepIndicator total={totalSteps} currentStep={currentStep} />
           <p className="text-center text-sm text-zinc-500 dark:text-zinc-400 mt-2">
             {t('stepOfTotal', { current: currentStep + 1, total: totalSteps })} — {step?.title}
           </p>

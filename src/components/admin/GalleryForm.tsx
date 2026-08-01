@@ -3,14 +3,13 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { v4 as uuidv4 } from 'uuid';
 import ImageCropper from './ImageCropper';
 import TagPicker from './TagPicker';
 import { slugify } from '@/lib/format';
 import { uploadFileWithProgress, uploadFilesInBatches } from '@/lib/client-upload';
-import { useAdminSession } from './AdminSessionProvider';
 import { useToast } from './ToastProvider';
 import SaveProgress from './SaveProgress';
+import { useFormSubmit } from '@/hooks/use-form-submit';
 
 const PREVIEW_CAP = 20;
 
@@ -35,12 +34,19 @@ export default function GalleryForm({
   availableTags = [],
 }: GalleryFormProps) {
   const router = useRouter();
-  const { setIsUploading, onAuthError } = useAdminSession();
   const { showToast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState('');
-  const abortRef = useRef<AbortController | null>(null);
+  const {
+    isSubmitting,
+    progress,
+    setProgress,
+    statusText,
+    setStatusText,
+    abortRef,
+    batchIdRef,
+    beginSubmit,
+    endSubmit,
+    handleError,
+  } = useFormSubmit();
   const [error, setError] = useState<string | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(initialData?.cover || null);
   const [photos, setPhotos] = useState<string[]>(initialData?.photos || []);
@@ -51,7 +57,6 @@ export default function GalleryForm({
   const [previewModalSrc, setPreviewModalSrc] = useState<string | null>(null);
   const [autoSlug, setAutoSlug] = useState(initialData?.slug || '');
   const [excessFiles, setExcessFiles] = useState(0);
-  const batchIdRef = useRef(uuidv4());
   const blobUrlsRef = useRef<string[]>([]);
 
   useEffect(() => {
@@ -66,11 +71,7 @@ export default function GalleryForm({
     if (isSubmitting) return;
 
     setError(null);
-    setIsSubmitting(true);
-    setProgress(0);
-    setIsUploading(true);
-    abortRef.current = new AbortController();
-    const signal = abortRef.current.signal;
+    const signal = beginSubmit();
 
     try {
       const formElement = e.currentTarget;
@@ -115,8 +116,7 @@ export default function GalleryForm({
             `การอัปโหลดไฟล์ที่มีขนาดใหญ่อาจใช้เวลานาน\nต้องการดำเนินการต่อหรือไม่?`,
         )
       ) {
-        setIsSubmitting(false);
-        setIsUploading(false);
+        endSubmit();
         return;
       }
 
@@ -180,32 +180,20 @@ export default function GalleryForm({
 
       setProgress(100);
       setStatusText('บันทึกข้อมูลสำเร็จ!');
-      batchIdRef.current = uuidv4();
       setExcessFiles(0);
 
       setTimeout(() => {
         router.push('/admin/gallery');
       }, 500);
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        if (err.message.includes('[401]')) {
-          setIsSubmitting(false);
-          onAuthError();
-          return;
-        }
-        if (err.message === 'Upload aborted') {
-          setIsSubmitting(false);
-          return;
-        }
-        setError(err.message);
-        showToast(err.message, 'error');
-      } else {
-        setError('เกิดข้อผิดพลาดที่ไม่คาดคิด');
-        showToast('เกิดข้อผิดพลาดที่ไม่คาดคิด', 'error');
+      const result = handleError(err);
+      if (result === 'aborted') return;
+      if (result) {
+        setError(result);
+        showToast(result, 'error');
       }
-      setIsSubmitting(false);
     } finally {
-      setIsUploading(false);
+      endSubmit();
     }
   };
 

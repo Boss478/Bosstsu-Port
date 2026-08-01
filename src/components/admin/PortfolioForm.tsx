@@ -3,11 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { v4 as uuidv4 } from 'uuid';
 import dynamic from 'next/dynamic';
 import TagPicker from './TagPicker';
 import SaveProgress from './SaveProgress';
-import { useAdminSession } from './AdminSessionProvider';
+import { useFormSubmit } from '@/hooks/use-form-submit';
 import { useToast } from './ToastProvider';
 import { slugify } from '@/lib/format';
 import { uploadFileWithProgress, uploadFilesInBatches } from '@/lib/client-upload';
@@ -40,17 +39,24 @@ export default function PortfolioForm({
   availableTools = [],
 }: PortfolioFormProps) {
   const router = useRouter();
-  const { setIsUploading, onAuthError } = useAdminSession();
   const { showToast } = useToast();
 
   // Basic states
   const [error, setError] = useState<string | null>(null);
 
   // Progress States
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState('');
-  const abortRef = useRef<AbortController | null>(null);
+  const {
+    isSubmitting,
+    progress,
+    setProgress,
+    statusText,
+    setStatusText,
+    abortRef,
+    batchIdRef,
+    beginSubmit,
+    endSubmit,
+    handleError,
+  } = useFormSubmit();
 
   // Form Field States
   const [coverPreview, setCoverPreview] = useState<string | null>(initialData?.cover || null);
@@ -63,7 +69,6 @@ export default function PortfolioForm({
   const [newPhotoFiles, setNewPhotoFiles] = useState<File[]>([]);
   const [newPhotoPreviews, setNewPhotoPreviews] = useState<string[]>([]);
   const [excessFiles, setExcessFiles] = useState(0);
-  const batchIdRef = useRef(uuidv4());
   const blobUrlsRef = useRef<string[]>([]);
 
   useEffect(() => {
@@ -78,11 +83,7 @@ export default function PortfolioForm({
     if (isSubmitting) return;
 
     setError(null);
-    setIsSubmitting(true);
-    setProgress(0);
-    setIsUploading(true);
-    abortRef.current = new AbortController();
-    const signal = abortRef.current.signal;
+    const signal = beginSubmit();
 
     try {
       const formElement = e.currentTarget;
@@ -124,8 +125,7 @@ export default function PortfolioForm({
             `การอัปโหลดไฟล์ที่มีขนาดใหญ่อาจใช้เวลานาน\nต้องการดำเนินการต่อหรือไม่?`,
         )
       ) {
-        setIsSubmitting(false);
-        setIsUploading(false);
+        endSubmit();
         return;
       }
 
@@ -189,33 +189,20 @@ export default function PortfolioForm({
 
       setProgress(100);
       setStatusText('บันทึกข้อมูลสำเร็จ!');
-      batchIdRef.current = uuidv4();
       setExcessFiles(0);
 
       setTimeout(() => {
         router.push('/admin/portfolio');
       }, 500);
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        if (err.message.includes('[401]')) {
-          onAuthError();
-          setIsSubmitting(false);
-          setIsUploading(false);
-          return;
-        }
-        if (err.message === 'Upload aborted') {
-          setIsSubmitting(false);
-          return;
-        }
-        setError(err.message);
-        showToast(err.message, 'error');
-      } else {
-        setError('เกิดข้อผิดพลาดที่ไม่คาดคิด');
-        showToast('เกิดข้อผิดพลาดที่ไม่คาดคิด', 'error');
+      const result = handleError(err);
+      if (result === 'aborted') return;
+      if (result) {
+        setError(result);
+        showToast(result, 'error');
       }
-      setIsSubmitting(false);
     } finally {
-      setIsUploading(false);
+      endSubmit();
     }
   };
 

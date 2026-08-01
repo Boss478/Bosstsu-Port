@@ -1,14 +1,13 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { v4 as uuidv4 } from 'uuid';
 import TagPicker from './TagPicker';
-import { useAdminSession } from './AdminSessionProvider';
 import { useToast } from './ToastProvider';
 import { uploadFileWithProgress } from '@/lib/client-upload';
 import SaveProgress from './SaveProgress';
+import { useFormSubmit } from '@/hooks/use-form-submit';
 
 interface GameFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,8 +20,14 @@ interface GameFormProps {
 }
 
 const GENRE_OPTIONS = [
-  'Puzzle', 'Quiz', 'Strategy', 'Memory',
-  'Simulation', 'Adventure', 'Educational', 'Other',
+  'Puzzle',
+  'Quiz',
+  'Strategy',
+  'Memory',
+  'Simulation',
+  'Adventure',
+  'Educational',
+  'Other',
 ];
 
 export default function GameForm({
@@ -34,39 +39,39 @@ export default function GameForm({
   availableTags = [],
 }: GameFormProps) {
   const router = useRouter();
-  const { setIsUploading, onAuthError } = useAdminSession();
   const { showToast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState('');
-  const abortRef = useRef<AbortController | null>(null);
+  const {
+    isSubmitting,
+    progress,
+    setProgress,
+    statusText,
+    setStatusText,
+    abortRef,
+    batchIdRef,
+    beginSubmit,
+    endSubmit,
+    handleError,
+  } = useFormSubmit();
   const [error, setError] = useState<string | null>(null);
   const [gameType, setGameType] = useState<'url' | 'html'>(
-    initialData?.htmlContent ? 'html' : 'url'
+    initialData?.htmlContent ? 'html' : 'url',
   );
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(
-    initialData?.thumbnail || null
+    initialData?.thumbnail || null,
   );
-  const batchIdRef = useRef(uuidv4());
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isSubmitting) return;
 
     setError(null);
-    setIsSubmitting(true);
-    setProgress(0);
-    setIsUploading(true);
-    abortRef.current = new AbortController();
-    const signal = abortRef.current.signal;
+    const signal = beginSubmit();
+    setStatusText('กำลังบันทึกข้อมูล...');
+    setProgress(5);
 
     try {
       const formElement = e.currentTarget;
       let itemId: string | undefined = initialData?._id;
-
-      // Phase 1: Save text to DB
-      setStatusText('กำลังบันทึกข้อมูล...');
-      setProgress(5);
 
       const textFormData = new FormData(formElement);
       textFormData.delete('thumbnail');
@@ -76,7 +81,7 @@ export default function GameForm({
         const result = await action(textFormData);
         if (result?.error) throw new Error(result.error);
       } else {
-        const result = await action(textFormData) as { error?: string; id?: string };
+        const result = (await action(textFormData)) as { error?: string; id?: string };
         if (result?.error) throw new Error(result.error);
         itemId = result?.id;
       }
@@ -88,7 +93,8 @@ export default function GameForm({
       // Phase 2: Upload thumbnail (only if new file exists)
       const thumbnailFormData = new FormData(formElement);
       const thumbnailEntry = thumbnailFormData.get('thumbnail');
-      const thumbnailFile = (thumbnailEntry instanceof File && thumbnailEntry.size > 0) ? thumbnailEntry : null;
+      const thumbnailFile =
+        thumbnailEntry instanceof File && thumbnailEntry.size > 0 ? thumbnailEntry : null;
 
       let finalThumbnailUrl = initialData?.thumbnail || '';
 
@@ -96,11 +102,17 @@ export default function GameForm({
         setStatusText('กำลังอัปโหลดรูปหน้าปก...');
         setProgress(30);
         const fileSize = thumbnailFile.size;
-        finalThumbnailUrl = await uploadFileWithProgress(thumbnailFile, 'games', (loaded) => {
-          if (fileSize > 0) {
-            setProgress(30 + (loaded / fileSize) * 60);
-          }
-        }, signal, batchIdRef.current);
+        finalThumbnailUrl = await uploadFileWithProgress(
+          thumbnailFile,
+          'games',
+          (loaded) => {
+            if (fileSize > 0) {
+              setProgress(30 + (loaded / fileSize) * 60);
+            }
+          },
+          signal,
+          batchIdRef.current,
+        );
         setProgress(90);
       } else {
         setProgress(90);
@@ -120,32 +132,19 @@ export default function GameForm({
 
       setProgress(100);
       setStatusText('บันทึกข้อมูลสำเร็จ!');
-      batchIdRef.current = uuidv4();
 
       setTimeout(() => {
         router.push('/admin/games');
       }, 500);
-
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        if (err.message.includes('[401]')) {
-          setIsSubmitting(false);
-          onAuthError();
-          return;
-        }
-        if (err.message === 'Upload aborted') {
-          setIsSubmitting(false);
-          return;
-        }
-        setError(err.message);
-        showToast(err.message, 'error');
-      } else {
-        setError('เกิดข้อผิดพลาดที่ไม่คาดคิด');
-        showToast('เกิดข้อผิดพลาดที่ไม่คาดคิด', 'error');
+      const result = handleError(err);
+      if (result === 'aborted') return;
+      if (result) {
+        setError(result);
+        if (result !== 'aborted') showToast(result, 'error');
       }
-      setIsSubmitting(false);
     } finally {
-      setIsUploading(false);
+      endSubmit();
     }
   };
 
@@ -162,13 +161,13 @@ export default function GameForm({
         {incompleteUpload && (
           <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50 text-sm flex items-start gap-3">
             <i aria-hidden="true" className="fi fi-sr-exclamation mt-0.5 flex shrink-0" />
-            <span>บันทึกข้อมูลสำเร็จ แต่รูปภาพยังไม่ได้อัปโหลด กรุณาเพิ่มรูปภาพและบันทึกอีกครั้ง</span>
+            <span>
+              บันทึกข้อมูลสำเร็จ แต่รูปภาพยังไม่ได้อัปโหลด กรุณาเพิ่มรูปภาพและบันทึกอีกครั้ง
+            </span>
           </div>
         )}
         {error && (
-          <div className="p-4 rounded-xl bg-red-50 text-red-600 border border-red-200">
-            {error}
-          </div>
+          <div className="p-4 rounded-xl bg-red-50 text-red-600 border border-red-200">{error}</div>
         )}
 
         <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-4">
@@ -192,7 +191,10 @@ export default function GameForm({
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="description" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label
+              htmlFor="description"
+              className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
               รายละเอียด (Description) <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -233,16 +235,17 @@ export default function GameForm({
                   onChange={() => setGameType('html')}
                   className="w-4 h-4 accent-blue-500"
                 />
-                <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                  One-page HTML
-                </span>
+                <span className="text-sm text-zinc-700 dark:text-zinc-300">One-page HTML</span>
               </label>
             </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label htmlFor="category" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label
+                htmlFor="category"
+                className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >
                 แนวเกม (Genre) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -253,18 +256,28 @@ export default function GameForm({
                   required
                   className="appearance-none w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                 >
-                  <option value="" disabled>เลือกแนวเกม...</option>
-                  {GENRE_OPTIONS.map(g => (
-                    <option key={g} value={g}>{g}</option>
+                  <option value="" disabled>
+                    เลือกแนวเกม...
+                  </option>
+                  {GENRE_OPTIONS.map((g) => (
+                    <option key={g} value={g}>
+                      {g}
+                    </option>
                   ))}
                 </select>
-                <i aria-hidden="true" className="fi fi-sr-angle-small-down absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+                <i
+                  aria-hidden="true"
+                  className="fi fi-sr-angle-small-down absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"
+                />
               </div>
             </div>
 
             {gameType === 'url' ? (
               <div className="space-y-2">
-                <label htmlFor="playUrl" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <label
+                  htmlFor="playUrl"
+                  className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                >
                   ลิงก์เล่นเกม (Play URL) <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -278,17 +291,16 @@ export default function GameForm({
                 />
               </div>
             ) : (
-              <input
-                type="hidden"
-                name="playUrl"
-                value=""
-              />
+              <input type="hidden" name="playUrl" value="" />
             )}
           </div>
 
           {gameType === 'html' && (
             <div className="space-y-2">
-              <label htmlFor="htmlContent" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label
+                htmlFor="htmlContent"
+                className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >
                 HTML Content <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -307,7 +319,10 @@ export default function GameForm({
           )}
 
           <div className="space-y-2">
-            <label htmlFor="instructions" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label
+              htmlFor="instructions"
+              className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
               วิธีเล่น (Instructions)
             </label>
             <textarea
@@ -324,9 +339,7 @@ export default function GameForm({
 
       <div className="space-y-6">
         <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-4">
-          <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 mb-4">
-            หน้าปก
-          </h3>
+          <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 mb-4">หน้าปก</h3>
 
           {/* Published Toggle */}
           <div className="space-y-2">
@@ -337,14 +350,15 @@ export default function GameForm({
                 defaultChecked={initialData?.published !== false}
                 className="w-4 h-4 rounded accent-blue-500"
               />
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Public
-              </span>
+              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Public</span>
             </label>
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="thumbnail" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label
+              htmlFor="thumbnail"
+              className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
               รูปปก (Thumbnail) <span className="text-red-500">*</span>
             </label>
             <div className="relative aspect-4/3 rounded-xl overflow-hidden bg-zinc-100 dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors group">
@@ -390,7 +404,7 @@ export default function GameForm({
           disabled={isSubmitting}
           className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? 'กำลังบันทึก...' : (isEdit ? 'อัปเดตข้อมูล' : 'สร้างเกม')}
+          {isSubmitting ? 'กำลังบันทึก...' : isEdit ? 'อัปเดตข้อมูล' : 'สร้างเกม'}
         </button>
       </div>
 

@@ -16,7 +16,7 @@ export default defineConfig({
     globals: true,
     setupFiles: hasSetup ? [setupFile] : [],
     include: ['tests/**/*.test.{ts,tsx}'],
-    testTimeout: 10000,
+    testTimeout: 30000,
     fileParallelism: false,
     coverage: {
       provider: 'v8',

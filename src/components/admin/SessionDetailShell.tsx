@@ -7,6 +7,7 @@ import Breadcrumb from '@/components/Breadcrumb';
 import ResultsView from '@/components/admin/ResultsView';
 import SessionManager from '@/components/admin/SessionManager';
 import QuickStartModal, { type StepConfig } from '@/components/admin/QuickStartModal';
+import StepIndicator from '@/components/tools/StepIndicator';
 import StageManagerModal from '@/components/admin/StageManagerModal';
 import StudentList from '@/components/admin/StudentList';
 import QRSessionCode from '@/components/tools/QRSessionCode';
@@ -19,11 +20,15 @@ interface SessionDetailShellProps {
   origin?: string;
 }
 
-export default function SessionDetailShell({ session, responses, origin }: SessionDetailShellProps) {
+export default function SessionDetailShell({
+  session,
+  responses,
+  origin,
+}: SessionDetailShellProps) {
   const router = useRouter();
   const [codeFullScreen, setCodeFullScreen] = useState(false);
   const [resultsRefreshKey, setResultsRefreshKey] = useState(0);
-  const handleStudentRemoved = useCallback(() => setResultsRefreshKey(k => k + 1), []);
+  const handleStudentRemoved = useCallback(() => setResultsRefreshKey((k) => k + 1), []);
   const [advancing, setAdvancing] = useState(false);
   const [editSessionData, setEditSessionData] = useState<Record<string, unknown> | null>(null);
   const [showStageManager, setShowStageManager] = useState(false);
@@ -163,12 +168,16 @@ export default function SessionDetailShell({ session, responses, origin }: Sessi
           </div>
 
           {hasSteps && (
-            <div className="mt-6 p-4 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-                  {t('step')}
-                </h3>
-                <div className="flex items-center gap-2">
+            <StepIndicator
+              total={steps.length}
+              currentStep={localCurrentStep}
+              lastActiveStep={localLastActiveStep}
+              interactive
+              onStepClick={handleAdvance}
+              advancing={advancing}
+              stepLabels={steps.map((s) => s.title)}
+              actions={
+                <>
                   {localCurrentStep === -1 && isActive && localLastActiveStep < 0 && (
                     <button
                       onClick={() => handleAdvance(0)}
@@ -209,49 +218,9 @@ export default function SessionDetailShell({ session, responses, origin }: Sessi
                       <i aria-hidden="true" className="fi fi-sr-arrow-right text-xs" />
                     </button>
                   )}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {steps.map((step, idx) => {
-                  const effectiveStep =
-                    localCurrentStep === -1 ? localLastActiveStep : localCurrentStep;
-                  let btnClasses: string;
-                  if (idx === effectiveStep) {
-                    btnClasses =
-                      localCurrentStep === -1
-                        ? 'bg-amber-500 text-white shadow-sm'
-                        : 'bg-blue-600 text-white shadow-sm';
-                  } else if (idx < effectiveStep) {
-                    btnClasses =
-                      localCurrentStep === -1
-                        ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
-                        : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400';
-                  } else {
-                    btnClasses = 'bg-zinc-100 dark:bg-slate-700 text-zinc-500 dark:text-zinc-400';
-                  }
-                  const lineClasses =
-                    idx < effectiveStep
-                      ? localCurrentStep === -1
-                        ? 'bg-amber-400'
-                        : 'bg-emerald-400'
-                      : 'bg-zinc-300 dark:bg-slate-600';
-                  return (
-                    <div key={idx} className="flex items-center gap-2 flex-1">
-                      <button
-                        onClick={() => handleAdvance(idx)}
-                        disabled={advancing}
-                        className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${btnClasses}`}
-                      >
-                        <span className="block font-bold">{idx + 1}</span>
-                        <span className="block truncate">{step.title}</span>
-                      </button>
-                      {idx < steps.length - 1 && <div className={`w-4 h-0.5 ${lineClasses}`} />}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+                </>
+              }
+            />
           )}
 
           <div className="mt-6">

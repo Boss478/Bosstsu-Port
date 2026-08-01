@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { t } from '@/lib/tool-translations';
 import { getStudentToken } from '@/lib/client-token';
 import { useToolPoll } from '@/hooks/use-tool-poll';
@@ -33,12 +33,18 @@ export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: Q
   const [question, setQuestion] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [votedIds, setVotedIds] = useState<Set<string>>(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem(`voted_qa_${session._id}`) : null;
+    const saved =
+      typeof window !== 'undefined' ? localStorage.getItem(`voted_qa_${session._id}`) : null;
     return new Set<string>(saved ? JSON.parse(saved) : []);
   });
 
-  const { data: pollData, isLoading, refetch, queryKey } = useToolPoll(session._id, stepIndex);
-  const questions = (pollData?.responses || []) as Question[];
+  const {
+    data: pollData,
+    isLoading,
+    refetch,
+    queryKey,
+  } = useToolPoll(session._id, stepIndex, 3000);
+  const qc = useQueryClient();
 
   const submitMutation = useMutation({
     mutationFn: async () => {
@@ -54,7 +60,10 @@ export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: Q
       return res.json();
     },
     onSuccess: (data) => {
-      if (data.error) { setError(data.error); return; }
+      if (data.error) {
+        setError(data.error);
+        return;
+      }
       setQuestion('');
       onMascotEvent?.('celebrate');
       qc.invalidateQueries({ queryKey });
@@ -95,20 +104,30 @@ export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: Q
     voteMutation.mutate(questionId);
   };
 
-  const sorted = useMemo(() => [...questions].sort((a, b) => (b.content?.upvotes || 0) - (a.content?.upvotes || 0)), [questions]);
+  const sorted = useMemo(
+    () =>
+      [...(pollData?.responses || [])].sort(
+        (a, b) => ((b as Question).content?.upvotes || 0) - ((a as Question).content?.upvotes || 0),
+      ),
+    [pollData],
+  );
 
   return (
     <div className="min-h-screen flex flex-col max-w-3xl mx-auto p-4 gap-4">
       <div className="text-center py-6">
-        <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{session.title}</h1>
-        <p className="text-zinc-500 dark:text-zinc-400">{session.config?.prompt || t('askAnonymously')}</p>
+        <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+          {session.title}
+        </h1>
+        <p className="text-zinc-500 dark:text-zinc-400">
+          {session.config?.prompt || t('askAnonymously')}
+        </p>
       </div>
 
       <div className="p-4 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
         <textarea
           placeholder={session.config?.prompt || t('typeYourQuestion')}
           value={question}
-          onChange={e => setQuestion(e.target.value)}
+          onChange={(e) => setQuestion(e.target.value)}
           rows={3}
           className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
         />
@@ -123,7 +142,15 @@ export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: Q
       </div>
 
       {isLoading ? (
-        <div className="space-y-3 pb-4" style={{ '--sk-base': 'rgba(148,163,184,0.1)', '--sk-shine': 'rgba(148,163,184,0.15)' } as React.CSSProperties}>
+        <div
+          className="space-y-3 pb-4"
+          style={
+            {
+              '--sk-base': 'rgba(148,163,184,0.1)',
+              '--sk-shine': 'rgba(148,163,184,0.15)',
+            } as React.CSSProperties
+          }
+        >
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="skeleton p-4 rounded-xl h-20" />
           ))}
@@ -144,7 +171,7 @@ export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: Q
           {sorted.length === 0 ? (
             <div className="text-center py-12 text-zinc-400">{t('noQuestionsYet')}</div>
           ) : (
-            sorted.map(q => (
+            sorted.map((q) => (
               <div
                 key={q._id}
                 className={`animate-fade-slide-up p-4 rounded-xl backdrop-blur-sm border shadow-sm transition-colors ${
@@ -164,7 +191,9 @@ export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: Q
                           : 'text-zinc-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'
                       }`}
                     >
-                      <i className={`fi ${votedIds.has(q._id) ? 'fi-sr-triangle-fill' : 'fi-sr-triangle'} text-lg`} />
+                      <i
+                        className={`fi ${votedIds.has(q._id) ? 'fi-sr-triangle-fill' : 'fi-sr-triangle'} text-lg`}
+                      />
                     </button>
                     <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
                       {q.content?.upvotes || 0}
@@ -185,10 +214,16 @@ export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: Q
                     <p className="text-zinc-700 dark:text-zinc-300">{q.content?.question}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-zinc-400">
-                        {q.createdAt && new Date(q.createdAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
+                        {q.createdAt &&
+                          new Date(q.createdAt).toLocaleTimeString('th-TH', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
                       </span>
                       {q.content?.isAnswered && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-700 font-medium">{t('answered')}</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-700 font-medium">
+                          {t('answered')}
+                        </span>
                       )}
                     </div>
                   </div>

@@ -3,18 +3,17 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { v4 as uuidv4 } from 'uuid';
 import dynamic from 'next/dynamic';
 import TagPicker from './TagPicker';
-import { useAdminSession } from './AdminSessionProvider';
 import { useToast } from './ToastProvider';
 import { uploadFileWithProgress, clientValidateFileType } from '@/lib/client-upload';
 import SaveProgress from './SaveProgress';
+import { useFormSubmit } from '@/hooks/use-form-submit';
 
-const RichTextEditor = dynamic(
-  () => import('./RichTextEditor'),
-  { ssr: false, loading: () => <div className="h-48 rounded-xl bg-zinc-100 dark:bg-slate-800 animate-pulse" /> }
-);
+const RichTextEditor = dynamic(() => import('./RichTextEditor'), {
+  ssr: false,
+  loading: () => <div className="h-48 rounded-xl bg-zinc-100 dark:bg-slate-800 animate-pulse" />,
+});
 
 const SUBJECT_OPTIONS = [
   'คณิตศาสตร์ (Mathematics)',
@@ -28,17 +27,35 @@ const SUBJECT_OPTIONS = [
 ];
 
 const TYPE_OPTIONS = [
-  { value: 'Article',      label: 'Article',      mode: 'html' },
-  { value: 'Presentation', label: 'Presentation',  mode: 'presentation' },
-  { value: 'Video',        label: 'Video',         mode: 'youtube' },
-  { value: 'Lesson Plan',  label: 'Lesson Plan',   mode: 'file', accept: 'application/pdf', acceptLabel: 'PDF' },
-  { value: 'Sheet',        label: 'Sheet',         mode: 'file', accept: 'image/jpeg,image/png,application/pdf', acceptLabel: 'JPG, PNG, PDF' },
-  { value: 'Worksheet',    label: 'Worksheet',     mode: 'file', accept: 'image/jpeg,image/png,application/pdf', acceptLabel: 'JPG, PNG, PDF' },
-  { value: 'Scratch',      label: 'Scratch',       mode: 'embed' },
-  { value: 'Interactive',  label: 'Interactive',   mode: 'embed' },
+  { value: 'Article', label: 'Article', mode: 'html' },
+  { value: 'Presentation', label: 'Presentation', mode: 'presentation' },
+  { value: 'Video', label: 'Video', mode: 'youtube' },
+  {
+    value: 'Lesson Plan',
+    label: 'Lesson Plan',
+    mode: 'file',
+    accept: 'application/pdf',
+    acceptLabel: 'PDF',
+  },
+  {
+    value: 'Sheet',
+    label: 'Sheet',
+    mode: 'file',
+    accept: 'image/jpeg,image/png,application/pdf',
+    acceptLabel: 'JPG, PNG, PDF',
+  },
+  {
+    value: 'Worksheet',
+    label: 'Worksheet',
+    mode: 'file',
+    accept: 'image/jpeg,image/png,application/pdf',
+    acceptLabel: 'JPG, PNG, PDF',
+  },
+  { value: 'Scratch', label: 'Scratch', mode: 'embed' },
+  { value: 'Interactive', label: 'Interactive', mode: 'embed' },
 ] as const;
 
-type TypeMode = typeof TYPE_OPTIONS[number]['mode'];
+type TypeMode = (typeof TYPE_OPTIONS)[number]['mode'];
 
 // ─── HTML Content Editor with RichTextEditor ───────────────────────────────
 function HtmlEditor({ initialValue = '' }: { initialValue?: string }) {
@@ -90,7 +107,7 @@ function FileUploadField({
           type="file"
           name="resourceFile"
           accept={accept}
-          onChange={e => setFileName(e.target.files?.[0]?.name || '')}
+          onChange={(e) => setFileName(e.target.files?.[0]?.name || '')}
           className="sr-only"
         />
       </label>
@@ -119,17 +136,25 @@ export default function LearningForm({
   availableTags = [],
 }: LearningFormProps) {
   const router = useRouter();
-  const { setIsUploading, onAuthError } = useAdminSession();
   const { showToast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState('');
-  const abortRef = useRef<AbortController | null>(null);
+  const {
+    isSubmitting,
+    progress,
+    setProgress,
+    statusText,
+    setStatusText,
+    abortRef,
+    batchIdRef,
+    beginSubmit,
+    endSubmit,
+    handleError,
+  } = useFormSubmit();
   const [error, setError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState(initialData?.type || '');
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(initialData?.thumbnail || null);
-  const batchIdRef = useRef(uuidv4());
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(
+    initialData?.thumbnail || null,
+  );
   const blobUrlsRef = useRef<string[]>([]);
 
   useEffect(() => {
@@ -140,8 +165,8 @@ export default function LearningForm({
   }, []);
 
   const typeConfig = useMemo(
-    () => TYPE_OPTIONS.find(t => t.value === selectedType),
-    [selectedType]
+    () => TYPE_OPTIONS.find((t) => t.value === selectedType),
+    [selectedType],
   );
   const mode: TypeMode | undefined = typeConfig?.mode;
 
@@ -150,11 +175,7 @@ export default function LearningForm({
     if (isSubmitting) return;
 
     setError(null);
-    setIsSubmitting(true);
-    setProgress(0);
-    setIsUploading(true);
-    abortRef.current = new AbortController();
-    const signal = abortRef.current.signal;
+    const signal = beginSubmit();
 
     try {
       const formElement = e.currentTarget;
@@ -174,7 +195,7 @@ export default function LearningForm({
         const result = await action(textFormData);
         if (result?.error) throw new Error(result.error);
       } else {
-        const result = await action(textFormData) as { error?: string; id?: string };
+        const result = (await action(textFormData)) as { error?: string; id?: string };
         if (result?.error) throw new Error(result.error);
         itemId = result?.id;
       }
@@ -186,9 +207,11 @@ export default function LearningForm({
       // Phase 2: Upload files (only if new files exist)
       const uploadFormData = new FormData(formElement);
       const thumbnailEntry = uploadFormData.get('thumbnail');
-      const thumbnailFile = (thumbnailEntry instanceof File && thumbnailEntry.size > 0) ? thumbnailEntry : null;
+      const thumbnailFile =
+        thumbnailEntry instanceof File && thumbnailEntry.size > 0 ? thumbnailEntry : null;
       const resourceEntry = uploadFormData.get('resourceFile');
-      const resourceFile = (resourceEntry instanceof File && resourceEntry.size > 0) ? resourceEntry : null;
+      const resourceFile =
+        resourceEntry instanceof File && resourceEntry.size > 0 ? resourceEntry : null;
 
       if (resourceFile && typeConfig && 'accept' in typeConfig) {
         const allowedTypes = typeConfig.accept.split(',');
@@ -210,14 +233,26 @@ export default function LearningForm({
       if (totalBytes > 0) {
         if (thumbnailFile) {
           setStatusText('กำลังอัปโหลดรูปหน้าปก...');
-          finalThumbnailUrl = await uploadFileWithProgress(thumbnailFile, 'learning', updateProgress, signal, batchIdRef.current);
+          finalThumbnailUrl = await uploadFileWithProgress(
+            thumbnailFile,
+            'learning',
+            updateProgress,
+            signal,
+            batchIdRef.current,
+          );
           uploadedBytes += thumbnailFile.size;
           setProgress(25 + (uploadedBytes / totalBytes) * 65);
         }
 
         if (resourceFile) {
           setStatusText('กำลังอัปโหลดไฟล์...');
-          finalFileUrl = await uploadFileWithProgress(resourceFile, 'learning', updateProgress, signal, batchIdRef.current);
+          finalFileUrl = await uploadFileWithProgress(
+            resourceFile,
+            'learning',
+            updateProgress,
+            signal,
+            batchIdRef.current,
+          );
           uploadedBytes += resourceFile.size;
           setProgress(25 + (uploadedBytes / totalBytes) * 65);
         }
@@ -240,32 +275,19 @@ export default function LearningForm({
 
       setProgress(100);
       setStatusText('บันทึกข้อมูลสำเร็จ!');
-      batchIdRef.current = uuidv4();
 
       setTimeout(() => {
         router.push('/admin/resources');
       }, 500);
-
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        if (err.message.includes('[401]')) {
-          setIsSubmitting(false);
-          onAuthError();
-          return;
-        }
-        if (err.message === 'Upload aborted') {
-          setIsSubmitting(false);
-          return;
-        }
-        setError(err.message);
-        showToast(err.message, 'error');
-      } else {
-        setError('เกิดข้อผิดพลาดที่ไม่คาดคิด');
-        showToast('เกิดข้อผิดพลาดที่ไม่คาดคิด', 'error');
+      const result = handleError(err);
+      if (result === 'aborted') return;
+      if (result) {
+        setError(result);
+        showToast(result, 'error');
       }
-      setIsSubmitting(false);
     } finally {
-      setIsUploading(false);
+      endSubmit();
     }
   };
 
@@ -276,7 +298,9 @@ export default function LearningForm({
         {incompleteUpload && (
           <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50 text-sm flex items-start gap-3">
             <i aria-hidden="true" className="fi fi-sr-exclamation mt-0.5 flex shrink-0" />
-            <span>บันทึกข้อมูลสำเร็จ แต่รูปภาพยังไม่ได้อัปโหลด กรุณาเพิ่มรูปภาพและบันทึกอีกครั้ง</span>
+            <span>
+              บันทึกข้อมูลสำเร็จ แต่รูปภาพยังไม่ได้อัปโหลด กรุณาเพิ่มรูปภาพและบันทึกอีกครั้ง
+            </span>
           </div>
         )}
         {error && (
@@ -309,7 +333,10 @@ export default function LearningForm({
 
           {/* Description */}
           <div className="space-y-2">
-            <label htmlFor="description" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label
+              htmlFor="description"
+              className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
               รายละเอียด (Description) <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -326,7 +353,10 @@ export default function LearningForm({
           {/* Subject + Type */}
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label htmlFor="subject" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label
+                htmlFor="subject"
+                className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >
                 วิชา (Subject) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -337,17 +367,27 @@ export default function LearningForm({
                   required
                   className="appearance-none w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                 >
-                  <option value="" disabled>เลือกวิชา...</option>
-                  {SUBJECT_OPTIONS.map(s => (
-                    <option key={s} value={s}>{s}</option>
+                  <option value="" disabled>
+                    เลือกวิชา...
+                  </option>
+                  {SUBJECT_OPTIONS.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
                   ))}
                 </select>
-                <i aria-hidden="true" className="fi fi-sr-angle-small-down absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+                <i
+                  aria-hidden="true"
+                  className="fi fi-sr-angle-small-down absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"
+                />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="type" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label
+                htmlFor="type"
+                className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >
                 ประเภท (Type) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -355,16 +395,23 @@ export default function LearningForm({
                   name="type"
                   id="type"
                   value={selectedType}
-                  onChange={e => setSelectedType(e.target.value)}
+                  onChange={(e) => setSelectedType(e.target.value)}
                   required
                   className="appearance-none w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                 >
-                  <option value="" disabled>เลือกประเภท...</option>
-                  {TYPE_OPTIONS.map(t => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
+                  <option value="" disabled>
+                    เลือกประเภท...
+                  </option>
+                  {TYPE_OPTIONS.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
                   ))}
                 </select>
-                <i aria-hidden="true" className="fi fi-sr-angle-small-down absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+                <i
+                  aria-hidden="true"
+                  className="fi fi-sr-angle-small-down absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"
+                />
               </div>
             </div>
           </div>
@@ -382,7 +429,10 @@ export default function LearningForm({
               <div className="space-y-4">
                 <HtmlEditor initialValue={initialData?.content} />
                 <div className="space-y-2">
-                  <label htmlFor="link" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  <label
+                    htmlFor="link"
+                    className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                  >
                     ลิงก์เพิ่มเติม / PDF URL (Link)
                   </label>
                   <input
@@ -401,7 +451,10 @@ export default function LearningForm({
             {mode === 'presentation' && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label htmlFor="canvaEmbed" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  <label
+                    htmlFor="canvaEmbed"
+                    className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                  >
                     Canva Embed URL
                   </label>
                   <input
@@ -416,14 +469,21 @@ export default function LearningForm({
                     ใส่ Canva URL หรืออัปโหลด PDF ด้านล่าง
                   </p>
                 </div>
-                <FileUploadField accept="application/pdf" acceptLabel="PDF" existingUrl={initialData?.fileUrl} />
+                <FileUploadField
+                  accept="application/pdf"
+                  acceptLabel="PDF"
+                  existingUrl={initialData?.fileUrl}
+                />
               </div>
             )}
 
             {/* Video: YouTube URL */}
             {mode === 'youtube' && (
               <div className="space-y-2">
-                <label htmlFor="youtubeId" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <label
+                  htmlFor="youtubeId"
+                  className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                >
                   YouTube URL <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -450,7 +510,10 @@ export default function LearningForm({
             {/* Scratch / Interactive: embed code */}
             {mode === 'embed' && (
               <div className="space-y-2">
-                <label htmlFor="embedCode" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <label
+                  htmlFor="embedCode"
+                  className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                >
                   Embed Code <span className="text-red-500">*</span>
                 </label>
                 <textarea
@@ -459,7 +522,9 @@ export default function LearningForm({
                   defaultValue={initialData?.embedCode || ''}
                   rows={5}
                   required
-                  placeholder={'<iframe src="https://scratch.mit.edu/projects/xxxxx/embed" ...></iframe>'}
+                  placeholder={
+                    '<iframe src="https://scratch.mit.edu/projects/xxxxx/embed" ...></iframe>'
+                  }
                   className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm resize-y"
                 />
               </div>
@@ -471,9 +536,7 @@ export default function LearningForm({
       {/* ── Right Column ── */}
       <div className="space-y-6">
         <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm space-y-4">
-          <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100">
-            หน้าปก
-          </h3>
+          <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100">หน้าปก</h3>
 
           <label className="inline-flex items-center gap-2 cursor-pointer select-none">
             <input
@@ -487,12 +550,21 @@ export default function LearningForm({
 
           {/* Thumbnail */}
           <div className="space-y-2">
-            <label htmlFor="thumbnail" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label
+              htmlFor="thumbnail"
+              className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
               รูปปก (Thumbnail)
             </label>
             <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-100 dark:bg-slate-900 border-2 border-dashed border-zinc-300 dark:border-slate-700 hover:border-blue-500 transition-colors">
               {thumbnailPreview ? (
-                <Image src={thumbnailPreview} alt="Thumbnail Preview" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
+                <Image
+                  src={thumbnailPreview}
+                  alt="Thumbnail Preview"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover"
+                />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-zinc-400">
                   <i aria-hidden="true" className="fi fi-sr-image text-3xl" />
@@ -503,10 +575,11 @@ export default function LearningForm({
                 name="thumbnail"
                 id="thumbnail"
                 accept="image/*"
-                onChange={e => {
+                onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    if (thumbnailPreview?.startsWith('blob:')) URL.revokeObjectURL(thumbnailPreview);
+                    if (thumbnailPreview?.startsWith('blob:'))
+                      URL.revokeObjectURL(thumbnailPreview);
                     const url = URL.createObjectURL(file);
                     blobUrlsRef.current.push(url);
                     setThumbnailPreview(url);
