@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, startTransition } from 'react';
+import Image from 'next/image';
 import { t } from '@/lib/tool-translations';
 import { getStudentToken } from '@/lib/client-token';
 import type { ToolSessionClient } from '@/types/tools';
@@ -40,7 +41,8 @@ export default function AssignmentForm({
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const key = `assignment_${session._id}`;
+      const stored = localStorage.getItem(key);
       if (stored) {
         try {
           const data = JSON.parse(stored);
@@ -54,11 +56,11 @@ export default function AssignmentForm({
             setSubmitted(true);
           });
         } catch {
-          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(key);
         }
       }
     }
-  }, [session._id]);
+  }, [session._id, propName]);
 
   useEffect(() => {
     if (!submitted && !isEditing) return;
@@ -268,10 +270,12 @@ export default function AssignmentForm({
               onClick={(e) => e.stopPropagation()}
             >
               {previewFileType === 'image' && (
-                <img
+                <Image
                   src={previewFileUrl}
                   alt="File Preview"
-                  className="max-w-full max-h-full object-contain drop-shadow-2xl rounded-lg"
+                  fill
+                  sizes="100vw"
+                  className="object-contain drop-shadow-2xl rounded-lg"
                 />
               )}
               {previewFileType === 'pdf' && (
@@ -479,10 +483,12 @@ export default function AssignmentForm({
               onClick={(e) => e.stopPropagation()}
             >
               {previewFileType === 'image' && (
-                <img
+                <Image
                   src={previewFileUrl}
                   alt="File Preview"
-                  className="max-w-full max-h-full object-contain drop-shadow-2xl rounded-lg"
+                  fill
+                  sizes="100vw"
+                  className="object-contain drop-shadow-2xl rounded-lg"
                 />
               )}
               {previewFileType === 'pdf' && (

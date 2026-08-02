@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, startTransition } from 'react';
+import Image from 'next/image';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import ExportButton from './ExportButton';
 import DeleteButton from './DeleteButton';
@@ -620,10 +621,12 @@ export default function ResultsView({
               onClick={(e) => e.stopPropagation()}
             >
               {previewFileType === 'image' && (
-                <img
+                <Image
                   src={previewFileUrl}
                   alt="File Preview"
-                  className="max-w-full max-h-full object-contain drop-shadow-2xl rounded-lg"
+                  fill
+                  sizes="100vw"
+                  className="object-contain drop-shadow-2xl rounded-lg"
                 />
               )}
               {previewFileType === 'pdf' && (
@@ -662,7 +665,6 @@ export default function ResultsView({
 function PollResults({
   responses,
   session,
-  onDelete,
   counts: serverCounts,
   totalCount,
 }: {
@@ -808,7 +810,6 @@ function PollResults({
 function QuizResults({
   responses,
   session,
-  onDelete,
 }: {
   responses: {
     _id: string;
@@ -823,7 +824,7 @@ function QuizResults({
 }) {
   const [viewMode, setViewMode] = useState<'summary' | 'per-question'>('summary');
   const total = session.config?.questions?.length || 0;
-  const questions = session.config?.questions || [];
+  const questions = useMemo(() => session.config?.questions || [], [session.config?.questions]);
 
   const perQuestionStats = useMemo(() => {
     return questions.map((q, qi) => {
@@ -1004,7 +1005,6 @@ function QuizResults({
 
 function ExitTicketResults({
   responses,
-  onDelete,
 }: {
   responses: {
     _id: string;

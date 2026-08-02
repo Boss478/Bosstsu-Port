@@ -31,7 +31,7 @@ export default function MascotAvatar({
       setTimeout(() => setBlinking(false), params.blinkDuration);
     }, params.blinkInterval);
     return () => clearInterval(interval);
-  }, [animate, params?.blinkInterval, params?.blinkDuration]);
+  }, [animate, params]);
 
   useEffect(() => {
     const mascot = ALL_MASCOT_MAP.get(mascotId);

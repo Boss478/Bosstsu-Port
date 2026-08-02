@@ -171,7 +171,7 @@ export function FlashcardProvider({ children }: { children: ReactNode }) {
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [gameState, mode, endGame]);
+  }, [gameState, mode, timeLeft, endGame]);
 
   useEffect(() => {
     if (gameState !== 'PLAYING' || !language) return;

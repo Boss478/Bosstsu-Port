@@ -49,7 +49,7 @@ export default function GamesClient({
       if (localQuery !== activeQuery) searchBy(localQuery, activeCategory, sort);
     }, 800);
     return () => clearTimeout(syncTimeoutRef.current);
-  }, [localQuery]);
+  }, [localQuery, activeQuery, activeCategory, sort, searchBy]);
 
   const handlePageChange = (page: number) => {
     navigateToPage(page, activeCategory, sort);

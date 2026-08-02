@@ -3,6 +3,15 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.10.83 (2026-08-02)
+* **Warning cleanup — ESLint fully clean (0 errors + 0 warnings tree-wide)**:
+  + * **exhaustive-deps (12)**: missing deps added where correct (filter props, `grp`, `params`, `isOverridden`, countdown `timeLeft` timers in WordQuiz/Flashcard) or logic moved inside the effect where a dep would cause loops; complex dep expressions extracted to named consts.
+  + * **Unstable deps (7)**: inline object/array constructions (`stageScreenSet`, `config`, `questions`, `stocks/portfolio/watchlist` fallbacks) wrapped in their own `useMemo` so dependent hooks stop re-running every render.
+  + * **`<img>` → `next/image` (3)**: ResultsView avatar + AssignmentForm previews.
+  + * **Unused vars (7)**: `onDelete` destructures ×3 (ResultsView), mascot context destructures ×4 (ToolSessionView).
+  + * **Refs cleanup (1)**: `entriesRef.current` copied to a local inside the `use-focus-track` effect for the cleanup closure.
+  + * Verified: `npm run lint` 0 errors 0 warnings · typecheck clean · build ✓ 33/33 · 475 tests pass (identical to baseline). No behavior changes.
+
 ## v1.10.82 (2026-08-02)
 * **Lint debt cleanup — ESLint back to 0 errors tree-wide (was 76 across 19 files)**:
   + * **no-explicit-any (42)**: `tests/vocab-generators.test.ts` (33), `MarketOverview.tsx` (6), phonics `save.ts` (2), `StageListScreen.tsx` (1) — replaced with precise types / `Record<string, unknown>` / narrowed `unknown`.

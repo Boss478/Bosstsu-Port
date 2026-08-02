@@ -141,10 +141,10 @@ export function StockDataProvider({ children }: { children: ReactNode }) {
   const removeHoldingMutation = useRemoveHolding();
   const updateWatchlistMutation = useUpdateWatchlist();
 
-  const stocks = quotesData?.quotes ?? [];
+  const stocks = useMemo(() => quotesData?.quotes ?? [], [quotesData?.quotes]);
   const indexes = quotesData?.indices ?? [];
-  const portfolio = holdingsData ?? [];
-  const watchlist = watchlistData ?? [];
+  const portfolio = useMemo(() => holdingsData ?? [], [holdingsData]);
+  const watchlist = useMemo(() => watchlistData ?? [], [watchlistData]);
 
   useEffect(() => {
     if (!quotesLoading && !isFetching) {

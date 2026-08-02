@@ -194,7 +194,7 @@ export default function NumberGameClient() {
       const accuracy = Math.round((prev.stageCorrect / prev.stageTotal) * 100);
       setStageStars((s) => [...s, calcStars(accuracy)]);
     }
-  }, [gameState.stage, gameState.stageCorrect, gameState.stageTotal]);
+  }, [gameState]);
 
   useEffect(() => {
     const header = document.getElementById('site-header');

@@ -53,6 +53,7 @@ function SingleToolSessionView({ session }: ToolSessionViewProps) {
   const [mascotEventCount, setMascotEventCount] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const toast = useToast();
+  const toastShow = toast.show;
 
   const enableMascots = session.config?.enableMascots !== false;
 
@@ -131,17 +132,20 @@ function SingleToolSessionView({ session }: ToolSessionViewProps) {
     setShowMascotPicker(false);
   };
 
-  const handleMascotEvent = useCallback((event: MascotEvent) => {
-    setMascotEventType(event);
-    setMascotEventCount((c) => c + 1);
-    const msg =
-      event === 'celebrate'
-        ? t('toastSubmitted')
-        : event === 'correct'
-          ? t('toastCorrect')
-          : t('toastError');
-    toast.show(msg, event === 'wrong' ? 'error' : 'success');
-  }, []);
+  const handleMascotEvent = useCallback(
+    (event: MascotEvent) => {
+      setMascotEventType(event);
+      setMascotEventCount((c) => c + 1);
+      const msg =
+        event === 'celebrate'
+          ? t('toastSubmitted')
+          : event === 'correct'
+            ? t('toastCorrect')
+            : t('toastError');
+      toastShow(msg, event === 'wrong' ? 'error' : 'success');
+    },
+    [toastShow],
+  );
 
   if (!session.isActive) {
     return (
@@ -221,14 +225,7 @@ function SingleToolSessionView({ session }: ToolSessionViewProps) {
         onOpenChange={setSettingsOpen}
         selectedMascot={selectedMascot}
       />
-      {renderTool(
-        session,
-        sharedProps,
-        enableMascots,
-        selectedMascot,
-        mascotEventType,
-        mascotEventCount,
-      )}
+      {renderTool(session, sharedProps)}
       {enableMascots && selectedMascot && (
         <MascotCompanion
           sessionId={session._id}
@@ -246,14 +243,7 @@ function SingleToolSessionView({ session }: ToolSessionViewProps) {
   );
 }
 
-function renderTool(
-  session: ToolSessionClient,
-  sharedProps: Record<string, unknown>,
-  enableMascots: boolean,
-  selectedMascot: string | null,
-  mascotEventType: MascotEvent | null,
-  mascotEventCount: number,
-) {
+function renderTool(session: ToolSessionClient, sharedProps: Record<string, unknown>) {
   const props = sharedProps as {
     session: ToolSessionClient;
     studentName: string;

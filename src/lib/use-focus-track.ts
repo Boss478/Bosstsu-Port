@@ -14,12 +14,14 @@ export function useFocusTrack(sessionId: string, active: boolean) {
   useEffect(() => {
     if (!active) return;
 
+    const entries = entriesRef.current;
+
     const handleVisibility = () => {
       const entry: FocusEntry = {
         timestamp: Date.now(),
         type: document.hidden ? 'hidden' : 'visible',
       };
-      entriesRef.current.push(entry);
+      entries.push(entry);
       visibleRef.current = !document.hidden;
     };
 
@@ -27,13 +29,13 @@ export function useFocusTrack(sessionId: string, active: boolean) {
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
-      if (entriesRef.current.length > 0) {
+      if (entries.length > 0) {
         navigator.sendBeacon(
           '/api/tools/focus',
           JSON.stringify({
             sessionId,
-            entries: entriesRef.current,
-            totalMs: Date.now() - (entriesRef.current[0]?.timestamp ?? Date.now()),
+            entries,
+            totalMs: Date.now() - (entries[0]?.timestamp ?? Date.now()),
           }),
         );
       }

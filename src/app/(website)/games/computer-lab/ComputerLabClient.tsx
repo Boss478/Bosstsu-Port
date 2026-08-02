@@ -39,13 +39,10 @@ export default function ComputerLabClient() {
   const [loading, setLoading] = useState(false);
   const [devMode, setDevMode] = useState(false);
   const { trackCustomEvent } = useAnalytics();
-  const stageScreenSet: ReadonlySet<Screen> = new Set([
-    'hardware',
-    'software',
-    'workflow',
-    'build',
-    'diagnosis',
-  ] as const);
+  const stageScreenSet: ReadonlySet<Screen> = useMemo(
+    () => new Set(['hardware', 'software', 'workflow', 'build', 'diagnosis'] as const),
+    [],
+  );
 
   useEffect(() => {
     const saved = loadSave();

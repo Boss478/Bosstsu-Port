@@ -76,8 +76,9 @@ export default function WordQuizScreen() {
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerEndedRef = useRef(false);
+  const hasTimeLeft = timeLeft > 0;
   useEffect(() => {
-    if (phase === 'playing' && config?.mode === 'timer' && timeLeft > 0) {
+    if (phase === 'playing' && config?.mode === 'timer' && hasTimeLeft) {
       timerEndedRef.current = false;
       timerRef.current = setInterval(() => {
         setTimeLeft((t) => {
@@ -95,7 +96,7 @@ export default function WordQuizScreen() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [phase, config?.mode, timeLeft > 0]);
+  }, [phase, config?.mode, hasTimeLeft, timeLeft]);
 
   const startQuiz = useCallback(
     (cfg: QuizConfig) => {

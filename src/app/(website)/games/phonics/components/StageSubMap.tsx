@@ -70,7 +70,7 @@ export default function StageSubMap() {
         return { phoneme, activities, completedCount, color, pid };
       })
       .filter((n) => n.phoneme);
-  }, [selectedGroup, activityProgress]);
+  }, [grp, activityProgress]);
 
   const handlePhonemeClick = useCallback(
     (pid: string) => {

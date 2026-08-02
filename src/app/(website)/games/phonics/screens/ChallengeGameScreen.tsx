@@ -416,22 +416,25 @@ function SpeedSpellGame({
     setFeedback(null);
   }, []);
 
-  const advance = (wasCorrect: boolean) => {
-    if (currentIndex + 1 >= total) {
-      const finalCorrect = wasCorrect ? correct + 1 : correct;
-      onComplete(finalCorrect, total);
-    } else {
-      setCurrentIndex((i) => i + 1);
-      lockRef.current = false;
-    }
-  };
+  const advance = useCallback(
+    (wasCorrect: boolean) => {
+      if (currentIndex + 1 >= total) {
+        const finalCorrect = wasCorrect ? correct + 1 : correct;
+        onComplete(finalCorrect, total);
+      } else {
+        setCurrentIndex((i) => i + 1);
+        lockRef.current = false;
+      }
+    },
+    [currentIndex, correct, total, onComplete],
+  );
 
-  const handleTimeout = () => {
+  const handleTimeout = useCallback(() => {
     if (lockRef.current) return;
     lockRef.current = true;
     setFeedback('timeout');
     setTimeout(() => advance(false), 800);
-  };
+  }, [advance]);
 
   useEffect(() => {
     if (!current) return;
@@ -454,7 +457,7 @@ function SpeedSpellGame({
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [currentIndex, feedback]);
+  }, [currentIndex, feedback, handleTimeout]);
 
   function handleTileClick(tileId: number) {
     if (lockRef.current || feedback) return;
@@ -717,7 +720,7 @@ export default function ChallengeGameScreen({
       }
     });
     return () => cancelAnimationFrame(raf);
-  }, [challengeType, difficulty, level]);
+  }, [challengeType, difficulty, level, words]);
 
   function handleGameComplete(gameCorrect: number, gameAttempts: number) {
     const gameScore = gameAttempts > 0 ? Math.round((gameCorrect / gameAttempts) * 100) : 0;

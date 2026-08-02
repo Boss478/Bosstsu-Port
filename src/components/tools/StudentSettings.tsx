@@ -128,7 +128,7 @@ export default function StudentSettings({
     return { ...base, ...overrides };
   }, [selectedPreset, config, overrides]);
 
-  const isOverridden = (key: keyof TierConfig) => key in overrides;
+  const isOverridden = useCallback((key: keyof TierConfig) => key in overrides, [overrides]);
 
   const handlePresetChange = useCallback(
     (val: PresetValue) => {
@@ -215,7 +215,7 @@ export default function StudentSettings({
       return computeEffectsLevel(effectiveConfig);
     }
     return computeEffectsLevel(selectedPreset === '' ? config : getTierConfig(selectedPreset));
-  }, [effectiveConfig, selectedPreset, config]);
+  }, [effectiveConfig, selectedPreset, config, isOverridden]);
 
   const handleEffectsLevel = useCallback(
     (val: number) => {
