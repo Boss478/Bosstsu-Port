@@ -172,6 +172,7 @@ export const CONFIG = {
     ] as const,
     PAGINATION: {
       TOOLS_PUBLIC: 50,
+      ADMIN_RESPONSES_LIMIT: 2000,
     },
   },
 

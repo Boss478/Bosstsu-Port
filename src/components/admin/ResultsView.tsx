@@ -30,6 +30,9 @@ const TOOL_LABELS: Record<string, string> = {
   exit_ticket: 'Exit Ticket',
 };
 
+// Admin fetches the full response list (route requires auth above the public cap of 50).
+const ADMIN_POLL_LIMIT = 2000;
+
 export default function ResultsView({
   session,
   initialResponses,
@@ -109,7 +112,9 @@ export default function ResultsView({
     queryFn: async () => {
       const stepIdx = hasSteps && activeStepTab >= 0 ? activeStepTab : undefined;
       const stepParam = stepIdx !== undefined ? `&stepIndex=${stepIdx}` : '';
-      const res = await fetch(`/api/tools/poll?sessionId=${session._id}${stepParam}`);
+      const res = await fetch(
+        `/api/tools/poll?sessionId=${session._id}${stepParam}&limit=${ADMIN_POLL_LIMIT}`,
+      );
       if (!res.ok) throw new Error('Failed');
       return res.json();
     },

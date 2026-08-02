@@ -147,9 +147,9 @@ export function useSSE(sessionId: string, options: UseSSEOptions = {}): UseSSERe
       if (!mountedRef.current) return;
       try {
         const studentToken = getStudentToken();
-        const res = await fetch(
-          `/api/tools/step?sessionId=${encodeURIComponent(sessionId)}&studentToken=${encodeURIComponent(studentToken)}`,
-        );
+        const res = await fetch(`/api/tools/step?sessionId=${encodeURIComponent(sessionId)}`, {
+          headers: { 'student-token': studentToken },
+        });
         if (!res.ok) return;
 
         const data = await res.json();

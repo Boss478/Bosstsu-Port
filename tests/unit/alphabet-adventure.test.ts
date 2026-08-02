@@ -43,7 +43,7 @@ import {
 import { masteryLevel } from '@/app/(standalone)/games/alphabet-adventure/screens/LetterProgressGrid';
 import { KEYBOARD_ROWS } from '@/app/(standalone)/games/alphabet-adventure/screens/TypingLevel';
 import { emptyMapSaveData } from '@/app/(standalone)/games/alphabet-adventure/types';
-import type { MapSaveData, LetterTracker } from '@/app/(standalone)/games/alphabet-adventure/types';
+import type { LetterTracker } from '@/app/(standalone)/games/alphabet-adventure/types';
 
 vi.mock('@/lib/shuffle', () => ({
   shuffleArray: <T>(arr: T[]): T[] => [...arr].reverse(),
@@ -810,25 +810,6 @@ describe('buildStages', () => {
     expect(getStage(-1)).toBeUndefined();
   });
 });
-
-// ─── Phase 1: Save Migration v2→v3 ─────────────────────────────────────
-
-function makeV2Save(): MapSaveData {
-  return {
-    version: 2,
-    totalScore: 100,
-    stages: Array.from({ length: 6 }, (_, stageIdx) => ({
-      unlocked: true,
-      subStages: Array.from({ length: 6 }, (__, subIdx) => ({
-        completed: subIdx < 4,
-        stars: stageIdx === 0 && subIdx === 4 ? 1 : subIdx < 4 ? 3 : 2,
-        bestScore: stageIdx === 0 && subIdx === 5 ? 40 : 50,
-      })),
-      completed: true,
-    })),
-    letterTracker: {},
-  };
-}
 
 // ─── Phase 2: EasyMode Choice Reduction ────────────────────────────────
 

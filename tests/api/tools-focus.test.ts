@@ -4,6 +4,7 @@ import { createPostRequest } from '../helpers/request';
 import { connectTestDb, disconnectTestDb, clearAllCollections } from '../helpers/db';
 import { seedSession } from '../helpers/seed';
 import ToolSession from '@/models/ToolSession';
+import ToolFocusEntry from '@/models/ToolFocusEntry';
 
 describe('/api/tools/focus', () => {
   beforeAll(async () => {
@@ -58,7 +59,7 @@ describe('/api/tools/focus', () => {
     expect(res.status).toBe(400);
   });
 
-  it('stores focus snapshot and caps to 20', async () => {
+  it('stores focus snapshots in the focus collection, not the session doc', async () => {
     const session = await seedSession({ sessionCode: 'FOC2' });
     const sid = session._id.toString();
 
@@ -71,10 +72,14 @@ describe('/api/tools/focus', () => {
       expect(res.status).toBe(200);
     }
 
-    const updated = await ToolSession.findById(sid).lean();
-    expect(updated?.focusData).toHaveLength(20);
-    const last = updated?.focusData?.[19] as { totalMs?: number; userAgent?: string };
+    const entries = await ToolFocusEntry.find({ sessionId: sid }).sort({ submittedAt: 1 }).lean();
+    expect(entries).toHaveLength(25);
+    const last = entries[24] as { totalMs?: number; userAgent?: string; entries?: unknown[] };
     expect(last.totalMs).toBe(2400);
     expect((last.userAgent ?? '').length).toBeLessThanOrEqual(200);
+    expect((last.entries ?? []).length).toBeLessThanOrEqual(200);
+
+    const updated = await ToolSession.findById(sid).lean();
+    expect(updated?.focusData ?? []).toHaveLength(0);
   });
 });

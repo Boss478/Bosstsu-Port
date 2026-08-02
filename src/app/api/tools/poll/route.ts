@@ -16,6 +16,22 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: getError('T05').message }, { status: 400 });
   }
 
+  const requestedLimit = searchParams.get('limit');
+  const isAdminRequest =
+    requestedLimit !== null && parseInt(requestedLimit) > CONFIG.TOOLS.PAGINATION.TOOLS_PUBLIC;
+
+  if (isAdminRequest) {
+    const { verifyAuth } = await import('@/lib/auth');
+    const isAuth = await verifyAuth();
+    if (!isAuth) {
+      return NextResponse.json({ error: getError('401').message }, { status: 401 });
+    }
+  }
+
+  const limit = isAdminRequest
+    ? Math.min(parseInt(requestedLimit as string), CONFIG.TOOLS.PAGINATION.ADMIN_RESPONSES_LIMIT)
+    : CONFIG.TOOLS.PAGINATION.TOOLS_PUBLIC;
+
   try {
     await dbConnect();
 
@@ -28,7 +44,7 @@ export async function GET(req: NextRequest) {
     const responses = await ToolResponse.find(query)
       .select('-editToken -ip')
       .sort({ createdAt: 1 })
-      .limit(CONFIG.TOOLS.PAGINATION.TOOLS_PUBLIC)
+      .limit(limit)
       .lean();
 
     const session = await ToolSession.findById(sessionId).lean();
@@ -77,7 +93,13 @@ export async function GET(req: NextRequest) {
         totalCount: count,
         counts,
       },
-      { headers: { 'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=60' } },
+      {
+        headers: {
+          'Cache-Control': isAdminRequest
+            ? 'private, no-store'
+            : 'public, s-maxage=10, stale-while-revalidate=60',
+        },
+      },
     );
   } catch (err) {
     console.error('Poll error:', err);

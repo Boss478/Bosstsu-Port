@@ -9,6 +9,10 @@ vi.mock('@/lib/rate-limit', () => ({
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
 }));
 
+vi.mock('@/lib/auth', () => ({
+  verifyAuth: vi.fn().mockResolvedValue(true),
+}));
+
 describe('/api/tools/poll', () => {
   beforeAll(async () => {
     await connectTestDb();
@@ -21,6 +25,8 @@ describe('/api/tools/poll', () => {
   beforeEach(async () => {
     await clearAllCollections();
     vi.clearAllMocks();
+    const auth = await import('@/lib/auth');
+    (auth.verifyAuth as ReturnType<typeof vi.fn>).mockResolvedValue(true);
   });
 
   describe('GET', () => {
@@ -164,6 +170,59 @@ describe('/api/tools/poll', () => {
       );
       expect(mine.isOwn).toBe(true);
       expect(theirs.isOwn).toBe(false);
+    });
+
+    it('clamps public requests to the default cap', async () => {
+      const session = await seedSession({ sessionCode: 'POLL7' });
+      const sid = session._id.toString();
+
+      await seedResponse({
+        sessionId: sid,
+        content: { selectedOption: 'A' },
+        studentToken: 't1',
+      });
+
+      const req = createGetRequest('/api/tools/poll', {
+        searchParams: { sessionId: sid, limit: '10' },
+      });
+      const res = await GET(req);
+      const data = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(data.responses).toHaveLength(1);
+    });
+
+    it('requires auth for admin limit above the public cap', async () => {
+      const auth = await import('@/lib/auth');
+      (auth.verifyAuth as ReturnType<typeof vi.fn>).mockResolvedValue(false);
+      const req = createGetRequest('/api/tools/poll', {
+        searchParams: { sessionId: '507f1f77bcf86cd799439011', limit: '2000' },
+      });
+      const res = await GET(req);
+      expect(res.status).toBe(401);
+    });
+
+    it('returns full response list for authenticated admin limit', async () => {
+      const session = await seedSession({ sessionCode: 'POLL8' });
+      const sid = session._id.toString();
+
+      for (let i = 0; i < 55; i++) {
+        await seedResponse({
+          sessionId: sid,
+          content: { selectedOption: `O${i % 4}` },
+          studentToken: `tok${i}`,
+        });
+      }
+
+      const req = createGetRequest('/api/tools/poll', {
+        searchParams: { sessionId: sid, limit: '2000' },
+      });
+      const res = await GET(req);
+      const data = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(data.responses).toHaveLength(55);
+      expect(res.headers.get('cache-control')).toContain('no-store');
     });
 
     it('includes cache headers', async () => {

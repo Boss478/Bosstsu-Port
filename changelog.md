@@ -3,6 +3,13 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.10.81 (2026-08-02)
+* **Classroom Tools — admin results + cleanup batch**:
+  + * **Admin full results**: poll API supports `limit` above the public cap of 50 — requires admin auth (401 otherwise), capped at 2000, `no-store` cache. ResultsView/ResultsFullPage fetch the complete list (big classes no longer truncate at 50 for grading).
+  + * **Focus tracking moved to its own collection**: new `ToolFocusEntry` model (sessionId + submittedAt indexed). Session docs no longer grow on focus posts (existing `session.focusData` untouched — no migration).
+  + * **Privacy**: fallback step polling sends `student-token` as a header instead of the URL query string (logs); SSE EventSource still uses the query param (platform limitation).
+  + * **Lint debt**: dead `makeV2Save` helper + unused import removed from alphabet-adventure tests.
+
 ## v1.10.80 (2026-08-02)
 * **Classroom Tools — security, correctness & performance pass** (from 3-agent review):
   + * **Security**: poll GET no longer leaks `studentToken`/`editToken`/`ip` (server computes `isOwn` flag instead); participants route now requires admin auth + `no-store`; Q&A votes rate-limited + restricted to active `qa_board` sessions; focus route validates session, caps userAgent/entries, keeps only last 20 snapshots (`$slice`).
