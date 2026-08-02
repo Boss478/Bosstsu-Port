@@ -7,6 +7,8 @@ import { useAudio } from '@/hooks/useAudio';
 import { safeGetString, safeSetString, safeRemove } from '@/lib/storage';
 import { useGameActions, type SubStageResult } from './hooks/useGameActions';
 import { loadMapSave, saveMapSave } from './migrateMapSave';
+import { recordLogoTap, recordPerfect, touchPlayDate } from './achievements';
+import type { LetterTracker } from './types';
 import GameScreen from './screens/GameScreen';
 import MenuScreen from './screens/MenuScreen';
 import VictoryScreen from './screens/VictoryScreen';
@@ -22,6 +24,62 @@ import OnboardingOverlay from './screens/OnboardingOverlay';
 
 interface Props {
   beta?: boolean;
+}
+
+function mergeLetterTracker(
+  prev: Record<string, LetterTracker>,
+  session: Record<string, LetterTracker>,
+): Record<string, LetterTracker> {
+  const merged = { ...prev };
+  for (const [letter, stats] of Object.entries(session)) {
+    const existing = merged[letter];
+    merged[letter] = {
+      correct: Math.max(stats.correct, existing?.correct ?? 0),
+      total: Math.max(stats.total, existing?.total ?? 0),
+    };
+  }
+  return merged;
+}
+
+function buildNextMap(
+  prev: MapSaveData,
+  result: SubStageResult,
+  stageIdx: number,
+  subIdx: number,
+): MapSaveData {
+  const stages = [...prev.stages];
+  if (stageIdx < 0 || stageIdx >= stages.length) return prev;
+
+  const subStages = [...stages[stageIdx].subStages];
+  const sub = { ...subStages[subIdx] };
+  if (!sub.completed || result.stars > sub.stars) {
+    sub.completed = true;
+    sub.stars = Math.max(sub.stars, result.stars);
+    sub.bestScore = Math.max(sub.bestScore, result.score);
+  }
+  subStages[subIdx] = sub;
+
+  const allDone = subStages.every((s) => s.completed);
+
+  stages[stageIdx] = {
+    ...stages[stageIdx],
+    subStages,
+    completed: allDone,
+  };
+
+  if (allDone && stageIdx < stages.length - 1) {
+    stages[stageIdx + 1] = {
+      ...stages[stageIdx + 1],
+      unlocked: true,
+    };
+  }
+
+  return {
+    ...prev,
+    totalScore: prev.totalScore + result.score,
+    stages,
+    letterTracker: mergeLetterTracker(prev.letterTracker, result.letterTracker),
+  };
 }
 
 export default function AlphabetAdventureClient({ beta = false }: Props) {
@@ -72,6 +130,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
   const achievedRef = useRef<Set<string>>(new Set());
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onboardingTypeRef = useRef<string>('');
+  const sweepRef = useRef(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const { speak, muted, toggleMute, playSequence, voiceURI, setVoiceURI } = useAudio();
@@ -97,6 +156,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
       checkTyping,
       handleSelectCell,
       handleTypingInput,
+      runAchievementCheck,
     },
   } = useGameActions();
 
@@ -109,6 +169,10 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
     const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', handleFsChange);
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
+  useEffect(() => {
+    touchPlayDate();
   }, []);
 
   useEffect(() => {
@@ -152,81 +216,40 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
     [setVoiceURI],
   );
 
-  const updateMapSave = useCallback((updater: (prev: MapSaveData) => MapSaveData) => {
-    setMapData((prev) => {
-      const next = updater(prev);
-      saveMapSave(next);
-      return next;
-    });
-  }, []);
-
   const handleSubStageComplete = useCallback(
     (result: SubStageResult) => {
-      updateMapSave((prev) => {
-        const stages = [...prev.stages];
-        const stageIdx = stageIdRef.current - 1;
-        if (stageIdx < 0 || stageIdx >= stages.length) return prev;
-
-        const subStages = [...stages[stageIdx].subStages];
-        const sub = { ...subStages[subIdxRef.current] };
-        if (!sub.completed || result.stars > sub.stars) {
-          sub.completed = true;
-          sub.stars = Math.max(sub.stars, result.stars);
-          sub.bestScore = Math.max(sub.bestScore, result.score);
-        }
-        subStages[subIdxRef.current] = sub;
-
-        const allDone = subStages.every((s) => s.completed);
-
-        stages[stageIdx] = {
-          ...stages[stageIdx],
-          subStages,
-          completed: allDone,
-        };
-
-        if (allDone && stageIdx < stages.length - 1) {
-          stages[stageIdx + 1] = {
-            ...stages[stageIdx + 1],
-            unlocked: true,
-          };
-        }
-
-        const mergedTracker = { ...prev.letterTracker };
-        for (const [letter, stats] of Object.entries(result.letterTracker)) {
-          const existing = mergedTracker[letter];
-          mergedTracker[letter] = {
-            correct: Math.max(stats.correct, existing?.correct ?? 0),
-            total: Math.max(stats.total, existing?.total ?? 0),
-          };
-        }
-
-        return {
-          ...prev,
-          totalScore: prev.totalScore + result.score,
-          stages,
-          letterTracker: mergedTracker,
-        };
-      });
+      const next = buildNextMap(loadMapSave(), result, stageIdRef.current - 1, subIdxRef.current);
+      saveMapSave(next);
+      setMapData(next);
 
       setLastStars(result.stars);
       setLastSessionStats(result.sessionLetterStats);
       setLastBestStreak(result.bestStreak);
       setLastAccuracy(result.total > 0 ? Math.round((result.correct / result.total) * 100) : 0);
 
+      const accuracy = result.total > 0 ? Math.round((result.correct / result.total) * 100) : 0;
+      if (accuracy === 100) recordPerfect();
+
       subStageResultsRef.current[subIdxRef.current] = {
         name: result.subStageName ?? '',
         stars: result.stars,
-        accuracy: result.total > 0 ? Math.round((result.correct / result.total) * 100) : 0,
+        accuracy,
         sessionLetterStats: result.sessionLetterStats,
       };
 
       if (subIdxRef.current === 4) {
+        const keys = Object.keys(subStageResultsRef.current);
+        if (keys.length === 5 && keys.every((k) => Number(k) >= 0 && Number(k) <= 4)) {
+          sweepRef.current = true;
+        }
         setSubStageSummaries(Object.values(subStageResultsRef.current));
       }
 
+      runAchievementCheck({ singleSessionSweep: sweepRef.current });
+
       setScreen('victory');
     },
-    [updateMapSave],
+    [runAchievementCheck],
   );
 
   const handleSelectStage = useCallback((stageId: number) => {
@@ -235,6 +258,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
       setSelectedStage(stage);
       subStageResultsRef.current = {};
       setSubStageSummaries([]);
+      sweepRef.current = false;
       setScreen('stage-map');
     }
   }, []);
@@ -290,15 +314,28 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
     (letters: string[]) => {
       setPracticeLetters(letters);
       startPracticeSession(letters, (result) => {
+        const prev = loadMapSave();
+        const next: MapSaveData = {
+          ...prev,
+          letterTracker: mergeLetterTracker(prev.letterTracker, result.letterTracker),
+        };
+        saveMapSave(next);
+        setMapData(next);
+
+        const accuracy = result.total > 0 ? Math.round((result.correct / result.total) * 100) : 0;
+        if (accuracy === 100) recordPerfect();
+
+        runAchievementCheck({ singleSessionSweep: false });
+
         setLastStars(result.stars);
         setLastSessionStats(result.sessionLetterStats);
         setLastBestStreak(result.bestStreak);
-        setLastAccuracy(result.total > 0 ? Math.round((result.correct / result.total) * 100) : 0);
+        setLastAccuracy(accuracy);
         setScreen('victory');
       });
       setScreen('game');
     },
-    [startPracticeSession],
+    [startPracticeSession, runAchievementCheck],
   );
 
   const handleBackToMap = useCallback(() => {
@@ -393,6 +430,10 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
             onShowAnalysis={() => handleShowAnalysis('menu')}
             onShowExplorer={() => setScreen('letter-explorer')}
             onShowAchievements={() => setScreen('achievements')}
+            onLogoTap={() => {
+              recordLogoTap();
+              runAchievementCheck();
+            }}
             voiceURI={voiceURI}
             onVoiceChange={handleVoiceChange}
           />

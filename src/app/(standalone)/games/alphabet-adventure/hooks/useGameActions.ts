@@ -40,7 +40,12 @@ import {
 } from '../constants';
 import { loadMapSave } from '../migrateMapSave';
 import { playCardSfx, playSingleCorrect, playWrong } from '../sfx';
-import { checkAndAward, type Achievement, type AchievementContext } from '../achievements';
+import {
+  checkAndAward,
+  getPlayStats,
+  type Achievement,
+  type AchievementContext,
+} from '../achievements';
 
 const CHECKPOINT_KEY = 'alphabet-adventure-checkpoint';
 
@@ -108,17 +113,65 @@ export function useGameActions() {
   const dropStreakRef = useRef(0);
   const streakToastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cardRevealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wrongsInSubStageRef = useRef(0);
+  const subStageStartRef = useRef(0);
+  const lastAnswerTimeRef = useRef(0);
+  const fastAnswerRef = useRef(0);
+  const comebackArmedRef = useRef(false);
+  const revisitRef = useRef(false);
+  const cardsInSubStageRef = useRef(0);
+  const consecutiveWrongsRef = useRef(0);
+  const maxConsecutiveWrongsRef = useRef(0);
+  const consecutiveDropsRef = useRef(0);
+  const noDropStreakRef = useRef(0);
+  const firstAnswerRef = useRef(true);
+  const firstAnswerDroppedRef = useRef(false);
+  const completionCtxRef = useRef<Partial<AchievementContext> | null>(null);
   const cardDroppedRef = useRef(false);
   const revealPendingRef = useRef(false);
   const pendingCompleteRef = useRef<SubStageResult | null>(null);
 
-  const runAchievementCheck = useCallback(() => {
-    const ctx: AchievementContext = {
-      cardCount: loadCollection().cards.length,
-      currentStreak: stateRef.current.currentStreak,
-      stagesCompleted: loadMapSave().stages.filter((s) => s.completed).length,
-      totalScore: loadMapSave().totalScore,
+  const runAchievementCheck = useCallback((extra?: Partial<AchievementContext>) => {
+    const collection = loadCollection();
+    const map = loadMapSave();
+    const tierCounts: Record<CardTier, number> = {
+      common: 0,
+      uncommon: 0,
+      rare: 0,
+      'ultra-rare': 0,
+      legendary: 0,
     };
+    const lettersByTier: Record<string, Set<CardTier>> = {};
+    for (const card of collection.cards) {
+      tierCounts[card.tier]++;
+      (lettersByTier[card.letter] ??= new Set()).add(card.tier);
+    }
+    const stats = getPlayStats();
+    const ctx: AchievementContext = {
+      cardCount: collection.cards.length,
+      tierCounts,
+      letterFull: Object.values(lettersByTier).some((tiers) => tiers.size === 5),
+      currentStreak: stateRef.current.currentStreak,
+      bestStreak: stateRef.current.bestStreak,
+      stagesCompleted: map.stages.filter((s) => s.completed).length,
+      subStagesCompleted: map.stages.reduce(
+        (n, s) => n + s.subStages.filter((ss) => ss.completed).length,
+        0,
+      ),
+      starCount: map.stages.reduce((n, s) => n + s.subStages.reduce((m, ss) => m + ss.stars, 0), 0),
+      totalScore: map.totalScore,
+      letterTracker: { ...letterTrackerRef.current },
+      dropPower: dropPowerRef.current,
+      logoTaps: stats.logoTaps,
+      consecutiveDrops: consecutiveDropsRef.current,
+      noDropStreak: noDropStreakRef.current,
+      earlyBird: firstAnswerDroppedRef.current,
+      quickFastStreak: fastAnswerRef.current,
+      rebuiltStreak: stateRef.current.currentStreak >= 10 && comebackArmedRef.current,
+      ...(completionCtxRef.current ?? {}),
+      ...extra,
+    };
+    completionCtxRef.current = null;
     const unlocked = checkAndAward(ctx);
     if (unlocked.length > 0) {
       setNewAchievements((prev) => [...prev, ...unlocked]);
@@ -264,6 +317,17 @@ export function useGameActions() {
       dropStreakRef.current = 0;
       setDropStreak(0);
       sessionLetterStatsRef.current = {};
+      wrongsInSubStageRef.current = 0;
+      subStageStartRef.current = Date.now();
+      lastAnswerTimeRef.current = 0;
+      fastAnswerRef.current = 0;
+      comebackArmedRef.current = false;
+      cardsInSubStageRef.current = 0;
+      consecutiveWrongsRef.current = 0;
+      maxConsecutiveWrongsRef.current = 0;
+      firstAnswerRef.current = true;
+      firstAnswerDroppedRef.current = false;
+      revisitRef.current = loadMapSave().stages[stageId - 1]?.subStages[subId]?.completed ?? false;
       if (initialTracker && Object.keys(letterTrackerRef.current).length === 0) {
         letterTrackerRef.current = { ...initialTracker };
       }
@@ -307,6 +371,17 @@ export function useGameActions() {
       dropStreakRef.current = 0;
       setDropStreak(0);
       sessionLetterStatsRef.current = {};
+      wrongsInSubStageRef.current = 0;
+      subStageStartRef.current = Date.now();
+      lastAnswerTimeRef.current = 0;
+      fastAnswerRef.current = 0;
+      comebackArmedRef.current = false;
+      cardsInSubStageRef.current = 0;
+      consecutiveWrongsRef.current = 0;
+      maxConsecutiveWrongsRef.current = 0;
+      firstAnswerRef.current = true;
+      firstAnswerDroppedRef.current = false;
+      revisitRef.current = false;
     },
     [generateRound],
   );
@@ -319,6 +394,10 @@ export function useGameActions() {
       const newPower = Math.min(10, dropPowerRef.current + 1);
       dropPowerRef.current = newPower;
       setDropPower(newPower);
+      cardsInSubStageRef.current += 1;
+      consecutiveDropsRef.current += 1;
+      noDropStreakRef.current = 0;
+      if (firstAnswerRef.current) firstAnswerDroppedRef.current = true;
       const collection = loadCollection();
       collection.dropPower = newPower;
       saveCollection(collection);
@@ -344,6 +423,22 @@ export function useGameActions() {
 
       const accuracy = total > 0 ? (correct / total) * 100 : 0;
       const stars = calcStars(accuracy);
+
+      completionCtxRef.current = {
+        accuracyPercent: accuracy,
+        lessonSeconds:
+          subStageStartRef.current > 0 ? (Date.now() - subStageStartRef.current) / 1000 : undefined,
+        easyModeOff: !stateRef.current.easyMode,
+        lessonPerfect: accuracy >= 100,
+        isPractice: sub.id === 0,
+        cardsInSubStage: cardsInSubStageRef.current,
+        quickFastStreak: fastAnswerRef.current,
+        rebuiltStreak: stateRef.current.currentStreak >= 10 && comebackArmedRef.current,
+        maxConsecutiveWrongs: maxConsecutiveWrongsRef.current,
+        perfectMan: (sub.letterPool?.length ?? 0) === 26 && wrongsInSubStageRef.current === 0,
+        jackpot: winTier === 'legendary' && sub.id !== 0,
+        firstTry: stars === 3 && !revisitRef.current,
+      };
 
       const result: SubStageResult = {
         score,
@@ -425,7 +520,20 @@ export function useGameActions() {
 
         if (!cardDropped) {
           playSingleCorrect();
+          consecutiveDropsRef.current = 0;
+          noDropStreakRef.current += 1;
         }
+
+        const answerNow = Date.now();
+        if (firstAnswerRef.current) firstAnswerRef.current = false;
+        consecutiveWrongsRef.current = 0;
+        const isFirstTry = stateRef.current.wrongAttempts === 0;
+        fastAnswerRef.current =
+          isFirstTry &&
+          (lastAnswerTimeRef.current === 0 || answerNow - lastAnswerTimeRef.current < 3000)
+            ? fastAnswerRef.current + 1
+            : 0;
+        lastAnswerTimeRef.current = answerNow;
 
         trackCustomEvent('game_correct', {
           game: 'alphabet-adventure',
@@ -520,6 +628,18 @@ export function useGameActions() {
         dropStreakRef.current = 0;
         setDropStreak(0);
         setStreakToast('');
+        wrongsInSubStageRef.current += 1;
+        if (firstAnswerRef.current) firstAnswerRef.current = false;
+        consecutiveWrongsRef.current += 1;
+        maxConsecutiveWrongsRef.current = Math.max(
+          maxConsecutiveWrongsRef.current,
+          consecutiveWrongsRef.current,
+        );
+        fastAnswerRef.current = 0;
+        comebackArmedRef.current = true;
+        consecutiveDropsRef.current = 0;
+        noDropStreakRef.current = 0;
+        lastAnswerTimeRef.current = Date.now();
         if (cardRevealTimerRef.current) {
           clearTimeout(cardRevealTimerRef.current);
           cardRevealTimerRef.current = null;
@@ -614,6 +734,15 @@ export function useGameActions() {
 
     if (allCorrect) {
       playSingleCorrect();
+      const answerNow = Date.now();
+      consecutiveWrongsRef.current = 0;
+      const isFirstTry = stateRef.current.wrongAttempts === 0;
+      fastAnswerRef.current =
+        isFirstTry &&
+        (lastAnswerTimeRef.current === 0 || answerNow - lastAnswerTimeRef.current < 3000)
+          ? fastAnswerRef.current + 1
+          : 0;
+      lastAnswerTimeRef.current = answerNow;
       trackCustomEvent('game_correct', {
         game: 'alphabet-adventure',
         stageId: currentStageId,
@@ -681,6 +810,21 @@ export function useGameActions() {
       }
     } else {
       cardDroppedRef.current = false;
+      const wrongCellCount = newGrid.filter((g) => g.isWrong).length;
+      if (wrongCellCount > 0) {
+        wrongsInSubStageRef.current += wrongCellCount;
+        if (firstAnswerRef.current) firstAnswerRef.current = false;
+        consecutiveWrongsRef.current += wrongCellCount;
+        maxConsecutiveWrongsRef.current = Math.max(
+          maxConsecutiveWrongsRef.current,
+          consecutiveWrongsRef.current,
+        );
+        fastAnswerRef.current = 0;
+        comebackArmedRef.current = true;
+        consecutiveDropsRef.current = 0;
+        noDropStreakRef.current = 0;
+        lastAnswerTimeRef.current = Date.now();
+      }
       dropStreakRef.current = 0;
       setDropStreak(0);
       setStreakToast('');
@@ -825,6 +969,7 @@ export function useGameActions() {
     checkTyping,
     handleSelectCell,
     handleTypingInput,
+    runAchievementCheck,
   };
 
   const ids = {

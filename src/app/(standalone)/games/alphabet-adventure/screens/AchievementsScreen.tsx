@@ -15,6 +15,7 @@ const TIER_COLORS: Record<string, string> = {
   silver: 'border-zinc-400 bg-zinc-50 dark:bg-zinc-800',
   gold: 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/10',
   platinum: 'border-cyan-400 bg-cyan-50 dark:bg-cyan-900/10',
+  secret: 'border-violet-500 bg-violet-50 dark:bg-violet-900/10',
 };
 
 const TIER_LABELS: Record<string, string> = {
@@ -22,6 +23,7 @@ const TIER_LABELS: Record<string, string> = {
   silver: '🥈 Silver',
   gold: '🥇 Gold',
   platinum: '💎 Platinum',
+  secret: '🕵️ Secret',
 };
 
 export default function AchievementsScreen({ onBack }: Props) {
@@ -36,7 +38,7 @@ export default function AchievementsScreen({ onBack }: Props) {
       (acc[a.tier] ??= []).push(a);
       return acc;
     },
-    { bronze: [], silver: [], gold: [], platinum: [] },
+    { secret: [], bronze: [], silver: [], gold: [], platinum: [] },
   );
 
   const unlockedCount = ACHIEVEMENTS.filter((a) => state[a.id]?.unlocked).length;
@@ -59,8 +61,10 @@ export default function AchievementsScreen({ onBack }: Props) {
         </div>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-4">
-          {(['platinum', 'gold', 'silver', 'bronze'] as const).map((tier) => {
-            const items = grouped[tier];
+          {(['secret', 'platinum', 'gold', 'silver', 'bronze'] as const).map((tier) => {
+            const allItems = grouped[tier];
+            const items =
+              tier === 'secret' ? allItems.filter((a) => state[a.id]?.unlocked) : allItems;
             if (items.length === 0) return null;
             return (
               <div key={tier}>

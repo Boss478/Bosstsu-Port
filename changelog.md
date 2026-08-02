@@ -5,6 +5,16 @@
 
 
 
+## v1.10.79 (2026-08-02)
++ * **Alphabet Adventure — Achievements expansion 20 → 60**:
+  + * **40 new achievements**: collection & tier sets (letter_full gold, tier_common/uncommon/rare/ultra/legendary bronze→platinum), rarity hunting (first_rare/ultra/legendary, rare_10 silver, legendary_3), drop-economy chase (power_10, double_drop), mastery & speed (accuracy_90, alphabet_scholar platinum, perfect_3x, speed_lesson, quick_five), progression (star_30/60, map_perfect platinum — 90 stars, revisit), streaks (streak_30/50 platinum, comeback, no_trainer), persistence (days_3/7), stage_sweep (single-session), **score_2000 "Score Supreme"** (platinum), **+9 hidden easter eggs**.
+  + * **New `secret` tier (🕵️)**: violet-styled section at the TOP of the Achievements screen — invisible until the first egg unlocks, then shows only unlocked eggs. 10 secret eggs total (tap menu logo 10×, 13-streak, 2 consecutive drops, 100% on All Letters, 9 consecutive wrongs then finish, 10 no-drop corrects, drop on first answer, legendary win-roll, 3+ cards in a sub-stage, 3-star first completion).
+  + * **4 dead achievements fixed** (unlockable since v1.10.75, never wired): `perfect_lesson`, `perfect_stage`, `first_practice`, `vowel_master` — `runAchievementCheck` now passes the full context (letterTracker, completion ctx).
+  + * **Completion-check ordering fix**: map save is now written synchronously (pure `buildNextMap`) before the achievement check — completion/stage/star achievements fire on the run they're earned, not one check late. Practice letterTracker now merges into the map save (answers persisted across reloads).
+  + * **Tier retunes**: card_50→gold, streak_5→silver, streak_10→gold, streak_20→platinum, perfect_stage→platinum, rare_10→silver, streak_30→platinum, days_7→bronze.
+  + * **23 new unit tests** (167 total in the file) pinning awards, retuned tiers, secret entries, persistence/idempotency — `tests/unit/alphabet-adventure.test.ts`.
+  + * Plan: `.agents/plans/alphabet-adventure-achievements-v2.md` (user-decided list via review passes).
+
 ## v1.10.78 (2026-08-02)
 + * **Alphabet Adventure — drop economy rebalanced to the 95-slot set (B2a, sim-validated)**:
   + * `CARD_DROP_RATES` (per-correct): none 93→82 → **95→88**, common 3→6 → **2.2→4.4**, uncommon 2→4.5 → **1.4→3.2** (`constants.ts`).

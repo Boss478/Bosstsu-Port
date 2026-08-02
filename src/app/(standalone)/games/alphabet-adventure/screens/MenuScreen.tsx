@@ -17,6 +17,7 @@ interface Props {
   onShowAnalysis?: () => void;
   onShowExplorer?: () => void;
   onShowAchievements?: () => void;
+  onLogoTap?: () => void;
   voiceURI?: string;
   onVoiceChange?: (uri: string) => void;
 }
@@ -39,6 +40,7 @@ export default function MenuScreen({
   onShowAnalysis,
   onShowExplorer,
   onShowAchievements,
+  onLogoTap,
   voiceURI,
   onVoiceChange,
 }: Props) {
@@ -84,7 +86,10 @@ export default function MenuScreen({
 
       {/* ── Title ──────────────────────────────────────────────────────── */}
       <div className="space-y-1 pt-2">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-violet-600 dark:text-violet-400">
+        <h1
+          onClick={onLogoTap}
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-violet-600 dark:text-violet-400 select-none"
+        >
           Alphabet Adventure
         </h1>
         <p className="text-sm sm:text-base md:text-lg lg:text-xl text-violet-700/70 dark:text-violet-400/70 font-bold leading-relaxed">

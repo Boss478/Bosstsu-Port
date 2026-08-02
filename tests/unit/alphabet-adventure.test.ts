@@ -34,6 +34,12 @@ import {
   TIER_ORDER,
   TIER_LABELS,
 } from '@/app/(standalone)/games/alphabet-adventure/cards/cards';
+import type { CardTier } from '@/app/(standalone)/games/alphabet-adventure/cards/cards';
+import {
+  checkAndAward,
+  ACHIEVEMENTS,
+  touchPlayDate,
+} from '@/app/(standalone)/games/alphabet-adventure/achievements';
 import { masteryLevel } from '@/app/(standalone)/games/alphabet-adventure/screens/LetterProgressGrid';
 import { KEYBOARD_ROWS } from '@/app/(standalone)/games/alphabet-adventure/screens/TypingLevel';
 import { emptyMapSaveData } from '@/app/(standalone)/games/alphabet-adventure/types';
@@ -1198,5 +1204,247 @@ describe('sfx module', () => {
   it('exports playWrong as a function', async () => {
     const mod = await import('@/app/(standalone)/games/alphabet-adventure/sfx');
     expect(typeof mod.playWrong).toBe('function');
+  });
+});
+
+// ─── achievements: checkAndAward ──────────────────────────────────────────────────
+
+describe('achievements checkAndAward', () => {
+  const memoryStore = new Map<string, string>();
+  const fakeWindow = {
+    localStorage: {
+      getItem: (k: string) => memoryStore.get(k) ?? null,
+      setItem: (k: string, v: string) => {
+        memoryStore.set(k, v);
+      },
+      removeItem: (k: string) => {
+        memoryStore.delete(k);
+      },
+    },
+  };
+
+  const { checkAndAward: checkAward, ACHIEVEMENTS: allAchievements } = {} as never;
+  void checkAward;
+  void allAchievements;
+
+  const fullTierCounts = (): Record<CardTier, number> => ({
+    common: 21,
+    uncommon: 21,
+    rare: 19,
+    'ultra-rare': 17,
+    legendary: 17,
+  });
+
+  const awardedIds = (ctx: Record<string, unknown>) => {
+    memoryStore.delete('alphabet-adventure-achievements');
+    return checkAndAward(ctx as Parameters<typeof checkAndAward>[0]).map((a) => a.id);
+  };
+
+  beforeEach(() => {
+    memoryStore.clear();
+    vi.stubGlobal('window', fakeWindow);
+    vi.stubGlobal('localStorage', fakeWindow.localStorage);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('has 60 achievements total', () => {
+    expect(ACHIEVEMENTS.length).toBe(60);
+  });
+
+  it('has exactly 10 secret-tier entries', () => {
+    const secrets = ACHIEVEMENTS.filter((a) => a.tier === 'secret');
+    expect(secrets.length).toBe(10);
+    const ids = secrets.map((a) => a.id).sort();
+    expect(ids).toEqual(
+      [
+        'secret_logo',
+        'lucky_13',
+        'hot_hand',
+        'perfect_man',
+        'tough_cookie',
+        'patient_one',
+        'early_bird',
+        'jackpot',
+        'card_party',
+        'first_try',
+      ].sort(),
+    );
+  });
+
+  it('retuned tiers are applied (card_50 gold, streak ladder, perfect_stage platinum)', () => {
+    const byId = Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, a]));
+    expect(byId.card_50.tier).toBe('gold');
+    expect(byId.streak_5.tier).toBe('silver');
+    expect(byId.streak_10.tier).toBe('gold');
+    expect(byId.streak_20.tier).toBe('platinum');
+    expect(byId.streak_30.tier).toBe('platinum');
+    expect(byId.streak_50.tier).toBe('platinum');
+    expect(byId.perfect_stage.tier).toBe('platinum');
+    expect(byId.rare_10.tier).toBe('silver');
+    expect(byId.days_7.tier).toBe('bronze');
+  });
+
+  it('awards the full card ladder at 95 cards', () => {
+    const ids = awardedIds({ cardCount: 95 });
+    expect(ids).toEqual(
+      expect.arrayContaining(['first_card', 'card_10', 'card_25', 'card_50', 'card_65', 'card_95']),
+    );
+  });
+
+  it('awards streak milestones and lucky_13 at the right thresholds', () => {
+    expect(awardedIds({ currentStreak: 13 })).toEqual(
+      expect.arrayContaining(['streak_3', 'streak_5', 'streak_10', 'lucky_13']),
+    );
+    expect(awardedIds({ currentStreak: 13 })).not.toContain('streak_20');
+    expect(awardedIds({ currentStreak: 30 })).toContain('streak_30');
+    expect(awardedIds({ currentStreak: 50 })).toContain('streak_50');
+  });
+
+  it('awards score_2000 at 2000 total score', () => {
+    expect(awardedIds({ totalScore: 2000 })).toContain('score_2000');
+    expect(awardedIds({ totalScore: 1999 })).not.toContain('score_2000');
+  });
+
+  it('awards all tier completions only at full tier counts', () => {
+    const full = awardedIds({ tierCounts: fullTierCounts() });
+    expect(full).toEqual(
+      expect.arrayContaining([
+        'tier_common',
+        'tier_uncommon',
+        'tier_rare',
+        'tier_ultra',
+        'tier_legendary',
+      ]),
+    );
+    const partial = awardedIds({
+      tierCounts: { common: 21, uncommon: 0, rare: 0, 'ultra-rare': 0, legendary: 0 },
+    });
+    expect(partial).toContain('tier_common');
+    expect(partial).not.toContain('tier_rare');
+  });
+
+  it('awards rarity firsts from tier counts', () => {
+    const ids = awardedIds({
+      tierCounts: { common: 0, uncommon: 0, rare: 1, 'ultra-rare': 1, legendary: 1 },
+    });
+    expect(ids).toEqual(expect.arrayContaining(['first_rare', 'first_ultra', 'first_legendary']));
+  });
+
+  it('awards rare_10 at 10 distinct rare+ and legendary_3 at 3 legends', () => {
+    const ten = awardedIds({
+      tierCounts: { common: 0, uncommon: 0, rare: 4, 'ultra-rare': 4, legendary: 2 },
+    });
+    expect(ten).toContain('rare_10');
+    const three = awardedIds({
+      tierCounts: { common: 0, uncommon: 0, rare: 0, 'ultra-rare': 0, legendary: 3 },
+    });
+    expect(three).toContain('legendary_3');
+  });
+
+  it('awards letter_full when one letter owns all 5 tiers', () => {
+    expect(awardedIds({ letterFull: true })).toContain('letter_full');
+    expect(awardedIds({ letterFull: false })).not.toContain('letter_full');
+  });
+
+  it('awards power_10 at max drop power and double/card_party at 2/3 cards', () => {
+    expect(awardedIds({ dropPower: 10 })).toContain('power_10');
+    expect(awardedIds({ cardsInSubStage: 2 })).toContain('double_drop');
+    const three = awardedIds({ cardsInSubStage: 3 });
+    expect(three).toEqual(expect.arrayContaining(['double_drop', 'card_party']));
+  });
+
+  it('awards accuracy_90 at 90% and speed_lesson under 30s', () => {
+    expect(awardedIds({ accuracyPercent: 90 })).toContain('accuracy_90');
+    expect(awardedIds({ accuracyPercent: 89 })).not.toContain('accuracy_90');
+    expect(awardedIds({ lessonSeconds: 29.9 })).toContain('speed_lesson');
+    expect(awardedIds({ lessonSeconds: 30 })).not.toContain('speed_lesson');
+  });
+
+  it('awards quick_five at 5 consecutive fast first-tries', () => {
+    expect(awardedIds({ quickFastStreak: 5 })).toContain('quick_five');
+    expect(awardedIds({ quickFastStreak: 4 })).not.toContain('quick_five');
+  });
+
+  it('wires the previously-dead achievements (lessonPerfect/stagePerfect/isPractice/letterTracker)', () => {
+    expect(awardedIds({ lessonPerfect: true })).toContain('perfect_lesson');
+    expect(awardedIds({ stagePerfect: true })).toContain('perfect_stage');
+    expect(awardedIds({ isPractice: true })).toContain('first_practice');
+    const vowelTracker = Object.fromEntries(
+      ['A', 'E', 'I', 'O', 'U'].map((l) => [l, { correct: 8, total: 10 }]),
+    );
+    expect(awardedIds({ letterTracker: vowelTracker })).toContain('vowel_master');
+  });
+
+  it('awards alphabet_scholar only when all 26 letters are 80%+ with 5+ answers', () => {
+    const scholarTracker = Object.fromEntries(
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((l) => [l, { correct: 8, total: 10 }]),
+    );
+    expect(awardedIds({ letterTracker: scholarTracker })).toContain('alphabet_scholar');
+    const shortTracker = { ...scholarTracker, Z: { correct: 3, total: 10 } };
+    expect(awardedIds({ letterTracker: shortTracker })).not.toContain('alphabet_scholar');
+  });
+
+  it('awards perfect_3x at 3 lifetime perfects', () => {
+    expect(awardedIds({ perfectCount: 3 })).toContain('perfect_3x');
+    expect(awardedIds({ perfectCount: 2 })).not.toContain('perfect_3x');
+  });
+
+  it('awards the star ladder at 30/60/90 stars', () => {
+    expect(awardedIds({ starCount: 30 })).toContain('star_30');
+    expect(awardedIds({ starCount: 60 })).toEqual(expect.arrayContaining(['star_30', 'star_60']));
+    expect(awardedIds({ starCount: 90 })).toEqual(
+      expect.arrayContaining(['star_30', 'star_60', 'map_perfect']),
+    );
+  });
+
+  it('awards stage_sweep (single-session), revisit, comeback, no_trainer', () => {
+    expect(awardedIds({ singleSessionSweep: true })).toContain('stage_sweep');
+    expect(awardedIds({ singleSessionSweep: false })).not.toContain('stage_sweep');
+    expect(awardedIds({ revisit: true })).toContain('revisit');
+    expect(awardedIds({ rebuiltStreak: true })).toContain('comeback');
+    expect(awardedIds({ easyModeOff: true })).toContain('no_trainer');
+    expect(awardedIds({ easyModeOff: false })).not.toContain('no_trainer');
+  });
+
+  it('awards secret_logo at 10 logo taps', () => {
+    expect(awardedIds({ logoTaps: 10 })).toContain('secret_logo');
+    expect(awardedIds({ logoTaps: 9 })).not.toContain('secret_logo');
+  });
+
+  it('awards the play eggs (hot_hand, patient_one, early_bird, perfect_man, tough_cookie, jackpot, first_try)', () => {
+    expect(awardedIds({ consecutiveDrops: 2 })).toContain('hot_hand');
+    expect(awardedIds({ noDropStreak: 10 })).toContain('patient_one');
+    expect(awardedIds({ earlyBird: true })).toContain('early_bird');
+    expect(awardedIds({ perfectMan: true })).toContain('perfect_man');
+    expect(awardedIds({ maxConsecutiveWrongs: 9 })).toContain('tough_cookie');
+    expect(awardedIds({ jackpot: true })).toContain('jackpot');
+    expect(awardedIds({ firstTry: true })).toContain('first_try');
+  });
+
+  it('awards days_3 and days_7 from persisted play stats', () => {
+    memoryStore.set(
+      'alphabet-adventure-play-stats',
+      JSON.stringify({ days: ['a', 'b', 'c'], logoTaps: 0, perfectCount: 0 }),
+    );
+    expect(awardedIds({})).toContain('days_3');
+    memoryStore.set(
+      'alphabet-adventure-play-stats',
+      JSON.stringify({ days: ['a', 'b', 'c', 'd', 'e', 'f', 'g'], logoTaps: 0, perfectCount: 0 }),
+    );
+    expect(awardedIds({})).toContain('days_7');
+  });
+
+  it('does not double-award when achievements are already persisted', () => {
+    checkAndAward({ currentStreak: 10 });
+    expect(checkAndAward({ currentStreak: 10 })).toEqual([]);
+  });
+
+  it('touchPlayDate records today once', () => {
+    touchPlayDate();
+    touchPlayDate();
+    const stats = JSON.parse(memoryStore.get('alphabet-adventure-play-stats') ?? '{}');
+    expect(stats.days.length).toBe(1);
   });
 });
