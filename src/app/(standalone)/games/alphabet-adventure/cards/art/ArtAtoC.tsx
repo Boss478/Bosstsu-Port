@@ -12,9 +12,14 @@ const Apple: FC<IllustrationProps> = ({ size = 48 }) => (
     xmlns="http://www.w3.org/2000/svg"
     className="drop-shadow-lg"
   >
-    <circle cx="50" cy="58" r="30" fill="#ef4444" />
+    <path
+      d="M50 30 Q48 22 42 23 Q38 24 39 29 Q40 33 50 30 Z"
+      fill="#ef4444"
+      stroke="#1c1917"
+      strokeWidth="2.5"
+    />
+    <circle cx="50" cy="58" r="30" fill="#ef4444" stroke="#1c1917" strokeWidth="2.5" />
     <ellipse cx="44" cy="72" rx="18" ry="7" fill="#dc2626" opacity="0.35" />
-    <path d="M50 30 Q48 22 42 23 Q38 24 39 29 Q40 33 50 30 Z" fill="#ef4444" />
     <path
       d="M50 28 Q48 16 42 11"
       stroke="#78350f"
@@ -22,7 +27,13 @@ const Apple: FC<IllustrationProps> = ({ size = 48 }) => (
       fill="none"
       strokeLinecap="round"
     />
-    <path d="M44 12 Q38 4 48 3 Q50 7 44 12" fill="#22c55e" />
+    <path
+      d="M44 12 Q38 4 48 3 Q50 7 44 12"
+      fill="#22c55e"
+      stroke="#1c1917"
+      strokeWidth="2"
+      strokeLinejoin="round"
+    />
     <ellipse cx="39" cy="48" rx="5" ry="9" fill="#fca5a5" opacity="0.4" />
     <ellipse cx="36" cy="42" rx="2.5" ry="4" fill="white" opacity="0.6" />
   </svg>
@@ -37,11 +48,12 @@ const Ant: FC<IllustrationProps> = ({ size = 48 }) => (
     xmlns="http://www.w3.org/2000/svg"
     className="drop-shadow-lg"
   >
-    <circle cx="34" cy="46" r="9" fill="#dc2626" />
-    <ellipse cx="48" cy="52" rx="7" ry="6" fill="#dc2626" />
-    <ellipse cx="64" cy="60" rx="13" ry="12" fill="#dc2626" />
+    <circle cx="34" cy="46" r="9" fill="#dc2626" stroke="#1c1917" strokeWidth="2.5" />
+    <ellipse cx="48" cy="52" rx="7" ry="6" fill="#dc2626" stroke="#1c1917" strokeWidth="2.5" />
+    <ellipse cx="64" cy="60" rx="13" ry="12" fill="#dc2626" stroke="#1c1917" strokeWidth="2.5" />
     <circle cx="37" cy="42" r="3" fill="white" />
     <circle cx="38" cy="41.5" r="1.3" fill="#1c1917" />
+    <circle cx="60" cy="55" r="2" fill="white" opacity="0.6" />
     <path
       d="M27 40 Q23 32 19 30"
       stroke="#dc2626"
@@ -96,30 +108,121 @@ const Axe: FC<IllustrationProps> = ({ size = 48 }) => (
     xmlns="http://www.w3.org/2000/svg"
     className="drop-shadow-lg"
   >
-    <rect x="43" y="20" width="6" height="72" rx="3" fill="#b45309" />
+    <defs>
+      <linearGradient id="axeWood" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#F6AD55" />
+        <stop offset="40%" stopColor="#C05621" />
+        <stop offset="100%" stopColor="#7B341E" />
+      </linearGradient>
+      <linearGradient id="axeMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#94A3B8" />
+        <stop offset="50%" stopColor="#475569" />
+        <stop offset="100%" stopColor="#1E293B" />
+      </linearGradient>
+      <linearGradient id="axeEdge" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#FFFFFF" />
+        <stop offset="45%" stopColor="#CBD5E1" />
+        <stop offset="100%" stopColor="#64748B" />
+      </linearGradient>
+      <linearGradient id="axeLeather" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#9A3412" />
+        <stop offset="100%" stopColor="#431407" />
+      </linearGradient>
+      <linearGradient id="axeBrass" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#FDE047" />
+        <stop offset="50%" stopColor="#CA8A04" />
+        <stop offset="100%" stopColor="#854D0E" />
+      </linearGradient>
+    </defs>
+
+    {/* 1. Wooden handle */}
     <path
-      d="M45 62 L45 88"
-      stroke="#92400e"
-      strokeWidth="1.5"
-      fill="none"
-      strokeLinecap="round"
-      opacity="0.4"
+      d="M 29.6,80.4 C 34,73.6 40,62.4 46.4,50.4 C 52.8,38.4 59.2,25.6 62.4,19.2 C 63.6,16.8 66.4,18.4 65,20.8 C 61.8,26.8 55.2,39.6 48.8,51.6 C 42.4,63.6 36,74.8 31.6,81.6 C 30.2,83.4 28.2,82.2 29.6,80.4 Z"
+      fill="url(#axeWood)"
+      stroke="#1e1b18"
+      strokeWidth="1.4"
+      strokeLinejoin="round"
     />
-    <rect x="41" y="78" width="10" height="4" rx="2" fill="#ef4444" />
-    <rect x="41" y="84" width="10" height="4" rx="2" fill="#ef4444" />
+    {/* Wood grain */}
     <path
-      d="M46 20 L46 58 C42 62 34 58 32 52 C28 46 14 44 14 39 C14 32 24 30 32 26 C36 24 42 24 46 20 Z"
-      fill="#9ca3af"
-    />
-    <path
-      d="M30 27 C22 30 16 35 16 40"
-      stroke="#e5e7eb"
-      strokeWidth="2.5"
-      fill="none"
+      d="M 36,70 C 38.4,65 42,58 44.4,53.6"
+      stroke="#7b341e"
+      strokeWidth="0.6"
       strokeLinecap="round"
+      fill="none"
       opacity="0.7"
     />
-    <ellipse cx="42" cy="38" rx="3" ry="8" fill="#d1d5db" opacity="0.4" />
+    <path
+      d="M 45.6,49 C 49,42 52.4,35 55,30"
+      stroke="#7b341e"
+      strokeWidth="0.6"
+      strokeLinecap="round"
+      fill="none"
+      opacity="0.7"
+    />
+
+    {/* 2. Leather grip wraps */}
+    <g stroke="#1e1b18" strokeWidth="0.8" strokeLinejoin="round">
+      <path d="M 30.8,79.2 Q 34,76.8 35.8,78.8 Q 32.8,81.2 30,80.6 Z" fill="url(#axeLeather)" />
+      <path d="M 33,75.2 Q 36.2,72.8 38,74.8 Q 35,77.2 32.2,76.6 Z" fill="url(#axeLeather)" />
+      <path d="M 35.4,71.2 Q 38.6,68.8 40.4,70.8 Q 37.4,73.2 34.6,72.6 Z" fill="url(#axeLeather)" />
+      <path d="M 37.8,67.2 Q 41,64.8 42.8,66.8 Q 39.8,69.2 37,68.6 Z" fill="url(#axeLeather)" />
+      <path d="M 40.2,63.2 Q 43.4,60.8 45.2,62.8 Q 42.2,65.2 39.4,64.6 Z" fill="url(#axeLeather)" />
+    </g>
+
+    {/* 3. Back poll (hammer side) */}
+    <path
+      d="M 55.2,30.4 L 46.4,34.4 C 44.8,35 43.6,32.8 44.6,31.2 L 50.8,24 C 51.6,22.8 53.4,23 54.4,24.2 Z"
+      fill="url(#axeMetal)"
+      stroke="#1e1b18"
+      strokeWidth="1.4"
+      strokeLinejoin="round"
+    />
+
+    {/* 4. Main blade body */}
+    <path
+      d="M 58.4,24.4 C 65.6,19 71.6,15.6 79,14 C 80.4,13.6 81.2,15 80.6,16.4 C 78.4,23.6 78.4,29.6 76.4,36 L 74.4,36.6 L 75.8,38.4 C 73,43.6 69,47.6 66,50 C 64.8,51 63.2,50 63.6,48.4 C 65,44 61,36.4 56,31.6 Z"
+      fill="url(#axeMetal)"
+      stroke="#1e1b18"
+      strokeWidth="1.4"
+      strokeLinejoin="round"
+    />
+
+    {/* 5. Shiny cutting edge / bevel */}
+    <path
+      d="M 79,14 C 84.4,26 80.4,39 66,50 C 64.8,47 69.6,39 71.6,30 C 73.2,22.4 72,18 79,14 Z"
+      fill="url(#axeEdge)"
+      stroke="#1e1b18"
+      strokeWidth="1"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M 78,16.4 C 81,25.6 77.6,37 68,47"
+      stroke="#FFFFFF"
+      strokeWidth="1"
+      strokeLinecap="round"
+      fill="none"
+      opacity="0.9"
+    />
+
+    {/* 6. Brass collar & rivets */}
+    <path
+      d="M 52.8,33.2 L 56.4,30.8 L 58,33.2 L 54.4,35.6 Z"
+      fill="url(#axeBrass)"
+      stroke="#1e1b18"
+      strokeWidth="0.8"
+      strokeLinejoin="round"
+    />
+    <circle cx="57.2" cy="27.6" r="1" fill="url(#axeBrass)" stroke="#1e1b18" strokeWidth="0.6" />
+    <circle cx="56.8" cy="27.4" r="0.3" fill="#FFFFFF" />
+
+    {/* 7. Sparkle glint on tip */}
+    <path
+      d="M 79,10.4 Q 79,14 82.6,14 Q 79,14 79,17.6 Q 79,14 75.4,14 Q 79,14 79,10.4 Z"
+      fill="#FFFFFF"
+      stroke="#E0F2FE"
+      strokeWidth="0.3"
+    />
   </svg>
 );
 
@@ -280,7 +383,13 @@ const Banana: FC<IllustrationProps> = ({ size = 48 }) => (
     xmlns="http://www.w3.org/2000/svg"
     className="drop-shadow-lg"
   >
-    <path d="M20 76 Q30 34 50 24 Q72 16 88 26 Q64 44 56 52 Q36 66 20 76 Z" fill="#facc15" />
+    <path
+      d="M20 76 Q30 34 50 24 Q72 16 88 26 Q64 44 56 52 Q36 66 20 76 Z"
+      fill="#facc15"
+      stroke="#1c1917"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
     <path d="M88 24 L94 18" stroke="#78350f" strokeWidth="3" fill="none" strokeLinecap="round" />
     <circle cx="88" cy="26" r="3" fill="#78350f" />
     <circle cx="20" cy="76" r="3" fill="#78350f" />
@@ -336,11 +445,23 @@ const Cat: FC<IllustrationProps> = ({ size = 48 }) => (
     xmlns="http://www.w3.org/2000/svg"
     className="drop-shadow-lg"
   >
-    <polygon points="30,40 26,14 48,26" fill="#f97316" />
-    <polygon points="70,40 74,14 52,26" fill="#f97316" />
+    <polygon
+      points="30,40 26,14 48,26"
+      fill="#f97316"
+      stroke="#1c1917"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="70,40 74,14 52,26"
+      fill="#f97316"
+      stroke="#1c1917"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
     <polygon points="32,36 30,20 43,27" fill="#fda4af" />
     <polygon points="68,36 70,20 57,27" fill="#fda4af" />
-    <circle cx="50" cy="55" r="23" fill="#f97316" />
+    <circle cx="50" cy="55" r="23" fill="#f97316" stroke="#1c1917" strokeWidth="2.5" />
     <path
       d="M42 36 Q44 32 42 28"
       stroke="#ea580c"

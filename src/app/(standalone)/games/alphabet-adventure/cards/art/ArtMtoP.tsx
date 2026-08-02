@@ -136,11 +136,28 @@ const Nose: FC<IllustrationProps> = ({ size = 48 }) => (
     <path
       d="M50 14 C30 14 20 38 24 56 C26 72 36 84 50 84 C64 84 74 72 76 56 C80 38 70 14 50 14 Z"
       fill="#f59e0b"
+      stroke="#1c1917"
+      strokeWidth="3"
+      strokeLinejoin="round"
     />
-    <ellipse cx="35" cy="34" rx="8" ry="5.5" fill="#fbbf24" opacity="0.8" />
+    <ellipse cx="35" cy="34" rx="8" ry="5.5" fill="white" opacity="0.55" />
     <path d="M26 62 C30 80 70 80 74 62 C70 74 30 74 26 62 Z" fill="#b45309" opacity="0.3" />
-    <ellipse cx="41" cy="68" rx="5.5" ry="4.5" fill="#92400e" />
-    <ellipse cx="59" cy="68" rx="5.5" ry="4.5" fill="#92400e" />
+    <ellipse cx="41" cy="68" rx="5.5" ry="4.5" fill="#92400e" stroke="#1c1917" strokeWidth="2" />
+    <ellipse cx="59" cy="68" rx="5.5" ry="4.5" fill="#92400e" stroke="#1c1917" strokeWidth="2" />
+    <path
+      d="M36 88 Q34 92 37 93"
+      stroke="#1c1917"
+      strokeWidth="2"
+      fill="none"
+      strokeLinecap="round"
+    />
+    <path
+      d="M64 88 Q66 92 63 93"
+      stroke="#1c1917"
+      strokeWidth="2"
+      fill="none"
+      strokeLinecap="round"
+    />
   </svg>
 );
 

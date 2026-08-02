@@ -3,6 +3,13 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.10.84 (2026-08-02)
+* **Alphabet Adventure card art — polish batch 1 (14 pieces, target ≥8/10)**: user-reviewed one-by-one approval flow.
+  + * **Reference redraws (gradient style)**: `Axe` (curved wood handle, leather wraps, back poll, beveled edge, brass collar + rivets, tip glint), `Whale` (gradient body + belly pleats, twin flukes, layered spout, big eye, open smile + tongue), `Dolphin` (gradient body, dorsal fin, beach ball balanced on the nose + action arcs), `Van` (VW bus: cream/teal shells, chrome beltline + bumper, 6 windows with glare, peace emblem, roof rack + coral surfboard; scaled +20%).
+  + * **Outlines added (set language)**: Apple (body/notch/leaf), Ant (3 segments + gloss dot), Banana, Cat (ears + head), Ear (auricle), Nose (blob + anchored nostrils + white highlight + breath curls).
+  + * **Redesign**: Watermelon — nested half-slice with red flesh + white rind ring + green rim wrapping together (was stacked green-top/red-bottom).
+  + * All 4 art files lint-clean + typecheck-clean; full build gate deferred (user's in-progress tools refactor has a known renderTool signature mismatch — separate WIP, not committed here).
+
 ## v1.10.83 (2026-08-02)
 * **Warning cleanup — ESLint fully clean (0 errors + 0 warnings tree-wide)**:
   + * **exhaustive-deps (12)**: missing deps added where correct (filter props, `grp`, `params`, `isOverridden`, countdown `timeLeft` timers in WordQuiz/Flashcard) or logic moved inside the effect where a dep would cause loops; complex dep expressions extracted to named consts.

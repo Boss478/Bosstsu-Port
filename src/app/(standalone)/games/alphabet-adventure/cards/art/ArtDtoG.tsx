@@ -88,37 +88,181 @@ const Dolphin: FC<IllustrationProps> = ({ size = 48 }) => (
     xmlns="http://www.w3.org/2000/svg"
     className="drop-shadow-lg"
   >
-    <path d="M78 42 Q86 30 94 32 Q92 42 86 46 Z" fill="#3b82f6" />
-    <path d="M80 54 Q88 66 94 68 Q92 58 86 54 Z" fill="#3b82f6" />
+    <defs>
+      <linearGradient id="doBody" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#38BDF8" />
+        <stop offset="50%" stopColor="#0284C7" />
+        <stop offset="100%" stopColor="#0369A1" />
+      </linearGradient>
+      <linearGradient id="doFin" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#0284C7" />
+        <stop offset="100%" stopColor="#075985" />
+      </linearGradient>
+      <linearGradient id="doBelly" x1="20%" y1="0%" x2="50%" y2="100%">
+        <stop offset="0%" stopColor="#FFFFFF" />
+        <stop offset="100%" stopColor="#E0F2FE" />
+      </linearGradient>
+      <linearGradient id="doRed" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#FF6B6B" />
+        <stop offset="100%" stopColor="#EE5253" />
+      </linearGradient>
+      <linearGradient id="doYellow" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#FECA57" />
+        <stop offset="100%" stopColor="#FF9F43" />
+      </linearGradient>
+      <linearGradient id="doBlue" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#48DBFB" />
+        <stop offset="100%" stopColor="#0ABDE3" />
+      </linearGradient>
+    </defs>
+
+    {/* Back flipper (far side) */}
     <path
-      d="M20 58 C18 48 26 38 38 34 C54 28 70 30 78 42 C82 48 80 56 72 60 C60 66 36 64 24 62 C20 61 19 60 20 58 Z"
-      fill="#3b82f6"
+      d="M 41.25,42.5 C 38.75,47.5 33.75,51.25 31.25,50 C 30,49.4 32.5,45 36.9,41.25 Z"
+      fill="url(#doFin)"
     />
-    <path d="M54 32 Q56 20 62 22 Q64 28 62 34 Z" fill="#2563eb" />
-    <path d="M42 60 Q36 62 36 68 Q42 70 46 64 Z" fill="#2563eb" />
+
+    {/* Tail flukes */}
     <path
-      d="M26 58 C34 64 50 66 62 62"
-      stroke="#93c5fd"
-      strokeWidth="4"
-      fill="none"
+      d="M 76.25,47.5 C 80.6,49.4 86.25,53.75 88.75,56.9 C 85.6,56.9 80.6,52.5 75,49.4 Z"
+      fill="url(#doBody)"
+    />
+    <path
+      d="M 75.6,48.75 C 77.5,53.1 80,60 80.6,63.1 C 78.75,61.25 75.6,55.6 74.4,50 Z"
+      fill="url(#doBody)"
+    />
+    <path
+      d="M 76.25,48.1 C 80,50 84.4,53.75 86.25,56.25 C 84.4,56 80.6,52.75 76.25,49.4 Z"
+      fill="#7DD3FC"
+      opacity="0.4"
+    />
+
+    {/* Dorsal fin */}
+    <path
+      d="M 45,21.5 C 46.25,13.75 52.5,10 56.9,10.6 C 54.4,14.4 52.5,18.75 53.1,23.5 Z"
+      fill="url(#doBody)"
+    />
+    <path
+      d="M 46.9,20 C 48.1,14.75 52.5,11.9 55.25,11.5 C 53.75,14.4 52.25,18.1 52.5,21.5 Z"
+      fill="#7DD3FC"
+      opacity="0.4"
+    />
+
+    {/* Main body */}
+    <path
+      d="M 21.25,35.6 C 26.25,22.5 42.5,18.75 57.5,25 C 67.5,29.4 75,40 76.25,48.75 C 68.75,43.75 61.25,40 52.5,41.25 C 41.25,43.1 31.25,47.5 23.75,40.6 C 21.9,39 20.6,37.25 21.25,35.6 Z"
+      fill="url(#doBody)"
+    />
+
+    {/* Snout / beak */}
+    <path
+      d="M 21.5,35.4 C 17.5,35.6 13.75,36.9 12.5,38.75 C 11.9,39.75 13.1,41 15.6,41 C 18.75,41 21.9,40 24.4,39 Z"
+      fill="url(#doBody)"
+    />
+
+    {/* Belly */}
+    <path
+      d="M 15,40.4 C 18.1,40.6 21.9,39.75 24.4,39 C 30,45.6 38.75,42.5 50,41 C 60,39.75 68.75,43.75 74.75,48.5 C 68.1,45 60,42.25 51.25,43.1 C 40,44.4 30,48.75 22.25,41.5 C 18.75,41.5 16.25,41 15,40.4 Z"
+      fill="url(#doBelly)"
+    />
+
+    {/* Front flipper */}
+    <path
+      d="M 39.4,41.9 C 37.5,47.5 35,55 36.9,58.1 C 38.1,59 40.6,56.25 43.1,50 C 44.4,46.9 43.75,43.75 42.5,41.9 Z"
+      fill="url(#doBody)"
+    />
+    <path
+      d="M 39.75,43.1 C 38.5,47.75 36.5,54.4 37.75,56.9 C 38.75,55.6 41,50.6 42.25,45.6 Z"
+      fill="#7DD3FC"
+      opacity="0.45"
+    />
+
+    {/* Curved highlights */}
+    <path
+      d="M 26.25,29.4 C 33.75,23.1 45,21.9 55,25.6"
+      stroke="#FFFFFF"
+      strokeWidth="0.9"
       strokeLinecap="round"
-      opacity="0.6"
-    />
-    <circle cx="34" cy="42" r="3.5" fill="#1c1917" />
-    <circle cx="35" cy="41" r="1.2" fill="white" />
-    <path
-      d="M22 52 Q28 56 34 54"
-      stroke="#1e3a5f"
-      strokeWidth="2"
       fill="none"
-      strokeLinecap="round"
+      opacity="0.4"
     />
-    <circle cx="48" cy="32" r="1.5" fill="#60a5fa" opacity="0.7" />
-    <circle cx="12" cy="50" r="3" fill="#93c5fd" opacity="0.7" />
-    <circle cx="16" cy="44" r="2" fill="#93c5fd" opacity="0.7" />
-    <circle cx="10" cy="58" r="2.5" fill="#93c5fd" opacity="0.7" />
-    <circle cx="88" cy="76" r="3" fill="#93c5fd" opacity="0.6" />
-    <circle cx="94" cy="70" r="2" fill="#93c5fd" opacity="0.6" />
+    <path
+      d="M 28.75,26.9 C 34.4,22.75 41.9,21.9 48.75,24"
+      stroke="#FFFFFF"
+      strokeWidth="0.45"
+      strokeLinecap="round"
+      fill="none"
+      opacity="0.7"
+    />
+
+    {/* Face */}
+    <ellipse
+      cx="25.6"
+      cy="38.75"
+      rx="1.75"
+      ry="1.1"
+      fill="#FF758F"
+      opacity="0.45"
+      transform="rotate(-10 25.6 38.75)"
+    />
+    <circle cx="26.25" cy="33.75" r="1.9" fill="#0F172A" />
+    <circle cx="25.6" cy="33.1" r="0.75" fill="#FFFFFF" />
+    <circle cx="27.1" cy="34.5" r="0.4" fill="#FFFFFF" />
+    <path
+      d="M 24,32.9 C 25,31.25 27.5,31.25 28.5,32.5"
+      stroke="#0369A1"
+      strokeWidth="0.4"
+      strokeLinecap="round"
+      fill="none"
+    />
+    <path
+      d="M 14,39.6 C 17.5,40.5 20.6,40.25 23.1,38.5"
+      stroke="#0369A1"
+      strokeWidth="0.45"
+      strokeLinecap="round"
+      fill="none"
+    />
+    <path
+      d="M 22.5,38.1 C 23,38.5 23.4,39.1 23,39.6"
+      stroke="#0369A1"
+      strokeWidth="0.45"
+      strokeLinecap="round"
+      fill="none"
+    />
+
+    {/* Beach ball balanced on the nose */}
+    <g transform="translate(13.75, 32.9) rotate(-15)">
+      <circle cx="0" cy="0" r="5.25" fill="#FFFFFF" />
+      <path d="M 0,-5.25 A 5.25 5.25 0 0 1 4.5,2.6 L 0,0 Z" fill="url(#doRed)" />
+      <path d="M -4.5,2.6 A 5.25 5.25 0 0 1 -4.5,-2.6 L 0,0 Z" fill="url(#doBlue)" />
+      <path d="M 0,5.25 A 5.25 5.25 0 0 1 -4.5,-2.6 L 0,0 Z" fill="url(#doYellow)" />
+      <circle cx="0" cy="0" r="5.25" fill="none" stroke="#FFFFFF" strokeWidth="0.3" />
+      <circle cx="0" cy="-5.25" r="0.9" fill="#FFFFFF" />
+      <circle cx="0" cy="0" r="1" fill="#FFFFFF" />
+      <path
+        d="M -3.1,-3.1 A 4.4 4.4 0 0 1 1.25,-4.75 A 4.75 4.75 0 0 0 -2.5,-1.25 Z"
+        fill="#FFFFFF"
+        opacity="0.6"
+      />
+    </g>
+
+    {/* Motion arcs around ball */}
+    <path
+      d="M 16.9,18.1 A 6.9 6.9 0 0 1 20,22.5"
+      stroke="#38BDF8"
+      strokeWidth="0.4"
+      strokeLinecap="round"
+      fill="none"
+      opacity="0.7"
+    />
+    <path
+      d="M 4.4,22.5 A 6.9 6.9 0 0 1 6.25,18.1"
+      stroke="#38BDF8"
+      strokeWidth="0.4"
+      strokeLinecap="round"
+      fill="none"
+      opacity="0.7"
+    />
   </svg>
 );
 
@@ -187,6 +331,9 @@ const Ear: FC<IllustrationProps> = ({ size = 48 }) => (
     <path
       d="M50 14 C24 14 18 36 20 56 C22 76 36 86 54 86 C72 86 80 70 78 52 C76 38 62 36 56 42 C48 48 50 58 56 62 C60 65 56 72 50 72 C40 72 38 58 39 44 C40 28 48 20 58 20 C66 20 70 26 72 34 C72 26 64 14 50 14 Z"
       fill="#f59e0b"
+      stroke="#1c1917"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
     />
     <path
       d="M43 40 C39 50 42 62 50 66"

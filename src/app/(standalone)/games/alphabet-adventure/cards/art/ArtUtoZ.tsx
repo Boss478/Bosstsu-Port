@@ -352,19 +352,307 @@ const Van: FC<IllustrationProps> = ({ size = 48 }) => (
     xmlns="http://www.w3.org/2000/svg"
     className="drop-shadow-lg"
   >
-    <rect x="22" y="22" width="56" height="20" rx="6" fill="#2563eb" />
-    <rect x="24" y="26" width="18" height="13" rx="3" fill="#bfdbfe" />
-    <rect x="50" y="26" width="20" height="12" rx="3" fill="#bfdbfe" />
-    <rect x="10" y="40" width="80" height="36" rx="8" fill="#3b82f6" />
-    <rect x="10" y="58" width="80" height="5" rx="2.5" fill="#93c5fd" />
-    <line x1="44" y1="40" x2="44" y2="76" stroke="#1d4ed8" strokeWidth="2" />
-    <rect x="40" y="54" width="5" height="3" rx="1" fill="#1e40af" />
-    <circle cx="14" cy="50" r="3" fill="#fde047" />
-    <rect x="84" y="50" width="4" height="6" rx="1" fill="#ef4444" />
-    <circle cx="28" cy="78" r="10" fill="#1c1917" />
-    <circle cx="28" cy="78" r="4" fill="#d1d5db" />
-    <circle cx="72" cy="78" r="10" fill="#1c1917" />
-    <circle cx="72" cy="78" r="4" fill="#d1d5db" />
+    <defs>
+      <linearGradient id="vaTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#22D3EE" />
+        <stop offset="45%" stopColor="#06B6D4" />
+        <stop offset="100%" stopColor="#0E7490" />
+      </linearGradient>
+      <linearGradient id="vaCream" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#FFFFFF" />
+        <stop offset="60%" stopColor="#FFFBEB" />
+        <stop offset="100%" stopColor="#FEF3C7" />
+      </linearGradient>
+      <linearGradient id="vaGlass" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#38BDF8" />
+        <stop offset="50%" stopColor="#0284C7" />
+        <stop offset="100%" stopColor="#0369A1" />
+      </linearGradient>
+      <linearGradient id="vaChrome" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#FFFFFF" />
+        <stop offset="25%" stopColor="#CBD5E1" />
+        <stop offset="50%" stopColor="#64748B" />
+        <stop offset="75%" stopColor="#94A3B8" />
+        <stop offset="100%" stopColor="#F8FAFC" />
+      </linearGradient>
+      <radialGradient id="vaLight" cx="40%" cy="40%" r="60%">
+        <stop offset="0%" stopColor="#FFFFFF" />
+        <stop offset="40%" stopColor="#FEF08A" />
+        <stop offset="100%" stopColor="#FACC15" />
+      </radialGradient>
+      <linearGradient id="vaSurf" x1="0%" y1="0%" x2="100%" y2="50%">
+        <stop offset="0%" stopColor="#FB7185" />
+        <stop offset="50%" stopColor="#F43F5E" />
+        <stop offset="100%" stopColor="#E11D48" />
+      </linearGradient>
+      <linearGradient id="vaWood" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#D97706" />
+        <stop offset="50%" stopColor="#B45309" />
+        <stop offset="100%" stopColor="#78350F" />
+      </linearGradient>
+      <radialGradient id="vaTire" cx="40%" cy="40%" r="60%">
+        <stop offset="0%" stopColor="#475569" />
+        <stop offset="50%" stopColor="#1E293B" />
+        <stop offset="100%" stopColor="#0F172A" />
+      </radialGradient>
+    </defs>
+
+    <g transform="translate(49.1 39.6) scale(1.2) translate(-49.1 -39.6)">
+      {/* Far wheels */}
+      <ellipse cx="29.4" cy="53.1" rx="2.5" ry="4" fill="url(#vaTire)" />
+      <ellipse cx="61.9" cy="52.5" rx="2.25" ry="3.5" fill="url(#vaTire)" />
+
+      {/* Teal lower body */}
+      <path
+        d="M 24.4,39.4 C 23.75,43.1 25,48.75 27.5,51.9 C 30,54 35,54.75 41.25,54.75 C 47.5,54.75 55,54.75 65.6,54 C 70.6,53.5 74.4,51.9 75.6,48.1 C 76.25,44.4 75,40.6 74.4,39.4 C 60,39.75 48.75,40 43.1,39.75 C 40,43.1 36.9,46.5 34,46.5 C 31.25,46.5 28.1,42.5 24.4,39.4 Z"
+        fill="url(#vaTeal)"
+      />
+
+      {/* Cream upper body */}
+      <path
+        d="M 24.4,39.4 C 26.25,33.75 28.75,28.1 31.9,25 C 35.6,23.75 41.25,23.5 45.6,24 C 55,24.4 66.25,25.6 72.5,27.25 C 74.4,28.75 75,33.75 74.4,39.4 C 60,39.75 48.75,40 43.1,39.75 C 40,43.1 36.9,46.5 34,46.5 C 31.25,46.5 28.1,42.5 24.4,39.4 Z"
+        fill="url(#vaCream)"
+      />
+
+      {/* Roof glossy highlight */}
+      <path
+        d="M 32.5,25.25 C 41.25,24 56.25,25 71.9,27.5"
+        stroke="#FFFFFF"
+        strokeWidth="0.6"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.6"
+      />
+
+      {/* Chrome beltline trim */}
+      <path
+        d="M 24.1,39.4 C 27.9,42.5 31.25,46.75 34,46.75 C 36.9,46.75 40.25,42.9 43.1,40 C 52.5,40.1 63.75,40.1 74.6,39.6"
+        fill="none"
+        stroke="url(#vaChrome)"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+
+      {/* Windows */}
+      <path
+        d="M 27.25,36.9 C 27.5,33.75 29.4,28.75 31.25,26.5 C 31.9,26 34.75,25.75 35,25.75 L 33.75,37 C 31.25,37.25 28.75,37.25 27.25,36.9 Z"
+        fill="url(#vaGlass)"
+        stroke="#1E293B"
+        strokeWidth="0.4"
+      />
+      <path
+        d="M 36,25.75 C 36.5,25.75 41.9,26 43.5,26.75 L 41.5,37.25 C 38.75,37.1 35.6,37 34.5,37 Z"
+        fill="url(#vaGlass)"
+        stroke="#1E293B"
+        strokeWidth="0.4"
+      />
+      <line
+        x1="35.5"
+        y1="25.6"
+        x2="34.1"
+        y2="37"
+        stroke="#1E293B"
+        strokeWidth="0.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M 45,27.25 C 48.75,27.5 51.9,27.75 53.1,28 L 52.25,37.1 L 42.75,37.25 Z"
+        fill="url(#vaGlass)"
+        stroke="#1E293B"
+        strokeWidth="0.4"
+      />
+      <path
+        d="M 54.4,28.1 L 61.9,28.5 L 61.25,37.1 L 53.5,37.1 Z"
+        fill="url(#vaGlass)"
+        stroke="#1E293B"
+        strokeWidth="0.4"
+      />
+      <path
+        d="M 63.1,28.6 C 66.9,28.9 70,29.1 71.25,29.4 L 70.4,37 C 67.5,37.1 64.4,37.1 62.5,37.1 Z"
+        fill="url(#vaGlass)"
+        stroke="#1E293B"
+        strokeWidth="0.4"
+      />
+
+      {/* Window glare */}
+      <path d="M 28.75,35.6 L 32.5,27.5 L 33.75,27.5 L 30,35.6 Z" fill="#FFFFFF" opacity="0.4" />
+      <path d="M 36.25,35.6 L 41.25,27.5 L 42.5,27.5 L 37.5,35.6 Z" fill="#FFFFFF" opacity="0.4" />
+      <path d="M 45.6,35.6 L 50.6,28.25 L 51.9,28.25 L 46.9,35.6 Z" fill="#FFFFFF" opacity="0.35" />
+      <path d="M 55,35.6 L 60,28.75 L 61.25,28.75 L 56.25,35.6 Z" fill="#FFFFFF" opacity="0.35" />
+      <path d="M 63.75,35.6 L 68.75,29.25 L 70,29.25 L 65,35.6 Z" fill="#FFFFFF" opacity="0.35" />
+
+      {/* Headlights */}
+      <circle cx="28.1" cy="42.5" r="2.25" fill="url(#vaChrome)" />
+      <circle cx="28.1" cy="42.5" r="1.75" fill="url(#vaLight)" />
+      <circle cx="27.6" cy="42" r="0.5" fill="#FFFFFF" opacity="0.8" />
+      <circle cx="40" cy="44" r="2.75" fill="url(#vaChrome)" />
+      <circle cx="40" cy="44" r="2.1" fill="url(#vaLight)" />
+      <circle cx="39.4" cy="43.4" r="0.6" fill="#FFFFFF" opacity="0.85" />
+      <circle cx="40.5" cy="44.75" r="0.3" fill="#FFFFFF" opacity="0.6" />
+
+      {/* Indicators */}
+      <ellipse
+        cx="25.25"
+        cy="43.5"
+        rx="0.5"
+        ry="0.9"
+        fill="#F97316"
+        stroke="#9A3412"
+        strokeWidth="0.15"
+      />
+      <ellipse
+        cx="42.75"
+        cy="45.25"
+        rx="0.6"
+        ry="1"
+        fill="#F97316"
+        stroke="#9A3412"
+        strokeWidth="0.15"
+      />
+
+      {/* Peace emblem */}
+      <g transform="translate(34, 43.75)">
+        <circle cx="0" cy="0" r="2.5" fill="url(#vaChrome)" />
+        <circle cx="0" cy="0" r="1.9" fill="#0284C7" />
+        <circle cx="0" cy="0" r="1.6" fill="none" stroke="#FFFFFF" strokeWidth="0.3" />
+        <line
+          x1="0"
+          y1="-1.6"
+          x2="0"
+          y2="1.6"
+          stroke="#FFFFFF"
+          strokeWidth="0.3"
+          strokeLinecap="round"
+        />
+        <line
+          x1="0"
+          y1="0"
+          x2="-1.1"
+          y2="1.1"
+          stroke="#FFFFFF"
+          strokeWidth="0.3"
+          strokeLinecap="round"
+        />
+        <line
+          x1="0"
+          y1="0"
+          x2="1.1"
+          y2="1.1"
+          stroke="#FFFFFF"
+          strokeWidth="0.3"
+          strokeLinecap="round"
+        />
+      </g>
+
+      {/* Friendly smile */}
+      <path
+        d="M 30.25,48.5 Q 34,50.25 37.75,49.25"
+        fill="none"
+        stroke="#0891B2"
+        strokeWidth="0.4"
+        strokeLinecap="round"
+      />
+
+      {/* Front bumper */}
+      <path
+        d="M 21.9,46.9 C 25,51.25 32.5,54 40,53.1 C 43.1,52.75 45.6,51.25 46.9,50"
+        fill="none"
+        stroke="url(#vaChrome)"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <rect
+        x="26.9"
+        y="48.1"
+        width="1"
+        height="2.75"
+        rx="0.5"
+        fill="url(#vaChrome)"
+        transform="rotate(12 26.9 48.1)"
+      />
+      <rect
+        x="38.5"
+        y="50"
+        width="1"
+        height="2.75"
+        rx="0.5"
+        fill="url(#vaChrome)"
+        transform="rotate(-8 38.5 50)"
+      />
+
+      {/* Fender arches */}
+      <path
+        d="M 35.6,54.75 C 36.25,50 43.75,50 44.75,54"
+        fill="none"
+        stroke="#0891B2"
+        strokeWidth="0.6"
+      />
+      <path
+        d="M 61.25,54 C 61.9,49.4 69.4,49.4 70,53.1"
+        fill="none"
+        stroke="#0891B2"
+        strokeWidth="0.6"
+      />
+
+      {/* Near wheels */}
+      <ellipse cx="40" cy="54.4" rx="4.25" ry="5" fill="url(#vaTire)" />
+      <ellipse cx="40" cy="54.4" rx="2.75" ry="3.25" fill="url(#vaChrome)" />
+      <ellipse cx="40" cy="54.4" rx="1.25" ry="1.5" fill="#0891B2" />
+      <circle cx="39.6" cy="53.9" r="0.4" fill="#FFFFFF" opacity="0.7" />
+      <ellipse cx="65.6" cy="53.5" rx="4" ry="4.75" fill="url(#vaTire)" />
+      <ellipse cx="65.6" cy="53.5" rx="2.5" ry="3" fill="url(#vaChrome)" />
+      <ellipse cx="65.6" cy="53.5" rx="1.1" ry="1.4" fill="#0891B2" />
+      <circle cx="65.25" cy="53.1" r="0.4" fill="#FFFFFF" opacity="0.7" />
+
+      {/* Side details */}
+      <path d="M 43.1,27.25 L 42.25,52.75" stroke="#0891B2" strokeWidth="0.25" opacity="0.5" />
+      <rect x="44.4" y="41.25" width="2" height="0.75" rx="0.4" fill="url(#vaChrome)" />
+      <g stroke="#0891B2" strokeWidth="0.4" strokeLinecap="round" opacity="0.7">
+        <line x1="70.6" y1="42.5" x2="72.5" y2="42.5" />
+        <line x1="70.4" y1="43.5" x2="72.25" y2="43.5" />
+        <line x1="70.1" y1="44.5" x2="72" y2="44.5" />
+      </g>
+      <path
+        d="M 42.75,34.4 C 44,34.4 45.25,34.75 45.6,35.25"
+        stroke="url(#vaChrome)"
+        strokeWidth="0.45"
+        fill="none"
+      />
+      <ellipse cx="45.9" cy="35.4" rx="0.9" ry="1.25" fill="url(#vaChrome)" />
+      <ellipse cx="45.8" cy="35.4" rx="0.5" ry="0.9" fill="#E0F2FE" />
+
+      {/* Roof rack */}
+      <line x1="40" y1="26" x2="40" y2="24.4" stroke="url(#vaChrome)" strokeWidth="0.5" />
+      <line x1="53.75" y1="26.5" x2="53.75" y2="24.6" stroke="url(#vaChrome)" strokeWidth="0.5" />
+      <line x1="67.5" y1="27.75" x2="67.5" y2="25.5" stroke="url(#vaChrome)" strokeWidth="0.5" />
+      <path
+        d="M 36.25,24.5 L 70.6,25.6"
+        stroke="url(#vaWood)"
+        strokeWidth="0.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M 36.9,23.75 L 71.25,24.9"
+        stroke="url(#vaWood)"
+        strokeWidth="0.6"
+        strokeLinecap="round"
+      />
+
+      {/* Surfboard */}
+      <path
+        d="M 31.25,22.5 C 41.25,19.75 60,21 74.4,24.75 C 63.75,26.25 45,25.6 31.25,22.5 Z"
+        fill="url(#vaSurf)"
+      />
+      <path
+        d="M 31.25,22.5 C 41.25,21.4 60,22.4 74.4,24.75 C 65,25.25 47.5,24.4 31.25,22.5 Z"
+        fill="#FDE047"
+        opacity="0.85"
+      />
+      <path
+        d="M 70,25 C 71.25,26 72.5,26.5 73.1,26.25 C 72.5,25.4 71.9,25.1 70,25 Z"
+        fill="#E11D48"
+      />
+    </g>
   </svg>
 );
 
@@ -411,43 +699,47 @@ const Watermelon: FC<IllustrationProps> = ({ size = 48 }) => (
     xmlns="http://www.w3.org/2000/svg"
     className="drop-shadow-lg"
   >
-    <path d="M10 44 A40 40 0 0 1 90 44 L90 50 A34 34 0 0 0 10 50 Z" fill="#16a34a" />
     <path
-      d="M19 26 A36 36 0 0 1 32 13"
+      d="M10 30 A40 40 0 0 0 90 30 Z"
+      fill="#16a34a"
+      stroke="#1c1917"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M16 30 A34 34 0 0 0 84 30 Z"
+      fill="#f8fafc"
+      stroke="#1c1917"
+      strokeWidth="2"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M22 30 A28 28 0 0 0 78 30 Z"
+      fill="#ef4444"
+      stroke="#1c1917"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
+    <ellipse cx="34" cy="38" rx="4.5" ry="2.8" fill="white" opacity="0.5" />
+    <ellipse cx="36" cy="45" rx="2.2" ry="3.2" fill="#1c1917" transform="rotate(-18 36 45)" />
+    <ellipse cx="50" cy="51" rx="2.2" ry="3.2" fill="#1c1917" />
+    <ellipse cx="64" cy="45" rx="2.2" ry="3.2" fill="#1c1917" transform="rotate(18 64 45)" />
+    <ellipse cx="42" cy="55" rx="2" ry="3" fill="#1c1917" transform="rotate(8 42 55)" />
+    <ellipse cx="58" cy="55" rx="2" ry="3" fill="#1c1917" transform="rotate(-8 58 55)" />
+    <path
+      d="M45 66 A35 35 0 0 0 50 67.5"
       stroke="#15803d"
-      strokeWidth="3"
+      strokeWidth="2"
       fill="none"
-      strokeLinecap="round"
       opacity="0.6"
     />
     <path
-      d="M81 26 A36 36 0 0 1 68 13"
+      d="M55 66 A35 35 0 0 1 50 67.5"
       stroke="#15803d"
-      strokeWidth="3"
+      strokeWidth="2"
       fill="none"
-      strokeLinecap="round"
       opacity="0.6"
     />
-    <path
-      d="M44 11 A34 34 0 0 1 56 11"
-      stroke="#15803d"
-      strokeWidth="3"
-      fill="none"
-      strokeLinecap="round"
-      opacity="0.6"
-    />
-    <path d="M14 50 A36 36 0 0 1 86 50 L86 53 A33 33 0 0 0 14 53 Z" fill="#f8fafc" />
-    <path d="M16 53 A34 34 0 0 0 84 53 Z" fill="#ef4444" />
-    <path d="M24 58 A28 28 0 0 0 76 58 Z" fill="#f87171" opacity="0.35" />
-    <ellipse cx="34" cy="66" rx="2.2" ry="3.2" fill="#1c1917" transform="rotate(-20 34 66)" />
-    <ellipse cx="50" cy="74" rx="2.2" ry="3.2" fill="#1c1917" />
-    <ellipse cx="66" cy="66" rx="2.2" ry="3.2" fill="#1c1917" transform="rotate(20 66 66)" />
-    <ellipse cx="42" cy="82" rx="2" ry="3" fill="#1c1917" transform="rotate(10 42 82)" />
-    <ellipse cx="58" cy="82" rx="2" ry="3" fill="#1c1917" transform="rotate(-10 58 82)" />
-    <ellipse cx="26" cy="58" rx="1.8" ry="2.6" fill="#1c1917" transform="rotate(-25 26 58)" />
-    <ellipse cx="74" cy="58" rx="1.8" ry="2.6" fill="#1c1917" transform="rotate(25 74 58)" />
-    <ellipse cx="10" cy="49" rx="4" ry="3" fill="#16a34a" />
-    <ellipse cx="90" cy="49" rx="4" ry="3" fill="#16a34a" />
   </svg>
 );
 
@@ -460,58 +752,178 @@ const Whale: FC<IllustrationProps> = ({ size = 48 }) => (
     xmlns="http://www.w3.org/2000/svg"
     className="drop-shadow-lg"
   >
-    <path d="M84 52 Q92 44 96 38 Q98 42 94 50 Q90 55 86 56 Z" fill="#2563eb" />
-    <path d="M84 62 Q92 70 96 76 Q98 72 94 64 Q90 59 86 58 Z" fill="#2563eb" />
-    <ellipse cx="54" cy="56" rx="28" ry="19" fill="#3b82f6" />
-    <ellipse cx="48" cy="62" rx="18" ry="10" fill="#93c5fd" />
+    <defs>
+      <linearGradient id="whBody" x1="20%" y1="10%" x2="80%" y2="90%">
+        <stop offset="0%" stopColor="#60A5FA" />
+        <stop offset="40%" stopColor="#3B82F6" />
+        <stop offset="100%" stopColor="#1D4ED8" />
+      </linearGradient>
+      <linearGradient id="whFin" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#2563EB" />
+        <stop offset="100%" stopColor="#1E40AF" />
+      </linearGradient>
+      <linearGradient id="whBelly" x1="30%" y1="0%" x2="30%" y2="100%">
+        <stop offset="0%" stopColor="#FFFFFF" />
+        <stop offset="100%" stopColor="#E0F2FE" />
+      </linearGradient>
+      <linearGradient id="whWater" x1="0%" y1="100%" x2="0%" y2="0%">
+        <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.5" />
+        <stop offset="60%" stopColor="#7DD3FC" stopOpacity="0.8" />
+        <stop offset="100%" stopColor="#E0F2FE" stopOpacity="0.95" />
+      </linearGradient>
+    </defs>
+
+    {/* Water spout (behind head) */}
     <path
-      d="M32 66 Q38 70 44 66"
-      stroke="#60a5fa"
-      strokeWidth="2"
-      fill="none"
+      d="M 37.5,26.9 C 36.9,18.1 28.1,11.9 20.6,13.75 C 27.5,10.6 36.25,13.1 38.1,20.6 C 39.4,13.1 48.1,10.6 55,13.75 C 47.5,11.9 38.75,18.1 38.1,26.9 Z"
+      fill="url(#whWater)"
+    />
+    <path
+      d="M 37.75,26.9 C 37.4,20 31.9,15 26.25,16.25 C 30.6,14 36.9,15.6 37.9,21.9 C 38.6,15.6 44.9,14 49.25,16.25 C 43.6,15 38.1,20 37.75,26.9 Z"
+      fill="#FFFFFF"
+      opacity="0.75"
+    />
+    <circle cx="20" cy="13.75" r="1.6" fill="#E0F2FE" opacity="0.9" />
+    <circle cx="19.5" cy="13.4" r="1.25" fill="#FFFFFF" />
+    <circle cx="55.6" cy="13.75" r="1.6" fill="#E0F2FE" opacity="0.9" />
+    <circle cx="56.1" cy="13.4" r="1.25" fill="#FFFFFF" />
+    <circle cx="37.75" cy="8.75" r="2" fill="#E0F2FE" opacity="0.9" />
+    <circle cx="37.5" cy="8.25" r="1.5" fill="#FFFFFF" />
+    <circle cx="28.1" cy="10.6" r="1.1" fill="#BAE6FD" opacity="0.8" />
+    <circle cx="47.5" cy="10.6" r="1.1" fill="#BAE6FD" opacity="0.8" />
+    <circle cx="16.25" cy="15" r="0.6" fill="#38BDF8" opacity="0.7" />
+    <circle cx="59.4" cy="15" r="0.6" fill="#38BDF8" opacity="0.7" />
+    <circle cx="37.75" cy="5" r="0.75" fill="#7DD3FC" opacity="0.8" />
+
+    {/* Back flipper (behind body) */}
+    <path
+      d="M 43.75,48.1 C 46.25,52.5 48.1,56.9 45.6,58.75 C 43.5,60 41.25,55.6 41,50.6 Z"
+      fill="url(#whFin)"
+    />
+
+    {/* Tail flukes */}
+    <path
+      d="M 69.4,42.5 C 73.1,36.9 80.6,29.4 86.25,30.6 C 87.5,33.1 82.5,39.4 71.9,43.5 Z"
+      fill="url(#whBody)"
+    />
+    <path
+      d="M 71.25,41.9 C 75,36.9 80.6,31.25 84.4,31.9 C 82.5,33.75 78.1,38.1 71.25,41.9 Z"
+      fill="#60A5FA"
+      opacity="0.4"
+    />
+    <path
+      d="M 69.4,43.1 C 74.4,45 83.1,50.6 83.75,53.75 C 81.25,55 75,49.75 70,44.75 Z"
+      fill="url(#whBody)"
+    />
+
+    {/* Main body */}
+    <path
+      d="M 36.25,26.25 C 24.4,26.25 16.9,33.75 16.9,42.5 C 16.9,51.9 23.75,58.1 34.4,58.1 C 46.9,58.1 60,52.5 71.25,43.1 C 61.9,35 50.6,26.25 36.25,26.25 Z"
+      fill="url(#whBody)"
+    />
+
+    {/* Belly patch + grooves */}
+    <path
+      d="M 17.5,45 C 18.1,52.5 25,57.5 34.4,57.5 C 45.6,57.5 56.9,52.5 66.9,45 C 56.9,48.1 45.6,49.4 35.6,48.1 C 26.9,46.9 20.6,44.4 17.5,45 Z"
+      fill="url(#whBelly)"
+    />
+    <path
+      d="M 25,52.75 C 26.25,49.4 28.1,47.5 29.4,47.25"
+      stroke="#93C5FD"
+      strokeWidth="0.5"
       strokeLinecap="round"
+      fill="none"
+      opacity="0.65"
+    />
+    <path
+      d="M 30.6,54.75 C 32.25,50.6 34.4,48.5 36.25,48.1"
+      stroke="#93C5FD"
+      strokeWidth="0.5"
+      strokeLinecap="round"
+      fill="none"
+      opacity="0.65"
+    />
+    <path
+      d="M 36.9,55.5 C 38.75,51.25 41.25,48.75 43.75,48"
+      stroke="#93C5FD"
+      strokeWidth="0.5"
+      strokeLinecap="round"
+      fill="none"
+      opacity="0.65"
+    />
+    <path
+      d="M 43.75,55 C 46,51.25 48.75,48.5 51.9,47.5"
+      stroke="#93C5FD"
+      strokeWidth="0.5"
+      strokeLinecap="round"
+      fill="none"
+      opacity="0.65"
+    />
+    <path
+      d="M 50.6,53.75 C 53.1,50.6 56,47.75 58.75,46.5"
+      stroke="#93C5FD"
+      strokeWidth="0.5"
+      strokeLinecap="round"
+      fill="none"
+      opacity="0.65"
+    />
+
+    {/* Front flipper */}
+    <path
+      d="M 35.6,48.1 C 31.9,53.1 32.5,59.4 36.25,61 C 38.75,61.9 41.25,57.5 40,50.6 C 38.75,48.75 36.9,47.5 35.6,48.1 Z"
+      fill="url(#whBody)"
+    />
+    <path
+      d="M 36,49.4 C 33.75,53.1 34,57.5 36.5,59.4 C 36.25,56.25 36,52.5 37.25,50 Z"
+      fill="#93C5FD"
+      opacity="0.45"
+    />
+
+    {/* Glossy highlights */}
+    <path
+      d="M 22.5,36.25 C 25,30.6 31.25,27.75 38.75,27.75 C 46.25,27.75 53.75,30.6 60,35"
+      stroke="#FFFFFF"
+      strokeWidth="1"
+      strokeLinecap="round"
+      fill="none"
+      opacity="0.3"
+    />
+    <path
+      d="M 27.5,31.25 C 31.25,29.4 35.6,28.5 40,28.5"
+      stroke="#FFFFFF"
+      strokeWidth="0.5"
+      strokeLinecap="round"
+      fill="none"
       opacity="0.6"
     />
+
+    {/* Face */}
+    <ellipse cx="23.1" cy="43.75" rx="2.25" ry="1.4" fill="#FF758F" opacity="0.45" />
+    <circle cx="26.9" cy="38.1" r="2.25" fill="#0F172A" />
+    <circle cx="26.1" cy="37.4" r="0.9" fill="#FFFFFF" />
+    <circle cx="27.9" cy="39.1" r="0.44" fill="#FFFFFF" />
     <path
-      d="M42 69 Q48 72 54 69"
-      stroke="#60a5fa"
-      strokeWidth="2"
-      fill="none"
+      d="M 24.1,37.25 C 25.25,35.5 28.1,35.5 29.4,37"
+      stroke="#1E3A8A"
+      strokeWidth="0.4"
       strokeLinecap="round"
-      opacity="0.6"
+      fill="none"
     />
     <path
-      d="M52 70 Q58 73 64 70"
-      stroke="#60a5fa"
-      strokeWidth="2"
-      fill="none"
-      strokeLinecap="round"
-      opacity="0.6"
+      d="M 26.25,43.1 C 26.25,46.9 31.25,46.9 31.9,42.5 C 30.6,42.25 27.5,42.25 26.25,43.1 Z"
+      fill="#881337"
     />
-    <path d="M52 60 Q60 56 58 66 Q56 70 50 68 Z" fill="#2563eb" />
-    <circle cx="34" cy="50" r="3.5" fill="#1e3a5f" />
-    <circle cx="35" cy="49" r="1.2" fill="white" />
     <path
-      d="M28 60 Q34 65 42 62"
-      stroke="#1e3a5f"
-      strokeWidth="2"
-      fill="none"
-      strokeLinecap="round"
+      d="M 27.5,44.75 C 28.5,43.5 30.25,43.5 31,44.4 C 30.25,46 28.25,46 27.5,44.75 Z"
+      fill="#FF758F"
     />
-    <ellipse cx="31" cy="57" rx="3" ry="2" fill="#93c5fd" opacity="0.7" />
     <path
-      d="M32 36 Q28 26 24 18"
-      stroke="#60a5fa"
-      strokeWidth="3"
-      fill="none"
+      d="M 31.6,42.1 C 32.25,42.5 32.5,43.25 32.1,43.75"
+      stroke="#1E3A8A"
+      strokeWidth="0.3"
       strokeLinecap="round"
+      fill="none"
     />
-    <circle cx="23" cy="16" r="2.5" fill="#60a5fa" />
-    <circle cx="31" cy="22" r="2" fill="#60a5fa" />
-    <circle cx="18" cy="26" r="1.8" fill="#60a5fa" />
-    <circle cx="18" cy="56" r="2" fill="#93c5fd" opacity="0.6" />
-    <circle cx="14" cy="48" r="1.5" fill="#93c5fd" opacity="0.6" />
-    <circle cx="20" cy="44" r="1.8" fill="#93c5fd" opacity="0.6" />
   </svg>
 );
 
