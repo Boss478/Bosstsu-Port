@@ -65,12 +65,7 @@ export default function PadletBoard({
   const isOwnPost = (postId: string) => ownPosts.some((p) => p._id === postId);
   const getOwnToken = (postId: string) => ownPosts.find((p) => p._id === postId)?.editToken;
 
-  const {
-    data: pollData,
-    isLoading,
-    refetch,
-    queryKey,
-  } = useToolPoll(session._id, stepIndex, 3000);
+  const { data: pollData, isLoading, refetch, queryKey } = useToolPoll(session._id, stepIndex);
   const posts = (pollData?.responses || []) as Post[];
 
   const submitMutation = useMutation({

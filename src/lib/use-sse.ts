@@ -46,7 +46,13 @@ export function useSSE(sessionId: string, options: UseSSEOptions = {}): UseSSERe
   const tabHiddenRef = useRef(false);
   const mountedRef = useRef(true);
   const optionsRef = useRef(options);
-  optionsRef.current = options;
+  const connectSSERef = useRef<() => void>(() => {});
+  const startPollingRef = useRef<() => void>(() => {});
+  const clearPollingRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    optionsRef.current = options;
+  });
 
   const pollInterval = options.tierConfig?.pollIntervalMs ?? DEFAULT_POLL_INTERVAL;
 
@@ -67,7 +73,10 @@ export function useSSE(sessionId: string, options: UseSSEOptions = {}): UseSSERe
           const data = JSON.parse(e.data);
           if (data.type === 'step') {
             setCurrentStep(data.currentStep);
-            if (data.kicked) {
+            if (
+              data.kicked ||
+              (Array.isArray(data.kickedTokens) && data.kickedTokens.includes(getStudentToken()))
+            ) {
               setKicked(true);
               optionsRef.current.onKicked?.();
             }
@@ -99,7 +108,7 @@ export function useSSE(sessionId: string, options: UseSSEOptions = {}): UseSSERe
         backoffIndexRef.current = 0;
         reconnectFailsRef.current = 0;
         pollSuccessCountRef.current = 0;
-        clearPolling();
+        clearPollingRef.current();
       };
 
       es.onerror = () => {
@@ -112,7 +121,7 @@ export function useSSE(sessionId: string, options: UseSSEOptions = {}): UseSSERe
 
         if (reconnectFailsRef.current >= MAX_RECONNECT_FAILS) {
           setConnected('disconnected');
-          startPolling();
+          startPollingRef.current();
           return;
         }
 
@@ -122,12 +131,12 @@ export function useSSE(sessionId: string, options: UseSSEOptions = {}): UseSSERe
         backoffIndexRef.current++;
 
         setTimeout(() => {
-          if (mountedRef.current) connectSSE();
+          if (mountedRef.current) connectSSERef.current();
         }, delay);
       };
     } catch {
       setConnected('disconnected');
-      startPolling();
+      startPollingRef.current();
     }
   }, [sessionId]);
 
@@ -154,8 +163,8 @@ export function useSSE(sessionId: string, options: UseSSEOptions = {}): UseSSERe
         setConnected('polling');
 
         if (pollSuccessCountRef.current >= POLL_SUCCESS_THRESHOLD) {
-          clearPolling();
-          connectSSE();
+          clearPollingRef.current();
+          connectSSERef.current();
         }
       } catch {
         pollSuccessCountRef.current = 0;
@@ -164,7 +173,7 @@ export function useSSE(sessionId: string, options: UseSSEOptions = {}): UseSSERe
 
     pollIntervalRef.current = setInterval(poll, pollInterval);
     poll();
-  }, [sessionId, pollInterval, connectSSE]);
+  }, [sessionId, pollInterval]);
 
   const clearPolling = useCallback(() => {
     if (pollIntervalRef.current) {
@@ -174,9 +183,15 @@ export function useSSE(sessionId: string, options: UseSSEOptions = {}): UseSSERe
   }, []);
 
   useEffect(() => {
+    connectSSERef.current = connectSSE;
+    startPollingRef.current = startPolling;
+    clearPollingRef.current = clearPolling;
+  });
+
+  useEffect(() => {
     mountedRef.current = true;
 
-    connectSSE();
+    queueMicrotask(() => connectSSE());
 
     const handleVisibility = () => {
       if (document.hidden) {

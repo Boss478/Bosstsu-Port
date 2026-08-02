@@ -54,7 +54,12 @@ export async function GET(req: NextRequest) {
         }
       };
 
-      const stepPayload = JSON.stringify({ type: 'step', currentStep: initialStep, kicked });
+      const stepPayload = JSON.stringify({
+        type: 'step',
+        currentStep: initialStep,
+        kicked,
+        kickedTokens: kicked && studentToken ? [studentToken] : [],
+      });
       try {
         controller.enqueue(encoder.encode(`event: step\ndata: ${stepPayload}\n\n`));
       } catch {

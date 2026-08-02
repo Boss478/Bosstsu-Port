@@ -24,7 +24,6 @@ export default function IpaToWordQuestion({
   question,
   feedback,
   companion,
-  speak,
   playWordAudio,
   selectedAnswer,
   setSelectedAnswer,

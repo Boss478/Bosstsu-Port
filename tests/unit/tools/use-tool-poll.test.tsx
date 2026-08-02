@@ -25,7 +25,7 @@ describe('useToolPoll', () => {
   it('returns queryKey matching toolKeys.poll(sessionId)', () => {
     const { result } = renderHook(() => useToolPoll(SESSION_ID), { wrapper: createWrapper() });
 
-    expect(result.current.queryKey).toEqual(['tools', 'poll', SESSION_ID]);
+    expect(result.current.queryKey).toEqual(['tools', 'poll', SESSION_ID, 'all']);
   });
 
   it('returns data, isLoading, refetch and queryKey properties', () => {
@@ -50,7 +50,7 @@ describe('useToolPoll', () => {
     });
 
     await waitFor(() => {
-      const query = queryClient.getQueryCache().find(['tools', 'poll', SESSION_ID]);
+      const query = queryClient.getQueryCache().find(['tools', 'poll', SESSION_ID, 'all']);
       expect(query).toBeDefined();
     });
   });
@@ -67,7 +67,7 @@ describe('useToolPoll', () => {
     });
 
     await waitFor(() => {
-      const query = queryClient.getQueryCache().find(['tools', 'poll', SESSION_ID]);
+      const query = queryClient.getQueryCache().find(['tools', 'poll', SESSION_ID, 'all']);
       expect(query).toBeDefined();
     });
   });

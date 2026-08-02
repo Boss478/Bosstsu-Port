@@ -19,6 +19,7 @@ interface MentimeterPollProps {
   };
   stepIndex?: number;
   mascot?: string;
+  studentName?: string;
   onMascotEvent?: (event: 'celebrate' | 'correct' | 'wrong') => void;
 }
 
@@ -26,6 +27,7 @@ export default function MentimeterPoll({
   session,
   stepIndex,
   mascot,
+  studentName,
   onMascotEvent,
 }: MentimeterPollProps) {
   const qc = useQueryClient();
@@ -36,7 +38,7 @@ export default function MentimeterPoll({
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const STORAGE_KEY = `poll_voted_${session._id}`;
+  const STORAGE_KEY = `poll_voted_${session._id}_${stepIndex ?? 'all'}`;
   useEffect(() => {
     if (typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEY)) {
       startTransition(() => setSubmitted(true));
@@ -51,15 +53,12 @@ export default function MentimeterPoll({
   const allowCustom = session.config?.allowCustomChoices || false;
   const questionText = session.config?.questions?.[0]?.question;
 
-  const {
-    data: pollData,
-    isLoading,
-    refetch,
-    queryKey,
-  } = useToolPoll(session._id, stepIndex, 3000);
+  const { data: pollData, isLoading, refetch, queryKey } = useToolPoll(session._id, stepIndex);
 
-  const responses = pollData?.responses ?? [];
   const totalCount = pollData?.totalCount ?? 0;
+  const serverOptionCounts =
+    (pollData?.counts?.options as Record<string, number> | undefined) ?? {};
+  const serverWordCounts = (pollData?.counts?.words as Record<string, number> | undefined) ?? {};
 
   const submitMutation = useMutation({
     mutationFn: async () => {
@@ -71,6 +70,7 @@ export default function MentimeterPoll({
             pollMode === 'mcq'
               ? { selectedOption: customMode ? customValue.trim() : selected }
               : { word: word.trim() },
+          ...(studentName && { studentName }),
           ...(mascot && { mascot }),
           ...(stepIndex !== undefined && { stepIndex }),
         }),
@@ -100,40 +100,21 @@ export default function MentimeterPoll({
     submitMutation.mutate();
   };
 
-  useEffect(() => {
-    if (!submitted) return;
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = '';
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [submitted]);
-
   const counts: Record<string, number> = {};
   const customCounts: Record<string, number> = {};
   if (pollMode === 'mcq') {
     options.forEach((o: string) => {
-      counts[o] = 0;
+      counts[o] = serverOptionCounts[o] ?? 0;
     });
-    responses.forEach((r: { content?: { selectedOption?: string } }) => {
-      const opt = r.content?.selectedOption;
-      if (opt) {
-        if (counts[opt] !== undefined) counts[opt]++;
-        else customCounts[opt] = (customCounts[opt] || 0) + 1;
-      }
+    Object.entries(serverOptionCounts).forEach(([opt, n]) => {
+      if (!(opt in counts)) customCounts[opt] = n;
     });
   }
 
-  const wordCounts: Record<string, number> = {};
-  if (pollMode === 'wordcloud') {
-    responses.forEach((r: { content?: { word?: string } }) => {
-      const w = r.content?.word?.trim();
-      if (w) wordCounts[w] = (wordCounts[w] || 0) + 1;
-    });
-  }
-
+  const wordCounts: Record<string, number> = { ...serverWordCounts };
   const sortedWords = Object.entries(wordCounts).sort((a, b) => b[1] - a[1]);
+
+  const pctOf = (n: number) => (totalCount > 0 ? Math.round((n / totalCount) * 100) : 0);
 
   return (
     <div className="min-h-screen flex flex-col max-w-3xl mx-auto p-4 gap-4">
@@ -297,9 +278,7 @@ export default function MentimeterPoll({
           {pollMode === 'mcq' ? (
             <div className="space-y-3">
               {options.map((opt: string) => {
-                const pct = responses.length
-                  ? Math.round((counts[opt] / responses.length) * 100)
-                  : 0;
+                const pct = pctOf(counts[opt]);
                 return (
                   <div key={opt} className="space-y-1">
                     <div className="flex justify-between text-sm">
@@ -325,9 +304,7 @@ export default function MentimeterPoll({
                   {Object.entries(customCounts)
                     .sort((a, b) => b[1] - a[1])
                     .map(([opt, count]) => {
-                      const pct = responses.length
-                        ? Math.round((count / responses.length) * 100)
-                        : 0;
+                      const pct = pctOf(count);
                       return (
                         <div key={opt} className="space-y-1">
                           <div className="flex justify-between text-sm">

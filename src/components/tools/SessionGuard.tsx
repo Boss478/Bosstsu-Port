@@ -3,10 +3,10 @@
 import Link from 'next/link';
 import { t } from '@/lib/tool-translations';
 import MascotAvatar from './mascots/MascotAvatar';
+import type { ToolSessionClient } from '@/types/tools';
 
 interface SessionGuardProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  session: any;
+  session: ToolSessionClient;
   mascotId?: string | null;
 }
 

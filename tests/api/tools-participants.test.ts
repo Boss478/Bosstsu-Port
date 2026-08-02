@@ -1,8 +1,12 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { GET } from '@/app/api/tools/participants/route';
 import { createGetRequest } from '../helpers/request';
 import { connectTestDb, disconnectTestDb, clearAllCollections } from '../helpers/db';
 import { seedSession, seedResponse } from '../helpers/seed';
+
+vi.mock('@/lib/auth', () => ({
+  verifyAuth: vi.fn(),
+}));
 
 describe('/api/tools/participants', () => {
   beforeAll(async () => {
@@ -15,6 +19,17 @@ describe('/api/tools/participants', () => {
 
   beforeEach(async () => {
     await clearAllCollections();
+    vi.clearAllMocks();
+    const auth = await import('@/lib/auth');
+    (auth.verifyAuth as ReturnType<typeof vi.fn>).mockResolvedValue(true);
+  });
+
+  it('returns 401 without auth', async () => {
+    const auth = await import('@/lib/auth');
+    (auth.verifyAuth as ReturnType<typeof vi.fn>).mockResolvedValue(false);
+    const req = createGetRequest('/api/tools/participants');
+    const res = await GET(req);
+    expect(res.status).toBe(401);
   });
 
   it('returns 400 without sessionId', async () => {
@@ -70,12 +85,12 @@ describe('/api/tools/participants', () => {
     expect(bob.responseCount).toBe(1);
   });
 
-  it('returns cache headers', async () => {
+  it('returns no-store cache header', async () => {
     const session = await seedSession({ sessionCode: 'PAR3' });
     const req = createGetRequest('/api/tools/participants', {
       searchParams: { sessionId: session._id.toString() },
     });
     const res = await GET(req);
-    expect(res.headers.get('cache-control')).toContain('public');
+    expect(res.headers.get('cache-control')).toContain('no-store');
   });
 });

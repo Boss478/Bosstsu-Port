@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, startTransition } from 'react';
 import { t } from '@/lib/tool-translations';
 import { getStudentToken } from '@/lib/client-token';
+import type { ToolSessionClient } from '@/types/tools';
 
 interface AssignmentFormProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  session: any;
+  session: ToolSessionClient;
   stepIndex?: number;
   studentName?: string;
   mascot?: string;
@@ -44,13 +44,15 @@ export default function AssignmentForm({
       if (stored) {
         try {
           const data = JSON.parse(stored);
-          setResponseId(data.responseId);
-          setEditToken(data.editToken);
-          setStudentName(data.studentName || '');
-          setAnswer(data.content?.answer || '');
-          setFileUrl(data.fileUrl || null);
-          setExistingFileUrl(data.fileUrl || null);
-          setSubmitted(true);
+          startTransition(() => {
+            setResponseId(data.responseId);
+            setEditToken(data.editToken);
+            setStudentName(propName || data.studentName || '');
+            setAnswer(data.content?.answer || '');
+            setFileUrl(data.fileUrl || null);
+            setExistingFileUrl(data.fileUrl || null);
+            setSubmitted(true);
+          });
         } catch {
           localStorage.removeItem(STORAGE_KEY);
         }

@@ -57,34 +57,39 @@ describe('/api/tools/poll', () => {
       expect(data.totalCount).toBe(2);
     });
 
-    it('filters by since timestamp', async () => {
-      const session = await seedSession({ sessionCode: 'POLL2' });
+    it('returns server-side counts for options and words', async () => {
+      const session = await seedSession({ sessionCode: 'POLL6' });
       const sid = session._id.toString();
 
       await seedResponse({
         sessionId: sid,
-        studentName: 'A',
-        content: { word: 'old' },
+        content: { selectedOption: 'A' },
         studentToken: 't1',
       });
-
-      const oldTime = Date.now() - 10000;
-      const sinceStr = (oldTime + 5000).toString();
-
       await seedResponse({
         sessionId: sid,
-        studentName: 'B',
-        content: { word: 'new' },
+        content: { selectedOption: 'A' },
         studentToken: 't2',
       });
-
-      const req = createGetRequest('/api/tools/poll', {
-        searchParams: { sessionId: sid, since: sinceStr },
+      await seedResponse({
+        sessionId: sid,
+        content: { selectedOption: 'B' },
+        studentToken: 't3',
       });
+      await seedResponse({
+        sessionId: sid,
+        content: { word: 'cloud' },
+        studentToken: 't4',
+      });
+
+      const req = createGetRequest('/api/tools/poll', { searchParams: { sessionId: sid } });
       const res = await GET(req);
       const data = await res.json();
 
-      expect(data.responses.length).toBeGreaterThanOrEqual(1);
+      expect(res.status).toBe(200);
+      expect(data.counts.options).toEqual({ A: 2, B: 1 });
+      expect(data.counts.words).toEqual({ cloud: 1 });
+      expect(data.totalCount).toBe(4);
     });
 
     it('filters by stepIndex', async () => {
@@ -114,6 +119,51 @@ describe('/api/tools/poll', () => {
 
       expect(data.responses).toHaveLength(1);
       expect(data.responses[0].content.word).toBe('step0');
+    });
+
+    it('strips tokens and computes isOwn', async () => {
+      const session = await seedSession({ sessionCode: 'POLL5' });
+      const sid = session._id.toString();
+
+      await seedResponse({
+        sessionId: sid,
+        studentName: 'Alice',
+        content: { word: 'mine' },
+        studentToken: 'my-token',
+        editToken: 'secret-edit',
+        ip: '203.0.113.5',
+      });
+      await seedResponse({
+        sessionId: sid,
+        studentName: 'Bob',
+        content: { word: 'theirs' },
+        studentToken: 'other-token',
+        editToken: 'other-edit',
+        ip: '203.0.113.9',
+      });
+
+      const req = createGetRequest('/api/tools/poll', {
+        searchParams: { sessionId: sid },
+        headers: { 'student-token': 'my-token' },
+      });
+      const res = await GET(req);
+      const data = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(data.responses).toHaveLength(2);
+      for (const r of data.responses) {
+        expect(r.studentToken).toBeUndefined();
+        expect(r.editToken).toBeUndefined();
+        expect(r.ip).toBeUndefined();
+      }
+      const mine = data.responses.find(
+        (r: { content: { word: string } }) => r.content.word === 'mine',
+      );
+      const theirs = data.responses.find(
+        (r: { content: { word: string } }) => r.content.word === 'theirs',
+      );
+      expect(mine.isOwn).toBe(true);
+      expect(theirs.isOwn).toBe(false);
     });
 
     it('includes cache headers', async () => {

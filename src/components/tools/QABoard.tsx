@@ -6,12 +6,13 @@ import { t } from '@/lib/tool-translations';
 import { getStudentToken } from '@/lib/client-token';
 import { useToolPoll } from '@/hooks/use-tool-poll';
 import MascotAvatar from './mascots/MascotAvatar';
+import type { ToolSessionClient } from '@/types/tools';
 
 interface QABoardProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  session: any;
+  session: ToolSessionClient;
   stepIndex?: number;
   mascot?: string;
+  studentName?: string;
   onMascotEvent?: (event: 'celebrate' | 'correct' | 'wrong') => void;
 }
 
@@ -24,12 +25,16 @@ interface Question {
     isAnswered?: boolean;
     upvotes?: number;
   };
-  votes: number;
-  hasVoted: boolean;
   createdAt?: string;
 }
 
-export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: QABoardProps) {
+export default function QABoard({
+  session,
+  stepIndex,
+  mascot,
+  studentName,
+  onMascotEvent,
+}: QABoardProps) {
   const [question, setQuestion] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [votedIds, setVotedIds] = useState<Set<string>>(() => {
@@ -38,12 +43,7 @@ export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: Q
     return new Set<string>(saved ? JSON.parse(saved) : []);
   });
 
-  const {
-    data: pollData,
-    isLoading,
-    refetch,
-    queryKey,
-  } = useToolPoll(session._id, stepIndex, 3000);
+  const { data: pollData, isLoading, refetch, queryKey } = useToolPoll(session._id, stepIndex);
   const qc = useQueryClient();
 
   const submitMutation = useMutation({
@@ -53,6 +53,7 @@ export default function QABoard({ session, stepIndex, mascot, onMascotEvent }: Q
         headers: { 'Content-Type': 'application/json', 'student-token': getStudentToken() },
         body: JSON.stringify({
           content: { question: question.trim(), upvotes: 0, isAnswered: false },
+          ...(studentName && { studentName }),
           ...(mascot && { mascot }),
           ...(stepIndex !== undefined && { stepIndex }),
         }),

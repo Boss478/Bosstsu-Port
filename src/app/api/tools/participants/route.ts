@@ -2,8 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import ToolResponse from '@/models/ToolResponse';
 import mongoose from 'mongoose';
+import { verifyAuth } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
+  const isAuth = await verifyAuth();
+  if (!isAuth) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const { searchParams } = new URL(req.url);
   const sessionId = searchParams.get('sessionId');
 
@@ -40,7 +46,7 @@ export async function GET(req: NextRequest) {
       { $sort: { createdAt: -1 } },
     ]);
 
-    return NextResponse.json({ participants }, { headers: { 'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=30' } });
+    return NextResponse.json({ participants }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (err) {
     console.error('Participants fetch error:', err);
     return NextResponse.json({ error: 'Failed to fetch participants' }, { status: 500 });

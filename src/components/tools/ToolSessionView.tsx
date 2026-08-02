@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, startTransition } from 'react';
+import dynamic from 'next/dynamic';
 import PadletBoard from './PadletBoard';
 import MentimeterPoll from './MentimeterPoll';
 import AssignmentForm from './AssignmentForm';
@@ -13,8 +14,7 @@ import ToolErrorBoundary from './ErrorBoundary';
 import ToastContainer from './ToastContainer';
 import { useToast } from '@/hooks/useToast';
 import StudentSetupScreen from './StudentSetupScreen';
-import MascotCompanion, { type MascotEvent } from './mascots/MascotCompanion';
-import StudentSettings from './StudentSettings';
+import type { MascotEvent } from './mascots/MascotCompanion';
 import {
   getMascotStorageKey,
   loadMascotId,
@@ -27,13 +27,24 @@ import { useDeviceTier } from '@/lib/device-tier-provider';
 import { useFocusTrack } from '@/lib/use-focus-track';
 import BroadcastBanner from './BroadcastBanner';
 import ConnectionDot from './ConnectionDot';
+import type { ToolSessionClient } from '@/types/tools';
+
+const MascotCompanion = dynamic(() => import('./mascots/MascotCompanion'), { ssr: false });
+const StudentSettings = dynamic(() => import('./StudentSettings'), { ssr: false });
 
 interface ToolSessionViewProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  session: any;
+  session: ToolSessionClient;
 }
 
 export default function ToolSessionView({ session }: ToolSessionViewProps) {
+  const isMultiSession = session.steps && session.steps.length > 1;
+  if (isMultiSession) {
+    return <MultiStepSessionView session={session} />;
+  }
+  return <SingleToolSessionView session={session} />;
+}
+
+function SingleToolSessionView({ session }: ToolSessionViewProps) {
   const [studentName, setStudentName] = useState('');
   const [nameConfirmed, setNameConfirmed] = useState(false);
   const [selectedMascot, setSelectedMascot] = useState<string | null>(null);
@@ -149,8 +160,7 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
     );
   }
 
-  const isMultiSession = session.steps && session.steps.length > 1;
-  const needsNameSetup = !isMultiSession && session.requireStudentName && !nameConfirmed;
+  const needsNameSetup = session.requireStudentName && !nameConfirmed;
   const needsMascotSetup = enableMascots && showMascotPicker && !session.requireStudentName;
 
   if (needsNameSetup || needsMascotSetup) {
@@ -188,10 +198,6 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
     );
   }
 
-  if (isMultiSession) {
-    return <MultiStepSessionView session={session} />;
-  }
-
   const sharedProps = {
     session,
     studentName: studentName || '',
@@ -226,6 +232,7 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
       {enableMascots && selectedMascot && (
         <MascotCompanion
           sessionId={session._id}
+          mascotId={selectedMascot}
           eventType={mascotEventType}
           eventCount={mascotEventCount}
           onSettingsClick={() => setSettingsOpen(true)}
@@ -240,8 +247,7 @@ export default function ToolSessionView({ session }: ToolSessionViewProps) {
 }
 
 function renderTool(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  session: any,
+  session: ToolSessionClient,
   sharedProps: Record<string, unknown>,
   enableMascots: boolean,
   selectedMascot: string | null,
@@ -249,20 +255,7 @@ function renderTool(
   mascotEventCount: number,
 ) {
   const props = sharedProps as {
-    session: {
-      _id: string;
-      title?: string;
-      type?: string;
-      sessionCode?: string;
-      requireStudentName?: boolean;
-      config?: {
-        prompt?: string;
-        pollMode?: string;
-        allowCustomChoices?: boolean;
-        maxSubmissions?: number;
-        questions?: Array<{ options?: unknown[] }>;
-      };
-    };
+    session: ToolSessionClient;
     studentName: string;
     mascot?: string;
     onMascotEvent?: (e: MascotEvent) => void;
@@ -280,6 +273,7 @@ function renderTool(
         <ToolErrorBoundary key="poll">
           <MentimeterPoll
             session={session}
+            studentName={props.studentName}
             mascot={props.mascot}
             onMascotEvent={props.onMascotEvent}
           />
@@ -294,7 +288,12 @@ function renderTool(
     case 'qa_board':
       return (
         <ToolErrorBoundary key="qa_board">
-          <QABoard session={session} mascot={props.mascot} onMascotEvent={props.onMascotEvent} />
+          <QABoard
+            session={session}
+            studentName={props.studentName}
+            mascot={props.mascot}
+            onMascotEvent={props.onMascotEvent}
+          />
         </ToolErrorBoundary>
       );
     case 'quiz':

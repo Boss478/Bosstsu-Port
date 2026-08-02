@@ -10,12 +10,7 @@ interface Props {
   playWordAudio: (word: string) => Promise<void>;
 }
 
-export default function CardFlipGame({
-  cards: initialCards,
-  onComplete,
-  speak,
-  playWordAudio,
-}: Props) {
+export default function CardFlipGame({ cards: initialCards, onComplete, playWordAudio }: Props) {
   const [state, setState] = useState<CardFlipState>(() => ({
     cards: initialCards.map((c) => ({ ...c, flipped: false, matched: false })),
     selected: [],

@@ -4,6 +4,7 @@ import dbConnect from '@/lib/db';
 import ToolSession from '@/models/ToolSession';
 import ToolResponse from '@/models/ToolResponse';
 import { verifyAuth } from '@/lib/auth';
+import { notifyStepChange } from '@/lib/sse-server';
 import { formatError } from '@/lib/error-code';
 import { revalidatePath } from 'next/cache';
 
@@ -13,12 +14,16 @@ export async function deleteStudentResponses(sessionId: string, studentToken: st
 
   try {
     await dbConnect();
+    const session = await ToolSession.findById(sessionId).lean();
     const result = await ToolResponse.deleteMany({ sessionId, studentToken });
     if (result.deletedCount > 0) {
       await ToolSession.findByIdAndUpdate(sessionId, {
         $inc: { responseCount: -result.deletedCount, participantCount: -1 },
         $push: { kickedStudents: studentToken },
       });
+      notifyStepChange(sessionId, (session as { currentStep?: number } | null)?.currentStep ?? -1, [
+        studentToken,
+      ]);
     }
     revalidatePath('/admin/tools');
     revalidatePath(`/admin/tools/sessions/${sessionId}`);

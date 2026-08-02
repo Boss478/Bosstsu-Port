@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import mongoose from 'mongoose';
 import dbConnect, { serializeDoc } from '@/lib/db';
 import ToolSession from '@/models/ToolSession';
 import ToolResponse from '@/models/ToolResponse';
@@ -10,7 +11,6 @@ import { getClientIp, checkToolsRateLimit } from '@/lib/rate-limit';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const sessionId = searchParams.get('sessionId');
-  const since = searchParams.get('since');
 
   if (!sessionId) {
     return NextResponse.json({ error: getError('T05').message }, { status: 400 });
@@ -20,15 +20,13 @@ export async function GET(req: NextRequest) {
     await dbConnect();
 
     const query: Record<string, unknown> = { sessionId };
-    if (since) {
-      query.createdAt = { $gt: new Date(parseInt(since)) };
-    }
     const stepIndex = searchParams.get('stepIndex');
     if (stepIndex !== null) {
       query.stepIndex = parseInt(stepIndex);
     }
 
     const responses = await ToolResponse.find(query)
+      .select('-editToken -ip')
       .sort({ createdAt: 1 })
       .limit(CONFIG.TOOLS.PAGINATION.TOOLS_PUBLIC)
       .lean();
@@ -36,11 +34,51 @@ export async function GET(req: NextRequest) {
     const session = await ToolSession.findById(sessionId).lean();
     const count = await ToolResponse.countDocuments(query);
 
-    return NextResponse.json({
-      responses: serializeDoc(responses),
-      isActive: session?.isActive ?? false,
-      totalCount: count,
-    }, { headers: { 'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=60' } });
+    const aggregateMatch: Record<string, unknown> = {
+      sessionId: new mongoose.Types.ObjectId(sessionId),
+    };
+    if (stepIndex !== null) {
+      aggregateMatch.stepIndex = parseInt(stepIndex);
+    }
+
+    const [stats] = await ToolResponse.aggregate([
+      { $match: aggregateMatch },
+      {
+        $facet: {
+          options: [{ $group: { _id: '$content.selectedOption', n: { $sum: 1 } } }],
+          words: [{ $group: { _id: '$content.word', n: { $sum: 1 } } }],
+        },
+      },
+    ]);
+
+    const counts = {
+      options: Object.fromEntries(
+        (stats?.options ?? [])
+          .filter((x: { _id: unknown }) => x._id != null)
+          .map((x: { _id: string; n: number }) => [x._id, x.n]),
+      ),
+      words: Object.fromEntries(
+        (stats?.words ?? [])
+          .filter((x: { _id: unknown }) => x._id != null)
+          .map((x: { _id: string; n: number }) => [x._id, x.n]),
+      ),
+    };
+
+    const studentToken = req.headers.get('student-token');
+    const publicResponses = responses.map((r) => {
+      const { studentToken: token, ...rest } = r;
+      return { ...rest, isOwn: studentToken !== null && token === studentToken };
+    });
+
+    return NextResponse.json(
+      {
+        responses: serializeDoc(publicResponses),
+        isActive: session?.isActive ?? false,
+        totalCount: count,
+        counts,
+      },
+      { headers: { 'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=60' } },
+    );
   } catch (err) {
     console.error('Poll error:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
@@ -65,7 +103,7 @@ export async function POST(req: NextRequest) {
   if (!checkToolsRateLimit(rateKey)) {
     return NextResponse.json(
       { error: getError('T06').message, code: getError('T06').code },
-      { status: 429 }
+      { status: 429 },
     );
   }
 
@@ -74,10 +112,16 @@ export async function POST(req: NextRequest) {
 
     const session = await ToolSession.findById(sessionId).lean();
     if (!session) {
-      return NextResponse.json({ error: getError('T04').message, code: getError('T04').code }, { status: 400 });
+      return NextResponse.json(
+        { error: getError('T04').message, code: getError('T04').code },
+        { status: 400 },
+      );
     }
     if (!session.isActive) {
-      return NextResponse.json({ error: getError('T04').message, code: getError('T04').code }, { status: 400 });
+      return NextResponse.json(
+        { error: getError('T04').message, code: getError('T04').code },
+        { status: 400 },
+      );
     }
 
     const body = await req.json();
@@ -89,15 +133,21 @@ export async function POST(req: NextRequest) {
 
     const totalExisting = await ToolResponse.countDocuments({ sessionId, studentToken });
 
-    const existingCount = stepIndex !== undefined
-      ? await ToolResponse.countDocuments({ sessionId, studentToken, stepIndex })
-      : totalExisting;
+    const existingCount =
+      stepIndex !== undefined
+        ? await ToolResponse.countDocuments({ sessionId, studentToken, stepIndex })
+        : totalExisting;
 
     const si = stepIndex !== undefined ? stepIndex : -1;
-    const stepCfg = si >= 0
-      ? (session.steps as Record<string, unknown>[] | undefined)?.[si]?.config as Record<string, unknown> | undefined
-      : null;
-    const maxSubmissions = (stepCfg?.maxSubmissions as number | undefined) ?? (session.config?.maxSubmissions as number | undefined) ?? 1;
+    const stepCfg =
+      si >= 0
+        ? ((session.steps as Record<string, unknown>[] | undefined)?.[si]?.config as
+            Record<string, unknown> | undefined)
+        : null;
+    const maxSubmissions =
+      (stepCfg?.maxSubmissions as number | undefined) ??
+      (session.config?.maxSubmissions as number | undefined) ??
+      1;
 
     if (existingCount >= maxSubmissions) {
       const result: Record<string, unknown> = {
@@ -107,16 +157,15 @@ export async function POST(req: NextRequest) {
       if (body.content && typeof body.content === 'object' && 'total' in body.content) {
         const histQuery: Record<string, unknown> = { sessionId, studentToken };
         if (stepIndex !== undefined) histQuery.stepIndex = stepIndex;
-        const prevAttempts = await ToolResponse.find(
-          histQuery,
-          'content createdAt',
-        ).sort({ createdAt: -1 }).lean();
+        const prevAttempts = await ToolResponse.find(histQuery, 'content createdAt')
+          .sort({ createdAt: -1 })
+          .lean();
         const scores = prevAttempts
-          .map(a => ((a.content as Record<string, unknown>)?.score as number) ?? -1)
-          .filter(s => s >= 0);
+          .map((a) => ((a.content as Record<string, unknown>)?.score as number) ?? -1)
+          .filter((s) => s >= 0);
         result.bestScore = scores.length ? Math.max(...scores) : 0;
         result.total = (body.content as Record<string, unknown>).total;
-        result.history = prevAttempts.map(a => ({
+        result.history = prevAttempts.map((a) => ({
           score: ((a.content as Record<string, unknown>)?.score as number) ?? 0,
           date: a.createdAt,
         }));

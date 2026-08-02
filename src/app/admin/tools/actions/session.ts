@@ -10,6 +10,8 @@ import { trackServerEvent } from '@/lib/analytics/server';
 import { generateUniqueSessionCode } from '@/lib/session-code';
 import type { ToolType } from '@/models/ToolSession';
 import { z } from 'zod';
+import fs from 'fs';
+import path from 'path';
 
 const TOOL_TYPES: ToolType[] = ['padlet', 'poll', 'assignment', 'qa_board', 'quiz', 'exit_ticket'];
 
@@ -164,7 +166,6 @@ export async function updateSession(sessionId: string, formData: FormData) {
     await dbConnect();
 
     const setData: Record<string, unknown> = { ...parsed.data };
-    delete setData.maxSubmissions;
     if (setData.description !== undefined) {
       setData['config.description'] = setData.description;
       delete setData.description;
@@ -343,12 +344,28 @@ export async function endSession(formData: FormData): Promise<void> {
   revalidatePath(`/admin/tools/sessions/${sessionId}`);
 }
 
+function unlinkResponseFiles(fileUrls: Array<string | null | undefined>): void {
+  for (const url of fileUrls) {
+    if (!url) continue;
+    const filePath = path.join(process.cwd(), 'public', url);
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } catch (err) {
+      console.error('Cleanup file error:', err);
+    }
+  }
+}
+
 export async function deleteSession(sessionId: string) {
   const isAuth = await verifyAuth();
   if (!isAuth) return { error: formatError('401') };
 
   try {
     await dbConnect();
+    const responses = await ToolResponse.find({ sessionId }, 'fileUrl').lean();
+    unlinkResponseFiles(responses.map((r) => (r as { fileUrl?: string | null }).fileUrl));
     await ToolResponse.deleteMany({ sessionId });
     await ToolSession.findByIdAndDelete(sessionId);
   } catch (err) {
@@ -366,6 +383,8 @@ export async function deleteAllResponses(sessionId: string) {
 
   try {
     await dbConnect();
+    const responses = await ToolResponse.find({ sessionId }, 'fileUrl').lean();
+    unlinkResponseFiles(responses.map((r) => (r as { fileUrl?: string | null }).fileUrl));
     await ToolResponse.deleteMany({ sessionId });
     await ToolSession.findByIdAndUpdate(sessionId, { responseCount: 0 });
   } catch (err) {

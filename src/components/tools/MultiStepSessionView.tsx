@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, startTransition } from 'react';
+import dynamic from 'next/dynamic';
 import { useQueryClient } from '@tanstack/react-query';
 import { toolKeys } from '@/lib/query/keys';
 import StepIndicator from './StepIndicator';
@@ -15,8 +16,7 @@ import ToastContainer from './ToastContainer';
 import { useToast } from '@/hooks/useToast';
 import MascotAvatar from './mascots/MascotAvatar';
 import StudentSetupScreen from './StudentSetupScreen';
-import MascotCompanion, { type MascotEvent } from './mascots/MascotCompanion';
-import StudentSettings from './StudentSettings';
+import type { MascotEvent } from './mascots/MascotCompanion';
 import {
   getMascotStorageKey,
   loadMascotId,
@@ -29,10 +29,13 @@ import { useDeviceTier } from '@/lib/device-tier-provider';
 import { useFocusTrack } from '@/lib/use-focus-track';
 import BroadcastBanner from './BroadcastBanner';
 import ConnectionDot from './ConnectionDot';
+import type { ToolSessionClient } from '@/types/tools';
+
+const MascotCompanion = dynamic(() => import('./mascots/MascotCompanion'), { ssr: false });
+const StudentSettings = dynamic(() => import('./StudentSettings'), { ssr: false });
 
 interface MultiStepSessionViewProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  session: any;
+  session: ToolSessionClient;
 }
 
 export default function MultiStepSessionView({ session }: MultiStepSessionViewProps) {
@@ -95,7 +98,9 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
           setCurrentStep(newStep);
           latestStepRef.current = newStep;
           setTransitioning(false);
-          qc.invalidateQueries({ queryKey: toolKeys.poll(session._id) });
+          qc.invalidateQueries({
+            queryKey: toolKeys.poll(session._id, newStep >= 0 ? newStep : undefined),
+          });
         }, 300);
       }
     },
@@ -225,8 +230,10 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
               {session.title}
             </h1>
-            {session.description && (
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">{session.description}</p>
+            {session.config?.description && (
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
+                {session.config.description}
+              </p>
             )}
             <h2 className="text-xl font-bold text-zinc-700 dark:text-zinc-300">
               {t('waitingForTeacher')}
@@ -254,6 +261,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
         {enableMascots && selectedMascot && (
           <MascotCompanion
             sessionId={session._id}
+            mascotId={selectedMascot}
             isWaiting
             eventType={mascotEventType}
             eventCount={mascotEventCount}
@@ -271,7 +279,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
     type: step?.type,
     config: step?.config,
     title: step?.title || session.title,
-  };
+  } as ToolSessionClient;
 
   const handlePrevStep = () => {
     if (currentStep > 0 && session.allowStudentNavigation) {
@@ -306,8 +314,10 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
         <div className="p-4 max-w-5xl mx-auto w-full">
           <div className="text-center mb-3">
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{session.title}</h1>
-            {session.description && (
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{session.description}</p>
+            {session.config?.description && (
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                {session.config.description}
+              </p>
             )}
           </div>
           <StepIndicator total={totalSteps} currentStep={currentStep} />
@@ -366,6 +376,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
       {enableMascots && selectedMascot && (
         <MascotCompanion
           sessionId={session._id}
+          mascotId={selectedMascot}
           eventType={mascotEventType}
           eventCount={mascotEventCount}
           onSettingsClick={() => setSettingsOpen(true)}
@@ -380,8 +391,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
 }
 
 function renderTool(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  session: any,
+  session: ToolSessionClient,
   stepIndex: number,
   studentName?: string,
   mascot?: string,
@@ -407,6 +417,7 @@ function renderTool(
           <MentimeterPoll
             session={session}
             stepIndex={stepIndex}
+            studentName={studentName}
             mascot={mascot}
             onMascotEvent={onMascotEvent}
           />
@@ -430,6 +441,7 @@ function renderTool(
           <QABoard
             session={session}
             stepIndex={stepIndex}
+            studentName={studentName}
             mascot={mascot}
             onMascotEvent={onMascotEvent}
           />

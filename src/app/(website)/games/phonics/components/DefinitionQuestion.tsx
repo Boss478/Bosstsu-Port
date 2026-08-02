@@ -22,7 +22,6 @@ export default function DefinitionQuestion({
   companion,
   hintCount,
   onHint,
-  speak,
   playWordAudio,
   selectedAnswer,
   setSelectedAnswer,

@@ -31,7 +31,6 @@ export default function SpellingQuestion({
   companion,
   hintCount,
   onHint,
-  speak,
   playWordAudio,
   selectedAnswer,
   setSelectedAnswer,

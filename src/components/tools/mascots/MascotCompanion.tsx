@@ -8,6 +8,7 @@ export type MascotEvent = 'celebrate' | 'correct' | 'wrong';
 
 interface MascotCompanionProps {
   sessionId: string;
+  mascotId?: string | null;
   isWaiting?: boolean;
   eventType?: MascotEvent | null;
   eventCount?: number;
@@ -18,12 +19,13 @@ type AnimState = 'idle' | 'thinking' | 'celebrate' | 'correct' | 'wrong';
 
 export default function MascotCompanion({
   sessionId,
+  mascotId: mascotIdProp,
   isWaiting,
   eventType,
   eventCount,
   onSettingsClick,
 }: MascotCompanionProps) {
-  const [mascotId] = useState<string>(() => {
+  const [fallbackMascotId] = useState<string>(() => {
     const key = getMascotStorageKey(sessionId);
     let id = localStorage.getItem(key);
     if (!id || !ALL_MASCOT_MAP.has(id)) {
@@ -32,6 +34,7 @@ export default function MascotCompanion({
     }
     return id;
   });
+  const mascotId = mascotIdProp ?? fallbackMascotId;
   const [animState, setAnimState] = useState<AnimState>('idle');
   const [activeTimer, setActiveTimer] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

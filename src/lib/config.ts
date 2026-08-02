@@ -170,7 +170,6 @@ export const CONFIG = {
       'image/gif',
       'text/plain',
     ] as const,
-    SESSION_AUTO_CLOSE_HOURS: 24,
     PAGINATION: {
       TOOLS_PUBLIC: 50,
     },

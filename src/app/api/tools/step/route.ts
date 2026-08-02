@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import ToolSession from '@/models/ToolSession';
-import { verifyAuth } from '@/lib/auth';
 import { getClientIp, checkToolsRateLimit } from '@/lib/rate-limit';
 import { getError } from '@/lib/error-code';
 
@@ -49,40 +48,6 @@ export async function GET(req: NextRequest) {
       },
       { headers: { 'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=30' } },
     );
-  } catch {
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
-  }
-}
-
-export async function PATCH(req: NextRequest) {
-  const isAuth = await verifyAuth();
-  if (!isAuth) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  try {
-    const body = await req.json();
-    const { sessionId, stepIndex } = body;
-
-    if (!sessionId || typeof stepIndex !== 'number') {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
-
-    await dbConnect();
-    const session = await ToolSession.findById(sessionId).select('steps').lean();
-
-    if (!session) {
-      return NextResponse.json({ error: 'Session not found' }, { status: 404 });
-    }
-
-    const totalSteps = (session as { steps?: unknown[] }).steps?.length ?? 1;
-    if (stepIndex < -1 || stepIndex >= totalSteps) {
-      return NextResponse.json({ error: 'Invalid step index' }, { status: 400 });
-    }
-
-    await ToolSession.findByIdAndUpdate(sessionId, { currentStep: stepIndex });
-
-    return NextResponse.json({ currentStep: stepIndex });
   } catch {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }

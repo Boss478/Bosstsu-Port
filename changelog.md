@@ -3,6 +3,16 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.10.80 (2026-08-02)
+* **Classroom Tools — security, correctness & performance pass** (from 3-agent review):
+  + * **Security**: poll GET no longer leaks `studentToken`/`editToken`/`ip` (server computes `isOwn` flag instead); participants route now requires admin auth + `no-store`; Q&A votes rate-limited + restricted to active `qa_board` sessions; focus route validates session, caps userAgent/entries, keeps only last 20 snapshots (`$slice`).
+  + * **Live sync**: kicked students are now disconnected over SSE (`kickedTokens` in step event, delivered by `deleteStudentResponses`); SSE client-count leak on idle-close fixed (400-cap no longer silently fills); `removeClient` no longer double-decrements.
+  + * **Correctness**: poll query keys include `stepIndex` (no cross-step stale cache); MentimeterPoll voted-lock is step-aware; poll percentages use full server-side counts (accurate past 50 votes); poll/QA submit the student name; session description renders from `config.description`; assignment draft can no longer override the confirmed name.
+  + * **Perf**: student polling 3s→10s with ±2s jitter (≈70% fewer DB ops); StudentSettings/MascotCompanion lazy-loaded; student page no longer serializes `focusData`/`kickedStudents`/counters.
+  + * **Cleanup**: `PATCH /api/tools/step` (dead, divergent advance path) + tests removed; `discussion` step enum removed; dead config (`SESSION_AUTO_CLOSE_HOURS`), no-op line, unused interface fields removed; session/response deletion now removes uploaded files from disk.
+  + * **Typecheck gate re-enabled** (`ignoreBuildErrors` removed); new `src/types/tools.ts` replaces `session: any` across tools/views; double-SSE connection in multi-step sessions fixed; typecheck/test/build all green (856 tests).
+  + * **New tests**: SSE client accounting (leak + capacity + kickedTokens), participants auth/cache, focus caps, token-strip/`isOwn`, vote hardening, server-side counts, k6 `tests/k6/tools-live.js` load script.
+
 
 
 ## v1.10.79 (2026-08-02)

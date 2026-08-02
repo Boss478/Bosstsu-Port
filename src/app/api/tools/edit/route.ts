@@ -5,6 +5,7 @@ import ToolSession from '@/models/ToolSession';
 import { getError } from '@/lib/error-code';
 import { saveFile, sanitizeFilename } from '@/lib/upload';
 import { CONFIG } from '@/lib/config';
+import { getClientIp, checkToolsRateLimit } from '@/lib/rate-limit';
 import fs from 'fs';
 import path from 'path';
 
@@ -33,6 +34,38 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: getError('401').message }, { status: 401 });
       }
       await dbConnect();
+
+      const rateKey = `${responseId}:${getClientIp(req)}:${studentToken}`;
+      if (!checkToolsRateLimit(rateKey)) {
+        return NextResponse.json(
+          { error: getError('T06').message, code: getError('T06').code },
+          { status: 429 },
+        );
+      }
+
+      const response = await ToolResponse.findById(responseId).lean();
+      if (!response) {
+        return NextResponse.json({ error: getError('T05').message }, { status: 400 });
+      }
+      const session = await ToolSession.findById(response.sessionId).lean();
+      if (!session || !session.isActive) {
+        return NextResponse.json(
+          { error: getError('T09').message, code: getError('T09').code },
+          { status: 400 },
+        );
+      }
+      const responseStep =
+        response.stepIndex !== undefined
+          ? (session.steps as Record<string, unknown>[] | undefined)?.[response.stepIndex as number]
+          : null;
+      const effectiveType = (responseStep?.type as string | undefined) || (session.type as string);
+      if (effectiveType !== 'qa_board') {
+        return NextResponse.json(
+          { error: getError('T08').message, code: getError('T08').code },
+          { status: 400 },
+        );
+      }
+
       await ToolResponse.findByIdAndUpdate(responseId, { $inc: { 'content.upvotes': 1 } });
       return NextResponse.json({ success: true });
     }
@@ -49,21 +82,31 @@ export async function PATCH(req: NextRequest) {
     }
 
     if (response.editToken !== editToken) {
-      return NextResponse.json({ error: getError('T08').message, code: getError('T08').code }, { status: 400 });
+      return NextResponse.json(
+        { error: getError('T08').message, code: getError('T08').code },
+        { status: 400 },
+      );
     }
 
     const session = await ToolSession.findById(response.sessionId).lean();
     if (!session || !session.isActive) {
-      return NextResponse.json({ error: getError('T09').message, code: getError('T09').code }, { status: 400 });
+      return NextResponse.json(
+        { error: getError('T09').message, code: getError('T09').code },
+        { status: 400 },
+      );
     }
 
     const toolTypesAllowEdit = ['assignment', 'padlet'];
-    const responseStep = response.stepIndex !== undefined
-      ? (session.steps as Record<string, unknown>[] | undefined)?.[response.stepIndex as number]
-      : null;
-    const effectiveType = (responseStep?.type as string | undefined) || session.type as string;
+    const responseStep =
+      response.stepIndex !== undefined
+        ? (session.steps as Record<string, unknown>[] | undefined)?.[response.stepIndex as number]
+        : null;
+    const effectiveType = (responseStep?.type as string | undefined) || (session.type as string);
     if (!toolTypesAllowEdit.includes(effectiveType)) {
-      return NextResponse.json({ error: getError('T08').message, code: getError('T08').code }, { status: 400 });
+      return NextResponse.json(
+        { error: getError('T08').message, code: getError('T08').code },
+        { status: 400 },
+      );
     }
 
     let content: Record<string, unknown> = {};
@@ -75,7 +118,10 @@ export async function PATCH(req: NextRequest) {
 
     let newFileUrl: string | null = response.fileUrl || null;
     const stepCfg = responseStep?.config as Record<string, unknown> | undefined;
-    const allowFileUpload = (stepCfg?.allowFileUpload as boolean | undefined) ?? (session.config as Record<string, unknown> | undefined)?.allowFileUpload as boolean | undefined;
+    const allowFileUpload =
+      (stepCfg?.allowFileUpload as boolean | undefined) ??
+      ((session.config as Record<string, unknown> | undefined)?.allowFileUpload as
+        boolean | undefined);
 
     if (action === 'remove' && response.fileUrl) {
       const filePath = path.join(process.cwd(), 'public', response.fileUrl);
@@ -93,10 +139,16 @@ export async function PATCH(req: NextRequest) {
           fs.unlinkSync(oldPath);
         }
       }
-      const namePrefix = response.studentName 
-        ? `${session.sessionCode}_${sanitizeFilename(response.studentName)}` 
+      const namePrefix = response.studentName
+        ? `${session.sessionCode}_${sanitizeFilename(response.studentName)}`
         : session.sessionCode;
-      newFileUrl = await saveFile(file, 'tools', undefined, namePrefix, CONFIG.TOOLS.ALLOWED_FILE_TYPES);
+      newFileUrl = await saveFile(
+        file,
+        'tools',
+        undefined,
+        namePrefix,
+        CONFIG.TOOLS.ALLOWED_FILE_TYPES,
+      );
     }
 
     await ToolResponse.findByIdAndUpdate(responseId, {

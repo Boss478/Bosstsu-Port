@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { t } from '@/lib/tool-translations';
 import { getStudentToken } from '@/lib/client-token';
+import type { ToolSessionClient } from '@/types/tools';
 
 interface ExitTicketFormProps {
-  session: any;
+  session: ToolSessionClient;
   stepIndex?: number;
   studentName?: string;
   mascot?: string;

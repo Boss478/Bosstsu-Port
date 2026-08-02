@@ -4,6 +4,7 @@ export interface StepChangeEvent {
   type: 'step';
   currentStep: number;
   kicked: boolean;
+  kickedTokens: string[];
 }
 
 export interface BroadcastEvent {
@@ -53,7 +54,7 @@ export function removeClient(sessionId: string, controller: SSEController): void
   const sessionClients = clients.get(sessionId);
   if (!sessionClients) return;
 
-  sessionClients.delete(controller);
+  if (!sessionClients.delete(controller)) return;
   totalClients--;
 
   if (sessionClients.size === 0) {
@@ -74,13 +75,22 @@ function sendEvent(controller: SSEController, event: string, data: string): void
   }
 }
 
-export function notifyStepChange(sessionId: string, currentStep: number): void {
+export function notifyStepChange(
+  sessionId: string,
+  currentStep: number,
+  kickedTokens: string[] = [],
+): void {
   const sessionClients = clients.get(sessionId);
   if (!sessionClients) return;
 
   resetIdleTimer(sessionId);
 
-  const payload = JSON.stringify({ type: 'step', currentStep });
+  const payload = JSON.stringify({
+    type: 'step',
+    currentStep,
+    kicked: kickedTokens.length > 0,
+    kickedTokens,
+  });
   Array.from(sessionClients).forEach((controller) => {
     sendEvent(controller, 'step', payload);
   });
@@ -119,6 +129,7 @@ function resetIdleTimer(sessionId: string): void {
         }
       });
 
+      totalClients -= sessionClients.size;
       clients.delete(sessionId);
       idleTimers.delete(sessionId);
     }, IDLE_TIMEOUT_MS),
@@ -133,6 +144,6 @@ export function getTotalConnectedCount(): number {
   return totalClients;
 }
 
-export function getIdleTimerSeconds(sessionId: string): number {
+export function getIdleTimerSeconds(): number {
   return IDLE_TIMEOUT_MS / 1000;
 }

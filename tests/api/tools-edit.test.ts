@@ -9,6 +9,11 @@ vi.mock('@/lib/upload', () => ({
   sanitizeFilename: vi.fn().mockReturnValue('test_student'),
 }));
 
+vi.mock('@/lib/rate-limit', () => ({
+  checkToolsRateLimit: vi.fn().mockReturnValue(true),
+  getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
+}));
+
 vi.mock('fs', () => ({
   default: {
     existsSync: vi.fn().mockReturnValue(false),
@@ -62,7 +67,7 @@ describe('/api/tools/edit', () => {
     });
 
     it('increments upvotes successfully', async () => {
-      const session = await seedSession({ sessionCode: 'EDT1' });
+      const session = await seedSession({ sessionCode: 'EDT1', type: 'qa_board' });
       const resp = await seedResponse({ sessionId: session._id.toString() });
 
       const formData = createEditForm({ action: 'vote', responseId: resp._id.toString() });
@@ -74,6 +79,32 @@ describe('/api/tools/edit', () => {
 
       expect(res.status).toBe(200);
       expect(data.success).toBe(true);
+    });
+
+    it('rejects votes on non-qa sessions', async () => {
+      const session = await seedSession({ sessionCode: 'EDT9', type: 'padlet' });
+      const resp = await seedResponse({ sessionId: session._id.toString() });
+
+      const formData = createEditForm({ action: 'vote', responseId: resp._id.toString() });
+      const req = createMultipartRequest('/api/tools/edit', formData, {
+        headers: { 'student-token': 'tok-voter' },
+      });
+      const res = await PATCH(req);
+      expect(res.status).toBe(400);
+    });
+
+    it('rejects votes when rate limited', async () => {
+      const rateLimit = await import('@/lib/rate-limit');
+      (rateLimit.checkToolsRateLimit as ReturnType<typeof vi.fn>).mockReturnValue(false);
+      const session = await seedSession({ sessionCode: 'EDT10', type: 'qa_board' });
+      const resp = await seedResponse({ sessionId: session._id.toString() });
+
+      const formData = createEditForm({ action: 'vote', responseId: resp._id.toString() });
+      const req = createMultipartRequest('/api/tools/edit', formData, {
+        headers: { 'student-token': 'tok-voter' },
+      });
+      const res = await PATCH(req);
+      expect(res.status).toBe(429);
     });
   });
 

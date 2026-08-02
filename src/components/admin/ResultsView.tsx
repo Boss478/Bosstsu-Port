@@ -102,7 +102,7 @@ export default function ResultsView({
     setPreviewFileUrl(url);
   };
 
-  const queryKey = toolKeys.poll(`${session._id}_${activeStepTab}`);
+  const queryKey = toolKeys.poll(session._id, activeStepTab >= 0 ? activeStepTab : undefined);
 
   const { data: pollData } = useQuery({
     queryKey,
@@ -202,6 +202,8 @@ export default function ResultsView({
       };
     }>,
     stepSesh: { title?: string; config: Record<string, unknown> },
+    counts?: { options: Record<string, number>; words: Record<string, number> },
+    totalCount?: number,
   ) => {
     switch (stepType) {
       case 'padlet':
@@ -249,7 +251,15 @@ export default function ResultsView({
           </div>
         );
       case 'poll':
-        return <PollResults responses={stepRes} session={stepSesh} onDelete={handleDelete} />;
+        return (
+          <PollResults
+            responses={stepRes}
+            session={stepSesh}
+            onDelete={handleDelete}
+            counts={counts}
+            totalCount={totalCount}
+          />
+        );
       case 'assignment':
         return (
           <div className="rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm overflow-hidden">
@@ -574,7 +584,13 @@ export default function ResultsView({
                       </div>
                     );
                   })
-                : renderStepContent(toolType, displayedResponses, stepSession)}
+                : renderStepContent(
+                    toolType,
+                    displayedResponses,
+                    stepSession,
+                    pollData?.counts,
+                    pollData?.totalCount,
+                  )}
             </div>
           )}
         </div>
@@ -642,6 +658,8 @@ function PollResults({
   responses,
   session,
   onDelete,
+  counts: serverCounts,
+  totalCount,
 }: {
   responses: { _id: string; content: { selectedOption?: string; word?: string } }[];
   session: {
@@ -652,6 +670,8 @@ function PollResults({
     };
   };
   onDelete: (id: string) => void;
+  counts?: { options: Record<string, number>; words: Record<string, number> };
+  totalCount?: number;
 }) {
   const mode = session.config?.pollMode || 'mcq';
   const rawOptions = session.config?.questions?.[0]?.options;
@@ -664,19 +684,28 @@ function PollResults({
   );
 
   const wordCounts = useMemo(() => {
+    if (serverCounts?.words) return { ...serverCounts.words };
     const counts: Record<string, number> = {};
     responses.forEach((r) => {
       const word = r.content?.word?.trim();
       if (word) counts[word] = (counts[word] || 0) + 1;
     });
     return counts;
-  }, [responses]);
+  }, [responses, serverCounts]);
   const sorted = useMemo(
     () => Object.entries(wordCounts).sort((a, b) => b[1] - a[1]),
     [wordCounts],
   );
 
   const { counts, customCounts, total } = useMemo(() => {
+    if (serverCounts?.options) {
+      const base = new Set(options);
+      const custom: Record<string, number> = {};
+      Object.entries(serverCounts.options).forEach(([opt, n]) => {
+        if (!base.has(opt)) custom[opt] = n;
+      });
+      return { counts: serverCounts.options, customCounts: custom, total: totalCount || 1 };
+    }
     const counts: Record<string, number> = {};
     const customCounts: Record<string, number> = {};
     options.forEach((o) => {
@@ -693,7 +722,7 @@ function PollResults({
       }
     });
     return { counts, customCounts, total: responses.length || 1 };
-  }, [options, responses]);
+  }, [options, responses, serverCounts, totalCount]);
 
   const sortedCustomChoices = useMemo(
     () => Object.entries(customCounts).sort((a, b) => b[1] - a[1]),

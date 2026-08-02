@@ -24,7 +24,6 @@ export default function FillBlankQuestion({
   feedback,
   companion,
   speak,
-  playWordAudio,
   selectedAnswer,
   setSelectedAnswer,
 }: Props) {

@@ -18,7 +18,6 @@ export default function FillLevel({
   roundData,
   isTransitioning,
   isFeedbackVisible,
-  onAnswer,
   onSelectCell,
   dropPower,
   effectiveStreak,

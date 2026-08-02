@@ -8,18 +8,25 @@ export const dynamic = 'force-dynamic';
 export default async function ToolSessionPage({
   params,
 }: {
-  params: Promise<{ sessionCode: string }>
+  params: Promise<{ sessionCode: string }>;
 }) {
   const { sessionCode } = await params;
   await dbConnect();
 
-  const session = await ToolSession.findOne({ sessionCode: sessionCode.toUpperCase() }).lean();
-  
+  const session = await ToolSession.findOne({ sessionCode: sessionCode.toUpperCase() })
+    .select(
+      '-focusData -kickedStudents -participantCount -responseCount -createdAt -updatedAt -__v',
+    )
+    .lean();
+
   if (!session) {
     return (
       <div className="min-h-screen bg-blue-50 dark:bg-slate-950 flex items-center justify-center p-4">
         <div className="max-w-md w-full p-8 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-lg text-center">
-          <i aria-hidden="true" className="fi fi-sr-search-alt text-6xl text-zinc-300 dark:text-zinc-600 block mb-4" />
+          <i
+            aria-hidden="true"
+            className="fi fi-sr-search-alt text-6xl text-zinc-300 dark:text-zinc-600 block mb-4"
+          />
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
             ไม่พบห้องเรียน
           </h1>
@@ -28,7 +35,8 @@ export default async function ToolSessionPage({
           </p>
           <div className="space-y-3">
             <p className="text-sm text-zinc-400">
-              รหัสที่คุณกรอก: <span className="font-mono font-bold text-blue-600">{sessionCode.toUpperCase()}</span>
+              รหัสที่คุณกรอก:{' '}
+              <span className="font-mono font-bold text-blue-600">{sessionCode.toUpperCase()}</span>
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
@@ -54,9 +62,7 @@ export default async function ToolSessionPage({
 
   return (
     <div className="min-h-screen bg-blue-50 dark:bg-slate-950">
-      <ToolSessionView
-        session={JSON.parse(JSON.stringify(session))}
-      />
+      <ToolSessionView session={JSON.parse(JSON.stringify(session))} />
     </div>
   );
 }

@@ -56,7 +56,7 @@ export default function QuickQuiz({
       : undefined;
   const maxSubmissions =
     (resolvedStepCfg?.maxSubmissions as number | undefined) ?? session.config?.maxSubmissions ?? 1;
-  const queryKey = toolKeys.poll(session._id);
+  const queryKey = toolKeys.poll(session._id, stepIndex);
 
   const { data: pollData } = useQuery({
     queryKey,
@@ -65,15 +65,13 @@ export default function QuickQuiz({
       const res = await fetch(`/api/tools/poll?sessionId=${session._id}${stepParam}`);
       return res.json();
     },
-    refetchInterval: 5000,
+    refetchInterval: () => 10_000 + Math.floor(Math.random() * 4_000),
   });
 
   useEffect(() => {
     if (!pollData) return;
-    const token = getStudentToken();
-    if (!token) return;
     const myResponses = (pollData.responses || []).filter(
-      (r: { studentToken?: string }) => r.studentToken === token,
+      (r: { isOwn?: boolean }) => r.isOwn === true,
     );
     const count = myResponses.length;
     startTransition(() => {
@@ -94,16 +92,6 @@ export default function QuickQuiz({
       }
     });
   }, [pollData, maxSubmissions, session.config?.questions?.length]);
-
-  useEffect(() => {
-    if (!submitted) return;
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = '';
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [submitted]);
 
   const submitMutation = useMutation({
     mutationFn: async () => {
