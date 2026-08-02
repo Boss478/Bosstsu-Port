@@ -220,11 +220,13 @@ export default function QuickStartModal({
     setShowAdvancedTier(false);
   };
 
-  useEffect(() => {
+  const [prevEditingSession, setPrevEditingSession] = useState<typeof editingSession>(undefined);
+  if (prevEditingSession !== editingSession) {
+    setPrevEditingSession(editingSession);
     if (editingSession) {
       handleOpen();
     }
-  }, [editingSession]);
+  }
 
   const handleTypeSelect = (type: string) => {
     if (mode === 'multi') {

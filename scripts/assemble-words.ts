@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { parseIpaToPhonemes } from './ipa-parser';
 
 const PROJECT_ROOT = path.resolve(import.meta.dirname, '..');
 const DATA_DIR = path.join(PROJECT_ROOT, 'src', 'data', 'words');

@@ -12,15 +12,18 @@ export default function Header() {
   const [isClosing, setIsClosing] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const [desktopExpanded, setDesktopExpanded] = useState<string | null>(null);
-  const [navMode, setNavMode] = useState<'public' | 'private'>('public');
-  const [navMounted, setNavMounted] = useState(false);
   const { theme, toggleTheme, mounted } = useTheme();
   const pathname = usePathname();
 
-  useEffect(() => {
+  const [navMode, setNavMode] = useState<'public' | 'private'>(() =>
+    pathname.startsWith('/boss478') ? 'private' : 'public',
+  );
+
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
     setNavMode(pathname.startsWith('/boss478') ? 'private' : 'public');
-    setNavMounted(true);
-  }, [pathname]);
+  }
 
   const PRIVATE_LINKS = [
     { href: '/boss478', label: 'Dashboard', icon: 'fi fi-sr-apps' },
@@ -41,7 +44,7 @@ export default function Header() {
         setDesktopExpanded(null);
       }
     };
-    
+
     document.addEventListener('click', handleClickOutside);
     return () => {
       document.removeEventListener('click', handleClickOutside);
@@ -73,89 +76,94 @@ export default function Header() {
     <nav id="site-header" className="fixed top-0 left-0 right-0 z-50 bg-transparent">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-
           <Link href="/" className="flex items-center gap-2">
             <div className="relative w-10 h-10">
-              <Image 
-                src="/icon/icon.png" 
-                alt="Boss478 Logo" 
+              <Image
+                src="/icon/icon.png"
+                alt="Boss478 Logo"
                 fill
                 sizes="40px"
-                className="object-cover" 
+                className="object-cover"
                 priority
               />
             </div>
           </Link>
 
-
-
           <div className="hidden md:flex items-center gap-2">
-            <div id="desktop-nav" className="flex items-center p-1 gap-1 rounded-full bg-white/40 dark:bg-slate-900/40 hover:bg-white/50 dark:hover:bg-slate-800/50 backdrop-blur-3xs hover:backdrop-blur-xs border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 transition-all duration-200 transition-colors duration-500">
-              {navMounted && (navMode === 'public' ? (
-                /* Public Nav */
-                navLinks.map((link) => (
-                  <div key={link.label} className="relative group">
-                    {!link.subItems ? (
+            <div
+              id="desktop-nav"
+              className="flex items-center p-1 gap-1 rounded-full bg-white/40 dark:bg-slate-900/40 hover:bg-white/50 dark:hover:bg-slate-800/50 backdrop-blur-3xs hover:backdrop-blur-xs border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 transition-all duration-200 transition-colors duration-500"
+            >
+              {mounted &&
+                (navMode === 'public'
+                  ? /* Public Nav */
+                    navLinks.map((link) => (
+                      <div key={link.label} className="relative group">
+                        {!link.subItems ? (
+                          <Link
+                            href={link.href}
+                            className="px-4 py-2 rounded-full text-sm text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-300/70 dark:hover:bg-slate-400/80 transition-all duration-200 transition-colors duration-150 font-medium flex items-center gap-2"
+                            aria-current={pathname === link.href ? 'page' : undefined}
+                          >
+                            <i aria-hidden="true" className={link.icon}></i>
+                            {link.label}
+                          </Link>
+                        ) : (
+                          <>
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setDesktopExpanded(
+                                  desktopExpanded === link.label ? null : link.label,
+                                );
+                              }}
+                              className="px-4 py-2 rounded-full text-sm text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-300/70 dark:hover:bg-slate-400/80 transition-transform duration-75 active:scale-95 font-medium flex items-center gap-2 cursor-pointer"
+                            >
+                              <i className={link.icon}></i>
+                              {link.label}
+                              <i
+                                className={`fi fi-sr-angle-small-down text-xs mt-0.5 transition-transform ${desktopExpanded === link.label ? 'rotate-180' : 'group-hover:rotate-180'}`}
+                              ></i>
+                            </button>
+
+                            <div
+                              className={`absolute top-full left-1/2 -translate-x-1/2 pt-2 transition-all duration-300 ease-out z-50 min-w-40 ${desktopExpanded === link.label ? 'opacity-100 pointer-events-auto translate-y-0' : 'opacity-0 pointer-events-none -translate-y-3 group-hover:opacity-100 group-hover:pointer-events-auto group-hover:translate-y-0'}`}
+                            >
+                              <div className="p-1 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl shadow-blue-100/40 dark:shadow-black/20 flex flex-col gap-1 overflow-hidden transition-colors duration-500">
+                                {link.subItems.map((subItem) => (
+                                  <Link
+                                    key={subItem.href}
+                                    href={subItem.href}
+                                    onClick={() => setDesktopExpanded(null)}
+                                    className="px-4 py-2.5 rounded-xl text-sm text-zinc-600 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-200 transition-colors duration-150 font-medium flex items-center gap-2 whitespace-nowrap"
+                                    aria-current={pathname === subItem.href ? 'page' : undefined}
+                                  >
+                                    <i aria-hidden="true" className={subItem.icon}></i>
+                                    {subItem.label}
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))
+                  : /* Private Nav */
+                    PRIVATE_LINKS.map((link) => (
                       <Link
+                        key={link.href}
                         href={link.href}
-                        className="px-4 py-2 rounded-full text-sm text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-300/70 dark:hover:bg-slate-400/80 transition-all duration-200 transition-colors duration-150 font-medium flex items-center gap-2"
-                        aria-current={pathname === link.href ? "page" : undefined}
+                        className={`px-4 py-2 rounded-full text-sm transition-all duration-200 transition-colors duration-150 font-medium flex items-center gap-2 ${
+                          isPrivateActive(link.href)
+                            ? 'bg-blue-500/30 dark:bg-blue-400/20 backdrop-blur-xs border border-blue-400/40 text-blue-700 dark:text-blue-300 hover:bg-blue-500/50 dark:hover:bg-blue-400/30'
+                            : 'text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-300/70 dark:hover:bg-slate-400/80'
+                        }`}
+                        aria-current={isPrivateActive(link.href) ? 'page' : undefined}
                       >
                         <i aria-hidden="true" className={link.icon}></i>
                         {link.label}
                       </Link>
-                    ) : (
-                      <>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setDesktopExpanded(desktopExpanded === link.label ? null : link.label);
-                          }}
-                          className="px-4 py-2 rounded-full text-sm text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-300/70 dark:hover:bg-slate-400/80 transition-transform duration-75 active:scale-95 font-medium flex items-center gap-2 cursor-pointer"
-                        >
-                          <i className={link.icon}></i>
-                          {link.label}
-                          <i className={`fi fi-sr-angle-small-down text-xs mt-0.5 transition-transform ${desktopExpanded === link.label ? 'rotate-180' : 'group-hover:rotate-180'}`}></i>
-                        </button>
-
-                        <div className={`absolute top-full left-1/2 -translate-x-1/2 pt-2 transition-all duration-300 ease-out z-50 min-w-40 ${desktopExpanded === link.label ? 'opacity-100 pointer-events-auto translate-y-0' : 'opacity-0 pointer-events-none -translate-y-3 group-hover:opacity-100 group-hover:pointer-events-auto group-hover:translate-y-0'}`}>
-                          <div className="p-1 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl shadow-blue-100/40 dark:shadow-black/20 flex flex-col gap-1 overflow-hidden transition-colors duration-500">
-                            {link.subItems.map((subItem) => (
-                              <Link
-                                key={subItem.href}
-                                href={subItem.href}
-                                onClick={() => setDesktopExpanded(null)}
-                                className="px-4 py-2.5 rounded-xl text-sm text-zinc-600 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-200 transition-colors duration-150 font-medium flex items-center gap-2 whitespace-nowrap"
-                                aria-current={pathname === subItem.href ? "page" : undefined}
-                              >
-                                <i aria-hidden="true" className={subItem.icon}></i>
-                                {subItem.label}
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))
-              ) : (
-                /* Private Nav */
-                PRIVATE_LINKS.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`px-4 py-2 rounded-full text-sm transition-all duration-200 transition-colors duration-150 font-medium flex items-center gap-2 ${
-                      isPrivateActive(link.href)
-                        ? 'bg-blue-500/30 dark:bg-blue-400/20 backdrop-blur-xs border border-blue-400/40 text-blue-700 dark:text-blue-300 hover:bg-blue-500/50 dark:hover:bg-blue-400/30'
-                        : 'text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-300/70 dark:hover:bg-slate-400/80'
-                    }`}
-                    aria-current={isPrivateActive(link.href) ? "page" : undefined}
-                  >
-                    <i aria-hidden="true" className={link.icon}></i>
-                    {link.label}
-                  </Link>
-                ))
-              ))}
+                    )))}
             </div>
 
             <div className="flex items-center gap-1">
@@ -179,17 +187,17 @@ export default function Header() {
                 className="px-3 py-2 rounded-full hover:bg-amber-100/50 dark:hover:bg-slate-700/50 transition-transform duration-75 active:scale-95 flex items-center justify-center"
                 aria-label="Toggle dark mode"
               >
-                <i 
+                <i
                   className={`fi fi-sr-sun text-yellow-500 text-md leading-none transition-all duration-500 ${
-                    mounted && theme === 'light' 
-                      ? 'opacity-100 rotate-0 scale-100' 
+                    mounted && theme === 'light'
+                      ? 'opacity-100 rotate-0 scale-100'
                       : 'opacity-0 rotate-90 scale-50 absolute'
                   }`}
                 ></i>
-                <i 
+                <i
                   className={`fi fi-sr-moon text-blue-400 text-md leading-none transition-all duration-500 ${
-                    mounted && theme === 'dark' 
-                      ? 'opacity-100 rotate-0 scale-100' 
+                    mounted && theme === 'dark'
+                      ? 'opacity-100 rotate-0 scale-100'
                       : 'opacity-0 -rotate-90 scale-50 absolute'
                   }`}
                 ></i>
@@ -197,26 +205,24 @@ export default function Header() {
             </div>
           </div>
 
-
           <div className="flex md:hidden items-center gap-2">
-
             <button
               onClick={toggleTheme}
               className="p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-transform duration-75 active:scale-95"
               aria-label="Toggle dark mode"
             >
               <div className="relative w-5 h-5 flex items-center justify-center">
-                <i 
+                <i
                   className={`fi fi-sr-sun text-yellow-500 text-md leading-none transition-all duration-500 ${
-                    mounted && theme === 'light' 
-                      ? 'opacity-100 rotate-0 scale-100' 
+                    mounted && theme === 'light'
+                      ? 'opacity-100 rotate-0 scale-100'
                       : 'opacity-0 rotate-90 scale-50 absolute'
                   }`}
                 ></i>
-                <i 
+                <i
                   className={`fi fi-sr-moon text-blue-400 text-md leading-none transition-all duration-500 ${
-                    mounted && theme === 'dark' 
-                      ? 'opacity-100 rotate-0 scale-100' 
+                    mounted && theme === 'dark'
+                      ? 'opacity-100 rotate-0 scale-100'
                       : 'opacity-0 -rotate-90 scale-50 absolute'
                   }`}
                 ></i>
@@ -232,7 +238,9 @@ export default function Header() {
                 aria-label="Switch nav mode"
                 title={navMode === 'public' ? 'Private tools' : 'Public nav'}
               >
-                <i className={`fi fi-sr-lock text-sm ${navMode === 'private' ? 'text-blue-600' : 'text-zinc-500'}`} />
+                <i
+                  className={`fi fi-sr-lock text-sm ${navMode === 'private' ? 'text-blue-600' : 'text-zinc-500'}`}
+                />
               </button>
             )}
 
@@ -250,78 +258,82 @@ export default function Header() {
           </div>
         </div>
 
-
         {isOpen && (
-            <div id="mobile-nav" className={`md:hidden py-4 flex justify-end ${isClosing ? 'animate-slide-up' : 'animate-slide-down'}`}>
-              <div className="flex flex-col gap-1 p-2 rounded-3xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 w-fit min-w-50 transition-colors duration-500">
-                {navMounted && (navMode === 'public' ? (
-                  navLinks.map((link) => (
-                    <div key={link.label} className="w-full">
-                      {!link.subItems ? (
-                        <Link
-                          href={link.href}
-                          onClick={closeMenuWithAnimation}
-                          className="px-4 py-3 rounded-2xl text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-slate-700/50 transition-all duration-200 transition-colors duration-150 font-medium flex items-center gap-3 w-full"
-                          aria-current={pathname === link.href ? "page" : undefined}
-                        >
-                          <i aria-hidden="true" className={link.icon}></i>
-                          {link.label}
-                        </Link>
-                      ) : (
-                        <div className="flex flex-col">
-                          <button
-                            onClick={() => toggleMobileSubmenu(link.label)}
-                            className={`px-4 py-3 rounded-2xl text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-slate-700/50 transition-transform duration-75 active:scale-95 font-medium flex items-center justify-between gap-3 w-full ${mobileExpanded === link.label ? 'bg-gray-100/50 dark:bg-slate-700/30' : ''}`}
+          <div
+            id="mobile-nav"
+            className={`md:hidden py-4 flex justify-end ${isClosing ? 'animate-slide-up' : 'animate-slide-down'}`}
+          >
+            <div className="flex flex-col gap-1 p-2 rounded-3xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 w-fit min-w-50 transition-colors duration-500">
+              {mounted &&
+                (navMode === 'public'
+                  ? navLinks.map((link) => (
+                      <div key={link.label} className="w-full">
+                        {!link.subItems ? (
+                          <Link
+                            href={link.href}
+                            onClick={closeMenuWithAnimation}
+                            className="px-4 py-3 rounded-2xl text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-slate-700/50 transition-all duration-200 transition-colors duration-150 font-medium flex items-center gap-3 w-full"
+                            aria-current={pathname === link.href ? 'page' : undefined}
                           >
-                            <span className="flex items-center gap-3">
-                              <i className={link.icon}></i>
-                              {link.label}
-                            </span>
-                            <i className={`fi fi-sr-angle-small-down transition-transform duration-200 ${mobileExpanded === link.label ? 'rotate-180' : ''}`}></i>
-                          </button>
-                          
-                          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${mobileExpanded === link.label ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
-                            <div className="flex flex-col pl-4 pr-1 pb-1 pt-1 gap-1">
-                              {link.subItems.map((subItem) => (
-                                <Link
-                                  key={subItem.href}
-                                  href={subItem.href}
-                                  onClick={closeMenuWithAnimation}
-                                  className="px-4 py-2 rounded-xl text-sm text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-300 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-200 transition-colors duration-150 flex items-center gap-2"
-                                  aria-current={pathname === subItem.href ? "page" : undefined}
-                                >
-                                  <i aria-hidden="true" className={subItem.icon}></i>
-                                  {subItem.label}
-                                </Link>
-                              ))}
+                            <i aria-hidden="true" className={link.icon}></i>
+                            {link.label}
+                          </Link>
+                        ) : (
+                          <div className="flex flex-col">
+                            <button
+                              onClick={() => toggleMobileSubmenu(link.label)}
+                              className={`px-4 py-3 rounded-2xl text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-slate-700/50 transition-transform duration-75 active:scale-95 font-medium flex items-center justify-between gap-3 w-full ${mobileExpanded === link.label ? 'bg-gray-100/50 dark:bg-slate-700/30' : ''}`}
+                            >
+                              <span className="flex items-center gap-3">
+                                <i className={link.icon}></i>
+                                {link.label}
+                              </span>
+                              <i
+                                className={`fi fi-sr-angle-small-down transition-transform duration-200 ${mobileExpanded === link.label ? 'rotate-180' : ''}`}
+                              ></i>
+                            </button>
+
+                            <div
+                              className={`overflow-hidden transition-all duration-300 ease-in-out ${mobileExpanded === link.label ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}
+                            >
+                              <div className="flex flex-col pl-4 pr-1 pb-1 pt-1 gap-1">
+                                {link.subItems.map((subItem) => (
+                                  <Link
+                                    key={subItem.href}
+                                    href={subItem.href}
+                                    onClick={closeMenuWithAnimation}
+                                    className="px-4 py-2 rounded-xl text-sm text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-300 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-200 transition-colors duration-150 flex items-center gap-2"
+                                    aria-current={pathname === subItem.href ? 'page' : undefined}
+                                  >
+                                    <i aria-hidden="true" className={subItem.icon}></i>
+                                    {subItem.label}
+                                  </Link>
+                                ))}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  PRIVATE_LINKS.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={closeMenuWithAnimation}
-                       className={`px-4 py-3 rounded-2xl transition-all duration-200 transition-colors duration-150 font-medium flex items-center gap-3 w-full ${
-                         isPrivateActive(link.href)
-                           ? 'bg-blue-500/20 dark:bg-blue-400/15 border border-blue-400/30 text-blue-700 dark:text-blue-300 hover:bg-blue-500/40 dark:hover:bg-blue-400/25'
-                           : 'text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-slate-700/50'
-                       }`}
-                       aria-current={isPrivateActive(link.href) ? "page" : undefined}
-                     >
-                       <i aria-hidden="true" className={link.icon}></i>
-                       {link.label}
-                     </Link>
-                  ))
-                ))}
-              </div>
-
+                        )}
+                      </div>
+                    ))
+                  : PRIVATE_LINKS.map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={closeMenuWithAnimation}
+                        className={`px-4 py-3 rounded-2xl transition-all duration-200 transition-colors duration-150 font-medium flex items-center gap-3 w-full ${
+                          isPrivateActive(link.href)
+                            ? 'bg-blue-500/20 dark:bg-blue-400/15 border border-blue-400/30 text-blue-700 dark:text-blue-300 hover:bg-blue-500/40 dark:hover:bg-blue-400/25'
+                            : 'text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-slate-700/50'
+                        }`}
+                        aria-current={isPrivateActive(link.href) ? 'page' : undefined}
+                      >
+                        <i aria-hidden="true" className={link.icon}></i>
+                        {link.label}
+                      </Link>
+                    )))}
             </div>
-          )}
+          </div>
+        )}
       </div>
     </nav>
   );

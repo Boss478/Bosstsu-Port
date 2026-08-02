@@ -9,12 +9,12 @@ interface PriceChartProps {
 
 export default function PriceChart({ initialSymbol }: PriceChartProps) {
   const { stocks, history, period, setPeriod } = useStockData();
-  const hasInitial = initialSymbol && stocks.some(s => s.symbol === initialSymbol);
+  const hasInitial = initialSymbol && stocks.some((s) => s.symbol === initialSymbol);
   const [selected, setSelected] = useState(hasInitial ? initialSymbol! : (stocks[0]?.symbol ?? ''));
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   const tzLabel = useMemo(() => {
-    const offset = -(new Date().getTimezoneOffset()) / 60;
+    const offset = -new Date().getTimezoneOffset() / 60;
     const local = `UTC${offset >= 0 ? '+' : ''}${offset}`;
     const now = new Date();
     const mar1 = new Date(now.getFullYear(), 2, 1).getDay();
@@ -36,11 +36,11 @@ export default function PriceChart({ initialSymbol }: PriceChartProps) {
     );
   }
 
-  const prices = data.map(d => d.price);
+  const prices = data.map((d) => d.price);
   const min = Math.min(...prices);
   const max = Math.max(...prices);
   const range = max - min || 1;
-  const stock = stocks.find(s => s.symbol === displaySymbol);
+  const stock = stocks.find((s) => s.symbol === displaySymbol);
   const startPrice = prices[0];
   const endPrice = prices[prices.length - 1];
   const change = endPrice - startPrice;
@@ -55,7 +55,9 @@ export default function PriceChart({ initialSymbol }: PriceChartProps) {
   const xScale = (i: number) => PAD.left + (i / (data.length - 1)) * chartW;
   const yScale = (v: number) => PAD.top + chartH - ((v - min) / range) * chartH;
 
-  const linePath = data.map((d, i) => `${i === 0 ? 'M' : 'L'}${xScale(i).toFixed(1)},${yScale(d.price).toFixed(1)}`).join('');
+  const linePath = data
+    .map((d, i) => `${i === 0 ? 'M' : 'L'}${xScale(i).toFixed(1)},${yScale(d.price).toFixed(1)}`)
+    .join('');
 
   const yTicks = 5;
   const yStep = range / (yTicks - 1);
@@ -84,7 +86,8 @@ export default function PriceChart({ initialSymbol }: PriceChartProps) {
     const month = date.getMonth() + 1;
     const day = date.getDate();
     if (period === '1d') return `${pad(hh)}:${pad(mm)}`;
-    if (period === '5d' || period === '1w') return `${pad(month)}/${pad(day)} ${pad(hh)}:${pad(mm)}`;
+    if (period === '5d' || period === '1w')
+      return `${pad(month)}/${pad(day)} ${pad(hh)}:${pad(mm)}`;
     return `${pad(month)}/${pad(day)}`;
   };
 
@@ -92,7 +95,7 @@ export default function PriceChart({ initialSymbol }: PriceChartProps) {
     <div className="space-y-4">
       {!initialSymbol && (
         <div className="flex flex-wrap gap-2">
-          {stocks.slice(0, 10).map((s, i) => (
+          {stocks.slice(0, 10).map((s) => (
             <button
               key={s.symbol}
               onClick={() => setSelected(s.symbol)}
@@ -112,26 +115,28 @@ export default function PriceChart({ initialSymbol }: PriceChartProps) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{displaySymbol}</h3>
-            {stock && (
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">{stock.name}</p>
-            )}
+            {stock && <p className="text-sm text-zinc-500 dark:text-zinc-400">{stock.name}</p>}
           </div>
           <div className="text-right">
             <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
               ${endPrice.toFixed(2)}
             </p>
-            <p className={`text-sm font-medium flex items-center gap-1 justify-end ${
-              change >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
-            }`}>
+            <p
+              className={`text-sm font-medium flex items-center gap-1 justify-end ${
+                change >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
+              }`}
+            >
               <i className={`fi ${change >= 0 ? 'fi-sr-caret-up' : 'fi-sr-caret-down'} text-xs`} />
-              {change >= 0 ? '+' : ''}{change.toFixed(2)} ({changePercent >= 0 ? '+' : ''}{changePercent.toFixed(2)}%)
+              {change >= 0 ? '+' : ''}
+              {change.toFixed(2)} ({changePercent >= 0 ? '+' : ''}
+              {changePercent.toFixed(2)}%)
             </p>
           </div>
         </div>
 
         {!initialSymbol && (
           <div className="flex gap-1 p-0.5 rounded-lg bg-blue-50/40 dark:bg-slate-700/40 mb-4 overflow-x-auto">
-            {PERIOD_CONFIG.map(p => (
+            {PERIOD_CONFIG.map((p) => (
               <button
                 key={p.value}
                 onClick={() => setPeriod(p.value)}
@@ -152,15 +157,27 @@ export default function PriceChart({ initialSymbol }: PriceChartProps) {
         </div>
 
         <div className={`overflow-x-auto ${!initialSymbol ? '' : ''}`}>
-          <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full h-auto min-w-[500px]" preserveAspectRatio="xMidYMid meet">
+          <svg
+            viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+            className="w-full h-auto min-w-[500px]"
+            preserveAspectRatio="xMidYMid meet"
+          >
             {yLabels.map((val, i) => (
               <g key={i}>
-                <text x={PAD.left - 8} y={yScale(val) + 4} textAnchor="end" className="fill-zinc-400 text-[11px]">
+                <text
+                  x={PAD.left - 8}
+                  y={yScale(val) + 4}
+                  textAnchor="end"
+                  className="fill-zinc-400 text-[11px]"
+                >
                   ${val.toFixed(0)}
                 </text>
                 {i > 0 && (
                   <line
-                    x1={PAD.left} y1={yScale(val)} x2={WIDTH - PAD.right} y2={yScale(val)}
+                    x1={PAD.left}
+                    y1={yScale(val)}
+                    x2={WIDTH - PAD.right}
+                    y2={yScale(val)}
                     className="stroke-zinc-200 dark:stroke-zinc-700"
                     strokeWidth="1"
                     strokeDasharray="4 4"
@@ -169,7 +186,7 @@ export default function PriceChart({ initialSymbol }: PriceChartProps) {
               </g>
             ))}
 
-            {xLabels.map(idx => (
+            {xLabels.map((idx) => (
               <text
                 key={idx}
                 x={xScale(idx)}
@@ -181,38 +198,89 @@ export default function PriceChart({ initialSymbol }: PriceChartProps) {
               </text>
             ))}
 
-            <path d={linePath} fill="none" stroke="#2563eb" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+            <path
+              d={linePath}
+              fill="none"
+              stroke="#2563eb"
+              strokeWidth="2"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
 
-            <circle cx={xScale(data.length - 1)} cy={yScale(prices[prices.length - 1])} r="3" fill="#2563eb" />
+            <circle
+              cx={xScale(data.length - 1)}
+              cy={yScale(prices[prices.length - 1])}
+              r="3"
+              fill="#2563eb"
+            />
 
-            {hoveredIdx !== null && data[hoveredIdx] && (() => {
-              const pointY = yScale(data[hoveredIdx].price);
-              const nearTop = pointY < PAD.top + 50;
-              const tipY = nearTop ? pointY + 14 : pointY - 44;
-              const tipX = Math.max(PAD.left, Math.min(WIDTH - PAD.right - 96, xScale(hoveredIdx) - 48));
-              const tipCX = Math.max(PAD.left + 48, Math.min(WIDTH - PAD.right - 48, xScale(hoveredIdx)));
-              return (
-                <g>
-                  <line
-                    x1={xScale(hoveredIdx)} y1={PAD.top}
-                    x2={xScale(hoveredIdx)} y2={PAD.top + chartH}
-                    stroke="#2563eb" strokeWidth="1" strokeDasharray="4 4"
-                  />
-                  <circle cx={xScale(hoveredIdx)} cy={pointY} r="4" fill="#2563eb" stroke="white" strokeWidth="2" />
-                  <rect x={tipX} y={tipY} width="96" height="34" rx="4" className="fill-white dark:fill-zinc-800 stroke-zinc-200 dark:stroke-zinc-700" strokeWidth="1" />
-                  <text x={tipCX} y={tipY + 14} textAnchor="middle" className="fill-zinc-900 dark:fill-zinc-100 text-[11px] font-medium">
-                    ${data[hoveredIdx].price.toFixed(2)}
-                  </text>
-                  <text x={tipCX} y={tipY + 27} textAnchor="middle" className="fill-zinc-500 dark:fill-zinc-400 text-[10px]">
-                    {formatXLabel(hoveredIdx)}
-                  </text>
-                </g>
-              );
-            })()}
+            {hoveredIdx !== null &&
+              data[hoveredIdx] &&
+              (() => {
+                const pointY = yScale(data[hoveredIdx].price);
+                const nearTop = pointY < PAD.top + 50;
+                const tipY = nearTop ? pointY + 14 : pointY - 44;
+                const tipX = Math.max(
+                  PAD.left,
+                  Math.min(WIDTH - PAD.right - 96, xScale(hoveredIdx) - 48),
+                );
+                const tipCX = Math.max(
+                  PAD.left + 48,
+                  Math.min(WIDTH - PAD.right - 48, xScale(hoveredIdx)),
+                );
+                return (
+                  <g>
+                    <line
+                      x1={xScale(hoveredIdx)}
+                      y1={PAD.top}
+                      x2={xScale(hoveredIdx)}
+                      y2={PAD.top + chartH}
+                      stroke="#2563eb"
+                      strokeWidth="1"
+                      strokeDasharray="4 4"
+                    />
+                    <circle
+                      cx={xScale(hoveredIdx)}
+                      cy={pointY}
+                      r="4"
+                      fill="#2563eb"
+                      stroke="white"
+                      strokeWidth="2"
+                    />
+                    <rect
+                      x={tipX}
+                      y={tipY}
+                      width="96"
+                      height="34"
+                      rx="4"
+                      className="fill-white dark:fill-zinc-800 stroke-zinc-200 dark:stroke-zinc-700"
+                      strokeWidth="1"
+                    />
+                    <text
+                      x={tipCX}
+                      y={tipY + 14}
+                      textAnchor="middle"
+                      className="fill-zinc-900 dark:fill-zinc-100 text-[11px] font-medium"
+                    >
+                      ${data[hoveredIdx].price.toFixed(2)}
+                    </text>
+                    <text
+                      x={tipCX}
+                      y={tipY + 27}
+                      textAnchor="middle"
+                      className="fill-zinc-500 dark:fill-zinc-400 text-[10px]"
+                    >
+                      {formatXLabel(hoveredIdx)}
+                    </text>
+                  </g>
+                );
+              })()}
 
             <rect
-              x={PAD.left} y={PAD.top}
-              width={chartW} height={chartH}
+              x={PAD.left}
+              y={PAD.top}
+              width={chartW}
+              height={chartH}
               fill="transparent"
               onMouseMove={(e) => {
                 const svgEl = e.currentTarget.closest('svg');
@@ -233,11 +301,15 @@ export default function PriceChart({ initialSymbol }: PriceChartProps) {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="p-4 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Open</p>
-          <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">${startPrice.toFixed(2)}</p>
+          <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+            ${startPrice.toFixed(2)}
+          </p>
         </div>
         <div className="p-4 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Close</p>
-          <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">${endPrice.toFixed(2)}</p>
+          <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+            ${endPrice.toFixed(2)}
+          </p>
         </div>
         <div className="p-4 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">High</p>

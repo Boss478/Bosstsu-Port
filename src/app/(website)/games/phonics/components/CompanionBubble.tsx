@@ -291,8 +291,10 @@ export default function CompanionBubble() {
 
   useEffect(() => {
     const greet = GREETINGS[companion] ?? GREETINGS.nox;
-    setEntered(true);
-    const timer = setTimeout(() => showBubble(greet, 6000), 50);
+    const timer = setTimeout(() => {
+      setEntered(true);
+      showBubble(greet, 6000);
+    }, 50);
     return () => {
       clearTimeout(timer);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -311,10 +313,9 @@ export default function CompanionBubble() {
     if (!visible || !message || message === '...') return;
     const speed = REVEAL_SPEEDS[bubbleStyles.style.textReveal] ?? 30;
     if (speed === 0) {
-      setRevealedLength(message.length);
+      requestAnimationFrame(() => setRevealedLength(message.length));
       return;
     }
-    setRevealedLength(0);
     const isWordByWord = bubbleStyles.style.textReveal === 'word-by-word';
     if (isWordByWord) {
       const segments = message.split(/(\s+)/);
@@ -424,7 +425,7 @@ export default function CompanionBubble() {
             style={{ borderColor: `${bubbleStyles.style.accentColor}66` }}
           />
           <p>
-            {message === '...' && thinkingRef.current ? (
+            {message === '...' && companionAnim === 'think' ? (
               <span className="inline-flex gap-1">
                 <span className="animate-bounce" style={{ animationDelay: '0ms' }}>
                   .

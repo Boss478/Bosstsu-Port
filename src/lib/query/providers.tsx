@@ -1,16 +1,12 @@
 'use client';
 
-import {
-  environmentManager,
-  QueryClient,
-  QueryClientProvider,
-} from '@tanstack/react-query';
-import { lazy, Suspense, useState } from 'react';
+import { environmentManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { lazy, Suspense, useEffect, useState } from 'react';
 
 const ReactQueryDevtoolsProduction = lazy(() =>
-  import('@tanstack/react-query-devtools/build/modern/production.js').then(
-    (d) => ({ default: d.ReactQueryDevtools }),
-  ),
+  import('@tanstack/react-query-devtools/build/modern/production.js').then((d) => ({
+    default: d.ReactQueryDevtools,
+  })),
 );
 
 function makeQueryClient() {
@@ -29,22 +25,18 @@ function makeQueryClient() {
 
 let browserQueryClient: QueryClient | undefined;
 
-function getQueryClient() {
-  if (environmentManager.isServer()) {
-    return makeQueryClient();
-  }
-  if (!browserQueryClient) browserQueryClient = makeQueryClient();
-  return browserQueryClient;
-}
-
 export default function QueryProvider({ children }: { children: React.ReactNode }) {
-  const queryClient = getQueryClient();
+  const [queryClient] = useState(() => {
+    if (environmentManager.isServer()) return makeQueryClient();
+    return browserQueryClient ?? makeQueryClient();
+  });
   const [showDevtools, setShowDevtools] = useState(false);
 
-  if (typeof window !== 'undefined') {
-    ((window as unknown) as Record<string, unknown>).toggleReactQueryDevtools = () =>
+  useEffect(() => {
+    if (!browserQueryClient) browserQueryClient = queryClient;
+    (window as unknown as Record<string, unknown>).toggleReactQueryDevtools = () =>
       setShowDevtools((old) => !old);
-  }
+  }, [queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>

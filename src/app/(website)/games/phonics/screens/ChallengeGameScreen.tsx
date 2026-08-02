@@ -359,7 +359,7 @@ function RhymeTimeGame({
             <button
               key={option}
               onClick={() => handleOptionClick(option)}
-              disabled={lockRef.current}
+              disabled={!!feedback}
               className={btnClass}
             >
               {option}
@@ -378,11 +378,9 @@ function RhymeTimeGame({
 function SpeedSpellGame({
   questions,
   onComplete,
-  difficulty,
 }: {
   questions: SpeedSpellQuestion[];
   onComplete: (correct: number, total: number) => void;
-  difficulty: 'easy' | 'medium' | 'hard';
 }) {
   const total = questions.length;
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -418,8 +416,27 @@ function SpeedSpellGame({
     setFeedback(null);
   }, []);
 
+  const advance = (wasCorrect: boolean) => {
+    if (currentIndex + 1 >= total) {
+      const finalCorrect = wasCorrect ? correct + 1 : correct;
+      onComplete(finalCorrect, total);
+    } else {
+      setCurrentIndex((i) => i + 1);
+      lockRef.current = false;
+    }
+  };
+
+  const handleTimeout = () => {
+    if (lockRef.current) return;
+    lockRef.current = true;
+    setFeedback('timeout');
+    setTimeout(() => advance(false), 800);
+  };
+
   useEffect(() => {
-    if (current) initQuestion(current);
+    if (!current) return;
+    const raf = requestAnimationFrame(() => initQuestion(current));
+    return () => cancelAnimationFrame(raf);
   }, [currentIndex, current, initQuestion]);
 
   useEffect(() => {
@@ -437,15 +454,7 @@ function SpeedSpellGame({
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, feedback]);
-
-  function handleTimeout() {
-    if (lockRef.current) return;
-    lockRef.current = true;
-    setFeedback('timeout');
-    setTimeout(() => advance(false), 800);
-  }
 
   function handleTileClick(tileId: number) {
     if (lockRef.current || feedback) return;
@@ -470,16 +479,6 @@ function SpeedSpellGame({
     setFeedback(isCorrect ? 'correct' : 'wrong');
 
     setTimeout(() => advance(isCorrect), 800);
-  }
-
-  function advance(wasCorrect: boolean) {
-    if (currentIndex + 1 >= total) {
-      const finalCorrect = wasCorrect ? correct + 1 : correct;
-      onComplete(finalCorrect, total);
-    } else {
-      setCurrentIndex((i) => i + 1);
-      lockRef.current = false;
-    }
   }
 
   if (!current) return null;
@@ -546,14 +545,14 @@ function SpeedSpellGame({
       <div className="flex justify-center gap-3">
         <button
           onClick={handleClear}
-          disabled={lockRef.current || !!feedback || inputBuffer.length === 0}
+          disabled={!!feedback || inputBuffer.length === 0}
           className="px-5 py-2 rounded-xl text-sm font-bold bg-white/30 dark:bg-slate-800/30 text-slate-600 dark:text-slate-300 border border-white/20 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all disabled:opacity-30"
         >
           Clear
         </button>
         <button
           onClick={handleCheck}
-          disabled={lockRef.current || !!feedback || inputBuffer.length === 0}
+          disabled={!!feedback || inputBuffer.length === 0}
           className="px-6 py-2 rounded-xl text-sm font-bold text-white border transition-all disabled:opacity-30"
           style={{ backgroundColor: getChallengeColor('speed-spell') }}
         >
@@ -645,7 +644,7 @@ function SyllableSmashGame({
             <button
               key={option}
               onClick={() => handleOptionClick(option)}
-              disabled={lockRef.current}
+              disabled={!!feedback}
               className={btnClass}
             >
               {option}
@@ -666,7 +665,6 @@ export default function ChallengeGameScreen({
   difficulty,
   level,
   words,
-  onComplete,
   onBack,
 }: ChallengeGameScreenProps) {
   const [phase, setPhase] = useState<GamePhase>('playing');
@@ -683,40 +681,42 @@ export default function ChallengeGameScreen({
   useEffect(() => {
     const cefrLevel = level as CefrLevel;
     const roundCount = CHALLENGE_ROUND_LENGTHS[challengeType]?.[difficulty] ?? 8;
-
-    switch (challengeType) {
-      case 'phoneme-match': {
-        const data = generatePhonemeMatchRound(difficulty, cefrLevel, words);
-        setPhonemeMatchData(data);
-        setTotal(data.gridSize * 2);
-        break;
+    const raf = requestAnimationFrame(() => {
+      switch (challengeType) {
+        case 'phoneme-match': {
+          const data = generatePhonemeMatchRound(difficulty, cefrLevel, words);
+          setPhonemeMatchData(data);
+          setTotal(data.gridSize * 2);
+          break;
+        }
+        case 'sound-sort': {
+          const data = generateSoundSortQuestions(1, cefrLevel, words);
+          setSoundSortData(data);
+          const wordCount = data.reduce((acc, q) => acc + q.words.length, 0);
+          setTotal(wordCount);
+          break;
+        }
+        case 'rhyme-time': {
+          const data = generateRhymeTimeQuestions(roundCount, cefrLevel, words);
+          setRhymeData(data);
+          setTotal(data.length);
+          break;
+        }
+        case 'speed-spell': {
+          const data = generateSpeedSpellQuestions(roundCount, cefrLevel, difficulty, words);
+          setSpeedSpellData(data);
+          setTotal(data.length);
+          break;
+        }
+        case 'syllable-smash': {
+          const data = generateSyllableSmashQuestions(roundCount, cefrLevel, words);
+          setSyllableData(data);
+          setTotal(data.length);
+          break;
+        }
       }
-      case 'sound-sort': {
-        const data = generateSoundSortQuestions(1, cefrLevel, words);
-        setSoundSortData(data);
-        const wordCount = data.reduce((acc, q) => acc + q.words.length, 0);
-        setTotal(wordCount);
-        break;
-      }
-      case 'rhyme-time': {
-        const data = generateRhymeTimeQuestions(roundCount, cefrLevel, words);
-        setRhymeData(data);
-        setTotal(data.length);
-        break;
-      }
-      case 'speed-spell': {
-        const data = generateSpeedSpellQuestions(roundCount, cefrLevel, difficulty, words);
-        setSpeedSpellData(data);
-        setTotal(data.length);
-        break;
-      }
-      case 'syllable-smash': {
-        const data = generateSyllableSmashQuestions(roundCount, cefrLevel, words);
-        setSyllableData(data);
-        setTotal(data.length);
-        break;
-      }
-    }
+    });
+    return () => cancelAnimationFrame(raf);
   }, [challengeType, difficulty, level]);
 
   function handleGameComplete(gameCorrect: number, gameAttempts: number) {
@@ -877,7 +877,6 @@ export default function ChallengeGameScreen({
             key={speedSpellData.length}
             questions={speedSpellData}
             onComplete={handleGameComplete}
-            difficulty={difficulty}
           />
         )}
 

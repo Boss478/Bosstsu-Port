@@ -16,22 +16,26 @@ import { financeKeys } from '@/lib/query/keys';
 
 const { MONTHLY_NORMALIZER } = CONFIG.FINANCE;
 
-interface Props {
-  refreshKey: number;
-}
-
 function advanceBillingDate(date: Date, cycle: string): Date {
   const d = new Date(date);
   switch (cycle) {
-    case 'weekly': d.setDate(d.getDate() + 7); break;
-    case 'monthly': d.setMonth(d.getMonth() + 1); break;
-    case 'quarterly': d.setMonth(d.getMonth() + 3); break;
-    case 'yearly': d.setFullYear(d.getFullYear() + 1); break;
+    case 'weekly':
+      d.setDate(d.getDate() + 7);
+      break;
+    case 'monthly':
+      d.setMonth(d.getMonth() + 1);
+      break;
+    case 'quarterly':
+      d.setMonth(d.getMonth() + 3);
+      break;
+    case 'yearly':
+      d.setFullYear(d.getFullYear() + 1);
+      break;
   }
   return d;
 }
 
-export default function SubscriptionList({ refreshKey: _refreshKey }: Props) {
+export default function SubscriptionList() {
   const qc = useQueryClient();
   const { data: subscriptions = [], isLoading, error } = useSubscriptions();
   const updateSubscription = useUpdateSubscription();
@@ -52,7 +56,11 @@ export default function SubscriptionList({ refreshKey: _refreshKey }: Props) {
 
   function startRenew(sub: SubscriptionData) {
     setRenewingId(sub._id);
-    setRenewDate(advanceBillingDate(new Date(sub.nextBillingDate), sub.billingCycle).toISOString().split('T')[0]);
+    setRenewDate(
+      advanceBillingDate(new Date(sub.nextBillingDate), sub.billingCycle)
+        .toISOString()
+        .split('T')[0],
+    );
   }
 
   async function handleRenew(sub: SubscriptionData) {
@@ -123,10 +131,16 @@ export default function SubscriptionList({ refreshKey: _refreshKey }: Props) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Active monthly total: <span className="font-semibold text-zinc-800 dark:text-zinc-200">฿{fmt(totalMonthly)}</span>
+          Active monthly total:{' '}
+          <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+            ฿{fmt(totalMonthly)}
+          </span>
         </p>
         <button
-          onClick={() => { setEditingSub(null); setShowForm(true); }}
+          onClick={() => {
+            setEditingSub(null);
+            setShowForm(true);
+          }}
           className="px-4 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors cursor-pointer flex items-center gap-1.5"
         >
           <i aria-hidden="true" className="fi fi-sr-add text-xs" />
@@ -142,10 +156,16 @@ export default function SubscriptionList({ refreshKey: _refreshKey }: Props) {
 
       {!isLoading && subscriptions.length === 0 ? (
         <div className="py-12 text-center">
-          <i aria-hidden="true" className="fi fi-sr-refresh text-3xl text-zinc-300 dark:text-zinc-600 mb-3 block" />
+          <i
+            aria-hidden="true"
+            className="fi fi-sr-refresh text-3xl text-zinc-300 dark:text-zinc-600 mb-3 block"
+          />
           <p className="text-zinc-400 dark:text-zinc-500 text-sm">No subscriptions yet</p>
           <button
-            onClick={() => { setEditingSub(null); setShowForm(true); }}
+            onClick={() => {
+              setEditingSub(null);
+              setShowForm(true);
+            }}
             className="mt-3 px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors cursor-pointer"
           >
             Add your first subscription
@@ -159,7 +179,10 @@ export default function SubscriptionList({ refreshKey: _refreshKey }: Props) {
               className="flex items-center gap-3 p-3 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 transition-colors"
             >
               <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-amber-100 dark:bg-amber-900/40">
-                <i aria-hidden="true" className="fi fi-sr-refresh text-xs text-amber-600 dark:text-amber-400" />
+                <i
+                  aria-hidden="true"
+                  className="fi fi-sr-refresh text-xs text-amber-600 dark:text-amber-400"
+                />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
@@ -172,7 +195,16 @@ export default function SubscriptionList({ refreshKey: _refreshKey }: Props) {
               </div>
               <div className="text-right">
                 <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">
-                  ฿{fmt(sub.amount)}/<span className="text-[10px]">{sub.billingCycle === 'monthly' ? 'mo' : sub.billingCycle === 'yearly' ? 'yr' : sub.billingCycle === 'weekly' ? 'wk' : 'qtr'}</span>
+                  ฿{fmt(sub.amount)}/
+                  <span className="text-[10px]">
+                    {sub.billingCycle === 'monthly'
+                      ? 'mo'
+                      : sub.billingCycle === 'yearly'
+                        ? 'yr'
+                        : sub.billingCycle === 'weekly'
+                          ? 'wk'
+                          : 'qtr'}
+                  </span>
                 </p>
                 <p className="text-[10px] text-zinc-400">
                   Next: {formatShortDate(sub.nextBillingDate)}
@@ -180,7 +212,10 @@ export default function SubscriptionList({ refreshKey: _refreshKey }: Props) {
               </div>
               <div className="flex gap-1">
                 <button
-                  onClick={() => { setEditingSub(sub); setShowForm(true); }}
+                  onClick={() => {
+                    setEditingSub(sub);
+                    setShowForm(true);
+                  }}
                   className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-700 cursor-pointer"
                 >
                   <i aria-hidden="true" className="fi fi-sr-pencil text-xs text-zinc-400" />
@@ -261,11 +296,18 @@ export default function SubscriptionList({ refreshKey: _refreshKey }: Props) {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-semibold text-zinc-400">
-                          ฿{fmt(sub.amount)}/<span className="text-[10px]">{sub.billingCycle === 'monthly' ? 'mo' : sub.billingCycle === 'yearly' ? 'yr' : sub.billingCycle === 'weekly' ? 'wk' : 'qtr'}</span>
+                          ฿{fmt(sub.amount)}/
+                          <span className="text-[10px]">
+                            {sub.billingCycle === 'monthly'
+                              ? 'mo'
+                              : sub.billingCycle === 'yearly'
+                                ? 'yr'
+                                : sub.billingCycle === 'weekly'
+                                  ? 'wk'
+                                  : 'qtr'}
+                          </span>
                         </p>
-                        <p className="text-[10px] text-zinc-400">
-                          Cancelled
-                        </p>
+                        <p className="text-[10px] text-zinc-400">Cancelled</p>
                       </div>
                       <button
                         onClick={() => handleDelete(sub._id)}
@@ -284,17 +326,28 @@ export default function SubscriptionList({ refreshKey: _refreshKey }: Props) {
 
       {showForm && (
         <SubscriptionForm
-          editing={editingSub ? {
-            id: editingSub._id,
-            name: editingSub.name,
-            amount: editingSub.amount.toString(),
-            billingCycle: editingSub.billingCycle,
-            category: editingSub.category,
-            nextBillingDate: editingSub.nextBillingDate.slice(0, 10),
-            description: editingSub.description || '',
-          } : null}
-          onClose={() => { setShowForm(false); setEditingSub(null); }}
-          onSaved={() => { setShowForm(false); setEditingSub(null); invalidateAll(); }}
+          editing={
+            editingSub
+              ? {
+                  id: editingSub._id,
+                  name: editingSub.name,
+                  amount: editingSub.amount.toString(),
+                  billingCycle: editingSub.billingCycle,
+                  category: editingSub.category,
+                  nextBillingDate: editingSub.nextBillingDate.slice(0, 10),
+                  description: editingSub.description || '',
+                }
+              : null
+          }
+          onClose={() => {
+            setShowForm(false);
+            setEditingSub(null);
+          }}
+          onSaved={() => {
+            setShowForm(false);
+            setEditingSub(null);
+            invalidateAll();
+          }}
         />
       )}
     </div>

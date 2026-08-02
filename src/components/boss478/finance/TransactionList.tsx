@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import TransactionForm from './TransactionForm';
 import QuickAddBar from './QuickAddBar';
@@ -18,27 +18,39 @@ import { useTransactions, useDeleteTransaction } from '@/hooks/use-finance';
 import { financeKeys } from '@/lib/query/keys';
 
 interface Props {
-  refreshKey: number;
   payDay?: number | null;
   month?: string;
 }
 
-export default function TransactionList({ refreshKey: _refreshKey, payDay, month: externalMonth }: Props) {
+export default function TransactionList({ payDay, month: externalMonth }: Props) {
   const qc = useQueryClient();
-  const [month, setMonth] = useState(externalMonth || (payDay ? getCurrentPeriodKey(payDay) : new Date().toISOString().slice(0, 7)));
+  const [month, setMonth] = useState(
+    externalMonth || (payDay ? getCurrentPeriodKey(payDay) : new Date().toISOString().slice(0, 7)),
+  );
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<{ id: string; type: 'income' | 'expense'; amount: string; category: string; description: string; date: string } | null>(null);
+  const [editing, setEditing] = useState<{
+    id: string;
+    type: 'income' | 'expense';
+    amount: string;
+    category: string;
+    description: string;
+    date: string;
+  } | null>(null);
 
-  useEffect(() => {
+  const [prevExternalMonth, setPrevExternalMonth] = useState(externalMonth);
+  if (prevExternalMonth !== externalMonth) {
+    setPrevExternalMonth(externalMonth);
     if (externalMonth) setMonth(externalMonth);
-  }, [externalMonth]);
+  }
 
-  useEffect(() => {
+  const [prevPayDay, setPrevPayDay] = useState(payDay);
+  if (prevPayDay !== payDay) {
+    setPrevPayDay(payDay);
     if (!month && payDay) {
       setMonth(getCurrentPeriodKey(payDay));
     }
-  }, [payDay]);
+  }
 
   const txFilters = useMemo(() => {
     const f: Record<string, string> = {};
@@ -92,7 +104,10 @@ export default function TransactionList({ refreshKey: _refreshKey, payDay, month
               onClick={() => setMonth(getPreviousPeriodKey(payDay, month))}
               className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
             >
-              <i aria-hidden="true" className="fi fi-sr-angle-left text-xs text-zinc-600 dark:text-zinc-400" />
+              <i
+                aria-hidden="true"
+                className="fi fi-sr-angle-left text-xs text-zinc-600 dark:text-zinc-400"
+              />
             </button>
             <span className="px-3 py-1.5 rounded-lg text-sm bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-700 dark:text-zinc-300 font-medium min-w-[200px] text-center">
               {formatPeriodLabel(payDay, month)}
@@ -101,7 +116,10 @@ export default function TransactionList({ refreshKey: _refreshKey, payDay, month
               onClick={() => setMonth(getNextPeriodKey(payDay, month))}
               className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
             >
-              <i aria-hidden="true" className="fi fi-sr-angle-right text-xs text-zinc-600 dark:text-zinc-400" />
+              <i
+                aria-hidden="true"
+                className="fi fi-sr-angle-right text-xs text-zinc-600 dark:text-zinc-400"
+              />
             </button>
           </>
         ) : (
@@ -123,7 +141,10 @@ export default function TransactionList({ refreshKey: _refreshKey, payDay, month
         </select>
         <div className="ml-auto">
           <button
-            onClick={() => { setEditing(null); setShowForm(true); }}
+            onClick={() => {
+              setEditing(null);
+              setShowForm(true);
+            }}
             className="px-4 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors cursor-pointer flex items-center gap-1.5"
           >
             <i aria-hidden="true" className="fi fi-sr-add text-xs" />
@@ -132,11 +153,13 @@ export default function TransactionList({ refreshKey: _refreshKey, payDay, month
         </div>
       </div>
 
-      {(payDay ? isCurrentPeriod(payDay, month) : month === new Date().toISOString().slice(0, 7)) && (
-        <QuickAddBar onAdd={invalidateTx} />
-      )}
+      {(payDay
+        ? isCurrentPeriod(payDay, month)
+        : month === new Date().toISOString().slice(0, 7)) && <QuickAddBar onAdd={invalidateTx} />}
 
-      {!(payDay ? isCurrentPeriod(payDay, month) : month === new Date().toISOString().slice(0, 7)) && (
+      {!(payDay
+        ? isCurrentPeriod(payDay, month)
+        : month === new Date().toISOString().slice(0, 7)) && (
         <p className="text-xs text-zinc-400 mb-3">
           {payDay ? formatPeriodLabel(payDay, month) : monthLabel(month)}
         </p>
@@ -150,10 +173,16 @@ export default function TransactionList({ refreshKey: _refreshKey, payDay, month
 
       {!isLoading && transactions.length === 0 ? (
         <div className="py-12 text-center">
-          <i aria-hidden="true" className="fi fi-sr-empty text-3xl text-zinc-300 dark:text-zinc-600 mb-3 block" />
+          <i
+            aria-hidden="true"
+            className="fi fi-sr-empty text-3xl text-zinc-300 dark:text-zinc-600 mb-3 block"
+          />
           <p className="text-zinc-400 dark:text-zinc-500 text-sm">No transactions yet</p>
           <button
-            onClick={() => { setEditing(null); setShowForm(true); }}
+            onClick={() => {
+              setEditing(null);
+              setShowForm(true);
+            }}
             className="mt-3 px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors cursor-pointer"
           >
             Add your first transaction
@@ -166,12 +195,20 @@ export default function TransactionList({ refreshKey: _refreshKey, payDay, month
               key={t._id}
               className="flex items-center gap-3 p-3 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors"
             >
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                t.type === 'expense' ? 'bg-red-100 dark:bg-red-900/40' : 'bg-emerald-100 dark:bg-emerald-900/40'
-              }`}>
-                <i className={`fi ${t.type === 'expense' ? 'fi-sr-shopping-cart' : 'fi-sr-arrow-trend-up'} text-xs ${
-                  t.type === 'expense' ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'
-                }`} />
+              <div
+                className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                  t.type === 'expense'
+                    ? 'bg-red-100 dark:bg-red-900/40'
+                    : 'bg-emerald-100 dark:bg-emerald-900/40'
+                }`}
+              >
+                <i
+                  className={`fi ${t.type === 'expense' ? 'fi-sr-shopping-cart' : 'fi-sr-arrow-trend-up'} text-xs ${
+                    t.type === 'expense'
+                      ? 'text-red-600 dark:text-red-400'
+                      : 'text-emerald-600 dark:text-emerald-400'
+                  }`}
+                />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
@@ -180,14 +217,16 @@ export default function TransactionList({ refreshKey: _refreshKey, payDay, month
                 <p className="text-xs text-zinc-400">{getCategoryLabel(t.category)}</p>
               </div>
               <div className="text-right">
-                <p className={`text-sm font-semibold ${
-                  t.type === 'expense' ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'
-                }`}>
+                <p
+                  className={`text-sm font-semibold ${
+                    t.type === 'expense'
+                      ? 'text-red-600 dark:text-red-400'
+                      : 'text-emerald-600 dark:text-emerald-400'
+                  }`}
+                >
                   {t.type === 'expense' ? '-' : '+'}฿{fmt(t.amount)}
                 </p>
-                <p className="text-[10px] text-zinc-400">
-                  {formatShortDate(t.date)}
-                </p>
+                <p className="text-[10px] text-zinc-400">{formatShortDate(t.date)}</p>
               </div>
               <div className="flex gap-1">
                 <button
@@ -221,8 +260,15 @@ export default function TransactionList({ refreshKey: _refreshKey, payDay, month
       {showForm && (
         <TransactionForm
           editing={editing || undefined}
-          onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => { setShowForm(false); setEditing(null); invalidateTx(); }}
+          onClose={() => {
+            setShowForm(false);
+            setEditing(null);
+          }}
+          onSaved={() => {
+            setShowForm(false);
+            setEditing(null);
+            invalidateTx();
+          }}
         />
       )}
     </div>

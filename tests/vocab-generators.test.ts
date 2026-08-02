@@ -8,15 +8,25 @@ import {
   buildRetryQuestions,
   generateCardFlipCards,
 } from '../src/app/(website)/games/phonics/question-generators';
-import { getActivityLengthForTier, getActivityTypesForStage, getWordsForGroup, wordGroupMap, VOCAB_GROUP_DEFS } from '../src/app/(website)/games/phonics/vocab-group-defs';
+import {
+  getActivityLengthForTier,
+  getActivityTypesForStage,
+  getWordsForGroup,
+  wordGroupMap,
+  VOCAB_GROUP_DEFS,
+} from '../src/app/(website)/games/phonics/vocab-group-defs';
 import { WORDS } from '../src/app/(website)/games/phonics/words';
-import type { RoundConfig, PhonicsQuestion } from '../src/app/(website)/games/phonics/types';
+import type {
+  RoundConfig,
+  PhonicsQuestion,
+  WordData,
+} from '../src/app/(website)/games/phonics/types';
 
 describe('generateAntonymQuestions', () => {
   it('returns empty array when no words have antonyms', () => {
     const words = [
-      { word: 'test', antonyms: [], level: 'a1' } as any,
-      { word: 'foo', antonyms: [], level: 'a1' } as any,
+      { word: 'test', antonyms: [], level: 'a1' } as unknown as WordData,
+      { word: 'foo', antonyms: [], level: 'a1' } as unknown as WordData,
     ];
     const result = generateAntonymQuestions(5, 'a1', undefined, words);
     expect(result).toEqual([]);
@@ -39,10 +49,30 @@ describe('generateAntonymQuestions', () => {
 describe('generateFillBlankQuestions', () => {
   it('returns questions with blanked sentence', () => {
     const words = [
-      { word: 'cat', definition: 'A small pet', example: 'The black cat sat on the mat.', level: 'a1' } as any,
-      { word: 'dog', definition: 'A pet that barks', example: 'The dog ran in the park.', level: 'a1' } as any,
-      { word: 'fish', definition: 'Swims in water', example: 'The fish swam away.', level: 'a1' } as any,
-      { word: 'bird', definition: 'Has wings', example: 'The bird flew high.', level: 'a1' } as any,
+      {
+        word: 'cat',
+        definition: 'A small pet',
+        example: 'The black cat sat on the mat.',
+        level: 'a1',
+      } as unknown as WordData,
+      {
+        word: 'dog',
+        definition: 'A pet that barks',
+        example: 'The dog ran in the park.',
+        level: 'a1',
+      } as unknown as WordData,
+      {
+        word: 'fish',
+        definition: 'Swims in water',
+        example: 'The fish swam away.',
+        level: 'a1',
+      } as unknown as WordData,
+      {
+        word: 'bird',
+        definition: 'Has wings',
+        example: 'The bird flew high.',
+        level: 'a1',
+      } as unknown as WordData,
     ];
     const result = generateFillBlankQuestions(2, 'a1', undefined, words);
     expect(result.length).toBeGreaterThan(0);
@@ -55,7 +85,9 @@ describe('generateFillBlankQuestions', () => {
   });
 
   it('returns empty for words with no example', () => {
-    const words = [{ word: 'test', definition: 'a test', example: '', level: 'a1' } as any];
+    const words = [
+      { word: 'test', definition: 'a test', example: '', level: 'a1' } as unknown as WordData,
+    ];
     const result = generateFillBlankQuestions(5, 'a1', undefined, words);
     expect(result).toEqual([]);
   });
@@ -64,12 +96,12 @@ describe('generateFillBlankQuestions', () => {
 describe('generateWordAssociationQuestions', () => {
   it('returns questions with word class options', () => {
     const words = [
-      { word: 'run', wordClass: 'verb', level: 'a1' } as any,
-      { word: 'fast', wordClass: 'adverb', level: 'a1' } as any,
-      { word: 'car', wordClass: 'noun', level: 'a1' } as any,
-      { word: 'big', wordClass: 'adjective', level: 'a1' } as any,
-      { word: 'happy', wordClass: 'adjective', level: 'a1' } as any,
-      { word: 'they', wordClass: 'pronoun', level: 'a1' } as any,
+      { word: 'run', wordClass: 'verb', level: 'a1' } as unknown as WordData,
+      { word: 'fast', wordClass: 'adverb', level: 'a1' } as unknown as WordData,
+      { word: 'car', wordClass: 'noun', level: 'a1' } as unknown as WordData,
+      { word: 'big', wordClass: 'adjective', level: 'a1' } as unknown as WordData,
+      { word: 'happy', wordClass: 'adjective', level: 'a1' } as unknown as WordData,
+      { word: 'they', wordClass: 'pronoun', level: 'a1' } as unknown as WordData,
     ];
     const result = generateWordAssociationQuestions(3, 'a1', undefined, words);
     expect(result.length).toBeGreaterThan(0);
@@ -85,8 +117,8 @@ describe('generateWordAssociationQuestions', () => {
 describe('generateCollocationQuestions', () => {
   it('returns empty when no words have collocations', () => {
     const words = [
-      { word: 'test', collocations: [], level: 'a1' } as any,
-      { word: 'foo', collocations: [], level: 'a1' } as any,
+      { word: 'test', collocations: [], level: 'a1' } as unknown as WordData,
+      { word: 'foo', collocations: [], level: 'a1' } as unknown as WordData,
     ];
     const result = generateCollocationQuestions(5, 'a1', undefined, words);
     expect(result).toEqual([]);
@@ -94,9 +126,17 @@ describe('generateCollocationQuestions', () => {
 
   it('returns questions when enough words have collocations', () => {
     const words = [
-      { word: 'cat', collocations: ['pet cat', 'domestic cat'], level: 'a1' } as any,
-      { word: 'dog', collocations: ['guard dog', 'pet dog'], level: 'a1' } as any,
-      { word: 'house', collocations: ['big house', 'house cat'], level: 'a1' } as any,
+      {
+        word: 'cat',
+        collocations: ['pet cat', 'domestic cat'],
+        level: 'a1',
+      } as unknown as WordData,
+      { word: 'dog', collocations: ['guard dog', 'pet dog'], level: 'a1' } as unknown as WordData,
+      {
+        word: 'house',
+        collocations: ['big house', 'house cat'],
+        level: 'a1',
+      } as unknown as WordData,
     ];
     const result = generateCollocationQuestions(2, 'a1', undefined, words);
     expect(result.length).toBeGreaterThan(0);
@@ -160,10 +200,15 @@ describe('buildRetryQuestions routing for new types', () => {
 
 describe('buildQuestions card-flip format', () => {
   const wordData = { word: 'cat', phonemes: ['ae'], level: 'a1' };
-  const config: RoundConfig = { category: 'phonics', phonicsFormat: 'card-flip', level: 'a1', length: 3 };
+  const config: RoundConfig = {
+    category: 'phonics',
+    phonicsFormat: 'card-flip',
+    level: 'a1',
+    length: 3,
+  };
 
   it('returns a single question with correct structure', () => {
-    const result = buildQuestions(config, ['ae'], [wordData] as any) as PhonicsQuestion[];
+    const result = buildQuestions(config, ['ae'], [wordData] as WordData[]) as PhonicsQuestion[];
     expect(result).toHaveLength(1);
     const q = result[0];
     expect(q.category).toBe('phonics');
@@ -174,7 +219,7 @@ describe('buildQuestions card-flip format', () => {
   });
 
   it('picks phoneme from provided phonemeIds (not PHONEMES[0])', () => {
-    const result = buildQuestions(config, ['ae'], [wordData] as any) as PhonicsQuestion[];
+    const result = buildQuestions(config, ['ae'], [wordData] as WordData[]) as PhonicsQuestion[];
     const q = result[0];
     expect(q.phoneme.id).toBe('ae');
     expect(q.phoneme.ipa).toBe('/æ/');
@@ -182,7 +227,7 @@ describe('buildQuestions card-flip format', () => {
 
   it('falls back to wordPool when no phonemeIds provided', () => {
     const qData = { ...wordData, phonemes: ['aa'] };
-    const result = buildQuestions(config, undefined, [qData] as any) as PhonicsQuestion[];
+    const result = buildQuestions(config, undefined, [qData] as WordData[]) as PhonicsQuestion[];
     const q = result[0];
     expect(q.format).toBe('card-flip');
     expect(typeof q.word.word).toBe('string');
@@ -190,7 +235,11 @@ describe('buildQuestions card-flip format', () => {
 
   it('falls back to wordPool[0] when no word matches phoneme', () => {
     const qData = { word: 'dog', phonemes: ['aa'], level: 'a1' };
-    const result = buildQuestions(config, 'ae' as any, [qData] as any) as PhonicsQuestion[];
+    const result = buildQuestions(
+      config,
+      'ae' as unknown as string[],
+      [qData] as WordData[],
+    ) as PhonicsQuestion[];
     const q = result[0];
     expect(q.word.word).toBe('dog');
   });
@@ -198,10 +247,17 @@ describe('buildQuestions card-flip format', () => {
 
 describe('buildRetryQuestions card-flip format', () => {
   const wordData = { word: 'cat', phonemes: ['ae'], level: 'a1' };
-  const config: RoundConfig = { category: 'phonics', phonicsFormat: 'card-flip', level: 'a1', length: 3 };
+  const config: RoundConfig = {
+    category: 'phonics',
+    phonicsFormat: 'card-flip',
+    level: 'a1',
+    length: 3,
+  };
 
   it('returns a single question with correct structure', () => {
-    const result = buildRetryQuestions(config, ['cat'], [wordData] as any, ['ae']) as PhonicsQuestion[];
+    const result = buildRetryQuestions(config, ['cat'], [wordData] as WordData[], [
+      'ae',
+    ]) as PhonicsQuestion[];
     expect(result).toHaveLength(1);
     const q = result[0];
     expect(q.category).toBe('phonics');
@@ -212,13 +268,20 @@ describe('buildRetryQuestions card-flip format', () => {
   });
 
   it('picks phoneme from provided phonemeIds', () => {
-    const result = buildRetryQuestions(config, ['cat'], [wordData] as any, ['ae']) as PhonicsQuestion[];
+    const result = buildRetryQuestions(config, ['cat'], [wordData] as WordData[], [
+      'ae',
+    ]) as PhonicsQuestion[];
     expect(result[0].phoneme.id).toBe('ae');
   });
 
   it('falls back to PHONEMES[0] when no phonemeIds', () => {
     const qData = { word: 'test', phonemes: ['xx'], level: 'a1' };
-    const result = buildRetryQuestions(config, ['test'], [qData] as any, []) as PhonicsQuestion[];
+    const result = buildRetryQuestions(
+      config,
+      ['test'],
+      [qData] as WordData[],
+      [],
+    ) as PhonicsQuestion[];
     const q = result[0];
     expect(q.format).toBe('card-flip');
     expect(typeof q.word.word).toBe('string');
@@ -226,7 +289,9 @@ describe('buildRetryQuestions card-flip format', () => {
 
   it('falls back to wordPool[0] when no word matches phoneme', () => {
     const qData = { word: 'dog', phonemes: ['aa'], level: 'a1' };
-    const result = buildRetryQuestions(config, ['dog'], [qData] as any, ['ae']) as PhonicsQuestion[];
+    const result = buildRetryQuestions(config, ['dog'], [qData] as WordData[], [
+      'ae',
+    ]) as PhonicsQuestion[];
     expect(result[0].word.word).toBe('dog');
   });
 });
@@ -238,16 +303,16 @@ describe('generateCardFlipCards', () => {
   ];
 
   it('returns shuffled array of pairs', () => {
-    const cards = generateCardFlipCards(1, 'a1', ['ae'], wordData as any);
+    const cards = generateCardFlipCards(1, 'a1', ['ae'], wordData as WordData[]);
     expect(cards.length).toBe(2);
-    const types = cards.map(c => c.type).sort();
+    const types = cards.map((c) => c.type).sort();
     expect(types).toEqual(['phoneme', 'word']);
   });
 
   it('creates phoneme card with IPA label and matching word card', () => {
-    const cards = generateCardFlipCards(1, 'a1', ['ae'], wordData as any);
-    const phonemeCard = cards.find(c => c.type === 'phoneme')!;
-    const wordCard = cards.find(c => c.type === 'word')!;
+    const cards = generateCardFlipCards(1, 'a1', ['ae'], wordData as WordData[]);
+    const phonemeCard = cards.find((c) => c.type === 'phoneme')!;
+    const wordCard = cards.find((c) => c.type === 'word')!;
     expect(phonemeCard.label).toBe('/æ/');
     expect(phonemeCard.matchId).toBe('ae');
     expect(wordCard.label).toBe('cat');
@@ -259,24 +324,24 @@ describe('generateCardFlipCards', () => {
   });
 
   it('generates numPairs pairs', () => {
-    const cards = generateCardFlipCards(2, 'a1', ['ae', 'ee'], wordData as any);
+    const cards = generateCardFlipCards(2, 'a1', ['ae', 'ee'], wordData as WordData[]);
     expect(cards.length).toBe(4);
   });
 
   it('fills from other phonemes when not enough match given phonemeIds', () => {
-    const cards = generateCardFlipCards(3, 'a1', ['ae'], wordData as any);
+    const cards = generateCardFlipCards(3, 'a1', ['ae'], wordData as WordData[]);
     expect(cards.length).toBe(6);
   });
 
   it('truncates when more phonemeIds than numPairs', () => {
-    const cards = generateCardFlipCards(1, 'a1', ['ae', 'ee'], wordData as any);
+    const cards = generateCardFlipCards(1, 'a1', ['ae', 'ee'], wordData as WordData[]);
     expect(cards.length).toBe(2);
   });
 
   it('uses default WORDS when no word pool provided', () => {
     const cards = generateCardFlipCards(1, 'a1', ['ae']);
     expect(cards.length).toBe(2);
-    const types = cards.map(c => c.type).sort();
+    const types = cards.map((c) => c.type).sort();
     expect(types).toEqual(['phoneme', 'word']);
   });
 
@@ -287,13 +352,13 @@ describe('generateCardFlipCards', () => {
 
   it('all cards have unique ids', () => {
     const cards = generateCardFlipCards(5, 'a1', ['ae', 'ee', 'ii', 'oo', 'uu']);
-    const ids = cards.map(c => c.id);
+    const ids = cards.map((c) => c.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
   it('uses phoneme.example when no matching word found', () => {
-    const cards = generateCardFlipCards(1, 'a1', ['ae'], [] as any);
-    const wordCard = cards.find(c => c.type === 'word')!;
+    const cards = generateCardFlipCards(1, 'a1', ['ae'], [] as WordData[]);
+    const wordCard = cards.find((c) => c.type === 'word')!;
     expect(wordCard.label).toBe('cat');
     expect(wordCard.ttsText).toBe('cat');
   });
@@ -360,17 +425,15 @@ describe('getWordsForGroup two-tier fallback', () => {
   });
 
   it('wordGroupMap still uses strict matching', () => {
-    const ship = WORDS.find(w => w.word === 'ship');
+    const ship = WORDS.find((w) => w.word === 'ship');
     expect(ship).toBeDefined();
     const groups = wordGroupMap[ship!.word] || [];
-    const synGroups = groups.filter(g => g.includes('synonyms'));
+    const synGroups = groups.filter((g) => g.includes('synonyms'));
     expect(synGroups.length).toBe(0);
   });
 
   it('all synonym groups get more words than before', () => {
-    const synIds = VOCAB_GROUP_DEFS
-      .filter(g => g.synonymOf?.length)
-      .map(g => g.id);
+    const synIds = VOCAB_GROUP_DEFS.filter((g) => g.synonymOf?.length).map((g) => g.id);
     expect(synIds.length).toBe(24);
     for (const id of synIds) {
       const words = getWordsForGroup(id);

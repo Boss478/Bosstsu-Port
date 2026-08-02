@@ -139,7 +139,7 @@ export function FlashcardProvider({ children }: { children: ReactNode }) {
     stateRef.current = { gameState, isAnimating, feedbackHint };
   }, [gameState, isAnimating, feedbackHint]);
 
-  const handleAnswerRef = useRef((_userGuessedCorrect: boolean) => {});
+  const handleAnswerRef = useRef<(g: boolean) => void>(() => {});
   useEffect(() => {
     handleAnswerRef.current = handleAnswerInternal;
   });
@@ -171,7 +171,6 @@ export function FlashcardProvider({ children }: { children: ReactNode }) {
       }, 1000);
       return () => clearInterval(interval);
     }
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
   }, [gameState, mode, endGame]);
 
   useEffect(() => {
@@ -320,7 +319,7 @@ export function FlashcardProvider({ children }: { children: ReactNode }) {
     setRecentWordHistory((prev) => [nextUniformWord.word, ...prev].slice(0, 20));
   };
 
-  const handleAnswerInternal = (userGuessedCorrect: boolean) => {
+  function handleAnswerInternal(userGuessedCorrect: boolean) {
     if (!currentWord || isAnimating || feedbackHint) return;
 
     const isActuallyCorrect = currentWord.isCorrect === userGuessedCorrect;
@@ -362,9 +361,9 @@ export function FlashcardProvider({ children }: { children: ReactNode }) {
     }
 
     proceedAfterAnswerInternal(isActuallyCorrect, userGuessedCorrect);
-  };
+  }
 
-  const proceedAfterAnswerInternal = (isActuallyCorrect: boolean, userGuessedCorrect: boolean) => {
+  function proceedAfterAnswerInternal(isActuallyCorrect: boolean, userGuessedCorrect: boolean) {
     setIsAnimating(true);
     setSwipeOffset(userGuessedCorrect ? -500 : 500);
 
@@ -415,7 +414,7 @@ export function FlashcardProvider({ children }: { children: ReactNode }) {
         return newStats;
       });
     }, 300);
-  };
+  }
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (isAnimating || feedbackHint) return;

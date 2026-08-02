@@ -206,8 +206,8 @@ function migrateSave(data: Partial<SaveData>): SaveData {
     data.groupProgress = {};
     data.challengeDifficulty = 'b1';
     // Strip old CEFR fields
-    delete (oldData as any).cefrLevel;
-    delete (oldData as any).cefrUpgradeStreak;
+    delete oldData.cefrLevel;
+    delete oldData.cefrUpgradeStreak;
   }
   return { ...defaults, ...data, version: SAVE_VERSION };
 }

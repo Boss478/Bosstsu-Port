@@ -26,41 +26,17 @@ export function DeviceTierProvider({ children }: { children: ReactNode }) {
   const [customOverrides, setCustomOverrides] = useState<Partial<TierConfig> | undefined>(
     undefined,
   );
-  const [state, setState] = useState<DeviceTierContextValue>({
-    tier: 'medium',
-    config: getTierConfig('medium'),
-    raw: { gpu: 50, cpu: 50, memory: 50, connection: 50 },
-    loading: true,
-    forced: false,
-    setForceTier: () => {},
-    setCustomConfig: () => {},
-  });
+  const [detected, setDetected] = useState<{ tier: Tier; raw: DeviceScore['raw'] } | null>(null);
 
   useEffect(() => {
-    if (forceTier) {
-      const base = getTierConfig(forceTier);
-      setState((prev) => ({
-        ...prev,
-        tier: forceTier,
-        config: customOverrides ? { ...base, ...customOverrides } : base,
-        raw: { gpu: 50, cpu: 50, memory: 50, connection: 50 },
-        loading: false,
-        forced: true,
-      }));
-      return;
-    }
-
+    if (forceTier) return;
+    let cancelled = false;
     detectDeviceTier().then((result) => {
-      const base = getTierConfig(result.tier);
-      setState((prev) => ({
-        ...prev,
-        tier: result.tier,
-        config: customOverrides ? { ...base, ...customOverrides } : base,
-        raw: result.raw,
-        loading: false,
-        forced: false,
-      }));
+      if (!cancelled) setDetected({ tier: result.tier, raw: result.raw });
     });
+    return () => {
+      cancelled = true;
+    };
   }, [forceTier, customOverrides]);
 
   const setForceTierCallback = useCallback((tier: Tier | undefined) => {
@@ -71,8 +47,22 @@ export function DeviceTierProvider({ children }: { children: ReactNode }) {
     setCustomOverrides(overrides);
   }, []);
 
+  const tier = forceTier ?? detected?.tier ?? 'medium';
+  const raw = forceTier
+    ? { gpu: 50, cpu: 50, memory: 50, connection: 50 }
+    : (detected?.raw ?? { gpu: 50, cpu: 50, memory: 50, connection: 50 });
+  const config = customOverrides
+    ? { ...getTierConfig(tier), ...customOverrides }
+    : getTierConfig(tier);
+  const loading = !forceTier && !detected;
+  const forced = !!forceTier;
+
   const value: DeviceTierContextValue = {
-    ...state,
+    tier,
+    config,
+    raw,
+    loading,
+    forced,
     setForceTier: setForceTierCallback,
     setCustomConfig: setCustomConfigCallback,
   };

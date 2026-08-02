@@ -32,32 +32,61 @@ interface Props {
   error: string | null;
 }
 
-const DONUT_COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#06b6d4', '#ec4899', '#f97316'];
+const DONUT_COLORS = [
+  '#3b82f6',
+  '#ef4444',
+  '#f59e0b',
+  '#10b981',
+  '#8b5cf6',
+  '#06b6d4',
+  '#ec4899',
+  '#f97316',
+];
 
 function fmt(n: number) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function DonutChart({ data }: { data: Array<{ label: string; value: number; color: string }> }) {
-  const cx = 120, cy = 120, R = 100, holeR = 55;
+  const cx = 120,
+    cy = 120,
+    R = 100,
+    holeR = 55;
   const total = data.reduce((s, d) => s + d.value, 0);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   if (total === 0) return null;
 
-  let currentAngle = -Math.PI / 2;
-  const slices = data.map((d) => {
+  const slices = data.reduce<
+    Array<{
+      path: string;
+      color: string;
+      label: string;
+      value: number;
+      pct: number;
+      endAngle: number;
+    }>
+  >((acc, d) => {
+    const startAngle = acc.length === 0 ? -Math.PI / 2 : acc[acc.length - 1].endAngle;
     const sliceAngle = (d.value / total) * 2 * Math.PI;
-    const startAngle = currentAngle;
-    const endAngle = currentAngle + sliceAngle;
-    currentAngle = endAngle;
+    const endAngle = startAngle + sliceAngle;
     const x1 = cx + R * Math.cos(startAngle);
     const y1 = cy + R * Math.sin(startAngle);
     const x2 = cx + R * Math.cos(endAngle);
     const y2 = cy + R * Math.sin(endAngle);
     const largeArcFlag = sliceAngle > Math.PI ? 1 : 0;
     const path = `M ${cx},${cy} L ${x1.toFixed(1)},${y1.toFixed(1)} A ${R},${R} 0 ${largeArcFlag} 1 ${x2.toFixed(1)},${y2.toFixed(1)} Z`;
-    return { path, color: d.color, label: d.label, value: d.value, pct: (d.value / total) * 100 };
-  });
+    return [
+      ...acc,
+      {
+        path,
+        color: d.color,
+        label: d.label,
+        value: d.value,
+        pct: (d.value / total) * 100,
+        endAngle,
+      },
+    ];
+  }, []);
 
   const hovered = hoveredIndex !== null ? slices[hoveredIndex] : null;
 
@@ -76,25 +105,60 @@ function DonutChart({ data }: { data: Array<{ label: string; value: number; colo
             className="transition-opacity cursor-pointer"
           />
         ))}
-        <circle cx={cx} cy={cy} r={holeR} className="fill-white dark:fill-slate-800 pointer-events-none" />
+        <circle
+          cx={cx}
+          cy={cy}
+          r={holeR}
+          className="fill-white dark:fill-slate-800 pointer-events-none"
+        />
         {hovered ? (
           <>
-            <text x={cx} y={cy - 6} textAnchor="middle" className="fill-zinc-800 dark:fill-zinc-200 text-xs font-bold" fontSize="14">
+            <text
+              x={cx}
+              y={cy - 6}
+              textAnchor="middle"
+              className="fill-zinc-800 dark:fill-zinc-200 text-xs font-bold"
+              fontSize="14"
+            >
               {hovered.label}
             </text>
-            <text x={cx} y={cy + 8} textAnchor="middle" className="fill-zinc-800 dark:fill-zinc-200 text-sm font-bold" fontSize="16">
+            <text
+              x={cx}
+              y={cy + 8}
+              textAnchor="middle"
+              className="fill-zinc-800 dark:fill-zinc-200 text-sm font-bold"
+              fontSize="16"
+            >
               ฿{fmt(hovered.value)}
             </text>
-            <text x={cx} y={cy + 20} textAnchor="middle" className="fill-zinc-400 text-[10px]" fontSize="10">
+            <text
+              x={cx}
+              y={cy + 20}
+              textAnchor="middle"
+              className="fill-zinc-400 text-[10px]"
+              fontSize="10"
+            >
               {hovered.pct.toFixed(0)}%
             </text>
           </>
         ) : (
           <>
-            <text x={cx} y={cy - 4} textAnchor="middle" className="fill-zinc-800 dark:fill-zinc-200 text-lg font-bold" fontSize="18">
+            <text
+              x={cx}
+              y={cy - 4}
+              textAnchor="middle"
+              className="fill-zinc-800 dark:fill-zinc-200 text-lg font-bold"
+              fontSize="18"
+            >
               ฿{fmt(total)}
             </text>
-            <text x={cx} y={cy + 12} textAnchor="middle" className="fill-zinc-400 text-xs" fontSize="11">
+            <text
+              x={cx}
+              y={cy + 12}
+              textAnchor="middle"
+              className="fill-zinc-400 text-xs"
+              fontSize="11"
+            >
               Total
             </text>
           </>
@@ -103,9 +167,14 @@ function DonutChart({ data }: { data: Array<{ label: string; value: number; colo
       <div className="space-y-1.5 w-full">
         {slices.map((s, i) => (
           <div key={i} className="flex items-center gap-2 text-xs">
-            <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: s.color }} />
+            <span
+              className="w-2.5 h-2.5 rounded-sm shrink-0"
+              style={{ backgroundColor: s.color }}
+            />
             <span className="text-zinc-600 dark:text-zinc-400 flex-1">{s.label}</span>
-            <span className="text-zinc-800 dark:text-zinc-200 font-medium">{s.pct.toFixed(0)}%</span>
+            <span className="text-zinc-800 dark:text-zinc-200 font-medium">
+              {s.pct.toFixed(0)}%
+            </span>
             <span className="text-zinc-400">฿{fmt(s.value)}</span>
           </div>
         ))}
@@ -114,7 +183,17 @@ function DonutChart({ data }: { data: Array<{ label: string; value: number; colo
   );
 }
 
-function CollapsiblePanel({ title, icon, defaultOpen = false, children }: { title: string; icon: string; defaultOpen?: boolean; children: React.ReactNode }) {
+function CollapsiblePanel({
+  title,
+  icon,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  icon: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="rounded-xl bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 overflow-hidden">
@@ -124,7 +203,9 @@ function CollapsiblePanel({ title, icon, defaultOpen = false, children }: { titl
       >
         <i className={`fi ${icon} text-xs text-zinc-500`} />
         <span className="flex-1 text-left">{title}</span>
-        <i className={`fi fi-sr-angle-right text-xs text-zinc-400 transition-transform ${open ? 'rotate-90' : ''}`} />
+        <i
+          className={`fi fi-sr-angle-right text-xs text-zinc-400 transition-transform ${open ? 'rotate-90' : ''}`}
+        />
       </button>
       {open && <div className="px-4 pb-4">{children}</div>}
     </div>
@@ -168,9 +249,30 @@ export default function FinanceSummary({ data, transactions, loading, error }: P
   }
 
   const cards = [
-    { label: 'Net Income', value: data.incomeTotal, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50/60 dark:bg-emerald-900/30', icon: 'fi-sr-arrow-trend-up' },
-    { label: 'All Expense', value: data.allExpense, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50/60 dark:bg-red-900/30', icon: 'fi-sr-shopping-cart' },
-    { label: 'Net Remaining', value: data.netRemaining, color: data.netRemaining >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400', bg: 'bg-blue-50/60 dark:bg-blue-900/30', icon: 'fi-sr-coins' },
+    {
+      label: 'Net Income',
+      value: data.incomeTotal,
+      color: 'text-emerald-600 dark:text-emerald-400',
+      bg: 'bg-emerald-50/60 dark:bg-emerald-900/30',
+      icon: 'fi-sr-arrow-trend-up',
+    },
+    {
+      label: 'All Expense',
+      value: data.allExpense,
+      color: 'text-red-600 dark:text-red-400',
+      bg: 'bg-red-50/60 dark:bg-red-900/30',
+      icon: 'fi-sr-shopping-cart',
+    },
+    {
+      label: 'Net Remaining',
+      value: data.netRemaining,
+      color:
+        data.netRemaining >= 0
+          ? 'text-blue-600 dark:text-blue-400'
+          : 'text-red-600 dark:text-red-400',
+      bg: 'bg-blue-50/60 dark:bg-blue-900/30',
+      icon: 'fi-sr-coins',
+    },
   ];
 
   const expenseTransactions = transactions.filter((t) => t.type === 'expense');
@@ -197,9 +299,7 @@ export default function FinanceSummary({ data, transactions, loading, error }: P
                 {card.label}
               </span>
             </div>
-            <p className={`text-xl font-bold ${card.color}`}>
-              ฿{fmt(card.value)}
-            </p>
+            <p className={`text-xl font-bold ${card.color}`}>฿{fmt(card.value)}</p>
             {card.label === 'All Expense' && (
               <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
                 Subscription ฿{fmt(data.subscriptionTotal)}
@@ -218,21 +318,26 @@ export default function FinanceSummary({ data, transactions, loading, error }: P
           <DonutChart
             data={catBreakdown
               .filter((c) => c.total > 0)
-              .map((c, i) => ({ label: c.cat.label, value: c.total, color: DONUT_COLORS[i % DONUT_COLORS.length] }))}
+              .map((c, i) => ({
+                label: c.cat.label,
+                value: c.total,
+                color: DONUT_COLORS[i % DONUT_COLORS.length],
+              }))}
           />
           {top5Expenses.length > 0 && (
             <div className="mt-3 pt-3 border-t border-zinc-200 dark:border-zinc-700">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-zinc-500">Top Expense</span>
-                <span className="text-zinc-400">
-                  {formatShortDate(top5Expenses[0].date)}
-                </span>
+                <span className="text-zinc-400">{formatShortDate(top5Expenses[0].date)}</span>
               </div>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-sm text-zinc-700 dark:text-zinc-300 font-medium">
-                  {top5Expenses[0].category}{top5Expenses[0].description ? ` — ${top5Expenses[0].description}` : ''}
+                  {top5Expenses[0].category}
+                  {top5Expenses[0].description ? ` — ${top5Expenses[0].description}` : ''}
                 </span>
-                <span className="text-sm font-bold text-red-500">-฿{fmt(top5Expenses[0].amount)}</span>
+                <span className="text-sm font-bold text-red-500">
+                  -฿{fmt(top5Expenses[0].amount)}
+                </span>
               </div>
             </div>
           )}
@@ -244,7 +349,10 @@ export default function FinanceSummary({ data, transactions, loading, error }: P
           {budgetsLoading ? (
             <div className="space-y-2">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-10 rounded-lg bg-white/40 dark:bg-slate-800/40 animate-pulse" />
+                <div
+                  key={i}
+                  className="h-10 rounded-lg bg-white/40 dark:bg-slate-800/40 animate-pulse"
+                />
               ))}
             </div>
           ) : catBreakdown.length === 0 ? (
@@ -255,16 +363,28 @@ export default function FinanceSummary({ data, transactions, loading, error }: P
                 const pct = limit > 0 ? Math.min((total / limit) * 100, 100) : 0;
                 const over = limit > 0 && total > limit;
                 return (
-                  <div key={cat.value} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/30 dark:hover:bg-slate-700/30">
-                    <span className="text-xs text-zinc-700 dark:text-zinc-300 min-w-[100px]">{cat.label}</span>
+                  <div
+                    key={cat.value}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/30 dark:hover:bg-slate-700/30"
+                  >
+                    <span className="text-xs text-zinc-700 dark:text-zinc-300 min-w-[100px]">
+                      {cat.label}
+                    </span>
                     <span className="text-xs text-zinc-500 w-28 text-right">฿{fmt(total)}</span>
                     {limit > 0 && (
                       <>
-                        <span className="text-[10px] text-zinc-400 w-20 text-right">/ ฿{fmt(limit)}</span>
+                        <span className="text-[10px] text-zinc-400 w-20 text-right">
+                          / ฿{fmt(limit)}
+                        </span>
                         <div className="flex-1 h-1.5 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden max-w-[120px]">
-                          <div className={`h-full rounded-full ${over ? 'bg-red-500' : pct > 75 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }} />
+                          <div
+                            className={`h-full rounded-full ${over ? 'bg-red-500' : pct > 75 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                            style={{ width: `${pct}%` }}
+                          />
                         </div>
-                        <span className={`text-[10px] w-10 text-right ${over ? 'text-red-500 font-semibold' : 'text-zinc-400'}`}>
+                        <span
+                          className={`text-[10px] w-10 text-right ${over ? 'text-red-500 font-semibold' : 'text-zinc-400'}`}
+                        >
                           {pct.toFixed(0)}%
                         </span>
                       </>
@@ -282,7 +402,10 @@ export default function FinanceSummary({ data, transactions, loading, error }: P
           ) : (
             <div className="space-y-1">
               {top5Expenses.map((tx) => (
-                <div key={tx._id} className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-white/30 dark:hover:bg-slate-700/30">
+                <div
+                  key={tx._id}
+                  className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-white/30 dark:hover:bg-slate-700/30"
+                >
                   <span className="text-[10px] text-zinc-400 w-16 shrink-0">
                     {formatShortDate(tx.date)}
                   </span>
@@ -299,6 +422,6 @@ export default function FinanceSummary({ data, transactions, loading, error }: P
           )}
         </CollapsiblePanel>
       </div>
-      </div>
+    </div>
   );
 }

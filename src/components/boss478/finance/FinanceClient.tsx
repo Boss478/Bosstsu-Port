@@ -327,7 +327,7 @@ export default function FinanceClient() {
 
       {activeTab === 'transactions' && (
         <FinanceErrorBoundary tabName="Transactions">
-          <TransactionList refreshKey={0} payDay={payDay} month={month} />
+          <TransactionList payDay={payDay} month={month} />
         </FinanceErrorBoundary>
       )}
 
@@ -339,7 +339,7 @@ export default function FinanceClient() {
 
       {activeTab === 'subscriptions' && (
         <FinanceErrorBoundary tabName="Subscriptions">
-          <SubscriptionList refreshKey={0} />
+          <SubscriptionList />
         </FinanceErrorBoundary>
       )}
     </div>

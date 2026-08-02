@@ -13,7 +13,7 @@ import GroupMapView from '../components/GroupMapView';
 import StageSubMap from '../components/StageSubMap';
 import ActivityPath from '../components/ActivityPath';
 import ModeSelectModal from '../components/ModeSelectModal';
-import type { CefrLevel, VocabTier } from '../types';
+import type { CefrLevel, VocabTier, VocabGroupDef } from '../types';
 
 interface StageListScreenProps {
   mode?: 'sound' | 'vocab';
@@ -458,7 +458,9 @@ function VocabActivityPath({ mode = 'sound' }: { mode?: 'sound' | 'vocab' }) {
               {isVocabMode ? selectedGroup?.title : selectedStage!.title}
             </h2>
             <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
-              {isVocabMode ? ((selectedGroup as any)?.description ?? '') : selectedStage!.subtitle}
+              {isVocabMode
+                ? ((selectedGroup as VocabGroupDef | null)?.description ?? '')
+                : selectedStage!.subtitle}
             </p>
             {isVocabMode && (
               <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-1">

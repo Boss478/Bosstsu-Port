@@ -18,10 +18,15 @@ export default function BroadcastBanner({
   const [timer, setTimer] = useState(duration ?? 0);
   const [visible, setVisible] = useState(true);
 
-  useEffect(() => {
+  const bannerKey = `${message}|${messageType}|${duration ?? 0}`;
+  const [prevBannerKey, setPrevBannerKey] = useState(bannerKey);
+  if (prevBannerKey !== bannerKey) {
+    setPrevBannerKey(bannerKey);
     setVisible(true);
     setTimer(duration ?? 0);
+  }
 
+  useEffect(() => {
     if (messageType === 'message' && duration) {
       const t = setTimeout(() => {
         setVisible(false);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useDeviceTier } from '@/lib/device-tier-provider';
 import { getTierConfig, type Tier, type TierConfig } from '@/lib/device-tier';
 import MascotSelector from './mascots/MascotSelector';
@@ -106,24 +106,21 @@ export default function StudentSettings({
   const setOpen = onOpenChange || setInternalOpen;
 
   const { tier, forced, config, setForceTier, setCustomConfig } = useDeviceTier();
-  const [selectedPreset, setSelectedPreset] = useState<PresetValue>('');
+  const [selectedPreset, setSelectedPreset] = useState<PresetValue>(() => (forced ? tier : ''));
   const [overrides, setOverrides] = useState<Partial<TierConfig>>({});
-  const [soundOn, setSoundOn] = useState(true);
-  const [soundtrackOn, setSoundtrackOn] = useState(false);
+  const [soundOn, setSoundOn] = useState(() => localStorage.getItem('tools_sound') !== 'off');
+  const [soundtrackOn, setSoundtrackOn] = useState(
+    () => localStorage.getItem('tools_soundtrack') === 'on',
+  );
   const [sectionFilter, setSectionFilter] = useState<SectionFilter>('all');
 
-  useEffect(() => {
-    if (forced) {
-      setSelectedPreset(tier);
-    } else {
-      setSelectedPreset('');
-    }
-  }, [forced, tier]);
-
-  useEffect(() => {
-    setSoundOn(localStorage.getItem('tools_sound') !== 'off');
-    setSoundtrackOn(localStorage.getItem('tools_soundtrack') === 'on');
-  }, []);
+  const [prevForced, setPrevForced] = useState(forced);
+  const [prevTier, setPrevTier] = useState(tier);
+  if (prevForced !== forced || prevTier !== tier) {
+    setPrevForced(forced);
+    setPrevTier(tier);
+    setSelectedPreset(forced ? tier : '');
+  }
 
   const effectiveConfig = useMemo(() => {
     if (selectedPreset === '') return config;
@@ -173,7 +170,8 @@ export default function StudentSettings({
   const handleResetOverride = useCallback(
     (key: keyof TierConfig) => {
       setOverrides((prev) => {
-        const { [key]: _, ...rest } = prev;
+        const rest = { ...prev };
+        delete rest[key];
         setCustomConfig(Object.keys(rest).length > 0 ? rest : undefined);
         return rest;
       });
@@ -261,10 +259,7 @@ export default function StudentSettings({
 
       {open && (
         <div className="fixed inset-0 z-[60] flex items-start justify-center p-4 pt-[10vh] overflow-y-auto">
-          <div
-            className="absolute inset-0 bg-black/10"
-            onClick={() => setOpen(false)}
-          />
+          <div className="absolute inset-0 bg-black/10" onClick={() => setOpen(false)} />
           <div className="relative w-full max-w-sm max-h-[75vh] overflow-y-auto overscroll-contain rounded-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-white/60 dark:border-slate-700/50 shadow-xl p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">

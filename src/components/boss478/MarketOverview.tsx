@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useStockData } from './StockDataContext';
 import { useEnrichedHoldings, usePortfolioAggregates } from './useEnrichedHoldings';
+import type { ExtendedStockData } from './StockDataContext';
 
 export default function MarketOverview() {
   const { stocks, indexes, portfolio, watchlist } = useStockData();
@@ -11,7 +12,7 @@ export default function MarketOverview() {
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
-      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortKey(key);
       setSortDir('asc');
@@ -19,18 +20,20 @@ export default function MarketOverview() {
   };
 
   const sortedStocks = useMemo(() => {
-    return [...stocks].sort((a: any, b: any) => {
-      let va: any;
-      let vb: any;
+    return [...stocks].sort((a, b) => {
+      let va: string | number;
+      let vb: string | number;
       if (sortKey === 'name') {
         va = a.name.toLowerCase();
         vb = b.name.toLowerCase();
       } else {
-        va = (a as any)[sortKey] ?? 0;
-        vb = (b as any)[sortKey] ?? 0;
+        va = a[sortKey as keyof ExtendedStockData] ?? 0;
+        vb = b[sortKey as keyof ExtendedStockData] ?? 0;
       }
-      if (typeof va === 'string') return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
-      return sortDir === 'asc' ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+      if (typeof va === 'string' && typeof vb === 'string') {
+        return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+      }
+      return sortDir === 'asc' ? (va > vb ? 1 : -1) : va < vb ? 1 : -1;
     });
   }, [stocks, sortKey, sortDir]);
 
@@ -43,28 +46,33 @@ export default function MarketOverview() {
   const losers = [...stocks].sort((a, b) => a.changePercent - b.changePercent).slice(0, 3);
 
   const enriched = useEnrichedHoldings(portfolio, stocks);
-  const { totalValue, totalPl, totalPlPercent, bestHolding, worstHolding } = usePortfolioAggregates(enriched);
+  const { totalValue, totalPl, totalPlPercent, bestHolding, worstHolding } =
+    usePortfolioAggregates(enriched);
 
-  const followed = stocks.filter(s => watchlist.includes(s.symbol));
-  const bestWatch = followed.length > 0 ? [...followed].sort((a, b) => b.changePercent - a.changePercent)[0] : null;
-  const worstWatch = followed.length > 0 ? [...followed].sort((a, b) => a.changePercent - b.changePercent)[0] : null;
+  const followed = stocks.filter((s) => watchlist.includes(s.symbol));
+  const bestWatch =
+    followed.length > 0 ? [...followed].sort((a, b) => b.changePercent - a.changePercent)[0] : null;
+  const worstWatch =
+    followed.length > 0 ? [...followed].sort((a, b) => a.changePercent - b.changePercent)[0] : null;
 
-  const fmt = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const currency = (s: string) => s.endsWith('.BK') ? '฿' : '$';
+  const fmt = (n: number) =>
+    n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const currency = (s: string) => (s.endsWith('.BK') ? '฿' : '$');
 
   const renderSortableHeader = (key: string, label: string, className = '') => (
     <th
       className={`py-3 px-4 font-semibold text-zinc-500 dark:text-zinc-400 cursor-pointer hover:text-zinc-700 dark:hover:text-zinc-200 select-none transition-colors ${className}`}
       onClick={() => handleSort(key)}
     >
-      {label}{sortIndicator(key)}
+      {label}
+      {sortIndicator(key)}
     </th>
   );
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {indexes.map(index => (
+        {indexes.map((index) => (
           <div
             key={index.name}
             className="p-4 rounded-xl border border-white/60 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm"
@@ -75,11 +83,19 @@ export default function MarketOverview() {
             <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
               {fmt(index.value)}
             </p>
-            <p className={`text-sm font-medium flex items-center gap-1 ${
-              index.change >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
-            }`}>
-              <i className={`fi ${index.change >= 0 ? 'fi-sr-caret-up' : 'fi-sr-caret-down'} text-xs`} />
-              {index.change >= 0 ? '+' : ''}{index.change.toFixed(2)} ({index.changePercent >= 0 ? '+' : ''}{index.changePercent.toFixed(2)}%)
+            <p
+              className={`text-sm font-medium flex items-center gap-1 ${
+                index.change >= 0
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : 'text-red-600 dark:text-red-400'
+              }`}
+            >
+              <i
+                className={`fi ${index.change >= 0 ? 'fi-sr-caret-up' : 'fi-sr-caret-down'} text-xs`}
+              />
+              {index.change >= 0 ? '+' : ''}
+              {index.change.toFixed(2)} ({index.changePercent >= 0 ? '+' : ''}
+              {index.changePercent.toFixed(2)}%)
             </p>
           </div>
         ))}
@@ -100,24 +116,33 @@ export default function MarketOverview() {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zinc-500 dark:text-zinc-400">Total P&L</span>
-              <span className={`font-semibold ${totalPl >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'}`}>
-                {totalPl >= 0 ? '+' : ''}฿{fmt(totalPl)} ({totalPlPercent >= 0 ? '+' : ''}{totalPlPercent.toFixed(2)}%)
+              <span
+                className={`font-semibold ${totalPl >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'}`}
+              >
+                {totalPl >= 0 ? '+' : ''}฿{fmt(totalPl)} ({totalPlPercent >= 0 ? '+' : ''}
+                {totalPlPercent.toFixed(2)}%)
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zinc-500 dark:text-zinc-400">Holdings</span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{portfolio.length}</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                {portfolio.length}
+              </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zinc-500 dark:text-zinc-400">Best</span>
               <span className="font-semibold text-blue-600 dark:text-blue-400">
-                {bestHolding ? `${bestHolding.symbol} (+${bestHolding.plPercent.toFixed(1)}%)` : '-'}
+                {bestHolding
+                  ? `${bestHolding.symbol} (+${bestHolding.plPercent.toFixed(1)}%)`
+                  : '-'}
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zinc-500 dark:text-zinc-400">Worst</span>
               <span className="font-semibold text-red-600 dark:text-red-400">
-                {worstHolding ? `${worstHolding.symbol} (${worstHolding.plPercent.toFixed(1)}%)` : '-'}
+                {worstHolding
+                  ? `${worstHolding.symbol} (${worstHolding.plPercent.toFixed(1)}%)`
+                  : '-'}
               </span>
             </div>
           </div>
@@ -131,7 +156,9 @@ export default function MarketOverview() {
           <div className="space-y-1.5">
             <div className="flex justify-between text-sm">
               <span className="text-zinc-500 dark:text-zinc-400">Following</span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{followed.length} stocks</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                {followed.length} stocks
+              </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zinc-500 dark:text-zinc-400">Best</span>
@@ -142,7 +169,9 @@ export default function MarketOverview() {
             <div className="flex justify-between text-sm">
               <span className="text-zinc-500 dark:text-zinc-400">Worst</span>
               <span className="font-semibold text-red-600 dark:text-red-400">
-                {worstWatch ? `${worstWatch.symbol} (${worstWatch.changePercent.toFixed(2)}%)` : '-'}
+                {worstWatch
+                  ? `${worstWatch.symbol} (${worstWatch.changePercent.toFixed(2)}%)`
+                  : '-'}
               </span>
             </div>
           </div>
@@ -156,15 +185,18 @@ export default function MarketOverview() {
             Top Gainers
           </h3>
           <div className="space-y-3">
-            {gainers.map(stock => (
+            {gainers.map((stock) => (
               <div key={stock.symbol} className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{stock.symbol}</p>
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                    {stock.symbol}
+                  </p>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">{stock.name}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                    {currency(stock.symbol)}{fmt(stock.price)}
+                    {currency(stock.symbol)}
+                    {fmt(stock.price)}
                   </p>
                   <p className="text-xs font-medium text-blue-600 dark:text-blue-400">
                     +{stock.changePercent.toFixed(2)}%
@@ -181,15 +213,18 @@ export default function MarketOverview() {
             Top Losers
           </h3>
           <div className="space-y-3">
-            {losers.map(stock => (
+            {losers.map((stock) => (
               <div key={stock.symbol} className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{stock.symbol}</p>
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                    {stock.symbol}
+                  </p>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">{stock.name}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                    {currency(stock.symbol)}{fmt(stock.price)}
+                    {currency(stock.symbol)}
+                    {fmt(stock.price)}
                   </p>
                   <p className="text-xs font-medium text-red-600 dark:text-red-400">
                     {stock.changePercent.toFixed(2)}%
@@ -214,29 +249,40 @@ export default function MarketOverview() {
             </tr>
           </thead>
           <tbody>
-            {sortedStocks.map(stock => (
+            {sortedStocks.map((stock) => (
               <tr
                 key={stock.symbol}
                 className="border-b last:border-0 border-zinc-100/60 dark:border-slate-700/30 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors"
               >
-                <td className="py-3 px-4 font-bold text-zinc-900 dark:text-zinc-100">{stock.symbol}</td>
+                <td className="py-3 px-4 font-bold text-zinc-900 dark:text-zinc-100">
+                  {stock.symbol}
+                </td>
                 <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{stock.name}</td>
                 <td className="py-3 px-4 text-right font-medium text-zinc-900 dark:text-zinc-100">
-                  {currency(stock.symbol)}{fmt(stock.price)}
+                  {currency(stock.symbol)}
+                  {fmt(stock.price)}
                 </td>
-                <td className={`py-3 px-4 text-right font-medium ${
-                  stock.change >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
-                }`}>
+                <td
+                  className={`py-3 px-4 text-right font-medium ${
+                    stock.change >= 0
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : 'text-red-600 dark:text-red-400'
+                  }`}
+                >
                   <span className="flex items-center justify-end gap-1">
-                    <i className={`fi ${stock.change >= 0 ? 'fi-sr-caret-up' : 'fi-sr-caret-down'} text-xs`} />
-                    {stock.change >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                    <i
+                      className={`fi ${stock.change >= 0 ? 'fi-sr-caret-up' : 'fi-sr-caret-down'} text-xs`}
+                    />
+                    {stock.change >= 0 ? '+' : ''}
+                    {stock.changePercent.toFixed(2)}%
                   </span>
                 </td>
                 <td className="py-3 px-4 text-right text-zinc-500 dark:text-zinc-400 hidden sm:table-cell">
                   {(stock.volume / 1000000).toFixed(1)}M
                 </td>
                 <td className="py-3 px-4 text-right text-zinc-500 dark:text-zinc-400 hidden lg:table-cell">
-                  {currency(stock.symbol)}{(stock.marketCap / 1000000000000).toFixed(2)}T
+                  {currency(stock.symbol)}
+                  {(stock.marketCap / 1000000000000).toFixed(2)}T
                 </td>
               </tr>
             ))}

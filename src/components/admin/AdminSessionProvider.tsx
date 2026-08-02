@@ -1,9 +1,20 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  ReactNode,
+} from 'react';
 import { logoutAdmin } from '@/app/admin/login/actions';
 import { CONFIG } from '@/lib/config';
 import { t } from '@/lib/tool-translations';
+
+const IDLE_TIMEOUT = CONFIG.AUTH.IDLE_TIMEOUT;
+const COUNTDOWN_DURATION = CONFIG.AUTH.COUNTDOWN_DURATION;
 
 interface AdminSessionContextType {
   isUploading: boolean;
@@ -33,42 +44,42 @@ export default function AdminSessionProvider({ children }: { children: ReactNode
   const isUploadingRef = useRef(isUploading);
 
   // Keep refs in sync with state
-  useEffect(() => { isAFKRef.current = isAFK; }, [isAFK]);
-  useEffect(() => { isUploadingRef.current = isUploading; }, [isUploading]);
-
-  // Constants
-  const IDLE_TIMEOUT = CONFIG.AUTH.IDLE_TIMEOUT;
-  const COUNTDOWN_DURATION = CONFIG.AUTH.COUNTDOWN_DURATION;
+  useEffect(() => {
+    isAFKRef.current = isAFK;
+  }, [isAFK]);
+  useEffect(() => {
+    isUploadingRef.current = isUploading;
+  }, [isUploading]);
 
   const redirectToLogin = useCallback(() => {
-    window.location.href = '/admin/login';
+    window.location.assign('/admin/login');
   }, []);
-
-  const startIdleTimer = () => {
-    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    
-    idleTimerRef.current = setTimeout(() => {
-      if (!isUploadingRef.current) {
-        setIsAFK(true);
-        setCountdown(COUNTDOWN_DURATION);
-      } else {
-        startIdleTimer();
-      }
-    }, IDLE_TIMEOUT);
-  };
-
-  const handleActivity = () => {
-    if (isAFKRef.current) {
-      setIsAFK(false);
-      if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
-    }
-    startIdleTimer();
-  };
 
   // Effect for idle detection events — stable listeners, reads refs
   useEffect(() => {
+    const startIdleTimer = () => {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+
+      idleTimerRef.current = setTimeout(() => {
+        if (!isUploadingRef.current) {
+          setIsAFK(true);
+          setCountdown(COUNTDOWN_DURATION);
+        } else {
+          startIdleTimer();
+        }
+      }, IDLE_TIMEOUT);
+    };
+
+    const handleActivity = () => {
+      if (isAFKRef.current) {
+        setIsAFK(false);
+        if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+      }
+      startIdleTimer();
+    };
+
     const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
-    
+
     let lastActivity = Date.now();
     const throttledHandler = () => {
       const now = Date.now();
@@ -85,8 +96,7 @@ export default function AdminSessionProvider({ children }: { children: ReactNode
       events.forEach((event) => window.removeEventListener(event, throttledHandler));
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+  }, []);
 
   // Effect for Countdown Logic
   useEffect(() => {
@@ -106,8 +116,8 @@ export default function AdminSessionProvider({ children }: { children: ReactNode
   // Effect to handle Logout when countdown hits 0
   useEffect(() => {
     if (isAFK && countdown === 0 && !isLoggingOut) {
-      setIsLoggingOut(true);
       if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+      queueMicrotask(() => setIsLoggingOut(true));
       logoutAdmin().catch((err) => {
         console.error('Logout failed:', err);
         setIsLoggingOut(false);
@@ -116,11 +126,13 @@ export default function AdminSessionProvider({ children }: { children: ReactNode
   }, [isAFK, countdown, isLoggingOut]);
 
   return (
-    <AdminSessionContext.Provider value={{ isUploading, setIsUploading, onAuthError: redirectToLogin }}>
+    <AdminSessionContext.Provider
+      value={{ isUploading, setIsUploading, onAuthError: redirectToLogin }}
+    >
       {children}
-      
+
       {/* AFK Notification */}
-      <div 
+      <div
         className={`fixed top-6 right-6 z-50 transition-all duration-500 transform ${
           isAFK ? 'translate-x-0 opacity-100' : 'translate-x-20 opacity-0 pointer-events-none'
         }`}

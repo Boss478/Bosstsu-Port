@@ -3,6 +3,14 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.10.82 (2026-08-02)
+* **Lint debt cleanup — ESLint back to 0 errors tree-wide (was 76 across 19 files)**:
+  + * **no-explicit-any (42)**: `tests/vocab-generators.test.ts` (33), `MarketOverview.tsx` (6), phonics `save.ts` (2), `StageListScreen.tsx` (1) — replaced with precise types / `Record<string, unknown>` / narrowed `unknown`.
+  + * **react-hooks/react-compiler (34)**: set-state-in-effect → lazy initializers / derive-during-render / handler & async-continuation moves; refs-during-render → effect/event reads; hoisting fixes (useDataFlow `getHopsForRoute`, FlashcardContext); impure-call & reassign-after-render → state/restructure; module-write in `query/providers.tsx` → effect. Files: `useDataFlow.ts`, `CompanionBubble.tsx`, `ChallengeGameScreen.tsx`, `FlashcardContext.tsx`, `FlashcardPlayingScreen.tsx`, `Header.tsx`, `PhotoLightbox.tsx`, `AdminSessionProvider.tsx`, `QuickStartModal.tsx`, `FinanceSummary.tsx`, `TransactionList.tsx`, `BroadcastBanner.tsx`, `StudentSettings.tsx`, `device-tier-provider.tsx`, `query/providers.tsx`.
+  + * **Dead props removed**: `refreshKey` (always passed as literal `{0}`, never consumed) dropped from `TransactionList` + `SubscriptionList` Props and both `FinanceClient` call sites.
+  + * **Unused code removed**: `speak`/`playWordAudio`/`onAnswer` destructures (6 phonics question components + FillLevel), unused `parseIpaToPhonemes` import (`assemble-words.ts`), unused `sessionId` param (`sse-server.ts`), unused map index (`PriceChart.tsx`).
+  + * Verified: `npm run lint` 0 errors · typecheck clean · build ✓ 33/33 pages · 475 unit tests pass. (Run with 3 parallel cleanup agents after two earlier attempts were wiped by concurrent commits; no behavior changes — lint/type-only.)
+
 ## v1.10.81 (2026-08-02)
 * **Classroom Tools — admin results + cleanup batch**:
   + * **Admin full results**: poll API supports `limit` above the public cap of 50 — requires admin auth (401 otherwise), capped at 2000, `no-store` cache. ResultsView/ResultsFullPage fetch the complete list (big classes no longer truncate at 50 for grading).
