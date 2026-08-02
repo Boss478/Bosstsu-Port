@@ -5,6 +5,14 @@
 
 
 
+## v1.10.78 (2026-08-02)
++ * **Alphabet Adventure — drop economy rebalanced to the 95-slot set (B2a, sim-validated)**:
+  + * `CARD_DROP_RATES` (per-correct): none 93→82 → **95→88**, common 3→6 → **2.2→4.4**, uncommon 2→4.5 → **1.4→3.2** (`constants.ts`).
+  + * `WIN_DROP_RATES` (sub-stage clear): drop chance 85% → **68%** — none 15→32, rare 43→36, ultra 30→22, leg 12→10. Rare+ ramp (`RAMP_DROP`) unchanged.
+  + * **Why**: rates were tuned for the old 130-slot assumption; on the real 95 slots they gave ~90% end-of-run (common/uncommon/rare tiers fully owned in 93-99% of runs). New rates land 65-75% per profile (sim: easy 70.9 / typical 69.0 / struggling 67.0), zero dupes, full deck = ~2-3 playthroughs. Sim + report: `.agents/sims/dropsim95.js`, `.agents/report/dropsim95-report.md`.
+  + * **Card ladder retuned** to the new economy: `card_75` → `card_65` "Card Wizard" (65 ≈ one full playthrough of new cards); ladder now 10/25/50/65/95.
+  + * **Stale economy tests fixed**: 17 assertions in `tests/unit/alphabet-adventure.test.ts` were still on the pre-v1.10.75 model (6-entry table, sum-to-100, old words/pools). Rewritten for the 95-slot/B2a reality — exact rate values now pinned as the frozen regression contract.
+
 ## v1.10.77 (2026-08-01)
 + * **Alphabet Adventure — 95-slot card collection complete + full art review**:
   + * **Card set finalized (rev 3)**: `TIER_LETTERS` defines all 95 slots (21/21/19/17/17 per tier); `CARD_WORDS` covers 95/95 words (U-UR "Unicycle" + V-UR "Van" added, completing the wordless gaps); `TOTAL_CARD_SLOTS` = 95; cascade drop + no-dupe `pickLetter` keep full-set promise until 95 owned.

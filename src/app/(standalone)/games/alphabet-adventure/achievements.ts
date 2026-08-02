@@ -47,9 +47,9 @@ export const ACHIEVEMENTS: Achievement[] = [
     tier: 'silver',
   },
   {
-    id: 'card_75',
+    id: 'card_65',
     name: 'Card Wizard',
-    description: 'Collected 75 cards',
+    description: 'Collected 65 cards',
     icon: '🃏',
     tier: 'gold',
   },
@@ -200,7 +200,7 @@ export function checkAndAward(ctx: AchievementContext): Achievement[] {
   if (sc >= 10) award('card_10');
   if (sc >= 25) award('card_25');
   if (sc >= 50) award('card_50');
-  if (sc >= 75) award('card_75');
+  if (sc >= 65) award('card_65');
   if (sc >= 95) award('card_95');
 
   const streak = ctx.currentStreak ?? 0;

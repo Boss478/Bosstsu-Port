@@ -318,17 +318,17 @@ export type CardTier = 'common' | 'uncommon' | 'rare' | 'ultra-rare' | 'legendar
 // Per-correct answer roll (streak-interpolated): common/uncommon only, plus the
 // rare+ ramp below (RAMP_DROP). Level-clear rare+ comes from WIN_DROP_RATES.
 export const CARD_DROP_RATES: Array<{ tier: CardTier | null; base: number; max: number }> = [
-  { tier: null, base: 93, max: 82 },
-  { tier: 'common', base: 3, max: 6 },
-  { tier: 'uncommon', base: 2, max: 4.5 },
+  { tier: null, base: 95, max: 88 },
+  { tier: 'common', base: 2.2, max: 4.4 },
+  { tier: 'uncommon', base: 1.4, max: 3.2 },
 ];
 
 // Sub-stage clear roll (fixed): rare+ only.
 export const WIN_DROP_RATES: Array<{ tier: CardTier | null; base: number; max: number }> = [
-  { tier: null, base: 15, max: 15 },
-  { tier: 'rare', base: 43, max: 43 },
-  { tier: 'ultra-rare', base: 30, max: 30 },
-  { tier: 'legendary', base: 12, max: 12 },
+  { tier: null, base: 32, max: 32 },
+  { tier: 'rare', base: 36, max: 36 },
+  { tier: 'ultra-rare', base: 22, max: 22 },
+  { tier: 'legendary', base: 10, max: 10 },
 ];
 
 // Streak-gated rare+ ramp on the per-correct roll: never zero (floor at chain 0),
