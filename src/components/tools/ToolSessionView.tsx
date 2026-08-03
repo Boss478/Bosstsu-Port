@@ -2,11 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef, startTransition } from 'react';
 import dynamic from 'next/dynamic';
-import PadletBoard from './PadletBoard';
-import MentimeterPoll from './MentimeterPoll';
-import AssignmentForm from './AssignmentForm';
-import QABoard from './QABoard';
-import QuickQuiz from './QuickQuiz';
 import ExitTicketForm from './ExitTicketForm';
 import MultiStepSessionView from './MultiStepSessionView';
 import SessionGuard from './SessionGuard';
@@ -31,6 +26,38 @@ import type { ToolSessionClient } from '@/types/tools';
 
 const MascotCompanion = dynamic(() => import('./mascots/MascotCompanion'), { ssr: false });
 const StudentSettings = dynamic(() => import('./StudentSettings'), { ssr: false });
+
+const PadletBoard = dynamic(() => import('./PadletBoard'), {
+  ssr: false,
+  loading: () => <ToolLoadingFallback />,
+});
+const MentimeterPoll = dynamic(() => import('./MentimeterPoll'), {
+  ssr: false,
+  loading: () => <ToolLoadingFallback />,
+});
+const AssignmentForm = dynamic(() => import('./AssignmentForm'), {
+  ssr: false,
+  loading: () => <ToolLoadingFallback />,
+});
+const QABoard = dynamic(() => import('./QABoard'), {
+  ssr: false,
+  loading: () => <ToolLoadingFallback />,
+});
+const QuickQuiz = dynamic(() => import('./QuickQuiz'), {
+  ssr: false,
+  loading: () => <ToolLoadingFallback />,
+});
+
+function ToolLoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-lg space-y-3">
+        <div className="skeleton h-8 w-2/3 mx-auto rounded-xl" />
+        <div className="skeleton h-44 w-full rounded-2xl" />
+      </div>
+    </div>
+  );
+}
 
 interface ToolSessionViewProps {
   session: ToolSessionClient;
@@ -205,6 +232,7 @@ function SingleToolSessionView({ session }: ToolSessionViewProps) {
   const sharedProps = {
     session,
     studentName: studentName || '',
+    sseConnected: connected === 'connected',
     ...(enableMascots && selectedMascot
       ? { mascot: selectedMascot, onMascotEvent: handleMascotEvent }
       : {}),
@@ -249,6 +277,7 @@ function renderTool(session: ToolSessionClient, sharedProps: Record<string, unkn
     studentName: string;
     mascot?: string;
     onMascotEvent?: (e: MascotEvent) => void;
+    sseConnected?: boolean;
   };
 
   switch (session.type) {
@@ -266,6 +295,7 @@ function renderTool(session: ToolSessionClient, sharedProps: Record<string, unkn
             studentName={props.studentName}
             mascot={props.mascot}
             onMascotEvent={props.onMascotEvent}
+            sseConnected={props.sseConnected}
           />
         </ToolErrorBoundary>
       );
@@ -283,6 +313,7 @@ function renderTool(session: ToolSessionClient, sharedProps: Record<string, unkn
             studentName={props.studentName}
             mascot={props.mascot}
             onMascotEvent={props.onMascotEvent}
+            sseConnected={props.sseConnected}
           />
         </ToolErrorBoundary>
       );
@@ -295,6 +326,7 @@ function renderTool(session: ToolSessionClient, sharedProps: Record<string, unkn
             studentName={props.studentName}
             mascot={props.mascot}
             onMascotEvent={props.onMascotEvent}
+            sseConnected={props.sseConnected}
           />
         </ToolErrorBoundary>
       );

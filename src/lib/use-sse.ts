@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { getStudentToken } from '@/lib/client-token';
+import { toolKeys } from '@/lib/query/keys';
 
 export type ConnectionStatus = 'connected' | 'polling' | 'disconnected';
 
@@ -30,6 +32,10 @@ const MAX_RECONNECT_FAILS = 3;
 const POLL_SUCCESS_THRESHOLD = 3;
 const TAB_HIDE_TIMEOUT_MS = 2 * 60 * 1000;
 const DEFAULT_POLL_INTERVAL = 10000;
+// SSE responses events are broadcast to every client on every vote; coalesce
+// invalidations so a vote storm triggers at most one refetch per window per
+// client (avoids the O(n²) refetch storm in 50-100 student classrooms).
+const INVALIDATE_COALESCE_MS = 2000;
 
 export function useSSE(sessionId: string, options: UseSSEOptions = {}): UseSSEResult {
   const [currentStep, setCurrentStep] = useState(-1);
@@ -37,26 +43,36 @@ export function useSSE(sessionId: string, options: UseSSEOptions = {}): UseSSERe
   const [connected, setConnected] = useState<ConnectionStatus>('disconnected');
   const [broadcastMessage, setBroadcastMessage] = useState<UseSSEResult['broadcastMessage']>(null);
 
+  const queryClient = useQueryClient();
   const esRef = useRef<EventSource | null>(null);
   const backoffIndexRef = useRef(0);
+  const backoffTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectFailsRef = useRef(0);
   const pollSuccessCountRef = useRef(0);
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollIntervalMsRef = useRef(DEFAULT_POLL_INTERVAL);
   const tabTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tabHiddenRef = useRef(false);
   const mountedRef = useRef(true);
   const optionsRef = useRef(options);
+  const lastInvalidateRef = useRef(0);
   const connectSSERef = useRef<() => void>(() => {});
   const startPollingRef = useRef<() => void>(() => {});
   const clearPollingRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     optionsRef.current = options;
+    pollIntervalMsRef.current = options.tierConfig?.pollIntervalMs ?? DEFAULT_POLL_INTERVAL;
   });
 
-  const pollInterval = options.tierConfig?.pollIntervalMs ?? DEFAULT_POLL_INTERVAL;
-
   const connectSSE = useCallback(() => {
+    if (!mountedRef.current) return;
+
+    if (backoffTimerRef.current) {
+      clearTimeout(backoffTimerRef.current);
+      backoffTimerRef.current = null;
+    }
+
     if (esRef.current) {
       esRef.current.close();
     }
@@ -102,8 +118,32 @@ export function useSSE(sessionId: string, options: UseSSEOptions = {}): UseSSERe
         }
       });
 
+      // Response-list changes (new votes, edits, deletes) → invalidate poll
+      // queries so connected clients refetch once instead of polling every 10s.
+      // Gated to at most one invalidate per INVALIDATE_COALESCE_MS per client;
+      // once the vote storm settles, the next event after the window passes
+      // refetches again (staleness stays bounded by the window).
+      es.addEventListener('responses', (e: MessageEvent) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data.type === 'responses') {
+            const now = Date.now();
+            if (now - lastInvalidateRef.current >= INVALIDATE_COALESCE_MS) {
+              lastInvalidateRef.current = now;
+              queryClient.invalidateQueries({ queryKey: toolKeys.pollPrefix(sessionId) });
+            }
+          }
+        } catch {
+          /* ignore malformed */
+        }
+      });
+
       es.onopen = () => {
-        if (!mountedRef.current) return;
+        if (!mountedRef.current) {
+          es.close();
+          if (esRef.current === es) esRef.current = null;
+          return;
+        }
         setConnected('connected');
         backoffIndexRef.current = 0;
         reconnectFailsRef.current = 0;
@@ -130,15 +170,22 @@ export function useSSE(sessionId: string, options: UseSSEOptions = {}): UseSSERe
         const delay = BACKOFF_DELAYS[Math.min(backoffIndexRef.current, BACKOFF_DELAYS.length - 1)];
         backoffIndexRef.current++;
 
-        setTimeout(() => {
+        if (backoffTimerRef.current) {
+          clearTimeout(backoffTimerRef.current);
+        }
+        backoffTimerRef.current = setTimeout(() => {
+          backoffTimerRef.current = null;
           if (mountedRef.current) connectSSERef.current();
         }, delay);
       };
     } catch {
-      setConnected('disconnected');
-      startPollingRef.current();
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        setConnected('disconnected');
+        startPollingRef.current();
+      }, 0);
     }
-  }, [sessionId]);
+  }, [sessionId, queryClient]);
 
   const startPolling = useCallback(() => {
     if (pollIntervalRef.current) return;
@@ -171,9 +218,9 @@ export function useSSE(sessionId: string, options: UseSSEOptions = {}): UseSSERe
       }
     };
 
-    pollIntervalRef.current = setInterval(poll, pollInterval);
+    pollIntervalRef.current = setInterval(poll, pollIntervalMsRef.current);
     poll();
-  }, [sessionId, pollInterval]);
+  }, [sessionId]);
 
   const clearPolling = useCallback(() => {
     if (pollIntervalRef.current) {
@@ -191,7 +238,7 @@ export function useSSE(sessionId: string, options: UseSSEOptions = {}): UseSSERe
   useEffect(() => {
     mountedRef.current = true;
 
-    queueMicrotask(() => connectSSE());
+    connectSSE();
 
     const handleVisibility = () => {
       if (document.hidden) {
@@ -221,6 +268,10 @@ export function useSSE(sessionId: string, options: UseSSEOptions = {}): UseSSERe
       if (esRef.current) esRef.current.close();
       clearPolling();
       if (tabTimerRef.current) clearTimeout(tabTimerRef.current);
+      if (backoffTimerRef.current) {
+        clearTimeout(backoffTimerRef.current);
+        backoffTimerRef.current = null;
+      }
       document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [connectSSE, clearPolling]);

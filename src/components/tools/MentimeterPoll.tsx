@@ -10,6 +10,7 @@ interface MentimeterPollProps {
   session: {
     _id: string;
     title?: string;
+    sessionCode?: string;
     config?: {
       prompt?: string;
       pollMode?: string;
@@ -18,6 +19,7 @@ interface MentimeterPollProps {
     };
   };
   stepIndex?: number;
+  sseConnected?: boolean;
   mascot?: string;
   studentName?: string;
   onMascotEvent?: (event: 'celebrate' | 'correct' | 'wrong') => void;
@@ -29,6 +31,7 @@ export default function MentimeterPoll({
   mascot,
   studentName,
   onMascotEvent,
+  sseConnected,
 }: MentimeterPollProps) {
   const qc = useQueryClient();
   const [selected, setSelected] = useState<string | null>(null);
@@ -47,13 +50,19 @@ export default function MentimeterPoll({
 
   const pollMode = session.config?.pollMode || 'mcq';
   const rawOptions = session.config?.questions?.[0]?.options;
+  const DEFAULT_OPTION_LETTERS = ['ก', 'ข', 'ค', 'ง'];
   const options = rawOptions?.length
-    ? rawOptions.map((o: string, i: number) => o || `ตัวเลือก ${i + 1}`)
-    : ['ตัวเลือก ก', 'ตัวเลือก ข', 'ตัวเลือก ค', 'ตัวเลือก ง'];
+    ? rawOptions.map((o: string, i: number) => o || t('optionFallback', { n: i + 1 }))
+    : DEFAULT_OPTION_LETTERS.map((letter) => t('optionLetter', { letter }));
   const allowCustom = session.config?.allowCustomChoices || false;
   const questionText = session.config?.questions?.[0]?.question;
 
-  const { data: pollData, isLoading, refetch, queryKey } = useToolPoll(session._id, stepIndex);
+  const {
+    data: pollData,
+    isLoading,
+    refetch,
+    queryKey,
+  } = useToolPoll(session._id, stepIndex, undefined, sseConnected, session.sessionCode);
 
   const totalCount = pollData?.totalCount ?? 0;
   const serverOptionCounts =
@@ -257,7 +266,10 @@ export default function MentimeterPoll({
           </div>
         </div>
       ) : (
-        <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
+        <div
+          className="p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm"
+          aria-live="polite"
+        >
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-zinc-900 dark:text-zinc-100">{t('liveResults')}</h2>
             <div className="flex items-center gap-2">

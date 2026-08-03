@@ -6,6 +6,17 @@ vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }));
 
+vi.mock('@/lib/sse-server', () => ({
+  notifyStepChange: vi.fn(),
+  notifyResponsesChange: vi.fn(),
+  addClient: vi.fn(),
+  removeClient: vi.fn(),
+  broadcastToSession: vi.fn(),
+  getConnectedCount: vi.fn(),
+  getTotalConnectedCount: vi.fn(),
+  getIdleTimerSeconds: vi.fn(),
+}));
+
 vi.mock('@/lib/auth', () => ({
   verifyAuth: vi.fn(),
 }));
@@ -623,6 +634,68 @@ describe('Tools Server Actions', () => {
       fd2.set('id', templateId);
       const result = await deleteTemplate(fd2);
       expect(result).toEqual({ error: undefined });
+    });
+  });
+
+  describe('SSE emission (responses/step events)', () => {
+    it('deleteStudentResponses emits a responses event for the session', async () => {
+      verifyAuth.mockResolvedValue(true);
+      const session = await seedSession();
+      const studentToken = 'kick-tok';
+      await seedResponse({ sessionId: session._id, studentToken });
+      const { deleteStudentResponses } = await import('@/app/admin/tools/actions');
+      const sse = await import('@/lib/sse-server');
+
+      const result = await deleteStudentResponses(session._id.toString(), studentToken);
+      expect(result).toEqual({ error: undefined });
+      expect(sse.notifyResponsesChange).toHaveBeenCalledWith(session._id.toString());
+    });
+
+    it('deleteStudentResponses emits a step event with the kicked student token', async () => {
+      verifyAuth.mockResolvedValue(true);
+      const session = await seedSession({ currentStep: 2 });
+      const studentToken = 'kick-tok-2';
+      await seedResponse({ sessionId: session._id, studentToken });
+      const { deleteStudentResponses } = await import('@/app/admin/tools/actions');
+      const sse = await import('@/lib/sse-server');
+
+      await deleteStudentResponses(session._id.toString(), studentToken);
+      expect(sse.notifyStepChange).toHaveBeenCalledWith(session._id.toString(), 2, [studentToken]);
+    });
+
+    it('does not emit when deleteStudentResponses finds no responses', async () => {
+      verifyAuth.mockResolvedValue(true);
+      const session = await seedSession();
+      const { deleteStudentResponses } = await import('@/app/admin/tools/actions');
+      const sse = await import('@/lib/sse-server');
+
+      await deleteStudentResponses(session._id.toString(), 'no-such-token');
+      expect(sse.notifyResponsesChange).not.toHaveBeenCalled();
+      expect(sse.notifyStepChange).not.toHaveBeenCalled();
+    });
+
+    it('deleteResponse emits a responses event for the session', async () => {
+      verifyAuth.mockResolvedValue(true);
+      const session = await seedSession();
+      const response = await seedResponse({ sessionId: session._id });
+      const { deleteResponse } = await import('@/app/admin/tools/actions');
+      const sse = await import('@/lib/sse-server');
+
+      const result = await deleteResponse(response._id.toString());
+      expect(result).toEqual({ error: undefined });
+      expect(sse.notifyResponsesChange).toHaveBeenCalledWith(session._id.toString());
+    });
+
+    it('toggleQAAnswered emits a responses event for the session', async () => {
+      verifyAuth.mockResolvedValue(true);
+      const session = await seedSession({ type: 'qa_board' });
+      const response = await seedResponse({ sessionId: session._id });
+      const { toggleQAAnswered } = await import('@/app/admin/tools/actions');
+      const sse = await import('@/lib/sse-server');
+
+      const result = await toggleQAAnswered(response._id.toString(), true);
+      expect(result).toEqual({ error: undefined });
+      expect(sse.notifyResponsesChange).toHaveBeenCalledWith(session._id.toString());
     });
   });
 });

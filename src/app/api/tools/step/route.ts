@@ -13,8 +13,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Missing sessionId' }, { status: 400 });
   }
 
-  const rateKey = `${sessionId}:${getClientIp(req)}:${studentToken || 'anon'}`;
-  if (!checkToolsRateLimit(rateKey)) {
+  if (!checkToolsRateLimit(getClientIp(req))) {
     return NextResponse.json(
       { error: getError('T06').message, code: getError('T06').code },
       { status: 429, headers: { 'Retry-After': '10' } },

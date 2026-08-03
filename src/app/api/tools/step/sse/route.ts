@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import dbConnect from '@/lib/db';
 import ToolSession from '@/models/ToolSession';
-import { addClient } from '@/lib/sse-server';
+import { tryAddClient, getIpConnectedCount, MAX_CLIENTS_PER_IP } from '@/lib/sse-server';
+import { getClientIp } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,29 +18,41 @@ export async function GET(req: NextRequest) {
     return new Response('Missing sessionId', { status: 400 });
   }
 
+  // Per-IP connection cap before any streaming work
+  const ip = getClientIp(req);
+  if (getIpConnectedCount(ip) >= MAX_CLIENTS_PER_IP) {
+    return new Response('Too many connections', { status: 429 });
+  }
+
   let initialStep = -1;
   let kicked = false;
 
   try {
     await dbConnect();
     const session = await ToolSession.findById(sessionId)
-      .select('currentStep kickedStudents')
+      .select('currentStep kickedStudents isActive')
       .lean();
 
-    if (session) {
-      const s = session as { currentStep?: number; kickedStudents?: string[] };
-      initialStep = s.currentStep ?? -1;
-      kicked = studentToken ? (s.kickedStudents ?? []).includes(studentToken) : false;
+    if (!session) {
+      return new Response('Session not found', { status: 404 });
     }
+
+    const s = session as { currentStep?: number; kickedStudents?: string[]; isActive?: boolean };
+    if (s.isActive === false) {
+      return new Response('Session inactive', { status: 403 });
+    }
+
+    initialStep = s.currentStep ?? -1;
+    kicked = studentToken ? (s.kickedStudents ?? []).includes(studentToken) : false;
   } catch (err) {
     console.error('SSE connect DB read error:', err);
+    return new Response('Server error', { status: 500 });
   }
 
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
     start(controller) {
-      const cleanup = addClient(sessionId, controller);
       let closed = false;
 
       const safeClose = () => {
@@ -53,6 +66,21 @@ export async function GET(req: NextRequest) {
           /* already closed */
         }
       };
+
+      // Honor the addClient result — on rejection (capacity), close the stream
+      // without enqueueing the initial step or starting the heartbeat.
+      const { cleanup, accepted } = tryAddClient(sessionId, controller, {
+        ip,
+        token: studentToken || undefined,
+      });
+      if (!accepted) {
+        try {
+          controller.close();
+        } catch {
+          /* already closed */
+        }
+        return;
+      }
 
       const stepPayload = JSON.stringify({
         type: 'step',
@@ -81,7 +109,7 @@ export async function GET(req: NextRequest) {
       });
     },
     cancel() {
-      // cleanup handled by addClient's returned cleanup
+      // cleanup handled by tryAddClient's returned cleanup
     },
   });
 

@@ -16,6 +16,7 @@ interface QuickQuizProps {
   session: {
     _id: string;
     title?: string;
+    sessionCode?: string;
     steps?: unknown[];
     config?: {
       maxSubmissions?: number;
@@ -26,6 +27,7 @@ interface QuickQuizProps {
   studentName?: string;
   mascot?: string;
   onMascotEvent?: (event: 'celebrate' | 'correct' | 'wrong') => void;
+  sseConnected?: boolean;
 }
 
 export default function QuickQuiz({
@@ -34,6 +36,7 @@ export default function QuickQuiz({
   studentName,
   mascot,
   onMascotEvent,
+  sseConnected,
 }: QuickQuizProps) {
   const qc = useQueryClient();
   const [currentQ, setCurrentQ] = useState(0);
@@ -45,6 +48,7 @@ export default function QuickQuiz({
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [history, setHistory] = useState<Array<{ score: number }>>([]);
   const [existingAttempts, setExistingAttempts] = useState(0);
+  const [submittedAttempt, setSubmittedAttempt] = useState<number | null>(null);
 
   const questions = session.config?.questions || [];
   const total = questions.length;
@@ -62,10 +66,15 @@ export default function QuickQuiz({
     queryKey,
     queryFn: async () => {
       const stepParam = stepIndex !== undefined ? `&stepIndex=${stepIndex}` : '';
-      const res = await fetch(`/api/tools/poll?sessionId=${session._id}${stepParam}`);
+      const codeParam = session.sessionCode
+        ? `&code=${encodeURIComponent(session.sessionCode)}`
+        : '';
+      const res = await fetch(`/api/tools/poll?sessionId=${session._id}${stepParam}${codeParam}`, {
+        headers: { 'student-token': getStudentToken() },
+      });
       return res.json();
     },
-    refetchInterval: () => 10_000 + Math.floor(Math.random() * 4_000),
+    refetchInterval: () => (sseConnected ? 0 : 10_000 + Math.floor(Math.random() * 4_000)),
   });
 
   useEffect(() => {
@@ -127,6 +136,7 @@ export default function QuickQuiz({
         return acc + (ans === questions[i]?.correctAnswer ? 1 : 0);
       }, 0);
       setSubmitted(true);
+      setSubmittedAttempt(existingAttempts + 1);
       qc.invalidateQueries({ queryKey });
       onMascotEvent?.(score === total ? 'celebrate' : 'correct');
     },
@@ -199,18 +209,19 @@ export default function QuickQuiz({
     const score = Object.values(answers).reduce((acc, ans, i) => {
       return acc + (ans === questions[i]?.correctAnswer ? 1 : 0);
     }, 0);
+    const attemptCount = submittedAttempt ?? existingAttempts + 1;
 
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-lg w-full p-8 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-lg text-center">
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">
             {t('attemptLeft', {
-              current: Math.min(existingAttempts + 1, maxSubmissions),
+              current: Math.min(attemptCount, maxSubmissions),
               max: maxSubmissions,
             })}
-            {existingAttempts + 1 < maxSubmissions && (
+            {attemptCount < maxSubmissions && (
               <span className="ml-2">
-                · {t('attemptsRemaining', { n: maxSubmissions - existingAttempts - 1 })}
+                · {t('attemptsRemaining', { n: maxSubmissions - attemptCount })}
               </span>
             )}
           </p>

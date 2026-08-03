@@ -14,6 +14,7 @@ interface QABoardProps {
   mascot?: string;
   studentName?: string;
   onMascotEvent?: (event: 'celebrate' | 'correct' | 'wrong') => void;
+  sseConnected?: boolean;
 }
 
 interface Question {
@@ -34,16 +35,27 @@ export default function QABoard({
   mascot,
   studentName,
   onMascotEvent,
+  sseConnected,
 }: QABoardProps) {
   const [question, setQuestion] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [votedIds, setVotedIds] = useState<Set<string>>(() => {
     const saved =
       typeof window !== 'undefined' ? localStorage.getItem(`voted_qa_${session._id}`) : null;
-    return new Set<string>(saved ? JSON.parse(saved) : []);
+    if (!saved) return new Set<string>();
+    try {
+      return new Set<string>(JSON.parse(saved));
+    } catch {
+      return new Set<string>();
+    }
   });
 
-  const { data: pollData, isLoading, refetch, queryKey } = useToolPoll(session._id, stepIndex);
+  const {
+    data: pollData,
+    isLoading,
+    refetch,
+    queryKey,
+  } = useToolPoll(session._id, stepIndex, undefined, sseConnected, session.sessionCode);
   const qc = useQueryClient();
 
   const submitMutation = useMutation({
@@ -86,10 +98,13 @@ export default function QABoard({
       return questionId;
     },
     onSuccess: (questionId) => {
-      const newVoted = new Set(votedIds);
-      newVoted.add(questionId);
-      setVotedIds(newVoted);
-      localStorage.setItem(`voted_qa_${session._id}`, JSON.stringify([...newVoted]));
+      setVotedIds((prev) => {
+        if (prev.has(questionId)) return prev;
+        const next = new Set(prev);
+        next.add(questionId);
+        localStorage.setItem(`voted_qa_${session._id}`, JSON.stringify([...next]));
+        return next;
+      });
       qc.invalidateQueries({ queryKey });
     },
   });
@@ -127,6 +142,7 @@ export default function QABoard({
       <div className="p-4 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-sm">
         <textarea
           placeholder={session.config?.prompt || t('typeYourQuestion')}
+          aria-label={session.config?.prompt || t('typeYourQuestion')}
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           rows={3}
@@ -157,7 +173,7 @@ export default function QABoard({
           ))}
         </div>
       ) : (
-        <div className="space-y-3 pb-4">
+        <div className="space-y-3 pb-4" aria-live="polite">
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-bold text-zinc-900 dark:text-zinc-100">{t('questions')}</h2>
             <button
@@ -186,6 +202,8 @@ export default function QABoard({
                     <button
                       onClick={() => handleVote(q._id)}
                       disabled={votedIds.has(q._id)}
+                      aria-label={t('vote')}
+                      aria-pressed={votedIds.has(q._id)}
                       className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg transition-colors ${
                         votedIds.has(q._id)
                           ? 'text-blue-600 dark:text-blue-400 cursor-default'

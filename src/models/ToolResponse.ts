@@ -10,6 +10,7 @@ interface IToolResponse extends Document {
   editToken?: string;
   ip?: string;
   stepIndex?: number;
+  voters?: string[];
   createdAt: Date;
 }
 
@@ -24,6 +25,7 @@ const ToolResponseSchema = new Schema(
     editToken: { type: String },
     ip: { type: String },
     stepIndex: { type: Number },
+    voters: { type: [String] },
   },
   { timestamps: true },
 );

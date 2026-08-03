@@ -2,7 +2,8 @@ import Link from 'next/link';
 import dbConnect from '@/lib/db';
 import ToolSession from '@/models/ToolSession';
 import ToolResponse from '@/models/ToolResponse';
-import ResultsFullPage from '@/components/admin/ResultsFullPage';
+import ResultsFullPage, { type ToolResponseClient } from '@/components/admin/ResultsFullPage';
+import type { ToolSessionClient } from '@/types/tools';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,14 +15,13 @@ function SessionNotFound({ sessionId }: { sessionId: string }) {
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
       <div className="max-w-md w-full p-8 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-lg text-center">
-        <i aria-hidden="true" className="fi fi-sr-search-alt text-6xl text-zinc-300 dark:text-zinc-600 block mb-4" />
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-          ไม่พบข้อมูล
-        </h1>
+        <i
+          aria-hidden="true"
+          className="fi fi-sr-search-alt text-6xl text-zinc-300 dark:text-zinc-600 block mb-4"
+        />
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">ไม่พบข้อมูล</h1>
         <p className="text-zinc-500 dark:text-zinc-400 mb-6">
-          {isValidObjectId(sessionId)
-            ? "ไม่มีข้อมูลเซสชันนี้ในระบบ"
-            : "รูปแบบรหัสเซสชันไม่ถูกต้อง"}
+          {isValidObjectId(sessionId) ? 'ไม่มีข้อมูลเซสชันนี้ในระบบ' : 'รูปแบบรหัสเซสชันไม่ถูกต้อง'}
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
@@ -47,7 +47,7 @@ function SessionNotFound({ sessionId }: { sessionId: string }) {
 export default async function SessionResultsFullPage({
   params,
 }: {
-  params: Promise<{ sessionId: string }>
+  params: Promise<{ sessionId: string }>;
 }) {
   const { sessionId } = await params;
 
@@ -55,8 +55,8 @@ export default async function SessionResultsFullPage({
     return <SessionNotFound sessionId={sessionId} />;
   }
 
-  let sessionData: Record<string, unknown> | null = null;
-  let responsesData: Record<string, unknown>[] = [];
+  let sessionData: ToolSessionClient | null = null;
+  let responsesData: ToolResponseClient[] = [];
   let fetchError = false;
   let notFound = false;
 
@@ -82,10 +82,5 @@ export default async function SessionResultsFullPage({
     return <SessionNotFound sessionId={sessionId} />;
   }
 
-  return (
-    <ResultsFullPage
-      session={sessionData}
-      initialResponses={responsesData}
-    />
-  );
+  return <ResultsFullPage session={sessionData} initialResponses={responsesData} />;
 }

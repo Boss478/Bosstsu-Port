@@ -5,11 +5,6 @@ import dynamic from 'next/dynamic';
 import { useQueryClient } from '@tanstack/react-query';
 import { toolKeys } from '@/lib/query/keys';
 import StepIndicator from './StepIndicator';
-import PadletBoard from './PadletBoard';
-import MentimeterPoll from './MentimeterPoll';
-import AssignmentForm from './AssignmentForm';
-import QABoard from './QABoard';
-import QuickQuiz from './QuickQuiz';
 import ExitTicketForm from './ExitTicketForm';
 import ToolErrorBoundary from './ErrorBoundary';
 import ToastContainer from './ToastContainer';
@@ -33,6 +28,38 @@ import type { ToolSessionClient } from '@/types/tools';
 
 const MascotCompanion = dynamic(() => import('./mascots/MascotCompanion'), { ssr: false });
 const StudentSettings = dynamic(() => import('./StudentSettings'), { ssr: false });
+
+const PadletBoard = dynamic(() => import('./PadletBoard'), {
+  ssr: false,
+  loading: () => <ToolLoadingFallback />,
+});
+const MentimeterPoll = dynamic(() => import('./MentimeterPoll'), {
+  ssr: false,
+  loading: () => <ToolLoadingFallback />,
+});
+const AssignmentForm = dynamic(() => import('./AssignmentForm'), {
+  ssr: false,
+  loading: () => <ToolLoadingFallback />,
+});
+const QABoard = dynamic(() => import('./QABoard'), {
+  ssr: false,
+  loading: () => <ToolLoadingFallback />,
+});
+const QuickQuiz = dynamic(() => import('./QuickQuiz'), {
+  ssr: false,
+  loading: () => <ToolLoadingFallback />,
+});
+
+function ToolLoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-lg space-y-3">
+        <div className="skeleton h-8 w-2/3 mx-auto rounded-xl" />
+        <div className="skeleton h-44 w-full rounded-2xl" />
+      </div>
+    </div>
+  );
+}
 
 interface MultiStepSessionViewProps {
   session: ToolSessionClient;
@@ -274,11 +301,31 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
   }
 
   const step = session.steps?.[currentStep];
+
+  if (!step) {
+    return (
+      <>
+        <StudentSettings
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          selectedMascot={selectedMascot}
+        />
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <div className="p-8 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 text-center">
+            <i aria-hidden="true" className="fi fi-sr-tool text-4xl text-zinc-400 block mb-3" />
+            <p className="text-zinc-500">{t('toolTypeNotFound')}</p>
+          </div>
+        </div>
+        <ToastContainer toasts={toast.toasts} onDismiss={toast.dismiss} />
+      </>
+    );
+  }
+
   const stepConfig = {
     ...session,
-    type: step?.type,
-    config: step?.config,
-    title: step?.title || session.title,
+    type: step.type,
+    config: step.config,
+    title: step.title || session.title,
   } as ToolSessionClient;
 
   const handlePrevStep = () => {
@@ -366,6 +413,7 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
             studentName,
             enableMascots && selectedMascot ? selectedMascot : undefined,
             enableMascots ? handleMascotEvent : undefined,
+            connected === 'connected',
           )}
         </div>
 
@@ -396,36 +444,39 @@ function renderTool(
   studentName?: string,
   mascot?: string,
   onMascotEvent?: (e: MascotEvent) => void,
+  sseConnected?: boolean,
 ) {
   const s = session as { type?: string; config?: unknown };
   switch (s.type) {
     case 'padlet':
       return (
-        <ToolErrorBoundary key="padlet">
+        <ToolErrorBoundary key={`padlet-${stepIndex}`}>
           <PadletBoard
             session={session}
             stepIndex={stepIndex}
             studentName={studentName}
             mascot={mascot}
             onMascotEvent={onMascotEvent}
+            sseConnected={sseConnected}
           />
         </ToolErrorBoundary>
       );
     case 'poll':
       return (
-        <ToolErrorBoundary key="poll">
+        <ToolErrorBoundary key={`poll-${stepIndex}`}>
           <MentimeterPoll
             session={session}
             stepIndex={stepIndex}
             studentName={studentName}
             mascot={mascot}
             onMascotEvent={onMascotEvent}
+            sseConnected={sseConnected}
           />
         </ToolErrorBoundary>
       );
     case 'assignment':
       return (
-        <ToolErrorBoundary key="assignment">
+        <ToolErrorBoundary key={`assignment-${stepIndex}`}>
           <AssignmentForm
             session={session}
             stepIndex={stepIndex}
@@ -437,31 +488,33 @@ function renderTool(
       );
     case 'qa_board':
       return (
-        <ToolErrorBoundary key="qa_board">
+        <ToolErrorBoundary key={`qa_board-${stepIndex}`}>
           <QABoard
             session={session}
             stepIndex={stepIndex}
             studentName={studentName}
             mascot={mascot}
             onMascotEvent={onMascotEvent}
+            sseConnected={sseConnected}
           />
         </ToolErrorBoundary>
       );
     case 'quiz':
       return (
-        <ToolErrorBoundary key="quiz">
+        <ToolErrorBoundary key={`quiz-${stepIndex}`}>
           <QuickQuiz
             session={session}
             stepIndex={stepIndex}
             studentName={studentName}
             mascot={mascot}
             onMascotEvent={onMascotEvent}
+            sseConnected={sseConnected}
           />
         </ToolErrorBoundary>
       );
     case 'exit_ticket':
       return (
-        <ToolErrorBoundary key="exit_ticket">
+        <ToolErrorBoundary key={`exit_ticket-${stepIndex}`}>
           <ExitTicketForm
             session={session}
             stepIndex={stepIndex}

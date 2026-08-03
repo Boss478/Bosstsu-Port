@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import dbConnect from '@/lib/db';
 import ToolResponse from '@/models/ToolResponse';
 import ToolSession from '@/models/ToolSession';
 import { getError } from '@/lib/error-code';
 import { saveFile, sanitizeFilename } from '@/lib/upload';
 import { CONFIG } from '@/lib/config';
-import { getClientIp, checkToolsRateLimit } from '@/lib/rate-limit';
+import { getClientIp, checkToolsRateLimit, hashClientId } from '@/lib/rate-limit';
+import { notifyResponsesChange } from '@/lib/sse-server';
 import fs from 'fs';
 import path from 'path';
+
+const MAX_CONTENT_BYTES = 10 * 1024;
+const MAX_VOTERS = 500;
+
+function safeTokenEqual(a: string, b: string): boolean {
+  const ha = crypto.createHash('sha256').update(a).digest();
+  const hb = crypto.createHash('sha256').update(b).digest();
+  return crypto.timingSafeEqual(ha, hb);
+}
 
 export async function PATCH(req: NextRequest) {
   const contentType = req.headers.get('content-type') || '';
@@ -33,19 +44,27 @@ export async function PATCH(req: NextRequest) {
       if (!studentToken) {
         return NextResponse.json({ error: getError('401').message }, { status: 401 });
       }
-      await dbConnect();
 
-      const rateKey = `${responseId}:${getClientIp(req)}:${studentToken}`;
-      if (!checkToolsRateLimit(rateKey)) {
+      // Rate key: IP only — never client-controlled tokens
+      if (!checkToolsRateLimit(getClientIp(req))) {
         return NextResponse.json(
           { error: getError('T06').message, code: getError('T06').code },
           { status: 429 },
         );
       }
 
+      await dbConnect();
+
       const response = await ToolResponse.findById(responseId).lean();
       if (!response) {
         return NextResponse.json({ error: getError('T05').message }, { status: 400 });
+      }
+      // No self-upvotes
+      if (response.studentToken && response.studentToken === studentToken) {
+        return NextResponse.json(
+          { error: getError('T08').message, code: getError('T08').code },
+          { status: 400 },
+        );
       }
       const session = await ToolSession.findById(response.sessionId).lean();
       if (!session || !session.isActive) {
@@ -66,12 +85,40 @@ export async function PATCH(req: NextRequest) {
         );
       }
 
-      await ToolResponse.findByIdAndUpdate(responseId, { $inc: { 'content.upvotes': 1 } });
+      // Dedup: hashed voter key, atomic $ne guard, capped array (last MAX_VOTERS)
+      const voterKey = hashClientId(`${studentToken}:${getClientIp(req)}`);
+      const updated = await ToolResponse.findOneAndUpdate(
+        { _id: responseId, voters: { $ne: voterKey } },
+        {
+          $inc: { 'content.upvotes': 1 },
+          $push: { voters: { $each: [voterKey], $slice: -MAX_VOTERS } },
+        },
+        { returnDocument: 'after' },
+      );
+      if (!updated) {
+        return NextResponse.json(
+          { error: getError('T08').message, code: getError('T08').code },
+          { status: 400 },
+        );
+      }
+      notifyResponsesChange(String(response.sessionId));
       return NextResponse.json({ success: true });
     }
 
     if (!responseId || !editToken) {
       return NextResponse.json({ error: getError('T05').message }, { status: 400 });
+    }
+
+    // Rate check BEFORE any DB work
+    if (!checkToolsRateLimit(getClientIp(req))) {
+      return NextResponse.json(
+        { error: getError('T06').message, code: getError('T06').code },
+        { status: 429 },
+      );
+    }
+
+    if (contentRaw && contentRaw.length > MAX_CONTENT_BYTES) {
+      return NextResponse.json({ error: 'Content too large' }, { status: 400 });
     }
 
     await dbConnect();
@@ -81,7 +128,8 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: getError('T05').message }, { status: 400 });
     }
 
-    if (response.editToken !== editToken) {
+    // Timing-safe editToken compare
+    if (!safeTokenEqual(response.editToken ?? '', editToken)) {
       return NextResponse.json(
         { error: getError('T08').message, code: getError('T08').code },
         { status: 400 },
@@ -155,6 +203,7 @@ export async function PATCH(req: NextRequest) {
       content,
       ...(newFileUrl !== undefined && { fileUrl: newFileUrl }),
     });
+    notifyResponsesChange(String(response.sessionId));
 
     return NextResponse.json({ success: true, fileUrl: newFileUrl });
   } catch (err) {

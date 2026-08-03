@@ -1,12 +1,23 @@
 'use client';
 
 import ResultsView from '@/components/admin/ResultsView';
+import type { ToolSessionClient } from '@/types/tools';
+
+export interface ToolResponseClient {
+  _id: string;
+  sessionId: string;
+  studentName?: string;
+  mascot?: string;
+  content: Record<string, unknown>;
+  fileUrl?: string;
+  stepIndex?: number;
+  createdAt: string;
+  updatedAt?: string;
+}
 
 interface ResultsFullPageProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  session: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  initialResponses: any[];
+  session: ToolSessionClient;
+  initialResponses: ToolResponseClient[];
 }
 
 export default function ResultsFullPage({ session, initialResponses }: ResultsFullPageProps) {
@@ -18,7 +29,8 @@ export default function ResultsFullPage({ session, initialResponses }: ResultsFu
             <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
               {String(session.sessionCode)}
             </span>
-            {' — '}{String(session.title)}
+            {' — '}
+            {String(session.title)}
             {' — '}
             <span className="font-semibold">
               {initialResponses.length} response{initialResponses.length !== 1 ? 's' : ''}
@@ -29,7 +41,7 @@ export default function ResultsFullPage({ session, initialResponses }: ResultsFu
           session={session}
           initialResponses={initialResponses}
           fullScreen={true}
-          refreshInterval={5000}
+          refreshInterval={15000}
         />
       </div>
     </div>

@@ -1,4 +1,6 @@
 import { CONFIG } from '@/lib/config';
+import { getEnv } from '@/lib/env';
+import crypto from 'crypto';
 
 interface LimitEntry {
   attempts: number;
@@ -109,8 +111,19 @@ export function checkAnalyticsRateLimit(
   return true;
 }
 
-// Tools rate limiting (poll/respond endpoints)
+// Tools rate limiting (poll/respond/edit endpoints) — keyed on IP only
+// (client-controlled tokens must never appear in rate keys).
 const toolsRateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+// Lazy TTL cleanup — mirrors cleanupAnalyticsMap (no setInterval/background threads)
+function cleanupToolsRateLimitMap(): void {
+  const now = Date.now();
+  for (const [key, entry] of toolsRateLimitMap) {
+    if (now > entry.resetAt + 120000) {
+      toolsRateLimitMap.delete(key);
+    }
+  }
+}
 
 export function getClientIp(request: Request): string {
   const forwarded = request.headers.get('x-forwarded-for');
@@ -123,6 +136,10 @@ export function getClientIp(request: Request): string {
 }
 
 export function checkToolsRateLimit(key: string): boolean {
+  if (toolsRateLimitMap.size % 50 === 0) {
+    cleanupToolsRateLimitMap();
+  }
+
   const now = Date.now();
   const entry = toolsRateLimitMap.get(key);
   if (!entry || now > entry.resetAt) {
@@ -132,4 +149,14 @@ export function checkToolsRateLimit(key: string): boolean {
   if (entry.count >= CONFIG.TOOLS.RATE_LIMIT_PER_MINUTE) return false;
   entry.count++;
   return true;
+}
+
+// Salted hash for client-identifying values (IPs stored on responses, voter keys).
+// Mirrors the analytics route precedent: sha256(value + salt).
+export function hashClientId(value: string): string {
+  const salt = getEnv().ANALYTICS_SALT || 'tools-client-hash-salt';
+  return crypto
+    .createHash('sha256')
+    .update(value + salt)
+    .digest('hex');
 }

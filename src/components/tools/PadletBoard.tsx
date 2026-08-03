@@ -18,6 +18,7 @@ interface PadletBoardProps {
   studentName?: string;
   mascot?: string;
   onMascotEvent?: (event: 'celebrate' | 'correct' | 'wrong') => void;
+  sseConnected?: boolean;
 }
 
 interface Post {
@@ -39,6 +40,7 @@ export default function PadletBoard({
   studentName: propName,
   mascot,
   onMascotEvent,
+  sseConnected,
 }: PadletBoardProps) {
   const qc = useQueryClient();
   const [studentName, setStudentName] = useState(propName || '');
@@ -47,7 +49,7 @@ export default function PadletBoard({
   const bottomRef = useRef<HTMLDivElement>(null);
   const [ownPosts, setOwnPosts] = useState<OwnPost[]>([]);
 
-  const STORAGE_KEY = `padlet_${session._id}`;
+  const STORAGE_KEY = `padlet_${session._id}_${stepIndex ?? 'all'}`;
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -65,7 +67,12 @@ export default function PadletBoard({
   const isOwnPost = (postId: string) => ownPosts.some((p) => p._id === postId);
   const getOwnToken = (postId: string) => ownPosts.find((p) => p._id === postId)?.editToken;
 
-  const { data: pollData, isLoading, refetch, queryKey } = useToolPoll(session._id, stepIndex);
+  const {
+    data: pollData,
+    isLoading,
+    refetch,
+    queryKey,
+  } = useToolPoll(session._id, stepIndex, undefined, sseConnected, session.sessionCode);
   const posts = (pollData?.responses || []) as Post[];
 
   const submitMutation = useMutation({
@@ -120,10 +127,14 @@ export default function PadletBoard({
       if (typeof window !== 'undefined') {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
-          const parsed = JSON.parse(stored);
-          const updated = parsed.filter((p: OwnPost) => p._id !== postId);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-          setOwnPosts(updated);
+          try {
+            const parsed = JSON.parse(stored);
+            const updated = parsed.filter((p: OwnPost) => p._id !== postId);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+            setOwnPosts(updated);
+          } catch {
+            localStorage.removeItem(STORAGE_KEY);
+          }
         }
       }
       qc.invalidateQueries({ queryKey });
@@ -161,6 +172,7 @@ export default function PadletBoard({
             <input
               type="text"
               placeholder={t('yourName')}
+              aria-label={t('yourName')}
               value={studentName}
               onChange={(e) => setStudentName(e.target.value)}
               className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -168,6 +180,7 @@ export default function PadletBoard({
           )}
           <textarea
             placeholder={session.config?.prompt || t('shareThoughts')}
+            aria-label={session.config?.prompt || t('shareThoughts')}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={5}
@@ -200,7 +213,7 @@ export default function PadletBoard({
           ))}
         </div>
       ) : (
-        <div className="space-y-4 pb-4">
+        <div className="space-y-4 pb-4" aria-live="polite">
           <div className="flex items-center justify-end">
             <button
               onClick={() => refetch()}

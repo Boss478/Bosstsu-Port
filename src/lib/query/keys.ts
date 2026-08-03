@@ -19,6 +19,8 @@ export const toolKeys = {
   all: ['tools'] as const,
   poll: (sessionId: string, stepIndex?: number) =>
     [...toolKeys.all, 'poll', sessionId, stepIndex ?? 'all'] as const,
+  // 3-element prefix — invalidateQueries prefix-match for ALL step-scoped poll keys
+  pollPrefix: (sessionId: string) => [...toolKeys.all, 'poll', sessionId] as const,
   participants: (sessionId: string) => [...toolKeys.all, 'participants', sessionId] as const,
 } as const;
 

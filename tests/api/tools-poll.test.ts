@@ -7,6 +7,7 @@ import { seedSession, seedResponse } from '../helpers/seed';
 vi.mock('@/lib/rate-limit', () => ({
   checkToolsRateLimit: vi.fn().mockReturnValue(true),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
+  hashClientId: vi.fn().mockReturnValue('hashed-client-123'),
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -53,7 +54,9 @@ describe('/api/tools/poll', () => {
         studentToken: 'tok2',
       });
 
-      const req = createGetRequest('/api/tools/poll', { searchParams: { sessionId: sid } });
+      const req = createGetRequest('/api/tools/poll', {
+        searchParams: { sessionId: sid, code: 'POLL1' },
+      });
       const res = await GET(req);
       const data = await res.json();
 
@@ -88,7 +91,9 @@ describe('/api/tools/poll', () => {
         studentToken: 't4',
       });
 
-      const req = createGetRequest('/api/tools/poll', { searchParams: { sessionId: sid } });
+      const req = createGetRequest('/api/tools/poll', {
+        searchParams: { sessionId: sid, code: 'POLL6' },
+      });
       const res = await GET(req);
       const data = await res.json();
 
@@ -118,7 +123,7 @@ describe('/api/tools/poll', () => {
       });
 
       const req = createGetRequest('/api/tools/poll', {
-        searchParams: { sessionId: sid, stepIndex: '0' },
+        searchParams: { sessionId: sid, stepIndex: '0', code: 'POLL3' },
       });
       const res = await GET(req);
       const data = await res.json();
@@ -149,7 +154,7 @@ describe('/api/tools/poll', () => {
       });
 
       const req = createGetRequest('/api/tools/poll', {
-        searchParams: { sessionId: sid },
+        searchParams: { sessionId: sid, code: 'POLL5' },
         headers: { 'student-token': 'my-token' },
       });
       const res = await GET(req);
@@ -183,13 +188,35 @@ describe('/api/tools/poll', () => {
       });
 
       const req = createGetRequest('/api/tools/poll', {
-        searchParams: { sessionId: sid, limit: '10' },
+        searchParams: { sessionId: sid, limit: '10', code: 'POLL7' },
       });
       const res = await GET(req);
       const data = await res.json();
 
       expect(res.status).toBe(200);
       expect(data.responses).toHaveLength(1);
+    });
+
+    it('gates public reads on the join code (PII guard)', async () => {
+      const session = await seedSession({ sessionCode: 'POLL13' });
+      const sid = session._id.toString();
+
+      const noCode = await GET(
+        createGetRequest('/api/tools/poll', { searchParams: { sessionId: sid } }),
+      );
+      expect(noCode.status).toBe(400);
+
+      const wrongCode = await GET(
+        createGetRequest('/api/tools/poll', { searchParams: { sessionId: sid, code: 'NOPE' } }),
+      );
+      expect(wrongCode.status).toBe(400);
+
+      const ok = await GET(
+        createGetRequest('/api/tools/poll', {
+          searchParams: { sessionId: sid, code: 'POLL13' },
+        }),
+      );
+      expect(ok.status).toBe(200);
     });
 
     it('requires auth for admin limit above the public cap', async () => {
@@ -225,13 +252,48 @@ describe('/api/tools/poll', () => {
       expect(res.headers.get('cache-control')).toContain('no-store');
     });
 
-    it('includes cache headers', async () => {
+    it('marks poll GET as private, no-store (PII: student responses)', async () => {
       const session = await seedSession({ sessionCode: 'POLL4' });
       const req = createGetRequest('/api/tools/poll', {
-        searchParams: { sessionId: session._id.toString() },
+        searchParams: { sessionId: session._id.toString(), code: 'POLL4' },
       });
       const res = await GET(req);
-      expect(res.headers.get('cache-control')).toContain('public');
+      expect(res.headers.get('cache-control')).toBe('private, no-store');
+    });
+
+    it('returns newest responses first (createdAt desc)', async () => {
+      const session = await seedSession({ sessionCode: 'POLL12' });
+      const sid = session._id.toString();
+
+      const old = await seedResponse({
+        sessionId: sid,
+        content: { word: 'oldest' },
+        studentToken: 't-old',
+      });
+      await seedResponse({
+        sessionId: sid,
+        content: { word: 'newest' },
+        studentToken: 't-new',
+      });
+
+      // Backdate the first response so ordering is deterministic
+      const ToolResponse = (await import('@/models/ToolResponse')).default;
+      await ToolResponse.updateOne(
+        { _id: old._id },
+        { $set: { createdAt: new Date(Date.now() - 60_000) } },
+        { timestamps: false },
+      );
+
+      const req = createGetRequest('/api/tools/poll', {
+        searchParams: { sessionId: sid, code: 'POLL12' },
+      });
+      const res = await GET(req);
+      const data = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(data.responses).toHaveLength(2);
+      expect(data.responses[0].content.word).toBe('newest');
+      expect(data.responses[1].content.word).toBe('oldest');
     });
   });
 
@@ -295,7 +357,7 @@ describe('/api/tools/poll', () => {
       const req = createPostRequest('/api/tools/poll', {
         searchParams: { sessionId: sid },
         headers: { 'student-token': 'tok-new' },
-        body: { studentName: 'Charlie', content: { answer: '42' }, stepIndex: 0 },
+        body: { studentName: 'Charlie', content: { answer: '42' } },
       });
       const res = await POST(req);
       const data = await res.json();

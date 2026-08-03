@@ -3,6 +3,7 @@ import { PATCH } from '@/app/api/tools/edit/route';
 import { createMultipartRequest } from '../helpers/request';
 import { connectTestDb, disconnectTestDb, clearAllCollections } from '../helpers/db';
 import { seedSession, seedResponse } from '../helpers/seed';
+import { addClient } from '@/lib/sse-server';
 
 vi.mock('@/lib/upload', () => ({
   saveFile: vi.fn().mockResolvedValue('/uploads/edited.webp'),
@@ -12,6 +13,7 @@ vi.mock('@/lib/upload', () => ({
 vi.mock('@/lib/rate-limit', () => ({
   checkToolsRateLimit: vi.fn().mockReturnValue(true),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
+  hashClientId: vi.fn().mockReturnValue('hashed-client-123'),
 }));
 
 vi.mock('fs', () => ({
@@ -95,7 +97,8 @@ describe('/api/tools/edit', () => {
 
     it('rejects votes when rate limited', async () => {
       const rateLimit = await import('@/lib/rate-limit');
-      (rateLimit.checkToolsRateLimit as ReturnType<typeof vi.fn>).mockReturnValue(false);
+      // one-shot: must not poison the edit-branch rate check in later tests
+      (rateLimit.checkToolsRateLimit as ReturnType<typeof vi.fn>).mockReturnValueOnce(false);
       const session = await seedSession({ sessionCode: 'EDT10', type: 'qa_board' });
       const resp = await seedResponse({ sessionId: session._id.toString() });
 
@@ -226,6 +229,77 @@ describe('/api/tools/edit', () => {
       const req = createMultipartRequest('/api/tools/edit', formData);
       const res = await PATCH(req);
       expect(res.status).toBe(400);
+    });
+  });
+
+  describe('SSE responses event (wire integration)', () => {
+    function makeController() {
+      return {
+        enqueue: vi.fn(),
+        error: vi.fn(),
+        close: vi.fn(),
+      } as unknown as ReadableStreamDefaultController;
+    }
+
+    function decodeResponsesFrame(controller: ReadableStreamDefaultController) {
+      const frame = new TextDecoder().decode(
+        (controller.enqueue as ReturnType<typeof vi.fn>).mock.calls[0][0],
+      );
+      expect(frame.startsWith('event: responses\n')).toBe(true);
+      return JSON.parse(
+        frame
+          .split('\n')
+          .find((l) => l.startsWith('data: '))!
+          .slice(6),
+      ) as { type: string };
+    }
+
+    it('vote action emits a responses event to connected clients', async () => {
+      const session = await seedSession({ sessionCode: 'EDT7', type: 'qa_board' });
+      const resp = await seedResponse({ sessionId: session._id.toString() });
+      const controller = makeController();
+      const cleanup = addClient(session._id.toString(), controller);
+
+      try {
+        const formData = createEditForm({ action: 'vote', responseId: resp._id.toString() });
+        const req = createMultipartRequest('/api/tools/edit', formData, {
+          headers: { 'student-token': 'tok-voter' },
+        });
+        const res = await PATCH(req);
+        expect(res.status).toBe(200);
+
+        expect(controller.enqueue).toHaveBeenCalledTimes(1);
+        expect(decodeResponsesFrame(controller)).toEqual({ type: 'responses' });
+      } finally {
+        cleanup();
+      }
+    });
+
+    it('content-edit action emits a responses event to connected clients', async () => {
+      const session = await seedSession({ sessionCode: 'EDT8', type: 'assignment' });
+      const resp = await seedResponse({
+        sessionId: session._id.toString(),
+        editToken: 'my-token',
+        content: { answer: 'old' },
+      });
+      const controller = makeController();
+      const cleanup = addClient(session._id.toString(), controller);
+
+      try {
+        const formData = createEditForm({
+          responseId: resp._id.toString(),
+          editToken: 'my-token',
+          content: JSON.stringify({ answer: 'new answer' }),
+        });
+        const req = createMultipartRequest('/api/tools/edit', formData);
+        const res = await PATCH(req);
+        expect(res.status).toBe(200);
+
+        expect(controller.enqueue).toHaveBeenCalledTimes(1);
+        expect(decodeResponsesFrame(controller)).toEqual({ type: 'responses' });
+      } finally {
+        cleanup();
+      }
     });
   });
 });

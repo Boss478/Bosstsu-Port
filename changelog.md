@@ -3,6 +3,15 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.10.87 (2026-08-03)
+* **Class Tools — review-driven hardening + first full test coverage (3-agent review; senior-approved FIX-3)**:
+  + * **Security**: poll reads gated on join code + `private, no-store` (student PII) · rate limits keyed on IP only (token-rotation bypass closed; 600/min classroom ceiling) · submission-limit upsert atomicity · voter dedup + self-vote rejection · SSE per-IP caps (8) + total 150 + session/isActive gate + backpressure drop · kicks no longer leak student tokens · `fileUrl` allowlist (`/uploads/` only) · salted IP hashes · field length caps · timing-safe token compares · TTL eviction for the tools rate map.
+  + * **Correctness**: step-scoped board keys (no cross-step state leaks) · zombie EventSource guard + timer hygiene · `student-token` header on poll GETs (quiz attempt tracking now works) · deterministic newest-first board order (`createdAt:-1, _id:-1`) · SSE invalidation coalescing (2s window — kills O(n²) refetch storms) · admin actions revalidate + unlink response files.
+  + * **A11y**: vote buttons `aria-label`/`aria-pressed` · `aria-live="polite"` on live lists · labeled inputs · TH option i18n keys.
+  + * **Perf**: 5 tool boards code-split (`next/dynamic` per session type) · mascot whitelist as id-set (21.6KB out of API bundles).
+  + * **Tests**: 147 tools tests (edit/admin emission, SSE caps, join-code gate, coalescing, hook lifecycle) — full suite 907 green.
+  - **OPS NOTE**: no prod deploy this release — KVM1 VPS expired 2026-08; deploy pending VisperHost provision (ADR-013). `ANALYTICS_SALT` still required before first deploy (v1.10.86 note).
+
 ## v1.10.86 (2026-08-03)
 * **Perf / Security / A11y batch (senior-approved)**:
   + * **Security (review-campaign MAJORs)**: analytics route per-field whitelist + caps (`sessionId` ≤64, `eventName` ≤64, `referrer` ≤200, `deviceType` enum) + required `ANALYTICS_SALT` (500 when unset) · `AnalyticsEvent` 90-day TTL index · dictionary proxy: 10s timeouts, 2MB audio cap, 120/min/IP rate limit, audio failure no longer collapses payloads.

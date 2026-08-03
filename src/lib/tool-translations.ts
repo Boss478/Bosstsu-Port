@@ -36,6 +36,8 @@ const toolStrings = {
 
   customChoices: { th: 'ตัวเลือกอื่น ๆ', en: 'Custom Choices' },
   voteNow: { th: 'โหวตเลย!', en: 'Vote now!' },
+  optionFallback: { th: 'ตัวเลือก {n}', en: 'Option {n}' },
+  optionLetter: { th: 'ตัวเลือก {letter}', en: 'Option {letter}' },
   otherTypeYourOwn: { th: 'อื่น ๆ (พิมพ์เอง)', en: 'Other (type your own)' },
   typeCustomOption: { th: 'พิมพ์ตัวเลือกของคุณ...', en: 'Type your custom option...' },
   typeAnswerEnter: { th: 'พิมพ์คำตอบแล้วกด Enter...', en: 'Type your answer and press Enter...' },
