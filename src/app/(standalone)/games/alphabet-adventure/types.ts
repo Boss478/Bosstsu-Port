@@ -16,7 +16,6 @@ export interface GameState {
   score: number;
   round: number;
   winsInLevel: number;
-  difficulty: number;
   consecutiveErrors: number;
   levelCorrect: number;
   levelTotal: number;
@@ -104,7 +103,6 @@ export function initialGameState(): GameState {
     score: 0,
     round: 1,
     winsInLevel: 0,
-    difficulty: 3,
     consecutiveErrors: 0,
     levelCorrect: 0,
     levelTotal: 0,

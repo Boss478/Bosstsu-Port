@@ -9,6 +9,7 @@ export default function CaptainAlph({ size = 80 }: { size?: number }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className="drop-shadow-lg"
+      aria-hidden="true"
     >
       {/* Hat */}
       <rect x="28" y="18" width="44" height="8" rx="2" fill="#8b5cf6" />

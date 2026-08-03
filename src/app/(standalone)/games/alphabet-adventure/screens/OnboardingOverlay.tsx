@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import type { LevelType } from '../types';
 
 interface Props {
@@ -128,24 +129,52 @@ const ILLUSTRATIONS = {
 
 export default function OnboardingOverlay({ name, type, onDismiss }: Props) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const focusTrapRef = useFocusTrap(true);
 
   useEffect(() => {
-    timerRef.current = setTimeout(onDismiss, 8000);
+    const root = focusTrapRef.current;
+    if (!root) return;
+    const arm = () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(onDismiss, 8000);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        onDismiss();
+      }
+    };
+    arm();
+    root.addEventListener('focusin', arm);
+    root.addEventListener('keydown', onKeyDown);
     return () => {
+      root.removeEventListener('focusin', arm);
+      root.removeEventListener('keydown', onKeyDown);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [onDismiss]);
+  }, [onDismiss, focusTrapRef]);
 
   const { en, th } = INSTRUCTIONS[type] || { en: 'Good luck!', th: 'ขอให้โชคดี!' };
   const Illustration = ILLUSTRATIONS[type] || MatchIllustration;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/10 animate-in fade-in duration-300 p-4">
+    <div
+      ref={focusTrapRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="onboarding-title"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/10 animate-in fade-in duration-300 p-4"
+    >
       <div className="bg-white dark:bg-zinc-800 rounded-[2rem] p-8 md:p-10 max-w-sm w-full text-center space-y-6 shadow-2xl animate-in zoom-in duration-300">
         <div className="w-16 h-16 rounded-2xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-violet-600 dark:text-violet-400 text-3xl font-black mx-auto">
           <span className="text-2xl">💡</span>
         </div>
-        <h2 className="text-2xl font-black text-violet-600 dark:text-violet-400">{name}</h2>
+        <h2
+          id="onboarding-title"
+          className="text-2xl font-black text-violet-600 dark:text-violet-400"
+        >
+          {name}
+        </h2>
         <Illustration />
         <p className="text-lg font-bold text-zinc-600 dark:text-zinc-300 leading-relaxed">{en}</p>
         <p className="text-base font-bold text-zinc-500 dark:text-zinc-400">{th}</p>

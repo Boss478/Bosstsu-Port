@@ -6,6 +6,14 @@ import { safeGetJSON, safeSetJSON } from '@/lib/storage';
 export function loadMapSave(): MapSaveData {
   const data = safeGetJSON<MapSaveData>(MAP_SAVE_KEY);
   if (!data || data.version < 4) return emptyMapSaveData();
+  if (!Array.isArray(data.stages) || data.stages.length === 0) return emptyMapSaveData();
+  if (
+    !data.letterTracker ||
+    typeof data.letterTracker !== 'object' ||
+    Array.isArray(data.letterTracker)
+  ) {
+    return emptyMapSaveData();
+  }
   return data;
 }
 

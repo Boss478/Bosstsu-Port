@@ -136,7 +136,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
   const { speak, muted, toggleMute, playSequence, voiceURI, setVoiceURI } = useAudio();
 
   const {
-    game: { gameState, roundData, feedback, isTransitioning, hasSavedProgress },
+    game: { gameState, roundData, feedback, isTransitioning },
     cardSystem: {
       streakToast,
       cardReveal,
@@ -398,6 +398,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
   const isLastStage = currentStageId === 6;
   const totalStages = mapData.stages.length;
   const stagesCompleted = mapData.stages.filter((s) => s.completed).length;
+  const hasProgress = mapData.stages.some((s) => s.subStages.some((ss) => ss.completed));
 
   const reviewPrompt =
     screen === 'victory' && Object.keys(lastSessionStats).length > 0
@@ -423,10 +424,10 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
         {!showCards && screen === 'menu' && (
           <MenuScreen
             onStart={() => setScreen('level-map')}
-            hasProgress={hasSavedProgress}
+            hasProgress={hasProgress}
             isBeta={beta}
             onShowCards={() => setShowCards(true)}
-            onShowAllCards={() => setShowAllCards(true)}
+            onShowAllCards={beta ? () => setShowAllCards(true) : undefined}
             onShowAnalysis={() => handleShowAnalysis('menu')}
             onShowExplorer={() => setScreen('letter-explorer')}
             onShowAchievements={() => setScreen('achievements')}
@@ -548,6 +549,7 @@ export default function AlphabetAdventureClient({ beta = false }: Props) {
               levelType={subStageType}
               dataPool={currentSubStage?.dataPool}
               target={currentSubStage?.targetMin}
+              isOnboarding={showOnboarding}
             />
           </>
         )}

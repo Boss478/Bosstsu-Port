@@ -3,6 +3,16 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.10.85 (2026-08-03)
+* **Alphabet Adventure — QA fix campaign (senior-approved: P1/P2/P3 + cold batches)**:
+  + * **P1 (4 MAJORs)**: keypad bypass guard (wrong-choice keydown now rejected — no deduction/feedback); transition/feedback timer refs with Back disabled mid-transition (race fixed at 5 sites + showFeedback); typing errors tracked via `newGrid` (was stale `roundData.grid` → always empty); onboarding overlay focus trap + `role=dialog`/`aria-modal` ARIA + 8s restart-on-focusin timer + `isOnboarding` gates + Escape dismiss.
+  + * **P2 (4 + 2 NITs)**: 3 dead achievements wired (`perfect_3x`/`perfect_stage`/`revisit` — ctx now reads perfectCount/revisit/stagePerfect); Escape quit-confirm (bilingual `window.confirm`, mirrors Start Over); debug panel gated to beta (release hidden, beta shown); double card reveal fixed (win-drop skipped when a reveal is pending); NITs: feedback-timer clear-before-set, overlay Escape-to-dismiss.
+  + * **P3 (3)**: `hasSavedProgress` replaced with live-derived `hasProgress` from `mapData` (map-save badge no longer stale); difficulty system removed (knob was live-but-invisible and ratio-identical — zero references remain; 'Take a breather!' feedback kept); dead `isThaiText` branch kept with invariant comment (removal would ripple 13 edits for a NIT).
+  + * **Cold batch (2)**: map-save shape validation (stages/letterTracker guards degrade to a fresh save instead of a white-screen); decorative SVG `aria-hidden` wrapper at 2 leaf components covers all 122 SVGs + CaptainAlph mascot.
+  + * **SHOW ALL CARDS beta gate**: button + reveal gated to beta only (approved line), verified intact after every batch; `isOnboarding` prop preserved.
+  + * **Pinned tests**: 4 frozen pins (typing ratio 2/3, breather branch + no-difficulty-key, GAME_CONFIG keys, state shape) — suite 167 → 171/171; tsc/lint clean; live re-tests (keypad bypass, Escape confirm, debug gate, SHOW ALL CARDS gate, a11y leak). Full report: `.agents/report/qa-fix-campaign-2026-08-03.md`.
+  - Note: tools/SSE WIP (18 files) remains uncommitted — separate paused batch, excluded from this release.
+
 ## v1.10.84 (2026-08-02)
 * **Alphabet Adventure card art — polish batch 1 (14 pieces, target ≥8/10)**: user-reviewed one-by-one approval flow.
   + * **Reference redraws (gradient style)**: `Axe` (curved wood handle, leather wraps, back poll, beveled edge, brass collar + rivets, tip glint), `Whale` (gradient body + belly pleats, twin flukes, layered spout, big eye, open smile + tongue), `Dolphin` (gradient body, dorsal fin, beach ball balanced on the nose + action arcs), `Van` (VW bus: cream/teal shells, chrome beltline + bumper, 6 windows with glare, peace emblem, roof rack + coral surfboard; scaled +20%).

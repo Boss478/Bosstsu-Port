@@ -92,11 +92,6 @@ export function useGameActions() {
   const [currentStageId, setCurrentStageId] = useState(0);
   const [currentSubStageId, setCurrentSubStageId] = useState(0);
 
-  const [hasSavedProgress] = useState(() => {
-    const data = loadMapSave();
-    return data.stages.some((s) => s.subStages.some((ss) => ss.completed));
-  });
-
   const [dropPower, setDropPower] = useState(() => loadCollection().dropPower || 0);
   const [dropStreak, setDropStreak] = useState(0);
   const [streakToast, setStreakToast] = useState('');
@@ -113,6 +108,8 @@ export function useGameActions() {
   const dropStreakRef = useRef(0);
   const streakToastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cardRevealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrongsInSubStageRef = useRef(0);
   const subStageStartRef = useRef(0);
   const lastAnswerTimeRef = useRef(0);
@@ -163,6 +160,11 @@ export function useGameActions() {
       letterTracker: { ...letterTrackerRef.current },
       dropPower: dropPowerRef.current,
       logoTaps: stats.logoTaps,
+      perfectCount: stats.perfectCount,
+      revisit: revisitRef.current,
+      stagePerfect: map.stages.some(
+        (s) => s.subStages.length > 0 && s.subStages.every((ss) => ss.completed && ss.stars === 3),
+      ),
       consecutiveDrops: consecutiveDropsRef.current,
       noDropStreak: noDropStreakRef.current,
       earlyBird: firstAnswerDroppedRef.current,
@@ -190,6 +192,8 @@ export function useGameActions() {
     return () => {
       if (streakToastRef.current) clearTimeout(streakToastRef.current);
       if (cardRevealTimerRef.current) clearTimeout(cardRevealTimerRef.current);
+      if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
+      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
     };
   }, []);
 
@@ -200,7 +204,8 @@ export function useGameActions() {
         type === 'correct'
           ? GAME_CONFIG.FEEDBACK_DURATION_CORRECT
           : GAME_CONFIG.FEEDBACK_DURATION_WRONG;
-      setTimeout(() => setFeedback({ text: '', type: '' }), duration);
+      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+      feedbackTimerRef.current = setTimeout(() => setFeedback({ text: '', type: '' }), duration);
     },
     [],
   );
@@ -312,6 +317,14 @@ export function useGameActions() {
       setGameState(initialState);
       setRoundData(generateRound(initialState));
       setFeedback({ text: '', type: '' });
+      if (transitionTimerRef.current) {
+        clearTimeout(transitionTimerRef.current);
+        transitionTimerRef.current = null;
+      }
+      if (feedbackTimerRef.current) {
+        clearTimeout(feedbackTimerRef.current);
+        feedbackTimerRef.current = null;
+      }
       setIsTransitioning(false);
       cardDroppedRef.current = false;
       dropStreakRef.current = 0;
@@ -366,6 +379,14 @@ export function useGameActions() {
       setGameState(initialState);
       setRoundData(generateRound(initialState));
       setFeedback({ text: '', type: '' });
+      if (transitionTimerRef.current) {
+        clearTimeout(transitionTimerRef.current);
+        transitionTimerRef.current = null;
+      }
+      if (feedbackTimerRef.current) {
+        clearTimeout(feedbackTimerRef.current);
+        feedbackTimerRef.current = null;
+      }
       setIsTransitioning(false);
       cardDroppedRef.current = false;
       dropStreakRef.current = 0;
@@ -415,7 +436,7 @@ export function useGameActions() {
       const sub = subStageRef.current;
       if (!sub) return;
 
-      const winTier = rollWinDrop();
+      const winTier = revealPendingRef.current ? null : rollWinDrop();
       if (winTier) {
         cardDroppedRef.current = true;
         applyCardDrop(resolveDropTier(winTier));
@@ -598,7 +619,7 @@ export function useGameActions() {
               saveCheckpoint(newState, currentStageId, currentSubStageId);
               showFeedback(randomPraise('correct'), 'correct');
               runAchievementCheck();
-              setTimeout(() => {
+              transitionTimerRef.current = setTimeout(() => {
                 setRoundData(generateRound(newState));
                 if (!revealPendingRef.current) setIsTransitioning(false);
               }, GAME_CONFIG.FEEDBACK_DURATION_CORRECT);
@@ -692,7 +713,7 @@ export function useGameActions() {
           showFeedback(`${randomPraise('wrong')} -${points}`, 'wrong', correct);
           saveCheckpoint(newState, currentStageId, currentSubStageId);
           setIsTransitioning(true);
-          setTimeout(() => {
+          transitionTimerRef.current = setTimeout(() => {
             advanceMatchRound(newState, newState.score, newState.levelCorrect, newState.levelTotal);
             setIsTransitioning(false);
           }, GAME_CONFIG.FEEDBACK_DURATION_WRONG);
@@ -767,19 +788,14 @@ export function useGameActions() {
 
       const newScore = stateRef.current.score + GAME_CONFIG.SCORE_TYPING_CORRECT;
       const newWins = stateRef.current.winsInLevel + 1;
-      const newDifficulty = Math.min(
-        GAME_CONFIG.MAX_DIFFICULTY,
-        stateRef.current.difficulty + GAME_CONFIG.DIFFICULTY_INCREASE,
-      );
       const newStreak = stateRef.current.currentStreak + 1;
       const newState: GameState = {
         ...stateRef.current,
         score: newScore,
         winsInLevel: newWins,
-        difficulty: newDifficulty,
         consecutiveErrors: 0,
-        levelCorrect: stateRef.current.levelCorrect + stateRef.current.difficulty,
-        levelTotal: stateRef.current.levelTotal + stateRef.current.difficulty,
+        levelCorrect: stateRef.current.levelCorrect + 1,
+        levelTotal: stateRef.current.levelTotal + 1,
         currentStreak: newStreak,
         bestStreak: Math.max(newStreak, stateRef.current.bestStreak),
         wrongAttempts: 0,
@@ -802,7 +818,7 @@ export function useGameActions() {
         setIsTransitioning(true);
         setGameState(newState);
         saveCheckpoint(newState, currentStageId, currentSubStageId);
-        setTimeout(() => {
+        transitionTimerRef.current = setTimeout(() => {
           const round = generateTypingRound(pool || []);
           setRoundData({ choices: [], wrongChoices: [], ...round });
           if (!revealPendingRef.current) setIsTransitioning(false);
@@ -856,7 +872,7 @@ export function useGameActions() {
         streak: 0,
       });
 
-      roundData.grid.filter((g) => g.isWrong).forEach((g) => trackLetter(g.char, false));
+      newGrid.filter((g) => g.isWrong).forEach((g) => trackLetter(g.char, false));
 
       const typingWrongLetters = newGrid.filter((g) => g.isWrong).map((g) => g.char);
       const newErrors = stateRef.current.consecutiveErrors + 1;
@@ -864,7 +880,7 @@ export function useGameActions() {
         ...stateRef.current,
         score: Math.max(0, stateRef.current.score - GAME_CONFIG.SCORE_TYPING_WRONG),
         consecutiveErrors: newErrors,
-        levelTotal: stateRef.current.levelTotal + stateRef.current.difficulty,
+        levelTotal: stateRef.current.levelTotal + 1,
         currentStreak: 0,
         wrongAttempts: stateRef.current.wrongAttempts + 1,
         wrongLetters: [...stateRef.current.wrongLetters, ...typingWrongLetters],
@@ -872,16 +888,15 @@ export function useGameActions() {
       const pool = sub.letterPool;
 
       if (newErrors >= GAME_CONFIG.ERROR_THRESHOLD) {
-        showFeedback('Difficulty decreased!', 'wrong');
+        showFeedback('Take a breather!', 'wrong');
         const easierState = {
           ...newState,
-          difficulty: Math.max(1, stateRef.current.difficulty - 1),
           consecutiveErrors: 0,
         };
         setGameState(easierState);
         saveCheckpoint(easierState, currentStageId, currentSubStageId);
         setIsTransitioning(true);
-        setTimeout(() => {
+        transitionTimerRef.current = setTimeout(() => {
           const round = generateTypingRound(pool || []);
           setRoundData({ choices: [], wrongChoices: [], ...round });
           setIsTransitioning(false);
@@ -890,7 +905,7 @@ export function useGameActions() {
         setGameState(newState);
         showFeedback(randomPraise('wrong'), 'wrong');
         setIsTransitioning(true);
-        setTimeout(() => {
+        transitionTimerRef.current = setTimeout(() => {
           setRoundData((prev) => ({
             ...prev,
             grid: prev.grid.map((g) => (g.isWrong ? { ...g, isWrong: false } : g)),
@@ -942,7 +957,6 @@ export function useGameActions() {
     roundData,
     feedback,
     isTransitioning,
-    hasSavedProgress,
   };
 
   const cardSystem = {

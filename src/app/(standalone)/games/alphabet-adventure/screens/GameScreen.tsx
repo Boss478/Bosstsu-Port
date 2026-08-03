@@ -29,6 +29,7 @@ interface Props {
   levelType?: LevelType;
   dataPool?: DataPool;
   target?: number;
+  isOnboarding?: boolean;
 }
 
 export default function GameScreen({
@@ -54,10 +55,13 @@ export default function GameScreen({
   levelType = 'match',
   dataPool,
   target = 10,
+  isOnboarding = false,
 }: Props) {
   const choiceRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const didAutoSpeak = useRef(false);
   const isFeedbackVisible = feedback.text !== '';
+  // Dead branch: thai/phonics pools always generate revert:true (useGameActions.generateRound),
+  // so this is always false. Keep only if a forward (revert:false) thai/phonics pool is added.
   const isThaiText = (dataPool === 'thai' || dataPool === 'phonics') && !roundData.revert;
 
   useEffect(() => {
@@ -75,7 +79,7 @@ export default function GameScreen({
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (isTransitioning || isFeedbackVisible) return;
+      if (isTransitioning || isFeedbackVisible || isOnboarding) return;
 
       if (levelType === 'typing') {
         if (e.key === 'Enter') {
@@ -85,21 +89,34 @@ export default function GameScreen({
       } else {
         const num = parseInt(e.key);
         const maxChoices = roundData.choices.length;
-        if (num >= 1 && num <= maxChoices && roundData.choices[num - 1]) {
+        if (
+          num >= 1 &&
+          num <= maxChoices &&
+          roundData.choices[num - 1] &&
+          !roundData.wrongChoices.includes(roundData.choices[num - 1])
+        ) {
           e.preventDefault();
           onAnswer(roundData.choices[num - 1]);
         }
       }
       if (e.key === 'Escape') {
         e.preventDefault();
-        onBack();
+        if (
+          window.confirm(
+            'Quit this lesson? Progress will be lost.\nออกจากบทเรียน? ความคืบหน้าจะหายไป',
+          )
+        ) {
+          onBack();
+        }
       }
     },
     [
       isTransitioning,
       isFeedbackVisible,
+      isOnboarding,
       levelType,
       roundData.choices,
+      roundData.wrongChoices,
       onAnswer,
       onCheckTyping,
       onBack,
@@ -114,11 +131,11 @@ export default function GameScreen({
   useEffect(() => {
     if (roundData.choices.length > 0) {
       const firstBtn = choiceRefs.current[0];
-      if (firstBtn && !isTransitioning) {
+      if (firstBtn && !isTransitioning && !isOnboarding) {
         firstBtn.focus();
       }
     }
-  }, [roundData, isTransitioning, levelType]);
+  }, [roundData, isTransitioning, levelType, isOnboarding]);
 
   const renderChoiceButtons = (show: boolean) => {
     if (!show || roundData.choices.length === 0) return null;
@@ -155,7 +172,8 @@ export default function GameScreen({
           <div className="flex items-center gap-3">
             <button
               onClick={onBack}
-              className="flex items-center gap-2 px-4 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-500 hover:text-violet-500 transition-colors"
+              disabled={isTransitioning}
+              className="flex items-center gap-2 px-4 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-zinc-500 hover:text-violet-500 transition-colors disabled:opacity-40 disabled:pointer-events-none"
             >
               <svg
                 className="w-4 h-4"

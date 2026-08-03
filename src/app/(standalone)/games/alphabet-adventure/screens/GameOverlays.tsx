@@ -82,18 +82,20 @@ export default function GameOverlays({
             </button>
           </>
         )}
-        <button
-          onClick={onToggleDebug}
-          className="p-1.5 rounded-lg bg-zinc-800/80 border border-zinc-700 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-all"
-          title="Toggle debug panel"
-        >
-          <span aria-hidden="true" className="text-xs">
-            👁️
-          </span>
-        </button>
+        {isBeta && (
+          <button
+            onClick={onToggleDebug}
+            className="p-1.5 rounded-lg bg-zinc-800/80 border border-zinc-700 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-all"
+            title="Toggle debug panel"
+          >
+            <span aria-hidden="true" className="text-xs">
+              👁️
+            </span>
+          </button>
+        )}
       </div>
 
-      {showDebug && (
+      {isBeta && showDebug && (
         <div className="fixed top-4 left-4 z-50 animate-in fade-in duration-300">
           <div className="bg-black/85 backdrop-blur-md px-3.5 py-3 rounded-xl border border-zinc-700 shadow-2xl min-w-[190px]">
             <div className="flex items-center justify-between mb-2">

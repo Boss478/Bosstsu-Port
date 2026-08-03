@@ -31,5 +31,9 @@ export function CardWordIllustration({ word, letter, size = 48 }: CardWordIllust
     if (letter) return <CardIllustration letter={letter} size={size} />;
     return <span className="text-3xl">🔮</span>;
   }
-  return <Art size={size} />;
+  return (
+    <span aria-hidden="true">
+      <Art size={size} />
+    </span>
+  );
 }

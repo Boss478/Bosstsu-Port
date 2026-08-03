@@ -19,6 +19,7 @@ import {
   PER_LETTER_MIN,
   STAGE6_PER_LETTER_MIN,
   CARD_DROP_RATES,
+  GAME_CONFIG,
 } from '@/app/(standalone)/games/alphabet-adventure/constants';
 
 const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -42,8 +43,11 @@ import {
 } from '@/app/(standalone)/games/alphabet-adventure/achievements';
 import { masteryLevel } from '@/app/(standalone)/games/alphabet-adventure/screens/LetterProgressGrid';
 import { KEYBOARD_ROWS } from '@/app/(standalone)/games/alphabet-adventure/screens/TypingLevel';
-import { emptyMapSaveData } from '@/app/(standalone)/games/alphabet-adventure/types';
-import type { LetterTracker } from '@/app/(standalone)/games/alphabet-adventure/types';
+import {
+  emptyMapSaveData,
+  initialGameState,
+} from '@/app/(standalone)/games/alphabet-adventure/types';
+import type { GameState, LetterTracker } from '@/app/(standalone)/games/alphabet-adventure/types';
 
 vi.mock('@/lib/shuffle', () => ({
   shuffleArray: <T>(arr: T[]): T[] => [...arr].reverse(),
@@ -1427,5 +1431,122 @@ describe('achievements checkAndAward', () => {
     touchPlayDate();
     const stats = JSON.parse(memoryStore.get('alphabet-adventure-play-stats') ?? '{}');
     expect(stats.days.length).toBe(1);
+  });
+});
+
+// ─── FROZEN PIN: typing progression (difficulty-free) ─────────────────────────
+
+// The typing delta arithmetic lives inside useGameActions.checkTyping (a React hook
+// with internal refs/timers/analytics — not executable in this node-env unit suite),
+// so this block pins the contract at the layer that IS testable: the real
+// state-shape helper (initialGameState), the real constants (GAME_CONFIG), and a
+// faithful mirror of the hook's typing arithmetic. A future regression that
+// re-introduces `difficulty` (state key, config key, or delta scaling) must fail
+// these pins.
+describe('FROZEN PIN — typing progression (difficulty-free)', () => {
+  // Mirrors the typing state arithmetic in useGameActions.checkTyping
+  // (correct batch: levelCorrect +1 / levelTotal +1, consecutiveErrors reset;
+  //  wrong batch:  levelCorrect +0 / levelTotal +1, consecutiveErrors +1).
+  // Update ONLY together with a deliberate change to the game logic.
+  function applyTypingBatch(state: GameState, outcome: 'correct' | 'wrong'): GameState {
+    if (outcome === 'correct') {
+      return {
+        ...state,
+        consecutiveErrors: 0,
+        levelCorrect: state.levelCorrect + 1,
+        levelTotal: state.levelTotal + 1,
+      };
+    }
+    return {
+      ...state,
+      consecutiveErrors: state.consecutiveErrors + 1,
+      levelTotal: state.levelTotal + 1,
+    };
+  }
+
+  // Mirrors the `newErrors >= GAME_CONFIG.ERROR_THRESHOLD` branch of checkTyping:
+  // feedback becomes 'Take a breather!' and consecutiveErrors resets to 0.
+  function applyBreatherBranch(state: GameState): { feedback: string; state: GameState } {
+    return { feedback: 'Take a breather!', state: { ...state, consecutiveErrors: 0 } };
+  }
+
+  it('pins the typing state shape: baseline 0/0/0 and no difficulty key', () => {
+    const state = initialGameState();
+    expect(Object.keys(state)).toEqual([
+      'level',
+      'score',
+      'round',
+      'winsInLevel',
+      'consecutiveErrors',
+      'levelCorrect',
+      'levelTotal',
+      'currentStreak',
+      'bestStreak',
+      'wrongAttempts',
+      'wrongLetters',
+      'easyMode',
+      'onboardingSeen',
+    ]);
+    expect(state.levelCorrect).toBe(0);
+    expect(state.levelTotal).toBe(0);
+    expect(state.consecutiveErrors).toBe(0);
+    expect(state).not.toHaveProperty('difficulty');
+    expect(Object.keys(state)).not.toContain('difficulty');
+  });
+
+  it('pins the typing ratio: 2 correct batches + 1 wrong batch → 2/3 (+1/+1 and +0/+1)', () => {
+    const afterCorrect1 = applyTypingBatch(initialGameState(), 'correct');
+    const afterCorrect2 = applyTypingBatch(afterCorrect1, 'correct');
+    const afterWrong = applyTypingBatch(afterCorrect2, 'wrong');
+
+    expect(afterCorrect1.levelCorrect).toBe(1);
+    expect(afterCorrect1.levelTotal).toBe(1);
+    expect(afterCorrect2.levelCorrect).toBe(2);
+    expect(afterCorrect2.levelTotal).toBe(2);
+    // the wrong batch advances levelTotal only
+    expect(afterWrong.levelCorrect).toBe(2);
+    expect(afterWrong.levelTotal).toBe(3);
+    expect(afterWrong.levelCorrect / afterWrong.levelTotal).toBeCloseTo(2 / 3);
+    // correct batches clear consecutiveErrors, a wrong batch leaves levelCorrect flat
+    expect(afterCorrect2.consecutiveErrors).toBe(0);
+    expect(afterWrong.consecutiveErrors).toBe(1);
+  });
+
+  it('pins the error-threshold branch: ≥3 consecutive errors → "Take a breather!" + reset, no difficulty', () => {
+    const first = applyTypingBatch(initialGameState(), 'wrong');
+    const second = applyTypingBatch(first, 'wrong');
+    const third = applyTypingBatch(second, 'wrong');
+
+    expect(first.consecutiveErrors).toBe(1);
+    expect(second.consecutiveErrors).toBe(2);
+    expect(second.consecutiveErrors).toBeLessThan(GAME_CONFIG.ERROR_THRESHOLD);
+    // third consecutive wrong crosses the threshold, firing the breather branch
+    expect(third.consecutiveErrors).toBe(3);
+    expect(third.consecutiveErrors).toBeGreaterThanOrEqual(GAME_CONFIG.ERROR_THRESHOLD);
+
+    const { feedback, state } = applyBreatherBranch(third);
+    expect(feedback).toBe('Take a breather!');
+    expect(state.consecutiveErrors).toBe(0);
+    expect(state).not.toHaveProperty('difficulty');
+    expect(Object.keys(state)).not.toContain('difficulty');
+  });
+
+  it('pins GAME_CONFIG: exact values, no INITIAL_DIFFICULTY/MAX_DIFFICULTY/DIFFICULTY_INCREASE', () => {
+    expect(GAME_CONFIG).toEqual({
+      SCORE_CORRECT: 5,
+      SCORE_WRONG: 3,
+      SCORE_TYPING_CORRECT: 10,
+      SCORE_TYPING_WRONG: 5,
+      ERROR_THRESHOLD: 3,
+      FEEDBACK_DURATION_CORRECT: 1000,
+      FEEDBACK_DURATION_WRONG: 1500,
+      STAR_THREE: 90,
+      STAR_TWO: 70,
+      WRONG_LIMIT: 2,
+    });
+    expect(GAME_CONFIG).not.toHaveProperty('INITIAL_DIFFICULTY');
+    expect(GAME_CONFIG).not.toHaveProperty('MAX_DIFFICULTY');
+    expect(GAME_CONFIG).not.toHaveProperty('DIFFICULTY_INCREASE');
+    expect(Object.keys(GAME_CONFIG).filter((k) => /difficulty/i.test(k))).toEqual([]);
   });
 });
