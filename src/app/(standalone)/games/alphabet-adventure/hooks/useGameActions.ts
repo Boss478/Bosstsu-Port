@@ -23,7 +23,6 @@ import type {
 import { initialGameState, emptyRoundData } from '../types';
 import { pushAnalytics } from '../analytics';
 import { useAnalytics } from '@/lib/analytics';
-import { safeGetJSON, safeSetJSON, safeRemove } from '@/lib/storage';
 import {
   GAME_CONFIG,
   randomPraise,
@@ -46,24 +45,6 @@ import {
   type Achievement,
   type AchievementContext,
 } from '../achievements';
-
-const CHECKPOINT_KEY = 'alphabet-adventure-checkpoint';
-
-function saveCheckpoint(state: GameState, stageId: number, subStageId: number) {
-  safeSetJSON(CHECKPOINT_KEY, { stageId, subStageId, gameState: state });
-}
-
-function clearCheckpoint() {
-  safeRemove(CHECKPOINT_KEY);
-}
-
-export function loadCheckpoint(): {
-  stageId: number;
-  subStageId: number;
-  gameState: GameState;
-} | null {
-  return safeGetJSON<{ stageId: number; subStageId: number; gameState: GameState }>(CHECKPOINT_KEY);
-}
 
 export interface SubStageResult {
   score: number;
@@ -308,7 +289,6 @@ export function useGameActions() {
     ) => {
       subStageRef.current = subStage;
       onCompleteRef.current = onComplete;
-      clearCheckpoint();
 
       const initialState = initialGameState();
       if (easyMode) initialState.easyMode = true;
@@ -370,7 +350,6 @@ export function useGameActions() {
 
       subStageRef.current = practiceConfig;
       onCompleteRef.current = onComplete;
-      clearCheckpoint();
 
       const initialState = initialGameState();
       initialState.easyMode = true;
@@ -477,7 +456,6 @@ export function useGameActions() {
       onCompleteRef.current?.(result);
       onCompleteRef.current = null;
       subStageRef.current = null;
-      clearCheckpoint();
     },
     [applyCardDrop],
   );
@@ -511,11 +489,10 @@ export function useGameActions() {
         handleSubStageComplete(newScore, newLevelCorrect, newLevelTotal);
       } else {
         setGameState(newState);
-        saveCheckpoint(newState, currentStageId, currentSubStageId);
         setRoundData(generateRound(newState));
       }
     },
-    [generateRound, handleSubStageComplete, currentStageId, currentSubStageId],
+    [generateRound, handleSubStageComplete],
   );
 
   const handleAnswer = useCallback(
@@ -612,11 +589,9 @@ export function useGameActions() {
             newState.winsInLevel = newWins;
             if (newWins >= sub.targetMin!) {
               handleSubStageComplete(newScore, newState.levelCorrect, newState.levelTotal);
-              saveCheckpoint(newState, currentStageId, currentSubStageId);
             } else {
               setIsTransitioning(true);
               setGameState(newState);
-              saveCheckpoint(newState, currentStageId, currentSubStageId);
               showFeedback(randomPraise('correct'), 'correct');
               runAchievementCheck();
               transitionTimerRef.current = setTimeout(() => {
@@ -641,7 +616,6 @@ export function useGameActions() {
               wrongChoices: [],
             });
             setGameState(newState);
-            saveCheckpoint(newState, currentStageId, currentSubStageId);
           }
         }
       } else {
@@ -711,7 +685,6 @@ export function useGameActions() {
 
         if (isMatch && newState.wrongAttempts >= GAME_CONFIG.WRONG_LIMIT) {
           showFeedback(`${randomPraise('wrong')} -${points}`, 'wrong', correct);
-          saveCheckpoint(newState, currentStageId, currentSubStageId);
           setIsTransitioning(true);
           transitionTimerRef.current = setTimeout(() => {
             advanceMatchRound(newState, newState.score, newState.levelCorrect, newState.levelTotal);
@@ -732,7 +705,6 @@ export function useGameActions() {
       showFeedback,
       trackLetter,
       currentStageId,
-      currentSubStageId,
       runAchievementCheck,
       applyCardDrop,
     ],
@@ -813,11 +785,9 @@ export function useGameActions() {
 
       if (newWins >= target) {
         handleSubStageComplete(newScore, newState.levelCorrect, newState.levelTotal);
-        saveCheckpoint(newState, currentStageId, currentSubStageId);
       } else {
         setIsTransitioning(true);
         setGameState(newState);
-        saveCheckpoint(newState, currentStageId, currentSubStageId);
         transitionTimerRef.current = setTimeout(() => {
           const round = generateTypingRound(pool || []);
           setRoundData({ choices: [], wrongChoices: [], ...round });
@@ -894,7 +864,6 @@ export function useGameActions() {
           consecutiveErrors: 0,
         };
         setGameState(easierState);
-        saveCheckpoint(easierState, currentStageId, currentSubStageId);
         setIsTransitioning(true);
         transitionTimerRef.current = setTimeout(() => {
           const round = generateTypingRound(pool || []);
@@ -922,7 +891,6 @@ export function useGameActions() {
     showFeedback,
     trackLetter,
     currentStageId,
-    currentSubStageId,
     runAchievementCheck,
   ]);
 

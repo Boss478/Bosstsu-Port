@@ -211,7 +211,7 @@ export default function GameScreen({
                 <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
                   STREAK
                 </p>
-                <p className="text-2xl font-black text-amber-500 tracking-tighter whitespace-nowrap">
+                <p className="text-2xl font-black text-amber-600 tracking-tighter whitespace-nowrap">
                   🔥 {gameState.currentStreak}
                 </p>
               </div>

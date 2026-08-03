@@ -9,6 +9,7 @@ export default function TreasureMonster({ size = 80 }: { size?: number }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className="drop-shadow-lg"
+      aria-hidden="true"
     >
       {/* Crown */}
       <path d="M30 28 L35 18 L42 25 L50 15 L58 25 L65 18 L70 28Z" fill="#fbbf24" />

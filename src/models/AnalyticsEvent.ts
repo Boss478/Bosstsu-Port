@@ -31,7 +31,7 @@ const AnalyticsEventSchema: Schema = new Schema(
   { timestamps: false, strict: true },
 );
 
-AnalyticsEventSchema.index({ timestamp: -1 });
+AnalyticsEventSchema.index({ timestamp: 1 }, { expireAfterSeconds: 7776000 }); // 90d TTL — single-TTL rule: merged into the timestamp index
 AnalyticsEventSchema.index({ path: 1, timestamp: -1 });
 AnalyticsEventSchema.index({ eventName: 1, timestamp: -1 });
 

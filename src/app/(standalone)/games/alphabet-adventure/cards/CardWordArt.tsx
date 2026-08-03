@@ -29,7 +29,11 @@ export function CardWordIllustration({ word, letter, size = 48 }: CardWordIllust
   const Art = word ? WORD_ART[word] : undefined;
   if (!Art) {
     if (letter) return <CardIllustration letter={letter} size={size} />;
-    return <span className="text-3xl">🔮</span>;
+    return (
+      <span aria-hidden="true" className="text-3xl">
+        🔮
+      </span>
+    );
   }
   return (
     <span aria-hidden="true">

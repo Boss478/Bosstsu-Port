@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import {
   TIER_ORDER,
   TIER_LABELS,
@@ -83,6 +84,7 @@ interface Props {
 export default function AllCardsModal({ onClose }: Props) {
   const [collection] = useState(() => loadCollection());
   const [grayscale, setGrayscale] = useState(false);
+  const focusTrapRef = useFocusTrap(true);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -96,6 +98,7 @@ export default function AllCardsModal({ onClose }: Props) {
 
   return (
     <div
+      ref={focusTrapRef}
       className="fixed inset-0 z-[120] flex flex-col items-center justify-center bg-black/10 animate-in fade-in duration-300 p-4"
       onClick={onClose}
     >

@@ -86,11 +86,13 @@ export default function MenuScreen({
 
       {/* ── Title ──────────────────────────────────────────────────────── */}
       <div className="space-y-1 pt-2">
-        <h1
-          onClick={onLogoTap}
-          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-violet-600 dark:text-violet-400 select-none"
-        >
-          Alphabet Adventure
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-violet-600 dark:text-violet-400 select-none">
+          <button
+            onClick={onLogoTap}
+            className="bg-transparent border-0 p-0 cursor-pointer font-inherit text-left"
+          >
+            Alphabet Adventure
+          </button>
         </h1>
         <p className="text-sm sm:text-base md:text-lg lg:text-xl text-violet-700/70 dark:text-violet-400/70 font-bold leading-relaxed">
           ผจญภัยโลกตัวอักษร
@@ -102,7 +104,7 @@ export default function MenuScreen({
         {onShowExplorer && (
           <button
             onClick={onShowExplorer}
-            className="p-2.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-violet-500 hover:text-violet-600 shadow-md transition-all hover:scale-110"
+            className="p-2.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-violet-700 hover:text-violet-600 shadow-md transition-all hover:scale-110"
             title="Letter Sounds"
           >
             <span className="text-base">🔤</span>
@@ -111,7 +113,7 @@ export default function MenuScreen({
         {onShowAchievements && (
           <button
             onClick={onShowAchievements}
-            className="p-2.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-violet-500 hover:text-violet-600 shadow-md transition-all hover:scale-110"
+            className="p-2.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-violet-700 hover:text-violet-600 shadow-md transition-all hover:scale-110"
             title="Achievements"
           >
             <span className="text-base">🏆</span>
@@ -121,7 +123,7 @@ export default function MenuScreen({
           <div className="relative">
             <button
               onClick={() => setShowVoicePicker((v) => !v)}
-              className="p-2.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-violet-500 hover:text-violet-600 shadow-md transition-all hover:scale-110"
+              className="p-2.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-violet-700 hover:text-violet-600 shadow-md transition-all hover:scale-110"
               title="Voice Settings"
             >
               <span>🔊</span>
@@ -146,7 +148,9 @@ export default function MenuScreen({
                       }`}
                     >
                       <span>{v.name}</span>
-                      <span className="text-[10px] text-zinc-400 ml-2">({v.lang})</span>
+                      <span className="text-[10px] text-zinc-500 dark:text-zinc-400 ml-2">
+                        ({v.lang})
+                      </span>
                     </button>
                   ))}
               </div>
@@ -172,7 +176,7 @@ export default function MenuScreen({
         )}
         <button
           onClick={() => router.push('/games')}
-          className="p-2.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-violet-500 hover:text-violet-600 shadow-md transition-all hover:scale-110"
+          className="p-2.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-violet-700 hover:text-violet-600 shadow-md transition-all hover:scale-110"
           title="Back to Games"
         >
           <span className="text-base">🏠</span>
@@ -266,7 +270,7 @@ export default function MenuScreen({
         </button>
         <span className="text-xs sm:text-sm font-black text-violet-700/70 dark:text-violet-300/80">
           🐣 Practice Mode
-          <span className="ml-1.5 text-[10px] text-violet-500/50 dark:text-violet-400/50 font-bold">
+          <span className="ml-1.5 text-[10px] text-violet-600 dark:text-violet-400/50 font-bold">
             (fewer choices)
           </span>
         </span>

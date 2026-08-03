@@ -964,7 +964,12 @@ const illustrations: Record<string, FC<IllustrationProps>> = {
 
 export function CardIllustration({ letter, size = 48 }: { letter: string; size?: number }) {
   const Illustration = illustrations[letter.toUpperCase()];
-  if (!Illustration) return <span className="text-3xl">🔮</span>;
+  if (!Illustration)
+    return (
+      <span aria-hidden="true" className="text-3xl">
+        🔮
+      </span>
+    );
   return (
     <span aria-hidden="true">
       <Illustration size={size} />

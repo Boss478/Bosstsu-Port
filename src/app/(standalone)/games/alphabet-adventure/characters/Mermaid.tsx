@@ -9,6 +9,7 @@ export default function Mermaid({ size = 80 }: { size?: number }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className="drop-shadow-lg"
+      aria-hidden="true"
     >
       {/* Hair back */}
       <path d="M26 40 Q20 30 28 22 Q35 16 50 16 Q65 16 72 22 Q80 30 74 40" fill="#ec4899" />

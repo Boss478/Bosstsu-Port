@@ -3,6 +3,14 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
+## v1.10.86 (2026-08-03)
+* **Perf / Security / A11y batch (senior-approved)**:
+  + * **Security (review-campaign MAJORs)**: analytics route per-field whitelist + caps (`sessionId` ≤64, `eventName` ≤64, `referrer` ≤200, `deviceType` enum) + required `ANALYTICS_SALT` (500 when unset) · `AnalyticsEvent` 90-day TTL index · dictionary proxy: 10s timeouts, 2MB audio cap, 120/min/IP rate limit, audio failure no longer collapses payloads.
+  + * **A11y**: logo title keyboard-operable (button in `h1`) · FillLevel cells → buttons · Victory details modal + AllCardsModal dialog pattern (focus trap/Escape/restore) · CardRevealModal label identifies the card · TypingLevel input named · AnalysisScreen % always visible · contrast batch (GameScreen/Victory/Menu/Fill/Analysis) · mascot SVGs + emoji fallbacks `aria-hidden`.
+  + * **Perf**: holo-shimmer hover/focus-only · flip stagger capped 0.42s · card-art chunk split (4 lazy screens) · dead checkpoint system removed (11 call sites).
+  + * **Game**: star legend fixed — ⭐⭐⭐ now requires 100% (90–99% = ⭐⭐) — player-facing note.
+  - **OPS NOTE (critical)**: `ANALYTICS_SALT` must be set in the dev container + `.env.production` or analytics POSTs return 500.
+
 ## v1.10.85 (2026-08-03)
 * **Alphabet Adventure — QA fix campaign (senior-approved: P1/P2/P3 + cold batches)**:
   + * **P1 (4 MAJORs)**: keypad bypass guard (wrong-choice keydown now rejected — no deduction/feedback); transition/feedback timer refs with Back disabled mid-transition (race fixed at 5 sites + showFeedback); typing errors tracked via `newGrid` (was stale `roundData.grid` → always empty); onboarding overlay focus trap + `role=dialog`/`aria-modal` ARIA + 8s restart-on-focusin timer + `isOnboarding` gates + Escape dismiss.

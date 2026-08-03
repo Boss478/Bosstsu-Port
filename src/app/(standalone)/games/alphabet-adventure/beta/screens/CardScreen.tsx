@@ -179,7 +179,7 @@ export default function CardScreen({ onBack, playSequence }: Props) {
       <div
         key={`${letter}-${tier}`}
         className={`card-flip ${mounted ? '' : 'opacity-0'}`}
-        style={{ animationDelay: `${idx * 0.06}s` }}
+        style={{ animationDelay: `${Math.min(idx * 0.06, 0.42)}s` }}
       >
         {card ? (
           <CollectedCardFace
@@ -203,7 +203,7 @@ export default function CardScreen({ onBack, playSequence }: Props) {
   60% { transform: rotateY(-10deg) scale(1.02); opacity: 1; }
   100% { transform: rotateY(0deg) scale(1); opacity: 1; }
 }
-.card-flip { perspective: 1000px; will-change: transform; animation: cardFlip 0.5s ease-out both; }
+.card-flip { perspective: 1000px; animation: cardFlip 0.5s ease-out both; }
 `}</style>
       <div
         ref={scrollRef}
@@ -526,7 +526,7 @@ export default function CardScreen({ onBack, playSequence }: Props) {
                     <div
                       key={`${card.letter}-${card.tier}-recent`}
                       className={`card-flip ${mounted ? '' : 'opacity-0'}`}
-                      style={{ animationDelay: `${idx * 0.06}s` }}
+                      style={{ animationDelay: `${Math.min(idx * 0.06, 0.42)}s` }}
                     >
                       <CollectedCardFace letter={card.letter} tier={card.tier} count={card.count} />
                     </div>

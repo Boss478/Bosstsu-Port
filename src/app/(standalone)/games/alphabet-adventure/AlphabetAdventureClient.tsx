@@ -1,6 +1,7 @@
 'use client';
 
 import { startTransition, useState, useEffect, useRef, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import type { Screen, MapSaveData, StageConfig } from './types';
 import { getStage } from './constants';
 import { useAudio } from '@/hooks/useAudio';
@@ -15,12 +16,34 @@ import VictoryScreen from './screens/VictoryScreen';
 import LevelMapScreen from './screens/LevelMapScreen';
 import StageMapScreen from './screens/StageMapScreen';
 import AnalysisScreen from './screens/AnalysisScreen';
-import GameOverlays from './screens/GameOverlays';
-import CardScreen from './beta/screens/CardScreen';
-import AllCardsModal from './beta/screens/AllCardsModal';
-import LetterExplorerScreen from './screens/LetterExplorerScreen';
 import AchievementsScreen from './screens/AchievementsScreen';
 import OnboardingOverlay from './screens/OnboardingOverlay';
+
+const screenLoading = (
+  <div className="flex h-full w-full items-center justify-center">
+    <div className="h-40 w-40 animate-pulse rounded-3xl bg-violet-100 dark:bg-zinc-800" />
+  </div>
+);
+
+const GameOverlays = dynamic(() => import('./screens/GameOverlays'), {
+  ssr: false,
+  loading: () => screenLoading,
+});
+
+const CardScreen = dynamic(() => import('./beta/screens/CardScreen'), {
+  ssr: false,
+  loading: () => screenLoading,
+});
+
+const AllCardsModal = dynamic(() => import('./beta/screens/AllCardsModal'), {
+  ssr: false,
+  loading: () => screenLoading,
+});
+
+const LetterExplorerScreen = dynamic(() => import('./screens/LetterExplorerScreen'), {
+  ssr: false,
+  loading: () => screenLoading,
+});
 
 interface Props {
   beta?: boolean;

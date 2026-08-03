@@ -1,19 +1,30 @@
 import { NextResponse } from 'next/server';
 import { detectIpaDialect } from '@/lib/detect-ipa-dialect';
+import { CONFIG } from '@/lib/config';
+import { checkAnalyticsRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const word = searchParams.get('word');
-  const fields = searchParams.get('fields')?.split(',').map(f => f.trim()) || [];
+  const fields =
+    searchParams
+      .get('fields')
+      ?.split(',')
+      .map((f) => f.trim()) || [];
 
   if (!word) {
     return NextResponse.json({ error: 'Word parameter is required' }, { status: 400 });
   }
 
+  const ip = getClientIp(request);
+  if (!checkAnalyticsRateLimit(ip, CONFIG.DICTIONARY.RATE_LIMIT_PER_MINUTE, 60_000)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   try {
     const res = await fetch(
       `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.toLowerCase())}`,
-      { next: { revalidate: 86400 } }
+      { next: { revalidate: 86400 }, signal: AbortSignal.timeout(10_000) },
     );
 
     if (!res.ok) {
@@ -48,18 +59,25 @@ export async function GET(request: Request) {
       result.word = entry.word || word;
     }
 
-    const firstAudioUrl = entry.phonetics?.find(
-      (p: { audio?: string }) => p.audio
-    )?.audio;
+    const firstAudioUrl = entry.phonetics?.find((p: { audio?: string }) => p.audio)?.audio;
 
     if (firstAudioUrl) {
-      const audioRes = await fetch(firstAudioUrl);
-      if (audioRes.ok) {
-        const arrayBuffer = await audioRes.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const base64Audio = buffer.toString('base64');
-        const mimeType = firstAudioUrl.endsWith('.wav') ? 'audio/wav' : 'audio/mpeg';
-        result.audioUrl = `data:${mimeType};base64,${base64Audio}`;
+      try {
+        const audioRes = await fetch(firstAudioUrl, { signal: AbortSignal.timeout(10_000) });
+        if (audioRes.ok) {
+          const len = Number(audioRes.headers.get('content-length') || 0);
+          // skip early when the header already exceeds the cap (2MB base64 = ~1.4MB raw)
+          if (len === 0 || len <= 2_097_152) {
+            const buf = Buffer.from(await audioRes.arrayBuffer());
+            if (buf.byteLength <= 2_097_152) {
+              const base64Audio = buf.toString('base64');
+              const mimeType = firstAudioUrl.endsWith('.wav') ? 'audio/wav' : 'audio/mpeg';
+              result.audioUrl = `data:${mimeType};base64,${base64Audio}`;
+            }
+          }
+        }
+      } catch {
+        // audio failure/timeout must not collapse the response — audioUrl stays null
       }
     }
 
@@ -86,13 +104,18 @@ export async function GET(request: Request) {
       let base64AudioUrl: string | null = null;
       if (entryAudioUrl) {
         try {
-          const audioRes = await fetch(entryAudioUrl);
+          const audioRes = await fetch(entryAudioUrl, { signal: AbortSignal.timeout(10_000) });
           if (audioRes.ok) {
-            const arrayBuffer = await audioRes.arrayBuffer();
-            const buffer = Buffer.from(arrayBuffer);
-            const base64Audio = buffer.toString('base64');
-            const mimeType = entryAudioUrl.endsWith('.wav') ? 'audio/wav' : 'audio/mpeg';
-            base64AudioUrl = `data:${mimeType};base64,${base64Audio}`;
+            const len = Number(audioRes.headers.get('content-length') || 0);
+            // skip early when the header already exceeds the cap (2MB base64 = ~1.4MB raw)
+            if (len === 0 || len <= 2_097_152) {
+              const buf = Buffer.from(await audioRes.arrayBuffer());
+              if (buf.byteLength <= 2_097_152) {
+                const base64Audio = buf.toString('base64');
+                const mimeType = entryAudioUrl.endsWith('.wav') ? 'audio/wav' : 'audio/mpeg';
+                base64AudioUrl = `data:${mimeType};base64,${base64Audio}`;
+              }
+            }
           }
         } catch {}
       }
@@ -115,7 +138,7 @@ export async function GET(request: Request) {
             (e) =>
               e.word.toLowerCase() === candidate.word.toLowerCase() &&
               e.ipa === candidate.ipa &&
-              e.wordClass === candidate.wordClass
+              e.wordClass === candidate.wordClass,
           );
 
           if (existingIndex !== -1) {
@@ -144,7 +167,7 @@ export async function GET(request: Request) {
           (e) =>
             e.word.toLowerCase() === candidate.word.toLowerCase() &&
             e.ipa === candidate.ipa &&
-            e.wordClass === candidate.wordClass
+            e.wordClass === candidate.wordClass,
         );
 
         if (existingIndex === -1) {

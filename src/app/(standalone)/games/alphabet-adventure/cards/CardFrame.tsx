@@ -566,7 +566,7 @@ export function CardFrame({
       {holographic && !showBack && (
         <div className="absolute inset-0 overflow-hidden rounded-[13px] pointer-events-none">
           <div
-            className="absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity duration-300"
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300"
             style={{
               background:
                 'linear-gradient(125deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.25) 20%, rgba(96,165,250,0.35) 35%, rgba(192,132,252,0.35) 50%, rgba(253,186,116,0.35) 65%, rgba(167,243,208,0.25) 80%, rgba(255,255,255,0) 100%)',

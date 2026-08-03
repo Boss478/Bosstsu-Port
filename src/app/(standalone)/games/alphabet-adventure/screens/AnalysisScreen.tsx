@@ -63,7 +63,7 @@ export default function AnalysisScreen({
     overallAccuracy >= 90
       ? 'text-emerald-500'
       : overallAccuracy >= 70
-        ? 'text-amber-500'
+        ? 'text-amber-600'
         : 'text-rose-500';
 
   return (
@@ -81,11 +81,13 @@ export default function AnalysisScreen({
 
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-violet-50 dark:bg-violet-900/10 p-3 rounded-2xl border border-violet-100 dark:border-violet-900/30">
-            <p className="text-[10px] font-bold text-violet-500 uppercase tracking-widest">Score</p>
+            <p className="text-[10px] font-bold text-violet-700 dark:text-violet-400 uppercase tracking-widest">
+              Score
+            </p>
             <p className="text-2xl font-black text-violet-600 dark:text-violet-400">{totalScore}</p>
           </div>
           <div className="bg-amber-50 dark:bg-amber-900/10 p-3 rounded-2xl border border-amber-100 dark:border-amber-900/30">
-            <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">
+            <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">
               Progress
             </p>
             <p className="text-2xl font-black text-amber-600 dark:text-amber-400">
@@ -97,7 +99,7 @@ export default function AnalysisScreen({
         {totalAttempts > 0 && (
           <div className="bg-zinc-50 dark:bg-zinc-800/50 p-3 sm:p-4 rounded-3xl border border-zinc-200 dark:border-zinc-700">
             <p className={`text-3xl font-black ${accuracyColor}`}>{overallAccuracy}%</p>
-            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
+            <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-1">
               Overall Accuracy
             </p>
           </div>
@@ -109,7 +111,7 @@ export default function AnalysisScreen({
               const acc = letterAccuracies[letter];
               const color =
                 acc < 0
-                  ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500'
+                  ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-500'
                   : acc > 80
                     ? 'bg-emerald-500 text-white shadow-xs'
                     : acc >= 60
@@ -119,15 +121,15 @@ export default function AnalysisScreen({
                 <div
                   key={letter}
                   title={acc < 0 ? `${letter}: Untested` : `${letter}: ${acc}% accuracy`}
-                  className="group relative h-10 rounded-xl flex items-center justify-center cursor-pointer transition-transform hover:scale-110"
+                  className="group relative h-10 rounded-xl flex items-center justify-center"
                 >
                   <div
-                    className={`w-full h-full rounded-xl flex items-center justify-center font-black transition-all ${color}`}
+                    className={`w-full h-full rounded-xl flex flex-col items-center justify-center font-black transition-all ${color}`}
                   >
                     {acc >= 0 ? (
                       <>
-                        <span className="group-hover:hidden text-xs sm:text-sm">{letter}</span>
-                        <span className="hidden group-hover:block text-sm font-black animate-in fade-in duration-150">
+                        <span className="text-xs sm:text-sm font-black leading-none">{letter}</span>
+                        <span className="text-[10px] sm:text-xs font-black leading-none">
                           {acc}%
                         </span>
                       </>
@@ -144,8 +146,8 @@ export default function AnalysisScreen({
               );
             })}
           </div>
-          <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 mt-2.5">
-            Per-letter accuracy (Hover or tap letter to see percentage)
+          <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 mt-2.5">
+            Per-letter accuracy
           </p>
         </div>
 
@@ -194,8 +196,10 @@ export default function AnalysisScreen({
 
         {totalAttempts === 0 && (
           <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-3xl border border-zinc-200 dark:border-zinc-700">
-            <p className="text-sm font-bold text-zinc-400">No data yet. Play some stages first!</p>
-            <p className="text-sm font-bold text-zinc-300 mt-1">ยังไม่มีข้อมูล ลองเล่นเกมก่อน!</p>
+            <p className="text-sm font-bold text-zinc-500">No data yet. Play some stages first!</p>
+            <p className="text-sm font-bold text-zinc-500 dark:text-zinc-400 mt-1">
+              ยังไม่มีข้อมูล ลองเล่นเกมก่อน!
+            </p>
           </div>
         )}
 

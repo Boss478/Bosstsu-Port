@@ -85,7 +85,11 @@ export default function CardRevealModal({ letter, tier, isNew, onKeep }: Props) 
           }}
           role="button"
           tabIndex={0}
-          aria-label={flipped ? 'Card revealed' : 'Tap to reveal card'}
+          aria-label={
+            flipped
+              ? `Card revealed: ${word || letter} · ${TIER_LABELS[tier]}`
+              : 'Tap to reveal card'
+          }
         >
           {/* — Card Back — */}
           <div className="absolute inset-0" style={{ backfaceVisibility: 'hidden' }}>

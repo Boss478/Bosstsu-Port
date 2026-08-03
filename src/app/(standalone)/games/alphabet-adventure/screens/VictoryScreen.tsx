@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { HIGH_SCORE_KEY } from '../constants';
 import { safeGetString, safeSetString } from '@/lib/storage';
 import { generateAnalysis } from '../analysis';
@@ -129,6 +130,16 @@ export default function VictoryScreen({
     () => messagePool[Math.floor(Math.random() * messagePool.length)],
   );
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const focusTrapRef = useFocusTrap(showDetailsModal);
+
+  useEffect(() => {
+    if (!showDetailsModal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowDetailsModal(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showDetailsModal]);
 
   const [isNewBest] = useState(() => {
     const prev = Number(safeGetString(HIGH_SCORE_KEY) ?? '0');
@@ -171,7 +182,7 @@ export default function VictoryScreen({
     accuracyPercent >= 90
       ? 'text-emerald-500'
       : accuracyPercent >= 70
-        ? 'text-amber-500'
+        ? 'text-amber-600'
         : 'text-rose-500';
   const accuracyBg =
     accuracyPercent >= 90
@@ -198,7 +209,7 @@ export default function VictoryScreen({
           <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-bold">
             {isLastSubStage ? 'Stage Complete!' : 'Lesson Complete!'}
             {isLastSubStage && stageName && (
-              <span className="text-violet-500 ml-2 font-black">({stageName})</span>
+              <span className="text-violet-700 ml-2 font-black">({stageName})</span>
             )}
           </p>
         </div>
@@ -217,15 +228,15 @@ export default function VictoryScreen({
               </svg>
             ))}
           </div>
-          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold">
-            ⭐ ≥70% · ⭐⭐ ≥90% · ⭐⭐⭐ Perfect
+          <p className="text-[10px] text-zinc-500 dark:text-zinc-500 font-bold">
+            ⭐ &lt;70% · ⭐⭐ 70–99% · ⭐⭐⭐ 100% Perfect
           </p>
         </div>
 
         {/* Metrics Row */}
         <div className="grid grid-cols-3 gap-2 bg-zinc-50 dark:bg-zinc-800/40 p-2.5 rounded-2xl border border-zinc-100 dark:border-zinc-800">
           <div className="flex flex-col items-center justify-center">
-            <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider">
               Accuracy
             </span>
             <span className={`text-xl sm:text-2xl font-black ${accuracyColor}`}>
@@ -233,7 +244,7 @@ export default function VictoryScreen({
             </span>
           </div>
           <div className="flex flex-col items-center justify-center border-x border-zinc-200 dark:border-zinc-700/60 px-1 relative">
-            <span className="text-[10px] font-bold text-violet-500 dark:text-violet-400 uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">
               Score
             </span>
             <span className="text-xl sm:text-2xl font-black text-violet-600 dark:text-violet-400 tracking-tight">
@@ -262,7 +273,7 @@ export default function VictoryScreen({
               const acc = letterAccuracies[letter];
               const color =
                 acc < 0
-                  ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400'
+                  ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
                   : acc > 80
                     ? 'bg-emerald-500 text-white'
                     : acc >= 60
@@ -379,7 +390,13 @@ export default function VictoryScreen({
 
       {/* Details & Analysis Modal */}
       {showDetailsModal && (
-        <div className="fixed inset-0 bg-black/10 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div
+          ref={focusTrapRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Lesson Analysis & Details"
+          className="fixed inset-0 bg-black/10 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+        >
           <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 sm:p-6 shadow-2xl max-w-lg w-full border border-zinc-200 dark:border-zinc-800 space-y-4 max-h-[85vh] overflow-y-auto relative animate-in zoom-in-95 duration-200 text-left">
             <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
               <h3 className="text-lg font-black text-zinc-800 dark:text-zinc-100 flex items-center gap-2">
@@ -445,7 +462,7 @@ export default function VictoryScreen({
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800">
+                      <tr className="text-zinc-500 dark:text-zinc-500 font-bold uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800">
                         <th className="text-left py-1.5 pr-2">Sub-Stage</th>
                         <th className="text-center px-1">Stars</th>
                         <th className="text-center px-1">Accuracy</th>

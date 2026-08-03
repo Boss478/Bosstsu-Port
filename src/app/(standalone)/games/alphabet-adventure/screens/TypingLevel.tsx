@@ -41,6 +41,7 @@ export default function TypingLevel({
             {item.isHidden ? (
               <input
                 autoFocus={index === roundData.missingIndices[0]}
+                aria-label="Type the letter"
                 className="w-full h-full bg-transparent text-center focus:outline-2 focus:outline-violet-500 rounded font-black text-xl placeholder:text-zinc-400 placeholder:font-bold"
                 placeholder="?"
                 value={item.value || ''}

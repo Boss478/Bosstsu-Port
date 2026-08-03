@@ -146,6 +146,11 @@ export const CONFIG = {
     MAX_METADATA_BYTES: 500,
   },
 
+  // ─── Dictionary API ───────────────────────────────────────────────────
+  DICTIONARY: {
+    RATE_LIMIT_PER_MINUTE: 120,
+  },
+
   // ─── Rate Limiting ────────────────────────────────────────────────────
   RATE_LIMIT: {
     MAX_ATTEMPTS: 5, // failed attempts before lockout

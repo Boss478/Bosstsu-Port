@@ -60,16 +60,16 @@ afterEach(() => {
 // ─── calcStars ───────────────────────────────────────────────────────────────────
 
 describe('calcStars', () => {
-  it('returns 3 for accuracy >= 90', () => {
-    expect(calcStars(90)).toBe(3);
-    expect(calcStars(95)).toBe(3);
+  it('returns 3 for accuracy 100', () => {
     expect(calcStars(100)).toBe(3);
   });
 
-  it('returns 2 for accuracy >= 70 and < 90', () => {
+  it('returns 2 for accuracy >= 70 and < 100', () => {
     expect(calcStars(70)).toBe(2);
     expect(calcStars(80)).toBe(2);
     expect(calcStars(89)).toBe(2);
+    expect(calcStars(90)).toBe(2);
+    expect(calcStars(99)).toBe(2);
   });
 
   it('returns 1 for accuracy < 70', () => {
@@ -82,7 +82,7 @@ describe('calcStars', () => {
     expect(calcStars(69.9)).toBe(1);
     expect(calcStars(70)).toBe(2);
     expect(calcStars(89.9)).toBe(2);
-    expect(calcStars(90)).toBe(3);
+    expect(calcStars(90)).toBe(2);
   });
 });
 
@@ -1540,7 +1540,7 @@ describe('FROZEN PIN — typing progression (difficulty-free)', () => {
       ERROR_THRESHOLD: 3,
       FEEDBACK_DURATION_CORRECT: 1000,
       FEEDBACK_DURATION_WRONG: 1500,
-      STAR_THREE: 90,
+      STAR_THREE: 100,
       STAR_TWO: 70,
       WRONG_LIMIT: 2,
     });

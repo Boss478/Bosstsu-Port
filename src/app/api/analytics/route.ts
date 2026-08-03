@@ -39,7 +39,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Too many events' }, { status: 400 });
   }
 
-  const salt = getEnv().ANALYTICS_SALT || '';
+  const salt = getEnv().ANALYTICS_SALT;
+  if (!salt) {
+    console.error('ANALYTICS_SALT is not set — analytics disabled');
+    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+  }
   const ipHash = crypto
     .createHash('sha256')
     .update(ip + salt)
@@ -55,24 +59,43 @@ export async function POST(request: NextRequest) {
       event.path.length > 200 ||
       typeof event.sessionId !== 'string' ||
       !event.sessionId ||
+      event.sessionId.length > 64 ||
+      (event.deviceType !== 'desktop' &&
+        event.deviceType !== 'tablet' &&
+        event.deviceType !== 'mobile') ||
       (event.type === 'pageview' && event.path.startsWith('/test/'))
     )
       continue;
 
-    const metadata = event.metadata;
-    if (metadata !== undefined && typeof metadata === 'object' && metadata !== null) {
-      const metaStr = JSON.stringify(metadata);
+    let metadata: Record<string, unknown> | undefined;
+    if (
+      event.metadata !== undefined &&
+      typeof event.metadata === 'object' &&
+      event.metadata !== null
+    ) {
+      const metaStr = JSON.stringify(event.metadata);
       if (metaStr.length > CONFIG.ANALYTICS.MAX_METADATA_BYTES) {
-        event.metadata = { _truncated: true };
+        metadata = { _truncated: true };
+      } else {
+        metadata = event.metadata as Record<string, unknown>;
       }
     }
 
-    valid.push({
-      ...event,
+    const doc: Record<string, unknown> = {
+      type: event.type,
+      path: event.path,
+      sessionId: event.sessionId,
+      deviceType: event.deviceType,
       ipHash,
       timestamp: new Date(),
-      userAgent: typeof event.userAgent === 'string' ? event.userAgent.slice(0, 200) : undefined,
-    });
+    };
+    // Optional fields are only included when present; eventName/referrer/userAgent are truncated to cap.
+    if (typeof event.eventName === 'string') doc.eventName = event.eventName.slice(0, 64);
+    if (metadata !== undefined) doc.metadata = metadata;
+    if (typeof event.referrer === 'string') doc.referrer = event.referrer.slice(0, 200);
+    if (typeof event.userAgent === 'string') doc.userAgent = event.userAgent.slice(0, 200);
+
+    valid.push(doc);
   }
 
   if (valid.length === 0) {
