@@ -15,7 +15,7 @@
  * - `.krulaw-panel`      — the leaf panels (SearchPanel, GlossaryPanel,
  *                          ReadingSettings — all carry this class)
  * - `.krulaw-tooltip`    — LawTooltip portal root
- * - `.krulaw-toolbar`    — reader toolbar (copy/share/print/panel buttons)
+ * - `.krulaw-dock`       — the floating ReadingDock (FR-C)
  * - `.krulaw-toc`        — TocSidebar root
  * - `.krulaw-timeline`   — EditionTimeline (amendment history = chrome)
  * - `.krulaw-chapter`    — chapter container in ArticleView (break per หมวด)
@@ -38,21 +38,23 @@
     margin: 2cm;
   }
 
-  /* Sarabun preserved (the krulaw layout sets --font-sarabun). */
+  /* Sarabun preserved (the krulaw layout sets --font-sarabun) + Thai
+     readability line-height. */
   html,
   body {
     font-family: var(--font-sarabun, 'Sarabun'), 'Noto Sans Thai', sans-serif !important;
+    line-height: 1.7 !important;
   }
 
-  /* Hide chrome: site nav/footer + KruLAW panels, tooltip, toolbar, TOC,
+  /* Hide chrome: site nav/footer + KruLAW panels, tooltip, dock, TOC,
      amendment timeline and the panel drawer (<aside>). */
   nav,
   footer,
   aside,
   .krulaw-panel,
   .krulaw-tooltip,
+  .krulaw-dock,
   .krulaw-toc,
-  .krulaw-toolbar,
   .krulaw-timeline {
     display: none !important;
   }
