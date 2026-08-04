@@ -15,7 +15,8 @@
  * - `.krulaw-panel`      — the leaf panels (SearchPanel, GlossaryPanel,
  *                          ReadingSettings — all carry this class)
  * - `.krulaw-tooltip`    — LawTooltip portal root
- * - `.krulaw-toolbar`    — reader toolbar (copy/share/print/panel buttons)
+ * - `.krulaw-dock`       — the floating ReadingDock (FR-C)
+ * - `.krulaw-theme-fab`  — digest page theme-cycle FAB (lane E; must not print)
  * - `.krulaw-toc`        — TocSidebar root
  * - `.krulaw-timeline`   — EditionTimeline (amendment history = chrome)
  * - `.krulaw-chapter`    — chapter container in ArticleView (break per หมวด)
@@ -38,22 +39,25 @@
     margin: 2cm;
   }
 
-  /* Sarabun preserved (the krulaw layout sets --font-sarabun). */
+  /* Sarabun preserved (the krulaw layout sets --font-sarabun) + Thai
+     readability line-height. */
   html,
   body {
     font-family: var(--font-sarabun, 'Sarabun'), 'Noto Sans Thai', sans-serif !important;
+    line-height: 1.7 !important;
   }
 
-  /* Hide chrome: site nav/footer + KruLAW panels, tooltip, toolbar, TOC,
+  /* Hide chrome: site nav/footer + KruLAW panels, tooltip, dock, TOC,
      amendment timeline and the panel drawer (<aside>). */
   nav,
   footer,
   aside,
   .krulaw-panel,
   .krulaw-tooltip,
+  .krulaw-dock,
   .krulaw-toc,
-  .krulaw-toolbar,
-  .krulaw-timeline {
+  .krulaw-timeline,
+  .krulaw-theme-fab {
     display: none !important;
   }
 
@@ -75,6 +79,18 @@
   }
   .krulaw-repealed-text {
     display: block !important;
+  }
+
+  /* Strip card chrome in-place (FR-G surfaces): the reader content card,
+     the TOC card, and the list/digest cards — printed output is plain text. */
+  .krulaw-article-card,
+  .krulaw-toc,
+  .krulaw-list-card,
+  .krulaw-digest-card {
+    border: none !important;
+    background: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
   }
 
   /* Page break per หมวด (and keep single articles unsplit). */

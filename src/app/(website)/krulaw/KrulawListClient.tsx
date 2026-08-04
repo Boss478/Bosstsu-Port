@@ -256,7 +256,7 @@ export default function KrulawListClient({ laws }: { laws: KrulawIndexEntry[] })
           onChange={setQuery}
           placeholder="ค้นหาชื่อกฎหมาย / คำสำคัญ / เนื้อหา…"
         />
-        <p className="text-xs text-slate-600 dark:text-slate-400">
+        <p role="status" className="text-xs text-slate-600 dark:text-slate-400">
           {visibleLaws.length} ฉบับในคลัง
           {q !== '' && ` · ${noResults ? 'ไม่มีฉบับที่ตรง' : `${resultCount} ฉบับที่ตรง`}`}
         </p>

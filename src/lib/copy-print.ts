@@ -134,7 +134,7 @@ function buildPrintDoc(title: string, bodyHtml: string, sarabunFont: string): st
     font-display: swap;
   }
   * { box-sizing: border-box; }
-  body { font-family: 'Sarabun', 'Noto Sans Thai', Tahoma, sans-serif; color: #111827; margin: 0; padding: 24px; }
+  body { font-family: 'Sarabun', 'Noto Sans Thai', Tahoma, sans-serif; color: #111827; line-height: 1.7; margin: 0; padding: 24px; }
   h1 { font-size: 20px; margin: 0 0 4px; }
   h2 { font-size: 16px; margin: 0 0 12px; }
   h3 { font-size: 14px; margin: 12px 0 8px; }

@@ -7,6 +7,12 @@ export const metadata: Metadata = {
   title: 'KruLAW — คลังกฎหมาย',
   description:
     'อ่านกฎหมายไทยแบบเข้าใจง่าย — ค้นหาและอ่านกฎหมายการศึกษา แบ่งเป็นหมวดและมาตรา พร้อมบทนิยามและประวัติการแก้ไขเพิ่มเติม',
+  openGraph: {
+    title: 'KruLAW — คลังกฎหมาย',
+    description:
+      'อ่านกฎหมายไทยแบบเข้าใจง่าย — ค้นหาและอ่านกฎหมายการศึกษา แบ่งเป็นหมวดและมาตรา พร้อมบทนิยามและประวัติการแก้ไขเพิ่มเติม',
+    type: 'website',
+  },
 };
 
 // Reads src/data/krulaw/index.json via node fs (never a static import — the

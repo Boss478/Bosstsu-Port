@@ -5,14 +5,16 @@
  * DigestView (title + sections of render-ready lines) via DigestShell and
  * renders it as a readable study page: section headings, article cards with
  * deep links into the law reader, [[มาตรา N]] inline refs, [ดูเต็ม] chips,
- * and a per-section มาตรา jump-strip. No localStorage/state — pure render.
+ * a per-section มาตรา jump-strip, and มาตราสำคัญ chapter groups (หมวดที่
+ * 1–9 + บทเฉพาะกาล, first expanded — collapse state is local component
+ * state only; no localStorage).
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { THEMES, useTheme } from '@/components/ThemeProvider';
 import type { Theme } from '@/components/ThemeProvider';
-import type { DigestView, RenderLine, RenderToken } from './digest-view';
+import type { DigestView, RenderChapterGroup, RenderLine, RenderToken } from './digest-view';
 
 /** TH labels + icons per theme (plan §4.3 pattern: icon per current theme). */
 const THEME_META: Record<Theme, { icon: string; labelTh: string }> = {
@@ -88,7 +90,7 @@ function Token({ token }: { token: RenderToken }) {
     return (
       <Link
         href={token.href}
-        className="ml-1 inline-flex items-center gap-1 rounded-full bg-blue-600 px-2.5 py-0.5 text-xs font-semibold text-white hover:bg-blue-700"
+        className="ml-1 inline-flex items-center gap-1 rounded-full bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
       >
         ดูเต็ม {token.label}
         <i aria-hidden="true" className="fi fi-sr-arrow-small-right text-[10px] leading-none" />
@@ -174,7 +176,15 @@ function Line({ line }: { line: RenderLine }) {
   return <BodyLine kind={line.kind} tokens={line.tokens} />;
 }
 
-function Section({ section }: { section: DigestView['sections'][number] }) {
+function Section({
+  section,
+  collapsed,
+  onToggle,
+}: {
+  section: DigestView['sections'][number];
+  collapsed: ReadonlySet<string>;
+  onToggle: (id: string) => void;
+}) {
   return (
     <section className="mt-12">
       <h2 className="border-b-2 border-blue-100 pb-2 text-2xl font-bold leading-relaxed text-slate-900 dark:border-slate-700 dark:text-white">
@@ -190,7 +200,7 @@ function Section({ section }: { section: DigestView['sections'][number] }) {
               <Link
                 key={a.key}
                 href={a.href}
-                className="rounded-full border border-blue-200 px-2.5 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-slate-600 dark:text-blue-300 dark:hover:bg-slate-800"
+                className="inline-flex items-center rounded-full border border-blue-200 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-slate-600 dark:text-blue-300 dark:hover:bg-slate-800"
               >
                 {a.label}
               </Link>
@@ -203,7 +213,67 @@ function Section({ section }: { section: DigestView['sections'][number] }) {
           <Line key={i} line={line} />
         ))}
       </div>
+      {section.groups !== undefined && (
+        <div className="mt-2">
+          {section.groups.map((group) => (
+            <ChapterGroup
+              key={group.id}
+              group={group}
+              collapsed={collapsed.has(group.id)}
+              onToggle={onToggle}
+            />
+          ))}
+        </div>
+      )}
     </section>
+  );
+}
+
+/**
+ * Expandable chapter group ('หมวดที่ N <title> (N มาตรา)') — the group header
+ * is the button (h3 wrapping a full-width button keeps the document outline);
+ * the cards live in an aria-controls region that is hidden when collapsed.
+ */
+function ChapterGroup({
+  group,
+  collapsed,
+  onToggle,
+}: {
+  group: RenderChapterGroup;
+  collapsed: boolean;
+  onToggle: (id: string) => void;
+}) {
+  const regionId = `digest-group-${group.id}`;
+  return (
+    <div className="mt-6">
+      <h3>
+        <button
+          type="button"
+          aria-expanded={!collapsed}
+          aria-controls={regionId}
+          onClick={() => onToggle(group.id)}
+          className="flex w-full items-center justify-between gap-2 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-left text-base font-bold leading-relaxed text-slate-900 transition-colors hover:bg-blue-100/70 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white dark:hover:bg-slate-800"
+        >
+          <span>
+            {group.label}
+            <span className="ml-2 text-sm font-medium text-slate-600 dark:text-slate-400">
+              ({group.articleCount} มาตรา)
+            </span>
+          </span>
+          <i
+            aria-hidden="true"
+            className={`fi fi-sr-angle-small-down shrink-0 text-slate-500 transition-transform dark:text-slate-400 ${
+              collapsed ? '' : 'rotate-180'
+            }`}
+          />
+        </button>
+      </h3>
+      <div id={regionId} hidden={collapsed} className="mt-2">
+        {group.lines.map((line, i) => (
+          <Line key={i} line={line} />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -214,6 +284,23 @@ export default function DigestStudyClient({ view }: { view: DigestView }) {
     document.body.classList.add('krulaw-immersive');
     return () => document.body.classList.remove('krulaw-immersive');
   }, []);
+
+  // Chapter groups: first expanded, the rest collapsed. Computed from the
+  // (deterministic, server-built) view prop → identical initial state on the
+  // server and on hydration — no SSR divergence.
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => {
+    const groups = view.sections.flatMap((s) => s.groups ?? []);
+    return new Set(groups.slice(1).map((g) => g.id));
+  });
+
+  const toggleGroup = (id: string): void => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -231,7 +318,7 @@ export default function DigestStudyClient({ view }: { view: DigestView }) {
         สรุปสาระสำคัญแบบอ่านง่าย — กดมาตราเพื่ออ่านฉบับเต็ม
       </p>
       {view.sections.map((section, i) => (
-        <Section key={i} section={section} />
+        <Section key={i} section={section} collapsed={collapsed} onToggle={toggleGroup} />
       ))}
     </div>
   );

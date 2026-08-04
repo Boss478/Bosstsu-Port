@@ -11,7 +11,10 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-4">
-            <Link href="/" className="flex items-center gap-2 transition-transform duration-150 active:scale-95 active:duration-150">
+            <Link
+              href="/"
+              className="flex items-center gap-2 transition-transform duration-150 active:scale-95 active:duration-150"
+            >
               <div className="relative w-10 h-10">
                 <Image
                   src="/icon/icon.png"
@@ -61,17 +64,17 @@ export default function Footer() {
           id="footer-copyright"
           className="mt-12 pt-8 border-t border-zinc-200 dark:border-slate-800 text-center space-y-2"
         >
-          <p className="text-zinc-500 dark:text-zinc-500 text-sm">
+          <p className="text-zinc-700 dark:text-zinc-500 text-sm">
             © {new Date().getFullYear()} Boss478. All rights reserved.
           </p>
-          <p className="text-zinc-400 dark:text-zinc-600 text-xs flex items-center justify-center gap-2">
+          <p className="text-zinc-600 dark:text-zinc-600 text-xs flex items-center justify-center gap-2">
             <span>
               Icons by{' '}
               <a
                 href="https://www.flaticon.com/uicons"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-[color,transform] duration-150 active:scale-95 active:duration-150"
+                className="text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-[color,transform] duration-150 active:scale-95 active:duration-150"
               >
                 Flaticon Uicons
               </a>
@@ -81,14 +84,14 @@ export default function Footer() {
             <span>·</span>
             <Link
               href="/cookie-policy"
-              className="text-zinc-400 dark:text-zinc-600 hover:text-blue-500 dark:hover:text-blue-400 transition-[color,transform] duration-150 text-xs active:scale-95 active:duration-150"
+              className="text-zinc-600 dark:text-zinc-600 hover:text-blue-500 dark:hover:text-blue-400 transition-[color,transform] duration-150 text-xs active:scale-95 active:duration-150"
             >
               Cookie Policy
             </Link>
             <span>·</span>
             <Link
               href="/admin"
-              className="text-zinc-400 dark:text-zinc-600 hover:text-blue-500 dark:hover:text-blue-400 transition-[color,transform] duration-150 active:scale-95 active:duration-150"
+              className="text-zinc-600 dark:text-zinc-600 hover:text-blue-500 dark:hover:text-blue-400 transition-[color,transform] duration-150 active:scale-95 active:duration-150"
               aria-label="Admin"
             >
               <i aria-hidden="true" className="fi fi-sr-settings text-xs mt-1" />

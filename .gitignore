@@ -43,6 +43,7 @@ token-usage-output.txt
 # testing
 /coverage
 /tmp/
+.eslintcache
 
 # misc
 .DS_Store

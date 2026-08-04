@@ -52,13 +52,15 @@ function makeQuestion(overrides: Partial<PhonicsQuestion> = {}): PhonicsQuestion
   };
 }
 
-describe('TapQuestion hint behavior', () => {
-  let TapQuestion: typeof import('../screens/GameScreen').TapQuestion;
+// Hoisted to module scope: the component is imported once per worker at
+// module evaluation, not once per hook. The previous beforeEach dynamic
+// import starved under parallel workers (hookTimeout flake, 19.3s when green).
+const { TapQuestion } = await import('@/app/(website)/games/phonics/screens/GameScreen');
 
-  beforeEach(async () => {
+describe('TapQuestion hint behavior', () => {
+  beforeEach(() => {
     vi.clearAllMocks();
     mockUseGame.mockReturnValue({ companion: 'mira' as CompanionId });
-    TapQuestion = (await import('@/app/(website)/games/phonics/screens/GameScreen')).TapQuestion;
   });
 
   function renderTapQuestion(

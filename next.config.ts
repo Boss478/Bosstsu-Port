@@ -1,10 +1,7 @@
 import type { NextConfig } from 'next';
 import { CONFIG } from './src/lib/config';
-import withBundleAnalyzer from '@next/bundle-analyzer';
 
-const nextConfig: NextConfig = withBundleAnalyzer({
-  enabled: process.env.ANALYZE === 'true',
-})({
+const nextConfig: NextConfig = {
   output: 'standalone',
   outputFileTracingRoot: process.cwd(),
   compress: true,
@@ -54,7 +51,11 @@ const nextConfig: NextConfig = withBundleAnalyzer({
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=()' },
           {
             key: 'Content-Security-Policy',
-            // unsafe-inline/unsafe-eval: kept for dev mode compatibility
+            // NOTE: headers() runs in dev AND production — this CSP ships in
+            // both. 'unsafe-inline'/'unsafe-eval' are kept because Next.js
+            // itself needs them (inline bootstrap scripts, React runtime,
+            // dev HMR overlay when running in dev). Tightening beyond this
+            // would break Next.js in either environment.
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
@@ -84,6 +85,6 @@ const nextConfig: NextConfig = withBundleAnalyzer({
       },
     ];
   },
-});
+};
 
 export default nextConfig;
