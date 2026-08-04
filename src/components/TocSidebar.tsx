@@ -215,7 +215,7 @@ export default function TocSidebar({
   };
 
   return (
-    <div className="krulaw-toc rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900 lg:sticky lg:top-24">
+    <div className="krulaw-toc rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900 lg:sticky lg:top-6">
       <button
         type="button"
         onClick={() => setPanelOpen((o) => !o)}
