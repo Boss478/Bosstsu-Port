@@ -27,6 +27,21 @@ const mali = localFont({
   variable: '--font-mali',
 });
 
+// Sarabun — KruLAW's Thai law-text font. Registered at the ROOT layout (not
+// just the krulaw layout) so `var(--font-sarabun)` resolves on <body> — the
+// LawTooltip portal renders into document.body, OUTSIDE the krulaw layout's
+// wrapper div, and next/font/local hashes the family name so a literal
+// 'Sarabun' fallback would never match. Same multi-weight pattern as Mali.
+const sarabun = localFont({
+  src: [
+    { path: '../fonts/sarabun/Sarabun-Regular.woff2', weight: '400', style: 'normal' },
+    { path: '../fonts/sarabun/Sarabun-Medium.woff2', weight: '500', style: 'normal' },
+    { path: '../fonts/sarabun/Sarabun-SemiBold.woff2', weight: '600', style: 'normal' },
+    { path: '../fonts/sarabun/Sarabun-Bold.woff2', weight: '700', style: 'normal' },
+  ],
+  variable: '--font-sarabun',
+});
+
 export const metadata: Metadata = {
   title: CONFIG.SITE.TITLE,
   description: CONFIG.SITE.DESCRIPTION,
@@ -59,7 +74,9 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${mali.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${mali.variable} ${sarabun.variable} antialiased`}
+      >
         <QueryProvider>
           <ThemeProvider>
             <DeviceTierProvider>{children}</DeviceTierProvider>

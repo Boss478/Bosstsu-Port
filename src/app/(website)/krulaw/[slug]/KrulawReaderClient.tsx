@@ -766,6 +766,14 @@ export default function KrulawReaderClient({ law }: { law: LawDoc }) {
     [],
   );
 
+  // --- krulaw-immersive body hook (P6): navbar hidden on reader pages; the
+  //     class is set post-hydration (client-only tree) and cleaned up on
+  //     unmount. DigestStudyClient owns its own hook on the digest page.
+  useEffect(() => {
+    document.body.classList.add('krulaw-immersive');
+    return () => document.body.classList.remove('krulaw-immersive');
+  }, []);
+
   // --- drawer (modal) focus management ---------------------------------------
   // Open → focus the first focusable inside the dialog (fallback: the dialog
   // itself); Esc → close; close → restore focus to the opening toolbar button.

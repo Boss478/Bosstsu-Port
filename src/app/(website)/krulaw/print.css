@@ -16,6 +16,7 @@
  *                          ReadingSettings — all carry this class)
  * - `.krulaw-tooltip`    — LawTooltip portal root
  * - `.krulaw-dock`       — the floating ReadingDock (FR-C)
+ * - `.krulaw-theme-fab`  — digest page theme-cycle FAB (lane E; must not print)
  * - `.krulaw-toc`        — TocSidebar root
  * - `.krulaw-timeline`   — EditionTimeline (amendment history = chrome)
  * - `.krulaw-chapter`    — chapter container in ArticleView (break per หมวด)
@@ -55,7 +56,8 @@
   .krulaw-tooltip,
   .krulaw-dock,
   .krulaw-toc,
-  .krulaw-timeline {
+  .krulaw-timeline,
+  .krulaw-theme-fab {
     display: none !important;
   }
 

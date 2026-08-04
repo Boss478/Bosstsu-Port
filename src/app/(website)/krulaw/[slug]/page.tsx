@@ -74,9 +74,15 @@ export async function generateMetadata({
   const { slug } = await params;
   const law = readLaw(slug);
   if (law !== null) {
+    const description = `อ่าน${law.titleTh} ฉบับเต็ม แบ่งเป็นหมวดและมาตรา พร้อมบทนิยามและประวัติการแก้ไขเพิ่มเติม`;
     return {
       title: `${truncateTitle(law.titleTh)} — KruLAW`,
-      description: `อ่าน${law.titleTh} ฉบับเต็ม แบ่งเป็นหมวดและมาตรา พร้อมบทนิยามและประวัติการแก้ไขเพิ่มเติม`,
+      description,
+      openGraph: {
+        title: `${law.titleTh} — KruLAW`,
+        description,
+        type: 'article',
+      },
       // Belt and braces: if the sample fixture somehow renders, keep it out
       // of search indexes.
       ...(slug === 'sample' ? { robots: { index: false, follow: false } } : {}),

@@ -1,20 +1,37 @@
 'use client';
 
 interface SearchInputProps {
+  /** Input id — the sr-only label points here. One instance per page, so the
+   *  default is safe unless a page renders multiple search fields. */
+  id?: string;
+  /** Accessible label — default is KruLAW-specific; other pages (resources /
+   *  portfolio / gallery) pass their own via this prop. */
+  label?: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
 }
 
-export default function SearchInput({ value, onChange, placeholder = 'ค้นหา...' }: SearchInputProps) {
+export default function SearchInput({
+  id = 'krulaw-list-search',
+  label = 'ค้นหากฎหมาย',
+  value,
+  onChange,
+  placeholder = 'ค้นหา...',
+}: SearchInputProps) {
   return (
-    <div className="relative w-64">
+    <div className="relative w-full sm:w-auto sm:min-w-80">
+      <label htmlFor={id} className="sr-only">
+        {label}
+      </label>
       <i
         aria-hidden="true"
         className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-sm"
       />
       <input
+        id={id}
         type="text"
+        inputMode="search"
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}

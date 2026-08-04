@@ -10,7 +10,15 @@ import {
   type DigestLineToken,
   type DigestRef,
 } from '@/lib/krulaw/parser';
-import type { DigestView, RenderLine, RenderSection, RenderToken } from './digest-view';
+import type { LawDoc } from '@/types/krulaw';
+import type {
+  DigestChapterInfo,
+  DigestView,
+  RenderLine,
+  RenderSection,
+  RenderToken,
+} from './digest-view';
+import { buildChapterGroups } from './digest-view';
 import DigestShell from './DigestShell';
 
 // This route renders ONE digest: the พ.ร.บ.การศึกษาแห่งชาติ study dictionary
@@ -23,9 +31,15 @@ const DIGEST_LAW_HREF = `/krulaw/${DIGEST_LAW_SLUG}`;
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'KruLAW — พจนานุกรมกฎหมายการศึกษา',
+    title: 'พจนานุกรมกฎหมาย พ.ร.บ.การศึกษาแห่งชาติ 2542 — KruLAW',
     description:
       'สรุปสาระสำคัญของ พ.ร.บ.การศึกษาแห่งชาติ พ.ศ. 2542 — ข้อมูลกฎหมาย เหตุผลและสรุปการแก้ไข คำนิยามสำคัญ และมาตราสำคัญ พร้อมลิงก์อ่านฉบับเต็ม',
+    openGraph: {
+      title: 'พจนานุกรมกฎหมาย พ.ร.บ.การศึกษาแห่งชาติ 2542 — KruLAW',
+      description:
+        'สรุปสาระสำคัญของ พ.ร.บ.การศึกษาแห่งชาติ พ.ศ. 2542 — ข้อมูลกฎหมาย เหตุผลและสรุปการแก้ไข คำนิยามสำคัญ และมาตราสำคัญ พร้อมลิงก์อ่านฉบับเต็ม',
+      type: 'article',
+    },
   };
 }
 
@@ -66,6 +80,35 @@ function readPlannedLawAliases(): Map<string, string> {
   return aliases;
 }
 
+/**
+ * Chapter boundary table for the digest's target law — read from the built
+ * law JSON (src/data/krulaw/laws/<slug>.json, same fs pattern as
+ * [slug]/page.tsx). Absent/unreadable → null (digest renders flat, no
+ * chapter groups). Used to split the 76-card มาตราสำคัญ section into
+ * expandable หมวดที่ 1–9 / บทเฉพาะกาล groups.
+ */
+function readLawChapters(): DigestChapterInfo[] | null {
+  try {
+    const raw = fs.readFileSync(
+      path.join(process.cwd(), 'src/data/krulaw/laws', `${DIGEST_LAW_SLUG}.json`),
+      'utf8',
+    );
+    const law = JSON.parse(raw) as LawDoc;
+    if (!Array.isArray(law.chapters)) return null;
+    return law.chapters.map((ch) => ({
+      no: ch.no,
+      title: ch.title,
+      articleKeys: [
+        ...ch.articles.map((a) => `${a.no}${a.suffix ?? ''}`),
+        ...(ch.sections ?? []).flatMap((s) => s.articles.map((a) => `${a.no}${a.suffix ?? ''}`)),
+      ],
+    }));
+  } catch {
+    // law JSON missing → no chapter boundaries (flat render)
+    return null;
+  }
+}
+
 /** 'มาตรา 10' | 'มาตรา 10 ทวิ' | 'มาตรา 10/1' — article display label. */
 function articleLabel(no: number, suffix?: string): string {
   return `มาตรา ${no}${suffix ? (suffix.startsWith('/') ? suffix : ` ${suffix}`) : ''}`;
@@ -103,7 +146,11 @@ function classifyLine(line: string): 'h3' | 'quote' | 'bullet' | 'numbered' | 't
 }
 
 /** Build the render model: line kinds + article jump chips per section. */
-function buildView(doc: DigestDoc, aliases: Map<string, string>): DigestView {
+function buildView(
+  doc: DigestDoc,
+  aliases: Map<string, string>,
+  chapterTable: DigestChapterInfo[] | null,
+): DigestView {
   const sections: RenderSection[] = doc.sections.map((section) => {
     const lines: RenderLine[] = [];
     const seen = new Set<string>();
@@ -135,6 +182,7 @@ function buildView(doc: DigestDoc, aliases: Map<string, string>): DigestView {
         }
         openArticle = {
           kind: 'article',
+          key,
           label,
           href,
           parts: [
@@ -149,9 +197,16 @@ function buildView(doc: DigestDoc, aliases: Map<string, string>): DigestView {
 
       const kind = classifyLine(line);
       // The line-prefix markers are replaced by the shell's styling — only the
-      // content after them is tokenized.
+      // content after them is tokenized ('### ' included: the prefix must never
+      // leak into the rendered heading text).
       const content =
-        kind === 'quote' ? line.replace(/^>\s?/, '') : kind === 'bullet' ? line.slice(2) : line;
+        kind === 'quote'
+          ? line.replace(/^>\s?/, '')
+          : kind === 'bullet'
+            ? line.slice(2)
+            : kind === 'h3'
+              ? line.slice(4)
+              : line;
       const tokens = toRenderTokens(tokenizeDigestLine(content), aliases);
       if (kind === 'h3') closeArticle(); // `### ` starts a new block context
       if (openArticle !== null && kind !== 'h3') {
@@ -162,7 +217,17 @@ function buildView(doc: DigestDoc, aliases: Map<string, string>): DigestView {
     }
     closeArticle();
 
-    return { heading: section.heading, articles, lines };
+    // Chapter-group split (มาตราสำคัญ): flat when the law JSON is missing or
+    // the section has no article cards (ข้อมูลกฎหมาย / เหตุผล / คำนิยาม).
+    let grouped: ReturnType<typeof buildChapterGroups> | null = null;
+    if (chapterTable !== null) grouped = buildChapterGroups(lines, chapterTable);
+
+    return {
+      heading: section.heading,
+      articles,
+      lines: grouped !== null ? grouped.preamble : lines,
+      ...(grouped !== null && grouped.groups.length > 0 ? { groups: grouped.groups } : {}),
+    };
   });
 
   return { title: doc.title, sections };
@@ -199,6 +264,6 @@ export default function KrulawDigestPage() {
   const doc = parseDigestMd(md);
   if (doc.title === '' && doc.sections.length === 0) return <DigestUnavailable />;
 
-  const view = buildView(doc, readPlannedLawAliases());
+  const view = buildView(doc, readPlannedLawAliases(), readLawChapters());
   return <DigestShell view={view} />;
 }

@@ -29,6 +29,7 @@ import {
   loadCrossLaw,
 } from '@/lib/krulaw-reader';
 import { copyText } from '@/lib/copy-print';
+import { formatThaiBEDate } from '@/lib/krulaw/format';
 import type { TooltipContent } from '@/hooks/useLawTooltip';
 
 interface LawTooltipProps {
@@ -118,7 +119,7 @@ function ArticleBody({
                 return (
                   <li key={i}>
                     แก้ไขโดยฉบับที่ {am.editionNo}
-                    {edition ? ` (${edition.gazetteDate})` : ''}
+                    {edition ? ` (${formatThaiBEDate(edition.gazetteDate)})` : ''}
                     {am.note !== '' ? ` — ${am.note}` : ''}
                   </li>
                 );
@@ -306,8 +307,10 @@ export default function LawTooltip({
       onPointerLeave={onPointerLeave}
       style={{
         // The tooltip renders outside the Sarabun wrapper (portal to body) —
-        // literal family stack, same as the krulaw layout's font.
-        fontFamily: "'Sarabun', 'Noto Sans Thai', sans-serif",
+        // resolve the font through the ROOT layout's variable instead of a
+        // literal 'Sarabun' (next/font/local hashes the family name, so the
+        // literal would silently fall back to the sans-serif stack).
+        fontFamily: 'var(--font-sarabun), "Noto Sans Thai", sans-serif',
         ...(sheet ? undefined : { left: 0, top: 0, visibility: 'hidden' }),
       }}
       className={

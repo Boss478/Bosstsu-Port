@@ -297,7 +297,7 @@ export default function TocSidebar({
         <nav
           aria-label="สารบัญ"
           data-krulaw-toc-scroll
-          className="overflow-y-auto pb-4 lg:max-h-[calc(100vh-19rem)] lg:pr-1"
+          className="overflow-y-auto pb-4 lg:max-h-[calc(100vh-12rem)] lg:pr-1"
         >
           <ul className="space-y-1">
             {law.chapters.map((chapter, ci) => chapterNode(chapter, ci))}
