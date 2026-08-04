@@ -1,0 +1,157 @@
+'use client';
+
+/**
+ * KruLAW — in-law article search (FR6).
+ *
+ * Controlled leaf: takes the law's flattened articles + an onJump callback.
+ * Query normalization reuses `normalizeText` (Thai digits ๐-๙ → 0-9, NFC,
+ * whitespace collapse + trim). Matching is normalized-substring over each
+ * article's PLAIN text; the snippet highlights the matched term with safe
+ * spans (never dangerouslySetInnerHTML). Clicking a result calls
+ * `onJump(articleKey)`.
+ *
+ * NOTE on offsets: built content is already NFC + Thai-digit normalized, so
+ * `plain === normalizeText(plain)` and match indices align 1:1 (the
+ * per-keystroke normalize of `plain` is dropped — it would be a no-op).
+ *
+ * The query input is debounced (~180ms) so the per-keystroke scan over the
+ * law's articles only runs after the user pauses typing.
+ *
+ * Snippets are clamped to วรรค boundaries (snippetWindow — plain text has
+ * '\n' at วรรค separators) and rendered with whitespace-pre-line so the
+ * '\n' shows as line breaks (SCRUTINY-L2).
+ */
+import { useEffect, useMemo, useState } from 'react';
+import type { SearchPanelProps } from '@/app/(website)/krulaw/lib/reader-props';
+import { normalizeText } from '@/lib/krulaw/normalize';
+import { articleLabel } from '@/lib/krulaw-reader';
+import { articleKey, articlePlainText } from '@/lib/copy-print';
+import { snippetWindow } from '@/lib/krulaw/snippet';
+
+const DEBOUNCE_MS = 180;
+
+interface Match {
+  articleKey: string;
+  plain: string;
+  label: string;
+  start: number;
+  end: number;
+  markable: boolean;
+}
+
+/** First normalized-substring match; markable only when offsets align. */
+function findMatch(
+  plain: string,
+  normQuery: string,
+): { start: number; end: number; markable: boolean } | null {
+  const idx = plain.indexOf(normQuery);
+  if (idx === -1) return null;
+  return { start: idx, end: idx + normQuery.length, markable: true };
+}
+
+export function SearchPanel({ articles, onJump }: SearchPanelProps) {
+  const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+
+  // Debounce: results only recompute after the user pauses typing.
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedQuery(query), DEBOUNCE_MS);
+    return () => window.clearTimeout(t);
+  }, [query]);
+
+  // Plain text + display label per article (stable — static content).
+  const byKey = useMemo(() => {
+    const map = new Map<string, { plain: string; label: string }>();
+    for (const a of articles) {
+      map.set(articleKey(a), { plain: articlePlainText(a), label: articleLabel(a.no, a.suffix) });
+    }
+    return map;
+  }, [articles]);
+
+  const normQuery = normalizeText(debouncedQuery);
+
+  const results = useMemo<Match[]>(() => {
+    if (normQuery.length === 0) return [];
+    const matches: Match[] = [];
+    for (const [key, { plain, label }] of byKey) {
+      const m = findMatch(plain, normQuery);
+      if (m) matches.push({ articleKey: key, plain, label, ...m });
+    }
+    return matches;
+  }, [byKey, normQuery]);
+
+  return (
+    <section className="krulaw-panel flex flex-col overflow-hidden" aria-label="ค้นหามาตรา">
+      <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+        <label htmlFor="krulaw-search-input" className="sr-only">
+          ค้นหามาตรา
+        </label>
+        <div className="relative">
+          <i
+            aria-hidden="true"
+            className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 dark:text-zinc-500"
+          />
+          <input
+            id="krulaw-search-input"
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="ค้นหาข้อความในมาตรา เช่น เงินกู้ หรือ มาตรา 10"
+            className="w-full rounded-full border border-slate-200 bg-white py-2 pl-9 pr-4 text-sm text-zinc-700 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-zinc-200 dark:placeholder:text-zinc-500"
+          />
+        </div>
+        {normQuery.length > 0 && (
+          <p role="status" className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+            {results.length > 0 ? `พบ ${results.length} มาตรา` : 'ไม่พบมาตรา'}
+          </p>
+        )}
+      </div>
+
+      {normQuery.length === 0 ? (
+        <p className="px-4 py-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+          พิมพ์คำค้นเพื่อค้นหามาตราในกฎหมายฉบับนี้
+        </p>
+      ) : results.length === 0 ? (
+        <p className="px-4 py-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+          ไม่พบมาตรา{' '}
+          <span className="font-medium text-zinc-700 dark:text-zinc-200">“{normQuery}”</span>
+        </p>
+      ) : (
+        <ul className="max-h-80 flex-1 divide-y divide-slate-200 overflow-y-auto dark:divide-slate-700">
+          {results.map((r) => {
+            const w = snippetWindow(r.plain, r.start, r.end - r.start);
+            const before = r.plain.slice(w.start, r.start);
+            const matched = r.plain.slice(r.start, r.end);
+            const after = r.plain.slice(r.end, w.end);
+            return (
+              <li key={r.articleKey}>
+                <button
+                  type="button"
+                  onClick={() => onJump(r.articleKey)}
+                  className="block w-full px-4 py-3 text-left transition-colors hover:bg-blue-50/70 focus:outline-none focus-visible:bg-blue-50/70 dark:hover:bg-slate-800/70 dark:focus-visible:bg-slate-800/70"
+                >
+                  <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+                    {r.label}
+                  </span>
+                  <span className="mt-0.5 block whitespace-pre-line text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
+                    {w.ellipsisBefore && '…'}
+                    {before}
+                    {r.markable && matched.length > 0 ? (
+                      <mark className="rounded bg-amber-200/80 px-0.5 text-inherit dark:bg-amber-500/30">
+                        {matched}
+                      </mark>
+                    ) : (
+                      matched
+                    )}
+                    {after}
+                    {w.ellipsisAfter && '…'}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}

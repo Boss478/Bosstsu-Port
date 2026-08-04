@@ -17,6 +17,8 @@
     "enrich-stress": "npx tsx scripts/enrich-stress.ts",
     "enrich-definitions": "npx tsx scripts/enrich-definitions.ts",
     "assemble-words": "npx tsx scripts/assemble-words.ts",
+    "krulaw:build": "npx tsx scripts/krulaw/build.ts",
+    "krulaw:check": "npx tsx scripts/krulaw/build.ts --check",
     "test": "vitest run",
     "test:watch": "vitest",
     "prepare": "husky"
@@ -70,6 +72,7 @@
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
     "lint-staged": "^17.0.7",
+    "pdfjs-dist": "^6.2.108",
     "prettier": "^3.8.3",
     "tailwindcss": "^4.3.1",
     "typescript": "^5",

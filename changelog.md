@@ -11,6 +11,7 @@
   + * **Perf**: 5 tool boards code-split (`next/dynamic` per session type) · mascot whitelist as id-set (21.6KB out of API bundles).
   + * **Tests**: 147 tools tests (edit/admin emission, SSE caps, join-code gate, coalescing, hook lifecycle) — full suite 907 green.
   - **OPS NOTE**: no prod deploy this release — KVM1 VPS expired 2026-08; deploy pending VisperHost provision (ADR-013). `ANALYTICS_SALT` still required before first deploy (v1.10.86 note).
+* **KruLAW (pre-release, no bump) — law slugs switched to English titles (ADR-015)**: all 10 planned slugs + the built พ.ร.บ.การศึกษาแห่งชาติ 2542 renamed to English translation slugs (`national-education-act-2542`, `compulsory-education-act-2545`, … — user-reviewed one-by-one); law file + `_extracts` renamed, manifest + `LAW_CODE_ALIASES` + eval #11 + digest deep links + parser test comments updated; registry/index regenerated (0 stale `phra-ratchabanyat` refs in live code); build `--check`/tsc/lint/vitest 148/148/run-evals 15/15 (pass@3 = 1.00).
 
 ## v1.10.86 (2026-08-03)
 * **Perf / Security / A11y batch (senior-approved)**:

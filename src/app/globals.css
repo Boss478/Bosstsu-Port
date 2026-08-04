@@ -147,6 +147,14 @@ html {
   }
 }
 
+/* ThemeProvider toggles the `.dark` class on <html> (site-wide dark mode
+   independent of the OS scheme) — mirror the media-query values so OS-light +
+   site-dark never renders #171717-on-slate-950. */
+:root.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -603,6 +611,43 @@ textarea,
 .prose * {
   -webkit-user-select: text;
   user-select: text;
+}
+
+/* KruLAW reader body — FR14 highlight + copy need real text selection, even
+   though the site default is user-select:none (touch UX). */
+[data-krulaw-body],
+[data-krulaw-body] * {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ─── Reduced Motion (KruLAW + site-wide) ────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── KruLAW tooltip entry animation (FR — portal renders at body level) ─── */
+@keyframes krulaw-tooltip-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.krulaw-tooltip {
+  animation: krulaw-tooltip-in 0.15s ease-out;
+  will-change: opacity, transform;
 }
 
 /* ─── Alphabet Adventure: Kid-Friendly Menu ───────────────────────────────── */

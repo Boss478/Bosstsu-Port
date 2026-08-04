@@ -13,8 +13,8 @@ export const navLinks: NavItem[] = [
     icon: 'fi fi-sr-briefcase',
     subItems: [
       { href: '/portfolio', label: 'ผลงาน', icon: 'fi fi-sr-briefcase' },
-      { href: '/gallery', label: 'แกลเลอรี่', icon: 'fi fi-sr-picture' }
-    ]
+      { href: '/gallery', label: 'แกลเลอรี่', icon: 'fi fi-sr-picture' },
+    ],
   },
   {
     href: '/resources',
@@ -22,8 +22,9 @@ export const navLinks: NavItem[] = [
     icon: 'fi fi-sr-gamepad',
     subItems: [
       { href: '/resources', label: 'สื่อ', icon: 'fi fi-sr-book-alt' },
-      { href: '/games', label: 'เกม', icon: 'fi fi-sr-gamepad' }
-    ]
+      { href: '/games', label: 'เกม', icon: 'fi fi-sr-gamepad' },
+      { href: '/krulaw', label: 'KruLAW', icon: 'fi fi-sr-book-alt' },
+    ],
   },
-  { href: '/about-me', label: "About me", icon: 'fi fi-sr-user' },
+  { href: '/about-me', label: 'About me', icon: 'fi fi-sr-user' },
 ];

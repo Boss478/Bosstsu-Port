@@ -1,0 +1,52 @@
+[
+  {
+    "code": "พ.ร.บ.การศึกษาแห่งชาติ 2542",
+    "slug": "national-education-act-2542",
+    "built": false
+  },
+  {
+    "code": "พ.ร.บ.การศึกษาภาคบังคับ 2545",
+    "slug": "compulsory-education-act-2545",
+    "built": false
+  },
+  {
+    "code": "พ.ร.บ.การจัดการศึกษาสำหรับคนพิการ 2551",
+    "slug": "education-for-persons-with-disabilities-act-2551",
+    "built": false
+  },
+  {
+    "code": "พ.ร.บ.การพัฒนาเด็กปฐมวัย 2562",
+    "slug": "early-childhood-development-act-2562",
+    "built": false
+  },
+  {
+    "code": "พ.ร.บ.คุ้มครองเด็ก 2546",
+    "slug": "child-protection-act-2546",
+    "built": false
+  },
+  {
+    "code": "พ.ร.บ.เงินเดือน เงินวิทยฐานะ เงินประจำตำแหน่ง 2547",
+    "slug": "salary-and-allowances-act-2547",
+    "built": false
+  },
+  {
+    "code": "พ.ร.บ.ระเบียบข้าราชการครูและบุคลากรทางการศึกษา 2547",
+    "slug": "teachers-educational-personnel-civil-service-act-2547",
+    "built": false
+  },
+  {
+    "code": "พ.ร.บ.ระเบียบบริหารราชการกระทรวงศึกษาธิการ 2546",
+    "slug": "ministry-of-education-administration-act-2546",
+    "built": false
+  },
+  {
+    "code": "พ.ร.บ.สภาครูและบุคลากรทางการศึกษา 2546",
+    "slug": "teachers-council-educational-personnel-act-2546",
+    "built": false
+  },
+  {
+    "code": "พ.ร.บ.ส่งเสริมการเรียนรู้ 2566",
+    "slug": "promotion-of-learning-act-2566",
+    "built": false
+  }
+]
