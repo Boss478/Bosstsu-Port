@@ -282,7 +282,7 @@ export default function KrulawListClient({ laws }: { laws: KrulawIndexEntry[] })
                       <Link
                         key={law.slug}
                         href={`/krulaw/${law.slug}`}
-                        className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-[border-color,transform,box-shadow] hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-500/60"
+                        className="group krulaw-list-card rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-[border-color,transform,box-shadow] hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-500/60"
                       >
                         <h4 className="text-[15px] font-bold leading-relaxed text-slate-900 group-hover:text-blue-800 dark:text-slate-100 dark:group-hover:text-blue-300">
                           {law.titleTh}
@@ -336,7 +336,7 @@ export default function KrulawListClient({ laws }: { laws: KrulawIndexEntry[] })
       ) : (
         <div className="space-y-4">
           {isSearching && (
-            <p role="status" className="text-sm text-slate-500 dark:text-slate-400">
+            <p role="status" className="text-sm text-slate-600 dark:text-slate-400">
               กำลังค้นหาในเนื้อหาฉบับเต็ม…
             </p>
           )}
@@ -344,7 +344,7 @@ export default function KrulawListClient({ laws }: { laws: KrulawIndexEntry[] })
             <Link
               key={law.slug}
               href={`/krulaw/${law.slug}`}
-              className="group block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-[border-color,transform,box-shadow] hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-500/60"
+              className="group block krulaw-list-card rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-[border-color,transform,box-shadow] hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-500/60"
             >
               <h4 className="text-[15px] font-bold leading-relaxed text-slate-900 group-hover:text-blue-800 dark:text-slate-100 dark:group-hover:text-blue-300">
                 {law.titleTh}
@@ -366,7 +366,7 @@ export default function KrulawListClient({ laws }: { laws: KrulawIndexEntry[] })
             <Link
               key={`ft-${r.slug}`}
               href={`/krulaw/${r.slug}#มาตรา-${r.hits[0].articleKey}`}
-              className="group block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-[border-color,transform,box-shadow] hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-500/60"
+              className="group block krulaw-list-card rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-[border-color,transform,box-shadow] hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-500/60"
             >
               <h4 className="text-[15px] font-bold leading-relaxed text-slate-900 group-hover:text-blue-800 dark:text-slate-100 dark:group-hover:text-blue-300">
                 {r.titleTh}
