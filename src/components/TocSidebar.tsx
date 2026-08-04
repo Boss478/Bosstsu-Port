@@ -10,7 +10,7 @@
  *  - mobile: collapsible
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Chapter, LawDoc } from '@/types/krulaw';
 import { articleKeyOf, articleLabel, flattenArticles } from '@/lib/krulaw-reader';
 import { normalizeText } from '@/lib/krulaw/normalize';
@@ -71,10 +71,38 @@ export default function TocSidebar({
   const [query, setQuery] = useState('');
   const [jumpFailed, setJumpFailed] = useState(false);
 
+  // --- scroll-spy suppression during programmatic jumps ----------------------
+  // A smooth scroll passes intermediate articles through the spy band, so the
+  // highlight flickers to whatever article is mid-passage. Set the flag when
+  // WE jump; clear on scrollend, with a 600ms timer fallback (scrollend never
+  // fires when the target is already in view — no scroll occurred). Observer
+  // entries are ignored while the flag is set.
+  const suppressSpyRef = useRef(false);
+  const spyTimerRef = useRef<number | null>(null);
+
+  const handleNavigate = useCallback(
+    (key: string) => {
+      suppressSpyRef.current = true;
+      if (spyTimerRef.current !== null) window.clearTimeout(spyTimerRef.current);
+      const clear = () => {
+        suppressSpyRef.current = false;
+        if (spyTimerRef.current !== null) {
+          window.clearTimeout(spyTimerRef.current);
+          spyTimerRef.current = null;
+        }
+      };
+      window.addEventListener('scrollend', clear, { once: true });
+      spyTimerRef.current = window.setTimeout(clear, 600);
+      onNavigate(key);
+    },
+    [onNavigate],
+  );
+
   // --- scroll-spy: the article crossing the 15–30% viewport band is active --
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
+        if (suppressSpyRef.current) return; // programmatic jump in flight
         const visible = entries.filter((e) => e.isIntersecting);
         if (visible.length === 0) return;
         let best = visible[0];
@@ -90,7 +118,10 @@ export default function TocSidebar({
       const el = document.getElementById(`มาตรา-${articleKeyOf(f.article)}`);
       if (el !== null) observer.observe(el);
     }
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (spyTimerRef.current !== null) window.clearTimeout(spyTimerRef.current);
+    };
   }, [flat, onActiveChange]);
 
   // Keep the active TOC item visible inside its scroll container.
@@ -127,7 +158,7 @@ export default function TocSidebar({
     }
     setJumpFailed(false);
     setQuery('');
-    onNavigate(key);
+    handleNavigate(key);
   };
 
   const navItem = (key: string, label: string, indent: boolean): React.ReactNode => {
@@ -136,7 +167,7 @@ export default function TocSidebar({
       <li key={key} id={`krulaw-toc-${key}`}>
         <button
           type="button"
-          onClick={() => onNavigate(key)}
+          onClick={() => handleNavigate(key)}
           aria-current={active ? 'true' : undefined}
           className={`block w-full rounded-md px-2 py-1 text-left text-[13px] leading-relaxed transition-colors ${
             indent ? 'pl-5' : ''
@@ -184,12 +215,12 @@ export default function TocSidebar({
   };
 
   return (
-    <div className="krulaw-toc lg:sticky lg:top-24">
+    <div className="krulaw-toc rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900 lg:sticky lg:top-24">
       <button
         type="button"
         onClick={() => setPanelOpen((o) => !o)}
         aria-expanded={panelOpen}
-        className="mb-3 flex w-full cursor-pointer items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 lg:hidden"
+        className="mb-3 flex w-full cursor-pointer items-center justify-between px-1 py-1 text-sm font-semibold text-slate-700 dark:text-slate-200 lg:hidden"
       >
         สารบัญ
         <i
@@ -245,7 +276,7 @@ export default function TocSidebar({
           <button
             type="button"
             disabled={prevKey === null}
-            onClick={() => prevKey !== null && onNavigate(prevKey)}
+            onClick={() => prevKey !== null && handleNavigate(prevKey)}
             className="flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
           >
             <i aria-hidden="true" className="fi fi-sr-angle-left text-[10px]" />
@@ -254,7 +285,7 @@ export default function TocSidebar({
           <button
             type="button"
             disabled={nextKey === null}
-            onClick={() => nextKey !== null && onNavigate(nextKey)}
+            onClick={() => nextKey !== null && handleNavigate(nextKey)}
             className="flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
           >
             ถัดไป

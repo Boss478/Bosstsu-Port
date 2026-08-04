@@ -79,6 +79,18 @@
     display: block !important;
   }
 
+  /* Strip card chrome in-place (FR-G surfaces): the reader content card,
+     the TOC card, and the list/digest cards — printed output is plain text. */
+  .krulaw-article-card,
+  .krulaw-toc,
+  .krulaw-list-card,
+  .krulaw-digest-card {
+    border: none !important;
+    background: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
   /* Page break per หมวด (and keep single articles unsplit). */
   .krulaw-chapter {
     break-before: page;

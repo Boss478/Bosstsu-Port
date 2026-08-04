@@ -998,7 +998,7 @@ export default function KrulawReaderClient({ law }: { law: LawDoc }) {
     [highlights],
   );
 
-  const mainClass = `${FONT_SIZE_CLASS[settings.fontSize]} ${WIDTH_CLASS[settings.width]} leading-relaxed`;
+  const mainClass = `${FONT_SIZE_CLASS[settings.fontSize]} leading-relaxed`;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
@@ -1042,21 +1042,25 @@ export default function KrulawReaderClient({ law }: { law: LawDoc }) {
           />
         </div>
 
-        <section
-          aria-label="เนื้อหากฎหมาย"
-          onMouseUp={handleArticleMouseUp}
-          style={{ lineHeight: settings.lineHeight }}
-          className={`min-w-0 pb-16 pr-14 md:pr-24 ${mainClass}`}
+        <div
+          className={`krulaw-article-card mx-auto rounded-2xl border border-slate-200 bg-white p-4 pr-14 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6 md:pr-24 ${WIDTH_CLASS[settings.width]}`}
         >
-          <ArticleView
-            law={law}
-            highlights={highlights}
-            noteKeys={noteKeySet}
-            flashKey={flashKey}
-            getTriggerProps={getTriggerProps}
-            isTooltipOpen={isTooltipOpen}
-          />
-        </section>
+          <section
+            aria-label="เนื้อหากฎหมาย"
+            onMouseUp={handleArticleMouseUp}
+            style={{ lineHeight: settings.lineHeight }}
+            className={`min-w-0 pb-16 ${mainClass}`}
+          >
+            <ArticleView
+              law={law}
+              highlights={highlights}
+              noteKeys={noteKeySet}
+              flashKey={flashKey}
+              getTriggerProps={getTriggerProps}
+              isTooltipOpen={isTooltipOpen}
+            />
+          </section>
+        </div>
       </div>
 
       {/* floating reading-tool dock (FR-C) — above BackToTop, right edge */}
