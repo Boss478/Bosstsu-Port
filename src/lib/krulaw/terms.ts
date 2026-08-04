@@ -14,3 +14,16 @@
  * legal terms).
  */
 export const SHORT_TERM_ALLOWLIST = ['ครู'] as const;
+
+/**
+ * Authored-code aliases → canonical slug (SCRUTINY-L2 manifest dedupe).
+ * "พ.ร.บ.ข้าราชการครูฯ 2547" is the AUTHORED REF FORM of the same act as
+ * "พ.ร.บ.ระเบียบข้าราชการครูและบุคลากรทางการศึกษา 2547" (canonical; the
+ * PDF list is 10 files, one entry in planned-laws.json). The build emits BOTH
+ * forms in codeToSlug and includes alias keys in knownCodes so cross-law
+ * refs using either form validate — shared by scripts/krulaw/build.ts and
+ * scripts/krulaw/validate.ts so the two CLIs always agree.
+ */
+export const LAW_CODE_ALIASES: Record<string, string> = {
+  'พ.ร.บ.ข้าราชการครูฯ 2547': 'teachers-educational-personnel-civil-service-act-2547',
+};

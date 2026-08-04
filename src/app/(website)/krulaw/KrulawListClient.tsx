@@ -109,9 +109,15 @@ function searchLaws(docs: LawDoc[], q: string): FullTextLawResult[] {
     const hits: FullTextHit[] = [];
     for (const flat of flattenArticles(doc)) {
       const plain = articlePlainText(flat.article);
-      const idx = plain.indexOf(q);
+      // Query is lowercased by normalizeQuery — the source must be too, or a
+      // Latin query ("unesco") misses uppercase content ("UNESCO"). Thai has
+      // no case, and A–Z/a–z folding is code-unit 1:1, so the lowercased
+      // index maps 1:1 back into the ORIGINAL plain — every slice below
+      // (snippet window + <mark>) comes from `plain`, never plainLower.
+      const plainLower = plain.toLowerCase();
+      const idx = plainLower.indexOf(q);
       if (idx === -1) continue;
-      const w = snippetWindow(plain, idx, q.length);
+      const w = snippetWindow(plainLower, idx, q.length);
       hits.push({
         articleKey: articleKeyOf(flat.article),
         label: articleLabel(flat.article.no, flat.article.suffix),

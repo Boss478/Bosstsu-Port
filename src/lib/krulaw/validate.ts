@@ -9,7 +9,8 @@
  *  2. Cross-law codes ∈ knownCodes (default [] → all cross-law refs flagged)
  *  3. Definitions: unique terms, NFC-normalized, min term length 4
  *     (SHORT_TERM_ALLOWLIST exempt)
- *  4. Editions numbered 1..n sequential
+ *  4. Editions numbered 1..n sequential — and NON-EMPTY (no editions = no
+ *     statutory history; the sequential check no-ops on an empty list)
  *  5. amendedBy[].editionNo ∈ editions[]
  *  6. Articles ordered by (no, suffix) increasing — global across chapters
  *  7. verifiedAt (YYYY-MM-DD) + gazetteRef required
@@ -22,6 +23,10 @@
  *     บทนิยาม); comparison is whitespace-insensitive (ALL whitespace
  *     stripped on both sides). Laws WITHOUT that article are skipped — there
  *     is no statutory text to verify against.
+ * 12. No implicit empty-title chapters: a chapter with no === null AND
+ *     title === '' means articles were authored BEFORE the first `##`
+ *     heading (the parser's permissive implicit chapter) — a silent
+ *     structural slip that must fail validation.
  *
  * `validatePlannedLaws` — planned-laws.json manifest integrity: codes and
  * slugs must each be unique (duplicate → error) and every slug must match
@@ -227,7 +232,12 @@ export function validateLawDoc(
     }
   }
 
-  // --- rule 4: editions numbered 1..n sequential -----------------------------
+  // --- rule 4: editions numbered 1..n sequential (and non-empty) ------------
+  if (doc.editions.length === 0) {
+    // The 1..n check below no-ops on an empty list — an editions-less law
+    // must still fail (every statute has at least the original enactment).
+    errors.push(`ไม่มีฉบับ (editions ว่าง) — ต้องมีอย่างน้อย 1 ฉบับ (${who})`);
+  }
   doc.editions.forEach((e, i) => {
     const expected = i + 1;
     if (e.no !== expected) {
@@ -335,6 +345,17 @@ export function validateLawDoc(
           `นิยาม "${d.term}": ข้อความไม่ตรงตาม ${articleLabel(sourceNo)} แบบคำต่อคำ (${who})`,
         );
       }
+    }
+  }
+
+  // --- rule 12: no implicit empty-title chapters ----------------------------
+  // The parser creates `{ no: null, title: '' }` for articles authored before
+  // the first `##` heading (permissive implicit chapter). An un-numbered
+  // chapter must carry a title (บททั่วไป / บทเฉพาะกาล …) — an empty one is a
+  // silent structural slip that must be machine-detectable.
+  for (const ch of doc.chapters) {
+    if (ch.no === null && ch.title === '') {
+      errors.push(`บทโดยนัยที่ไม่มีชื่อ (เนื้อหาก่อน "##" แรก) — ต้องมี "##" หัวข้อกำกับ (${who})`);
     }
   }
 

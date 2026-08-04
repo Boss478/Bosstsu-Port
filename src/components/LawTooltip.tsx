@@ -71,7 +71,9 @@ function ArticleBody({
 
   const handleCopy = async () => {
     if (!target) return;
-    const ok = await copyText(`${articlePlainText(target)}\n— ${code} ${label}`);
+    // Same payload shape as buildCitation (copy-print.ts): blank line before
+    // the citation line.
+    const ok = await copyText(`${articlePlainText(target)}\n\n— ${code} ${label}`);
     if (ok) {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);

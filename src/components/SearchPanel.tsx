@@ -36,17 +36,13 @@ interface Match {
   label: string;
   start: number;
   end: number;
-  markable: boolean;
 }
 
-/** First normalized-substring match; markable only when offsets align. */
-function findMatch(
-  plain: string,
-  normQuery: string,
-): { start: number; end: number; markable: boolean } | null {
+/** First normalized-substring match in the article's plain text. */
+function findMatch(plain: string, normQuery: string): { start: number; end: number } | null {
   const idx = plain.indexOf(normQuery);
   if (idx === -1) return null;
-  return { start: idx, end: idx + normQuery.length, markable: true };
+  return { start: idx, end: idx + normQuery.length };
 }
 
 export function SearchPanel({ articles, onJump }: SearchPanelProps) {
@@ -136,7 +132,7 @@ export function SearchPanel({ articles, onJump }: SearchPanelProps) {
                   <span className="mt-0.5 block whitespace-pre-line text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
                     {w.ellipsisBefore && '…'}
                     {before}
-                    {r.markable && matched.length > 0 ? (
+                    {matched.length > 0 ? (
                       <mark className="rounded bg-amber-200/80 px-0.5 text-inherit dark:bg-amber-500/30">
                         {matched}
                       </mark>

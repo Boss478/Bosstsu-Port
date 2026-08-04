@@ -6,14 +6,16 @@
  *   npx tsx scripts/krulaw/validate.ts <file.md> ...  # specific files (may include _-prefixed)
  *
  * Parses + validates each file; cross-law codes are checked against
- * content/krulaw/planned-laws.json. Prints one line per error; exits 1 if
- * any law fails, 0 if all pass.
+ * content/krulaw/planned-laws.json plus LAW_CODE_ALIASES (src/lib/krulaw/
+ * terms.ts) — the same knownCodes build.ts uses. Prints one line per error;
+ * exits 1 if any law fails, 0 if all pass.
  */
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { parseLawMarkdown } from '../../src/lib/krulaw/parser';
 import { validateLawDoc } from '../../src/lib/krulaw/validate';
+import { LAW_CODE_ALIASES } from '../../src/lib/krulaw/terms';
 
 const ROOT = resolve(__dirname, '..', '..');
 const LAWS_DIR = join(ROOT, 'content', 'krulaw', 'laws');
@@ -40,7 +42,9 @@ function main(): void {
   let knownCodes: string[] = [];
   try {
     const planned = JSON.parse(readFileSync(PLANNED_PATH, 'utf8')) as PlannedLaw[];
-    knownCodes = planned.map((p) => p.code);
+    // Same knownCodes as build.ts: planned codes + LAW_CODE_ALIASES keys —
+    // cross-law refs using the alias form validate identically in both CLIs.
+    knownCodes = [...planned.map((p) => p.code), ...Object.keys(LAW_CODE_ALIASES)];
   } catch (err) {
     console.error(`[warn] cannot read ${PLANNED_PATH}: ${(err as Error).message}`);
   }

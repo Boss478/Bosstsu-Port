@@ -10,6 +10,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { validateLawDoc, LawDocSchema, ArticleTokenSchema } from '@/lib/krulaw/validate';
+import { LAW_CODE_ALIASES } from '@/lib/krulaw/terms';
 import type { LawDoc, Article } from '@/types/krulaw';
 
 // ---------------------------------------------------------------------------
@@ -241,6 +242,31 @@ describe('validateLawDoc', () => {
     const errors = validateLawDoc(doc);
     expect(errors).not.toEqual([]);
     expect(errors.join('\n')).toContain('1');
+  });
+
+  it('flags a law with zero editions (rule 4 must not no-op on an empty list)', () => {
+    const doc = makeDoc({ editions: [] });
+    const errors = validateLawDoc(doc);
+    expect(errors).not.toEqual([]);
+    expect(errors.join('\n')).toContain('editions');
+  });
+
+  it('flags an implicit empty-title chapter (articles before the first ## — rule 12)', () => {
+    const doc = makeDoc({
+      chapters: [
+        // what the parser produces for a มาตรา authored before any `##` heading
+        { no: null, title: '', articles: [art(1), art(2)] },
+        chapter([art(10)]),
+      ],
+    });
+    const errors = validateLawDoc(doc);
+    expect(errors).not.toEqual([]);
+    expect(errors.join('\n')).toContain('บทโดยนัย');
+  });
+
+  it('accepts an un-numbered chapter WITH a title (บททั่วไป — rule 12 boundary)', () => {
+    const doc = makeDoc({ chapters: [chapter([art(1), art(2)]), BASE_DOC.chapters[1]] });
+    expect(validateLawDoc(doc)).toEqual([]);
   });
 
   it('flags amendedBy editionNo not present in editions', () => {
@@ -580,14 +606,16 @@ describe('ArticleTokenSchema', () => {
 // ---------------------------------------------------------------------------
 // Case 10 (integration): cross-law refs vs the REAL planned-laws.json manifest
 // (content/krulaw/planned-laws.json — deterministic JSON import, no network).
-// build.ts wires knownCodes = planned codes + LAW_CODE_ALIASES
-// (scripts/krulaw/build.ts) — these pins document that contract.
+// build.ts wires knownCodes = planned codes + LAW_CODE_ALIASES keys (shared
+// from src/lib/krulaw/terms.ts, the zod-free home — the validate CLI uses the
+// SAME map, so both CLIs agree) — these pins document that contract.
 // ---------------------------------------------------------------------------
 
 import plannedLaws from '../../content/krulaw/planned-laws.json';
 
 describe('validateLawDoc — planned-laws.json integration (case 10)', () => {
   const PLANNED_CODES: string[] = plannedLaws.map((p) => p.code);
+  const ALIAS_KEYS: string[] = Object.keys(LAW_CODE_ALIASES);
 
   it('accepts a cross-law ref whose code is in the real planned-laws.json', () => {
     const doc = makeDoc({
@@ -612,9 +640,9 @@ describe('validateLawDoc — planned-laws.json integration (case 10)', () => {
     expect(validateLawDoc(doc, PLANNED_CODES)).toEqual([]);
   });
 
-  it('accepts the authored alias form (build.ts LAW_CODE_ALIASES)', () => {
+  it('accepts the authored alias form (LAW_CODE_ALIASES in terms.ts)', () => {
     const doc = makeDoc({ chapters: [chapter([CROSS_REF_ARTICLE])] });
-    expect(validateLawDoc(doc, [...PLANNED_CODES, 'พ.ร.บ.ข้าราชการครูฯ 2547'])).toEqual([]);
+    expect(validateLawDoc(doc, [...PLANNED_CODES, ...ALIAS_KEYS])).toEqual([]);
   });
 
   it('rejects a code absent from both planned-laws.json and the alias map', () => {
@@ -637,8 +665,15 @@ describe('validateLawDoc — planned-laws.json integration (case 10)', () => {
         ]),
       ],
     });
-    const errors = validateLawDoc(doc, [...PLANNED_CODES, 'พ.ร.บ.ข้าราชการครูฯ 2547']);
+    const errors = validateLawDoc(doc, [...PLANNED_CODES, ...ALIAS_KEYS]);
     expect(errors).not.toEqual([]);
     expect(errors.join('\n')).toContain('พ.ร.บ.ไม่มีอยู่จริง 2599');
+  });
+
+  it('the alias map keys exactly the planned-alias contract (shared with build.ts)', () => {
+    expect(ALIAS_KEYS).toEqual(['พ.ร.บ.ข้าราชการครูฯ 2547']);
+    expect(LAW_CODE_ALIASES['พ.ร.บ.ข้าราชการครูฯ 2547']).toBe(
+      'teachers-educational-personnel-civil-service-act-2547',
+    );
   });
 });

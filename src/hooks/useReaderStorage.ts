@@ -13,19 +13,23 @@
  * Scoping: pass `scope` (e.g. the law slug) to namespace every key as
  * `krulaw:<scope>:*`. With no/empty scope the legacy `krulaw:*` keys are used
  * (backward-compatible). Article keys are law-local (`${no}${suffix}`), so a
- * scope keeps bookmarks/notes/highlights/lastPosition per law.
+ * scope keeps bookmarks/notes/highlights/lastPosition per law. SETTINGS are
+ * the exception — FR11 is device-wide: one unscoped `krulaw:settings` key
+ * shared by every law, so reading preferences survive law switches.
  */
 import { useCallback, useMemo, useState } from 'react';
 import { safeGetJSON, safeGetString, safeSetJSON, safeSetString } from '@/lib/storage';
 import type { ReadingSettingsValue } from '@/app/(website)/krulaw/lib/reader-props';
 
 const KEY_BASES = {
-  settings: 'settings',
   bookmarks: 'bookmarks',
   lastPosition: 'last-position',
   notes: 'notes',
   highlights: 'highlights',
 } as const;
+
+/** FR11 settings — device-wide (NOT per-law scoped): one key for every law. */
+const SETTINGS_KEY = 'krulaw:settings';
 
 /** FR14 — user note attached to an article. */
 export interface Note {
@@ -118,14 +122,16 @@ export interface ReaderStorage {
 
 /**
  * Reader persistence over localStorage under `krulaw:*` (or `krulaw:<scope>:*`
- * when `scope` is provided). Scope is captured once at mount — the hook is
- * mounted per reader page, so a changing scope never needs re-syncing.
+ * when `scope` is provided) — EXCEPT settings, which are always the single
+ * device-wide `krulaw:settings` key (FR11). Scope is captured once at mount —
+ * the hook is mounted per reader page, so a changing scope never needs
+ * re-syncing.
  */
 export function useReaderStorage(scope?: string): ReaderStorage {
   const keys = useMemo(() => {
     const prefix = scope !== undefined && scope !== '' ? `krulaw:${scope}:` : 'krulaw:';
     return {
-      settings: `${prefix}${KEY_BASES.settings}`,
+      settings: SETTINGS_KEY,
       bookmarks: `${prefix}${KEY_BASES.bookmarks}`,
       lastPosition: `${prefix}${KEY_BASES.lastPosition}`,
       notes: `${prefix}${KEY_BASES.notes}`,

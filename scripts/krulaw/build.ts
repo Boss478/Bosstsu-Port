@@ -26,6 +26,7 @@ import {
   validatePlannedLaws,
   type PlannedLawEntry,
 } from '../../src/lib/krulaw/validate';
+import { LAW_CODE_ALIASES } from '../../src/lib/krulaw/terms';
 import type { LawDoc } from '../../src/types/krulaw';
 
 const ROOT = resolve(__dirname, '..', '..');
@@ -33,18 +34,6 @@ const LAWS_DIR = join(ROOT, 'content', 'krulaw', 'laws');
 const PLANNED_PATH = join(ROOT, 'content', 'krulaw', 'planned-laws.json');
 const OUT_DIR = join(ROOT, 'src', 'data', 'krulaw');
 const LAWS_OUT_DIR = join(OUT_DIR, 'laws');
-
-/**
- * Authored-code aliases → canonical slug (SCRUTINY-L2 manifest dedupe).
- * "พ.ร.บ.ข้าราชการครูฯ 2547" is the AUTHORED REF FORM of the same act as
- * "พ.ร.บ.ระเบียบข้าราชการครูและบุคลากรทางการศึกษา 2547" (canonical; the
- * PDF list is 10 files, one entry in planned-laws.json). build.ts emits BOTH
- * forms in codeToSlug and includes alias keys in knownCodes so cross-law
- * refs using either form validate.
- */
-const LAW_CODE_ALIASES: Record<string, string> = {
-  'พ.ร.บ.ข้าราชการครูฯ 2547': 'teachers-educational-personnel-civil-service-act-2547',
-};
 
 interface IndexEntry {
   slug: string;
@@ -73,7 +62,9 @@ function plannedCodes(planned: PlannedLawEntry[]): string[] {
 }
 
 function writeJson(path: string, data: unknown): void {
-  writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
+  // Compact emit (NFR2 — 150KB per-law JSON ceiling; pretty-print pushed the
+  // largest law past it). Git diffs are less readable, but size wins per NFR2.
+  writeFileSync(path, `${JSON.stringify(data)}\n`, 'utf8');
 }
 
 function articleCountOf(doc: LawDoc): number {
@@ -179,7 +170,34 @@ function main(): void {
   const aliasCheck = aliasErrors(planned);
   for (const e of aliasCheck) console.error(`[FAIL] alias map: ${e}`);
   if (aliasCheck.length > 0) {
-    failed.push({ file: 'build.ts LAW_CODE_ALIASES', slug: '', errors: aliasCheck });
+    failed.push({
+      file: 'LAW_CODE_ALIASES (src/lib/krulaw/terms.ts)',
+      slug: '',
+      errors: aliasCheck,
+    });
+  }
+
+  // --- built slug ↔ planned entry consistency (wave-2 MAJOR-2) --------------
+  // codeToSlug (emitted below) maps every authored code — planned codes +
+  // LAW_CODE_ALIASES keys — to the slug of its planned entry. Runtime
+  // cross-law lookups (loadCrossLaw) resolve the ref's authored code through
+  // codeToSlug → registry[slug], so a built law whose frontmatter slug is NOT
+  // a codeToSlug target is UNREACHABLE: every hover on it silently degrades
+  // to "ยังไม่เปิดให้อ่าน". Pass 1 verifies each built law's slug equals the
+  // planned slug for its code (planned entries ∪ alias targets) BEFORE any
+  // write — a divergence must fail the build, not ship.
+  const plannedSlugs = new Set(planned.filter((p) => p.code !== '').map((p) => p.slug));
+  for (const slug of Object.values(LAW_CODE_ALIASES)) plannedSlugs.add(slug);
+  for (const { file, doc } of passing) {
+    // The 'sample' preview fixture (--include-sample only) is deliberately
+    // outside planned-laws.json — never in the list, its code intentionally
+    // not a codeToSlug target (preview-only).
+    if (doc.slug === 'sample') continue;
+    if (!plannedSlugs.has(doc.slug)) {
+      const msg = `frontmatter slug "${doc.slug}" ไม่ตรงกับ planned-laws.json — codeToSlug ชี้ slug ที่ไม่ได้ build → cross-law hover จะแสดง "ยังไม่เปิดให้อ่าน"`;
+      console.error(`[FAIL] ${file} (slug "${doc.slug}"): ${msg}`);
+      failed.push({ file, slug: doc.slug, errors: [msg] });
+    }
   }
 
   if (check) {

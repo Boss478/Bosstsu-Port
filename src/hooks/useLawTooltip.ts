@@ -141,7 +141,15 @@ export function useLawTooltip() {
           return;
         }
         pointerPressedOnTrigger.delete(e.currentTarget);
-        setTooltip((prev) => (prev !== null && sameContent(prev.content, content) ? null : prev));
+        // Guarded closeTooltip, NOT a bare setTooltip(null): the close must
+        // clear openedByKeyboard (closeTooltip's only job besides closing) —
+        // a bare setTooltip would leave the stale keyboard flag set, and the
+        // NEXT mouse-opened tooltip would inherit sticky keyboard semantics
+        // (never closed by onScrollEnd/onResize → floats detached on scroll).
+        // The sameContent guard: only close when THIS trigger's content is the
+        // one open (a trigger→trigger move fires pointerleave before the new
+        // trigger's pointerenter re-opens with its own content).
+        if (tooltip !== null && sameContent(tooltip.content, content)) closeTooltip();
       },
       onPointerDown: (e) => {
         pointerPressedOnTrigger.add(e.currentTarget);
@@ -183,7 +191,7 @@ export function useLawTooltip() {
         openTooltip(content, e.currentTarget, { keyboard: true });
       },
     }),
-    [openTooltip],
+    [openTooltip, closeTooltip, tooltip],
   );
 
   // Global close paths while a tooltip is open: tap-elsewhere, Esc,

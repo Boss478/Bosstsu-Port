@@ -8,7 +8,7 @@
  */
 
 import type { Article, Chapter, LawDoc } from '@/types/krulaw';
-import { SHORT_TERM_ALLOWLIST } from '@/lib/krulaw/validate'; // TEMP-A/B
+import { SHORT_TERM_ALLOWLIST } from '@/lib/krulaw/terms';
 
 // ---------------------------------------------------------------------------
 // Structure helpers
