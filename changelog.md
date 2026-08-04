@@ -3,11 +3,11 @@
 > [!UPDATE NOTE]
 > **Symbols**: `+` = Added new feature for ... | `*` = Fixed/Changed this feature, by ... | `-` = Removed the feature, (reason/detail)
 
-## v1.10.88 (2026-08-04)
-* **KruLAW (pre-release, no bump — user approval pending)**: new legal-library module — reader + digest lanes, markdown → `LawDoc` parser pipeline, and real law content (พ.ร.บ.การศึกษาแห่งชาติ 2542, 82 มาตรา, built + indexed at `national-education-act-2542`; `planned-laws.json` manifest now flags it `"built": true` — 10 laws planned, 1 built).
-  + * **Release-prep (this draft)**: compact JSON emit restored — the pre-commit lint-staged prettier pass had re-inflated the emitted law JSON (138KB compact → 160KB pretty, over the NFR2 150KB ceiling); `src/data/krulaw/**` added to `.prettierignore` so committed data now byte-matches build emission (build deterministic — re-emit diff is format-only); `--check` green.
+## v1.11.0 (2026-08-04)
+* **KruLAW**: new legal-library module — reader + digest lanes, markdown → `LawDoc` parser pipeline, and real law content (พ.ร.บ.การศึกษาแห่งชาติ 2542, 82 มาตรา, built + indexed at `national-education-act-2542`; `planned-laws.json` manifest now flags it `"built": true` — 10 laws planned, 1 built).
+  + * **Release-prep**: compact JSON emit restored — the pre-commit lint-staged prettier pass had re-inflated the emitted law JSON (138KB compact → 160KB pretty, over the NFR2 150KB ceiling); `src/data/krulaw/**` added to `.prettierignore` so committed data now byte-matches build emission (build deterministic — re-emit diff is format-only); `--check` green.
   + * **Module**: reader (`(website)/krulaw/[slug]`) + digest lane + parser/normalize/snippet/validate pipeline (`src/lib/krulaw/`) + 148+ tests (152 in `tests/krulaw/`) + eval; build `--check`/tsc/lint/vitest green.
-+ **Dev tooling perf (pre-release, no bump)**: dev → Turbopack (`next dev -p 3300`, obsolete `--webpack` opt-out dropped) · lint cache (`eslint --cache`, `.eslintcache` gitignored) · vitest split into parallel unit suite (37 files) + serial DB suite (19 files, shared-Mongo safety preserved) with a test-inventory rot guard (`test:check-inventory` fails `npm run test` if any test file is dropped or double-listed) · `analyze` migrated to `next experimental-analyze`, `@next/bundle-analyzer` devDep removed.
++ **Dev tooling perf**: dev → Turbopack (`next dev -p 3300`, obsolete `--webpack` opt-out dropped) · lint cache (`eslint --cache`, `.eslintcache` gitignored) · vitest split into parallel unit suite (37 files) + serial DB suite (19 files, shared-Mongo safety preserved) with a test-inventory rot guard (`test:check-inventory` fails `npm run test` if any test file is dropped or double-listed) · `analyze` migrated to `next experimental-analyze`, `@next/bundle-analyzer` devDep removed.
 
 ## v1.10.87 (2026-08-03)
 * **Class Tools — review-driven hardening + first full test coverage (3-agent review; senior-approved FIX-3)**:
