@@ -1,0 +1,112 @@
+/**
+ * LawLib — print styles (FR13: printed output is PLAIN LAW TEXT ONLY).
+ *
+ * Import this once from the reader client tree (B2's LawlibReaderClient or
+ * the lawlib layout):
+ *   import '@/app/(website)/lawlib/print.css';
+ *
+ * Print runs through the DEDICATED print target built by `lib/copy-print.ts`
+ * (printArticle/printLaw — self-contained doc, Sarabun inlined). These rules
+ * cover the in-place Ctrl+P path on the reader page: site chrome + reader
+ * panels + tooltips/forms are hidden; law text keeps Sarabun; each
+ * `.lawlib-chapter` starts on a new page.
+ *
+ * Class contract (aligned to the actual reader DOM — GATE-2):
+ * - `.lawlib-panel`      — the leaf panels (SearchPanel, GlossaryPanel —
+ *                          both carry this class)
+ * - `.lawlib-tooltip`    — LawTooltip portal root
+ * - `.lawlib-dock`       — the floating ReadingDock (FR-C)
+ * - `.lawlib-theme-fab`  — digest page theme-cycle FAB (lane E; must not print)
+ * - `.lawlib-toc`        — TocSidebar root
+ * - `.lawlib-timeline`   — EditionTimeline (amendment history = chrome)
+ * - `.lawlib-chapter`    — chapter container in ArticleView (break per หมวด)
+ * - `.lawlib-article`    — article element in ArticleView (keep unsplit)
+ * - `.lawlib-repealed`   — repealed-paragraph reveal button: law CONTENT —
+ *                          exempted from the generic button:hide rule
+ * - `.lawlib-repealed-text` — the repealed body span; always in the DOM
+ *                          (screen-collapsed via Tailwind `hidden`), so the
+ *                          printout shows it even when not expanded
+ *
+ * Site chrome: the site header is a <nav> (Header.tsx), the footer a <footer>,
+ * and the reader panel drawer an <aside> — so hiding those elements (NOT the
+ * law header, which is a plain <header> carrying the law title) covers the
+ * rest. `header` itself must NOT be hidden — LawlibReaderClient's law header
+ * holds the title, which SHOULD print.
+ */
+
+@media print {
+  @page {
+    margin: 2cm;
+  }
+
+  /* Sarabun preserved (the lawlib layout sets --font-sarabun) + Thai
+     readability line-height. */
+  html,
+  body {
+    font-family: var(--font-sarabun, 'Sarabun'), 'Noto Sans Thai', sans-serif !important;
+    line-height: 1.7 !important;
+  }
+
+  /* Hide chrome: site nav/footer + LawLib panels, tooltip, dock, TOC,
+     amendment timeline and the panel drawer (<aside>). */
+  nav,
+  footer,
+  aside,
+  .lawlib-panel,
+  .lawlib-tooltip,
+  .lawlib-dock,
+  .lawlib-toc,
+  .lawlib-timeline,
+  .lawlib-theme-fab {
+    display: none !important;
+  }
+
+  /* Plain text only — no interactive controls. (The repealed-paragraph
+     reveals below are law CONTENT, not chrome — exempted explicitly.) */
+  button,
+  input,
+  select,
+  textarea {
+    display: none !important;
+  }
+
+  /* Repealed paragraphs print as plain text: the dimmed bullet blocks are
+     part of the law text. Overrides BOTH the generic button:hide rule above
+     (class beats element selector at equal !important) and the collapsed
+     `hidden` state on the body span (block !important beats plain none). */
+  .lawlib-repealed {
+    display: block !important;
+  }
+  .lawlib-repealed-text {
+    display: block !important;
+  }
+
+  /* Strip card chrome in-place (FR-G surfaces): the reader content card,
+     the TOC card, and the list/digest cards — printed output is plain text. */
+  .lawlib-article-card,
+  .lawlib-toc,
+  .lawlib-list-card,
+  .lawlib-digest-card {
+    border: none !important;
+    background: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  /* Page break per หมวด (and keep single articles unsplit). */
+  .lawlib-chapter {
+    break-before: page;
+  }
+  .lawlib-chapter:first-of-type {
+    break-before: auto;
+  }
+  .lawlib-article {
+    break-inside: avoid;
+  }
+
+  /* Links: law text is a document — drop link decorations. */
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+}

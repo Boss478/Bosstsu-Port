@@ -48,7 +48,7 @@ function getInitialTheme(): Theme {
  */
 function getInitialPaperTone(): PaperTone {
   if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('krulaw:paperTone');
+    const saved = localStorage.getItem('lawlib:paperTone');
     if (saved === 'soft' || saved === 'classic' || saved === 'warm') {
       return saved;
     }
@@ -117,7 +117,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const setPaperTone = (tone: PaperTone) => {
     setPaperToneState(tone);
-    localStorage.setItem('krulaw:paperTone', tone);
+    localStorage.setItem('lawlib:paperTone', tone);
     document.documentElement.setAttribute('data-paper-tone', tone);
   };
 

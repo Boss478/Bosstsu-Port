@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 /**
  * TDD-first (Wave 1, Lane A) — pins the PLANNED 3-mode theme API
- * (`.agents/plans/krulaw-reading-redesign.md` §4.1, P2) BEFORE implementation.
+ * (`.agents/plans/lawlib-reading-redesign.md` §4.1, P2) BEFORE implementation.
  *
  * RED NOW (expected): `getInitialTheme`, `setTheme`, `paperTone` and
  * `setPaperTone` do not exist in `src/components/ThemeProvider.tsx` today.
@@ -13,7 +13,7 @@
  *   ThemeContextType += { setTheme, paperTone, setPaperTone }
  *   toggleTheme(): light↔dark only — NEVER steps into 'read'
  *   exactly ONE of .light/.dark/.read on <html> (all three toggled explicitly — FR-B)
- *   paperTone persisted at `krulaw:paperTone`, mirrored on <html data-paper-tone>
+ *   paperTone persisted at `lawlib:paperTone`, mirrored on <html data-paper-tone>
  *
  * jsdom has no matchMedia — stubbed per test via mockMatchMedia().
  */
@@ -213,28 +213,28 @@ describe('paperTone (P2 — new state)', () => {
     expect(document.documentElement.getAttribute('data-paper-tone')).toBe('classic');
   });
 
-  it('setPaperTone persists to krulaw:paperTone and updates the attribute', () => {
+  it('setPaperTone persists to lawlib:paperTone and updates the attribute', () => {
     renderProvider();
     fireEvent.click(screen.getByText('set-tone-soft'));
     expect(screen.getByTestId('paper-tone').textContent).toBe('soft');
-    expect(localStorage.getItem('krulaw:paperTone')).toBe('soft');
+    expect(localStorage.getItem('lawlib:paperTone')).toBe('soft');
     expect(document.documentElement.getAttribute('data-paper-tone')).toBe('soft');
 
     fireEvent.click(screen.getByText('set-tone-warm'));
     expect(screen.getByTestId('paper-tone').textContent).toBe('warm');
-    expect(localStorage.getItem('krulaw:paperTone')).toBe('warm');
+    expect(localStorage.getItem('lawlib:paperTone')).toBe('warm');
     expect(document.documentElement.getAttribute('data-paper-tone')).toBe('warm');
   });
 
   it('boots from a stored tone ("warm")', () => {
-    localStorage.setItem('krulaw:paperTone', 'warm');
+    localStorage.setItem('lawlib:paperTone', 'warm');
     renderProvider();
     expect(screen.getByTestId('paper-tone').textContent).toBe('warm');
     expect(document.documentElement.getAttribute('data-paper-tone')).toBe('warm');
   });
 
   it('falls back to "classic" on an invalid stored tone', () => {
-    localStorage.setItem('krulaw:paperTone', 'blue');
+    localStorage.setItem('lawlib:paperTone', 'blue');
     renderProvider();
     expect(screen.getByTestId('paper-tone').textContent).toBe('classic');
     expect(document.documentElement.getAttribute('data-paper-tone')).toBe('classic');

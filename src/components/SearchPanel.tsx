@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * KruLAW — in-law article search (FR6).
+ * LawLib — in-law article search (FR6).
  *
  * Controlled leaf: takes the law's flattened articles + an onJump callback.
  * Query normalization reuses `normalizeText` (Thai digits ๐-๙ → 0-9, NFC,
@@ -22,11 +22,11 @@
  * '\n' shows as line breaks (SCRUTINY-L2).
  */
 import { useEffect, useMemo, useState } from 'react';
-import type { SearchPanelProps } from '@/app/(website)/krulaw/lib/reader-props';
-import { normalizeText } from '@/lib/krulaw/normalize';
-import { articleLabel } from '@/lib/krulaw-reader';
+import type { SearchPanelProps } from '@/app/(website)/lawlib/lib/reader-props';
+import { normalizeText } from '@/lib/lawlib/normalize';
+import { articleLabel } from '@/lib/lawlib-reader';
 import { articleKey, articlePlainText } from '@/lib/copy-print';
-import { snippetWindow } from '@/lib/krulaw/snippet';
+import { snippetWindow } from '@/lib/lawlib/snippet';
 
 const DEBOUNCE_MS = 180;
 
@@ -77,9 +77,9 @@ export function SearchPanel({ articles, onJump }: SearchPanelProps) {
   }, [byKey, normQuery]);
 
   return (
-    <section className="krulaw-panel flex flex-col overflow-hidden" aria-label="ค้นหามาตรา">
+    <section className="lawlib-panel flex flex-col overflow-hidden" aria-label="ค้นหามาตรา">
       <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
-        <label htmlFor="krulaw-search-input" className="sr-only">
+        <label htmlFor="lawlib-search-input" className="sr-only">
           ค้นหามาตรา
         </label>
         <div className="relative">
@@ -88,7 +88,7 @@ export function SearchPanel({ articles, onJump }: SearchPanelProps) {
             className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 dark:text-zinc-500"
           />
           <input
-            id="krulaw-search-input"
+            id="lawlib-search-input"
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}

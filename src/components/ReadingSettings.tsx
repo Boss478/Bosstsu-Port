@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * KruLAW — reading preferences (FR11): font size, line height, content width.
+ * LawLib — reading preferences (FR11): font size, line height, content width.
  *
  * Fully CONTROLLED (props in / onChange out) — no persistence here; the
  * storage layer (`hooks/useReaderStorage`) owns state, and the reader core
@@ -11,7 +11,7 @@
 import type {
   ReadingSettingsProps,
   ReadingSettingsValue,
-} from '@/app/(website)/krulaw/lib/reader-props';
+} from '@/app/(website)/lawlib/lib/reader-props';
 
 const FONT_SIZES: ReadonlyArray<{
   value: ReadingSettingsValue['fontSize'];
@@ -35,14 +35,14 @@ const LINE_HEIGHT_MIN = 1.5;
 const LINE_HEIGHT_MAX = 2.2;
 const LINE_HEIGHT_STEP = 0.1;
 
-interface SegmentProps<T extends string> {
+export interface SegmentProps<T extends string> {
   label: string;
   options: ReadonlyArray<{ value: T; label: string; aria: string }>;
   value: T;
   onSelect: (value: T) => void;
 }
 
-function Segment<T extends string>({ label, options, value, onSelect }: SegmentProps<T>) {
+export function Segment<T extends string>({ label, options, value, onSelect }: SegmentProps<T>) {
   return (
     <div
       role="group"
@@ -72,7 +72,7 @@ function Segment<T extends string>({ label, options, value, onSelect }: SegmentP
 
 export function ReadingSettings({ settings, onChange }: ReadingSettingsProps) {
   return (
-    <section className="krulaw-panel space-y-4" aria-label="ตั้งค่าการอ่าน">
+    <section className="lawlib-panel space-y-4" aria-label="ตั้งค่าการอ่าน">
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">ขนาดตัวอักษร</p>
         <Segment
@@ -85,14 +85,14 @@ export function ReadingSettings({ settings, onChange }: ReadingSettingsProps) {
 
       <div className="flex items-center justify-between gap-4">
         <label
-          htmlFor="krulaw-line-height"
+          htmlFor="lawlib-line-height"
           className="text-sm font-semibold text-zinc-800 dark:text-zinc-100"
         >
           ความสูงบรรทัด
         </label>
         <div className="flex items-center gap-2">
           <input
-            id="krulaw-line-height"
+            id="lawlib-line-height"
             type="range"
             min={LINE_HEIGHT_MIN}
             max={LINE_HEIGHT_MAX}

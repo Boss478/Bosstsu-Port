@@ -1,5 +1,5 @@
 /**
- * KruLAW — copy & print helpers (FR12/FR13).
+ * LawLib — copy & print helpers (FR12/FR13).
  *
  * FR13: print output is PLAIN LAW TEXT ONLY — no highlights, notes, tooltips,
  * or navigation chrome. Both `printArticle` and `printLaw` build a fresh,
@@ -10,10 +10,10 @@
  * All DOM access is window-guarded; the pure helpers (`articlePlainText`,
  * `articleKey`, `buildCitation`, `lawPrintMarkup`) are SSR-safe.
  */
-import type { Article, LawDoc } from '@/types/krulaw';
-import { articleKeyOf, articleLabel, articlePlainText } from '@/lib/krulaw-reader';
+import type { Article, LawDoc } from '@/types/lawlib';
+import { articleKeyOf, articleLabel, articlePlainText } from '@/lib/lawlib-reader';
 
-// Single source of truth lives in `lib/krulaw-reader.ts`; these aliases keep
+// Single source of truth lives in `lib/lawlib-reader.ts`; these aliases keep
 // copy-print's historical public API stable (SearchPanel + reader core import
 // them from here).
 /** Article key — `${no}${suffix ?? ''}` (frozen contract). */
@@ -82,21 +82,21 @@ function chapterPrintHtml(chapters: LawDoc['chapters']): string {
           .map((a) => {
             const paragraphs = articlePlainText(a).split('\n');
             const body = paragraphs
-              .map((p) => `<p class="krulaw-article-text">${escapeHtml(p)}</p>`)
+              .map((p) => `<p class="lawlib-article-text">${escapeHtml(p)}</p>`)
               .join('');
-            return `<div class="krulaw-article"><p class="krulaw-article-no">${escapeHtml(articleLabel(a.no, a.suffix))}</p>${body}</div>`;
+            return `<div class="lawlib-article"><p class="lawlib-article-no">${escapeHtml(articleLabel(a.no, a.suffix))}</p>${body}</div>`;
           })
           .join('');
       const sections = (ch.sections ?? [])
         .map((s) => {
           const sectionTitle =
             s.title.length > 0
-              ? `<h3 class="krulaw-section">${s.no === null ? escapeHtml(s.title) : `ส่วนที่ ${s.no} ${escapeHtml(s.title)}`}</h3>`
+              ? `<h3 class="lawlib-section">${s.no === null ? escapeHtml(s.title) : `ส่วนที่ ${s.no} ${escapeHtml(s.title)}`}</h3>`
               : '';
           return `${sectionTitle}${articleHtml(s.articles)}`;
         })
         .join('');
-      return `<section class="krulaw-chapter"><h2 class="krulaw-chapter-title">${heading}</h2>${articleHtml(ch.articles)}${sections}</section>`;
+      return `<section class="lawlib-chapter"><h2 class="lawlib-chapter-title">${heading}</h2>${articleHtml(ch.articles)}${sections}</section>`;
     })
     .join('');
 }
@@ -108,9 +108,9 @@ function chapterPrintHtml(chapters: LawDoc['chapters']): string {
  */
 export function lawPrintMarkup(law: LawDoc): string {
   return `
-    <header class="krulaw-law-header">
-      <h1 class="krulaw-law-title">${escapeHtml(law.titleTh)}</h1>
-      <p class="krulaw-law-meta">${escapeHtml(law.subject)} · ประกาศราชกิจจานุเบกษา ${escapeHtml(law.gazetteRef)}</p>
+    <header class="lawlib-law-header">
+      <h1 class="lawlib-law-title">${escapeHtml(law.titleTh)}</h1>
+      <p class="lawlib-law-meta">${escapeHtml(law.subject)} · ประกาศราชกิจจานุเบกษา ${escapeHtml(law.gazetteRef)}</p>
     </header>
     ${chapterPrintHtml(law.chapters)}
   `;
@@ -138,13 +138,13 @@ function buildPrintDoc(title: string, bodyHtml: string, sarabunFont: string): st
   h1 { font-size: 20px; margin: 0 0 4px; }
   h2 { font-size: 16px; margin: 0 0 12px; }
   h3 { font-size: 14px; margin: 12px 0 8px; }
-  .krulaw-law-meta { font-size: 12px; color: #4b5563; margin: 0 0 16px; }
-  .krulaw-chapter { break-before: page; }
-  .krulaw-chapter:first-of-type { break-before: auto; }
-  .krulaw-article { break-inside: avoid; margin: 0 0 10px; }
-  .krulaw-article-no { font-weight: 600; margin: 0; }
-  .krulaw-article-text { margin: 0; }
-  .krulaw-source { margin-top: 16px; font-size: 12px; color: #4b5563; }
+  .lawlib-law-meta { font-size: 12px; color: #4b5563; margin: 0 0 16px; }
+  .lawlib-chapter { break-before: page; }
+  .lawlib-chapter:first-of-type { break-before: auto; }
+  .lawlib-article { break-inside: avoid; margin: 0 0 10px; }
+  .lawlib-article-no { font-weight: 600; margin: 0; }
+  .lawlib-article-text { margin: 0; }
+  .lawlib-source { margin-top: 16px; font-size: 12px; color: #4b5563; }
   @media print { body { padding: 0; } }
 </style>
 </head>
@@ -158,7 +158,7 @@ function buildPrintDoc(title: string, bodyHtml: string, sarabunFont: string): st
  * ~41KB never enters the reader bundle (dynamic import = own chunk).
  */
 async function loadSarabunRegular(): Promise<string> {
-  const mod = await import('@/app/(website)/krulaw/sarabun-regular-b64');
+  const mod = await import('@/app/(website)/lawlib/sarabun-regular-b64');
   return mod.default;
 }
 
@@ -213,8 +213,8 @@ export async function printArticle(article: Article, law: { code: string }): Pro
   const sarabun = await loadSarabunRegular();
   const body = `
     <h1>${escapeHtml(articleLabel(article.no, article.suffix))}</h1>
-    <p class="krulaw-article-text">${escapeHtml(articlePlainText(article)).replace(/\n/g, '<br />')}</p>
-    <p class="krulaw-source">— ${escapeHtml(law.code)} ${escapeHtml(articleLabel(article.no, article.suffix))}</p>
+    <p class="lawlib-article-text">${escapeHtml(articlePlainText(article)).replace(/\n/g, '<br />')}</p>
+    <p class="lawlib-source">— ${escapeHtml(law.code)} ${escapeHtml(articleLabel(article.no, article.suffix))}</p>
   `;
   const target = openPrintTarget(
     buildPrintDoc(`${articleLabel(article.no, article.suffix)} — ${law.code}`, body, sarabun),

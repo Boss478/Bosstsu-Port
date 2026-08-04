@@ -1,5 +1,5 @@
 /**
- * KruLAW — highlight re-application helpers (FR14).
+ * LawLib — highlight re-application helpers (FR14).
  *
  * Highlights are stored as char offsets into an article's PLAIN text
  * (see `articlePlainText` in `lib/copy-print.ts`). Content is static

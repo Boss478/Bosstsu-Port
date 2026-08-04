@@ -3,12 +3,12 @@ import path from 'node:path';
 
 const BASE_URL = 'https://srv1676702.hstgr.cloud';
 
-// Reads src/data/krulaw/index.json via node fs (same pattern as the KruLAW
-// pages): absent/unreadable → no KruLAW detail URLs, never a build failure.
+// Reads src/data/lawlib/index.json via node fs (same pattern as the LawLib
+// pages): absent/unreadable → no LawLib detail URLs, never a build failure.
 // 'sample' is a LOCAL PREVIEW FIXTURE — it must never appear in the sitemap.
-function readKrulawSlugs(): string[] {
+function readLawlibSlugs(): string[] {
   try {
-    const raw = fs.readFileSync(path.join(process.cwd(), 'src/data/krulaw/index.json'), 'utf8');
+    const raw = fs.readFileSync(path.join(process.cwd(), 'src/data/lawlib/index.json'), 'utf8');
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
     return parsed
@@ -53,25 +53,25 @@ export default async function sitemap() {
       priority: 0.7,
     },
     {
-      url: `${BASE_URL}/krulaw`,
+      url: `${BASE_URL}/lawlib`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     },
     {
-      url: `${BASE_URL}/krulaw/digest`,
+      url: `${BASE_URL}/lawlib/digest`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     },
   ];
 
-  const krulawRoutes = readKrulawSlugs().map((slug) => ({
-    url: `${BASE_URL}/krulaw/${slug}`,
+  const lawlibRoutes = readLawlibSlugs().map((slug) => ({
+    url: `${BASE_URL}/lawlib/${slug}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
     priority: 0.6,
   }));
 
-  return [...staticRoutes, ...krulawRoutes];
+  return [...staticRoutes, ...lawlibRoutes];
 }

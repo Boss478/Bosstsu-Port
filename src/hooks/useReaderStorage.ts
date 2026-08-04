@@ -1,29 +1,29 @@
 'use client';
 
 /**
- * KruLAW — reader persistence (FR10 bookmarks, FR11 settings, FR14 notes +
- * highlights), one hook over localStorage under `krulaw:*` keys.
+ * LawLib — reader persistence (FR10 bookmarks, FR11 settings, FR14 notes +
+ * highlights), one hook over localStorage under `lawlib:*` keys.
  *
  * SAFETY: lazy `useState` init reads localStorage directly, so this hook may
- * ONLY be used inside the `ssr: false` Shell boundary (KrulawReaderShell →
- * KrulawReaderClient). Using it in an SSR'd tree would cause hydration
+ * ONLY be used inside the `ssr: false` Shell boundary (LawlibReaderShell →
+ * LawlibReaderClient). Using it in an SSR'd tree would cause hydration
  * mismatch. All reads are defensive: null / parse-failure / wrong shape
  * fall back to defaults.
  *
  * Scoping: pass `scope` (e.g. the law slug) to namespace every key as
- * `krulaw:<scope>:*`. With no/empty scope the legacy `krulaw:*` keys are used
+ * `lawlib:<scope>:*`. With no/empty scope the legacy `lawlib:*` keys are used
  * (backward-compatible). Article keys are law-local (`${no}${suffix}`), so a
  * scope keeps bookmarks/notes/highlights/lastPosition per law. SETTINGS are
- * the exception — FR11 is device-wide: one unscoped `krulaw:settings` key
+ * the exception — FR11 is device-wide: one unscoped `lawlib:settings` key
  * shared by every law, so reading preferences survive law switches.
  *
  * Exports (P3, shared with SettingsMenu): `validateReadingSettings` is the ONE
  * sanitizer for every settings read; `loadGlobalSettings`/`saveGlobalSettings`
- * read/write the device-wide `krulaw:settings` key directly.
+ * read/write the device-wide `lawlib:settings` key directly.
  */
 import { useCallback, useMemo, useState } from 'react';
 import { safeGetJSON, safeGetString, safeSetJSON, safeSetString } from '@/lib/storage';
-import type { ReadingSettingsValue } from '@/app/(website)/krulaw/lib/reader-props';
+import type { ReadingSettingsValue } from '@/app/(website)/lawlib/lib/reader-props';
 
 const KEY_BASES = {
   bookmarks: 'bookmarks',
@@ -33,7 +33,7 @@ const KEY_BASES = {
 } as const;
 
 /** FR11 settings — device-wide (NOT per-law scoped): one key for every law. */
-const SETTINGS_KEY = 'krulaw:settings';
+const SETTINGS_KEY = 'lawlib:settings';
 
 /** FR14 — user note attached to an article. */
 export interface Note {
@@ -88,7 +88,7 @@ export function validateReadingSettings(input: unknown): ReadingSettingsValue {
 }
 
 /**
- * Reads the device-wide settings key `krulaw:settings` (FR11 — one key shared
+ * Reads the device-wide settings key `lawlib:settings` (FR11 — one key shared
  * by every law). Returns null when the key is missing or the stored JSON is
  * unparseable; anything that parses is passed through the SHARED validator
  * (invalid values sanitized, never returned raw).
@@ -98,7 +98,7 @@ export function loadGlobalSettings(): ReadingSettingsValue | null {
   return raw === null ? null : validateReadingSettings(raw);
 }
 
-/** Writes settings JSON under the device-wide `krulaw:settings` key (FR11). */
+/** Writes settings JSON under the device-wide `lawlib:settings` key (FR11). */
 export function saveGlobalSettings(value: ReadingSettingsValue): void {
   safeSetJSON(SETTINGS_KEY, value);
 }
@@ -158,15 +158,15 @@ export interface ReaderStorage {
 }
 
 /**
- * Reader persistence over localStorage under `krulaw:*` (or `krulaw:<scope>:*`
+ * Reader persistence over localStorage under `lawlib:*` (or `lawlib:<scope>:*`
  * when `scope` is provided) — EXCEPT settings, which are always the single
- * device-wide `krulaw:settings` key (FR11). Scope is captured once at mount —
+ * device-wide `lawlib:settings` key (FR11). Scope is captured once at mount —
  * the hook is mounted per reader page, so a changing scope never needs
  * re-syncing.
  */
 export function useReaderStorage(scope?: string): ReaderStorage {
   const keys = useMemo(() => {
-    const prefix = scope !== undefined && scope !== '' ? `krulaw:${scope}:` : 'krulaw:';
+    const prefix = scope !== undefined && scope !== '' ? `lawlib:${scope}:` : 'lawlib:';
     return {
       settings: SETTINGS_KEY,
       bookmarks: `${prefix}${KEY_BASES.bookmarks}`,

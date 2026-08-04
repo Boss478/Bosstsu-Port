@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * KruLAW — article renderer (FR2/FR3/FR4/FR14 render layer).
+ * LawLib — article renderer (FR2/FR3/FR4/FR14 render layer).
  *
  * law JSON → React spans:
  *  (a) chapters/sections headings + articles in document order
@@ -20,7 +20,7 @@
  */
 
 import { memo, useMemo, useState } from 'react';
-import type { Article, LawDoc } from '@/types/krulaw';
+import type { Article, LawDoc } from '@/types/lawlib';
 import {
   articleKeyOf,
   articleLabel,
@@ -29,7 +29,7 @@ import {
   glossaryIndex,
   splitByTerms,
   type GlossaryTerm,
-} from '@/lib/krulaw-reader';
+} from '@/lib/lawlib-reader';
 import { mergeHighlightRanges } from '@/lib/highlight-store';
 import type { TooltipContent, TooltipTriggerHandlers } from '@/hooks/useLawTooltip';
 
@@ -107,7 +107,7 @@ function renderHighlightedText(
  * Article renderer — memoized: `law` / `highlights` / `noteKeys` / `flashKey`
  * change rarely (highlights only on add/remove), and `getTriggerProps` is a
  * stable callback from useLawTooltip — so re-renders are skipped when only the
- * reader's panel/tooltip chrome changes (KrulawReaderClient re-renders then).
+ * reader's panel/tooltip chrome changes (LawlibReaderClient re-renders then).
  */
 function ArticleView({
   law,
@@ -216,8 +216,8 @@ function ArticleView({
       <article
         key={key}
         id={`มาตรา-${key}`}
-        data-krulaw-article={key}
-        className={`krulaw-article scroll-mt-20 rounded-xl px-1 py-3 transition-colors duration-500 ${
+        data-lawlib-article={key}
+        className={`lawlib-article scroll-mt-20 rounded-xl px-1 py-3 transition-colors duration-500 ${
           isFlash
             ? 'bg-amber-50 ring-2 ring-amber-300 dark:bg-amber-950/30 dark:ring-amber-500/50'
             : ''
@@ -229,7 +229,7 @@ function ArticleView({
             tabIndex={0}
             aria-expanded={isTooltipOpen(render.headerContent)}
             aria-haspopup="true"
-            data-krulaw-trigger
+            data-lawlib-trigger
             className="inline-flex cursor-pointer items-center rounded-lg font-bold text-blue-800 underline decoration-dotted decoration-blue-400/70 underline-offset-4 hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
             {...getTriggerProps(render.headerContent)}
           >
@@ -245,8 +245,8 @@ function ArticleView({
         </Heading>
 
         <div
-          data-krulaw-body
-          data-krulaw-article={key}
+          data-lawlib-body
+          data-lawlib-article={key}
           className="space-y-2 whitespace-pre-line text-slate-800 dark:text-slate-200"
         >
           {render.segments.map((seg, i) =>
@@ -258,8 +258,8 @@ function ArticleView({
                   tabIndex={0}
                   aria-expanded={isTooltipOpen(seg.content)}
                   aria-haspopup="true"
-                  data-krulaw-trigger
-                  data-krulaw-term={seg.term.term}
+                  data-lawlib-trigger
+                  data-lawlib-term={seg.term.term}
                   className="cursor-pointer rounded-sm border-b-2 border-dashed border-amber-400/80 font-medium text-amber-800 hover:bg-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-amber-500/60 dark:text-amber-300 dark:hover:bg-amber-950/40"
                   {...getTriggerProps(seg.content)}
                 >
@@ -275,7 +275,7 @@ function ArticleView({
                 tabIndex={0}
                 aria-expanded={isTooltipOpen(seg.content)}
                 aria-haspopup="true"
-                data-krulaw-trigger
+                data-lawlib-trigger
                 className="cursor-pointer font-medium text-blue-700 underline decoration-dotted underline-offset-4 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
                 {...getTriggerProps(seg.content)}
               >
@@ -296,7 +296,7 @@ function ArticleView({
                     type="button"
                     onClick={() => toggleRevealed(id)}
                     aria-expanded={open}
-                    className="krulaw-repealed w-full cursor-pointer rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-1.5 text-left text-xs leading-relaxed text-slate-500 transition-colors hover:border-slate-400 hover:text-slate-600 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-slate-300"
+                    className="lawlib-repealed w-full cursor-pointer rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-1.5 text-left text-xs leading-relaxed text-slate-500 transition-colors hover:border-slate-400 hover:text-slate-600 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-slate-300"
                   >
                     <span className="flex items-center gap-1.5 font-medium">
                       <i
@@ -311,7 +311,7 @@ function ArticleView({
                         state); Tailwind `hidden` keeps it off-screen + out of
                         the a11y tree when collapsed (print CSS overrides). */}
                     <span
-                      className={`krulaw-repealed-text mt-1.5 block whitespace-pre-line text-slate-600 dark:text-slate-300 ${
+                      className={`lawlib-repealed-text mt-1.5 block whitespace-pre-line text-slate-600 dark:text-slate-300 ${
                         open ? '' : 'hidden'
                       }`}
                     >
@@ -333,7 +333,7 @@ function ArticleView({
         <section
           key={ci}
           aria-label={`${chapter.no !== null ? `หมวด ${chapter.no} ` : ''}${chapter.title}`}
-          className="krulaw-chapter"
+          className="lawlib-chapter"
         >
           <h2 className="mb-4 mt-8 flex flex-wrap items-baseline gap-x-2 text-xl font-bold leading-relaxed text-slate-900 first:mt-0 dark:text-white">
             {chapter.no !== null && (
