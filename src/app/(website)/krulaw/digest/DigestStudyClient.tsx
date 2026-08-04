@@ -8,8 +8,40 @@
  * and a per-section มาตรา jump-strip. No localStorage/state — pure render.
  */
 
+import { useEffect } from 'react';
 import Link from 'next/link';
+import { THEMES, useTheme } from '@/components/ThemeProvider';
+import type { Theme } from '@/components/ThemeProvider';
 import type { DigestView, RenderLine, RenderToken } from './digest-view';
+
+/** TH labels + icons per theme (plan §4.3 pattern: icon per current theme). */
+const THEME_META: Record<Theme, { icon: string; labelTh: string }> = {
+  light: { icon: 'fi-sr-sun', labelTh: 'สว่าง' },
+  dark: { icon: 'fi-sr-moon', labelTh: 'มืด' },
+  read: { icon: 'fi-sr-book', labelTh: 'อ่าน' },
+};
+
+/**
+ * Compact 3-mode theme-cycle button — read mode must not be a dead-end on the
+ * digest (navbar hidden there, no dock/gear). The `krulaw-theme-fab` class is
+ * the print.css hide hook (Lane D's contract).
+ */
+function ThemeFab() {
+  const { theme, setTheme } = useTheme();
+  const next = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
+  const meta = THEME_META[theme];
+  const nextMeta = THEME_META[next];
+  return (
+    <button
+      type="button"
+      onClick={() => setTheme(next)}
+      aria-label={`โหมดปัจจุบัน: ${meta.labelTh} — สลับเป็น ${nextMeta.labelTh}`}
+      className="krulaw-theme-fab fixed right-6 bottom-32 z-50 flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white/90 text-slate-700 shadow-md backdrop-blur transition-colors hover:border-blue-300 hover:text-blue-700 md:right-10 dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-200 dark:hover:border-blue-500/60"
+    >
+      <i aria-hidden="true" className={`fi ${meta.icon} text-base leading-none`} />
+    </button>
+  );
+}
 
 /** Inline `~~…~~` strikethrough + `**…**` bold over plain text (unbalanced markers stay literal). */
 function InlineText({ text }: { text: string }) {
@@ -18,7 +50,7 @@ function InlineText({ text }: { text: string }) {
     <>
       {strikeParts.map((part, i) =>
         i % 2 === 1 ? (
-          <s key={i} className="text-slate-400 dark:text-slate-500">
+          <s key={i} className="text-slate-600 dark:text-slate-400">
             {part}
           </s>
         ) : (
@@ -125,7 +157,7 @@ function BodyLine({ kind, tokens }: { kind: BodyKind; tokens: RenderToken[] }) {
 function Line({ line }: { line: RenderLine }) {
   if (line.kind === 'article') {
     return (
-      <div className="mt-4 rounded-xl border border-blue-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <div className="krulaw-digest-card mt-4 rounded-xl border border-blue-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
         <Link
           href={line.href}
           className="text-lg font-bold leading-relaxed text-blue-700 hover:underline dark:text-blue-300"
@@ -150,7 +182,7 @@ function Section({ section }: { section: DigestView['sections'][number] }) {
       </h2>
       {section.articles.length > 0 && (
         <div className="mt-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-400">
             สารบัญมาตรา
           </p>
           <div className="mt-2 flex flex-wrap gap-1.5">
@@ -176,8 +208,16 @@ function Section({ section }: { section: DigestView['sections'][number] }) {
 }
 
 export default function DigestStudyClient({ view }: { view: DigestView }) {
+  // Immersive-mode body hook (plan §4.7): navbar is hidden on digest — the
+  // class lets global CSS (print/offsets) scope off it. Cleaned on unmount.
+  useEffect(() => {
+    document.body.classList.add('krulaw-immersive');
+    return () => document.body.classList.remove('krulaw-immersive');
+  }, []);
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
+      <ThemeFab />
       <Link
         href="/krulaw"
         className="text-sm font-medium text-blue-700 hover:underline dark:text-blue-300"
@@ -187,7 +227,7 @@ export default function DigestStudyClient({ view }: { view: DigestView }) {
       <h1 className="mt-4 text-3xl font-bold leading-relaxed text-slate-900 dark:text-white">
         {view.title}
       </h1>
-      <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+      <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
         สรุปสาระสำคัญแบบอ่านง่าย — กดมาตราเพื่ออ่านฉบับเต็ม
       </p>
       {view.sections.map((section, i) => (
