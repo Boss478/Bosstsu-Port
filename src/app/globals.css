@@ -148,17 +148,10 @@ html {
   }
 }
 
-/* ThemeProvider toggles the `.dark` class on <html> (site-wide dark mode
-   independent of the OS scheme) — mirror the media-query values so OS-light +
-   site-dark never renders #171717-on-slate-950. */
-:root.dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-}
-
-/* 3-mode theme (P2, Krulaw Reading Redesign) — `.light` / `.read` MUST come
-   AFTER the OS media query above: an explicit site theme always wins over the
-   OS scheme (FR-B: OS-dark + site-light must render light, no white text). */
+/* ThemeProvider toggles the theme class on <html> (site-wide, independent of
+   the OS scheme). `.light` / `.dark` / `.read` MUST come AFTER the OS media
+   query: an explicit site theme always wins over the OS scheme (FR-B:
+   OS-dark + site-light must render light, no white text). */
 :root.light {
   --background: #ffffff;
   --foreground: #171717;
