@@ -46,7 +46,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="th" suppressHydrationWarning>
-      <head></head>
+      <head>
+        {/* Pre-hydration theme script (P2): apply the stored theme + paper tone
+            BEFORE first paint so read-mode has no light flash and dark-mode
+            first paint is instant. Mirrors ThemeProvider.getInitialTheme —
+            stored value ∈ {light,dark,read} wins, else OS scheme. Guarded:
+            no localStorage access on error. Keep suppressHydrationWarning on
+            <html> (ThemeProvider re-applies classes on mount). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');var c='light';if(t==='light'||t==='dark'||t==='read'){c=t;}else{c=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}var h=document.documentElement;h.classList.remove('light','dark','read');h.classList.add(c);var p=localStorage.getItem('krulaw:paperTone');if(p!=='soft'&&p!=='classic'&&p!=='warm'){p='classic';}h.setAttribute('data-paper-tone',p);}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${mali.variable} antialiased`}>
         <QueryProvider>
           <ThemeProvider>
