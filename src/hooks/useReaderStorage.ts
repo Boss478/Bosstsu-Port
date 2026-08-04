@@ -16,6 +16,10 @@
  * scope keeps bookmarks/notes/highlights/lastPosition per law. SETTINGS are
  * the exception — FR11 is device-wide: one unscoped `krulaw:settings` key
  * shared by every law, so reading preferences survive law switches.
+ *
+ * Exports (P3, shared with SettingsMenu): `validateReadingSettings` is the ONE
+ * sanitizer for every settings read; `loadGlobalSettings`/`saveGlobalSettings`
+ * read/write the device-wide `krulaw:settings` key directly.
  */
 import { useCallback, useMemo, useState } from 'react';
 import { safeGetJSON, safeGetString, safeSetJSON, safeSetString } from '@/lib/storage';
@@ -55,15 +59,48 @@ export const DEFAULT_READING_SETTINGS: ReadingSettingsValue = {
   width: 'normal',
 };
 
-function isReadingSettingsValue(v: unknown): v is ReadingSettingsValue {
-  if (typeof v !== 'object' || v === null) return false;
-  const o = v as Record<string, unknown>;
-  return (
-    (o.fontSize === 's' || o.fontSize === 'm' || o.fontSize === 'l' || o.fontSize === 'xl') &&
-    typeof o.lineHeight === 'number' &&
-    Number.isFinite(o.lineHeight) &&
-    (o.width === 'narrow' || o.width === 'normal' || o.width === 'wide')
-  );
+/**
+ * Shared FR11 validator (P3) — sanitizes ANY parsed value into a valid
+ * `ReadingSettingsValue`: valid enum members pass through unchanged, unknown
+ * values fall back to defaults ('xs'/'L' → 'm', 'huge' → 'normal'), missing
+ * fields are filled from DEFAULT_READING_SETTINGS, and lineHeight is clamped
+ * into [1.5, 2.2] (non-finite or non-number → 1.8). Non-object input (null,
+ * string, number, …) returns the defaults. Single source of truth — used by
+ * the hook's read path AND by SettingsMenu via loadGlobalSettings, so stored
+ * values are always sanitized, never returned raw.
+ */
+export function validateReadingSettings(input: unknown): ReadingSettingsValue {
+  if (typeof input !== 'object' || input === null) return DEFAULT_READING_SETTINGS;
+  const o = input as Record<string, unknown>;
+  const fontSize =
+    o.fontSize === 's' || o.fontSize === 'm' || o.fontSize === 'l' || o.fontSize === 'xl'
+      ? o.fontSize
+      : DEFAULT_READING_SETTINGS.fontSize;
+  const width =
+    o.width === 'narrow' || o.width === 'normal' || o.width === 'wide'
+      ? o.width
+      : DEFAULT_READING_SETTINGS.width;
+  const lineHeight =
+    typeof o.lineHeight === 'number' && Number.isFinite(o.lineHeight)
+      ? Math.min(2.2, Math.max(1.5, o.lineHeight))
+      : DEFAULT_READING_SETTINGS.lineHeight;
+  return { fontSize, lineHeight, width };
+}
+
+/**
+ * Reads the device-wide settings key `krulaw:settings` (FR11 — one key shared
+ * by every law). Returns null when the key is missing or the stored JSON is
+ * unparseable; anything that parses is passed through the SHARED validator
+ * (invalid values sanitized, never returned raw).
+ */
+export function loadGlobalSettings(): ReadingSettingsValue | null {
+  const raw = safeGetJSON<unknown>(SETTINGS_KEY);
+  return raw === null ? null : validateReadingSettings(raw);
+}
+
+/** Writes settings JSON under the device-wide `krulaw:settings` key (FR11). */
+export function saveGlobalSettings(value: ReadingSettingsValue): void {
+  safeSetJSON(SETTINGS_KEY, value);
 }
 
 function isNote(v: unknown): v is Note {
@@ -139,10 +176,9 @@ export function useReaderStorage(scope?: string): ReaderStorage {
     };
   }, [scope]);
 
-  const [settings, setSettingsState] = useState<ReadingSettingsValue>(() => {
-    const raw = safeGetJSON<unknown>(keys.settings);
-    return isReadingSettingsValue(raw) ? raw : DEFAULT_READING_SETTINGS;
-  });
+  const [settings, setSettingsState] = useState<ReadingSettingsValue>(() =>
+    validateReadingSettings(safeGetJSON<unknown>(keys.settings)),
+  );
   const [bookmarks, setBookmarks] = useState<string[]>(() =>
     readArray(keys.bookmarks, (v): v is string => typeof v === 'string'),
   );
