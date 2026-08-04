@@ -3,14 +3,14 @@
   "version": "1.10.87",
   "private": true,
   "scripts": {
-    "dev": "next dev --webpack -p 3300",
+    "dev": "next dev -p 3300",
     "build": "NODE_ENV=production next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint --cache",
     "typecheck": "npx tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
-    "analyze": "ANALYZE=true npm run build",
+    "analyze": "next experimental-analyze --output",
     "seed": "npx tsx scripts/seed.ts",
     "seed-dictionary": "npx tsx scripts/seed-dictionary.ts",
     "parse-oxford": "npx tsx scripts/parse-oxford.ts",
@@ -19,8 +19,12 @@
     "assemble-words": "npx tsx scripts/assemble-words.ts",
     "krulaw:build": "npx tsx scripts/krulaw/build.ts",
     "krulaw:check": "npx tsx scripts/krulaw/build.ts --check",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "npm run test:check-inventory && npm run test:unit && npm run test:db",
+    "test:check-inventory": "npx tsx scripts/check-test-inventory.ts",
+    "test:unit": "vitest run --config vitest.unit.config.ts",
+    "test:db": "vitest run --config vitest.db.config.ts",
+    "test:coverage": "npm run test:unit -- --coverage && npm run test:db -- --coverage",
+    "test:watch": "vitest --config vitest.unit.config.ts",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -54,7 +58,6 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@next/bundle-analyzer": "^16.2.9",
     "@playwright/test": "^1.62.0",
     "@tailwindcss/postcss": "^4.3.1",
     "@testing-library/jest-dom": "^7.0.0",
