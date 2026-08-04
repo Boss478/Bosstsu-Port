@@ -146,6 +146,35 @@ describe('generateCollocationQuestions', () => {
     expect(q.options).toContain(q.correctAnswer);
     expect(q.options.length).toBe(4);
   });
+
+  it('always produces exactly 4 unique options even with tiny pools (regression: duplicate filler collapse)', () => {
+    // The flake data — 3 words whose collocations overlap the pool. The old
+    // filler loop sampled with replacement and deduped only at the end, so a
+    // duplicate filler collapsed options to 3 intermittently (the "expected 3
+    // to be 4" gate flake). 300 iterations make the pin deterministic: with
+    // the bug, a collapse occurs with near-certainty; with the fix, never.
+    const words = [
+      {
+        word: 'cat',
+        collocations: ['pet cat', 'domestic cat'],
+        level: 'a1',
+      } as unknown as WordData,
+      { word: 'dog', collocations: ['guard dog', 'pet dog'], level: 'a1' } as unknown as WordData,
+      {
+        word: 'house',
+        collocations: ['big house', 'house cat'],
+        level: 'a1',
+      } as unknown as WordData,
+    ];
+    for (let i = 0; i < 300; i++) {
+      const result = generateCollocationQuestions(2, 'a1', undefined, words);
+      for (const q of result) {
+        expect(q.options.length).toBe(4);
+        expect(new Set(q.options).size).toBe(4);
+        expect(q.options).toContain(q.correctAnswer);
+      }
+    }
+  });
 });
 
 describe('buildQuestions routing for new types', () => {

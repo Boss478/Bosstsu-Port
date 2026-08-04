@@ -873,7 +873,11 @@ function generatePhonemeMatchRound(
   return { category: 'phoneme-match', pairs, gridSize: pairs.length };
 }
 
-function generateSoundSortQuestions(count: number, level: CefrLevel, words?: WordData[]): SoundSortQuestion[] {
+function generateSoundSortQuestions(
+  count: number,
+  level: CefrLevel,
+  words?: WordData[],
+): SoundSortQuestion[] {
   const questions: SoundSortQuestion[] = [];
   const groups = shuffleArray(SIMILAR_SOUND_GROUPS);
 
@@ -918,7 +922,11 @@ function generateSoundSortQuestions(count: number, level: CefrLevel, words?: Wor
   return questions;
 }
 
-function generateRhymeTimeQuestions(count: number, level: CefrLevel, words?: WordData[]): RhymeQuestion[] {
+function generateRhymeTimeQuestions(
+  count: number,
+  level: CefrLevel,
+  words?: WordData[],
+): RhymeQuestion[] {
   const questions: RhymeQuestion[] = [];
   const usedWords = new Set<string>();
 
@@ -1043,7 +1051,11 @@ function generateSpeedSpellQuestions(
   return questions;
 }
 
-function generateSyllableSmashQuestions(count: number, level: CefrLevel, words?: WordData[]): SyllableQuestion[] {
+function generateSyllableSmashQuestions(
+  count: number,
+  level: CefrLevel,
+  words?: WordData[],
+): SyllableQuestion[] {
   const questions: SyllableQuestion[] = [];
   const usedWords = new Set<string>();
 
@@ -1363,7 +1375,14 @@ function generateAntonymQuestions(
         options.push(tempDist[d].word);
       }
       while (options.length < 4) {
-        options.push(wordPool[Math.floor(Math.random() * wordPool.length)].word);
+        // Sample fillers WITHOUT replacement — a duplicate filler collapsed
+        // options below 4 after the final Set dedup (3-option questions).
+        const fillerPool = [...new Set(wordPool.map((w) => w.word))].filter(
+          (w) => !options.includes(w),
+        );
+        while (options.length < 4 && fillerPool.length > 0) {
+          options.push(fillerPool.splice(Math.floor(Math.random() * fillerPool.length), 1)[0]);
+        }
       }
       questions.push({
         category: 'antonyms',
@@ -1422,7 +1441,16 @@ function generateCollocationQuestions(
         if (dist) options.push(dist);
       }
       while (options.length < 4) {
-        options.push(wordPool[Math.floor(Math.random() * wordPool.length)].word);
+        // Sample fillers WITHOUT replacement from pool words not already
+        // used — the old loop pushed with replacement and deduped only at
+        // the end, so a duplicate filler collapsed options below 4 (seen as
+        // an intermittent 3-option collocation question in the UI).
+        const fillerPool = [...new Set(wordPool.map((w) => w.word))].filter(
+          (w) => !options.includes(w),
+        );
+        while (options.length < 4 && fillerPool.length > 0) {
+          options.push(fillerPool.splice(Math.floor(Math.random() * fillerPool.length), 1)[0]);
+        }
       }
       questions.push({
         category: 'collocations',
@@ -1656,7 +1684,16 @@ function generateMinimalPairsQuestions(
               options.push(tempExtra[e].word);
             }
             while (options.length < 4) {
-              options.push(wordPool[Math.floor(Math.random() * wordPool.length)].word);
+              // Sample fillers WITHOUT replacement — a duplicate filler
+              // collapsed options below 4 after the final Set dedup.
+              const fillerPool = [...new Set(wordPool.map((w) => w.word))].filter(
+                (w) => !options.includes(w),
+              );
+              while (options.length < 4 && fillerPool.length > 0) {
+                options.push(
+                  fillerPool.splice(Math.floor(Math.random() * fillerPool.length), 1)[0],
+                );
+              }
             }
             questions.push({
               category: 'minimal-pairs',
