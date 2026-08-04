@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useTheme } from './ThemeProvider';
+import SettingsMenu from './SettingsMenu';
 import { navLinks } from '@/lib/nav-links';
 
 export default function Header() {
@@ -14,6 +15,12 @@ export default function Header() {
   const [desktopExpanded, setDesktopExpanded] = useState<string | null>(null);
   const { theme, toggleTheme, mounted } = useTheme();
   const pathname = usePathname();
+
+  // §4.4b — announce the CURRENT mode so the button is never blank/misleading
+  // in read mode (sun/moon both hidden there; the book icon shows instead).
+  const themeAria = !mounted
+    ? 'สลับโหมด'
+    : `สลับโหมด (ปัจจุบัน: ${theme === 'read' ? 'อ่าน' : theme === 'dark' ? 'มืด' : 'สว่าง'})`;
 
   const [navMode, setNavMode] = useState<'public' | 'private'>(() =>
     pathname.startsWith('/boss478') ? 'private' : 'public',
@@ -50,6 +57,11 @@ export default function Header() {
       document.removeEventListener('click', handleClickOutside);
     };
   }, []);
+
+  // FR-F: hide the navbar on the reader + digest pages (`/krulaw/<slug>`,
+  // `/krulaw/digest`); the list page `/krulaw` keeps the nav.
+  const hidden = pathname.startsWith('/krulaw/') && pathname !== '/krulaw';
+  if (hidden) return null;
 
   const closeMenuWithAnimation = () => {
     setIsClosing(true);
@@ -185,7 +197,7 @@ export default function Header() {
               <button
                 onClick={toggleTheme}
                 className="px-3 py-2 rounded-full hover:bg-amber-100/50 dark:hover:bg-slate-700/50 transition-transform duration-75 active:scale-95 flex items-center justify-center"
-                aria-label="Toggle dark mode"
+                aria-label={themeAria}
               >
                 <i
                   className={`fi fi-sr-sun text-yellow-500 text-md leading-none transition-all duration-500 ${
@@ -201,7 +213,15 @@ export default function Header() {
                       : 'opacity-0 -rotate-90 scale-50 absolute'
                   }`}
                 ></i>
+                <i
+                  className={`fi fi-sr-book text-amber-600 text-md leading-none transition-all duration-500 ${
+                    mounted && theme === 'read'
+                      ? 'opacity-100 rotate-0 scale-100'
+                      : 'opacity-0 rotate-90 scale-50 absolute'
+                  }`}
+                ></i>
               </button>
+              <SettingsMenu />
             </div>
           </div>
 
@@ -209,7 +229,7 @@ export default function Header() {
             <button
               onClick={toggleTheme}
               className="p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-transform duration-75 active:scale-95"
-              aria-label="Toggle dark mode"
+              aria-label={themeAria}
             >
               <div className="relative w-5 h-5 flex items-center justify-center">
                 <i
@@ -226,8 +246,17 @@ export default function Header() {
                       : 'opacity-0 -rotate-90 scale-50 absolute'
                   }`}
                 ></i>
+                <i
+                  className={`fi fi-sr-book text-amber-600 text-md leading-none transition-all duration-500 ${
+                    mounted && theme === 'read'
+                      ? 'opacity-100 rotate-0 scale-100'
+                      : 'opacity-0 rotate-90 scale-50 absolute'
+                  }`}
+                ></i>
               </div>
             </button>
+
+            <SettingsMenu variant="mobile" />
 
             {pathname.startsWith('/boss478') && (
               <button

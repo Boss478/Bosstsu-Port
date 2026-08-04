@@ -13,7 +13,11 @@ const navItems = [
   { label: 'สื่อการเรียนรู้ (Resources)', href: '/admin/resources', icon: 'fi-sr-book-alt' },
   { label: 'เกม (Games)', href: '/admin/games', icon: 'fi-sr-gamepad' },
   { label: 'คำศัพท์ (Words)', href: '/admin/words', icon: 'fi-sr-book' },
-  { label: 'เครื่องมือในชั้นเรียน (Class Tools)', href: '/admin/tools', icon: 'fi-sr-chalkboard-user' },
+  {
+    label: 'เครื่องมือในชั้นเรียน (Class Tools)',
+    href: '/admin/tools',
+    icon: 'fi-sr-chalkboard-user',
+  },
   { label: 'วิเคราะห์ (Analytics)', href: '/admin/analytics', icon: 'fi-sr-stats' },
 ];
 
@@ -118,13 +122,27 @@ export default function AdminSidebar({
               <button
                 type="button"
                 onClick={toggleTheme}
-                title={mounted && theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                title={
+                  mounted
+                    ? theme === 'dark'
+                      ? 'Light Mode'
+                      : theme === 'read'
+                        ? 'Read Mode'
+                        : 'Dark Mode'
+                    : 'Dark Mode'
+                }
                 className="p-2 rounded-xl bg-zinc-100 dark:bg-slate-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-slate-700 transition-colors"
                 suppressHydrationWarning
               >
                 <i
                   suppressHydrationWarning
-                  className={`fi ${mounted && theme === 'dark' ? 'fi-sr-sun text-amber-400' : 'fi-sr-moon text-indigo-400'} text-lg flex`}
+                  className={`fi text-lg flex ${
+                    mounted && theme === 'dark'
+                      ? 'fi-sr-sun text-amber-400'
+                      : mounted && theme === 'read'
+                        ? 'fi-sr-book text-amber-600'
+                        : 'fi-sr-moon text-indigo-400'
+                  }`}
                 />
               </button>
 

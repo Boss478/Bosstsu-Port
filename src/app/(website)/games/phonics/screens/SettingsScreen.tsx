@@ -212,7 +212,7 @@ export default function SettingsScreen() {
             <div className="space-y-4">
               <ToggleRow
                 id="setting-theme"
-                label="Dark Theme"
+                label={theme === 'read' ? 'Read Mode' : 'Dark Theme'}
                 value={theme === 'dark'}
                 onToggle={toggleTheme}
               />
