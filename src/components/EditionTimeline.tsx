@@ -1,16 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import type { EditionTimelineProps } from '@/app/(website)/krulaw/lib/reader-props';
-import { formatThaiBEDate } from '@/lib/krulaw/format';
+import type { EditionTimelineProps } from '@/app/(website)/lawlib/lib/reader-props';
+import { formatThaiBEDate } from '@/lib/lawlib/format';
 
 /**
- * KruLAW — amendment-history timeline (FR9), shown in the law header.
+ * LawLib — amendment-history timeline (FR9), shown in the law header.
  *
  * COLLAPSED by default: the always-expanded ~280px timeline pushed the
  * reading column below the fold, so this renders as a one-line disclosure
  * ("ประวัติการแก้ไข (N ฉบับ)") that expands the full vertical timeline on
- * demand. `.krulaw-timeline` stays on the root so print CSS hides it.
+ * demand. `.lawlib-timeline` stays on the root so print CSS hides it.
  *
  * Dates are Buddhist-era strings (e.g. 2550-08-15) from the frozen LawDoc
  * shape; formatThaiBEDate renders them with Thai month names and NO CE→BE
@@ -28,12 +28,12 @@ export function EditionTimeline({ editions }: EditionTimelineProps) {
   }
 
   return (
-    <div className="krulaw-timeline">
+    <div className="lawlib-timeline">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        aria-controls="krulaw-edition-timeline-list"
+        aria-controls="lawlib-edition-timeline-list"
         className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-blue-300 hover:text-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:text-blue-300"
       >
         <i aria-hidden="true" className="fi fi-sr-clock text-xs text-slate-400" />
@@ -46,7 +46,7 @@ export function EditionTimeline({ editions }: EditionTimelineProps) {
 
       {open && (
         <ol
-          id="krulaw-edition-timeline-list"
+          id="lawlib-edition-timeline-list"
           aria-label="ประวัติการประกาศใช้และแก้ไขเพิ่มเติม"
           className="mt-3 ml-2 space-y-5 border-l-2 border-blue-200 dark:border-slate-700"
         >

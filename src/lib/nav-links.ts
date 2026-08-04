@@ -23,7 +23,7 @@ export const navLinks: NavItem[] = [
     subItems: [
       { href: '/resources', label: 'สื่อ', icon: 'fi fi-sr-book-alt' },
       { href: '/games', label: 'เกม', icon: 'fi fi-sr-gamepad' },
-      { href: '/krulaw', label: 'KruLAW', icon: 'fi fi-sr-book-alt' },
+      { href: '/lawlib', label: 'LawLib', icon: 'fi fi-sr-book-alt' },
     ],
   },
   { href: '/about-me', label: 'About me', icon: 'fi fi-sr-user' },

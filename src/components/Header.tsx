@@ -13,14 +13,17 @@ export default function Header() {
   const [isClosing, setIsClosing] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const [desktopExpanded, setDesktopExpanded] = useState<string | null>(null);
-  const { theme, toggleTheme, mounted } = useTheme();
+  const { theme, setTheme, toggleTheme, mounted } = useTheme();
   const pathname = usePathname();
 
-  // §4.4b — announce the CURRENT mode so the button is never blank/misleading
-  // in read mode (sun/moon both hidden there; the book icon shows instead).
+  // §4.4b — the button always performs a real action: light↔dark toggle, and
+  // in read mode it exits to light (the 3-way choice lives in SettingsMenu).
+  // aria-label announces the NEXT state so it never lies about the action.
   const themeAria = !mounted
     ? 'สลับโหมด'
-    : `สลับโหมด (ปัจจุบัน: ${theme === 'read' ? 'อ่าน' : theme === 'dark' ? 'มืด' : 'สว่าง'})`;
+    : theme === 'read' || theme === 'dark'
+      ? 'สลับเป็นธีมสว่าง'
+      : 'สลับเป็นธีมมืด';
 
   const [navMode, setNavMode] = useState<'public' | 'private'>(() =>
     pathname.startsWith('/boss478') ? 'private' : 'public',
@@ -58,9 +61,9 @@ export default function Header() {
     };
   }, []);
 
-  // FR-F: hide the navbar on the reader + digest pages (`/krulaw/<slug>`,
-  // `/krulaw/digest`); the list page `/krulaw` keeps the nav.
-  const hidden = pathname.startsWith('/krulaw/') && pathname !== '/krulaw';
+  // FR-F: hide the navbar on the reader + digest pages (`/lawlib/<slug>`,
+  // `/lawlib/digest`); the list page `/lawlib` keeps the nav.
+  const hidden = pathname.startsWith('/lawlib/') && pathname !== '/lawlib';
   if (hidden) return null;
 
   const closeMenuWithAnimation = () => {
@@ -195,7 +198,7 @@ export default function Header() {
               )}
 
               <button
-                onClick={toggleTheme}
+                onClick={theme === 'read' ? () => setTheme('light') : toggleTheme}
                 className="px-3 py-2 rounded-full hover:bg-amber-100/50 dark:hover:bg-slate-700/50 transition-transform duration-75 active:scale-95 flex items-center justify-center"
                 aria-label={themeAria}
               >

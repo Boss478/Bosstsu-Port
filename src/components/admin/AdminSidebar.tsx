@@ -127,7 +127,7 @@ export default function AdminSidebar({
                     ? theme === 'dark'
                       ? 'Light Mode'
                       : theme === 'read'
-                        ? 'Read Mode'
+                        ? 'โหมดอ่าน'
                         : 'Dark Mode'
                     : 'Dark Mode'
                 }

@@ -4,7 +4,7 @@ interface SearchInputProps {
   /** Input id — the sr-only label points here. One instance per page, so the
    *  default is safe unless a page renders multiple search fields. */
   id?: string;
-  /** Accessible label — default is KruLAW-specific; other pages (resources /
+  /** Accessible label — default is LawLib-specific; other pages (resources /
    *  portfolio / gallery) pass their own via this prop. */
   label?: string;
   value: string;
@@ -13,7 +13,7 @@ interface SearchInputProps {
 }
 
 export default function SearchInput({
-  id = 'krulaw-list-search',
+  id = 'lawlib-list-search',
   label = 'ค้นหากฎหมาย',
   value,
   onChange,

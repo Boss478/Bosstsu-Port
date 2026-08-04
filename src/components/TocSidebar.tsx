@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * KruLAW — table of contents sidebar (FR2 + FR7).
+ * LawLib — table of contents sidebar (FR2 + FR7).
  *
  *  - หมวด/มาตรา nav tree (sections nested), scroll-spy via IntersectionObserver
  *  - prev/next มาตรา buttons (global article order incl. sections)
@@ -11,9 +11,9 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Chapter, LawDoc } from '@/types/krulaw';
-import { articleKeyOf, articleLabel, flattenArticles } from '@/lib/krulaw-reader';
-import { normalizeText } from '@/lib/krulaw/normalize';
+import type { Chapter, LawDoc } from '@/types/lawlib';
+import { articleKeyOf, articleLabel, flattenArticles } from '@/lib/lawlib-reader';
+import { normalizeText } from '@/lib/lawlib/normalize';
 
 interface TocSidebarProps {
   law: LawDoc;
@@ -109,7 +109,7 @@ export default function TocSidebar({
         for (const e of visible) {
           if (e.boundingClientRect.top < best.boundingClientRect.top) best = e;
         }
-        const key = (best.target as HTMLElement).dataset.krulawArticle;
+        const key = (best.target as HTMLElement).dataset.lawlibArticle;
         if (key !== undefined) onActiveChange(key);
       },
       { rootMargin: '-15% 0px -70% 0px', threshold: 0 },
@@ -127,8 +127,8 @@ export default function TocSidebar({
   // Keep the active TOC item visible inside its scroll container.
   useEffect(() => {
     if (activeKey === null) return;
-    const el = document.getElementById(`krulaw-toc-${activeKey}`);
-    const box = el?.closest('[data-krulaw-toc-scroll]');
+    const el = document.getElementById(`lawlib-toc-${activeKey}`);
+    const box = el?.closest('[data-lawlib-toc-scroll]');
     if (el === null || box === null || box === undefined) return;
     const r = el.getBoundingClientRect();
     const b = box.getBoundingClientRect();
@@ -164,7 +164,7 @@ export default function TocSidebar({
   const navItem = (key: string, label: string, indent: boolean): React.ReactNode => {
     const active = key === activeKey;
     return (
-      <li key={key} id={`krulaw-toc-${key}`}>
+      <li key={key} id={`lawlib-toc-${key}`}>
         <button
           type="button"
           onClick={() => handleNavigate(key)}
@@ -215,7 +215,7 @@ export default function TocSidebar({
   };
 
   return (
-    <div className="krulaw-toc rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900 lg:sticky lg:top-6">
+    <div className="lawlib-toc rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900 lg:sticky lg:top-6">
       <button
         type="button"
         onClick={() => setPanelOpen((o) => !o)}
@@ -232,12 +232,12 @@ export default function TocSidebar({
       <div className={panelOpen ? 'block' : 'hidden lg:block'}>
         {/* jump box (FR7) */}
         <div className="mb-3">
-          <label htmlFor="krulaw-jump" className="sr-only">
+          <label htmlFor="lawlib-jump" className="sr-only">
             ข้ามไปยังมาตรา
           </label>
           <div className="flex gap-1.5">
             <input
-              id="krulaw-jump"
+              id="lawlib-jump"
               type="text"
               value={query}
               onChange={(e) => {
@@ -249,7 +249,7 @@ export default function TocSidebar({
               }}
               placeholder="มาตรา 60 / หมวด 2"
               aria-invalid={jumpFailed}
-              aria-describedby={jumpFailed ? 'krulaw-jump-error' : undefined}
+              aria-describedby={jumpFailed ? 'lawlib-jump-error' : undefined}
               className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
             />
             <button
@@ -262,7 +262,7 @@ export default function TocSidebar({
           </div>
           {jumpFailed && (
             <p
-              id="krulaw-jump-error"
+              id="lawlib-jump-error"
               role="alert"
               className="mt-1 text-xs text-red-600 dark:text-red-400"
             >
@@ -296,7 +296,7 @@ export default function TocSidebar({
         {/* nav tree */}
         <nav
           aria-label="สารบัญ"
-          data-krulaw-toc-scroll
+          data-lawlib-toc-scroll
           className="overflow-y-auto pb-4 lg:max-h-[calc(100vh-12rem)] lg:pr-1"
         >
           <ul className="space-y-1">

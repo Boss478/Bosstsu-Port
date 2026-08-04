@@ -27,9 +27,9 @@ const mali = localFont({
   variable: '--font-mali',
 });
 
-// Sarabun — KruLAW's Thai law-text font. Registered at the ROOT layout (not
-// just the krulaw layout) so `var(--font-sarabun)` resolves on <body> — the
-// LawTooltip portal renders into document.body, OUTSIDE the krulaw layout's
+// Sarabun — LawLib's Thai law-text font. Registered at the ROOT layout (not
+// just the lawlib layout) so `var(--font-sarabun)` resolves on <body> — the
+// LawTooltip portal renders into document.body, OUTSIDE the lawlib layout's
 // wrapper div, and next/font/local hashes the family name so a literal
 // 'Sarabun' fallback would never match. Same multi-weight pattern as Mali.
 const sarabun = localFont({
@@ -70,7 +70,7 @@ export default function RootLayout({
             <html> (ThemeProvider re-applies classes on mount). */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');var c='light';if(t==='light'||t==='dark'||t==='read'){c=t;}else{c=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}var h=document.documentElement;h.classList.remove('light','dark','read');h.classList.add(c);var p=localStorage.getItem('krulaw:paperTone');if(p!=='soft'&&p!=='classic'&&p!=='warm'){p='classic';}h.setAttribute('data-paper-tone',p);}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('theme');var c='light';if(t==='light'||t==='dark'||t==='read'){c=t;}else{c=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}var h=document.documentElement;h.classList.remove('light','dark','read');h.classList.add(c);var p=localStorage.getItem('lawlib:paperTone');if(p!=='soft'&&p!=='classic'&&p!=='warm'){p='classic';}h.setAttribute('data-paper-tone',p);}catch(e){}})();`,
           }}
         />
       </head>

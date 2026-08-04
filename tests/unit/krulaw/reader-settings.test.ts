@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 /**
  * TDD-first (Wave 1, Lane B) — pins the PLANNED P3 settings validator +
- * global helpers (`.agents/plans/krulaw-reading-redesign.md` §4.5) BEFORE
+ * global helpers (`.agents/plans/lawlib-reading-redesign.md` §4.5) BEFORE
  * implementation. RED NOW: the three helpers do not exist yet — Lane B must
  * export them from `src/hooks/useReaderStorage.ts`:
  *
@@ -13,11 +13,11 @@
  * - validator sanitizes per-field (valid values kept, invalid → defaults),
  *   clamps lineHeight into [1.5, 2.2], non-finite lineHeight → 1.8,
  *   non-object input → DEFAULT_READING_SETTINGS
- * - loadGlobalSettings reads `krulaw:settings`; returns null when the key is
+ * - loadGlobalSettings reads `lawlib:settings`; returns null when the key is
  *   missing OR JSON.parse fails; any successfully parsed value is passed
  *   through the SHARED validator (so invalid stored values are sanitized,
  *   never returned raw)
- * - saveGlobalSettings writes JSON under `krulaw:settings` (round-trips)
+ * - saveGlobalSettings writes JSON under `lawlib:settings` (round-trips)
  *
  * jsdom env: load/save may use the window-guarded safeGetJSON/safeSetJSON
  * helpers from `@/lib/storage` (as the hook does today) — jsdom provides
@@ -28,7 +28,7 @@ import { DEFAULT_READING_SETTINGS } from '@/hooks/useReaderStorage';
 
 type StorageApi = typeof import('@/hooks/useReaderStorage');
 
-const SETTINGS_KEY = 'krulaw:settings';
+const SETTINGS_KEY = 'lawlib:settings';
 
 let api: StorageApi;
 
@@ -192,7 +192,7 @@ describe('loadGlobalSettings (P3 — new export)', () => {
 });
 
 describe('saveGlobalSettings (P3 — new export)', () => {
-  it('writes the settings to krulaw:settings as JSON', () => {
+  it('writes the settings to lawlib:settings as JSON', () => {
     api.saveGlobalSettings({ fontSize: 'xl', lineHeight: 2.0, width: 'wide' });
     expect(JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? 'null')).toEqual({
       fontSize: 'xl',

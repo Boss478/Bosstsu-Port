@@ -8,7 +8,7 @@
  * - Paper-tone segmented (ครีม/คลาสสิก/เหลือง) via setPaperTone — read-mode
  *   preference; harmless to set in any theme (sticky per FR-A/D10).
  * - ReadingSettings (FR11) reused AS-IS (contract frozen in reader-props.ts) —
- *   reads/writes the device-wide `krulaw:settings` key via
+ *   reads/writes the device-wide `lawlib:settings` key via
  *   loadGlobalSettings/saveGlobalSettings; a null result (missing/unparseable)
  *   falls back to DEFAULT_READING_SETTINGS.
  *
@@ -21,13 +21,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTheme, THEMES, PAPER_TONES } from './ThemeProvider';
 import type { Theme, PaperTone } from './ThemeProvider';
-import { ReadingSettings } from './ReadingSettings';
+import { ReadingSettings, Segment } from './ReadingSettings';
 import {
   DEFAULT_READING_SETTINGS,
   loadGlobalSettings,
   saveGlobalSettings,
 } from '@/hooks/useReaderStorage';
-import type { ReadingSettingsValue } from '@/app/(website)/krulaw/lib/reader-props';
+import type { ReadingSettingsValue } from '@/app/(website)/lawlib/lib/reader-props';
 
 const THEME_LABELS: Record<Theme, string> = { light: 'สว่าง', dark: 'มืด', read: 'อ่าน' };
 const THEME_ARIAS: Record<Theme, string> = {
@@ -54,41 +54,6 @@ const THEME_OPTIONS: ReadonlyArray<{ value: Theme; label: string; aria: string }
 );
 const TONE_OPTIONS: ReadonlyArray<{ value: PaperTone; label: string; aria: string }> =
   PAPER_TONES.map((value) => ({ value, label: TONE_LABELS[value], aria: TONE_ARIAS[value] }));
-
-interface SegmentProps<T extends string> {
-  label: string;
-  options: ReadonlyArray<{ value: T; label: string; aria: string }>;
-  value: T;
-  onSelect: (value: T) => void;
-}
-
-function Segment<T extends string>({ label, options, value, onSelect }: SegmentProps<T>) {
-  return (
-    <div
-      role="group"
-      aria-label={label}
-      className="flex rounded-lg border border-slate-200 bg-white p-0.5 dark:border-slate-700 dark:bg-slate-800/40"
-    >
-      {options.map((opt) => (
-        <button
-          key={opt.value}
-          type="button"
-          aria-pressed={value === opt.value}
-          aria-label={opt.aria}
-          title={opt.aria}
-          onClick={() => onSelect(opt.value)}
-          className={`flex-1 rounded-md px-2 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-            value === opt.value
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-zinc-600 hover:bg-blue-100/60 dark:text-zinc-300 dark:hover:bg-slate-700/60'
-          }`}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 export default function SettingsMenu({ variant = 'desktop' }: { variant?: 'desktop' | 'mobile' }) {
   const { theme, setTheme, paperTone, setPaperTone, mounted } = useTheme();

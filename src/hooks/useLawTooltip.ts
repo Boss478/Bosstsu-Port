@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * KruLAW — tooltip state + trigger semantics (FR3/FR4/FR5, the signature
+ * LawLib — tooltip state + trigger semantics (FR3/FR4/FR5, the signature
  * feature). ONE instance per reader (single portal — LawTooltip renders it).
  *
  * Trigger semantics (pointerType-gated — pin-test critical):
@@ -136,7 +136,7 @@ export function useLawTooltip() {
         if (
           rt &&
           (tooltipElRef.current?.contains(rt) ||
-            (rt instanceof Element && rt.closest('[data-krulaw-trigger]') !== null))
+            (rt instanceof Element && rt.closest('[data-lawlib-trigger]') !== null))
         ) {
           return;
         }
@@ -204,7 +204,7 @@ export function useLawTooltip() {
       const target = e.target as Node | null;
       if (target === null) return;
       if (tooltipElRef.current?.contains(target)) return;
-      if (target instanceof Element && target.closest('[data-krulaw-trigger]') !== null) return;
+      if (target instanceof Element && target.closest('[data-lawlib-trigger]') !== null) return;
       closeTooltip();
     };
     const onKeyDown = (e: KeyboardEvent) => {
@@ -239,7 +239,7 @@ export function useLawTooltip() {
     (e: React.PointerEvent<HTMLElement>) => {
       if (e.pointerType !== 'mouse') return;
       const rt = e.relatedTarget as Node | null;
-      if (rt instanceof Element && rt.closest('[data-krulaw-trigger]') !== null) return;
+      if (rt instanceof Element && rt.closest('[data-lawlib-trigger]') !== null) return;
       closeTooltip();
     },
     [closeTooltip],

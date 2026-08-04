@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * KruLAW — tooltip portal (FR3/FR4/FR5). Rendered by KrulawReaderClient when
+ * LawLib — tooltip portal (FR3/FR4/FR5). Rendered by LawlibReaderClient when
  * the hook has an open tooltip. Single portal to document.body; fixed
  * positioning near the trigger with viewport-safe flip; <640px viewport →
  * bottom-sheet panel. Content is announced on OPEN via aria-live (never on
@@ -20,16 +20,16 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { LawDoc } from '@/types/krulaw';
+import type { LawDoc } from '@/types/lawlib';
 import {
   articleKeyOf,
   articleLabel,
   articlePlainText,
   findArticle,
   loadCrossLaw,
-} from '@/lib/krulaw-reader';
+} from '@/lib/lawlib-reader';
 import { copyText } from '@/lib/copy-print';
-import { formatThaiBEDate } from '@/lib/krulaw/format';
+import { formatThaiBEDate } from '@/lib/lawlib/format';
 import type { TooltipContent } from '@/hooks/useLawTooltip';
 
 interface LawTooltipProps {
@@ -212,7 +212,7 @@ function CrossLawArticle({
       code={doc.code}
       onOpenArticle={onOpenArticle}
       onClose={onClose}
-      crossHref={`/krulaw/${doc.slug}#มาตรา-${articleKeyOf({ no: articleNo, suffix: articleSuffix })}`}
+      crossHref={`/lawlib/${doc.slug}#มาตรา-${articleKeyOf({ no: articleNo, suffix: articleSuffix })}`}
     />
   );
 }
@@ -315,8 +315,8 @@ export default function LawTooltip({
       }}
       className={
         sheet
-          ? 'krulaw-tooltip fixed inset-x-0 bottom-0 z-[70] max-h-[75vh] origin-bottom overflow-y-auto rounded-t-2xl border-t border-slate-200 bg-white p-4 shadow-2xl outline-none dark:border-slate-700 dark:bg-slate-900'
-          : 'krulaw-tooltip fixed z-[70] w-[min(92vw,28rem)] rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl outline-none dark:border-slate-700 dark:bg-slate-900'
+          ? 'lawlib-tooltip fixed inset-x-0 bottom-0 z-[70] max-h-[75vh] origin-bottom overflow-y-auto rounded-t-2xl border-t border-slate-200 bg-white p-4 shadow-2xl outline-none dark:border-slate-700 dark:bg-slate-900'
+          : 'lawlib-tooltip fixed z-[70] w-[min(92vw,28rem)] rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl outline-none dark:border-slate-700 dark:bg-slate-900'
       }
     >
       {sheet && (

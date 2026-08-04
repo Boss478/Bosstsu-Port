@@ -1,18 +1,18 @@
 'use client';
 
 /**
- * KruLAW — มาตรา definitions glossary (FR8).
+ * LawLib — มาตรา definitions glossary (FR8).
  *
  * Controlled leaf: lists every definition (term + definition). Clicking a
  * term fires `onTerm(term)` — the reader core decides what to do (e.g. jump
  * to มาตรา 1 / highlight). Sticky header, scrollable list: the header sits
  * outside the scroll region of a flex column.
  */
-import type { GlossaryPanelProps } from '@/app/(website)/krulaw/lib/reader-props';
+import type { GlossaryPanelProps } from '@/app/(website)/lawlib/lib/reader-props';
 
 export function GlossaryPanel({ definitions, onTerm, missingTerms }: GlossaryPanelProps) {
   return (
-    <section className="krulaw-panel flex flex-col overflow-hidden" aria-label="บทนิยาม">
+    <section className="lawlib-panel flex flex-col overflow-hidden" aria-label="บทนิยาม">
       <header className="flex items-baseline justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
         <h2 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">บทนิยาม</h2>
         <span className="text-xs text-zinc-600 dark:text-zinc-400">{definitions.length} คำ</span>
