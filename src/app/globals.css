@@ -181,8 +181,8 @@ html.read[data-paper-tone='classic'] {
   --read-card: #f7efdc;
 }
 html.read[data-paper-tone='warm'] {
-  --read-bg: #f6efd9;
-  --read-card: #fdf6e3;
+  --read-bg: #f9ecc0;
+  --read-card: #fdf5cf;
 }
 
 @theme inline {
