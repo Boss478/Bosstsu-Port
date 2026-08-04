@@ -217,7 +217,7 @@ function ArticleView({
         key={key}
         id={`มาตรา-${key}`}
         data-krulaw-article={key}
-        className={`krulaw-article scroll-mt-24 rounded-xl px-1 py-3 transition-colors duration-500 ${
+        className={`krulaw-article scroll-mt-20 rounded-xl px-1 py-3 transition-colors duration-500 ${
           isFlash
             ? 'bg-amber-50 ring-2 ring-amber-300 dark:bg-amber-950/30 dark:ring-amber-500/50'
             : ''
@@ -247,7 +247,7 @@ function ArticleView({
         <div
           data-krulaw-body
           data-krulaw-article={key}
-          className="space-y-2 whitespace-pre-line dark:text-slate-200"
+          className="space-y-2 whitespace-pre-line text-slate-800 dark:text-slate-200"
         >
           {render.segments.map((seg, i) =>
             seg.kind === 'text' ? (

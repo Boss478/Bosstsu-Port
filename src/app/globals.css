@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 
 @custom-variant dark (&:where(.dark, .dark *));
+@custom-variant read (&:where(.read, .read *));
 
 html {
   scroll-behavior: smooth;
@@ -153,6 +154,42 @@ html {
 :root.dark {
   --background: #0a0a0a;
   --foreground: #ededed;
+}
+
+/* 3-mode theme (P2, Krulaw Reading Redesign) — `.light` / `.read` MUST come
+   AFTER the OS media query above: an explicit site theme always wins over the
+   OS scheme (FR-B: OS-dark + site-light must render light, no white text). */
+:root.light {
+  --background: #ffffff;
+  --foreground: #171717;
+  color-scheme: light;
+}
+
+:root.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  color-scheme: dark;
+}
+
+:root.read {
+  --background: var(--read-bg, #f5ecd9);
+  --foreground: var(--read-ink, #3a2f1f);
+  color-scheme: light;
+}
+
+/* Read-mode paper tones (D10) — user-adjustable, persisted at krulaw:paperTone.
+   --read-ink stays #3a2f1f for ALL tones (≥4.5:1 on every card bg). */
+html.read[data-paper-tone='soft'] {
+  --read-bg: #f5ecd9;
+  --read-card: #faf3e3;
+}
+html.read[data-paper-tone='classic'] {
+  --read-bg: #f2e8d5;
+  --read-card: #f7efdc;
+}
+html.read[data-paper-tone='warm'] {
+  --read-bg: #f6efd9;
+  --read-card: #fdf6e3;
 }
 
 @theme inline {
@@ -1395,4 +1432,57 @@ textarea,
   -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
   box-shadow: var(--glass-shadow, 0 4px 6px -1px rgba(0, 0, 0, 0.05));
   border: var(--glass-border, 1px solid rgba(255, 255, 255, 0.2));
+}
+
+/* ─── KruLAW Read Mode (3-mode theme — paper surfaces) ──────────────────────
+   Centralized `.read` overrides per plan §4.2: read mode is fully styled on
+   KRULAW surfaces only; everywhere else it degrades to paper body + light
+   components. Unlayered rules here beat Tailwind's layered utilities, so the
+   explicit `bg-blue-50` / `bg-white` / `text-slate-*` utilities are covered
+   while `.dark` stays untouched (read mode never co-exists with `.dark`). */
+
+/* `main#main-content` has an explicit `bg-blue-50 dark:bg-slate-950` that would
+   cover the paper vars — force the paper background in read mode. */
+.read #main-content {
+  background: var(--background);
+}
+
+/* Footer bg is hard-coded (`bg-blue-100 dark:bg-slate-900`). */
+.read footer {
+  background: var(--background);
+}
+
+/* Paper card surfaces (per tone via --read-card, D10). */
+.read .krulaw-article-card,
+.read .krulaw-toc,
+.read .krulaw-panel,
+.read .krulaw-dock,
+.read .krulaw-list-card,
+.read .krulaw-digest-card {
+  background: var(--read-card);
+  border-color: #e0d5b0;
+  color: var(--read-ink);
+}
+
+/* Highlights: amber deep enough on paper. */
+.read mark {
+  background: rgba(251, 191, 36, 0.5);
+}
+
+/* Article body carries an explicit `text-slate-800 dark:text-slate-200` —
+   force the paper ink in read mode (slate-800 stays for light/dark). */
+.read [data-krulaw-body] {
+  color: var(--read-ink);
+}
+
+/* Muted-text overrides: explicit slate-400/500/600 utilities fail contrast on
+   paper (slate-400 on #fdf6e3 ≈ 2.4:1) — darken them inside KRULAW surfaces. */
+.read [class*='krulaw-'] .text-slate-400 {
+  color: #8a7a55;
+}
+.read [class*='krulaw-'] .text-slate-500 {
+  color: #7a6845;
+}
+.read [class*='krulaw-'] .text-slate-600 {
+  color: #6b5b3c;
 }
