@@ -230,7 +230,7 @@ export default function Header() {
 
           <div className="flex md:hidden items-center gap-2">
             <button
-              onClick={toggleTheme}
+              onClick={theme === 'read' ? () => setTheme('light') : toggleTheme}
               className="p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-transform duration-75 active:scale-95"
               aria-label={themeAria}
             >
