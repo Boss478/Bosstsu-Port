@@ -61,14 +61,14 @@ import CompactView, { BodyLineView } from './CompactView';
 function DigestHistoryBlock({
   lines,
   slug,
-  onNavigate,
+  onOpenRef,
   onSeeFull,
   getTriggerProps,
   isTooltipOpen,
 }: {
   lines: RenderLine[];
   slug: string;
-  onNavigate: (key: string) => void;
+  onOpenRef: (key: string) => void;
   onSeeFull: (key: string) => void;
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
@@ -103,7 +103,7 @@ function DigestHistoryBlock({
                 key={line.id}
                 line={line}
                 slug={slug}
-                onNavigate={onNavigate}
+                onOpenRef={onOpenRef}
                 onSeeFull={onSeeFull}
                 getTriggerProps={getTriggerProps}
                 isTooltipOpen={isTooltipOpen}
@@ -737,14 +737,13 @@ export default function LawlibReaderClient({
   });
   /** sr-only view-switch announcement (loop-4 #2) — set in the toggle handler only. */
   const [statusText, setStatusText] = useState('');
-  const hoverTimerRef = useRef<number | null>(null);
-  /** Graceful popover close timer (card→popover pointer crossing). */
-  const closeTimerRef = useRef<number | null>(null);
   /** Digest-search line flash target — applied DIRECTLY to the DOM element
    *  by handleDigestLineJump (transient visual; no state threading). */
   const flashLineTimerRef = useRef<number | null>(null);
-  /** Hover-expansion suppression after programmatic collapse (see handleToggleCard). */
-  const suppressHoverUntilRef = useRef(0);
+  /** Last-interacted compact card member key (data-lawlib-member) — Esc / X
+   *  popover close restores focus to its button (plan v6; hidden-guard
+   *  fallback → first member). Set in member onClick + openCardPopover. */
+  const lastMemberKeyRef = useRef<string | null>(null);
 
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [flashKey, setFlashKey] = useState<string | null>(null);
@@ -767,6 +766,7 @@ export default function LawlibReaderClient({
     registerTooltipEl,
     handleTooltipPointerLeave,
     openedByKeyboard,
+    tooltipId,
   } = useLawTooltip();
 
   const flat = useMemo(() => flattenArticles(law), [law]);
@@ -842,6 +842,29 @@ export default function LawlibReaderClient({
     return m;
   }, [digestView]);
 
+  /** member key → card key (plan v6): EVERY member of a merged card maps to
+   *  the card's key (first member); single cards map to themselves. Covers
+   *  flat sections AND chapter groups. Drives openCardPopover — a tooltip or
+   *  body-ref for member '12' of a "มาตรา 11 - มาตรา 12" card resolves to
+   *  card '11'. */
+  const memberToCardMap = useMemo(() => {
+    const m = new Map<string, string>();
+    if (digestView == null) return m;
+    for (const s of digestView.sections) {
+      for (const l of s.lines) {
+        if (l.kind !== 'article') continue;
+        for (const k of l.keys ?? [l.key]) m.set(k, l.key);
+      }
+      for (const g of s.groups ?? []) {
+        for (const l of g.lines) {
+          if (l.kind !== 'article') continue;
+          for (const k of l.keys ?? [l.key]) m.set(k, l.key);
+        }
+      }
+    }
+    return m;
+  }, [digestView]);
+
   // --- FULL/COMPACT view helpers (rev 5.5) ----------------------------------
   const reducedMotionNow = () =>
     typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -871,42 +894,14 @@ export default function LawlibReaderClient({
   );
 
   /** Explicit toggle (radio group). Entering compact resets the active article. */
-  /** Programmatic collapse → suppress hover re-expansion for 400ms + clear the
-   *  active article (no popover = no dock copy target, D6). */
+  /** Programmatic close (X / Esc / view switch / seefull): clear the popover
+   *  + active article (no popover = no dock copy target, D6). Click-pinned
+   *  semantics (plan v6): the popover stays open until X / Esc / toggling
+   *  another card — no hover auto-close. */
   const collapseCard = useCallback(() => {
-    suppressHoverUntilRef.current = Date.now() + 400;
-    if (hoverTimerRef.current !== null) {
-      window.clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = null;
-    }
-    if (closeTimerRef.current !== null) {
-      window.clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
     setExpandedKey(null);
     setExpandedSource(null);
     setActiveKey(null);
-  }, []);
-
-  /** Graceful close (popover like the term tooltip): the pointer crossing the
-   *  card→popover gap schedules a 150ms close, cancelled when it lands inside
-   *  the popover (or when focus is inside the card/popover — never collapse
-   *  under an active interaction, loop-4 #3). */
-  const scheduleCloseCard = useCallback(() => {
-    const ae = document.activeElement;
-    if (ae !== null && ae instanceof Element) {
-      if (ae.closest('[data-lawlib-popover]') !== null) return;
-      if (ae.closest('[data-lawlib-card]') !== null) return;
-    }
-    if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current);
-    closeTimerRef.current = window.setTimeout(() => collapseCard(), 150);
-  }, [collapseCard]);
-
-  const cancelCloseCard = useCallback(() => {
-    if (closeTimerRef.current !== null) {
-      window.clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
   }, []);
 
   const handleSetView = useCallback(
@@ -921,40 +916,23 @@ export default function LawlibReaderClient({
     [effectiveView, switchView, collapseCard],
   );
 
-  /** Hover settle-delay (150ms, cleared on leave) / interaction immediate.
-   *  Hover EXPANDS ONLY (never toggles off) — a click may have taken over the
-   *  card while the settle timer was pending (double-toggle bug, QA 2026-08-05).
-   *  Hover is suppressed for 400ms after a PROGRAMMATIC collapse (Escape /
-   *  ย่อ / view switch): collapsing changes the DOM under a stationary pointer,
-   *  and the browser fires synthetic mouseenter — that must never re-expand
-   *  (Escape-collapse fight, QA 2026-08-05). NOTE: a mousemove-timestamp gate
-   *  does NOT work — Chrome delivers mouseenter BEFORE the mousemove event. */
-
-  const handleToggleCard = useCallback((key: string, source: 'hover' | 'interaction') => {
-    if (source === 'hover' && Date.now() - suppressHoverUntilRef.current < 400) return;
-    if (hoverTimerRef.current !== null) {
-      window.clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = null;
-    }
-    const apply = () => {
-      if (source === 'hover') {
-        setExpandedKey((prev) => (prev === null ? key : prev));
-        setExpandedSource((prev) => (prev === null ? 'hover' : prev));
-        // activeKey mirrors the popover article → dock actions (copy/bookmark/
-        // notes) target it (D6 parity, QA 2026-08-05).
-        setActiveKey((prev) => (prev === null ? key : prev));
-      } else {
-        setExpandedKey((prev) => (prev === key ? null : key));
-        setExpandedSource((prev) => (prev === key ? null : source));
-        setActiveKey((prev) => (prev === key ? null : key));
+  /** Click-pinned toggle (plan v6 — the hover-open path is gone; the 'hover'
+   *  source type is kept for the shared CompactView contract). Interaction
+   *  closes any open tooltip FIRST (loop-1 BLOCKER: no tooltip/popover
+   *  overlap, no touch bottom-sheet flash) and remembers the clicked member
+   *  for Esc/X focus restore. */
+  const handleToggleCard = useCallback(
+    (key: string, source: 'hover' | 'interaction', memberKey?: string) => {
+      if (source === 'interaction') {
+        closeTooltip();
+        if (memberKey !== undefined) lastMemberKeyRef.current = memberKey;
       }
-    };
-    if (source === 'hover') {
-      hoverTimerRef.current = window.setTimeout(apply, 150);
-    } else {
-      apply();
-    }
-  }, []);
+      setExpandedKey((prev) => (prev === key ? null : key));
+      setExpandedSource((prev) => (prev === key ? null : source));
+      setActiveKey((prev) => (prev === key ? null : key));
+    },
+    [closeTooltip],
+  );
 
   // --- jump target: scroll + temporary highlight + hash + position ----------
   const realNavigateTo = useCallback((key: string, opts?: { instant?: boolean }) => {
@@ -1028,6 +1006,88 @@ export default function LawlibReaderClient({
       realNavigateTo(key, opts);
     },
     [effectiveView, digestView, scrollToCard, switchView, realNavigateTo],
+  );
+
+  /** Unified compact popover-open router (plan v6): member key → card key →
+   *  auto-expand a collapsed group (mirroring scrollToCard) → 50ms (the
+   *  expand render must commit) → scroll the card into view → open its
+   *  popover + remember the member for Esc/X focus restore. NO flash — the
+   *  popover IS the feedback. `scrollToCard` stays scroll-only (chips /
+   *  bookmarks / mount-restore — v4#5 preserved). */
+  const openCardPopover = useCallback(
+    (memberKey: string) => {
+      const cardKey = memberToCardMap.get(memberKey) ?? memberKey;
+      const groupId = cardGroupMap.get(cardKey);
+      if (groupId !== undefined) {
+        setCollapsedGroups((prev) => {
+          if (!prev.has(groupId)) return prev;
+          const next = new Set(prev);
+          next.delete(groupId);
+          return next;
+        });
+      }
+      window.setTimeout(() => {
+        // Merged cards: `data-lawlib-card` = the FIRST member key;
+        // `data-lawlib-card-members` = ALL member keys (space-separated →
+        // the `~=` attribute selector matches any member).
+        const el = document.querySelector<HTMLElement>(
+          `[data-lawlib-card="${CSS.escape(cardKey)}"], [data-lawlib-card-members~="${CSS.escape(cardKey)}"]`,
+        );
+        if (el === null) return;
+        el.scrollIntoView({ behavior: reducedMotionNow() ? 'auto' : 'smooth', block: 'start' });
+        setExpandedKey(cardKey);
+        setExpandedSource('interaction');
+        lastMemberKeyRef.current = memberKey;
+        setActiveKey(memberKey);
+      }, 50);
+    },
+    [memberToCardMap, cardGroupMap],
+  );
+
+  /** Esc / X focus restore (plan v6): return focus to the last-interacted
+   *  member button (data-lawlib-member) inside the just-closed card. Hidden
+   *  guard: a collapsed group makes offsetParent null → fall back to the
+   *  card's FIRST member button (focus() on a hidden element is a no-op —
+   *  acceptable). Compact-only; FULL never restores here. */
+  const restoreMemberFocus = useCallback((cardKey: string) => {
+    window.setTimeout(() => {
+      const card = document.querySelector<HTMLElement>(
+        `[data-lawlib-card="${CSS.escape(cardKey)}"]`,
+      );
+      if (card === null) return;
+      const memberKey = lastMemberKeyRef.current;
+      let target: HTMLElement | null = null;
+      if (memberKey !== null) {
+        const el = card.querySelector<HTMLElement>(
+          `[data-lawlib-member="${CSS.escape(memberKey)}"]`,
+        );
+        if (el !== null && el.offsetParent !== null) target = el;
+      }
+      if (target === null) target = card.querySelector<HTMLElement>('[data-lawlib-member]');
+      target?.focus();
+    }, 0);
+  }, []);
+
+  /** X-close path: close the popover then restore focus to the last member
+   *  (Esc has its own handler — same restore helper). */
+  const handleCollapseCard = useCallback(() => {
+    const cardKey = expandedKey;
+    collapseCard();
+    if (effectiveView !== 'compact' || cardKey === null) return;
+    restoreMemberFocus(cardKey);
+  }, [expandedKey, collapseCard, effectiveView, restoreMemberFocus]);
+
+  /** Body-ref unified routing (plan v6): compact + card → popover; else the
+   *  jump rule (navigateTo: FULL jump / compact-no-card → FULL switch). */
+  const handleOpenRef = useCallback(
+    (key: string) => {
+      if (effectiveView === 'compact' && digestView !== null && digestHasCard(digestView, key)) {
+        openCardPopover(key);
+        return;
+      }
+      navigateTo(key);
+    },
+    [effectiveView, digestView, openCardPopover, navigateTo],
   );
 
   /** ดูฉบับเต็ม / seefull: switch to FULL + jump at that มาตรา. */
@@ -1173,8 +1233,6 @@ export default function LawlibReaderClient({
     () => () => {
       if (flashTimerRef.current !== null) window.clearTimeout(flashTimerRef.current);
       if (copiedTimerRef.current !== null) window.clearTimeout(copiedTimerRef.current);
-      if (hoverTimerRef.current !== null) window.clearTimeout(hoverTimerRef.current);
-      if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current);
       if (flashLineTimerRef.current !== null) window.clearTimeout(flashLineTimerRef.current);
     },
     [],
@@ -1222,19 +1280,15 @@ export default function LawlibReaderClient({
       }
       if (expandedKey !== null) {
         collapseCard();
-        // restore focus to the reappearing card button — deferred until the
-        // collapsed state commits (the button is hidden while expanded)
-        window.setTimeout(() => {
-          const btn = document.querySelector<HTMLElement>(
-            `[data-lawlib-card="${CSS.escape(expandedKey)}"] button`,
-          );
-          btn?.focus();
-        }, 0);
+        // Restore focus to the last-clicked member button (hidden-guard →
+        // first-member fallback) — deferred until the collapsed state
+        // commits (plan v6). Compact-only; FULL has no expanded card.
+        if (effectiveView === 'compact') restoreMemberFocus(expandedKey);
       }
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [openPanel, expandedKey, collapseCard]);
+  }, [openPanel, expandedKey, collapseCard, effectiveView, restoreMemberFocus]);
 
   // --- persist last-read position (FR10) on article change ------------------
   useEffect(() => {
@@ -1341,12 +1395,19 @@ export default function LawlibReaderClient({
     [law, navigateTo, openTooltip],
   );
 
+  /** Tooltip "เปิดมาตรานี้" (plan v6, loop-6 risk 3): compact + digest card →
+   *  open its popover (member-aware); else the EXISTING jump rule — FULL
+   *  view / compact-no-card → navigateTo (FULL unchanged). */
   const handleTooltipOpenArticle = useCallback(
     (key: string) => {
       closeTooltip();
+      if (effectiveView === 'compact' && digestView !== null && digestHasCard(digestView, key)) {
+        openCardPopover(key);
+        return;
+      }
       navigateTo(key, { instant: true });
     },
-    [closeTooltip, navigateTo],
+    [closeTooltip, effectiveView, digestView, openCardPopover, navigateTo],
   );
 
   const handleBookmarkCurrent = useCallback(() => {
@@ -1482,7 +1543,7 @@ export default function LawlibReaderClient({
           <DigestHistoryBlock
             lines={digestView.sections[1].lines}
             slug={law.slug}
-            onNavigate={navigateTo}
+            onOpenRef={handleOpenRef}
             onSeeFull={handleSeeFull}
             getTriggerProps={getTriggerProps}
             isTooltipOpen={isTooltipOpen}
@@ -1549,12 +1610,11 @@ export default function LawlibReaderClient({
             lineHeight={settings.lineHeight}
             expandedKey={expandedKey}
             expandedSource={expandedSource}
+            tooltipId={tooltipId}
             onToggleCard={handleToggleCard}
-            onCollapseCard={collapseCard}
-            onCardLeave={scheduleCloseCard}
-            onPopoverEnter={cancelCloseCard}
-            onPopoverLeave={scheduleCloseCard}
+            onCollapseCard={handleCollapseCard}
             onNavigate={navigateTo}
+            onOpenRef={handleOpenRef}
             onSeeFull={handleSeeFull}
             onExpandGroup={(groupId) =>
               setCollapsedGroups((prev) => {
@@ -1607,6 +1667,7 @@ export default function LawlibReaderClient({
                   flashKey={flashKey}
                   getTriggerProps={getTriggerProps}
                   isTooltipOpen={isTooltipOpen}
+                  tooltipId={tooltipId}
                 />
               </section>
             </div>
@@ -1718,6 +1779,7 @@ export default function LawlibReaderClient({
           registerTooltipEl={registerTooltipEl}
           onPointerLeave={handleTooltipPointerLeave}
           focusOnOpen={openedByKeyboard}
+          tooltipId={tooltipId}
         />
       )}
     </div>
