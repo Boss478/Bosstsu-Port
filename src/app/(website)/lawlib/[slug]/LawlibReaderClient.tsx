@@ -1068,7 +1068,7 @@ export default function LawlibReaderClient({
 
   // --- lawlib-immersive body hook (P6): navbar hidden on reader pages; the
   //     class is set post-hydration (client-only tree) and cleaned up on
-  //     unmount. DigestStudyClient owns its own hook on the digest page.
+  //     unmount (applies to both FULL and COMPACT views).
   useEffect(() => {
     document.body.classList.add('lawlib-immersive');
     return () => document.body.classList.remove('lawlib-immersive');

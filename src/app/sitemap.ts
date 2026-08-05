@@ -59,12 +59,6 @@ export default async function sitemap() {
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     },
-    {
-      url: `${BASE_URL}/lawlib/digest`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    },
   ];
 
   const lawlibRoutes = readLawlibSlugs().map((slug) => ({

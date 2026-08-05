@@ -61,8 +61,8 @@ export default function Header() {
     };
   }, []);
 
-  // FR-F: hide the navbar on the reader + digest pages (`/lawlib/<slug>`,
-  // `/lawlib/digest`); the list page `/lawlib` keeps the nav.
+  // FR-F: hide the navbar on the reader pages (`/lawlib/<slug>`); the list
+  // page `/lawlib` keeps the nav.
   const hidden = pathname.startsWith('/lawlib/') && pathname !== '/lawlib';
   if (hidden) return null;
 

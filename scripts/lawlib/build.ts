@@ -18,7 +18,7 @@
  * Thin CLI — all real logic lives in src/lib/lawlib/*.
  */
 
-import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { parseLawMarkdown } from '../../src/lib/lawlib/parser';
 import {
@@ -143,6 +143,17 @@ function main(): void {
 
     passing.push({ file, doc });
     console.log(`[OK] ${file} (slug "${doc.slug}") — ${articleCountOf(doc)} มาตรา`);
+  }
+
+  // --- digest pairing info (rev 5.5): which built laws have a digest md -----
+  // Informational only — a missing digest just means the FULL/COMPACT toggle
+  // is hidden for that law (FR1/FR3). New digest mds require a rebuild to emit.
+  const digestDir = join(process.cwd(), 'content/lawlib/digests');
+  for (const { doc } of passing) {
+    const hasDigest = existsSync(join(digestDir, `${doc.slug}.md`));
+    console.log(
+      `[DIGEST] ${doc.slug}: ${hasDigest ? 'compact view available' : 'no digest (FULL only)'}`,
+    );
   }
 
   // --- duplicate slug detection: hard failure across ALL parsed docs --------

@@ -16,7 +16,6 @@
  *                          both carry this class)
  * - `.lawlib-tooltip`    — LawTooltip portal root
  * - `.lawlib-dock`       — the floating ReadingDock (FR-C)
- * - `.lawlib-theme-fab`  — digest page theme-cycle FAB (lane E; must not print)
  * - `.lawlib-toc`        — TocSidebar root
  * - `.lawlib-timeline`   — EditionTimeline (amendment history = chrome)
  * - `.lawlib-chapter`    — chapter container in ArticleView (break per หมวด)
@@ -56,8 +55,7 @@
   .lawlib-tooltip,
   .lawlib-dock,
   .lawlib-toc,
-  .lawlib-timeline,
-  .lawlib-theme-fab {
+  .lawlib-timeline {
     display: none !important;
   }
 
