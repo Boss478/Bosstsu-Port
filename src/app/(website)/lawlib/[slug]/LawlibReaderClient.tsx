@@ -722,7 +722,7 @@ export default function LawlibReaderClient({
     return storedView ?? (digestView !== null ? 'compact' : 'full');
   });
   /** Derived at render — no-digest laws force FULL (FR3, mid-session safe). */
-  const effectiveView: ReaderViewMode = digestView === null ? 'full' : viewMode;
+  const effectiveView: ReaderViewMode = digestView == null ? 'full' : viewMode;
   /** Expanded compact card article key + how it started (hover never focuses). */
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [expandedSource, setExpandedSource] = useState<'hover' | 'interaction' | null>(null);
@@ -793,7 +793,7 @@ export default function LawlibReaderClient({
 
   // --- digest search index (rev 5.5): lines + line→group maps --------------
   const digestLines = useMemo<DigestSearchLine[] | undefined>(() => {
-    if (digestView === null) return undefined;
+    if (digestView == null) return undefined;
     const out: DigestSearchLine[] = [];
     // Section 0 (ข้อมูลกฎหมาย) is header-only — never rendered in the body —
     // so its lines are not searchable (no dead jumps); the merged history
@@ -817,7 +817,7 @@ export default function LawlibReaderClient({
   /** line id → chapter group id (digest-search jump auto-expands — loop-4 #6). */
   const lineGroupMap = useMemo(() => {
     const m = new Map<string, string>();
-    if (digestView === null) return m;
+    if (digestView == null) return m;
     for (const s of digestView.sections) {
       for (const g of s.groups ?? []) {
         for (const l of g.lines) m.set(l.id, g.id);
@@ -830,7 +830,7 @@ export default function LawlibReaderClient({
    *  Merged cards map EVERY member key → the card's group (user 2026-08-05). */
   const cardGroupMap = useMemo(() => {
     const m = new Map<string, string>();
-    if (digestView === null) return m;
+    if (digestView == null) return m;
     for (const s of digestView.sections) {
       for (const g of s.groups ?? []) {
         for (const l of g.lines) {

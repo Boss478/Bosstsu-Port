@@ -106,7 +106,7 @@ afterEach(() => {
 async function renderReader() {
   const utils = render(
     <ThemeProvider>
-      <LawlibReaderClient law={sampleLaw} />
+      <LawlibReaderClient law={sampleLaw} digestView={null} />
     </ThemeProvider>,
   );
   // The mount effect defers its first-article activation into setTimeout(0) —
