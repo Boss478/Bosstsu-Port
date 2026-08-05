@@ -118,9 +118,12 @@ function ArticleBody({
                 const edition = law.editions.find((e) => e.no === am.editionNo);
                 return (
                   <li key={i}>
-                    แก้ไขโดยฉบับที่ {am.editionNo}
-                    {edition ? ` (${formatThaiBEDate(edition.gazetteDate)})` : ''}
-                    {am.note !== '' ? ` — ${am.note}` : ''}
+                    {/* Authored full line (law md marker note — user 2026-08-05):
+                        e.g. 'ฉบับที่ 2 (2545) - แก้ไข: กระทรวง: … -> …' — shown
+                        verbatim; empty notes fall back to the legacy format. */}
+                    {am.note !== ''
+                      ? am.note
+                      : `แก้ไขโดยฉบับที่ ${am.editionNo}${edition ? ` (${formatThaiBEDate(edition.gazetteDate)})` : ''}`}
                   </li>
                 );
               })}
