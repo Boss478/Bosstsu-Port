@@ -64,12 +64,6 @@ export type RenderLine =
         kind: 'quote' | 'bullet' | 'numbered' | 'text';
         tokens: RenderToken[];
       }>;
-      /**
-       * Per-มาตรา concise history (user 2026-08-05): `- ประวัติ: …` bullets
-       * inside a มาตรา card are collected here (NOT rendered in the card
-       * summary) and surfaced in the hover popover only.
-       */
-      history?: string[];
     };
 
 /** One chapter group of a digest section (e.g. หมวดที่ 4 … (9 มาตรา)). */
@@ -451,25 +445,6 @@ export function buildView(
       const tokens = refTokens(tokenizeDigestLine(content), aliases, opts.slug, terms);
       if (kind === 'h3') closeArticle(); // `### ` starts a new block context
       if (openArticle !== null && kind !== 'h3') {
-        // Per-มาตรา concise history (user 2026-08-05): `- ประวัติ: …` bullets
-        // inside a มาตรา card → collected into `history`, NOT rendered in the
-        // card summary (surfaced in the hover popover only).
-        if (kind === 'bullet') {
-          const plain = tokens
-            .filter(
-              (t): t is Extract<RenderToken, { kind: 'text' | 'term' }> =>
-                t.kind === 'text' || t.kind === 'term',
-            )
-            .map((t) => (t.kind === 'text' ? t.text : t.term))
-            .join('');
-          if (plain.startsWith('ประวัติ:')) {
-            const note = plain.slice('ประวัติ:'.length).trim();
-            if (note !== '') {
-              openArticle.history = [...(openArticle.history ?? []), note];
-              continue;
-            }
-          }
-        }
         openArticle.parts.push({ kind, tokens });
       } else {
         lines.push({ kind, id: nextId(), tokens });

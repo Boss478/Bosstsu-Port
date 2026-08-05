@@ -466,16 +466,6 @@ function ArticlePopover({
             singleKey={line.key}
           />
         )}
-        {/* Per-มาตรา concise history (user 2026-08-05) — authored as
-            `- ประวัติ: …` in the digest md; popover-only, hover-inert. */}
-        {line.history !== undefined && line.history.length > 0 && (
-          <div className="mt-3 space-y-1 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/30 dark:text-amber-200">
-            <p className="font-semibold">ประวัติการแก้ไข</p>
-            {line.history.map((h, i) => (
-              <p key={i}>{h}</p>
-            ))}
-          </div>
-        )}
       </div>
       <footer className="flex shrink-0 flex-wrap items-center gap-2 border-t border-slate-200 px-4 py-2.5 dark:border-slate-700">
         <button
