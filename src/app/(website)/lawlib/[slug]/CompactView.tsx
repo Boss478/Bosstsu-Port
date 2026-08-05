@@ -140,6 +140,34 @@ function TokenView({
       strong
     );
   }
+  if (token.kind === 'ref' && !interactive) {
+    // History mode (user 2026-08-05): hovering มาตรา shows the article INFO
+    // via the tooltip FIRST; the jump button lives INSIDE the tooltip (the
+    // reader's handleTooltipOpenArticle → jump rule). Content is rebuilt from
+    // the href hash (the digest render model only carries label+href).
+    const key = token.href !== null ? keyFromHref(token.href) : null;
+    const m = key !== null ? /^(\d+)(.*)$/.exec(key) : null;
+    if (token.href === null || m === null) return <span>{token.label}</span>;
+    const content: TooltipContent = {
+      kind: 'ref',
+      articleNo: Number(m[1]),
+      ...(m[2] !== '' ? { articleSuffix: m[2] } : {}),
+      display: token.label,
+    };
+    return (
+      <span
+        role="button"
+        tabIndex={0}
+        aria-expanded={isTooltipOpen(content)}
+        aria-haspopup="true"
+        data-lawlib-trigger
+        className="cursor-pointer rounded-sm font-medium text-blue-700 underline decoration-dotted underline-offset-4 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
+        {...getTriggerProps(content)}
+      >
+        {token.label}
+      </span>
+    );
+  }
   if (token.href === null) {
     // unresolved cross-law ref → plain text
     return <span>{token.label}</span>;
@@ -404,6 +432,16 @@ function ArticlePopover({
           isTooltipOpen={isTooltipOpen}
           singleKey={line.key}
         />
+        {/* Per-มาตรา concise history (user 2026-08-05) — authored as
+            `- ประวัติ: …` in the digest md; popover-only, hover-inert. */}
+        {line.history !== undefined && line.history.length > 0 && (
+          <div className="mt-3 space-y-1 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/30 dark:text-amber-200">
+            <p className="font-semibold">ประวัติการแก้ไข</p>
+            {line.history.map((h, i) => (
+              <p key={i}>{h}</p>
+            ))}
+          </div>
+        )}
       </div>
       <footer className="flex shrink-0 flex-wrap items-center gap-2 border-t border-slate-200 px-4 py-2.5 dark:border-slate-700">
         <button

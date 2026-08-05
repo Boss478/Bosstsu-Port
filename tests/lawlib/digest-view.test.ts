@@ -255,3 +255,51 @@ describe('digestHasCard — compact jump rule', () => {
     expect(digestHasCard(empty, '10')).toBe(false);
   });
 });
+
+describe('buildView — per-มาตรา concise history (user 2026-08-05)', () => {
+  it('collects `- ประวัติ: …` bullets into article history, excluding them from parts', () => {
+    const doc: DigestDoc = {
+      title: 't',
+      sections: [
+        {
+          heading: '4. มาตราสำคัญ',
+          body: '**มาตรา 37** : สาระสำคัญ\n- ประวัติ: ฉบับที่ 3 (2553) แก้ไข: แทนทั้งมาตรา',
+          refs: [{ articleNo: 37 }],
+          hasSeeFull: false,
+        },
+      ],
+    };
+    const view = buildView(doc, new Map(), null, [], OPTS);
+    const card = view.sections[0].lines.find(
+      (l): l is Extract<RenderLine, { kind: 'article' }> => l.kind === 'article',
+    );
+    expect(card?.history).toEqual(['ฉบับที่ 3 (2553) แก้ไข: แทนทั้งมาตรา']);
+    // the bullet is NOT in the rendered parts (popover-only, card summary clean)
+    const partText = card?.parts
+      .flatMap((p) => p.tokens)
+      .filter((t) => t.kind === 'text')
+      .map((t) => t.text)
+      .join('');
+    expect(partText).not.toContain('ประวัติ:');
+  });
+
+  it('ignores non-ประวัติ bullets (stay in parts)', () => {
+    const doc: DigestDoc = {
+      title: 't',
+      sections: [
+        {
+          heading: '4. มาตราสำคัญ',
+          body: '**มาตรา 8** : สาระ\n- วรรคสองของมาตรานี้',
+          refs: [{ articleNo: 8 }],
+          hasSeeFull: false,
+        },
+      ],
+    };
+    const view = buildView(doc, new Map(), null, [], OPTS);
+    const card = view.sections[0].lines.find(
+      (l): l is Extract<RenderLine, { kind: 'article' }> => l.kind === 'article',
+    );
+    expect(card?.history).toBeUndefined();
+    expect(card?.parts.length).toBe(2); // header text + the bullet
+  });
+});
