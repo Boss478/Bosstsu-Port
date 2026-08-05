@@ -1,7 +1,7 @@
 'use client';
 
 import nextDynamic from 'next/dynamic';
-import type { DigestView } from './digest-view';
+import type { DigestView } from '@/lib/lawlib/digest-view';
 
 // next/dynamic keeps the study client code-split from the server page bundle.
 // No `ssr: false`: the digest has no localStorage dependency, so the client

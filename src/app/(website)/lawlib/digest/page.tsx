@@ -2,30 +2,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import {
-  matchDigestArticleHeader,
-  parseDigestMd,
-  tokenizeDigestLine,
-  type DigestDoc,
-  type DigestLineToken,
-  type DigestRef,
-} from '@/lib/lawlib/parser';
+import { parseDigestMd } from '@/lib/lawlib/parser';
+import { glossaryIndex } from '@/lib/lawlib-reader';
 import type { LawDoc } from '@/types/lawlib';
-import type {
-  DigestChapterInfo,
-  DigestView,
-  RenderLine,
-  RenderSection,
-  RenderToken,
-} from './digest-view';
-import { buildChapterGroups } from './digest-view';
+import { buildView, type DigestChapterInfo, type DigestView } from '@/lib/lawlib/digest-view';
 import DigestShell from './DigestShell';
 
 // This route renders ONE digest: the พ.ร.บ.การศึกษาแห่งชาติ study dictionary
-// (content/lawlib/digests/education-law-dictionary.md). Its [[มาตรา N]] refs
+// (content/lawlib/digests/national-education-act-2542.md). Its [[มาตรา N]] refs
 // deep-link into the law reader at /lawlib/national-education-act-2542
 // #มาตรา-N (anchor = `${no}${suffix}`, per ArticleView / parseHashToKey).
-const DIGEST_FILE = 'content/lawlib/digests/education-law-dictionary.md';
+const DIGEST_FILE = 'content/lawlib/digests/national-education-act-2542.md';
 const DIGEST_LAW_SLUG = 'national-education-act-2542';
 const DIGEST_LAW_HREF = `/lawlib/${DIGEST_LAW_SLUG}`;
 
@@ -80,157 +67,35 @@ function readPlannedLawAliases(): Map<string, string> {
   return aliases;
 }
 
-/**
- * Chapter boundary table for the digest's target law — read from the built
- * law JSON (src/data/lawlib/laws/<slug>.json, same fs pattern as
- * [slug]/page.tsx). Absent/unreadable → null (digest renders flat, no
- * chapter groups). Used to split the 76-card มาตราสำคัญ section into
- * expandable หมวดที่ 1–9 / บทเฉพาะกาล groups.
- */
-function readLawChapters(): DigestChapterInfo[] | null {
+/** Reads the digest's target law JSON via node fs (friendly fallback → null). */
+function readDigestLaw(): LawDoc | null {
   try {
     const raw = fs.readFileSync(
       path.join(process.cwd(), 'src/data/lawlib/laws', `${DIGEST_LAW_SLUG}.json`),
       'utf8',
     );
-    const law = JSON.parse(raw) as LawDoc;
-    if (!Array.isArray(law.chapters)) return null;
-    return law.chapters.map((ch) => ({
-      no: ch.no,
-      title: ch.title,
-      articleKeys: [
-        ...ch.articles.map((a) => `${a.no}${a.suffix ?? ''}`),
-        ...(ch.sections ?? []).flatMap((s) => s.articles.map((a) => `${a.no}${a.suffix ?? ''}`)),
-      ],
-    }));
+    return JSON.parse(raw) as LawDoc;
   } catch {
-    // law JSON missing → no chapter boundaries (flat render)
     return null;
   }
 }
 
-/** 'มาตรา 10' | 'มาตรา 10 ทวิ' | 'มาตรา 10/1' — article display label. */
-function articleLabel(no: number, suffix?: string): string {
-  return `มาตรา ${no}${suffix ? (suffix.startsWith('/') ? suffix : ` ${suffix}`) : ''}`;
-}
-
 /**
- * Deep link for a ref: same-law → the digest's target law; cross-law → the
- * planned-laws slug of the authored code. null → unresolved (plain text).
- *
- * Defense in depth: build.ts already rejects non-conforming planned-law
- * slugs (validatePlannedLaws), but a hand-edited manifest must never emit a
- * junk href — non `/^[a-z0-9-]+$/i` slugs resolve to null (plain text).
+ * Chapter boundary table for the digest's target law — from the law JSON.
+ * Absent/unreadable → null (digest renders flat, no chapter groups). Used to
+ * split the 76-card มาตราสำคัญ section into expandable หมวดที่ 1–9 /
+ * บทเฉพาะกาล groups.
  */
-function refHref(ref: DigestRef, aliases: Map<string, string>): string | null {
-  const key = `${ref.articleNo}${ref.articleSuffix ?? ''}`;
-  const base = ref.lawSlug !== undefined ? aliases.get(ref.lawSlug) : DIGEST_LAW_SLUG;
-  if (base === undefined || !/^[a-z0-9-]+$/i.test(base)) return null;
-  return `/lawlib/${base}#มาตรา-${key}`;
-}
-
-function toRenderTokens(tokens: DigestLineToken[], aliases: Map<string, string>): RenderToken[] {
-  return tokens.map((tok) =>
-    tok.kind === 'text'
-      ? { kind: 'text', text: tok.t }
-      : { kind: tok.kind, label: tok.ref.display, href: refHref(tok.ref, aliases) },
-  );
-}
-
-function classifyLine(line: string): 'h3' | 'quote' | 'bullet' | 'numbered' | 'text' {
-  if (line.startsWith('### ')) return 'h3';
-  if (line.startsWith('> ')) return 'quote';
-  if (line.startsWith('- ')) return 'bullet';
-  if (/^\(\d+\)/.test(line)) return 'numbered';
-  return 'text';
-}
-
-/** Build the render model: line kinds + article jump chips per section. */
-function buildView(
-  doc: DigestDoc,
-  aliases: Map<string, string>,
-  chapterTable: DigestChapterInfo[] | null,
-): DigestView {
-  const sections: RenderSection[] = doc.sections.map((section) => {
-    const lines: RenderLine[] = [];
-    const seen = new Set<string>();
-    const articles: RenderSection['articles'] = [];
-    // Continuation lines (วรรค, bullets, amendment quotes) group into the open
-    // article card until the next article header — or a `### ` sub-heading.
-    let openArticle: Extract<RenderLine, { kind: 'article' }> | null = null;
-
-    const closeArticle = (): void => {
-      if (openArticle !== null) {
-        lines.push(openArticle);
-        openArticle = null;
-      }
-    };
-
-    for (const rawLine of section.body.split('\n')) {
-      const line = rawLine.trimEnd();
-      if (line === '') continue; // blank lines → spacing handled by the shell
-
-      const header = matchDigestArticleHeader(line);
-      if (header) {
-        closeArticle();
-        const key = `${header.no}${header.suffix ?? ''}`;
-        const label = articleLabel(header.no, header.suffix);
-        const href = `${DIGEST_LAW_HREF}#มาตรา-${key}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          articles.push({ key, label, href });
-        }
-        openArticle = {
-          kind: 'article',
-          key,
-          label,
-          href,
-          parts: [
-            {
-              kind: 'text',
-              tokens: toRenderTokens(tokenizeDigestLine(header.rest), aliases),
-            },
-          ],
-        };
-        continue;
-      }
-
-      const kind = classifyLine(line);
-      // The line-prefix markers are replaced by the shell's styling — only the
-      // content after them is tokenized ('### ' included: the prefix must never
-      // leak into the rendered heading text).
-      const content =
-        kind === 'quote'
-          ? line.replace(/^>\s?/, '')
-          : kind === 'bullet'
-            ? line.slice(2)
-            : kind === 'h3'
-              ? line.slice(4)
-              : line;
-      const tokens = toRenderTokens(tokenizeDigestLine(content), aliases);
-      if (kind === 'h3') closeArticle(); // `### ` starts a new block context
-      if (openArticle !== null && kind !== 'h3') {
-        openArticle.parts.push({ kind, tokens });
-      } else {
-        lines.push({ kind, tokens });
-      }
-    }
-    closeArticle();
-
-    // Chapter-group split (มาตราสำคัญ): flat when the law JSON is missing or
-    // the section has no article cards (ข้อมูลกฎหมาย / เหตุผล / คำนิยาม).
-    let grouped: ReturnType<typeof buildChapterGroups> | null = null;
-    if (chapterTable !== null) grouped = buildChapterGroups(lines, chapterTable);
-
-    return {
-      heading: section.heading,
-      articles,
-      lines: grouped !== null ? grouped.preamble : lines,
-      ...(grouped !== null && grouped.groups.length > 0 ? { groups: grouped.groups } : {}),
-    };
-  });
-
-  return { title: doc.title, sections };
+function lawChapters(law: LawDoc): DigestChapterInfo[] | null {
+  if (!Array.isArray(law.chapters)) return null;
+  return law.chapters.map((ch) => ({
+    no: ch.no,
+    title: ch.title,
+    articleKeys: [
+      ...ch.articles.map((a) => `${a.no}${a.suffix ?? ''}`),
+      ...(ch.sections ?? []).flatMap((s) => s.articles.map((a) => `${a.no}${a.suffix ?? ''}`)),
+    ],
+  }));
 }
 
 /** Friendly fallback when the digest file is missing/empty. */
@@ -243,7 +108,7 @@ function DigestUnavailable() {
       <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
         หากเป็นผู้ดูแลระบบ: ตรวจสอบไฟล์{' '}
         <code className="rounded bg-slate-100 px-1.5 py-0.5 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-          content/lawlib/digests/education-law-dictionary.md
+          content/lawlib/digests/national-education-act-2542.md
         </code>
       </p>
       <Link
@@ -264,6 +129,13 @@ export default function LawlibDigestPage() {
   const doc = parseDigestMd(md);
   if (doc.title === '' && doc.sections.length === 0) return <DigestUnavailable />;
 
-  const view = buildView(doc, readPlannedLawAliases(), readLawChapters());
+  const law = readDigestLaw();
+  const view: DigestView = buildView(
+    doc,
+    readPlannedLawAliases(),
+    law !== null ? lawChapters(law) : null,
+    law !== null ? glossaryIndex(law) : [],
+    { slug: DIGEST_LAW_SLUG, href: DIGEST_LAW_HREF },
+  );
   return <DigestShell view={view} />;
 }

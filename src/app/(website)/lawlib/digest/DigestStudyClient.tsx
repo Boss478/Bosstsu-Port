@@ -14,7 +14,12 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { THEMES, useTheme } from '@/components/ThemeProvider';
 import type { Theme } from '@/components/ThemeProvider';
-import type { DigestView, RenderChapterGroup, RenderLine, RenderToken } from './digest-view';
+import type {
+  DigestView,
+  RenderChapterGroup,
+  RenderLine,
+  RenderToken,
+} from '@/lib/lawlib/digest-view';
 
 /** TH labels + icons per theme (plan §4.3 pattern: icon per current theme). */
 const THEME_META: Record<Theme, { icon: string; labelTh: string }> = {
@@ -45,43 +50,30 @@ function ThemeFab() {
   );
 }
 
-/** Inline `~~…~~` strikethrough + `**…**` bold over plain text (unbalanced markers stay literal). */
-function InlineText({ text }: { text: string }) {
-  const strikeParts = text.split(/~~(.+?)~~/g);
-  return (
-    <>
-      {strikeParts.map((part, i) =>
-        i % 2 === 1 ? (
-          <s key={i} className="text-slate-600 dark:text-slate-400">
-            {part}
-          </s>
-        ) : (
-          <BoldText key={i} text={part} />
-        ),
-      )}
-    </>
-  );
-}
-
-function BoldText({ text }: { text: string }) {
-  const parts = text.split(/\*\*(.+?)\*\*/g);
-  return (
-    <>
-      {parts.map((part, i) =>
-        i % 2 === 1 ? (
-          <strong key={i} className="font-semibold text-slate-900 dark:text-white">
-            {part}
-          </strong>
-        ) : (
-          <span key={i}>{part}</span>
-        ),
-      )}
-    </>
-  );
-}
-
+/**
+ * Inline token renderer — rev 5.5: markers are consumed at BUILD time
+ * (RenderToken carries bold/strike flags); term tokens render as plain
+ * spans with data-lawlib-term (tooltips arrive with the merged reader —
+ * this legacy digest client is retired in T5).
+ */
 function Token({ token }: { token: RenderToken }) {
-  if (token.kind === 'text') return <InlineText text={token.text} />;
+  if (token.kind === 'text' || token.kind === 'term') {
+    const content = token.kind === 'text' ? token.text : token.term;
+    const plain = (
+      <span {...(token.kind === 'term' ? { 'data-lawlib-term': token.term } : {})}>{content}</span>
+    );
+    const strong =
+      token.bold === true ? (
+        <strong className="font-semibold text-slate-900 dark:text-white">{plain}</strong>
+      ) : (
+        plain
+      );
+    return token.strike === true ? (
+      <s className="text-slate-600 dark:text-slate-400">{strong}</s>
+    ) : (
+      strong
+    );
+  }
   if (token.href === null) {
     // unresolved cross-law ref → plain text
     return <span>{token.label}</span>;

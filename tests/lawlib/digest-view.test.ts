@@ -10,9 +10,16 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildChapterGroups,
+  buildView,
+  digestHasCard,
+  tokenizeRenderText,
+  type BuildViewOptions,
   type DigestChapterInfo,
+  type DigestView,
   type RenderLine,
-} from '@/app/(website)/lawlib/digest/digest-view';
+} from '@/lib/lawlib/digest-view';
+import type { DigestDoc } from '@/lib/lawlib/parser';
+import type { GlossaryTerm } from '@/lib/lawlib-reader';
 
 const chapter = (no: number | null, title: string, articleKeys: string[]): DigestChapterInfo => ({
   no,
@@ -20,18 +27,27 @@ const chapter = (no: number | null, title: string, articleKeys: string[]): Diges
   articleKeys,
 });
 
-/** Synthetic article card line. */
+/** Synthetic article card line (fixtures — ids are constants, never asserted). */
 const article = (key: string, label = `มาตรา ${key}`): RenderLine => ({
   kind: 'article',
+  id: 'lawlib-dline-fixture',
   key,
   label,
   href: `/lawlib/national-education-act-2542#มาตรา-${key}`,
   parts: [{ kind: 'text', tokens: [{ kind: 'text', text: 'เนื้อหา' }] }],
 });
 
-const text = (t: string): RenderLine => ({ kind: 'text', tokens: [{ kind: 'text', text: t }] });
+const text = (t: string): RenderLine => ({
+  kind: 'text',
+  id: 'lawlib-dline-fixture',
+  tokens: [{ kind: 'text', text: t }],
+});
 
-const h3 = (t: string): RenderLine => ({ kind: 'h3', tokens: [{ kind: 'text', text: t }] });
+const h3 = (t: string): RenderLine => ({
+  kind: 'h3',
+  id: 'lawlib-dline-fixture',
+  tokens: [{ kind: 'text', text: t }],
+});
 
 /** Real chapter table of the พ.ร.บ.การศึกษาแห่งชาติ digest's target law. */
 const ACT_2542_CHAPTERS: DigestChapterInfo[] = [
@@ -94,7 +110,11 @@ describe('buildChapterGroups — digest chapter grouping', () => {
     const lines = [
       article('10'),
       text('วรรคสองของมาตรา 10'),
-      { kind: 'quote' as const, tokens: [{ kind: 'text' as const, text: 'แก้ไขโดยฉบับที่ 2' }] },
+      {
+        kind: 'quote' as const,
+        id: 'lawlib-dline-fixture',
+        tokens: [{ kind: 'text' as const, text: 'แก้ไขโดยฉบับที่ 2' }],
+      },
       article('22'),
     ];
     const result = buildChapterGroups(lines, ACT_2542_CHAPTERS);
@@ -131,5 +151,107 @@ describe('buildChapterGroups — digest chapter grouping', () => {
 
     expect(result!.groups).toEqual([]);
     expect(result!.preamble).toEqual(lines);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// rev 5.5 — merged-reader token model (marker-aware + terms), digestHasCard,
+// global lawlib-dline-<n> counter
+// ---------------------------------------------------------------------------
+
+const TERMS: GlossaryTerm[] = [{ term: 'การศึกษา', definition: 'ความหมายของการศึกษา' }];
+
+const OPTS: BuildViewOptions = {
+  slug: 'national-education-act-2542',
+  href: '/lawlib/national-education-act-2542',
+};
+
+/** Minimal doc: one info section (marker/term/ref line) + one มาตรา section. */
+const DOC: DigestDoc = {
+  title: 'พจนานุกรมกฎหมาย — ทดสอบ',
+  sections: [
+    {
+      heading: '1. ข้อมูลกฎหมาย',
+      body: '**การศึกษา** : ~~ยกเลิก~~ ตาม [[มาตรา 10]]',
+      refs: [{ articleNo: 10 }],
+      hasSeeFull: false,
+    },
+    {
+      heading: '4. มาตราสำคัญ',
+      body: '**มาตรา 10** : สาระสำคัญ\n**มาตรา 20** : เนื้อความ',
+      refs: [{ articleNo: 10 }, { articleNo: 20 }],
+      hasSeeFull: false,
+    },
+  ],
+};
+
+describe('tokenizeRenderText — marker-aware + term segmentation', () => {
+  it('consumes **bold** and ~~strike~~ pairs into flags (unbalanced markers stay literal)', () => {
+    const tokens = tokenizeRenderText('**การศึกษา** : ~~ยกเลิก~~ **ไม่ปิด', []);
+    expect(tokens).toEqual([
+      { kind: 'text', text: 'การศึกษา', bold: true },
+      { kind: 'text', text: ' : ' },
+      { kind: 'text', text: 'ยกเลิก', strike: true },
+      { kind: 'text', text: ' **ไม่ปิด' },
+    ]);
+  });
+
+  it('splits terms via splitByTerms on plain runs, carrying run flags', () => {
+    const tokens = tokenizeRenderText('**การศึกษา** ฉบับ', TERMS);
+    expect(tokens).toEqual([
+      { kind: 'term', term: 'การศึกษา', definition: 'ความหมายของการศึกษา', bold: true },
+      { kind: 'text', text: ' ฉบับ' },
+    ]);
+  });
+
+  it('keeps refs whole (never term-segmented) and in document order', () => {
+    const view = buildView(DOC, new Map(), null, TERMS, OPTS);
+    const info = view.sections[0];
+    const t = info.lines.flatMap((l) => l.tokens);
+    expect(t.map((x) => x.kind)).toEqual(['term', 'text', 'text', 'text', 'ref']);
+    const ref = t.find((x) => x.kind === 'ref');
+    expect(ref).toEqual({
+      kind: 'ref',
+      label: 'มาตรา 10',
+      href: '/lawlib/national-education-act-2542#มาตรา-10',
+    });
+  });
+});
+
+describe('buildView — article cards + global dline ids', () => {
+  it('builds article cards with slug-parametrized hrefs + section chips', () => {
+    const view = buildView(DOC, new Map(), null, [], OPTS);
+    const section = view.sections[1];
+    expect(section.articles).toEqual([
+      { key: '10', label: 'มาตรา 10', href: '/lawlib/national-education-act-2542#มาตรา-10' },
+      { key: '20', label: 'มาตรา 20', href: '/lawlib/national-education-act-2542#มาตรา-20' },
+    ]);
+    const cards = section.lines.filter((l) => l.kind === 'article');
+    expect(cards.map((c) => (c.kind === 'article' ? c.key : '?'))).toEqual(['10', '20']);
+  });
+
+  it('assigns lawlib-dline-<n> via ONE global counter across ≥2 sections (no restart)', () => {
+    const view = buildView(DOC, new Map(), null, [], OPTS);
+    const ids = view.sections.flatMap((s) => s.lines.map((l) => l.id));
+    expect(ids.length).toBeGreaterThanOrEqual(3);
+    expect(new Set(ids).size).toBe(ids.length); // all unique
+    expect(ids[0]).toBe('lawlib-dline-1');
+    // strict global sequence across sections
+    const numbers = ids.map((id) => Number(id.replace('lawlib-dline-', '')));
+    expect(numbers).toEqual([...numbers].sort((a, b) => a - b));
+    // section 2 starts AFTER section 1's counter (never restarts at 1)
+    const s2 = view.sections[1].lines.map((l) => Number(l.id.replace('lawlib-dline-', '')));
+    expect(s2[0]).toBeGreaterThan(1);
+  });
+});
+
+describe('digestHasCard — compact jump rule', () => {
+  it('true for keys with digest cards, false for absent keys / empty views', () => {
+    const view = buildView(DOC, new Map(), null, [], OPTS);
+    expect(digestHasCard(view, '10')).toBe(true);
+    expect(digestHasCard(view, '20')).toBe(true);
+    expect(digestHasCard(view, '11')).toBe(false);
+    const empty: DigestView = { title: '', sections: [] };
+    expect(digestHasCard(empty, '10')).toBe(false);
   });
 });
