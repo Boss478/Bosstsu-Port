@@ -84,7 +84,10 @@ function isSameLawHref(href: string, slug: string): boolean {
   return href.startsWith(`/lawlib/${slug}#มาตรา-`);
 }
 
-/** Inline token renderer — text/term with bold/strike, refs, seefull. */
+/** Inline token renderer — text/term with bold/strike, refs, seefull.
+ *  `interactive=false` renders a hover-inert static block (the merged history
+ *  section — user 2026-08-05: hover must not affect it): terms become plain
+ *  text (no tooltip triggers), refs/seefull become plain labels. */
 function TokenView({
   token,
   slug,
@@ -92,6 +95,7 @@ function TokenView({
   onSeeFull,
   getTriggerProps,
   isTooltipOpen,
+  interactive = true,
 }: {
   token: RenderToken;
   slug: string;
@@ -99,11 +103,12 @@ function TokenView({
   onSeeFull: (key: string) => void;
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
+  interactive?: boolean;
 }) {
   if (token.kind === 'text' || token.kind === 'term') {
     const content = token.kind === 'text' ? token.text : token.term;
     const plain =
-      token.kind === 'term' ? (
+      token.kind === 'term' && interactive ? (
         <span
           role="button"
           tabIndex={0}
@@ -187,6 +192,7 @@ export function TokenList({
   onSeeFull,
   getTriggerProps,
   isTooltipOpen,
+  interactive = true,
 }: {
   tokens: RenderToken[];
   slug: string;
@@ -194,6 +200,7 @@ export function TokenList({
   onSeeFull: (key: string) => void;
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
+  interactive?: boolean;
 }) {
   return (
     <>
@@ -206,6 +213,7 @@ export function TokenList({
           onSeeFull={onSeeFull}
           getTriggerProps={getTriggerProps}
           isTooltipOpen={isTooltipOpen}
+          interactive={interactive}
         />
       ))}
     </>
@@ -413,7 +421,8 @@ function ArticlePopover({
 }
 
 /** One body line (non-article) with dline id (flash applied directly via DOM).
- *  Exported for the reader's merged history block (both views). */
+ *  Exported for the reader's merged history block (both views).
+ *  `interactive=false` → hover-inert terms (history section — user 2026-08-05). */
 export function BodyLineView({
   line,
   slug,
@@ -421,6 +430,7 @@ export function BodyLineView({
   onSeeFull,
   getTriggerProps,
   isTooltipOpen,
+  interactive = true,
 }: {
   line: Exclude<RenderLine, { kind: 'article' }>;
   slug: string;
@@ -428,6 +438,7 @@ export function BodyLineView({
   onSeeFull: (key: string) => void;
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
+  interactive?: boolean;
 }) {
   const tokens = (
     <TokenList
@@ -437,6 +448,7 @@ export function BodyLineView({
       onSeeFull={onSeeFull}
       getTriggerProps={getTriggerProps}
       isTooltipOpen={isTooltipOpen}
+      interactive={interactive}
     />
   );
   if (line.kind === 'h3') {

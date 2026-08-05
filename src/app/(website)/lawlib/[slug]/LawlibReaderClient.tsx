@@ -107,6 +107,7 @@ function DigestHistoryBlock({
                 onSeeFull={onSeeFull}
                 getTriggerProps={getTriggerProps}
                 isTooltipOpen={isTooltipOpen}
+                interactive={false}
               />
             ) : null,
           )}
