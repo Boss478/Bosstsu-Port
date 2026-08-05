@@ -44,6 +44,11 @@ interface LawTooltipProps {
   onPointerLeave: (e: React.PointerEvent<HTMLElement>) => void;
   /** Keyboard-opened (Enter/Space on a trigger) → focus the root on mount. */
   focusOnOpen?: boolean;
+  /**
+   * Stable root id (plan commit 3): aria-describedby target for triggers.
+   * Absent → the root renders without an id (pre-wiring callers).
+   */
+  tooltipId?: string;
 }
 
 const GAP = 8;
@@ -230,6 +235,7 @@ export default function LawTooltip({
   registerTooltipEl,
   onPointerLeave,
   focusOnOpen = false,
+  tooltipId,
 }: LawTooltipProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
 
@@ -301,6 +307,7 @@ export default function LawTooltip({
 
   return createPortal(
     <div
+      id={tooltipId}
       ref={(el) => {
         rootRef.current = el;
         registerTooltipEl(el);

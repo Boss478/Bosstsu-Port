@@ -50,6 +50,13 @@ interface ArticleViewProps {
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
   /**
+   * Stable tooltip root id (plan commit 3): the article-header trigger
+   * references it via aria-describedby while its tooltip is open. Absent →
+   * no describedby (callers not yet wired). Glossary/ref spans do NOT use it
+   * — glossary has its own announced content (loop-5 INFO).
+   */
+  tooltipId?: string;
+  /**
    * rev 5.5 (FULL/COMPACT merge): single-article mode — render ONLY this
    * article (h4 heading; used by compact cards' hover/tap expand). The render
    * model short-circuits to 1/82 of the work (loop-2 #1). Absent/null → full
@@ -189,6 +196,7 @@ function ArticleView({
   getTriggerProps,
   isTooltipOpen,
   singleKey,
+  tooltipId,
 }: ArticleViewProps) {
   // --- per-law render model (memoized: segments + glossary marks + offsets) --
   const model = useMemo(() => {
@@ -270,6 +278,7 @@ function ArticleView({
             tabIndex={0}
             aria-expanded={isTooltipOpen(render.headerContent)}
             aria-haspopup="true"
+            aria-describedby={isTooltipOpen(render.headerContent) ? tooltipId : undefined}
             data-lawlib-trigger
             className="inline-flex cursor-pointer items-center rounded-lg font-bold text-blue-800 underline decoration-dotted decoration-blue-400/70 underline-offset-4 hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
             {...getTriggerProps(render.headerContent)}

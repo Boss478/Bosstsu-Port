@@ -22,7 +22,7 @@
  * Content is announced on OPEN (LawTooltip uses aria-live) — never on focus.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 export type TooltipContent =
   | { kind: 'glossary'; term: string; definition: string }
@@ -90,6 +90,12 @@ export function useLawTooltip() {
    *  Set ONLY on keyboard-mode opens; cleared ONLY in closeTooltip (L1-8). */
   const [openedByKeyboard, setOpenedByKeyboard] = useState(false);
   const triggerElRef = useRef<HTMLElement | null>(null);
+  /**
+   * Stable tooltip root id (a11y wiring — plan commit 3): one id per hook
+   * instance, unchanged across open/close cycles. LawTooltip renders it on
+   * the portal root; triggers reference it via aria-describedby while open.
+   */
+  const tooltipId = useId();
 
   const openTooltip = useCallback(
     (content: TooltipContent, anchor: HTMLElement, opts?: { keyboard?: boolean }) => {
@@ -132,9 +138,12 @@ export function useLawTooltip() {
         if (e.pointerType !== 'mouse') return;
         // Keep open while the pointer moves into the tooltip portal or onto
         // another trigger (the new trigger re-opens with its own content).
+        // `instanceof Node` guard: React 19 synthesizes pointerleave from
+        // pointerout and substitutes relatedTarget = window when the pointer
+        // leaves toward a non-React surface — contains() throws on non-Nodes.
         const rt = e.relatedTarget as Node | null;
         if (
-          rt &&
+          rt instanceof Node &&
           (tooltipElRef.current?.contains(rt) ||
             (rt instanceof Element && rt.closest('[data-lawlib-trigger]') !== null))
         ) {
@@ -255,5 +264,7 @@ export function useLawTooltip() {
     handleTooltipPointerLeave,
     /** Keyboard-opened → LawTooltip takes focus on mount (Tab cycles its actions). */
     openedByKeyboard,
+    /** Stable id for the tooltip root (aria-describedby target — plan commit 3). */
+    tooltipId,
   };
 }
