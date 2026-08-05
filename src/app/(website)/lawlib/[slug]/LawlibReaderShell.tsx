@@ -23,5 +23,7 @@ export default function LawlibReaderShell({
   law: LawDoc;
   digestView: DigestView | null;
 }) {
-  return <LawlibReaderClient law={law} digestView={digestView} />;
+  // key={law.slug}: mid-session client-side law switches remount the reader
+  // (loop-1 #6) — activeKey/expandedKey/view state can never leak across laws.
+  return <LawlibReaderClient key={law.slug} law={law} digestView={digestView} />;
 }

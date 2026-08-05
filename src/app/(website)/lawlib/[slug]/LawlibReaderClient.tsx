@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { LawDoc } from '@/types/lawlib';
 import type { DigestView } from '@/lib/lawlib/digest-view';
+import { digestHasCard } from '@/lib/lawlib/digest-view';
 import { normalizeNfc, normalizeThaiDigits } from '@/lib/lawlib/normalize';
 import {
   articleKeyOf,
@@ -38,9 +39,12 @@ import { SearchPanel } from '@/components/SearchPanel';
 import { GlossaryPanel } from '@/components/GlossaryPanel';
 import { EditionTimeline } from '@/components/EditionTimeline';
 import { useReaderStorage } from '@/hooks/useReaderStorage';
+import type { ReaderViewMode } from '@/hooks/useReaderStorage';
 import { useTheme } from '@/components/ThemeProvider';
 import type { PaperTone, Theme } from '@/components/ThemeProvider';
+import type { DigestSearchLine } from '@/app/(website)/lawlib/lib/reader-props';
 import type { ReadingSettingsValue } from '@/app/(website)/lawlib/lib/reader-props';
+import CompactView from './CompactView';
 
 // ---------------------------------------------------------------------------
 // Local panel components (notes list / bookmarks list — reader-core
@@ -618,12 +622,12 @@ export default function LawlibReaderClient({
   law: LawDoc;
   digestView: DigestView | null;
 }) {
-  // T4 consumes digestView (FULL/COMPACT toggle); keep the prop contract live.
-  void digestView;
   const { theme, setTheme, paperTone, setPaperTone } = useTheme();
   const {
     settings,
     setSettings,
+    view: storedView,
+    setView: persistView,
     bookmarks,
     toggleBookmark,
     lastPosition,
@@ -636,6 +640,38 @@ export default function LawlibReaderClient({
     addHighlight,
     removeHighlight,
   } = useReaderStorage(law.slug);
+
+  // --- FULL/COMPACT view state (rev 5.5) ------------------------------------
+  // Chain: URL `?view=` param (mount) wins → per-slug stored key → default
+  // 'compact' when a digest exists, else 'full' (FR2, D11). Client-only tree.
+  const [viewMode, setViewMode] = useState<ReaderViewMode>(() => {
+    if (typeof window === 'undefined') return digestView !== null ? 'compact' : 'full';
+    const param = new URLSearchParams(window.location.search).get('view');
+    if (param === 'compact' || param === 'full') return param;
+    return storedView ?? (digestView !== null ? 'compact' : 'full');
+  });
+  /** Derived at render — no-digest laws force FULL (FR3, mid-session safe). */
+  const effectiveView: ReaderViewMode = digestView === null ? 'full' : viewMode;
+  /** Expanded compact card article key + how it started (hover never focuses). */
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
+  const [expandedSource, setExpandedSource] = useState<'hover' | 'interaction' | null>(null);
+  /** Collapsed chapter groups (first group starts expanded — legacy behavior). */
+  const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<string>>(() => {
+    const all: string[] = [];
+    for (const s of digestView?.sections ?? []) {
+      for (const g of s.groups ?? []) all.push(g.id);
+    }
+    const collapsed = new Set(all.slice(1)); // first group expanded
+    return collapsed;
+  });
+  /** sr-only view-switch announcement (loop-4 #2) — set in the toggle handler only. */
+  const [statusText, setStatusText] = useState('');
+  const hoverTimerRef = useRef<number | null>(null);
+  /** Digest-search line flash target — applied DIRECTLY to the DOM element
+   *  by handleDigestLineJump (transient visual; no state threading). */
+  const flashLineTimerRef = useRef<number | null>(null);
+  /** Hover-expansion suppression after programmatic collapse (see handleToggleCard). */
+  const suppressHoverUntilRef = useRef(0);
 
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [flashKey, setFlashKey] = useState<string | null>(null);
@@ -682,14 +718,141 @@ export default function LawlibReaderClient({
     [law],
   );
 
+  // --- digest search index (rev 5.5): lines + line→group maps --------------
+  const digestLines = useMemo<DigestSearchLine[] | undefined>(() => {
+    if (digestView === null) return undefined;
+    const out: DigestSearchLine[] = [];
+    for (const s of digestView.sections) {
+      const lines = [...s.lines, ...(s.groups ?? []).flatMap((g) => g.lines)];
+      for (const l of lines) {
+        const toks = l.kind === 'article' ? l.parts.flatMap((p) => p.tokens) : l.tokens;
+        const text = toks
+          .filter((t) => t.kind === 'text' || t.kind === 'term')
+          .map((t) => (t.kind === 'text' ? t.text : t.term))
+          .join('');
+        if (text.trim() === '') continue;
+        out.push({ id: l.id, section: s.heading, text });
+      }
+    }
+    return out;
+  }, [digestView]);
+
+  /** line id → chapter group id (digest-search jump auto-expands — loop-4 #6). */
+  const lineGroupMap = useMemo(() => {
+    const m = new Map<string, string>();
+    if (digestView === null) return m;
+    for (const s of digestView.sections) {
+      for (const g of s.groups ?? []) {
+        for (const l of g.lines) m.set(l.id, g.id);
+      }
+    }
+    return m;
+  }, [digestView]);
+
+  /** article key → chapter group id (jump-to-card expands a collapsed group). */
+  const cardGroupMap = useMemo(() => {
+    const m = new Map<string, string>();
+    if (digestView === null) return m;
+    for (const s of digestView.sections) {
+      for (const g of s.groups ?? []) {
+        for (const l of g.lines) {
+          if (l.kind === 'article') m.set(l.key, g.id);
+        }
+      }
+    }
+    return m;
+  }, [digestView]);
+
+  // --- FULL/COMPACT view helpers (rev 5.5) ----------------------------------
+  const reducedMotionNow = () =>
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const updateViewUrl = (mode: ReaderViewMode) => {
+    const url =
+      mode === 'compact'
+        ? `${window.location.pathname}?view=compact${window.location.hash}`
+        : `${window.location.pathname}?view=full${window.location.hash}`;
+    window.history.replaceState(null, '', url);
+  };
+
+  /** Switch view: state + per-slug storage + URL (+ scroll/announce opts). */
+  const switchView = useCallback(
+    (mode: ReaderViewMode, opts?: { scrollTop?: boolean; announce?: boolean }) => {
+      setViewMode(mode);
+      persistView(mode);
+      updateViewUrl(mode);
+      if (opts?.scrollTop === true) {
+        window.scrollTo({ top: 0, behavior: reducedMotionNow() ? 'auto' : 'smooth' });
+      }
+      if (opts?.announce === true) {
+        setStatusText(mode === 'compact' ? 'สลับเป็นเวอร์ชันย่อ' : 'สลับเป็นฉบับเต็ม');
+      }
+    },
+    [persistView],
+  );
+
+  /** Explicit toggle (radio group). Entering compact resets the active article. */
+  /** Programmatic collapse → suppress hover re-expansion for 400ms. */
+  const collapseCard = useCallback(() => {
+    suppressHoverUntilRef.current = Date.now() + 400;
+    if (hoverTimerRef.current !== null) {
+      window.clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+    setExpandedKey(null);
+    setExpandedSource(null);
+  }, []);
+
+  const handleSetView = useCallback(
+    (mode: ReaderViewMode) => {
+      if (mode === effectiveView) return;
+      if (mode === 'compact') {
+        setActiveKey(null);
+        collapseCard();
+      }
+      switchView(mode, { scrollTop: true, announce: true });
+    },
+    [effectiveView, switchView, collapseCard],
+  );
+
+  /** Hover settle-delay (150ms, cleared on leave) / interaction immediate.
+   *  Hover EXPANDS ONLY (never toggles off) — a click may have taken over the
+   *  card while the settle timer was pending (double-toggle bug, QA 2026-08-05).
+   *  Hover is suppressed for 400ms after a PROGRAMMATIC collapse (Escape /
+   *  ย่อ / view switch): collapsing changes the DOM under a stationary pointer,
+   *  and the browser fires synthetic mouseenter — that must never re-expand
+   *  (Escape-collapse fight, QA 2026-08-05). NOTE: a mousemove-timestamp gate
+   *  does NOT work — Chrome delivers mouseenter BEFORE the mousemove event. */
+
+  const handleToggleCard = useCallback((key: string, source: 'hover' | 'interaction') => {
+    if (source === 'hover' && Date.now() - suppressHoverUntilRef.current < 400) return;
+    if (hoverTimerRef.current !== null) {
+      window.clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+    const apply = () => {
+      if (source === 'hover') {
+        setExpandedKey((prev) => (prev === null ? key : prev));
+        setExpandedSource((prev) => (prev === null ? 'hover' : prev));
+      } else {
+        setExpandedKey((prev) => (prev === key ? null : key));
+        setExpandedSource((prev) => (prev === key ? null : source));
+      }
+    };
+    if (source === 'hover') {
+      hoverTimerRef.current = window.setTimeout(apply, 150);
+    } else {
+      apply();
+    }
+  }, []);
+
+  const handleCollapseCard = collapseCard;
+
   // --- jump target: scroll + temporary highlight + hash + position ----------
-  const navigateTo = useCallback((key: string, opts?: { instant?: boolean }) => {
+  const realNavigateTo = useCallback((key: string, opts?: { instant?: boolean }) => {
     const el = document.getElementById(`มาตรา-${key}`);
     if (el === null) return;
-    const reducedMotion =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const behavior = opts?.instant === true || reducedMotion ? 'auto' : 'smooth';
+    const behavior = opts?.instant === true || reducedMotionNow() ? 'auto' : 'smooth';
     el.scrollIntoView({ behavior, block: 'start' });
     setActiveKey(key);
     if (flashTimerRef.current !== null) window.clearTimeout(flashTimerRef.current);
@@ -702,29 +865,137 @@ export default function LawlibReaderClient({
     if (window.location.hash !== hash) window.history.replaceState(null, '', hash);
   }, []);
 
+  /** Compact jump-to-card: auto-expand a collapsed group, scroll + flash. */
+  const scrollToCard = useCallback(
+    (key: string) => {
+      const groupId = cardGroupMap.get(key);
+      if (groupId !== undefined) {
+        setCollapsedGroups((prev) => {
+          if (!prev.has(groupId)) return prev;
+          const next = new Set(prev);
+          next.delete(groupId);
+          return next;
+        });
+      }
+      window.setTimeout(
+        () => {
+          const el = document.querySelector<HTMLElement>(`[data-lawlib-card="${CSS.escape(key)}"]`);
+          if (el === null) return;
+          el.scrollIntoView({ behavior: reducedMotionNow() ? 'auto' : 'smooth', block: 'start' });
+          setActiveKey(key);
+          if (flashTimerRef.current !== null) window.clearTimeout(flashTimerRef.current);
+          setFlashKey(key);
+          flashTimerRef.current = window.setTimeout(() => {
+            setFlashKey((k) => (k === key ? null : k));
+            flashTimerRef.current = null;
+          }, 2200);
+        },
+        // 50ms: the group-expand render must commit BEFORE the scroll — at 0ms
+        // the card is still `hidden` (display:none) and scrollIntoView no-ops
+        // (deep-link fresh-load QA, 2026-08-05).
+        50,
+      );
+    },
+    [cardGroupMap],
+  );
+
+  /** View-aware jump (FR7/D5): compact + card → scroll card (no hash write);
+   *  compact + no card → switch FULL then DEFERRED real jump (DOM commit). */
+  const navigateTo = useCallback(
+    (key: string, opts?: { instant?: boolean }) => {
+      if (effectiveView === 'compact' && digestView !== null && digestHasCard(digestView, key)) {
+        scrollToCard(key);
+        return;
+      }
+      if (effectiveView === 'compact') {
+        switchView('full');
+        window.setTimeout(() => realNavigateTo(key, opts), 0);
+        return;
+      }
+      realNavigateTo(key, opts);
+    },
+    [effectiveView, digestView, scrollToCard, switchView, realNavigateTo],
+  );
+
+  /** ดูฉบับเต็ม / seefull: switch to FULL + jump at that มาตรา. */
+  const handleSeeFull = useCallback(
+    (key: string) => {
+      collapseCard();
+      switchView('full');
+      window.setTimeout(() => realNavigateTo(key), 0);
+    },
+    [collapseCard, switchView, realNavigateTo],
+  );
+
+  /** Digest-search line jump: close panel → defer → auto-expand group → scroll
+   *  center → focus (non-visual cue) → flash (loop-4 #6). */
+  const handleDigestLineJump = useCallback(
+    (id: string) => {
+      setOpenPanel(null);
+      const groupId = lineGroupMap.get(id);
+      if (groupId !== undefined) {
+        setCollapsedGroups((prev) => {
+          if (!prev.has(groupId)) return prev;
+          const next = new Set(prev);
+          next.delete(groupId);
+          return next;
+        });
+      }
+      if (flashLineTimerRef.current !== null) window.clearTimeout(flashLineTimerRef.current);
+      // Direct-DOM line flash: a transient visual, applied straight to the
+      // target element (no prop-threading through the nested card tree — the
+      // state-driven approach was observed to never reach the card DOM in dev,
+      // QA 2026-08-05). Focus/scroll stay deferred until the group expands.
+      // 50ms: the group-expand render must commit before the scroll (same
+      // display:none race as scrollToCard, QA 2026-08-05).
+      window.setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el === null) return;
+        el.scrollIntoView({ block: 'center', behavior: reducedMotionNow() ? 'auto' : 'smooth' });
+        el.focus({ preventScroll: true });
+        if (!reducedMotionNow()) {
+          el.classList.add('lawlib-dline-flash');
+          flashLineTimerRef.current = window.setTimeout(() => {
+            el.classList.remove('lawlib-dline-flash');
+            flashLineTimerRef.current = null;
+          }, 2000);
+        }
+      }, 50);
+    },
+    [lineGroupMap],
+  );
+
   // --- post-hydration: hash deep link (FR2) / last position (FR10) ----------
   // Mount-time values are captured once via lazy ref init (client-only tree,
   // ssr:false) so the effect itself stays dependency-free — no rule disables.
-  // The HASH is deliberately NOT captured here: on a full load with
-  // `#มาตรา-N` the router may still be applying it, and a stale mount-time
-  // read would let the last-position restore scroll elsewhere AND clobber the
-  // deep link via replaceState. It is read fresh inside the setTimeout(0)
-  // callback instead, when the router has settled.
+  // rev 5.5 (loop-1 #1): `viewAtMount` is captured too — on a fresh COMPACT
+  // load, `getElementById('มาตรา-…')` is null (no article rendered yet), so
+  // restore/deep links resolve through the JUMP RULE instead (card → scroll
+  // card; no card → FULL + deferred jump); the firstKey default is suppressed
+  // in compact (activeKey stays null — D6). The HASH is deliberately NOT
+  // captured here: on a full load with `#มาตรา-N` the router may still be
+  // applying it, and a stale mount-time read would let the last-position
+  // restore scroll elsewhere AND clobber the deep link via replaceState. It
+  // is read fresh inside the setTimeout(0) callback instead, when the router
+  // has settled.
   const mountDataRef = useRef<{
     restoreKey: string | null;
     firstKey: string | null;
+    viewAtMount: ReaderViewMode;
   } | null>(null);
   if (mountDataRef.current === null) {
     mountDataRef.current = {
       restoreKey: lastPosition,
       firstKey: flat[0] !== undefined ? articleKeyOf(flat[0].article) : null,
+      viewAtMount: effectiveView,
     };
   }
 
   useEffect(() => {
-    const { restoreKey, firstKey } = mountDataRef.current as {
+    const { restoreKey, firstKey, viewAtMount } = mountDataRef.current as {
       restoreKey: string | null;
       firstKey: string | null;
+      viewAtMount: ReaderViewMode;
     };
     // State writes are deferred out of the effect body (compiler rule).
     const timer = window.setTimeout(() => {
@@ -732,29 +1003,46 @@ export default function LawlibReaderClient({
       // full load with #มาตรา-N beats the stored last position.
       const hashKey = parseHashToKey(window.location.hash);
       const target = hashKey ?? restoreKey;
-      if (target !== null && document.getElementById(`มาตรา-${target}`) !== null) {
-        const el = document.getElementById(`มาตรา-${target}`);
-        el?.scrollIntoView({ behavior: 'auto', block: 'start' });
-        setActiveKey(target);
-        setFlashKey(target);
-        flashTimerRef.current = window.setTimeout(() => {
-          setFlashKey((k) => (k === target ? null : k));
-          flashTimerRef.current = null;
-        }, 2200);
-        // The hash is written ONLY for a genuine last-position restore (the
-        // URL is STILL hash-less at this point) — never clobber a deep-link
-        // hash with a stale restore.
-        if (hashKey === null && window.location.hash === '') {
-          window.history.replaceState(null, '', `#มาตรา-${target}`);
+
+      if (target !== null) {
+        if (viewAtMount === 'compact' && digestView !== null && digestHasCard(digestView, target)) {
+          // card-first jump: scroll to the digest card (no hash write)
+          scrollToCard(target);
+          return;
         }
-      } else if (firstKey !== null) {
+        if (viewAtMount === 'compact') {
+          // no card for the target → FULL + deferred real jump
+          switchView('full');
+          window.setTimeout(() => realNavigateTo(target), 0);
+          return;
+        }
+        if (document.getElementById(`มาตรา-${target}`) !== null) {
+          const el = document.getElementById(`มาตรา-${target}`);
+          el?.scrollIntoView({ behavior: 'auto', block: 'start' });
+          setActiveKey(target);
+          setFlashKey(target);
+          flashTimerRef.current = window.setTimeout(() => {
+            setFlashKey((k) => (k === target ? null : k));
+            flashTimerRef.current = null;
+          }, 2200);
+          // The hash is written ONLY for a genuine last-position restore (the
+          // URL is STILL hash-less at this point) — never clobber a deep-link
+          // hash with a stale restore.
+          if (hashKey === null && window.location.hash === '') {
+            window.history.replaceState(null, '', `#มาตรา-${target}`);
+          }
+        }
+      } else if (firstKey !== null && viewAtMount !== 'compact') {
         // No deep link / nothing to restore — default to the first article so
-        // prev/next + bookmark-current are usable immediately.
+        // prev/next + bookmark-current are usable immediately (FULL only —
+        // compact keeps activeKey null until a card is expanded, D6).
         setActiveKey(firstKey);
       }
     }, 0);
     return () => window.clearTimeout(timer);
-  }, []);
+    // All referenced callbacks/props are mount-stable (the shell keys the
+    // reader by law.slug — remount per law) — the effect still runs once.
+  }, [digestView, realNavigateTo, scrollToCard, switchView]);
 
   // Deep links clicked while reading (#มาตรา-N) — hashchange.
   useEffect(() => {
@@ -772,6 +1060,8 @@ export default function LawlibReaderClient({
     () => () => {
       if (flashTimerRef.current !== null) window.clearTimeout(flashTimerRef.current);
       if (copiedTimerRef.current !== null) window.clearTimeout(copiedTimerRef.current);
+      if (hoverTimerRef.current !== null) window.clearTimeout(hoverTimerRef.current);
+      if (flashLineTimerRef.current !== null) window.clearTimeout(flashLineTimerRef.current);
     },
     [],
   );
@@ -808,13 +1098,29 @@ export default function LawlibReaderClient({
   }, [openPanel]);
 
   useEffect(() => {
-    if (openPanel === null) return;
+    if (openPanel === null && expandedKey === null) return;
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpenPanel(null);
+      if (e.key !== 'Escape') return;
+      // Precedence (loop-4 #4): panel drawer > expanded card.
+      if (openPanel !== null) {
+        setOpenPanel(null);
+        return;
+      }
+      if (expandedKey !== null) {
+        collapseCard();
+        // restore focus to the reappearing card button — deferred until the
+        // collapsed state commits (the button is hidden while expanded)
+        window.setTimeout(() => {
+          const btn = document.querySelector<HTMLElement>(
+            `[data-lawlib-card="${CSS.escape(expandedKey)}"] button`,
+          );
+          btn?.focus();
+        }, 0);
+      }
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [openPanel]);
+  }, [openPanel, expandedKey, collapseCard]);
 
   // --- persist last-read position (FR10) on article change ------------------
   useEffect(() => {
@@ -903,9 +1209,13 @@ export default function LawlibReaderClient({
         if (settled) return;
         settled = true;
         window.removeEventListener('scrollend', onSettled);
-        const el = document.querySelector(
-          `[data-lawlib-term="${CSS.escape(def.term)}"]`,
-        ) as HTMLElement | null;
+        // Scoped anchor (loop-4 #8/finding): query the jump target card FIRST
+        // (compact), fall back to the whole document — never open the tooltip
+        // on a distant section-3 line while the jump landed elsewhere.
+        const card = document.querySelector<HTMLElement>(`[data-lawlib-card="${CSS.escape(key)}"]`);
+        const q = `[data-lawlib-term="${CSS.escape(def.term)}"]`;
+        const el =
+          card?.querySelector<HTMLElement>(q) ?? document.querySelector<HTMLElement>(q) ?? null;
         if (el !== null) {
           openTooltip({ kind: 'glossary', term: def.term, definition: def.definition }, el);
         }
@@ -992,13 +1302,14 @@ export default function LawlibReaderClient({
     if (ok) flashCopied('article');
   }, [activeKey, law, flashCopied]);
 
-  /** Deep link — pathname (hash may already be set via history.replaceState). */
+  /** Deep link — explicit view param (compact is the default: a FULL share
+   *  must carry `?view=full`, D11) + hash. */
   const handleShareLink = useCallback(async () => {
     const hash = activeKey !== null ? `#มาตรา-${activeKey}` : '';
-    const url = `${window.location.origin}${window.location.pathname}${hash}`;
+    const url = `${window.location.origin}${window.location.pathname}?view=${effectiveView}${hash}`;
     const ok = await copyText(url);
     if (ok) flashCopied('link');
-  }, [activeKey, flashCopied]);
+  }, [activeKey, effectiveView, flashCopied]);
 
   const handlePrintArticle = useCallback(() => {
     if (activeKey === null) return;
@@ -1020,6 +1331,10 @@ export default function LawlibReaderClient({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
+      {/* sr-only view-switch announcement — set ONLY in the toggle handler (loop-4 #2) */}
+      <p role="status" className="sr-only">
+        {statusText}
+      </p>
       {/* law header */}
       <header className="border-b border-slate-100 pb-5 dark:border-slate-800">
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -1050,35 +1365,123 @@ export default function LawlibReaderClient({
         <EditionTimeline editions={law.editions} />
       </div>
 
-      <div className="mt-6 lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8">
-        <div className="mb-6 lg:mb-0">
-          <TocSidebar
-            law={law}
-            activeKey={activeKey}
-            onNavigate={navigateTo}
-            onActiveChange={setActiveKey}
-          />
-        </div>
-
+      {/* FULL | COMPACT toggle — APG radio group, visible only when a digest
+          exists (FR1). Contrast per loop-4 #8: selected bg-blue-700/white
+          (dark bg-blue-600/white), unselected text-blue-800/blue-300. */}
+      {digestView !== null && (
         <div
-          className={`lawlib-article-card mx-auto rounded-2xl border border-slate-200 bg-white p-4 pr-18 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6 sm:pr-18 md:pr-24 ${WIDTH_CLASS[settings.width]}`}
+          role="radiogroup"
+          aria-label="มุมมองการอ่าน"
+          aria-controls="lawlib-reader-content"
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+              e.preventDefault();
+              handleSetView(effectiveView === 'compact' ? 'full' : 'compact');
+            }
+          }}
+          className="mt-4 inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900"
         >
-          <section
-            aria-label="เนื้อหากฎหมาย"
-            onMouseUp={handleArticleMouseUp}
-            style={{ lineHeight: settings.lineHeight }}
-            className={`min-w-0 pb-16 ${mainClass}`}
+          <button
+            type="button"
+            role="radio"
+            aria-checked={effectiveView === 'full'}
+            tabIndex={effectiveView === 'full' ? 0 : -1}
+            onClick={() => handleSetView('full')}
+            className={`min-h-11 min-w-11 cursor-pointer rounded-full px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+              effectiveView === 'full'
+                ? 'bg-blue-700 text-white dark:bg-blue-600'
+                : 'text-blue-800 dark:text-blue-300'
+            }`}
           >
-            <ArticleView
-              law={law}
-              highlights={highlights}
-              noteKeys={noteKeySet}
-              flashKey={flashKey}
-              getTriggerProps={getTriggerProps}
-              isTooltipOpen={isTooltipOpen}
-            />
-          </section>
+            ฉบับเต็ม
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={effectiveView === 'compact'}
+            tabIndex={effectiveView === 'compact' ? 0 : -1}
+            onClick={() => handleSetView('compact')}
+            className={`min-h-11 min-w-11 cursor-pointer rounded-full px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+              effectiveView === 'compact'
+                ? 'bg-blue-700 text-white dark:bg-blue-600'
+                : 'text-blue-800 dark:text-blue-300'
+            }`}
+          >
+            เวอร์ชันย่อ
+          </button>
         </div>
+      )}
+
+      <div id="lawlib-reader-content" className="mt-6">
+        {effectiveView === 'compact' && digestView !== null ? (
+          <CompactView
+            view={digestView}
+            law={law}
+            fontSizeClass={FONT_SIZE_CLASS[settings.fontSize]}
+            widthClass={WIDTH_CLASS[settings.width]}
+            lineHeight={settings.lineHeight}
+            expandedKey={expandedKey}
+            expandedSource={expandedSource}
+            onToggleCard={handleToggleCard}
+            onCollapseCard={handleCollapseCard}
+            onNavigate={navigateTo}
+            onSeeFull={handleSeeFull}
+            onExpandGroup={(groupId) =>
+              setCollapsedGroups((prev) => {
+                if (!prev.has(groupId)) return prev;
+                const next = new Set(prev);
+                next.delete(groupId);
+                return next;
+              })
+            }
+            activeArticleKey={activeKey}
+            highlights={highlights}
+            noteKeys={noteKeySet}
+            flashKey={flashKey}
+            collapsedGroups={collapsedGroups}
+            onToggleGroup={(id) =>
+              setCollapsedGroups((prev) => {
+                const next = new Set(prev);
+                if (next.has(id)) next.delete(id);
+                else next.add(id);
+                return next;
+              })
+            }
+            getTriggerProps={getTriggerProps}
+            isTooltipOpen={isTooltipOpen}
+          />
+        ) : (
+          <div className="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8">
+            <div className="mb-6 lg:mb-0">
+              <TocSidebar
+                law={law}
+                activeKey={activeKey}
+                onNavigate={navigateTo}
+                onActiveChange={setActiveKey}
+              />
+            </div>
+
+            <div
+              className={`lawlib-article-card mx-auto rounded-2xl border border-slate-200 bg-white p-4 pr-18 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6 sm:pr-18 md:pr-24 ${WIDTH_CLASS[settings.width]}`}
+            >
+              <section
+                aria-label="เนื้อหากฎหมาย"
+                onMouseUp={handleArticleMouseUp}
+                style={{ lineHeight: settings.lineHeight }}
+                className={`min-w-0 pb-16 ${mainClass}`}
+              >
+                <ArticleView
+                  law={law}
+                  highlights={highlights}
+                  noteKeys={noteKeySet}
+                  flashKey={flashKey}
+                  getTriggerProps={getTriggerProps}
+                  isTooltipOpen={isTooltipOpen}
+                />
+              </section>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* floating reading-tool dock (FR-C) — above BackToTop, right edge */}
@@ -1134,7 +1537,12 @@ export default function LawlibReaderClient({
             </header>
             <div className="flex-1 overflow-y-auto p-4">
               {openPanel === 'search' && (
-                <SearchPanel articles={articles} onJump={handlePanelJump} />
+                <SearchPanel
+                  articles={articles}
+                  onJump={handlePanelJump}
+                  digestLines={effectiveView === 'compact' ? digestLines : undefined}
+                  onDigestLineJump={handleDigestLineJump}
+                />
               )}
               {openPanel === 'glossary' && (
                 <GlossaryPanel

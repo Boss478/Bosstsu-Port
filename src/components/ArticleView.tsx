@@ -25,6 +25,7 @@ import {
   articleKeyOf,
   articleLabel,
   articlePlainText,
+  findArticleByKey,
   flattenArticles,
   glossaryIndex,
   splitByTerms,
@@ -48,6 +49,13 @@ interface ArticleViewProps {
   flashKey: string | null;
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
+  /**
+   * rev 5.5 (FULL/COMPACT merge): single-article mode — render ONLY this
+   * article (h4 heading; used by compact cards' hover/tap expand). The render
+   * model short-circuits to 1/82 of the work (loop-2 #1). Absent/null → full
+   * law render (existing behavior).
+   */
+  singleKey?: string | null;
 }
 
 type Segment =
@@ -109,6 +117,70 @@ function renderHighlightedText(
  * stable callback from useLawTooltip — so re-renders are skipped when only the
  * reader's panel/tooltip chrome changes (LawlibReaderClient re-renders then).
  */
+/**
+ * Per-article render model (segments + glossary marks + offsets + plain).
+ * Extracted so singleKey mode can build ONE article instead of the whole law.
+ */
+function buildArticleRender(law: LawDoc, terms: GlossaryTerm[], article: Article): ArticleRender {
+  const key = articleKeyOf(article);
+  const segments: Segment[] = [];
+  let offset = 0;
+  for (const tok of article.text) {
+    if (tok.kind === 'text') {
+      for (const s of splitByTerms(tok.t, terms)) {
+        const content =
+          s.term !== undefined
+            ? ({ kind: 'glossary', term: s.term.term, definition: s.term.definition } as const)
+            : undefined;
+        segments.push({ kind: 'text', text: s.text, offset, term: s.term, content });
+        offset += s.text.length;
+      }
+    } else {
+      segments.push({
+        kind: 'ref',
+        ref: tok.ref,
+        content: {
+          kind: 'ref',
+          lawSlug: tok.ref.lawSlug,
+          articleNo: tok.ref.articleNo,
+          articleSuffix: tok.ref.articleSuffix,
+          display: tok.ref.display,
+        },
+      });
+      offset += tok.ref.display.length;
+    }
+  }
+  return {
+    key,
+    article,
+    plain: articlePlainText(article),
+    headerContent: {
+      kind: 'ref',
+      articleNo: article.no,
+      articleSuffix: article.suffix,
+      display: articleLabel(article.no, article.suffix),
+    },
+    segments,
+  };
+}
+
+/**
+ * Per-law full-model cache (loop-2 #1): FULL-mode remounts and toggles reuse
+ * the tokenized model instead of rebuilding all 82 articles (~122KB text,
+ * splitByTerms over every token) on each mount. WeakMap → bounded by the laws
+ * visited this session; entries GC'd with the law object.
+ */
+const fullModelCache = new WeakMap<LawDoc, Map<string, ArticleRender>>();
+
+function buildFullModel(law: LawDoc): Map<string, ArticleRender> {
+  const terms = glossaryIndex(law);
+  const byKey = new Map<string, ArticleRender>();
+  for (const flat of flattenArticles(law)) {
+    byKey.set(articleKeyOf(flat.article), buildArticleRender(law, terms, flat.article));
+  }
+  return byKey;
+}
+
 function ArticleView({
   law,
   highlights,
@@ -116,57 +188,26 @@ function ArticleView({
   flashKey,
   getTriggerProps,
   isTooltipOpen,
+  singleKey,
 }: ArticleViewProps) {
   // --- per-law render model (memoized: segments + glossary marks + offsets) --
   const model = useMemo(() => {
-    const terms = glossaryIndex(law);
-    const byKey = new Map<string, ArticleRender>();
-    for (const flat of flattenArticles(law)) {
-      const article = flat.article;
-      const key = articleKeyOf(article);
-      const segments: Segment[] = [];
-      let offset = 0;
-      for (const tok of article.text) {
-        if (tok.kind === 'text') {
-          for (const s of splitByTerms(tok.t, terms)) {
-            const content =
-              s.term !== undefined
-                ? ({ kind: 'glossary', term: s.term.term, definition: s.term.definition } as const)
-                : undefined;
-            segments.push({ kind: 'text', text: s.text, offset, term: s.term, content });
-            offset += s.text.length;
-          }
-        } else {
-          segments.push({
-            kind: 'ref',
-            ref: tok.ref,
-            content: {
-              kind: 'ref',
-              lawSlug: tok.ref.lawSlug,
-              articleNo: tok.ref.articleNo,
-              articleSuffix: tok.ref.articleSuffix,
-              display: tok.ref.display,
-            },
-          });
-          offset += tok.ref.display.length;
-        }
-      }
-      const render: ArticleRender = {
-        key,
-        article,
-        plain: articlePlainText(article),
-        headerContent: {
-          kind: 'ref',
-          articleNo: article.no,
-          articleSuffix: article.suffix,
-          display: articleLabel(article.no, article.suffix),
-        },
-        segments,
-      };
-      byKey.set(key, render);
+    if (singleKey !== undefined && singleKey !== null) {
+      // Single-article mode: short-circuit — build ONLY the target (1/82).
+      const terms = glossaryIndex(law);
+      const flat = findArticleByKey(law, singleKey);
+      if (flat === undefined) return { byKey: new Map<string, ArticleRender>() };
+      const byKey = new Map<string, ArticleRender>();
+      byKey.set(singleKey, buildArticleRender(law, terms, flat.article));
+      return { byKey };
     }
-    return { byKey };
-  }, [law]);
+    let cached = fullModelCache.get(law);
+    if (cached === undefined) {
+      cached = buildFullModel(law);
+      fullModelCache.set(law, cached);
+    }
+    return { byKey: cached };
+  }, [law, singleKey]);
 
   // --- highlight ranges: group by article → clamp+merge (shared core) -------
   const highlightRanges = useMemo(() => {
@@ -329,38 +370,42 @@ function ArticleView({
 
   return (
     <div className="space-y-2">
-      {law.chapters.map((chapter, ci) => (
-        <section
-          key={ci}
-          aria-label={`${chapter.no !== null ? `หมวด ${chapter.no} ` : ''}${chapter.title}`}
-          className="lawlib-chapter"
-        >
-          <h2 className="mb-4 mt-8 flex flex-wrap items-baseline gap-x-2 text-xl font-bold leading-relaxed text-slate-900 first:mt-0 dark:text-white">
-            {chapter.no !== null && (
-              <span className="text-blue-700 dark:text-blue-300">หมวด {chapter.no}</span>
-            )}
-            <span>{chapter.title}</span>
-          </h2>
+      {singleKey !== undefined && singleKey !== null
+        ? // Single-article mode (compact card expand — rev 5.5): h4 heading,
+          // identical rendering to the full view for this one article.
+          renderArticle(model.byKey.get(singleKey), 4)
+        : law.chapters.map((chapter, ci) => (
+            <section
+              key={ci}
+              aria-label={`${chapter.no !== null ? `หมวด ${chapter.no} ` : ''}${chapter.title}`}
+              className="lawlib-chapter"
+            >
+              <h2 className="mb-4 mt-8 flex flex-wrap items-baseline gap-x-2 text-xl font-bold leading-relaxed text-slate-900 first:mt-0 dark:text-white">
+                {chapter.no !== null && (
+                  <span className="text-blue-700 dark:text-blue-300">หมวด {chapter.no}</span>
+                )}
+                <span>{chapter.title}</span>
+              </h2>
 
-          {chapter.articles.map((a) => renderArticle(model.byKey.get(articleKeyOf(a)), 3))}
+              {chapter.articles.map((a) => renderArticle(model.byKey.get(articleKeyOf(a)), 3))}
 
-          {chapter.sections?.map((section, si) => (
-            <div key={si} className="mt-6">
-              {(section.no !== null || section.title !== '') && (
-                <h3 className="mb-3 flex flex-wrap items-baseline gap-x-2 text-lg font-semibold leading-relaxed text-slate-800 dark:text-slate-100">
-                  {section.no !== null && (
-                    <span className="text-blue-700/80 dark:text-blue-300/80">
-                      ส่วนที่ {section.no}
-                    </span>
+              {chapter.sections?.map((section, si) => (
+                <div key={si} className="mt-6">
+                  {(section.no !== null || section.title !== '') && (
+                    <h3 className="mb-3 flex flex-wrap items-baseline gap-x-2 text-lg font-semibold leading-relaxed text-slate-800 dark:text-slate-100">
+                      {section.no !== null && (
+                        <span className="text-blue-700/80 dark:text-blue-300/80">
+                          ส่วนที่ {section.no}
+                        </span>
+                      )}
+                      {section.title !== '' && <span>{section.title}</span>}
+                    </h3>
                   )}
-                  {section.title !== '' && <span>{section.title}</span>}
-                </h3>
-              )}
-              {section.articles.map((a) => renderArticle(model.byKey.get(articleKeyOf(a)), 4))}
-            </div>
+                  {section.articles.map((a) => renderArticle(model.byKey.get(articleKeyOf(a)), 4))}
+                </div>
+              ))}
+            </section>
           ))}
-        </section>
-      ))}
     </div>
   );
 }

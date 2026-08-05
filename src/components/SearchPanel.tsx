@@ -22,7 +22,7 @@
  * '\n' shows as line breaks (SCRUTINY-L2).
  */
 import { useEffect, useMemo, useState } from 'react';
-import type { SearchPanelProps } from '@/app/(website)/lawlib/lib/reader-props';
+import type { DigestSearchLine, SearchPanelProps } from '@/app/(website)/lawlib/lib/reader-props';
 import { normalizeText } from '@/lib/lawlib/normalize';
 import { articleLabel } from '@/lib/lawlib-reader';
 import { articleKey, articlePlainText } from '@/lib/copy-print';
@@ -45,7 +45,7 @@ function findMatch(plain: string, normQuery: string): { start: number; end: numb
   return { start: idx, end: idx + normQuery.length };
 }
 
-export function SearchPanel({ articles, onJump }: SearchPanelProps) {
+export function SearchPanel({ articles, onJump, digestLines, onDigestLineJump }: SearchPanelProps) {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
@@ -76,6 +76,18 @@ export function SearchPanel({ articles, onJump }: SearchPanelProps) {
     return matches;
   }, [byKey, normQuery]);
 
+  // Digest summary-line matches — COMPACT only (digestLines prop present).
+  const digestResults = useMemo(() => {
+    if (normQuery.length === 0 || digestLines === undefined) return [];
+    const matches: DigestSearchLine[] = [];
+    for (const line of digestLines) {
+      if (normalizeText(line.text).includes(normQuery)) matches.push(line);
+    }
+    return matches;
+  }, [digestLines, normQuery]);
+
+  const hasDigestGroup = digestLines !== undefined;
+
   return (
     <section className="lawlib-panel flex flex-col overflow-hidden" aria-label="ค้นหามาตรา">
       <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
@@ -98,7 +110,11 @@ export function SearchPanel({ articles, onJump }: SearchPanelProps) {
         </div>
         {normQuery.length > 0 && (
           <p role="status" className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
-            {results.length > 0 ? `พบ ${results.length} มาตรา` : 'ไม่พบมาตรา'}
+            {results.length === 0 && digestResults.length === 0
+              ? 'ไม่พบผลการค้นหา'
+              : hasDigestGroup
+                ? `พบ ${results.length} มาตรา, ${digestResults.length} รายการในเวอร์ชันย่อ`
+                : `พบ ${results.length} มาตรา`}
           </p>
         )}
       </div>
@@ -107,46 +123,84 @@ export function SearchPanel({ articles, onJump }: SearchPanelProps) {
         <p className="px-4 py-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
           พิมพ์คำค้นเพื่อค้นหามาตราในกฎหมายฉบับนี้
         </p>
-      ) : results.length === 0 ? (
+      ) : results.length === 0 && digestResults.length === 0 ? (
         <p className="px-4 py-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
-          ไม่พบมาตรา{' '}
+          ไม่พบผลการค้นหา{' '}
           <span className="font-medium text-zinc-700 dark:text-zinc-200">“{normQuery}”</span>
         </p>
       ) : (
-        <ul className="max-h-80 flex-1 divide-y divide-slate-200 overflow-y-auto dark:divide-slate-700">
-          {results.map((r) => {
-            const w = snippetWindow(r.plain, r.start, r.end - r.start);
-            const before = r.plain.slice(w.start, r.start);
-            const matched = r.plain.slice(r.start, r.end);
-            const after = r.plain.slice(r.end, w.end);
-            return (
-              <li key={r.articleKey}>
-                <button
-                  type="button"
-                  onClick={() => onJump(r.articleKey)}
-                  className="block w-full px-4 py-3 text-left transition-colors hover:bg-blue-50/70 focus:outline-none focus-visible:bg-blue-50/70 dark:hover:bg-slate-800/70 dark:focus-visible:bg-slate-800/70"
-                >
-                  <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
-                    {r.label}
-                  </span>
-                  <span className="mt-0.5 block whitespace-pre-line text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
-                    {w.ellipsisBefore && '…'}
-                    {before}
-                    {matched.length > 0 ? (
-                      <mark className="rounded bg-amber-200/80 px-0.5 text-inherit dark:bg-amber-500/30">
-                        {matched}
-                      </mark>
-                    ) : (
-                      matched
-                    )}
-                    {after}
-                    {w.ellipsisAfter && '…'}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        <div className="flex-1 overflow-y-auto">
+          {results.length > 0 && (
+            <ul className="divide-y divide-slate-200 dark:divide-slate-700">
+              {results.map((r) => {
+                const w = snippetWindow(r.plain, r.start, r.end - r.start);
+                const before = r.plain.slice(w.start, r.start);
+                const matched = r.plain.slice(r.start, r.end);
+                const after = r.plain.slice(r.end, w.end);
+                return (
+                  <li key={r.articleKey}>
+                    <button
+                      type="button"
+                      onClick={() => onJump(r.articleKey)}
+                      className="block w-full px-4 py-3 text-left transition-colors hover:bg-blue-50/70 focus:outline-none focus-visible:bg-blue-50/70 dark:hover:bg-slate-800/70 dark:focus-visible:bg-slate-800/70"
+                    >
+                      <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+                        {r.label}
+                      </span>
+                      <span className="mt-0.5 block whitespace-pre-line text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
+                        {w.ellipsisBefore && '…'}
+                        {before}
+                        {matched.length > 0 ? (
+                          <mark className="rounded bg-amber-200/80 px-0.5 text-inherit dark:bg-amber-500/30">
+                            {matched}
+                          </mark>
+                        ) : (
+                          matched
+                        )}
+                        {after}
+                        {w.ellipsisAfter && '…'}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {hasDigestGroup && digestResults.length > 0 && (
+            <div
+              role="group"
+              aria-labelledby="lawlib-digest-group-label"
+              className="border-t border-slate-200 dark:border-slate-700"
+            >
+              <h3
+                id="lawlib-digest-group-label"
+                className="px-4 pb-1 pt-3 text-xs font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400"
+              >
+                ในเวอร์ชันย่อ
+              </h3>
+              <ul className="divide-y divide-slate-200 dark:divide-slate-700">
+                {digestResults.map((r) => (
+                  <li key={r.id}>
+                    <button
+                      type="button"
+                      onClick={() => onDigestLineJump?.(r.id)}
+                      aria-label={`ในเวอร์ชันย่อ — ${r.section} — ${r.text}`}
+                      className="block w-full px-4 py-3 text-left transition-colors hover:bg-blue-50/70 focus:outline-none focus-visible:bg-blue-50/70 dark:hover:bg-slate-800/70 dark:focus-visible:bg-slate-800/70"
+                    >
+                      <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                        {r.section}
+                      </span>
+                      <span className="mt-0.5 block whitespace-pre-line text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
+                        {r.text.slice(0, 96)}
+                        {r.text.length > 96 && '…'}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       )}
     </section>
   );
