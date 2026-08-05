@@ -32,6 +32,7 @@ import type { LawDoc } from '@/types/lawlib';
 import type { DigestView, RenderLine, RenderSection, RenderToken } from '@/lib/lawlib/digest-view';
 import type { ArticleHighlight } from '@/components/ArticleView';
 import ArticleView from '@/components/ArticleView';
+import { articleLabel, findArticleByKey } from '@/lib/lawlib-reader';
 import type { TooltipContent, TooltipTriggerHandlers } from '@/hooks/useLawTooltip';
 import DigestToc from './DigestToc';
 
@@ -273,13 +274,16 @@ function ArticleCard({
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
 }) {
-  const isFlash = flashKey === line.key;
+  // Merged cards (line.keys): flash when ANY member key is the target.
+  const isFlash =
+    flashKey !== null && (flashKey === line.key || line.keys?.includes(flashKey) === true);
 
   return (
     <div
       id={line.id}
       tabIndex={-1}
       data-lawlib-card={line.key}
+      {...(line.keys !== undefined ? { 'data-lawlib-card-members': line.keys.join(' ') } : {})}
       onMouseEnter={() => onToggleCard(line.key, 'hover')}
       onMouseLeave={onCardLeave}
       className={`lawlib-digest-card rounded-xl border border-slate-200 bg-white px-4 py-3 transition-colors dark:border-slate-700 dark:bg-slate-900 ${
@@ -423,15 +427,45 @@ function ArticlePopover({
         </button>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
-        <ArticleView
-          law={law}
-          highlights={highlights}
-          noteKeys={noteKeys}
-          flashKey={flashKey}
-          getTriggerProps={getTriggerProps}
-          isTooltipOpen={isTooltipOpen}
-          singleKey={line.key}
-        />
+        {/* Merged card (line.keys, user 2026-08-05): stack the REAL article
+            of EVERY member key — each ArticleView renders its own header,
+            amendment markers and tooltips; a divider + label separates them. */}
+        {line.keys !== undefined && line.keys.length > 1 ? (
+          line.keys.map((k, i) => {
+            const flat = findArticleByKey(law, k);
+            const label =
+              flat !== undefined ? articleLabel(flat.article.no, flat.article.suffix) : k;
+            return (
+              <div
+                key={k}
+                className={i > 0 ? 'mt-4 border-t border-slate-200 pt-4 dark:border-slate-700' : ''}
+              >
+                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                  {label}
+                </p>
+                <ArticleView
+                  law={law}
+                  highlights={highlights}
+                  noteKeys={noteKeys}
+                  flashKey={flashKey}
+                  getTriggerProps={getTriggerProps}
+                  isTooltipOpen={isTooltipOpen}
+                  singleKey={k}
+                />
+              </div>
+            );
+          })
+        ) : (
+          <ArticleView
+            law={law}
+            highlights={highlights}
+            noteKeys={noteKeys}
+            flashKey={flashKey}
+            getTriggerProps={getTriggerProps}
+            isTooltipOpen={isTooltipOpen}
+            singleKey={line.key}
+          />
+        )}
         {/* Per-มาตรา concise history (user 2026-08-05) — authored as
             `- ประวัติ: …` in the digest md; popover-only, hover-inert. */}
         {line.history !== undefined && line.history.length > 0 && (

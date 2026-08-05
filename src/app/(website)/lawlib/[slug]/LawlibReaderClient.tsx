@@ -826,14 +826,16 @@ export default function LawlibReaderClient({
     return m;
   }, [digestView]);
 
-  /** article key → chapter group id (jump-to-card expands a collapsed group). */
+  /** article key → chapter group id (jump-to-card expands a collapsed group).
+   *  Merged cards map EVERY member key → the card's group (user 2026-08-05). */
   const cardGroupMap = useMemo(() => {
     const m = new Map<string, string>();
     if (digestView === null) return m;
     for (const s of digestView.sections) {
       for (const g of s.groups ?? []) {
         for (const l of g.lines) {
-          if (l.kind === 'article') m.set(l.key, g.id);
+          if (l.kind !== 'article') continue;
+          for (const k of l.keys ?? [l.key]) m.set(k, g.id);
         }
       }
     }
@@ -985,7 +987,12 @@ export default function LawlibReaderClient({
       }
       window.setTimeout(
         () => {
-          const el = document.querySelector<HTMLElement>(`[data-lawlib-card="${CSS.escape(key)}"]`);
+          // Merged cards: `data-lawlib-card` = the FIRST member key;
+          // `data-lawlib-card-members` = ALL member keys (space-separated →
+          // the `~=` attribute selector matches any member).
+          const el = document.querySelector<HTMLElement>(
+            `[data-lawlib-card="${CSS.escape(key)}"], [data-lawlib-card-members~="${CSS.escape(key)}"]`,
+          );
           if (el === null) return;
           el.scrollIntoView({ behavior: reducedMotionNow() ? 'auto' : 'smooth', block: 'start' });
           setActiveKey(key);

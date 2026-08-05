@@ -49,8 +49,14 @@ export type RenderLine =
   | {
       kind: 'article';
       id: string;
-      /** Article key ('10' | '51/1') — chapter-boundary lookup + React keys. */
+      /** Primary article key ('11' | '51/1') — chapter-boundary lookup + React keys. */
       key: string;
+      /**
+       * ALL member keys of a MERGED card (['11','12']) — present ONLY on
+       * merged headers ('มาตรา 11 - มาตรา 12', user 2026-08-05); absent on
+       * single-article cards (existing callers keep working unchanged).
+       */
+      keys?: string[];
       label: string;
       href: string;
       /** Header content first, then continuation lines until the next article header (or `### `). */
@@ -395,17 +401,29 @@ export function buildView(
       const header = matchDigestArticleHeader(line);
       if (header) {
         closeArticle();
-        const key = `${header.no}${header.suffix ?? ''}`;
-        const label = articleLabel(header.no, header.suffix);
+        // Merged header ('**มาตรา 11 - มาตรา 12** : …', user 2026-08-05) →
+        // ONE card: key/href = FIRST member; `keys` = every member; one jump
+        // chip per member (own label, merged anchor) so digestHasCard('12')
+        // is true and both chips render.
+        const members: Array<{ no: number; suffix?: string }> = [
+          { no: header.no, suffix: header.suffix },
+          ...(header.no2 !== undefined ? [{ no: header.no2, suffix: header.suffix2 }] : []),
+        ];
+        const keys = members.map((m) => `${m.no}${m.suffix ?? ''}`);
+        const key = keys[0];
+        const label = members.map((m) => articleLabel(m.no, m.suffix)).join(' - ');
         const href = `${opts.href}#มาตรา-${key}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          articles.push({ key, label, href });
+        for (let i = 0; i < members.length; i++) {
+          const k = keys[i];
+          if (seen.has(k)) continue;
+          seen.add(k);
+          articles.push({ key: k, label: articleLabel(members[i].no, members[i].suffix), href });
         }
         openArticle = {
           kind: 'article',
           id: nextId(),
           key,
+          ...(keys.length > 1 ? { keys } : {}),
           label,
           href,
           parts: [

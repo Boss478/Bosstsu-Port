@@ -18,7 +18,7 @@
 // ===========================================================================
 
 import { describe, it, expect } from 'vitest';
-import { parseLawMarkdown } from '@/lib/lawlib/parser';
+import { matchDigestArticleHeader, parseLawMarkdown } from '@/lib/lawlib/parser';
 import type { LawDoc } from '@/types/lawlib';
 
 // ---------------------------------------------------------------------------
@@ -754,5 +754,100 @@ describe('parseDigestMd — minimal digest parse', () => {
     expect(d.sections[0].hasSeeFull).toBe(false);
     expect(d.sections[1].refs).toEqual([{ articleNo: 51, articleSuffix: '/1' }]);
     expect(d.sections[1].hasSeeFull).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// matchDigestArticleHeader — merged-header support (user 2026-08-05): the
+// digest md restructured 12 cards to '**มาตรา N - มาตรา M** : content'.
+// Single-article headers must keep parsing EXACTLY as before (regression).
+// ---------------------------------------------------------------------------
+
+describe('matchDigestArticleHeader — single-article regression', () => {
+  it('parses shape 1 exactly as before (no no2/suffix2 keys)', () => {
+    const h = matchDigestArticleHeader('**มาตรา 10** : สาระสำคัญ');
+    expect(h).toEqual({ no: 10, rest: 'สาระสำคัญ' });
+  });
+
+  it('parses shape 2 (trailing ** stripped)', () => {
+    expect(matchDigestArticleHeader('**มาตรา 10 : เนื้อความ**')).toEqual({
+      no: 10,
+      rest: 'เนื้อความ',
+    });
+  });
+
+  it('parses word + /N suffixes', () => {
+    expect(matchDigestArticleHeader('**มาตรา 10 ทวิ** : x')).toEqual({
+      no: 10,
+      suffix: 'ทวิ',
+      rest: 'x',
+    });
+    expect(matchDigestArticleHeader('**มาตรา 51/1** : x')).toEqual({
+      no: 51,
+      suffix: '/1',
+      rest: 'x',
+    });
+  });
+
+  it('normalizes Thai digits', () => {
+    expect(matchDigestArticleHeader('**มาตรา ๑๐** : x')).toEqual({ no: 10, rest: 'x' });
+  });
+
+  it('returns null for non-article lines', () => {
+    expect(matchDigestArticleHeader('**มาตรา ก** : x')).toBeNull();
+    expect(matchDigestArticleHeader('plain text')).toBeNull();
+  });
+});
+
+describe('matchDigestArticleHeader — merged headers', () => {
+  it('parses shape 1 (the digest md format: **มาตรา N - มาตรา M** : content)', () => {
+    expect(matchDigestArticleHeader('**มาตรา 11 - มาตรา 12** : เนื้อหา')).toEqual({
+      no: 11,
+      no2: 12,
+      rest: 'เนื้อหา',
+    });
+  });
+
+  it('parses a 4-article span (มาตรา 70 - มาตรา 73)', () => {
+    expect(matchDigestArticleHeader('**มาตรา 70 - มาตรา 73** : x')).toEqual({
+      no: 70,
+      no2: 73,
+      rest: 'x',
+    });
+  });
+
+  it('parses /N suffixes on both members (มาตรา 32/1 - มาตรา 32/2)', () => {
+    expect(matchDigestArticleHeader('**มาตรา 32/1 - มาตรา 32/2** : x')).toEqual({
+      no: 32,
+      suffix: '/1',
+      no2: 32,
+      suffix2: '/2',
+      rest: 'x',
+    });
+  });
+
+  it('parses shape 2 (trailing ** stripped)', () => {
+    expect(matchDigestArticleHeader('**มาตรา 11 - มาตรา 12 : เนื้อหา**')).toEqual({
+      no: 11,
+      no2: 12,
+      rest: 'เนื้อหา',
+    });
+  });
+
+  it('normalizes Thai digits in both members', () => {
+    expect(matchDigestArticleHeader('**มาตรา ๑๑ - มาตรา ๑๒** : x')).toEqual({
+      no: 11,
+      no2: 12,
+      rest: 'x',
+    });
+  });
+
+  it('keeps single-article headers with `- มาตรา` in the content as SINGLE (no2 absent)', () => {
+    // '**มาตรา 10** : - มาตรา 12 …' — the merged group must not fire after a
+    // closed '**' shape-1 header (regression guard).
+    expect(matchDigestArticleHeader('**มาตรา 10** : - มาตรา 12 วรรคสอง')).toEqual({
+      no: 10,
+      rest: '- มาตรา 12 วรรคสอง',
+    });
   });
 });

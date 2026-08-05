@@ -608,12 +608,17 @@ const DIGEST_H1_RE = /^#\s+(.+)$/;
 const DIGEST_SECTION_RE = /^##\s+(.+)$/;
 const SEE_FULL_MARKER = '[ดูเต็ม';
 /**
- * Digest article-line detector grammar ('**มาตรา N** : …' | '**มาตรา N : …**').
+ * Digest article-line detector grammar ('**มาตรา N** : …' | '**มาตรา N : …**'
+ * | merged '**มาตรา N - มาตรา M** : …' — user 2026-08-05).
  * Number/suffix grammar mirrors ARTICLE_HEADER_RE (Thai digits pre-normalized
  * by the caller — same class convention as the frozen law regexes).
+ * Groups: 1 no · 2 suffix word · 3 /N suffix · 4 no2 · 5 suffix word 2 ·
+ * 6 /N suffix 2 (4–6 only when a merged ' - มาตรา M' part is present).
  */
 const DIGEST_ARTICLE_HEADER_RE = new RegExp(
-  `^\\*\\*มาตรา\\s*([0-9๑-๙]+)(?:\\s*(${ARTICLE_SUFFIXES})|(/\\d+))?(?:\\*\\*|\\s*:)`,
+  `^\\*\\*มาตรา\\s*([0-9๑-๙]+)(?:\\s*(${ARTICLE_SUFFIXES})|(/\\d+))?` +
+    `(?:\\s*-\\s*มาตรา\\s*([0-9๑-๙]+)(?:\\s*(${ARTICLE_SUFFIXES})|(/\\d+))?)?` +
+    `(?:\\*\\*|\\s*:)`,
 );
 
 /**
@@ -729,20 +734,26 @@ export function parseDigestMd(md: string): DigestDoc {
 }
 
 /**
- * Digest article-line detector: '**มาตรา N** : …' or '**มาตรา N : …**' →
- * { no, suffix?, rest } (both bold shapes occur in digests). `rest` = content
- * after the header with a leading colon and a shape-2 trailing '**' stripped.
+ * Digest article-line detector: '**มาตรา N** : …' | '**มาตรา N : …**' | merged
+ * '**มาตรา N - มาตรา M** : …' (user 2026-08-05) →
+ * { no, suffix?, rest, no2?, suffix2? } — no2/suffix2 are present ONLY for
+ * merged headers (single-article headers keep the pre-2026-08-05 shape).
+ * `rest` = content after the header with a leading colon and a shape-2
+ * trailing '**' stripped.
  */
 export function matchDigestArticleHeader(
   line: string,
-): { no: number; suffix?: string; rest: string } | null {
+): { no: number; suffix?: string; rest: string; no2?: number; suffix2?: string } | null {
   const trimmed = line.trimStart();
   const m = DIGEST_ARTICLE_HEADER_RE.exec(normalizeThaiDigits(trimmed));
   if (!m) return null;
   const suffix = m[2] ?? m[3];
+  const suffix2 = m[5] ?? m[6];
   return {
     no: Number(m[1]),
     ...(suffix !== undefined ? { suffix } : {}),
+    ...(m[4] !== undefined ? { no2: Number(m[4]) } : {}),
+    ...(suffix2 !== undefined ? { suffix2 } : {}),
     rest: trimmed
       .slice(m[0].length)
       .replace(/^\s*:?\s*/, '')

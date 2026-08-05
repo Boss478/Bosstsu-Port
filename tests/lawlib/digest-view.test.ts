@@ -303,3 +303,68 @@ describe('buildView — per-มาตรา concise history (user 2026-08-05)', 
     expect(card?.parts.length).toBe(2); // header text + the bullet
   });
 });
+
+// ---------------------------------------------------------------------------
+// Merged article headers ('**มาตรา 11 - มาตรา 12** : …', user 2026-08-05) —
+// ONE card (anchor = first key) + one jump chip per member key.
+// ---------------------------------------------------------------------------
+
+describe('buildView — merged article headers (user 2026-08-05)', () => {
+  it('builds ONE merged card: first-key anchor, keys, merged label, per-member chips', () => {
+    const doc: DigestDoc = {
+      title: 't',
+      sections: [
+        {
+          heading: '4. มาตราสำคัญ',
+          body: '**มาตรา 11 - มาตรา 12** : สาระสำคัญ',
+          refs: [],
+          hasSeeFull: false,
+        },
+      ],
+    };
+    const view = buildView(doc, new Map(), null, [], OPTS);
+    const section = view.sections[0];
+    // one chip per member key — own label, merged (first-key) anchor
+    expect(section.articles).toEqual([
+      { key: '11', label: 'มาตรา 11', href: '/lawlib/national-education-act-2542#มาตรา-11' },
+      { key: '12', label: 'มาตรา 12', href: '/lawlib/national-education-act-2542#มาตรา-11' },
+    ]);
+    const card = section.lines.find(
+      (l): l is Extract<RenderLine, { kind: 'article' }> => l.kind === 'article',
+    );
+    expect(card?.key).toBe('11');
+    expect(card?.keys).toEqual(['11', '12']);
+    expect(card?.label).toBe('มาตรา 11 - มาตรา 12');
+    expect(card?.href).toBe('/lawlib/national-education-act-2542#มาตรา-11');
+    // jump rule covers EVERY member key
+    expect(digestHasCard(view, '11')).toBe(true);
+    expect(digestHasCard(view, '12')).toBe(true);
+  });
+
+  it('groups a merged มาตรา 70 - มาตรา 73 card into the บทเฉพาะกาล group (key = first member)', () => {
+    const doc: DigestDoc = {
+      title: 't',
+      sections: [
+        {
+          heading: '4. มาตราสำคัญ',
+          body: '**มาตรา 69** : สาระ\n### บทเฉพาะกาล\n**มาตรา 70 - มาตรา 73** : บทเฉพาะกาล\n**มาตรา 78** : สาระ',
+          refs: [],
+          hasSeeFull: false,
+        },
+      ],
+    };
+    const view = buildView(doc, new Map(), ACT_2542_CHAPTERS, [], OPTS);
+    const section = view.sections[0];
+    expect(section.groups?.map((g) => g.label)).toEqual([
+      'หมวดที่ 9 เทคโนโลยีเพื่อการศึกษา',
+      'บทเฉพาะกาล',
+    ]);
+    const last = section.groups![section.groups!.length - 1];
+    expect(last.label).toBe('บทเฉพาะกาล');
+    expect(last.articleCount).toBe(2); // cards, not member keys
+    const keys = last.lines
+      .filter((l): l is Extract<RenderLine, { kind: 'article' }> => l.kind === 'article')
+      .map((l) => l.key);
+    expect(keys).toEqual(['70', '78']);
+  });
+});
