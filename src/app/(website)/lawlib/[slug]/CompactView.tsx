@@ -682,11 +682,12 @@ export default function CompactView({
         className={`lawlib-article-card mx-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6 ${widthClass}`}
       >
         <div style={{ lineHeight }} className={`min-w-0 ${fontSizeClass} leading-relaxed`}>
-          {view.title !== '' && (
-            <h2 className="mt-6 text-xl font-bold leading-relaxed text-slate-900 first:mt-0 dark:text-white">
-              {view.title}
-            </h2>
-          )}
+          {/* Compact heading (user 2026-08-05): fixed "ฉบับย่อ — {LAW}" format —
+              the digest md's own H1 is metadata only, never displayed. Carries
+              the law-name keywords (loop-5 #3 SEO anchor). */}
+          <h2 className="mt-6 text-xl font-bold leading-relaxed text-slate-900 first:mt-0 dark:text-white">
+            ฉบับย่อ — {law.titleTh}
+          </h2>
           {view.sections.map((section, i) => (
             <SectionView
               key={section.heading}
