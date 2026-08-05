@@ -46,10 +46,13 @@ export interface DigestTocGroup {
 
 export type DigestTocEntry = DigestTocSection | DigestTocGroup | DigestTocArticle;
 
-/** Pure TOC builder: sections + groups (each with its มาตรา list), doc order. */
-export function buildDigestToc(view: DigestView): DigestTocEntry[] {
+/** Pure TOC builder: sections + groups (each with its มาตรา list), doc order.
+ *  `startIndex` skips header-rendered sections (ข้อมูลกฎหมาย / ประวัติการแก้ไข —
+ *  they live in the reader header, not the compact body — user 2026-08-05). */
+export function buildDigestToc(view: DigestView, startIndex = 0): DigestTocEntry[] {
   const entries: DigestTocEntry[] = [];
   view.sections.forEach((section, i) => {
+    if (i < startIndex) return;
     if (section.groups !== undefined) {
       // the มาตราสำคัญ-style section: groups with their articles nested
       for (const g of section.groups) {
@@ -83,18 +86,20 @@ export function buildDigestToc(view: DigestView): DigestTocEntry[] {
 
 export default function DigestToc({
   view,
+  startIndex = 0,
   collapsedGroups,
   onExpandGroup,
   onNavigate,
   activeArticleKey,
 }: {
   view: DigestView;
+  startIndex?: number;
   collapsedGroups: ReadonlySet<string>;
   onExpandGroup: (groupId: string) => void;
   onNavigate: (key: string) => void;
   activeArticleKey: string | null;
 }) {
-  const entries = useMemo(() => buildDigestToc(view), [view]);
+  const entries = useMemo(() => buildDigestToc(view, startIndex), [view, startIndex]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const timeoutRef = useRef<number | null>(null);
 

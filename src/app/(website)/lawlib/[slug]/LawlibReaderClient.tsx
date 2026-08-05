@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { LawDoc } from '@/types/lawlib';
-import type { DigestView } from '@/lib/lawlib/digest-view';
+import type { DigestView, RenderLine } from '@/lib/lawlib/digest-view';
 import { digestHasCard } from '@/lib/lawlib/digest-view';
 import { normalizeNfc, normalizeThaiDigits } from '@/lib/lawlib/normalize';
 import {
@@ -30,7 +30,11 @@ import {
   formatVerifiedAt,
 } from '@/lib/lawlib-reader';
 import { copyArticle, copyText, printArticle, printLaw } from '@/lib/copy-print';
-import { useLawTooltip } from '@/hooks/useLawTooltip';
+import {
+  useLawTooltip,
+  type TooltipContent,
+  type TooltipTriggerHandlers,
+} from '@/hooks/useLawTooltip';
 import type { Note } from '@/hooks/useReaderStorage';
 import ArticleView from '@/components/ArticleView';
 import TocSidebar from '@/components/TocSidebar';
@@ -44,7 +48,73 @@ import { useTheme } from '@/components/ThemeProvider';
 import type { PaperTone, Theme } from '@/components/ThemeProvider';
 import type { DigestSearchLine } from '@/app/(website)/lawlib/lib/reader-props';
 import type { ReadingSettingsValue } from '@/app/(website)/lawlib/lib/reader-props';
-import CompactView from './CompactView';
+import CompactView, { BodyLineView } from './CompactView';
+
+// ---------------------------------------------------------------------------
+// DigestHistoryBlock — merged per-edition history (user 2026-08-05): the
+// digest's "ประวัติการแก้ไข" section renders in the law HEADER (both FULL and
+// COMPACT views, no mode switch needed), replacing the JSON EditionTimeline
+// on digest pages. Data = the md's merged section 2 (ฉบับที่ N: ประกาศ/มีผล/
+// ผู้รับสนองฯ/เหตุผล/แก้ไข). Collapsed by default like the timeline.
+// ---------------------------------------------------------------------------
+
+function DigestHistoryBlock({
+  lines,
+  slug,
+  onNavigate,
+  onSeeFull,
+  getTriggerProps,
+  isTooltipOpen,
+}: {
+  lines: RenderLine[];
+  slug: string;
+  onNavigate: (key: string) => void;
+  onSeeFull: (key: string) => void;
+  getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
+  isTooltipOpen: (content: TooltipContent) => boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const editionCount = lines.filter(
+    (l) =>
+      l.kind === 'text' && l.tokens.some((t) => t.kind === 'text' && /^ฉบับที่ \d+/.test(t.text)),
+  ).length;
+
+  return (
+    <div className="lawlib-timeline">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-controls="lawlib-digest-history-list"
+        className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-blue-300 hover:text-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:text-blue-300"
+      >
+        <i aria-hidden="true" className="fi fi-sr-clock text-xs text-slate-400" />
+        ประวัติการแก้ไข ({editionCount} ฉบับ)
+        <i
+          aria-hidden="true"
+          className={`fi fi-sr-angle-small-down text-xs transition-transform ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {open && (
+        <div id="lawlib-digest-history-list" className="mt-3 space-y-2">
+          {lines.map((line) =>
+            line.kind !== 'article' ? (
+              <BodyLineView
+                key={line.id}
+                line={line}
+                slug={slug}
+                onNavigate={onNavigate}
+                onSeeFull={onSeeFull}
+                getTriggerProps={getTriggerProps}
+                isTooltipOpen={isTooltipOpen}
+              />
+            ) : null,
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Local panel components (notes list / bookmarks list — reader-core
@@ -667,6 +737,8 @@ export default function LawlibReaderClient({
   /** sr-only view-switch announcement (loop-4 #2) — set in the toggle handler only. */
   const [statusText, setStatusText] = useState('');
   const hoverTimerRef = useRef<number | null>(null);
+  /** Graceful popover close timer (card→popover pointer crossing). */
+  const closeTimerRef = useRef<number | null>(null);
   /** Digest-search line flash target — applied DIRECTLY to the DOM element
    *  by handleDigestLineJump (transient visual; no state threading). */
   const flashLineTimerRef = useRef<number | null>(null);
@@ -722,7 +794,11 @@ export default function LawlibReaderClient({
   const digestLines = useMemo<DigestSearchLine[] | undefined>(() => {
     if (digestView === null) return undefined;
     const out: DigestSearchLine[] = [];
-    for (const s of digestView.sections) {
+    // Section 0 (ข้อมูลกฎหมาย) is header-only — never rendered in the body —
+    // so its lines are not searchable (no dead jumps); the merged history
+    // section 1 IS rendered (header block) and stays searchable.
+    for (const [si, s] of digestView.sections.entries()) {
+      if (si === 0) continue;
       const lines = [...s.lines, ...(s.groups ?? []).flatMap((g) => g.lines)];
       for (const l of lines) {
         const toks = l.kind === 'article' ? l.parts.flatMap((p) => p.tokens) : l.tokens;
@@ -792,15 +868,42 @@ export default function LawlibReaderClient({
   );
 
   /** Explicit toggle (radio group). Entering compact resets the active article. */
-  /** Programmatic collapse → suppress hover re-expansion for 400ms. */
+  /** Programmatic collapse → suppress hover re-expansion for 400ms + clear the
+   *  active article (no popover = no dock copy target, D6). */
   const collapseCard = useCallback(() => {
     suppressHoverUntilRef.current = Date.now() + 400;
     if (hoverTimerRef.current !== null) {
       window.clearTimeout(hoverTimerRef.current);
       hoverTimerRef.current = null;
     }
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
     setExpandedKey(null);
     setExpandedSource(null);
+    setActiveKey(null);
+  }, []);
+
+  /** Graceful close (popover like the term tooltip): the pointer crossing the
+   *  card→popover gap schedules a 150ms close, cancelled when it lands inside
+   *  the popover (or when focus is inside the card/popover — never collapse
+   *  under an active interaction, loop-4 #3). */
+  const scheduleCloseCard = useCallback(() => {
+    const ae = document.activeElement;
+    if (ae !== null && ae instanceof Element) {
+      if (ae.closest('[data-lawlib-popover]') !== null) return;
+      if (ae.closest('[data-lawlib-card]') !== null) return;
+    }
+    if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = window.setTimeout(() => collapseCard(), 150);
+  }, [collapseCard]);
+
+  const cancelCloseCard = useCallback(() => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
   }, []);
 
   const handleSetView = useCallback(
@@ -834,9 +937,13 @@ export default function LawlibReaderClient({
       if (source === 'hover') {
         setExpandedKey((prev) => (prev === null ? key : prev));
         setExpandedSource((prev) => (prev === null ? 'hover' : prev));
+        // activeKey mirrors the popover article → dock actions (copy/bookmark/
+        // notes) target it (D6 parity, QA 2026-08-05).
+        setActiveKey((prev) => (prev === null ? key : prev));
       } else {
         setExpandedKey((prev) => (prev === key ? null : key));
         setExpandedSource((prev) => (prev === key ? null : source));
+        setActiveKey((prev) => (prev === key ? null : key));
       }
     };
     if (source === 'hover') {
@@ -845,8 +952,6 @@ export default function LawlibReaderClient({
       apply();
     }
   }, []);
-
-  const handleCollapseCard = collapseCard;
 
   // --- jump target: scroll + temporary highlight + hash + position ----------
   const realNavigateTo = useCallback((key: string, opts?: { instant?: boolean }) => {
@@ -1061,6 +1166,7 @@ export default function LawlibReaderClient({
       if (flashTimerRef.current !== null) window.clearTimeout(flashTimerRef.current);
       if (copiedTimerRef.current !== null) window.clearTimeout(copiedTimerRef.current);
       if (hoverTimerRef.current !== null) window.clearTimeout(hoverTimerRef.current);
+      if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current);
       if (flashLineTimerRef.current !== null) window.clearTimeout(flashLineTimerRef.current);
     },
     [],
@@ -1362,7 +1468,20 @@ export default function LawlibReaderClient({
       </header>
 
       <div className="mt-4">
-        <EditionTimeline editions={law.editions} />
+        {/* History: digest pages → the merged per-edition block (md-driven,
+            shows in BOTH views — user 2026-08-05); other laws → JSON timeline. */}
+        {digestView !== null && digestView.sections[1] !== undefined ? (
+          <DigestHistoryBlock
+            lines={digestView.sections[1].lines}
+            slug={law.slug}
+            onNavigate={navigateTo}
+            onSeeFull={handleSeeFull}
+            getTriggerProps={getTriggerProps}
+            isTooltipOpen={isTooltipOpen}
+          />
+        ) : (
+          <EditionTimeline editions={law.editions} />
+        )}
       </div>
 
       {/* FULL | COMPACT toggle — APG radio group, visible only when a digest
@@ -1423,7 +1542,10 @@ export default function LawlibReaderClient({
             expandedKey={expandedKey}
             expandedSource={expandedSource}
             onToggleCard={handleToggleCard}
-            onCollapseCard={handleCollapseCard}
+            onCollapseCard={collapseCard}
+            onCardLeave={scheduleCloseCard}
+            onPopoverEnter={cancelCloseCard}
+            onPopoverLeave={scheduleCloseCard}
             onNavigate={navigateTo}
             onSeeFull={handleSeeFull}
             onExpandGroup={(groupId) =>

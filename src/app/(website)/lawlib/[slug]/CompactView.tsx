@@ -1,29 +1,32 @@
 'use client';
 
 /**
- * CompactView — digest renderer for the merged reader (rev 5.5, T4).
+ * CompactView — digest renderer for the merged reader (rev 5.5, T4 +
+ * user redesign 2026-08-05).
  *
  * Renders a DigestView (server-built) as the COMPACT view:
- *  - digest title as a visible h2 (migrates the deleted digest page's keyword
- *    anchor — loop-5 #3) + section headings h2
+ *  - fixed heading "ฉบับย่อ — {LAW}" (user 2026-08-05; the digest md's own H1
+ *    is metadata only) + section headings h2
  *  - chapter groups h3 (collapsible; first expanded — collapse state hoisted
  *    to the reader so digest-search jumps can auto-expand, loop-4 #6)
  *  - article cards: BUTTON header with NO heading tag (heading-inside-button
- *    is invalid — loop-5 #3), summary parts always visible; hover/tap expand
- *    renders the REAL article via ArticleView `singleKey` (byte-identical to
- *    FULL — user's "the same in the full version"); while expanded the card
- *    button is hidden (ArticleView header is the sole มาตรา-N trigger)
+ *    is invalid — loop-5 #3), summary parts always visible. Hover / tap opens
+ *    a FLOATING POPOVER with the REAL article — like the glossary term
+ *    tooltip (user 2026-08-05: "เหมือน hover คำศัพท์อะ") — rendered via the
+ *    same ArticleView `singleKey` (byte-identical to FULL). Pointer can move
+ *    INTO the popover (150ms close grace); Escape / X closes; click pins with
+ *    focus for keyboard/touch.
  *  - term tokens → tooltip triggers (data-lawlib-term + getTriggerProps),
  *    colored per the loop-4 #8 contrast spec (blue-800/blue-300)
  *  - same-law refs → in-page buttons (jump rule, loop-1 #3); cross-law refs
  *    stay Links; seefull tokens → FULL switch
  *  - every line carries `id=lawlib-dline-<n>` + tabindex=-1 (digest-search
- *    jump target + non-visual focus cue — loop-4 #6); flash class applied
+ *    jump target + non-visual focus cue — loop-4 #6)
  *
  * No dangerouslySetInnerHTML anywhere (loop-3 #2) — all React nodes.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { LawDoc } from '@/types/lawlib';
 import type { DigestView, RenderLine, RenderSection, RenderToken } from '@/lib/lawlib/digest-view';
@@ -39,14 +42,20 @@ interface CompactViewProps {
   fontSizeClass: string;
   widthClass: string;
   lineHeight: number;
-  /** Expanded card article key (null = none). */
+  /** Popover article key (null = closed). */
   expandedKey: string | null;
-  /** How the current expansion started — hover must NEVER move focus (loop-4 #3). */
+  /** How the popover opened — hover must NEVER move focus (loop-4 #3). */
   expandedSource: 'hover' | 'interaction' | null;
-  /** Toggle a card's expanded state (source: how the user triggered it). */
+  /** Open/toggle the popover (source: how the user triggered it). */
   onToggleCard: (key: string, source: 'hover' | 'interaction') => void;
-  /** Collapse the expanded card (Escape / ย่อ / hover-out). */
+  /** Immediate close (X button / Escape) — includes the hover-suppression window. */
   onCollapseCard: () => void;
+  /** Pointer left a card — schedule a graceful close (150ms, cancellable). */
+  onCardLeave: () => void;
+  /** Pointer entered the popover — cancel the scheduled close. */
+  onPopoverEnter: () => void;
+  /** Pointer left the popover — schedule a graceful close. */
+  onPopoverLeave: () => void;
   /** Jump rule (chips + same-law refs): card if exists, else FULL + jump. */
   onNavigate: (key: string) => void;
   /** ดูฉบับเต็ม / seefull: switch to FULL + jump. */
@@ -170,7 +179,8 @@ function TokenView({
   );
 }
 
-function TokenList({
+/** Shared digest token list — exported for the reader's merged history block. */
+export function TokenList({
   tokens,
   slug,
   onNavigate,
@@ -202,95 +212,56 @@ function TokenList({
   );
 }
 
-/** Article card — summary + hover/tap expand to the real article. */
+/** Article card — summary always; hover/tap opens the floating full-article popover. */
 function ArticleCard({
   line,
   law,
-  expanded,
-  expandedSource,
+  isOpen,
   onToggleCard,
-  onCollapseCard,
+  onCardLeave,
   onNavigate,
   onSeeFull,
-  highlights,
-  noteKeys,
   flashKey,
   getTriggerProps,
   isTooltipOpen,
 }: {
   line: Extract<RenderLine, { kind: 'article' }>;
   law: LawDoc;
-  expanded: boolean;
-  expandedSource: 'hover' | 'interaction' | null;
+  /** Popover open for this card (aria-expanded on the header button). */
+  isOpen: boolean;
   onToggleCard: (key: string, source: 'hover' | 'interaction') => void;
-  onCollapseCard: () => void;
+  onCardLeave: () => void;
   onNavigate: (key: string) => void;
   onSeeFull: (key: string) => void;
-  highlights: ArticleHighlight[];
-  noteKeys: ReadonlySet<string>;
   flashKey: string | null;
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
 }) {
-  const cardRef = useRef<HTMLDivElement | null>(null);
-
-  // Focus handoff (loop-4 #3): on interaction-driven expand, move focus to the
-  // ArticleView header (the new sole มาตรา-N trigger); hover never focuses.
-  useEffect(() => {
-    if (!expanded) return;
-    if (expandedSource === 'hover') return;
-    const root = cardRef.current;
-    if (root === null) return;
-    const t = root.querySelector<HTMLElement>('[data-lawlib-trigger]');
-    if (t !== null && t !== document.activeElement) t.focus();
-  }, [expanded, expandedSource]);
-
   const isFlash = flashKey === line.key;
 
   return (
     <div
-      ref={cardRef}
       id={line.id}
       tabIndex={-1}
       data-lawlib-card={line.key}
       onMouseEnter={() => onToggleCard(line.key, 'hover')}
-      onMouseLeave={() => {
-        // collapse on hover-out ONLY when focus is not inside the card
-        // (loop-4 #3: blur-collapse destroys the focus target mid-interaction)
-        if (!cardRef.current?.contains(document.activeElement)) onCollapseCard();
-      }}
+      onMouseLeave={onCardLeave}
       className={`lawlib-digest-card rounded-xl border border-slate-200 bg-white px-4 py-3 transition-colors dark:border-slate-700 dark:bg-slate-900 ${
         isFlash ? 'ring-2 ring-amber-300 dark:ring-amber-500/50' : ''
-      }`}
+      } ${isOpen ? 'border-blue-300 dark:border-blue-600/60' : ''}`}
     >
-      {!expanded ? (
-        <button
-          type="button"
-          aria-expanded={false}
-          onClick={() => onToggleCard(line.key, 'interaction')}
-          className="flex min-h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-lg text-left text-base font-bold leading-relaxed text-slate-900 transition-colors hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-white dark:hover:text-blue-300"
-        >
-          <span>{line.label}</span>
-          <i
-            aria-hidden="true"
-            className="fi fi-sr-angle-small-down text-xs text-slate-400 transition-transform dark:text-slate-500"
-          />
-        </button>
-      ) : (
-        <div className="mb-3 flex min-h-11 items-center justify-between gap-2">
-          <span className="text-base font-bold leading-relaxed text-slate-900 dark:text-white">
-            {line.label}
-          </span>
-          <button
-            type="button"
-            onClick={onCollapseCard}
-            className="inline-flex min-h-9 cursor-pointer items-center gap-1 rounded-full border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-          >
-            <i aria-hidden="true" className="fi fi-sr-angle-small-up text-[10px]" />
-            ย่อ
-          </button>
-        </div>
-      )}
+      <button
+        type="button"
+        aria-expanded={isOpen}
+        onClick={() => onToggleCard(line.key, 'interaction')}
+        className="flex min-h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-lg text-left text-base font-bold leading-relaxed text-slate-900 transition-colors hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-white dark:hover:text-blue-300"
+      >
+        <span>{line.label}</span>
+        <i
+          aria-hidden="true"
+          className="fi fi-sr-search text-xs text-slate-400 dark:text-slate-500"
+        />
+      </button>
       <div className="space-y-2 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
         {line.parts.map((part, i) => (
           <p
@@ -312,40 +283,138 @@ function ArticleCard({
           </p>
         ))}
       </div>
-      {expanded && (
-        <>
-          <div className="mt-3">
-            <ArticleView
-              law={law}
-              highlights={highlights}
-              noteKeys={noteKeys}
-              flashKey={flashKey}
-              getTriggerProps={getTriggerProps}
-              isTooltipOpen={isTooltipOpen}
-              singleKey={line.key}
-            />
-          </div>
-          <div className="mt-2">
-            <button
-              type="button"
-              onClick={() => onSeeFull(line.key)}
-              className="inline-flex min-h-9 cursor-pointer items-center gap-1 rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-            >
-              ดูฉบับเต็มที่ {line.label}
-              <i
-                aria-hidden="true"
-                className="fi fi-sr-arrow-small-right text-[10px] leading-none"
-              />
-            </button>
-          </div>
-        </>
-      )}
     </div>
   );
 }
 
-/** One body line (non-article) with dline id (flash applied directly via DOM). */
-function BodyLineView({
+/** Floating full-article popover — the compact "hover like the term tooltip"
+ *  (user 2026-08-05). Renders the REAL article via ArticleView singleKey;
+ *  positioned beside its card (falls below on narrow screens); pointer can
+ *  move into it (close grace handled by the reader); Esc / X closes. */
+function ArticlePopover({
+  line,
+  law,
+  source,
+  onClose,
+  onSeeFull,
+  onEnter,
+  onLeave,
+  highlights,
+  noteKeys,
+  flashKey,
+  getTriggerProps,
+  isTooltipOpen,
+}: {
+  line: Extract<RenderLine, { kind: 'article' }>;
+  law: LawDoc;
+  source: 'hover' | 'interaction' | null;
+  onClose: () => void;
+  onSeeFull: (key: string) => void;
+  onEnter: () => void;
+  onLeave: () => void;
+  highlights: ArticleHighlight[];
+  noteKeys: ReadonlySet<string>;
+  flashKey: string | null;
+  getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
+  isTooltipOpen: (content: TooltipContent) => boolean;
+}) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+
+  // Position beside the card once, at open (transient popover — no re-layout
+  // tracking; like the term tooltip's captured anchor).
+  const [pos] = useState<{ left: number; top: number; width: number }>(() => {
+    const card = document.querySelector<HTMLElement>(
+      `[data-lawlib-card="${CSS.escape(line.key)}"]`,
+    );
+    if (card === null) return { left: 16, top: 80, width: Math.min(416, window.innerWidth - 32) };
+    const r = card.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const gap = 12;
+    const width = Math.min(416, vw - 32);
+    let left = r.right + gap;
+    const top = Math.min(r.top, vh - 120);
+    if (left + width > vw - 8) {
+      left = r.left - width - gap;
+      if (left < 8) {
+        // narrow screens → below the card
+        return { left: Math.max(8, r.left), top: Math.min(r.bottom + 8, vh - 24), width };
+      }
+    }
+    return { left: Math.max(8, left), top: Math.max(8, top), width };
+  });
+
+  // Focus handoff (loop-4 #3): interaction-opened popovers move focus to the
+  // ArticleView header trigger; hover never focuses.
+  useEffect(() => {
+    if (source === 'hover') return;
+    const root = rootRef.current;
+    if (root === null) return;
+    const t = root.querySelector<HTMLElement>('[data-lawlib-trigger]');
+    if (t !== null && t !== document.activeElement) t.focus();
+  }, [source]);
+
+  return (
+    <div
+      ref={rootRef}
+      data-lawlib-popover
+      role="region"
+      aria-label={`${line.label} ฉบับเต็ม`}
+      tabIndex={-1}
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+      style={{
+        position: 'fixed',
+        left: pos.left,
+        top: pos.top,
+        width: pos.width,
+        maxHeight: 'min(70vh, 42rem)',
+        zIndex: 40,
+      }}
+      className="lawlib-popover flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+    >
+      <header className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-200 px-4 py-2.5 dark:border-slate-700">
+        <span className="text-sm font-bold leading-relaxed text-slate-900 dark:text-white">
+          {line.label}
+        </span>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="ปิด"
+          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white"
+        >
+          <i aria-hidden="true" className="fi fi-sr-cross text-[10px]" />
+        </button>
+      </header>
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+        <ArticleView
+          law={law}
+          highlights={highlights}
+          noteKeys={noteKeys}
+          flashKey={flashKey}
+          getTriggerProps={getTriggerProps}
+          isTooltipOpen={isTooltipOpen}
+          singleKey={line.key}
+        />
+      </div>
+      <footer className="flex shrink-0 flex-wrap items-center gap-2 border-t border-slate-200 px-4 py-2.5 dark:border-slate-700">
+        <button
+          type="button"
+          onClick={() => onSeeFull(line.key)}
+          className="inline-flex min-h-9 cursor-pointer items-center gap-1 rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        >
+          ดูฉบับเต็มที่ {line.label}
+          <i aria-hidden="true" className="fi fi-sr-arrow-small-right text-[10px] leading-none" />
+        </button>
+        <span className="text-xs text-slate-400 dark:text-slate-500">Esc ปิด</span>
+      </footer>
+    </div>
+  );
+}
+
+/** One body line (non-article) with dline id (flash applied directly via DOM).
+ *  Exported for the reader's merged history block (both views). */
+export function BodyLineView({
   line,
   slug,
   onNavigate,
@@ -426,13 +495,10 @@ function ChapterGroupView({
   onToggleGroup,
   law,
   expandedKey,
-  expandedSource,
   onToggleCard,
-  onCollapseCard,
+  onCardLeave,
   onNavigate,
   onSeeFull,
-  highlights,
-  noteKeys,
   flashKey,
   getTriggerProps,
   isTooltipOpen,
@@ -442,13 +508,10 @@ function ChapterGroupView({
   onToggleGroup: (id: string) => void;
   law: LawDoc;
   expandedKey: string | null;
-  expandedSource: 'hover' | 'interaction' | null;
   onToggleCard: (key: string, source: 'hover' | 'interaction') => void;
-  onCollapseCard: () => void;
+  onCardLeave: () => void;
   onNavigate: (key: string) => void;
   onSeeFull: (key: string) => void;
-  highlights: ArticleHighlight[];
-  noteKeys: ReadonlySet<string>;
   flashKey: string | null;
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
@@ -485,14 +548,11 @@ function ChapterGroupView({
               key={line.key}
               line={line}
               law={law}
-              expanded={expandedKey === line.key}
-              expandedSource={expandedSource}
+              isOpen={expandedKey === line.key}
               onToggleCard={onToggleCard}
-              onCollapseCard={onCollapseCard}
+              onCardLeave={onCardLeave}
               onNavigate={onNavigate}
               onSeeFull={onSeeFull}
-              highlights={highlights}
-              noteKeys={noteKeys}
               flashKey={flashKey}
               getTriggerProps={getTriggerProps}
               isTooltipOpen={isTooltipOpen}
@@ -523,13 +583,10 @@ function SectionView({
   sectionIndex,
   law,
   expandedKey,
-  expandedSource,
   onToggleCard,
-  onCollapseCard,
+  onCardLeave,
   onNavigate,
   onSeeFull,
-  highlights,
-  noteKeys,
   flashKey,
   collapsedGroups,
   onToggleGroup,
@@ -540,13 +597,10 @@ function SectionView({
   sectionIndex: number;
   law: LawDoc;
   expandedKey: string | null;
-  expandedSource: 'hover' | 'interaction' | null;
   onToggleCard: (key: string, source: 'hover' | 'interaction') => void;
-  onCollapseCard: () => void;
+  onCardLeave: () => void;
   onNavigate: (key: string) => void;
   onSeeFull: (key: string) => void;
-  highlights: ArticleHighlight[];
-  noteKeys: ReadonlySet<string>;
   flashKey: string | null;
   collapsedGroups: ReadonlySet<string>;
   onToggleGroup: (id: string) => void;
@@ -560,14 +614,11 @@ function SectionView({
         key={line.key}
         line={line}
         law={law}
-        expanded={expandedKey === line.key}
-        expandedSource={expandedSource}
+        isOpen={expandedKey === line.key}
         onToggleCard={onToggleCard}
-        onCollapseCard={onCollapseCard}
+        onCardLeave={onCardLeave}
         onNavigate={onNavigate}
         onSeeFull={onSeeFull}
-        highlights={highlights}
-        noteKeys={noteKeys}
         flashKey={flashKey}
         getTriggerProps={getTriggerProps}
         isTooltipOpen={isTooltipOpen}
@@ -622,13 +673,10 @@ function SectionView({
                 onToggleGroup={onToggleGroup}
                 law={law}
                 expandedKey={expandedKey}
-                expandedSource={expandedSource}
                 onToggleCard={onToggleCard}
-                onCollapseCard={onCollapseCard}
+                onCardLeave={onCardLeave}
                 onNavigate={onNavigate}
                 onSeeFull={onSeeFull}
-                highlights={highlights}
-                noteKeys={noteKeys}
                 flashKey={flashKey}
                 getTriggerProps={getTriggerProps}
                 isTooltipOpen={isTooltipOpen}
@@ -653,6 +701,9 @@ export default function CompactView({
   expandedSource,
   onToggleCard,
   onCollapseCard,
+  onCardLeave,
+  onPopoverEnter,
+  onPopoverLeave,
   onNavigate,
   onSeeFull,
   onExpandGroup,
@@ -665,11 +716,26 @@ export default function CompactView({
   getTriggerProps,
   isTooltipOpen,
 }: CompactViewProps) {
+  // The popover's article line (looked up by key — rendered once at the root).
+  const expandedLine = (() => {
+    if (expandedKey === null) return null;
+    for (const s of view.sections) {
+      const lines = [...s.lines, ...(s.groups ?? []).flatMap((g) => g.lines)];
+      const hit = lines.find(
+        (l): l is Extract<RenderLine, { kind: 'article' }> =>
+          l.kind === 'article' && l.key === expandedKey,
+      );
+      if (hit !== undefined) return hit;
+    }
+    return null;
+  })();
+
   return (
     <div className="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8">
       <div className="mb-6 lg:mb-0">
         <DigestToc
           view={view}
+          startIndex={2}
           collapsedGroups={collapsedGroups}
           onExpandGroup={onExpandGroup}
           onNavigate={onNavigate}
@@ -688,20 +754,20 @@ export default function CompactView({
           <h2 className="mt-6 text-xl font-bold leading-relaxed text-slate-900 first:mt-0 dark:text-white">
             ฉบับย่อ — {law.titleTh}
           </h2>
-          {view.sections.map((section, i) => (
+          {/* Sections 0-1 (ข้อมูลกฎหมาย / ประวัติการแก้ไข) are rendered in the
+              reader HEADER (merged history block, both views — user 2026-08-05);
+              the compact body starts at section 2 (คำนิยามสำคัญ). */}
+          {view.sections.slice(2).map((section, i) => (
             <SectionView
               key={section.heading}
               section={section}
-              sectionIndex={i}
+              sectionIndex={i + 2}
               law={law}
               expandedKey={expandedKey}
-              expandedSource={expandedSource}
               onToggleCard={onToggleCard}
-              onCollapseCard={onCollapseCard}
+              onCardLeave={onCardLeave}
               onNavigate={onNavigate}
               onSeeFull={onSeeFull}
-              highlights={highlights}
-              noteKeys={noteKeys}
               flashKey={flashKey}
               collapsedGroups={collapsedGroups}
               onToggleGroup={onToggleGroup}
@@ -711,6 +777,24 @@ export default function CompactView({
           ))}
         </div>
       </div>
+
+      {/* Floating full-article popover (like the term tooltip — user 2026-08-05). */}
+      {expandedLine !== null && expandedKey !== null && (
+        <ArticlePopover
+          line={expandedLine}
+          law={law}
+          source={expandedSource}
+          onClose={onCollapseCard}
+          onSeeFull={onSeeFull}
+          onEnter={onPopoverEnter}
+          onLeave={onPopoverLeave}
+          highlights={highlights}
+          noteKeys={noteKeys}
+          flashKey={flashKey}
+          getTriggerProps={getTriggerProps}
+          isTooltipOpen={isTooltipOpen}
+        />
+      )}
     </div>
   );
 }
