@@ -17,6 +17,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { LawDoc } from '@/types/lawlib';
+import type { DigestView } from '@/lib/lawlib/digest-view';
 import { normalizeNfc, normalizeThaiDigits } from '@/lib/lawlib/normalize';
 import {
   articleKeyOf,
@@ -610,7 +611,15 @@ function BookmarksPanel({
 // Reader client
 // ---------------------------------------------------------------------------
 
-export default function LawlibReaderClient({ law }: { law: LawDoc }) {
+export default function LawlibReaderClient({
+  law,
+  digestView,
+}: {
+  law: LawDoc;
+  digestView: DigestView | null;
+}) {
+  // T4 consumes digestView (FULL/COMPACT toggle); keep the prop contract live.
+  void digestView;
   const { theme, setTheme, paperTone, setPaperTone } = useTheme();
   const {
     settings,

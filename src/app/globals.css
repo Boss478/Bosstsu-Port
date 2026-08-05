@@ -1500,3 +1500,26 @@ textarea,
 .read #site-header .text-zinc-500 {
   color: #7a6845;
 }
+
+/* ---------------------------------------------------------------------------
+   Crawler-friendly static full-text region (FR9, rev 5.5).
+   display:none by default — zero visual flash for JS users; the content IS
+   indexed (Google's hidden-content policy: accordion/tab pattern — the full
+   text is also user-accessible via the FULL toggle and the app render).
+   @media (scripting: none) reveals it for no-JS users (and hides the dead
+   reader skeleton) — strictly better than the pre-merge skeleton-only HTML.
+   Note: `scripting` needs Chrome 120+/FF 113+/Safari 17+ — older no-JS
+   browsers get today's skeleton (equal, acceptable).
+--------------------------------------------------------------------------- */
+.lawlib-static-full {
+  display: none;
+}
+
+@media (scripting: none) {
+  .lawlib-static-full {
+    display: block;
+  }
+  .lawlib-shell-loading {
+    display: none;
+  }
+}

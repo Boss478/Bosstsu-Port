@@ -45,6 +45,9 @@ const sarabun = localFont({
 export const metadata: Metadata = {
   title: CONFIG.SITE.TITLE,
   description: CONFIG.SITE.DESCRIPTION,
+  // Canonical origin — relative alternates.canonical / og URLs resolve against
+  // this (without it they'd bake http://localhost:PORT into static HTML).
+  metadataBase: new URL(CONFIG.SITE.URL),
   icons: {
     icon: [
       { url: '/icon/favicon.ico', sizes: 'any' },

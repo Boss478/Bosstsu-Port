@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { CONFIG } from '@/lib/config';
 
-const BASE_URL = 'https://srv1676702.hstgr.cloud';
+const BASE_URL = CONFIG.SITE.URL;
 
 // Reads src/data/lawlib/index.json via node fs (same pattern as the LawLib
 // pages): absent/unreadable → no LawLib detail URLs, never a build failure.

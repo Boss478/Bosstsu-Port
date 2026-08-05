@@ -22,23 +22,33 @@ export function sanitizeFilename(name: string): string {
 export function isHeicFile(file: File | { name?: string; type?: string }): boolean {
   const nameLC = file.name?.toLowerCase() || '';
   const typeLC = file.type?.toLowerCase() || '';
-  const extMatch = CONFIG.HEIC.EXTENSIONS.some(ext => nameLC.endsWith(ext));
+  const extMatch = CONFIG.HEIC.EXTENSIONS.some((ext) => nameLC.endsWith(ext));
   return extMatch || typeLC === 'image/heic' || typeLC === 'image/heif';
 }
 
-export async function saveFile(file: File, folder: string = 'misc', asWebP?: boolean, filenamePrefix?: string, allowedTypes?: readonly string[], batchId?: string): Promise<string> {
+export async function saveFile(
+  file: File,
+  folder: string = 'misc',
+  asWebP?: boolean,
+  filenamePrefix?: string,
+  allowedTypes?: readonly string[],
+  batchId?: string,
+): Promise<string> {
   const types = allowedTypes ?? (CONFIG.UPLOAD.ALLOWED_TYPES as readonly string[]);
   const imageTypes = CONFIG.UPLOAD.ALLOWED_TYPES as readonly string[];
   const maxSize = CONFIG.UPLOAD.MAX_SIZE;
 
-  const shouldConvert = asWebP ?? (CONFIG.UPLOAD.FOLDERS_CONVERT_TO_WEBP as readonly string[]).includes(folder);
+  const shouldConvert =
+    asWebP ?? (CONFIG.UPLOAD.FOLDERS_CONVERT_TO_WEBP as readonly string[]).includes(folder);
 
   if (!isHeicFile(file) && !types.includes(file.type)) {
     throw new Error(`Invalid file type: ${file.type}. Allowed: ${types.join(', ')}`);
   }
 
   if (file.size > maxSize) {
-    throw new Error(`File too large: ${Math.round(file.size / 1024 / 1024)}MB. Max: ${maxSize / 1024 / 1024}MB`);
+    throw new Error(
+      `File too large: ${Math.round(file.size / 1024 / 1024)}MB. Max: ${maxSize / 1024 / 1024}MB`,
+    );
   }
 
   const date = new Date();
@@ -46,8 +56,14 @@ export async function saveFile(file: File, folder: string = 'misc', asWebP?: boo
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
 
   const uploadDir = batchId
-    ? path.join(process.cwd(), CONFIG.UPLOAD.ROOT_DIR, '_tmp', batchId)
-    : path.join(process.cwd(), CONFIG.UPLOAD.ROOT_DIR, folder, year, month);
+    ? path.join(/*turbopackIgnore: true*/ process.cwd(), CONFIG.UPLOAD.ROOT_DIR, '_tmp', batchId)
+    : path.join(
+        /*turbopackIgnore: true*/ process.cwd(),
+        CONFIG.UPLOAD.ROOT_DIR,
+        folder,
+        year,
+        month,
+      );
 
   try {
     await fs.mkdir(uploadDir, { recursive: true });
@@ -70,7 +86,7 @@ export async function saveFile(file: File, folder: string = 'misc', asWebP?: boo
     const filename = filenamePrefix
       ? `${sanitizeFilename(filenamePrefix)}_${uuidv4().replace(/-/g, '').substring(0, 8)}.${origExt}`
       : `${uuidv4()}.${origExt}`;
-    const filePath = path.join(uploadDir, filename);
+    const filePath = path.join(/*turbopackIgnore: true*/ uploadDir, filename);
     try {
       await fs.writeFile(filePath, buffer);
     } catch (error) {
@@ -103,13 +119,17 @@ export async function saveFile(file: File, folder: string = 'misc', asWebP?: boo
     const img = sharp(buffer).withMetadata();
 
     if (shouldConvert) {
-      buffer = Buffer.from(await img.webp({ quality: CONFIG.IMAGE_PROCESSING.WEBP_QUALITY }).toBuffer());
+      buffer = Buffer.from(
+        await img.webp({ quality: CONFIG.IMAGE_PROCESSING.WEBP_QUALITY }).toBuffer(),
+      );
     } else {
       buffer = Buffer.from(
-        await img.jpeg({
-          quality: CONFIG.IMAGE_PROCESSING.JPEG_QUALITY,
-          mozjpeg: CONFIG.IMAGE_PROCESSING.USE_MOZJPEG,
-        }).toBuffer()
+        await img
+          .jpeg({
+            quality: CONFIG.IMAGE_PROCESSING.JPEG_QUALITY,
+            mozjpeg: CONFIG.IMAGE_PROCESSING.USE_MOZJPEG,
+          })
+          .toBuffer(),
       );
     }
   } catch (error) {
@@ -126,7 +146,7 @@ export async function saveFile(file: File, folder: string = 'misc', asWebP?: boo
     const ext = shouldConvert ? 'webp' : 'jpg';
     filename = `${uuidv4()}.${ext}`;
   }
-  const filePath = path.join(uploadDir, filename);
+  const filePath = path.join(/*turbopackIgnore: true*/ uploadDir, filename);
 
   try {
     await fs.writeFile(filePath, buffer as unknown as Uint8Array);
@@ -143,12 +163,9 @@ export async function saveFile(file: File, folder: string = 'misc', asWebP?: boo
     : `/uploads/${folder}/${year}/${month}/${filename}`;
 }
 
-export async function finalizeUploads(
-  urls: string[],
-  targetFolder: string
-): Promise<string[]> {
-  const tmpUrls = urls.filter(u => u.startsWith('/uploads/_tmp/'));
-  const finalUrls = urls.filter(u => !u.startsWith('/uploads/_tmp/'));
+export async function finalizeUploads(urls: string[], targetFolder: string): Promise<string[]> {
+  const tmpUrls = urls.filter((u) => u.startsWith('/uploads/_tmp/'));
+  const finalUrls = urls.filter((u) => !u.startsWith('/uploads/_tmp/'));
 
   if (tmpUrls.length === 0) return urls;
 
@@ -156,14 +173,21 @@ export async function finalizeUploads(
   const date = new Date();
   const year = date.getFullYear().toString();
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const targetDir = path.join(process.cwd(), CONFIG.UPLOAD.ROOT_DIR, targetFolder, year, month);
+  // turbopackIgnore: true — dynamic upload path would trace the whole 13k-file tree
+  const targetDir = path.join(
+    /*turbopackIgnore: true*/ process.cwd(),
+    CONFIG.UPLOAD.ROOT_DIR,
+    targetFolder,
+    year,
+    month,
+  );
   await fs.mkdir(targetDir, { recursive: true });
 
   const result: string[] = [...finalUrls];
   for (const url of tmpUrls) {
-    const tempPath = path.join(process.cwd(), 'public', url);
+    const tempPath = path.join(/*turbopackIgnore: true*/ process.cwd(), 'public', url);
     const filename = path.basename(tempPath);
-    const finalPath = path.join(targetDir, filename);
+    const finalPath = path.join(/*turbopackIgnore: true*/ targetDir, filename);
 
     try {
       await fs.rename(tempPath, finalPath);
@@ -183,7 +207,12 @@ export async function finalizeUploads(
   }
 
   try {
-    const batchDir = path.join(process.cwd(), CONFIG.UPLOAD.ROOT_DIR, '_tmp', firstBatchId);
+    const batchDir = path.join(
+      /*turbopackIgnore: true*/ process.cwd(),
+      CONFIG.UPLOAD.ROOT_DIR,
+      '_tmp',
+      firstBatchId,
+    );
     const remaining = await fs.readdir(batchDir);
     if (remaining.length === 0) {
       await fs.rmdir(batchDir);
@@ -194,5 +223,3 @@ export async function finalizeUploads(
 
   return result;
 }
-
-

@@ -109,4 +109,10 @@
     color: inherit !important;
     text-decoration: none !important;
   }
+
+  /* Static full-text region must never surface in print (rev 5.5, loop-2 #5) —
+     future-proof guard against any print-media change. */
+  .lawlib-static-full {
+    display: none !important;
+  }
 }

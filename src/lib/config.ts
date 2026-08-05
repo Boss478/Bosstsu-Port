@@ -184,6 +184,9 @@ export const CONFIG = {
   // ─── Site Metadata ────────────────────────────────────────────────────
   SITE: {
     NAME: 'Boss478',
+    /** Canonical origin — single source of truth for absolute URLs (sitemap,
+     *  metadataBase, robots). Update ONE place on domain change (VisperHost). */
+    URL: 'https://srv1676702.hstgr.cloud',
     VERSION: pkg.version,
     TITLE: 'Boss478 | Portfolio',
     DESCRIPTION: 'เว็บไซต์ส่วนตัวสำหรับเก็บผลงาน กิจกรรม รูปภาพ สื่อการเรียนรู้ และเกมการศึกษา',
