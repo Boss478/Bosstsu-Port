@@ -30,6 +30,7 @@ const KEY_BASES = {
   lastPosition: 'last-position',
   notes: 'notes',
   highlights: 'highlights',
+  view: 'view',
 } as const;
 
 /** FR11 settings — device-wide (NOT per-law scoped): one key for every law. */
@@ -103,6 +104,33 @@ export function saveGlobalSettings(value: ReadingSettingsValue): void {
   safeSetJSON(SETTINGS_KEY, value);
 }
 
+/** Per-slug view mode — the FULL/COMPACT merge toggle (rev 5.5). */
+export type ReaderViewMode = 'compact' | 'full';
+
+/**
+ * Reads the per-slug view key `lawlib:<scope>:view` (NOT device-wide — the
+ * FULL/COMPACT choice is per law, unlike settings). Whitelist-only: the stored
+ * value is returned ONLY when `=== 'compact' || === 'full'`; anything else
+ * (corrupt/foreign/junk — loop-3 #1) → null, and the caller applies its
+ * default ('compact' when a digest exists, else 'full').
+ *
+ * TRUST CHAIN (loop-3 #4): `scope` is the law slug, constrained at build by
+ * the z-schema in validate.ts:107-109 (build fails otherwise), at the route by
+ * the page regex (page.tsx:41) + index.json membership + dynamicParams=false
+ * (unknown slugs are real 404s). A hostile slug cannot reach this key, and
+ * localStorage keys are inert strings regardless — do not weaken these guards
+ * in the name of "hardening".
+ */
+export function loadPerSlugView(scope: string): ReaderViewMode | null {
+  const raw = safeGetString(`lawlib:${scope}:${KEY_BASES.view}`);
+  return raw === 'compact' || raw === 'full' ? raw : null;
+}
+
+/** Writes the per-slug view mode under `lawlib:<scope>:view` (whitelisted). */
+export function savePerSlugView(scope: string, mode: ReaderViewMode): void {
+  safeSetString(`lawlib:${scope}:${KEY_BASES.view}`, mode);
+}
+
 function isNote(v: unknown): v is Note {
   if (typeof v !== 'object' || v === null) return false;
   const o = v as Record<string, unknown>;
@@ -144,6 +172,9 @@ function makeId(): string {
 export interface ReaderStorage {
   settings: ReadingSettingsValue;
   setSettings: (next: ReadingSettingsValue) => void;
+  /** Per-slug view mode (`lawlib:<scope>:view`); null when unset — caller applies the default. */
+  view: ReaderViewMode | null;
+  setView: (mode: ReaderViewMode) => void;
   bookmarks: string[];
   toggleBookmark: (articleKey: string) => void;
   lastPosition: string | null;
@@ -173,6 +204,7 @@ export function useReaderStorage(scope?: string): ReaderStorage {
       lastPosition: `${prefix}${KEY_BASES.lastPosition}`,
       notes: `${prefix}${KEY_BASES.notes}`,
       highlights: `${prefix}${KEY_BASES.highlights}`,
+      view: `${prefix}${KEY_BASES.view}`,
     };
   }, [scope]);
 
@@ -185,6 +217,10 @@ export function useReaderStorage(scope?: string): ReaderStorage {
   const [lastPosition, setLastPosition] = useState<string | null>(() => {
     const raw = safeGetString(keys.lastPosition);
     return raw && raw.length > 0 ? raw : null;
+  });
+  const [view, setViewState] = useState<ReaderViewMode | null>(() => {
+    if (scope === undefined || scope === '') return null;
+    return loadPerSlugView(scope);
   });
   const [notes, setNotes] = useState<Note[]>(() => readArray(keys.notes, isNote));
   const [highlights, setHighlights] = useState<Highlight[]>(() =>
@@ -218,6 +254,14 @@ export function useReaderStorage(scope?: string): ReaderStorage {
       safeSetString(keys.lastPosition, articleKey);
     },
     [keys],
+  );
+
+  const setView = useCallback(
+    (mode: ReaderViewMode) => {
+      setViewState(mode);
+      if (scope !== undefined && scope !== '') savePerSlugView(scope, mode);
+    },
+    [scope],
   );
 
   const addNote = useCallback(
@@ -280,6 +324,8 @@ export function useReaderStorage(scope?: string): ReaderStorage {
   return {
     settings,
     setSettings,
+    view,
+    setView,
     bookmarks,
     toggleBookmark,
     lastPosition,

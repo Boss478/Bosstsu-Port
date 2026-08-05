@@ -28,6 +28,7 @@ const unitInclude = [
   'tests/lawlib/normalize.test.ts',
   'tests/lawlib/parser.test.ts',
   'tests/lawlib/validate.test.ts',
+  'tests/lawlib/view-key.test.ts',
   'tests/spike-server-action.test.ts',
   'tests/unit/alphabet-adventure.test.ts',
   'tests/unit/challenge-generators.test.ts',
