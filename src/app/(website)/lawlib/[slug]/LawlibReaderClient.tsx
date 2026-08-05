@@ -723,9 +723,15 @@ export default function LawlibReaderClient({
   });
   /** Derived at render — no-digest laws force FULL (FR3, mid-session safe). */
   const effectiveView: ReaderViewMode = digestView == null ? 'full' : viewMode;
-  /** Expanded compact card article key + how it started (hover never focuses). */
+  /** Expanded compact card article key + how it started (Track E: the hover
+   *  source is gone — clicks/interaction only; the type is kept as the honest
+   *  open-mode record for CompactView/ArticlePopover). */
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
-  const [expandedSource, setExpandedSource] = useState<'hover' | 'interaction' | null>(null);
+  const [expandedSource, setExpandedSource] = useState<'interaction' | null>(null);
+  /** openCardPopover 50ms token (Track E NIT): ANY close (Esc / X / toggle)
+   *  bumps it, so a pending open that fires after the close is a no-op — Esc
+   *  within the 50ms window can never re-open the popover. */
+  const openCardPopoverTokenRef = useRef(0);
   /** Collapsed chapter groups (first group starts expanded — legacy behavior). */
   const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<string>>(() => {
     const all: string[] = [];
@@ -897,8 +903,10 @@ export default function LawlibReaderClient({
   /** Programmatic close (X / Esc / view switch / seefull): clear the popover
    *  + active article (no popover = no dock copy target, D6). Click-pinned
    *  semantics (plan v6): the popover stays open until X / Esc / toggling
-   *  another card — no hover auto-close. */
+   *  another card — no hover auto-close. Bumps the openCardPopover token so a
+   *  pending 50ms open never re-opens a just-closed popover (Track E NIT). */
   const collapseCard = useCallback(() => {
+    openCardPopoverTokenRef.current++;
     setExpandedKey(null);
     setExpandedSource(null);
     setActiveKey(null);
@@ -916,22 +924,23 @@ export default function LawlibReaderClient({
     [effectiveView, switchView, collapseCard],
   );
 
-  /** Click-pinned toggle (plan v6 — the hover-open path is gone; the 'hover'
-   *  source type is kept for the shared CompactView contract). Interaction
-   *  closes any open tooltip FIRST (loop-1 BLOCKER: no tooltip/popover
-   *  overlap, no touch bottom-sheet flash) and remembers the clicked member
-   *  for Esc/X focus restore. */
+  /** Click-pinned toggle (Track E — the 'hover' source is dead, plan v6):
+   *  every call is an interaction. Closes any open tooltip FIRST (loop-1
+   *  BLOCKER: no tooltip/popover overlap, no touch bottom-sheet flash) and
+   *  remembers the clicked member for Esc/X focus restore. activeKey = the
+   *  MEMBER key when available (parity with openCardPopover, Track E #3).
+   *  Toggling CLOSED also bumps the openCardPopover token (a click on the
+   *  same card within the 50ms window must not re-open the popover). */
   const handleToggleCard = useCallback(
-    (key: string, source: 'hover' | 'interaction', memberKey?: string) => {
-      if (source === 'interaction') {
-        closeTooltip();
-        if (memberKey !== undefined) lastMemberKeyRef.current = memberKey;
-      }
+    (key: string, memberKey?: string) => {
+      closeTooltip();
+      if (memberKey !== undefined) lastMemberKeyRef.current = memberKey;
       setExpandedKey((prev) => (prev === key ? null : key));
-      setExpandedSource((prev) => (prev === key ? null : source));
-      setActiveKey((prev) => (prev === key ? null : key));
+      setExpandedSource((prev) => (prev === key ? null : 'interaction'));
+      setActiveKey((prev) => (prev === key ? null : (memberKey ?? key)));
+      if (expandedKey === key) openCardPopoverTokenRef.current++;
     },
-    [closeTooltip],
+    [closeTooltip, expandedKey],
   );
 
   // --- jump target: scroll + temporary highlight + hash + position ----------
@@ -1026,7 +1035,13 @@ export default function LawlibReaderClient({
           return next;
         });
       }
+      // Track E NIT (50ms race): the token is bumped by EVERY close path
+      // (collapseCard / toggle-close / unmount) — if Esc or X lands inside
+      // the 50ms window, the pending timeout becomes a no-op and the popover
+      // stays closed.
+      const token = ++openCardPopoverTokenRef.current;
       window.setTimeout(() => {
+        if (openCardPopoverTokenRef.current !== token) return;
         // Merged cards: `data-lawlib-card` = the FIRST member key;
         // `data-lawlib-card-members` = ALL member keys (space-separated →
         // the `~=` attribute selector matches any member).
@@ -1077,17 +1092,20 @@ export default function LawlibReaderClient({
     restoreMemberFocus(cardKey);
   }, [expandedKey, collapseCard, effectiveView, restoreMemberFocus]);
 
-  /** Body-ref unified routing (plan v6): compact + card → popover; else the
-   *  jump rule (navigateTo: FULL jump / compact-no-card → FULL switch). */
+  /** Body-ref unified routing (plan v6 + Track E BLOCKER): compact + card →
+   *  popover; else the jump rule (navigateTo: FULL jump / compact-no-card →
+   *  FULL switch). The memberToCardMap check (NOT digestHasCard) is the
+   *  card-presence test — a merged member ('12' of "มาตรา 11 - มาตรา 12")
+   *  routes to ITS card's popover instead of falling to FULL. */
   const handleOpenRef = useCallback(
     (key: string) => {
-      if (effectiveView === 'compact' && digestView !== null && digestHasCard(digestView, key)) {
+      if (effectiveView === 'compact' && memberToCardMap.has(key)) {
         openCardPopover(key);
         return;
       }
       navigateTo(key);
     },
-    [effectiveView, digestView, openCardPopover, navigateTo],
+    [effectiveView, memberToCardMap, openCardPopover, navigateTo],
   );
 
   /** ดูฉบับเต็ม / seefull: switch to FULL + jump at that มาตรา. */
@@ -1234,6 +1252,8 @@ export default function LawlibReaderClient({
       if (flashTimerRef.current !== null) window.clearTimeout(flashTimerRef.current);
       if (copiedTimerRef.current !== null) window.clearTimeout(copiedTimerRef.current);
       if (flashLineTimerRef.current !== null) window.clearTimeout(flashLineTimerRef.current);
+      // Track E NIT: any pending openCardPopover 50ms open dies with the reader.
+      openCardPopoverTokenRef.current++;
     },
     [],
   );
@@ -1395,19 +1415,21 @@ export default function LawlibReaderClient({
     [law, navigateTo, openTooltip],
   );
 
-  /** Tooltip "เปิดมาตรานี้" (plan v6, loop-6 risk 3): compact + digest card →
-   *  open its popover (member-aware); else the EXISTING jump rule — FULL
+  /** Tooltip "เปิดมาตรานี้" (plan v6, loop-6 risk 3 + Track E BLOCKER):
+   *  compact + digest card → open its popover (member-aware — the
+   *  memberToCardMap check covers MERGED members, which digestHasCard's
+   *  chip-presence test does not); else the EXISTING jump rule — FULL
    *  view / compact-no-card → navigateTo (FULL unchanged). */
   const handleTooltipOpenArticle = useCallback(
     (key: string) => {
       closeTooltip();
-      if (effectiveView === 'compact' && digestView !== null && digestHasCard(digestView, key)) {
+      if (effectiveView === 'compact' && memberToCardMap.has(key)) {
         openCardPopover(key);
         return;
       }
       navigateTo(key, { instant: true });
     },
-    [closeTooltip, effectiveView, digestView, openCardPopover, navigateTo],
+    [closeTooltip, effectiveView, memberToCardMap, openCardPopover, navigateTo],
   );
 
   const handleBookmarkCurrent = useCallback(() => {

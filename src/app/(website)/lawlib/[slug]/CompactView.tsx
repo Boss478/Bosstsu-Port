@@ -47,16 +47,17 @@ interface CompactViewProps {
   lineHeight: number;
   /** Popover article key (null = closed). */
   expandedKey: string | null;
-  /** How the popover opened — hover must NEVER move focus (loop-4 #3). */
-  expandedSource: 'hover' | 'interaction' | null;
+  /** How the popover opened — interaction-only since the hover path was
+   *  removed (Track E); kept as the honest open-mode record. */
+  expandedSource: 'interaction' | null;
   /**
    * Stable tooltip root id (plan commit 3): member buttons reference it via
    * aria-describedby while their tooltip is open (FULL header parity).
    */
   tooltipId: string;
-  /** Open/toggle the popover (source: how the user triggered it; memberKey =
-   *  the exact member button clicked — Esc/X focus restore target). */
-  onToggleCard: (key: string, source: 'hover' | 'interaction', memberKey?: string) => void;
+  /** Open/toggle the popover (memberKey = the exact member button clicked —
+   *  Esc/X focus restore target + activeKey). */
+  onToggleCard: (key: string, memberKey?: string) => void;
   /** Immediate close (X button / Escape). */
   onCollapseCard: () => void;
   /** Jump rule (chips): card if exists, else FULL + jump. */
@@ -281,7 +282,7 @@ function ArticleCard({
    *  pattern; multiple triggers may reference one dialog). */
   popoverId: string;
   tooltipId: string;
-  onToggleCard: (key: string, source: 'hover' | 'interaction', memberKey?: string) => void;
+  onToggleCard: (key: string, memberKey?: string) => void;
   onOpenRef: (key: string) => void;
   onSeeFull: (key: string) => void;
   flashKey: string | null;
@@ -348,7 +349,7 @@ function ArticleCard({
                   className="inline-flex cursor-pointer items-center rounded-lg font-bold text-blue-800 underline decoration-dotted decoration-blue-400/70 underline-offset-4 hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
                   {...getTriggerProps(content)}
                   onPointerUp={undefined}
-                  onClick={() => onToggleCard(line.key, 'interaction', key)}
+                  onClick={() => onToggleCard(line.key, key)}
                 >
                   {label}
                 </button>
@@ -406,7 +407,7 @@ function ArticlePopover({
 }: {
   line: Extract<RenderLine, { kind: 'article' }>;
   law: LawDoc;
-  source: 'hover' | 'interaction' | null;
+  source: 'interaction' | null;
   popoverId: string;
   onClose: () => void;
   onSeeFull: (key: string) => void;
@@ -442,12 +443,11 @@ function ArticlePopover({
     return { left: Math.max(8, left), top: Math.max(8, top), width };
   });
 
-  // Focus handoff (loop-4 #3): interaction-opened popovers move focus to the
-  // ArticleView header trigger; hover never focuses. Fallback (loop-3 MINOR):
-  // no trigger rendered (findArticleByKey miss) → the X close button, then
-  // the popover root itself.
+  // Focus handoff (loop-4 #3): the hover-open path is gone (Track E), so
+  // every mounted popover is interaction-opened — move focus to the
+  // ArticleView header trigger. Fallback (loop-3 MINOR): no trigger rendered
+  // (findArticleByKey miss) → the X close button, then the popover root.
   useEffect(() => {
-    if (source === 'hover') return;
     const root = rootRef.current;
     if (root === null) return;
     const t = root.querySelector<HTMLElement>('[data-lawlib-trigger]');
@@ -654,7 +654,7 @@ function ChapterGroupView({
   expandedKey: string | null;
   popoverId: string;
   tooltipId: string;
-  onToggleCard: (key: string, source: 'hover' | 'interaction', memberKey?: string) => void;
+  onToggleCard: (key: string, memberKey?: string) => void;
   onOpenRef: (key: string) => void;
   onSeeFull: (key: string) => void;
   flashKey: string | null;
@@ -747,7 +747,7 @@ function SectionView({
   expandedKey: string | null;
   popoverId: string;
   tooltipId: string;
-  onToggleCard: (key: string, source: 'hover' | 'interaction', memberKey?: string) => void;
+  onToggleCard: (key: string, memberKey?: string) => void;
   /** Jump rule — section jump chips. */
   onNavigate: (key: string) => void;
   onOpenRef: (key: string) => void;
