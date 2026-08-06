@@ -513,6 +513,49 @@ describe('T1 click-pin — mouse pointer (ADR-018 D1)', () => {
     expect(trigger.getAttribute('aria-expanded')).toBe('false');
   });
 
+  it('hover-open preview + mouse click on the same trigger pins it (survives the 150ms hover grace)', () => {
+    vi.useFakeTimers(); // discriminate pin from hover-preview: past the grace
+    stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
+    render(<Harness />);
+    const trigger = headerTrigger();
+
+    // hover-open = preview (pointerenter), NOT pinned yet
+    fireEvent.pointerEnter(trigger, { pointerType: 'mouse' });
+    expect(tooltipRoot()).not.toBeNull();
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+
+    // mouse click on the SAME trigger (<10px movement) → pin
+    mouseClick(trigger, 150, 115);
+    expect(tooltipRoot()).not.toBeNull();
+
+    // pinned → pointerleave must NOT schedule a deferred close: the tooltip
+    // survives well past the 150ms hover-preview grace (a plain preview would
+    // be closed by the timer firing here).
+    fireEvent.pointerLeave(trigger, { pointerType: 'mouse' });
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+    expect(tooltipRoot()).not.toBeNull();
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('pinned tooltip closes via the X close button (closeTooltip path)', () => {
+    mockMatchMedia(true); // sheet layout → the X (ปิด) button renders
+    stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
+    render(<Harness />);
+    const trigger = headerTrigger();
+
+    mouseClick(trigger, 150, 115);
+    fireEvent.pointerLeave(trigger, { pointerType: 'mouse' });
+    expect(tooltipRoot()).not.toBeNull(); // pinned survives the exit
+
+    // the X button wires to onClose = closeTooltip — it must close a PINNED
+    // tooltip (the reader-facing close path, unlike Esc/outside/toggle).
+    fireEvent.click(screen.getByRole('button', { name: 'ปิด' }));
+    expect(tooltipRoot()).toBeNull();
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+  });
+
   it('mouse click with >=10px pointer movement does not open at all (drag guard)', () => {
     stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
     render(<Harness />);
