@@ -26,8 +26,10 @@ export default function SearchInput({
       </label>
       <i
         aria-hidden="true"
-        className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-sm"
+        className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 text-sm"
       />
+      {/* `lawlib-search-field` = read-mode styling hook (globals.css) — the
+          TOC jump input + drawer search are separate components. */}
       <input
         id={id}
         type="text"
@@ -35,7 +37,7 @@ export default function SearchInput({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full pl-10 pr-4 py-2 rounded-full text-sm bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-300 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+        className="lawlib-search-field w-full pl-10 pr-4 py-2 min-h-11 rounded-full text-sm bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-500 text-zinc-600 dark:text-zinc-300 placeholder:text-zinc-600 dark:placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
       />
     </div>
   );

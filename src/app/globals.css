@@ -1557,6 +1557,20 @@ textarea,
   color: #7a6845;
 }
 
+/* Search field surface on paper (T2): the glass border (white/60) + slate
+   border vanish on cream paper — give the SearchInput field a paper-adjacent
+   boundary #8a7a55 (≈4:1 — non-text 3:1 pass; the 4.5:1 TEXT ink stays
+   #7a6845 above) + translucent paper fill rgba(255,255,255,.55) so the
+   backdrop blur still reads. Scoped via the Sarabun wrapper + the
+   .lawlib-search-field hook (SearchInput only) — the TOC jump input and the
+   drawer search (SearchPanel) are separate components with their own
+   surfaces and must stay untouched. */
+.read [class*='font-[family-name:var(--font-sarabun)]'] .lawlib-search-field,
+.sepia [class*='font-[family-name:var(--font-sarabun)]'] .lawlib-search-field {
+  border-color: #8a7a55;
+  background: rgba(255, 255, 255, 0.55);
+}
+
 /* SettingsMenu section labels (ธีม) live in the #site-header dropdown with no
    lawlib ancestor — zinc-500 ≈ 4.37:1 on paper. */
 .read #site-header .text-zinc-500,
