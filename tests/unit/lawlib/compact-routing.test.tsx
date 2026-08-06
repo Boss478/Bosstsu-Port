@@ -893,9 +893,191 @@ describe('T9 — DigestToc mobile collapse', () => {
 describe('T9 — drawer focus lands in the search input', () => {
   it('opening the search panel focuses #lawlib-search-input, not the close button', async () => {
     await renderReader();
-    // Expand the collapsed dock (tools icon) → Level-1 search tool.
-    fireEvent.click(screen.getByRole('button', { name: 'เครื่องมืออ่าน' }));
+    // Level 1 is OPEN BY DEFAULT (T12) — the search tool is directly reachable.
     fireEvent.click(screen.getByRole('button', { name: 'ค้นหามาตรา' }));
     expect(document.activeElement).toBe(document.getElementById('lawlib-search-input'));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T13 — merged-ref splitting (range expansion + prose ranges + repealed badge)
+// ---------------------------------------------------------------------------
+
+/** T13 fixture law: the shared fixture + articles 32/1, 32/2, 75-78 so a
+ *  "มาตรา 75 - มาตรา 78" card can span a REAL 4-article range (the digest
+ *  parser stores only the endpoints as keys). */
+const t13Law: LawDoc = {
+  ...law,
+  chapters: [
+    {
+      ...law.chapters[0],
+      articles: [
+        ...law.chapters[0].articles,
+        { no: 32, suffix: '/1', text: [{ kind: 'text', t: 'สาระของมาตรา 32/1' }] },
+        { no: 32, suffix: '/2', text: [{ kind: 'text', t: 'สาระของมาตรา 32/2' }] },
+        { no: 75, text: [{ kind: 'text', t: 'สาระของมาตรา 75' }] },
+        { no: 76, text: [{ kind: 'text', t: 'สาระของมาตรา 76' }] },
+        { no: 77, text: [{ kind: 'text', t: 'สาระของมาตรา 77' }] },
+        { no: 78, text: [{ kind: 'text', t: 'สาระของมาตรา 78' }] },
+      ],
+    },
+    law.chapters[1],
+  ],
+};
+
+const T13_DIGEST_MD = `# พจนานุกรมกฎหมาย — ทดสอบ
+
+## 1. ข้อมูลกฎหมาย
+
+- **ชื่อ:** พระราชบัญญัติทดสอบ พ.ศ. 2545
+
+## 2. ประวัติการแก้ไข
+
+**ฉบับที่ 1 (2545):** ประกาศใช้ครั้งแรก
+
+## 4. มาตราสำคัญ
+
+**มาตรา 5** : ให้ผู้ปกครองส่งเด็กเข้าเรียนในสถานศึกษา
+**มาตรา 75 - มาตรา 78** : สาระรวมมาตรา 75 ถึง 78
+**มาตรา 32/1 - มาตรา 32/2** : สาระรวมมาตรา 32/1 และ 32/2
+**มาตรา 13** : ผู้ใดไม่อำนวยความสะดวก ตามมาตรา 75–76 และภายใต้ พ.ร.บ.ทดสอบ 2550 มาตรา 30–31 มีความผิด
+### บทเฉพาะกาล
+**มาตรา 70** : บทเฉพาะกาลฉบับหนึ่ง
+**มาตรา 71** : บทเฉพาะกาลฉบับสอง
+`;
+
+function buildT13DigestView(): DigestView {
+  const doc = parseDigestMd(T13_DIGEST_MD);
+  return buildView(
+    doc,
+    new Map(),
+    t13Law.chapters.map((ch) => ({
+      no: ch.no,
+      title: ch.title,
+      articleKeys: [
+        ...ch.articles.map((a) => `${a.no}${a.suffix ?? ''}`),
+        ...(ch.sections ?? []).flatMap((s) => s.articles.map((a) => `${a.no}${a.suffix ?? ''}`)),
+      ],
+    })),
+    glossaryIndex(t13Law),
+    { slug: t13Law.slug, href: `/lawlib/${t13Law.slug}` },
+  );
+}
+
+const t13DigestView = buildT13DigestView();
+
+async function renderT13Reader() {
+  const utils = render(
+    <ThemeProvider>
+      <LawlibReaderClient law={t13Law} digestView={t13DigestView} />
+    </ThemeProvider>,
+  );
+  await flush(10);
+  stubVisibleOffsetParents();
+  return utils;
+}
+
+describe('T13 — merged-range card headers', () => {
+  it('expands "มาตรา 75 - มาตรา 78" into FOUR member links (75,76,77,78), each with its own tooltip content', async () => {
+    await renderT13Reader();
+    const card = compactCard('75');
+    expect(card).not.toBeNull();
+    // four member buttons, one per law-present article in the range
+    const members = Array.from(card!.querySelectorAll('[data-lawlib-member]'));
+    expect(members.map((m) => m.getAttribute('data-lawlib-member'))).toEqual([
+      '75',
+      '76',
+      '77',
+      '78',
+    ]);
+    expect(members.map((m) => m.textContent?.trim())).toEqual([
+      'มาตรา 75',
+      'มาตรา 76',
+      'มาตรา 77',
+      'มาตรา 78',
+    ]);
+    // the digest routing attribute stays the DIGEST keys (routing contract)
+    expect(card!.getAttribute('data-lawlib-card-members')).toBe('75 78');
+  });
+
+  it('hovering an EXPANDED member (76) shows its FULL article text (no digest snippet) + เปิดมาตรานี้', async () => {
+    await renderT13Reader();
+    fireEvent.pointerEnter(memberBtn('76') as HTMLElement, { pointerType: 'mouse' });
+    expect(tooltipRoot()).not.toBeNull();
+    // ArticleBody fallback — the FULL article text, NOT the merged summary
+    expect(tooltipRoot()?.textContent).toContain('สาระของมาตรา 76');
+    expect(tooltipRoot()?.textContent).not.toContain('สาระรวมมาตรา 75 ถึง 78');
+    fireEvent.pointerLeave(memberBtn('76') as HTMLElement, { pointerType: 'mouse' });
+  });
+
+  it('clicking an expanded member opens the merged popover with ALL FOUR real articles stacked', async () => {
+    await renderT13Reader();
+    fireEvent.click(memberBtn('76') as HTMLElement);
+    expect(popover()).not.toBeNull();
+    // the popover stacks every member's REAL article (T13 expansion)
+    for (const n of ['75', '76', '77', '78']) {
+      expect(popover()?.textContent).toContain(`สาระของมาตรา ${n}`);
+    }
+  });
+
+  it('suffixed merged card "มาตรา 32/1 - มาตรา 32/2" stays TWO discrete members (no range expansion)', async () => {
+    await renderT13Reader();
+    const card = compactCard('32/1');
+    expect(card).not.toBeNull();
+    const members = Array.from(card!.querySelectorAll('[data-lawlib-member]'));
+    expect(members.map((m) => m.getAttribute('data-lawlib-member'))).toEqual(['32/1', '32/2']);
+    expect(card!.getAttribute('data-lawlib-card-members')).toBe('32/1 32/2');
+  });
+});
+
+describe('T13 — inline prose ranges (มาตรา 75–76)', () => {
+  it('splits "ตามมาตรา 75–76" into TWO hoverable triggers with full-text tooltips', async () => {
+    await renderT13Reader();
+    // inside card 13's body: two range triggers (member buttons excluded)
+    const t75 = bodyRefTrigger('13', 'มาตรา 75');
+    const t76 = bodyRefTrigger('13', 'มาตรา 76');
+    expect(t75.getAttribute('data-lawlib-trigger')).not.toBeNull();
+    expect(t76.getAttribute('aria-expanded')).toBe('false');
+
+    fireEvent.pointerEnter(t76, { pointerType: 'mouse' });
+    expect(tooltipRoot()?.textContent).toContain('สาระของมาตรา 76');
+    fireEvent.pointerLeave(t76, { pointerType: 'mouse' });
+  });
+
+  it('cross-law guard: "พ.ร.บ.ทดสอบ 2550 มาตรา 30–31" stays plain text (no triggers)', async () => {
+    await renderT13Reader();
+    const card = compactCard('13');
+    expect(card).not.toBeNull();
+    // the guarded range must NOT become triggers
+    const triggers = Array.from(card!.querySelectorAll('[data-lawlib-trigger]'));
+    expect(triggers.some((t) => t.textContent?.trim() === 'มาตรา 30')).toBe(false);
+    expect(triggers.some((t) => t.textContent?.trim() === 'มาตรา 31')).toBe(false);
+    // ... but the UNGUARDED range in the same line still splits
+    expect(triggers.some((t) => t.textContent?.trim() === 'มาตรา 75')).toBe(true);
+    expect(triggers.some((t) => t.textContent?.trim() === 'มาตรา 76')).toBe(true);
+    // the plain text survives verbatim
+    expect(card!.textContent).toContain('มาตรา 30–31');
+  });
+
+  it('keyboard: Enter on a prose-range trigger opens the tooltip and moves focus', async () => {
+    await renderT13Reader();
+    const t76 = bodyRefTrigger('13', 'มาตรา 76');
+    t76.focus();
+    fireEvent.keyDown(t76, { key: 'Enter' });
+    await flush();
+    expect(tooltipRoot()).not.toBeNull();
+    expect(t76.getAttribute('aria-expanded')).toBe('true');
+    // focus moves INTO the tooltip (keyboard-open contract)
+    expect(tooltipRoot()?.contains(document.activeElement)).toBe(true);
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(tooltipRoot()).toBeNull();
+  });
+
+  it('repealed article hover shows the ถูกยกเลิก badge via the ArticleBody fallback', async () => {
+    await renderReader(); // shared fixture: article 6 has repealedParagraphs
+    fireEvent.pointerEnter(memberBtn('6') as HTMLElement, { pointerType: 'mouse' });
+    expect(tooltipRoot()?.textContent).toContain('ถูกยกเลิก');
+    expect(tooltipRoot()?.textContent).toContain('ให้สถานศึกษาจัดการศึกษา');
+    fireEvent.pointerLeave(memberBtn('6') as HTMLElement, { pointerType: 'mouse' });
   });
 });

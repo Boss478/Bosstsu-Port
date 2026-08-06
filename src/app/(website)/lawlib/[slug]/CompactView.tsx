@@ -29,12 +29,19 @@
  */
 
 import { Fragment, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import type { LawDoc } from '@/types/lawlib';
 import type { DigestView, RenderLine, RenderSection, RenderToken } from '@/lib/lawlib/digest-view';
 import type { ArticleHighlight } from '@/components/ArticleView';
 import ArticleView from '@/components/ArticleView';
-import { articleLabel, articlePlainText, findArticleByKey } from '@/lib/lawlib-reader';
+import {
+  articleKeyOf,
+  articleLabel,
+  articlePlainText,
+  findArticleByKey,
+  flattenArticles,
+} from '@/lib/lawlib-reader';
 import type { DigestRefContent } from '@/components/LawTooltip';
 import type { TooltipContent, TooltipTriggerHandlers } from '@/hooks/useLawTooltip';
 import DigestToc from './DigestToc';
@@ -90,6 +97,133 @@ function keyFromHref(href: string): string | null {
 /** Is this href a same-law deep link (jump rule applies)? */
 function isSameLawHref(href: string, slug: string): boolean {
   return href.startsWith(`/lawlib/${slug}#มาตรา-`);
+}
+
+/**
+ * T13 — merged-range member expansion. The digest parser stores ONLY the
+ * range ENDPOINTS as card keys ('75','78' for "มาตรา 75 - มาตรา 78"); the
+ * LAW's own article list (client-side, in memory — no new queries) supplies
+ * every article between them ('75','76','77','78'). Data-driven — the header
+ * label is NEVER parsed. Suffixed keys ('32/1','32/2') are discrete members
+ * and are returned unchanged.
+ */
+function expandCardMemberKeys(
+  line: Extract<RenderLine, { kind: 'article' }>,
+  law: LawDoc,
+): string[] {
+  const keys = line.keys ?? [line.key];
+  if (keys.length < 2) return keys;
+  const parts = keys.map(keyParts);
+  if (parts.some((p) => p === null || p.suffix !== undefined)) return keys;
+  const lawKeys = new Set(flattenArticles(law).map((f) => articleKeyOf(f.article)));
+  const lo = Math.min(...(parts as Array<{ no: number }>).map((p) => p.no));
+  const hi = Math.max(...(parts as Array<{ no: number }>).map((p) => p.no));
+  const out: string[] = [];
+  for (let n = lo; n <= hi; n++) {
+    const k = String(n);
+    if (lawKeys.has(k)) out.push(k);
+  }
+  return out.length > 0 ? out : keys;
+}
+
+/**
+ * T13 — plain-text range split ('มาตรา 75–76' in prose → one tooltip trigger
+ * per article; kind:'ref' WITHOUT digest fields → the full-article ArticleBody
+ * fallback — user-approved "show full is acceptable"). Pure-integer endpoints
+ * expand to EVERY article in the range ('มาตรา 41–43' → 41,42,43); suffixed
+ * endpoints ('มาตรา 32/1–32/2') stay the two discrete members.
+ */
+function splitPlainTextRange(
+  text: string,
+  getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers,
+  isTooltipOpen: (content: TooltipContent) => boolean,
+  tooltipId: string,
+): ReactNode[] | null {
+  const re = /มาตรา\s*(\d+(?:\/\d+)?)[-–]\s*(\d+(?:\/\d+)?)/g;
+  const nodes: ReactNode[] = [];
+  let last = 0;
+  let changed = false;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (isCrossLawRange(text, m.index)) continue;
+    changed = true;
+    if (m.index > last) {
+      nodes.push(<span key={`t-${last}`}>{text.slice(last, m.index)}</span>);
+    }
+    const first = keyParts(m[1]);
+    const second = keyParts(m[2]);
+    if (first !== null && second !== null) {
+      const members =
+        first.suffix === undefined && second.suffix === undefined
+          ? rangeMembers(first.no, second.no)
+          : [first, second];
+      // Preserve the original separator ('–' | '-' | ' - ') between members.
+      const sep = m[0].slice(m[0].indexOf(m[1]) + m[1].length, m[0].lastIndexOf(m[2]));
+      const matchIndex = m.index;
+      members.forEach((member, i) => {
+        if (i > 0) {
+          nodes.push(
+            <span key={`s-${matchIndex}-${i}`} aria-hidden="true">
+              {sep}
+            </span>,
+          );
+        }
+        const label = articleLabel(member.no, member.suffix);
+        const content: TooltipContent = {
+          kind: 'ref',
+          articleNo: member.no,
+          ...(member.suffix !== undefined ? { articleSuffix: member.suffix } : {}),
+          display: label,
+        };
+        nodes.push(
+          <span
+            key={`r-${matchIndex}-${i}`}
+            role="button"
+            tabIndex={0}
+            aria-expanded={isTooltipOpen(content)}
+            aria-haspopup="true"
+            aria-describedby={isTooltipOpen(content) ? tooltipId : undefined}
+            data-lawlib-trigger
+            className="lawlib-chip-hit cursor-pointer rounded-sm font-medium text-blue-700 underline decoration-dotted underline-offset-4 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
+            {...getTriggerProps(content)}
+          >
+            {label}
+          </span>,
+        );
+      });
+    }
+    last = m.index + m[0].length;
+  }
+  if (!changed) return null;
+  if (last < text.length) {
+    nodes.push(<span key={`t-${last}`}>{text.slice(last)}</span>);
+  }
+  return nodes;
+}
+
+/** Every integer key in [lo..hi] (ascending; guards a reversed range). */
+function rangeMembers(lo: number, hi: number): Array<{ no: number; suffix?: string }> {
+  const [a, b] = lo <= hi ? [lo, hi] : [hi, lo];
+  const out: Array<{ no: number }> = [];
+  for (let n = a; n <= b; n++) out.push({ no: n });
+  return out;
+}
+
+/**
+ * T13 cross-law guard: is the range preceded (within its clause) by 'พ.ร.บ.'
+ * or 'กฎหมาย'? 'พ.ร.บ.โรงเรียนเอกชน 2550 มาตรา 30–31' stays plain text (a
+ * ref to ANOTHER law); 'ตามมาตรา 75–76' splits. The clause = the text since
+ * the last clause boundary — '.' is deliberately NOT a boundary ('พ.ร.บ.'
+ * itself contains dots), nor is whitespace ('พ.ร.บ.… 2550 มาตรา 30–31' spans
+ * spaces).
+ */
+const RANGE_CLAUSE_BOUNDARY = /[·,;:()\[\]"'“”‘’—…]/;
+
+function isCrossLawRange(text: string, matchStart: number): boolean {
+  let i = matchStart - 1;
+  while (i >= 0 && !RANGE_CLAUSE_BOUNDARY.test(text[i])) i--;
+  const clause = text.slice(i + 1, matchStart);
+  return clause.includes('พ.ร.บ.') || clause.includes('กฎหมาย');
 }
 
 /** Digest snippet + repealed status of a referenced article (T11 map value). */
@@ -192,6 +326,13 @@ function TokenView({
 }) {
   if (token.kind === 'text' || token.kind === 'term') {
     const content = token.kind === 'text' ? token.text : token.term;
+    // T13 — plain-text มาตรา ranges ('ตามมาตรา 75–76') split into per-article
+    // tooltip triggers (kind:'ref' no-digest → full-text fallback). History
+    // block (interactive=false) stays hover-inert — no splitting there.
+    const rangeSplit =
+      token.kind === 'text' && interactive
+        ? splitPlainTextRange(token.text, getTriggerProps, isTooltipOpen, tooltipId)
+        : null;
     const plain =
       token.kind === 'term' && interactive ? (
         <span
@@ -210,6 +351,8 @@ function TokenView({
         >
           {content}
         </span>
+      ) : rangeSplit !== null ? (
+        <>{rangeSplit}</>
       ) : (
         <span>{content}</span>
       );
@@ -403,9 +546,15 @@ function ArticleCard({
   isTooltipOpen: (content: TooltipContent) => boolean;
   digestInfoByKey?: ReadonlyMap<string, DigestInfo>;
 }) {
-  // Merged cards (line.keys): flash when ANY member key is the target.
-  const isFlash =
-    flashKey !== null && (flashKey === line.key || line.keys?.includes(flashKey) === true);
+  // T13 — merged-range expansion: the digest parser stores ONLY the range
+  // endpoints as member keys ('75','78'); the law supplies every article
+  // between them ('75','76','77','78' — data-driven, no label parsing).
+  // data-lawlib-card-members stays the DIGEST keys (routing contract —
+  // openCardPopover/scrollToCard resolve through memberToCardMap, which is
+  // built from digest keys; an expanded key falls back to the FULL jump rule).
+  const memberKeys = useMemo(() => expandCardMemberKeys(line, law), [line, law]);
+  // Merged cards: flash when ANY member key (expanded) is the target.
+  const isFlash = flashKey !== null && (flashKey === line.key || memberKeys.includes(flashKey));
 
   return (
     <div
@@ -432,7 +581,7 @@ function ArticleCard({
           (ArticleView.tsx:283) byte-for-byte. */}
       <div className="flex min-h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-lg text-left text-base font-bold leading-relaxed text-slate-900 dark:text-white">
         <span className="flex min-w-0 flex-wrap items-center">
-          {(line.keys ?? [line.key]).map((key, i) => {
+          {memberKeys.map((key, i) => {
             // Tooltip content from the member KEY via the existing key-regex
             // precedent (TokenView history-mode) — NEVER findArticleByKey
             // (73 buttons × O(63) scan per re-render, plan v5 #2).
@@ -535,6 +684,10 @@ function ArticlePopover({
 }) {
   const rootRef = useRef<HTMLDivElement | null>(null);
 
+  // T13 — same data-driven range expansion as the card header: the popover
+  // stacks the REAL article of every law-present member in the range.
+  const memberKeys = useMemo(() => expandCardMemberKeys(line, law), [line, law]);
+
   // Position beside the card once, at open (transient popover — no re-layout
   // tracking; like the term tooltip's captured anchor). T9 (mobile audit):
   // the popover's height is content-driven up to min(70vh, 42rem), so the
@@ -635,11 +788,13 @@ function ArticlePopover({
         </button>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
-        {/* Merged card (line.keys, user 2026-08-05): stack the REAL article
-            of EVERY member key — each ArticleView renders its own header,
-            amendment markers and tooltips; a divider + label separates them. */}
-        {line.keys !== undefined && line.keys.length > 1 ? (
-          line.keys.map((k, i) => {
+        {/* Merged card (T13-expanded members, user 2026-08-05): stack the
+            REAL article of EVERY member key — each ArticleView renders its own
+            header, amendment markers and tooltips; a divider + label separates
+            them. The expansion is the same data-driven range expansion as the
+            header (digest endpoints + law article list). */}
+        {memberKeys.length > 1 ? (
+          memberKeys.map((k, i) => {
             const flat = findArticleByKey(law, k);
             const label =
               flat !== undefined ? articleLabel(flat.article.no, flat.article.suffix) : k;

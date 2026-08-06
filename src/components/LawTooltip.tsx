@@ -301,7 +301,20 @@ function ArticleBody({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-bold text-slate-800 dark:text-slate-100">{label}</span>
+        <span className="flex min-w-0 flex-wrap items-center gap-2">
+          <span className="text-sm font-bold text-slate-800 dark:text-slate-100">{label}</span>
+          {/* T13 — the no-digest full-article fallback must show repealed
+              status too (merged-header members / prose ranges hover via
+              ArticleBody): same badge as DigestRefBody. */}
+          {target !== undefined &&
+            target.repealedParagraphs !== undefined &&
+            target.repealedParagraphs.length > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold leading-relaxed text-red-700 dark:bg-red-950/50 dark:text-red-300">
+                <i aria-hidden="true" className="fi fi-sr-exclamation text-[10px]" />
+                ถูกยกเลิก
+              </span>
+            )}
+        </span>
         <button
           type="button"
           onClick={handleCopy}
