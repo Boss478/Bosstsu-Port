@@ -54,7 +54,7 @@ export function BookmarksPanel({
 
   if (keys.length === 0 || groups.length === 0) {
     return (
-      <p className="py-6 text-center text-xs leading-relaxed text-slate-400 dark:text-slate-500">
+      <p className="py-6 text-center text-xs leading-relaxed text-slate-500 dark:text-slate-400">
         ยังไม่มีที่คั่นหน้า — กดปุ่มที่คั่นหน้าเพื่อบันทึกมาตราที่กำลังอ่าน
       </p>
     );

@@ -1,25 +1,26 @@
 // @vitest-environment jsdom
 /**
- * TDD-first (Wave 1, Lane A) — pins the PLANNED 3-mode theme API
- * (`.agents/plans/lawlib-reading-redesign.md` §4.1, P2) BEFORE implementation.
+ * ThemeProvider contract tests (T10a — ADR-019 D4/D8; night REMOVED
+ * 2026-08-06 — user decision).
  *
- * RED NOW (expected): `getInitialTheme`, `setTheme`, `paperTone` and
- * `setPaperTone` do not exist in `src/components/ThemeProvider.tsx` today.
- * Lane A must implement them to turn these tests green:
- *
- *   export type Theme = 'light' | 'dark' | 'read'       (extended from binary)
- *   export type PaperTone = 'soft' | 'classic' | 'warm' (new)
- *   export function getInitialTheme(): Theme            (new module export)
- *   ThemeContextType += { setTheme, paperTone, setPaperTone }
- *   toggleTheme(): light↔dark only — NEVER steps into 'read'
- *   exactly ONE of .light/.dark/.read on <html> (all three toggled explicitly — FR-B)
- *   paperTone persisted at `lawlib:paperTone`, mirrored on <html data-paper-tone>
+ * Contract pinned here:
+ * - THEMES = 4 modes: light/dark/read/sepia; getInitialTheme accepts the
+ *   four, MIGRATES the removed 'night' → 'dark'; applyThemeClass keeps
+ *   EXACTLY ONE class on <html>
+ * - toggleTheme cycles light↔dark ONLY — never steps into read/sepia
+ * - paperTone is a NUMBER 0-100 (yellow slider): default 50, persisted as a
+ *   string at `lawlib:paperTone`; legacy enum strings migrate 'soft'→30 /
+ *   'classic'→50 / 'warm'→80; the old `data-paper-tone` attribute is GONE —
+ *   ThemeProvider writes --read-bg/--read-card INLINE CSS VARS instead
+ * - paperToneVars passes through the legacy stop colors exactly (no visual
+ *   change for existing users) and clamps out-of-range input
  *
  * jsdom has no matchMedia — stubbed per test via mockMatchMedia().
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
+import { paperToneVars } from '@/lib/lawlib/paper-tone';
 
 type ThemeApi = typeof import('@/components/ThemeProvider');
 
@@ -51,6 +52,7 @@ beforeEach(async () => {
   api = await import('@/components/ThemeProvider');
   mockLocalStorage();
   document.documentElement.className = '';
+  document.documentElement.removeAttribute('style');
   document.documentElement.removeAttribute('data-paper-tone');
   mockMatchMedia(false);
 });
@@ -71,9 +73,11 @@ function mockMatchMedia(matches: boolean): MediaQueryList {
   return mql;
 }
 
-/** Exactly which of the three theme classes is on <html> right now. */
+/** Exactly which of the four theme classes is on <html> right now. */
 function themeClasses(): string[] {
-  return ['light', 'dark', 'read'].filter((c) => document.documentElement.classList.contains(c));
+  return ['light', 'dark', 'read', 'sepia'].filter((c) =>
+    document.documentElement.classList.contains(c),
+  );
 }
 
 function Probe() {
@@ -85,9 +89,10 @@ function Probe() {
       <button onClick={() => setTheme('light')}>set-light</button>
       <button onClick={() => setTheme('dark')}>set-dark</button>
       <button onClick={() => setTheme('read')}>set-read</button>
+      <button onClick={() => setTheme('sepia')}>set-sepia</button>
       <button onClick={toggleTheme}>toggle</button>
-      <button onClick={() => setPaperTone('soft')}>set-tone-soft</button>
-      <button onClick={() => setPaperTone('warm')}>set-tone-warm</button>
+      <button onClick={() => setPaperTone(30)}>set-tone-30</button>
+      <button onClick={() => setPaperTone(80)}>set-tone-80</button>
     </div>
   );
 }
@@ -109,17 +114,17 @@ function renderProvider(children: ReactNode = <Probe />) {
   return render(<Provider>{children}</Provider>);
 }
 
-describe('getInitialTheme (P2 — new export)', () => {
-  it('returns "read" when localStorage.theme is "read"', () => {
-    localStorage.setItem('theme', 'read');
-    expect(api.getInitialTheme()).toBe('read');
+describe('getInitialTheme (P2 — 4 modes, night removed)', () => {
+  it('returns each of the four stored themes verbatim', () => {
+    for (const stored of ['light', 'dark', 'read', 'sepia']) {
+      localStorage.setItem('theme', stored);
+      expect(api.getInitialTheme()).toBe(stored);
+    }
   });
 
-  it('returns "dark" / "light" for stored "dark" / "light"', () => {
-    localStorage.setItem('theme', 'dark');
+  it('MIGRATES the removed stored night → dark (user decision 2026-08-06)', () => {
+    localStorage.setItem('theme', 'night');
     expect(api.getInitialTheme()).toBe('dark');
-    localStorage.setItem('theme', 'light');
-    expect(api.getInitialTheme()).toBe('light');
   });
 
   it('falls back to OS dark when the stored value is invalid ("blue")', () => {
@@ -134,7 +139,7 @@ describe('getInitialTheme (P2 — new export)', () => {
     localStorage.setItem('theme', '');
     mockMatchMedia(true);
     expect(api.getInitialTheme()).toBe('dark');
-    localStorage.setItem('theme', 'READ');
+    localStorage.setItem('theme', 'SEPIA');
     expect(api.getInitialTheme()).toBe('dark');
   });
 
@@ -146,7 +151,7 @@ describe('getInitialTheme (P2 — new export)', () => {
   });
 });
 
-describe('ThemeProvider — 3-mode theme (P2)', () => {
+describe('ThemeProvider — 4-mode theme (night removed)', () => {
   it('useTheme exposes setTheme / toggleTheme / setPaperTone and mounts', () => {
     renderProvider(<ApiShapeProbe />);
     expect(screen.getByTestId('setTheme').textContent).toBe('function');
@@ -160,6 +165,21 @@ describe('ThemeProvider — 3-mode theme (P2)', () => {
     renderProvider();
     expect(screen.getByTestId('theme').textContent).toBe('read');
     expect(themeClasses()).toEqual(['read']);
+  });
+
+  it('boots into sepia from storage (paper theme) with exactly one theme class', () => {
+    localStorage.setItem('theme', 'sepia');
+    renderProvider();
+    expect(screen.getByTestId('theme').textContent).toBe('sepia');
+    expect(themeClasses()).toEqual(['sepia']);
+  });
+
+  it('boots a stored night into DARK (migration — no night class ever applies)', () => {
+    localStorage.setItem('theme', 'night');
+    renderProvider();
+    expect(screen.getByTestId('theme').textContent).toBe('dark');
+    expect(themeClasses()).toEqual(['dark']);
+    expect(document.documentElement.classList.contains('night')).toBe(false);
   });
 
   it('FR-B: stored light wins over OS dark and leaves NO .dark class', () => {
@@ -181,6 +201,10 @@ describe('ThemeProvider — 3-mode theme (P2)', () => {
     expect(localStorage.getItem('theme')).toBe('read');
     expect(themeClasses()).toEqual(['read']);
 
+    fireEvent.click(screen.getByText('set-sepia'));
+    expect(localStorage.getItem('theme')).toBe('sepia');
+    expect(themeClasses()).toEqual(['sepia']);
+
     fireEvent.click(screen.getByText('set-light'));
     expect(localStorage.getItem('theme')).toBe('light');
     expect(themeClasses()).toEqual(['light']);
@@ -196,47 +220,98 @@ describe('ThemeProvider — 3-mode theme (P2)', () => {
     expect(localStorage.getItem('theme')).toBe('light');
   });
 
-  it('toggleTheme never steps out of read mode', () => {
-    localStorage.setItem('theme', 'read');
-    renderProvider();
-    fireEvent.click(screen.getByText('toggle'));
-    expect(screen.getByTestId('theme').textContent).toBe('read');
-    expect(localStorage.getItem('theme')).toBe('read');
-    expect(themeClasses()).toEqual(['read']);
+  it('toggleTheme never steps out of read/sepia', () => {
+    for (const stored of ['read', 'sepia']) {
+      localStorage.setItem('theme', stored);
+      renderProvider();
+      fireEvent.click(screen.getByText('toggle'));
+      expect(screen.getByTestId('theme').textContent).toBe(stored);
+      expect(localStorage.getItem('theme')).toBe(stored);
+      expect(themeClasses()).toEqual([stored]);
+      // unmount between iterations (renderProvider per loop round)
+      document.body.innerHTML = '';
+    }
   });
 });
 
-describe('paperTone (P2 — new state)', () => {
-  it('defaults to "classic" and sets data-paper-tone on <html>', () => {
+describe('paperTone (T10a — numeric 0-100 + inline CSS vars)', () => {
+  it('defaults to 50 and writes --read-bg/--read-card vars on <html>', () => {
     renderProvider();
-    expect(screen.getByTestId('paper-tone').textContent).toBe('classic');
-    expect(document.documentElement.getAttribute('data-paper-tone')).toBe('classic');
+    expect(screen.getByTestId('paper-tone').textContent).toBe('50');
+    const style = document.documentElement.style;
+    expect(style.getPropertyValue('--read-bg')).not.toBe('');
+    expect(style.getPropertyValue('--read-card')).not.toBe('');
+    // The old data-paper-tone attribute contract is GONE.
+    expect(document.documentElement.hasAttribute('data-paper-tone')).toBe(false);
   });
 
-  it('setPaperTone persists to lawlib:paperTone and updates the attribute', () => {
+  it('setPaperTone persists a number string and updates the vars', () => {
     renderProvider();
-    fireEvent.click(screen.getByText('set-tone-soft'));
-    expect(screen.getByTestId('paper-tone').textContent).toBe('soft');
-    expect(localStorage.getItem('lawlib:paperTone')).toBe('soft');
-    expect(document.documentElement.getAttribute('data-paper-tone')).toBe('soft');
+    fireEvent.click(screen.getByText('set-tone-30'));
+    expect(screen.getByTestId('paper-tone').textContent).toBe('30');
+    expect(localStorage.getItem('lawlib:paperTone')).toBe('30');
+    expect(document.documentElement.style.getPropertyValue('--read-bg')).toBe('rgb(245, 236, 217)');
 
-    fireEvent.click(screen.getByText('set-tone-warm'));
-    expect(screen.getByTestId('paper-tone').textContent).toBe('warm');
-    expect(localStorage.getItem('lawlib:paperTone')).toBe('warm');
-    expect(document.documentElement.getAttribute('data-paper-tone')).toBe('warm');
+    fireEvent.click(screen.getByText('set-tone-80'));
+    expect(screen.getByTestId('paper-tone').textContent).toBe('80');
+    expect(localStorage.getItem('lawlib:paperTone')).toBe('80');
+    expect(document.documentElement.style.getPropertyValue('--read-bg')).toBe('rgb(249, 236, 192)');
   });
 
-  it('boots from a stored tone ("warm")', () => {
+  it('boots from a stored numeric tone ("70")', () => {
+    localStorage.setItem('lawlib:paperTone', '70');
+    renderProvider();
+    expect(screen.getByTestId('paper-tone').textContent).toBe('70');
+  });
+
+  it('MIGRATES legacy stored tones: soft→30, classic→50, warm→80', () => {
+    localStorage.setItem('lawlib:paperTone', 'soft');
+    renderProvider();
+    expect(screen.getByTestId('paper-tone').textContent).toBe('30');
+
+    document.body.innerHTML = '';
+    localStorage.setItem('lawlib:paperTone', 'classic');
+    renderProvider();
+    expect(screen.getByTestId('paper-tone').textContent).toBe('50');
+
+    document.body.innerHTML = '';
     localStorage.setItem('lawlib:paperTone', 'warm');
     renderProvider();
-    expect(screen.getByTestId('paper-tone').textContent).toBe('warm');
-    expect(document.documentElement.getAttribute('data-paper-tone')).toBe('warm');
+    expect(screen.getByTestId('paper-tone').textContent).toBe('80');
   });
 
-  it('falls back to "classic" on an invalid stored tone', () => {
+  it('falls back to 50 on an invalid stored tone; out-of-range numbers clamp', () => {
     localStorage.setItem('lawlib:paperTone', 'blue');
     renderProvider();
-    expect(screen.getByTestId('paper-tone').textContent).toBe('classic');
-    expect(document.documentElement.getAttribute('data-paper-tone')).toBe('classic');
+    expect(screen.getByTestId('paper-tone').textContent).toBe('50');
+
+    document.body.innerHTML = '';
+    localStorage.setItem('lawlib:paperTone', '150');
+    renderProvider();
+    expect(screen.getByTestId('paper-tone').textContent).toBe('100');
+  });
+
+  it('setPaperTone persists and applies inline vars', () => {
+    renderProvider();
+    fireEvent.click(screen.getByText('set-tone-30'));
+    expect(screen.getByTestId('paper-tone').textContent).toBe('30');
+  });
+});
+
+describe('paperToneVars (ADR-019 D8 — inline var computation)', () => {
+  it('passes through the legacy stop colors exactly', () => {
+    expect(paperToneVars(30)).toEqual({ bg: 'rgb(245, 236, 217)', card: 'rgb(250, 243, 227)' });
+    expect(paperToneVars(50)).toEqual({ bg: 'rgb(242, 232, 213)', card: 'rgb(247, 239, 220)' });
+    expect(paperToneVars(80)).toEqual({ bg: 'rgb(249, 236, 192)', card: 'rgb(253, 245, 207)' });
+  });
+
+  it('clamps out-of-range input', () => {
+    expect(paperToneVars(-5).bg).toBe(paperToneVars(0).bg);
+    expect(paperToneVars(150).bg).toBe(paperToneVars(100).bg);
+  });
+
+  it('interpolates between stops', () => {
+    // 40 is halfway between 30 (soft) and 50 (classic) — bg 245→242, g 236→232.
+    expect(paperToneVars(40).bg).toBe('rgb(244, 234, 215)');
   });
 });

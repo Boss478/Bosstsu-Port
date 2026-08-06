@@ -283,3 +283,16 @@ describe('QuickNoteBox — เปิดโน้ตทั้งแผง (sancti
     expect(item.hub.onOpenNotes).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('LawTooltip root role (a11y fix #7)', () => {
+  it('hub content (bookmark/notes/copy) renders the root as a NON-MODAL dialog — role=tooltip must not contain interactive content', () => {
+    const item = makeItem(1, 'มาตรา 1', '', vi.fn());
+    render(<QuickNoteHarness item={item} onClose={() => {}} />);
+
+    const root = document.body.querySelector('[role="dialog"]');
+    expect(root).not.toBeNull();
+    expect(root?.getAttribute('aria-modal')).toBe('false');
+    // The tooltip role is reserved for glossary-only content.
+    expect(document.body.querySelector('[role="tooltip"]')).toBeNull();
+  });
+});

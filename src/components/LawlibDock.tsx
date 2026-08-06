@@ -77,10 +77,11 @@ const POSITION_LABELS: Record<DockPosition, string> = {
  * Per-position layout: `root` = the fixed wrapper spot; `panel` = the
  * expanded panel anchored to the icon with the flip (top→down, bottom→up,
  * mid→side); `panelMaxH` = viewport-safe cap (the panel scrolls past it);
- * `panelWidth` = optional per-position width override (mid-left clamps to
- * 100vw − icon footprint so the side-anchored panel fits 375px). Bottom
- * offsets clear BackToTop (bottom-6/10 + ~44px ≈ 84px); the top offset
- * leaves room for the future sticky มาตรา X bar (ADR-019 D8). Safe areas:
+ * `panelWidth` = optional per-position width override (mid-left AND mid-right
+ * clamp to 100vw − icon footprint so the side-anchored panel fits 375px).
+ * Bottom offsets clear BackToTop (bottom-6/10 + ~44px ≈ 84px). Top rows clear
+ * the law header (24-231px, a11y fix #17): 14rem on mobile, 11rem from md up;
+ * the matching panelMaxH keeps the panel fully in-viewport. Safe areas:
  * bottom/left/right insets via env(). Tailwind arbitrary values are static
  * literals here — JIT-safe.
  */
@@ -89,19 +90,19 @@ const POSITION_CONFIG: Record<
   { root: string; panel: string; panelMaxH: string; panelWidth?: string }
 > = {
   'top-left': {
-    root: 'top-[max(5rem,env(safe-area-inset-top))] left-[max(1rem,env(safe-area-inset-left))]',
+    root: 'top-[max(14rem,env(safe-area-inset-top))] left-[max(1rem,env(safe-area-inset-left))] md:top-[max(11rem,env(safe-area-inset-top))]',
     panel: 'top-full left-0',
-    panelMaxH: 'max-h-[calc(100vh-6.5rem)]',
+    panelMaxH: 'max-h-[calc(100vh-15.5rem)] md:max-h-[calc(100vh-12.5rem)]',
   },
   'top-center': {
-    root: 'top-[max(5rem,env(safe-area-inset-top))] left-1/2 -translate-x-1/2',
+    root: 'top-[max(14rem,env(safe-area-inset-top))] left-1/2 -translate-x-1/2 md:top-[max(11rem,env(safe-area-inset-top))]',
     panel: 'top-full left-1/2 -translate-x-1/2',
-    panelMaxH: 'max-h-[calc(100vh-6.5rem)]',
+    panelMaxH: 'max-h-[calc(100vh-15.5rem)] md:max-h-[calc(100vh-12.5rem)]',
   },
   'top-right': {
-    root: 'top-[max(5rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))]',
+    root: 'top-[max(14rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))] md:top-[max(11rem,env(safe-area-inset-top))]',
     panel: 'top-full right-0',
-    panelMaxH: 'max-h-[calc(100vh-6.5rem)]',
+    panelMaxH: 'max-h-[calc(100vh-15.5rem)] md:max-h-[calc(100vh-12.5rem)]',
   },
   'mid-left': {
     root: 'top-1/2 -translate-y-1/2 left-[max(1rem,env(safe-area-inset-left))]',
@@ -115,6 +116,9 @@ const POSITION_CONFIG: Record<
     root: 'top-1/2 -translate-y-1/2 right-[max(1rem,env(safe-area-inset-right))]',
     panel: 'right-full top-1/2 -translate-y-1/2',
     panelMaxH: 'max-h-[70vh]',
+    // Symmetric clamp (fix #27): the shared 92vw cap would push the panel
+    // ~30px past the LEFT viewport edge at 375px (right-full anchor).
+    panelWidth: 'w-[min(calc(100vw-3.75rem),26rem)]',
   },
   'bottom-left': {
     root: 'bottom-[max(6rem,calc(env(safe-area-inset-bottom)+1rem))] left-[max(1rem,env(safe-area-inset-left))]',
@@ -196,6 +200,8 @@ export interface LawlibDockProps {
   setSettings: (next: ReadingSettingsValue) => void;
   /** Current article bookmarked (Level-1 bookmark toggle state). */
   isBookmarked: boolean;
+  /** Bookmark count (resolved-only count is derived inside the dock — fix
+   *  #24; this prop is kept for caller compatibility). */
   bookmarksCount: number;
   onToggleBookmark: () => void;
   activePanel: DockPanelKind | null;
@@ -227,7 +233,6 @@ export default function LawlibDock(props: LawlibDockProps) {
     settings,
     setSettings,
     isBookmarked,
-    bookmarksCount,
     onToggleBookmark,
     activePanel,
     onOpenPanel,
@@ -252,6 +257,10 @@ export default function LawlibDock(props: LawlibDockProps) {
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
+  /** Level-2 "ย้อนกลับ" button — focus target when Level 2 opens (fix #1). */
+  const moreBackRef = useRef<HTMLButtonElement | null>(null);
+  /** Level-1 "เพิ่มเติม" button — focus target when Esc leaves Level 2. */
+  const moreTriggerRef = useRef<HTMLButtonElement | null>(null);
   const pickerPortalRef = useRef<HTMLDivElement | null>(null);
   /** Open picker's trigger button — Esc from the picker restores focus here. */
   const pickerAnchorRef = useRef<HTMLElement | null>(null);
@@ -277,8 +286,10 @@ export default function LawlibDock(props: LawlibDockProps) {
   }, []);
 
   // Stays open until explicitly closed — Esc / pointerdown-outside / re-click.
-  // Esc cascades: picker first, then the panel. Stands down while a drawer /
-  // tooltip / compact popover owns Escape (escBlocked).
+  // Esc cascades: picker first, then — when Level 2 is open — ONE press back
+  // to Level 1 (focus → เพิ่มเติม), a second press closes the dock (a11y fix
+  // #16). Stands down while a drawer / tooltip / compact popover owns Escape
+  // (escBlocked).
   useEffect(() => {
     if (!expanded || escBlocked) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -292,13 +303,21 @@ export default function LawlibDock(props: LawlibDockProps) {
         if (anchor !== null && anchor.isConnected) anchor.focus();
         return;
       }
-      setMoreOpen(false);
+      if (moreOpen) {
+        // Level 2 → Level 1. Deferred: เพิ่มเติม remounts on the re-render.
+        setMoreOpen(false);
+        window.setTimeout(() => {
+          const trigger = moreTriggerRef.current;
+          if (trigger !== null && trigger.isConnected) trigger.focus();
+        }, 0);
+        return;
+      }
       setExpanded(false);
       restoreFocusToOpener();
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [expanded, escBlocked, picker, restoreFocusToOpener]);
+  }, [expanded, escBlocked, picker, moreOpen, restoreFocusToOpener]);
 
   // Pointerdown-outside closes the dock — EXCEPT inside the dock root and the
   // open picker portal (both are parts of the same interaction surface).
@@ -376,8 +395,17 @@ export default function LawlibDock(props: LawlibDockProps) {
     theme: THEME_CHOICES.find((c) => c.value === theme)?.label ?? theme,
     fontSize: `${settings.fontSize}px`,
     lineHeight: settings.lineHeight.toFixed(1),
-    width: `${settings.width}ch`,
+    // Width slider is a percentage of the 80ch baseline (user decision
+    // 2026-08-06): 80-120%, default 100%.
+    width: `${settings.width}%`,
   };
+
+  // Bookmark count used by the Level-1 badge + Level-2 heading — RESOLVED
+  // keys only (stale keys the BookmarksPanel skips must not be counted, fix
+  // #24). The `bookmarksCount` prop stays on the contract for callers.
+  const resolvedBookmarkCount = bookmarks.filter(
+    (k) => findArticleByKey(law, k) !== undefined,
+  ).length;
 
   const resumeVisible =
     resumeKey !== null &&
@@ -422,7 +450,7 @@ export default function LawlibDock(props: LawlibDockProps) {
 
     // Action buttons (icon-only 44px, badge where relevant).
     let badge: number | undefined;
-    if (key === 'bookmark') badge = bookmarksCount;
+    if (key === 'bookmark') badge = resolvedBookmarkCount;
     if (key === 'notes') badge = notesCount;
     let active = false;
     if (key === 'bookmark') active = isBookmarked;
@@ -431,13 +459,17 @@ export default function LawlibDock(props: LawlibDockProps) {
     if (key === 'glossary') active = activePanel === 'glossary';
     const flash = key === 'copy' && copiedFlash === 'article';
     const linkFlash = key === 'copyLink' && copiedFlash === 'link';
-    const icon = flash || linkFlash ? 'fi-sr-check-circle' : tool;
+    // Active bookmark swaps the ribbon for a check-circle — the state is
+    // never color-only (WCAG 1.4.1, a11y fix #9; aria-pressed stays).
+    const icon = flash || linkFlash || (key === 'bookmark' && active) ? 'fi-sr-check-circle' : tool;
 
     return (
       <button
         key={key}
         type="button"
-        aria-label={TOOL_LABELS[key]}
+        aria-label={
+          badge !== undefined && badge > 0 ? `${TOOL_LABELS[key]} (${badge})` : TOOL_LABELS[key]
+        }
         title={TOOL_LABELS[key]}
         aria-pressed={active}
         disabled={key === 'settings' || ((key === 'copy' || key === 'copyLink') && !canCopy)}
@@ -483,7 +515,7 @@ export default function LawlibDock(props: LawlibDockProps) {
             aria-hidden="true"
             className={`fi ${TOOL_ICONS[key]} text-xs ${
               settingsDisabled
-                ? 'text-slate-400 dark:text-slate-500'
+                ? 'text-slate-500 dark:text-slate-500'
                 : 'text-slate-500 dark:text-slate-400'
             }`}
           />
@@ -501,7 +533,7 @@ export default function LawlibDock(props: LawlibDockProps) {
           {isPicker && (
             <i
               aria-hidden="true"
-              className={`fi fi-sr-angle-small-down text-[9px] text-slate-400 ${picker?.kind === key ? 'rotate-180' : ''}`}
+              className={`fi fi-sr-angle-small-down text-[9px] text-slate-500 ${picker?.kind === key ? 'rotate-180' : ''}`}
             />
           )}
         </button>
@@ -511,10 +543,13 @@ export default function LawlibDock(props: LawlibDockProps) {
           aria-pressed={pinned}
           aria-label={`${pinned ? 'ถอด' : 'ปักหมุด'} ${TOOL_LABELS[key]}${pinned ? ' (อยู่แถวหลัก)' : ' ไปแถวหลัก'}`}
           title={pinned ? 'ถอดออกจากแถวหลัก' : 'ปักหมุดไปแถวหลัก'}
-          className={`flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+          // Disabled rows (settings/copy-without-target) get a disabled pin —
+          // a live toggle on a dead row is a dead end (fix #21).
+          disabled={disabled}
+          className={`flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 ${
             pinned
               ? 'border-blue-400 bg-blue-50 text-blue-600 dark:border-blue-500/60 dark:bg-blue-950/50 dark:text-blue-300'
-              : 'border-slate-200 bg-white text-slate-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:text-blue-300'
+              : 'border-slate-200 bg-white text-slate-500 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:text-blue-300'
           }`}
         >
           <i aria-hidden="true" className="fi fi-sr-pin text-xs leading-none" />
@@ -556,7 +591,7 @@ export default function LawlibDock(props: LawlibDockProps) {
               aria-label="ย่อแถบเครื่องมือ"
               aria-expanded={true}
               title="ย่อแถบเครื่องมือ"
-              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-blue-400 bg-blue-50 text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-blue-500/60 dark:bg-blue-950/50 dark:text-blue-300"
+              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg border border-blue-400 bg-blue-50 text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-blue-500/60 dark:bg-blue-950/50 dark:text-blue-300"
             >
               <i aria-hidden="true" className="fi fi-sr-sliders-h text-xs leading-none" />
             </button>
@@ -570,7 +605,7 @@ export default function LawlibDock(props: LawlibDockProps) {
                 restoreFocusToOpener();
               }}
               aria-label="ปิดแถบเครื่องมือ"
-              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:text-white"
+              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-slate-500 transition-colors hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-slate-400 dark:hover:text-white"
             >
               <i aria-hidden="true" className="fi fi-sr-cross text-[10px]" />
             </button>
@@ -595,8 +630,21 @@ export default function LawlibDock(props: LawlibDockProps) {
               <div className="flex flex-wrap gap-1.5">
                 {settings.favoriteToolKeys.map((key) => renderToolButton(key))}
                 <button
+                  ref={moreTriggerRef}
                   type="button"
-                  onClick={() => setMoreOpen(true)}
+                  onClick={() => {
+                    setMoreOpen(true);
+                    // Focus moves to ย้อนกลับ — the Level swap must not drop
+                    // focus to <body> (deferred: the button mounts on the
+                    // re-render, a11y fix #1).
+                    window.setTimeout(() => {
+                      const back = moreBackRef.current;
+                      if (back !== null && back.isConnected) back.focus();
+                    }, 0);
+                  }}
+                  aria-expanded={moreOpen}
+                  aria-haspopup="true"
+                  aria-controls="lawlib-more-panel"
                   className="flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:text-blue-300"
                 >
                   <i aria-hidden="true" className="fi fi-sr-apps text-xs" />
@@ -607,27 +655,29 @@ export default function LawlibDock(props: LawlibDockProps) {
             </div>
           ) : (
             // ─── Level 2 — ALL tools + pins + bookmarks + position ─────────
-            <div className="flex flex-col gap-2">
+            <div id="lawlib-more-panel" className="flex flex-col gap-2">
               <button
+                ref={moreBackRef}
+                data-more-back
                 type="button"
                 onClick={() => setMoreOpen(false)}
-                className="flex min-h-10 w-fit cursor-pointer items-center gap-1 rounded-lg px-1 text-xs font-medium text-slate-500 transition-colors hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-slate-400 dark:hover:text-blue-300"
+                className="flex min-h-11 w-fit cursor-pointer items-center gap-1 rounded-lg px-1 text-xs font-medium text-slate-500 transition-colors hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-slate-400 dark:hover:text-blue-300"
               >
                 <i aria-hidden="true" className="fi fi-sr-angle-left text-[10px]" />
                 ย้อนกลับ
               </button>
-              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              <h2 className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
                 เครื่องมือทั้งหมด
-              </p>
+              </h2>
               <ul className="space-y-1">{DOCK_TOOL_KEYS.map((key) => renderToolRow(key))}</ul>
 
               <div
                 aria-hidden="true"
                 className="h-px w-full shrink-0 bg-slate-200 dark:bg-slate-700"
               />
-              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                ที่คั่นหน้า ({bookmarksCount})
-              </p>
+              <h2 className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                ที่คั่นหน้า ({resolvedBookmarkCount})
+              </h2>
               <BookmarksPanel
                 law={law}
                 keys={bookmarks}
@@ -642,9 +692,9 @@ export default function LawlibDock(props: LawlibDockProps) {
                 aria-hidden="true"
                 className="h-px w-full shrink-0 bg-slate-200 dark:bg-slate-700"
               />
-              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              <h2 className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
                 ตำแหน่งปุ่มเครื่องมือ
-              </p>
+              </h2>
               <div
                 role="group"
                 aria-label="ตำแหน่งปุ่มเครื่องมือ"
@@ -658,10 +708,10 @@ export default function LawlibDock(props: LawlibDockProps) {
                     aria-label={`ตำแหน่ง${POSITION_LABELS[pos]}`}
                     title={POSITION_LABELS[pos]}
                     onClick={() => setDockPosition(pos)}
-                    className={`flex h-10 cursor-pointer items-center justify-center rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                    className={`flex h-11 cursor-pointer items-center justify-center rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                       position === pos
                         ? 'border-blue-400 bg-blue-50 text-blue-600 dark:border-blue-500/60 dark:bg-blue-950/50 dark:text-blue-300'
-                        : 'border-slate-200 bg-white text-slate-400 hover:border-blue-300 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:text-blue-300'
+                        : 'border-slate-200 bg-white text-slate-500 hover:border-blue-300 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:text-blue-300'
                     }`}
                   >
                     <i aria-hidden="true" className="fi fi-sr-circle-small text-[10px]" />

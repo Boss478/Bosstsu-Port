@@ -246,7 +246,9 @@ afterEach(() => {
 const memberBtn = (key: string) =>
   document.querySelector<HTMLButtonElement>(`[data-lawlib-member="${key}"]`);
 const popover = () => document.querySelector<HTMLElement>('[data-lawlib-popover]');
-const tooltipRoot = () => document.body.querySelector<HTMLElement>('[role="tooltip"]');
+// Role-agnostic: with the reader's hub present the tooltip root is
+// role=dialog (a11y fix #7); without a hub it stays role=tooltip.
+const tooltipRoot = () => document.body.querySelector<HTMLElement>('.lawlib-tooltip');
 const compactCard = (key: string) =>
   document.querySelector<HTMLElement>(`[data-lawlib-card="${key}"]`);
 

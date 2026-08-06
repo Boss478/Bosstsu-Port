@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { DeviceTierProvider } from '@/lib/device-tier-provider';
 import QueryProvider from '@/lib/query/providers';
 import { CONFIG } from '@/lib/config';
+import { PAPER_TONE_STOPS } from '@/lib/lawlib/paper-tone';
 
 const geistSans = localFont({
   src: '../fonts/Geist-Variable.woff2',
@@ -68,12 +69,17 @@ export default function RootLayout({
         {/* Pre-hydration theme script (P2): apply the stored theme + paper tone
             BEFORE first paint so read-mode has no light flash and dark-mode
             first paint is instant. Mirrors ThemeProvider.getInitialTheme —
-            stored value ∈ {light,dark,read} wins, else OS scheme. Guarded:
-            no localStorage access on error. Keep suppressHydrationWarning on
+            stored value ∈ {light,dark,read,sepia} wins; the removed 'night'
+            MIGRATES to 'dark' (user decision 2026-08-06); else OS scheme.
+            Paper tone: number 0-100 (legacy 'soft'/'classic'/'warm' → 30/50/80)
+            → --read-bg/--read-card inline vars (ADR-019 D8). The stops array
+            is embedded at BUILD time from lib/lawlib/paper-tone.ts — keep the
+            lerp here in sync with paperToneVars there. Guarded: no
+            localStorage access on error. Keep suppressHydrationWarning on
             <html> (ThemeProvider re-applies classes on mount). */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');var c='light';if(t==='light'||t==='dark'||t==='read'){c=t;}else{c=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}var h=document.documentElement;h.classList.remove('light','dark','read');h.classList.add(c);var p=localStorage.getItem('lawlib:paperTone');if(p!=='soft'&&p!=='classic'&&p!=='warm'){p='classic';}h.setAttribute('data-paper-tone',p);}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('theme');var c='light';if(t==='night'){c='dark';}else if(t==='light'||t==='dark'||t==='read'||t==='sepia'){c=t;}else{c=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}var h=document.documentElement;h.classList.remove('light','dark','read','sepia','night');h.classList.add(c);var p=localStorage.getItem('lawlib:paperTone');var x=50;if(p==='soft'){x=30;}else if(p==='classic'){x=50;}else if(p==='warm'){x=80;}else{var n=parseFloat(p);if(!isNaN(n)&&n>=0&&n<=100){x=n;}}var S=${JSON.stringify(PAPER_TONE_STOPS)};if(x<0){x=0;}if(x>100){x=100;}var i=0;while(i<S.length-2&&x>S[i+1][0]){i++;}var a=S[i],b=S[i+1],f=(b[0]-a[0]===0)?0:(x-a[0])/(b[0]-a[0]);var L=function(u,v){return Math.round(u+(v-u)*f);};h.style.setProperty('--read-bg','rgb('+L(a[1],b[1])+','+L(a[2],b[2])+','+L(a[3],b[3])+')');h.style.setProperty('--read-card','rgb('+L(a[4],b[4])+','+L(a[5],b[5])+','+L(a[6],b[6])+')');}catch(e){}})();`,
           }}
         />
       </head>

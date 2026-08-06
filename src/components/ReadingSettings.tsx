@@ -7,33 +7,23 @@
  * storage layer (`hooks/useReaderStorage`) owns state, and the reader core
  * (B2) applies the values to the article rendering. `onChange` always
  * receives a complete settings object.
+ *
+ * T10a contract change (ADR-019 D4/D5): fontSize + width are NUMBERS
+ * (sliders 8-32px / 40-80ch — legacy s/m/l/xl + narrow/normal/wide enums
+ * migrated in validateReadingSettings); lineHeight slider 1.0-2.0.
  */
 import type {
   ReadingSettingsProps,
   ReadingSettingsValue,
 } from '@/app/(website)/lawlib/lib/reader-props';
 
-const FONT_SIZES: ReadonlyArray<{
-  value: ReadingSettingsValue['fontSize'];
-  label: string;
-  aria: string;
-}> = [
-  { value: 's', label: 'S', aria: 'ตัวอักษรขนาดเล็ก' },
-  { value: 'm', label: 'M', aria: 'ตัวอักษรขนาดกลาง' },
-  { value: 'l', label: 'L', aria: 'ตัวอักษรขนาดใหญ่' },
-  { value: 'xl', label: 'XL', aria: 'ตัวอักษรขนาดใหญ่พิเศษ' },
-];
-
-const WIDTHS: ReadonlyArray<{ value: ReadingSettingsValue['width']; label: string; aria: string }> =
-  [
-    { value: 'narrow', label: 'แคบ', aria: 'ความกว้างเนื้อหาแคบ' },
-    { value: 'normal', label: 'ปกติ', aria: 'ความกว้างเนื้อหาปกติ' },
-    { value: 'wide', label: 'กว้าง', aria: 'ความกว้างเนื้อหากว้าง' },
-  ];
-
-const LINE_HEIGHT_MIN = 1.5;
-const LINE_HEIGHT_MAX = 2.2;
+const FONT_SIZE_MIN = 8;
+const FONT_SIZE_MAX = 32;
+const LINE_HEIGHT_MIN = 1.0;
+const LINE_HEIGHT_MAX = 2.0;
 const LINE_HEIGHT_STEP = 0.1;
+const WIDTH_MIN = 40;
+const WIDTH_MAX = 80;
 
 export interface SegmentProps<T extends string> {
   label: string;
@@ -70,53 +60,87 @@ export function Segment<T extends string>({ label, options, value, onSelect }: S
   );
 }
 
+function RangeRow({
+  id,
+  label,
+  min,
+  max,
+  step,
+  value,
+  display,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  value: number;
+  display: string;
+  onChange: (next: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <label htmlFor={id} className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+        {label}
+      </label>
+      <div className="flex items-center gap-2">
+        <input
+          id={id}
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          aria-valuetext={display}
+          className="w-32 accent-blue-500"
+        />
+        <span className="w-12 text-right text-xs tabular-nums text-zinc-600 dark:text-zinc-300">
+          {display}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function ReadingSettings({ settings, onChange }: ReadingSettingsProps) {
   return (
     <section className="lawlib-panel space-y-4" aria-label="ตั้งค่าการอ่าน">
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">ขนาดตัวอักษร</p>
-        <Segment
-          label="ขนาดตัวอักษร"
-          options={FONT_SIZES}
-          value={settings.fontSize}
-          onSelect={(fontSize) => onChange({ ...settings, fontSize })}
-        />
-      </div>
+      <RangeRow
+        id="lawlib-font-size"
+        label="ขนาดตัวอักษร"
+        min={FONT_SIZE_MIN}
+        max={FONT_SIZE_MAX}
+        step={1}
+        value={settings.fontSize}
+        display={`${settings.fontSize}px`}
+        onChange={(fontSize) => onChange({ ...settings, fontSize })}
+      />
 
-      <div className="flex items-center justify-between gap-4">
-        <label
-          htmlFor="lawlib-line-height"
-          className="text-sm font-semibold text-zinc-800 dark:text-zinc-100"
-        >
-          ความสูงบรรทัด
-        </label>
-        <div className="flex items-center gap-2">
-          <input
-            id="lawlib-line-height"
-            type="range"
-            min={LINE_HEIGHT_MIN}
-            max={LINE_HEIGHT_MAX}
-            step={LINE_HEIGHT_STEP}
-            value={settings.lineHeight}
-            onChange={(e) => onChange({ ...settings, lineHeight: Number(e.target.value) })}
-            aria-valuetext={`${settings.lineHeight.toFixed(1)} เท่า`}
-            className="w-32 accent-blue-500"
-          />
-          <span className="w-10 text-right text-xs tabular-nums text-zinc-600 dark:text-zinc-300">
-            {settings.lineHeight.toFixed(1)}
-          </span>
-        </div>
-      </div>
+      <RangeRow
+        id="lawlib-line-height"
+        label="ความสูงบรรทัด"
+        min={LINE_HEIGHT_MIN}
+        max={LINE_HEIGHT_MAX}
+        step={LINE_HEIGHT_STEP}
+        value={settings.lineHeight}
+        display={`${settings.lineHeight.toFixed(1)}`}
+        onChange={(lineHeight) => onChange({ ...settings, lineHeight })}
+      />
 
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">ความกว้างเนื้อหา</p>
-        <Segment
-          label="ความกว้างเนื้อหา"
-          options={WIDTHS}
-          value={settings.width}
-          onSelect={(width) => onChange({ ...settings, width })}
-        />
-      </div>
+      <RangeRow
+        id="lawlib-width"
+        label="ความกว้างเนื้อหา"
+        min={WIDTH_MIN}
+        max={WIDTH_MAX}
+        step={1}
+        value={settings.width}
+        display={`${settings.width}ch`}
+        onChange={(width) => onChange({ ...settings, width })}
+      />
     </section>
   );
 }
+
+export type { ReadingSettingsValue };

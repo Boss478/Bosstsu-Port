@@ -94,7 +94,9 @@ function QuickNoteBox({
   onOpenNotes: () => void;
 }) {
   const [draft, setDraft] = useState(initialText);
+  const [saved, setSaved] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Latest-draft / latest-onSave mirrors — read by the stable flush (a timer
   // callback can't see fresh state; the unmount flush must not be stale).
   const draftRef = useRef(initialText);
@@ -113,14 +115,23 @@ function QuickNoteBox({
       timerRef.current = null;
     }
     saveRef.current(draftRef.current);
+    // The autosave must not be silent (a11y fix #14): announce via the
+    // aria-live status, then clear after a beat.
+    setSaved(true);
+    if (savedTimerRef.current !== null) clearTimeout(savedTimerRef.current);
+    savedTimerRef.current = setTimeout(() => setSaved(false), 1500);
   }, []);
 
   // Flush on unmount: a closing tooltip must not drop the last keystrokes.
   // React 19 strict-mode double-mount: the first cleanup runs before the
   // user typed — flushing an empty draft is a no-op (onSave('') with no
-  // existing note does not create one).
+  // existing note does not create one). The status timer is cleared so no
+  // stale setState fires after unmount.
   useEffect(() => {
-    return () => flush();
+    return () => {
+      flush();
+      if (savedTimerRef.current !== null) clearTimeout(savedTimerRef.current);
+    };
   }, [flush]);
 
   const handleChange = (value: string) => {
@@ -138,7 +149,7 @@ function QuickNoteBox({
         <button
           type="button"
           onClick={onOpenNotes}
-          className="cursor-pointer text-[11px] font-medium text-blue-700 underline-offset-2 hover:underline dark:text-blue-300"
+          className="flex min-h-7 cursor-pointer items-center text-[11px] font-medium text-blue-700 underline-offset-2 hover:underline dark:text-blue-300"
         >
           เปิดโน้ตทั้งแผง →
         </button>
@@ -150,8 +161,15 @@ function QuickNoteBox({
         rows={2}
         aria-label="โน้ตด่วนสำหรับมาตราที่เปิด"
         placeholder="จดโน้ตด่วน… (บันทึกอัตโนมัติ)"
-        className="w-full resize-none rounded-lg border border-slate-200 bg-white p-2 text-xs leading-relaxed text-slate-700 placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+        className="w-full resize-none rounded-lg border border-slate-200 bg-white p-2 text-xs leading-relaxed text-slate-700 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:placeholder:text-slate-400"
       />
+      <p
+        aria-live="polite"
+        role="status"
+        className="min-h-3.5 text-right text-[10px] text-slate-500 dark:text-slate-400"
+      >
+        {saved ? 'บันทึกแล้ว' : ''}
+      </p>
     </div>
   );
 }
@@ -175,7 +193,7 @@ function ArticleHub({ hub, onClose }: { hub: LawTooltipHub; onClose: () => void 
           onClick={hub.onToggleBookmark}
           aria-pressed={hub.isBookmarked}
           aria-label={hub.isBookmarked ? 'นำออกจากที่คั่นหน้า' : 'เพิ่มที่คั่นหน้า'}
-          className={`inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+          className={`inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
             hub.isBookmarked
               ? 'border-blue-400 bg-blue-50 text-blue-700 dark:border-blue-500/60 dark:bg-blue-950/50 dark:text-blue-300'
               : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-blue-300'
@@ -191,7 +209,7 @@ function ArticleHub({ hub, onClose }: { hub: LawTooltipHub; onClose: () => void 
           type="button"
           onClick={handleCopyLink}
           aria-label="คัดลอกลิงก์มาตรานี้"
-          className={`inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+          className={`inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
             linkCopied
               ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-500/60 dark:bg-emerald-950/40 dark:text-emerald-300'
               : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-blue-300'
@@ -261,7 +279,7 @@ function ArticleBody({
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex min-h-10 shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-blue-300"
+          className="inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-blue-300"
         >
           <i
             aria-hidden="true"
@@ -319,7 +337,7 @@ function ArticleBody({
         {crossHref !== undefined ? (
           <a
             href={crossHref}
-            className="text-xs font-medium text-blue-700 hover:underline dark:text-blue-300"
+            className="flex min-h-7 items-center text-xs font-medium text-blue-700 hover:underline dark:text-blue-300"
           >
             เปิดมาตรานี้
           </a>
@@ -331,12 +349,12 @@ function ArticleBody({
               onOpenArticle(key);
               onClose();
             }}
-            className="text-xs font-medium text-blue-700 hover:underline dark:text-blue-300"
+            className="flex min-h-7 items-center text-xs font-medium text-blue-700 hover:underline dark:text-blue-300"
           >
             เปิดมาตรานี้
           </a>
         )}
-        <span className="text-[11px] text-slate-400 dark:text-slate-500">
+        <span className="text-[11px] text-slate-500 dark:text-slate-400">
           — {code} {label}
         </span>
       </div>
@@ -490,7 +508,11 @@ export default function LawTooltip({
         rootRef.current = el;
         registerTooltipEl(el);
       }}
-      role="tooltip"
+      // Interactive hub content (bookmark/notes/copy/copy-link) makes the
+      // root a non-modal DIALOG; glossary-only content keeps role="tooltip"
+      // (a11y fix #7 — role=tooltip must not contain interactive elements).
+      role={hub !== undefined ? 'dialog' : 'tooltip'}
+      aria-modal={hub !== undefined ? 'false' : undefined}
       tabIndex={-1}
       onPointerLeave={onPointerLeave}
       style={{
@@ -503,8 +525,8 @@ export default function LawTooltip({
       }}
       className={
         sheet
-          ? 'lawlib-tooltip fixed inset-x-0 bottom-0 z-[70] max-h-[75vh] origin-bottom overflow-y-auto rounded-t-2xl border-t border-slate-200 bg-white p-4 shadow-2xl outline-none dark:border-slate-700 dark:bg-slate-900'
-          : 'lawlib-tooltip fixed z-[70] w-[min(92vw,28rem)] rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl outline-none dark:border-slate-700 dark:bg-slate-900'
+          ? 'lawlib-tooltip fixed inset-x-0 bottom-0 z-[70] max-h-[75vh] origin-bottom overflow-y-auto rounded-t-2xl border-t border-slate-200 bg-white p-4 shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-900'
+          : 'lawlib-tooltip fixed z-[70] w-[min(92vw,28rem)] rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-900'
       }
     >
       {sheet && (
@@ -519,7 +541,7 @@ export default function LawTooltip({
               type="button"
               onClick={onClose}
               aria-label="ปิด"
-              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors hover:text-slate-800 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white"
+              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors hover:text-slate-800 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white"
             >
               <i aria-hidden="true" className="fi fi-sr-cross text-[10px]" />
             </button>

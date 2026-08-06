@@ -403,7 +403,7 @@ function ArticleView({
                   {(section.no !== null || section.title !== '') && (
                     <h3 className="mb-3 flex flex-wrap items-baseline gap-x-2 text-lg font-semibold leading-relaxed text-slate-800 dark:text-slate-100">
                       {section.no !== null && (
-                        <span className="text-blue-700/80 dark:text-blue-300/80">
+                        <span className="text-blue-700 dark:text-blue-300">
                           ส่วนที่ {section.no}
                         </span>
                       )}

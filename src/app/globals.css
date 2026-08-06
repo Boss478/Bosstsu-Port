@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 @custom-variant dark (&:where(.dark, .dark *));
-@custom-variant read (&:where(.read, .read *));
+@custom-variant read (&:where(.read, .read *, .sepia, .sepia *));
 
 html {
   scroll-behavior: smooth;
@@ -165,22 +165,26 @@ html {
 :root.read {
   --background: var(--read-bg, #f5ecd9);
   --foreground: var(--read-ink, #3a2f1f);
+  /* --read-ink is a REAL variable (was undefined — the lawlib surface rules
+     below consumed it with no fallback, a11y fix #18). */
+  --read-ink: #3a2f1f;
   color-scheme: light;
 }
 
-/* Read-mode paper tones (D10) — user-adjustable, persisted at lawlib:paperTone.
-   --read-ink stays #3a2f1f for ALL tones (≥4.5:1 on every card bg). */
-html.read[data-paper-tone='soft'] {
-  --read-bg: #f5ecd9;
-  --read-card: #faf3e3;
-}
-html.read[data-paper-tone='classic'] {
-  --read-bg: #f2e8d5;
-  --read-card: #f7efdc;
-}
-html.read[data-paper-tone='warm'] {
-  --read-bg: #f9ecc0;
-  --read-card: #fdf5cf;
+/* Extra themes (ADR-019 D4, user decision 2026-08-06):
+   - sepia: paper-style theme — reuses the `.read` surface chain via the
+     `read` custom variant; page bg follows the paper-yellow slider
+     (--read-bg), ink is a warm brown.
+   - night was REMOVED 2026-08-06 (user decision); stored 'night' migrates to
+     'dark' in ThemeProvider.getInitialTheme + the layout pre-paint script.
+   --read-bg/--read-card are computed by ThemeProvider + the layout.tsx
+   pre-paint script as INLINE CSS VARS from the numeric paperTone 0-100
+   (ADR-019 D8 — replaces the old html.read[data-paper-tone=…] selectors). */
+:root.sepia {
+  --background: var(--read-bg, #f3e6c9);
+  --foreground: #43301f;
+  --read-ink: #43301f;
+  color-scheme: light;
 }
 
 @theme inline {
@@ -1443,21 +1447,25 @@ textarea,
   @apply backdrop-blur-lg bg-white/90 dark:bg-slate-900/90;
 }
 
-/* ─── LawLib Read Mode (3-mode theme — paper surfaces) ──────────────────────
+/* ─── LawLib Read Mode (5-mode theme — paper surfaces) ────────────────────
    Centralized `.read` overrides per plan §4.2: read mode is fully styled on
    LawLib surfaces only; everywhere else it degrades to paper body + light
    components. Unlayered rules here beat Tailwind's layered utilities, so the
    explicit `bg-blue-50` / `bg-white` / `text-slate-*` utilities are covered
-   while `.dark` stays untouched (read mode never co-exists with `.dark`). */
+   while `.dark` stays untouched (read mode never co-exists with `.dark`).
+   `.sepia` shares the whole chain (the `sepia` theme IS paper — ADR-019 D4);
+   every selector below lists both prefixes. */
 
 /* `main#main-content` has an explicit `bg-blue-50 dark:bg-slate-950` that would
    cover the paper vars — force the paper background in read mode. */
-.read #main-content {
+.read #main-content,
+.sepia #main-content {
   background: var(--background);
 }
 
 /* Footer bg is hard-coded (`bg-blue-100 dark:bg-slate-900`). */
-.read footer {
+.read footer,
+.sepia footer {
   background: var(--background);
 }
 
@@ -1467,33 +1475,67 @@ textarea,
 .read .lawlib-panel,
 .read .lawlib-dock,
 .read .lawlib-list-card,
-.read .lawlib-digest-card {
+.read .lawlib-digest-card,
+.sepia .lawlib-article-card,
+.sepia .lawlib-toc,
+.sepia .lawlib-panel,
+.sepia .lawlib-dock,
+.sepia .lawlib-list-card,
+.sepia .lawlib-digest-card {
   background: var(--read-card);
   border-color: #e0d5b0;
   color: var(--read-ink);
 }
 
+/* Read/sepia dock v2: the panel surface is OPAQUE paper (no translucency to
+   refract) — kill the backdrop blur on the fixed element (T3 — GPU saving on
+   every scroll frame). The value rides through an UNDEFINED custom property:
+   `backdrop-filter: none` equals the property's INITIAL value, which
+   LightningCSS dead-code-eliminates even with !important (empirically: only
+   the -webkit- declaration survived, and Chrome computes the utility's
+   unprefixed blur). var(--lawlib-dock-blur) is deliberately never defined —
+   an invalid var() makes the property compute to its initial value `none`. */
+.read .lawlib-dock,
+.sepia .lawlib-dock {
+  -webkit-backdrop-filter: var(--lawlib-dock-blur);
+  backdrop-filter: var(--lawlib-dock-blur);
+}
+
+/* Read/sepia collapsed dock icon: the direct child button's slate-200 border
+   nearly vanishes on paper — give it the paper-adjacent border tone (a11y
+   fix #23). Only the COLLAPSED icon is a direct child (the panel wraps its
+   buttons deeper). */
+.read .lawlib-dock > button,
+.sepia .lawlib-dock > button {
+  border-color: #d4c49a;
+}
+
 /* Highlights: amber deep enough on paper. */
-.read mark {
+.read mark,
+.sepia mark {
   background: rgba(251, 191, 36, 0.5);
 }
 
 /* Article body carries an explicit `text-slate-800 dark:text-slate-200` —
    force the paper ink in read mode (slate-800 stays for light/dark). */
-.read [data-lawlib-body] {
+.read [data-lawlib-body],
+.sepia [data-lawlib-body] {
   color: var(--read-ink);
 }
 
 /* Muted-text overrides: explicit slate-400/500/600 utilities fail contrast on
    paper (slate-400 on #fdf6e3 ≈ 2.4:1) — darken them inside LawLib surfaces.
    #7a6845: 4.71–5.00:1 on all card tones (was #8a7a55 = 3.67–3.90 FAIL). */
-.read [class*='lawlib-'] .text-slate-400 {
+.read [class*='lawlib-'] .text-slate-400,
+.sepia [class*='lawlib-'] .text-slate-400 {
   color: #7a6845;
 }
-.read [class*='lawlib-'] .text-slate-500 {
+.read [class*='lawlib-'] .text-slate-500,
+.sepia [class*='lawlib-'] .text-slate-500 {
   color: #7a6845;
 }
-.read [class*='lawlib-'] .text-slate-600 {
+.read [class*='lawlib-'] .text-slate-600,
+.sepia [class*='lawlib-'] .text-slate-600 {
   color: #6b5b3c;
 }
 
@@ -1504,16 +1546,21 @@ textarea,
    via the lawlib layout's Sarabun font class (the only wrapper shared by
    every lawlib page), so gallery/portfolio/resources/games — which reuse the
    same components — stay untouched. */
-.read [class*='font-[family-name:var(--font-sarabun)]'] input::placeholder {
+.read [class*='font-[family-name:var(--font-sarabun)]'] input::placeholder,
+.read [class*='font-[family-name:var(--font-sarabun)]'] textarea::placeholder,
+.sepia [class*='font-[family-name:var(--font-sarabun)]'] input::placeholder,
+.sepia [class*='font-[family-name:var(--font-sarabun)]'] textarea::placeholder {
   color: #7a6845;
 }
-.read [class*='font-[family-name:var(--font-sarabun)]'] .text-zinc-500 {
+.read [class*='font-[family-name:var(--font-sarabun)]'] .text-zinc-500,
+.sepia [class*='font-[family-name:var(--font-sarabun)]'] .text-zinc-500 {
   color: #7a6845;
 }
 
-/* SettingsMenu section labels (ธีม / โทนกระดาษ) live in the #site-header
-   dropdown with no lawlib ancestor — zinc-500 ≈ 4.37:1 on paper. */
-.read #site-header .text-zinc-500 {
+/* SettingsMenu section labels (ธีม) live in the #site-header dropdown with no
+   lawlib ancestor — zinc-500 ≈ 4.37:1 on paper. */
+.read #site-header .text-zinc-500,
+.sepia #site-header .text-zinc-500 {
   color: #7a6845;
 }
 

@@ -147,7 +147,7 @@ describe('Dock v2 — Level 1 (expanded favorites)', () => {
       screen.getByRole('button', { name: 'ย่อแถบเครื่องมือ' }).getAttribute('aria-expanded'),
     ).toBe('true');
 
-    // The four pickers show their CURRENT values (theme label / px / lh / ch).
+    // The four pickers show their CURRENT values (theme label / px / lh / %).
     const themeBtn = screen.getByRole('button', { name: /ธีม/ });
     expect(themeBtn.textContent).toContain('สว่าง');
     const fontSizeBtn = screen.getByRole('button', { name: /ตัวอักษร/ });
@@ -155,7 +155,8 @@ describe('Dock v2 — Level 1 (expanded favorites)', () => {
     const lineHeightBtn = screen.getByRole('button', { name: /บรรทัด/ });
     expect(lineHeightBtn.textContent).toContain('1.8');
     const widthBtn = screen.getByRole('button', { name: /กว้าง/ });
-    expect(widthBtn.textContent).toContain('60');
+    // Width is a PERCENT of the 80ch baseline (user decision 2026-08-06).
+    expect(widthBtn.textContent).toContain('100%');
 
     // Quick actions + เพิ่มเติม.
     expect(screen.getByRole('button', { name: 'ที่คั่นหน้า' })).toBeTruthy();
@@ -174,7 +175,9 @@ describe('Dock v2 — Level 1 (expanded favorites)', () => {
     fireEvent.click(themeBtn);
     expect(themeBtn.getAttribute('aria-expanded')).toBe('true');
     expect(dockPanel()).not.toBeNull();
-    expect(screen.getByRole('dialog', { name: 'ธีม' })).toBeTruthy();
+    // The picker popover is a labelled GROUP, not a nested dialog (a11y fix
+    // #8 — it portals inside the dock's own dialog).
+    expect(screen.getByRole('group', { name: 'ธีม' })).toBeTruthy();
 
     // DIRECT choice — pick ธีมมืด → applied immediately, still no collapse.
     fireEvent.click(screen.getByRole('button', { name: 'ธีมมืด' }));
@@ -214,8 +217,11 @@ describe('Dock v2 — Level 1 (expanded favorites)', () => {
     const widthBtn = screen.getByRole('button', { name: /กว้าง/ });
     fireEvent.click(widthBtn);
     const widthSlider = screen.getByRole('slider', { name: 'ความกว้างเนื้อหา' });
-    fireEvent.change(widthSlider, { target: { value: '70' } });
-    expect(widthBtn.textContent).toContain('70');
+    // Width slider runs 80-120% (step 1) — pick 110% and see it on the button.
+    expect(widthSlider.getAttribute('min')).toBe('80');
+    expect(widthSlider.getAttribute('max')).toBe('120');
+    fireEvent.change(widthSlider, { target: { value: '110' } });
+    expect(widthBtn.textContent).toContain('110%');
   });
 
   it('picker popover closes on Esc; the panel stays open (Esc cascades)', async () => {
@@ -223,10 +229,10 @@ describe('Dock v2 — Level 1 (expanded favorites)', () => {
     fireEvent.click(dockIcon());
     const themeBtn = screen.getByRole('button', { name: /ธีม/ });
     fireEvent.click(themeBtn);
-    expect(screen.getByRole('dialog', { name: 'ธีม' })).toBeTruthy();
+    expect(screen.getByRole('group', { name: 'ธีม' })).toBeTruthy();
 
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(screen.queryByRole('dialog', { name: 'ธีม' })).toBeNull();
+    expect(screen.queryByRole('group', { name: 'ธีม' })).toBeNull();
     expect(dockPanel()).not.toBeNull();
   });
 
@@ -244,10 +250,46 @@ describe('Dock v2 — Level 1 (expanded favorites)', () => {
     const badge = within(bookmarkBtn).getByText('1');
     expect(badge).toBeTruthy();
     expect(badge.className).toContain('bg-red-600');
+    // The count is part of the accessible name (fix #22) — SR users hear it.
+    expect(bookmarkBtn.getAttribute('aria-label')).toBe('ที่คั่นหน้า (1)');
 
     fireEvent.click(bookmarkBtn);
     expect(bookmarkBtn.getAttribute('aria-pressed')).toBe('false');
     expect(within(bookmarkBtn).queryByText('1')).toBeNull();
+  });
+
+  it('bookmark active state swaps the ribbon icon — never color-only (fix #9)', async () => {
+    await renderReader();
+    fireEvent.click(dockIcon());
+
+    const bookmarkBtn = screen.getByRole('button', { name: 'ที่คั่นหน้า' });
+    expect(bookmarkBtn.querySelector('.fi-sr-bookmark')).not.toBeNull();
+
+    fireEvent.click(bookmarkBtn);
+    // Active → check-circle (the same "confirmed" glyph as the copy flash);
+    // aria-pressed stays for the toggle semantics.
+    expect(bookmarkBtn.querySelector('.fi-sr-bookmark')).toBeNull();
+    expect(bookmarkBtn.querySelector('.fi-sr-check-circle')).not.toBeNull();
+    expect(bookmarkBtn.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('theme picker: exactly 4 themes (night removed) with Thai ซีเปีย label (fix #19/20)', async () => {
+    await renderReader();
+    fireEvent.click(dockIcon());
+    fireEvent.click(screen.getByRole('button', { name: /ธีม/ }));
+
+    // Scope to the popover group — the trigger button's own name also
+    // contains the current theme label.
+    const picker = screen.getByRole('group', { name: 'ธีม' });
+    for (const label of ['ธีมสว่าง', 'ธีมมืด', 'ธีมกระดาษ', 'ธีมซีเปีย']) {
+      expect(within(picker).getByRole('button', { name: label })).toBeTruthy();
+    }
+    expect(within(picker).queryByRole('button', { name: 'ธีมกลางคืน' })).toBeNull();
+    // Visible label is Thai — ซีเปีย, not the English 'sepia'.
+    expect(within(picker).getByText('ซีเปีย')).toBeTruthy();
+    // The paper slider still appears for the paper themes.
+    fireEvent.click(within(picker).getByRole('button', { name: 'ธีมซีเปีย' }));
+    expect(screen.getByRole('slider', { name: 'ความเหลืองของกระดาษ' })).toBeTruthy();
   });
 });
 
@@ -271,10 +313,10 @@ describe('Dock v2 — close paths (stays open until explicitly closed)', () => {
     fireEvent.click(dockIcon());
     const themeBtn = screen.getByRole('button', { name: /ธีม/ });
     fireEvent.click(themeBtn);
-    expect(screen.getByRole('dialog', { name: 'ธีม' })).toBeTruthy();
+    expect(screen.getByRole('group', { name: 'ธีม' })).toBeTruthy();
 
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(screen.queryByRole('dialog', { name: 'ธีม' })).toBeNull();
+    expect(screen.queryByRole('group', { name: 'ธีม' })).toBeNull();
     // Focus must NOT drop to <body> — the picker's trigger button gets it.
     expect(themeBtn).toBe(document.activeElement);
     // Esc cascades: the panel itself stays open.
@@ -322,7 +364,14 @@ describe('Dock v2 — Level 2 (เพิ่มเติม)', () => {
   it('เพิ่มเติม swaps to ALL tools with ย้อนกลับ back + per-tool pin toggles', async () => {
     await renderReader();
     fireEvent.click(dockIcon());
-    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
+    const moreBtn = screen.getByRole('button', { name: 'เพิ่มเติม' });
+    // Level-2 disclosure attrs (fix #1) — read BEFORE the click: the button
+    // unmounts when Level 2 replaces Level 1.
+    expect(moreBtn.getAttribute('aria-haspopup')).toBe('true');
+    expect(moreBtn.getAttribute('aria-expanded')).toBe('false');
+    expect(moreBtn.getAttribute('aria-controls')).toBe('lawlib-more-panel');
+    fireEvent.click(moreBtn);
+    expect(document.getElementById('lawlib-more-panel')).not.toBeNull();
 
     // All 11 tools listed (glossary/copy/copy-link/settings present).
     expect(screen.getByText('เครื่องมือทั้งหมด')).toBeTruthy();
@@ -342,6 +391,54 @@ describe('Dock v2 — Level 2 (เพิ่มเติม)', () => {
     fireEvent.click(screen.getByRole('button', { name: /ย้อนกลับ/ }));
     expect(screen.getByRole('button', { name: 'บทนิยาม' })).toBeTruthy();
     expect(screen.queryByText('เครื่องมือทั้งหมด')).toBeNull();
+  });
+
+  it('Level-2 open moves focus to ย้อนกลับ — never drops to <body> (fix #1)', async () => {
+    await renderReader();
+    fireEvent.click(dockIcon());
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
+    // The focus move is deferred until the back button mounts.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    });
+    const back = screen.getByRole('button', { name: /ย้อนกลับ/ });
+    expect(back).toBe(document.activeElement);
+  });
+
+  it('Esc at Level 2 is 2-layer: first back to Level 1, second closes the dock (fix #16)', async () => {
+    await renderReader();
+    fireEvent.click(dockIcon());
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
+    expect(screen.getByText('เครื่องมือทั้งหมด')).toBeTruthy();
+
+    // First Esc → Level 1 (panel stays open), focus returns to เพิ่มเติม.
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(dockPanel()).not.toBeNull();
+    expect(screen.queryByText('เครื่องมือทั้งหมด')).toBeNull();
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    });
+    expect(screen.getByRole('button', { name: 'เพิ่มเติม' })).toBe(document.activeElement);
+
+    // Second Esc → the whole dock closes, focus returns to the tools icon.
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(dockPanel()).toBeNull();
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    });
+    expect(screen.getByRole('button', { name: 'เครื่องมืออ่าน' })).toBe(document.activeElement);
+  });
+
+  it('disabled rows (ตั้งค่า) get a disabled pin toggle (fix #21)', async () => {
+    await renderReader();
+    fireEvent.click(dockIcon());
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
+
+    const settingsRow = screen.getByRole('button', { name: /^ตั้งค่า/ });
+    expect(settingsRow.hasAttribute('disabled')).toBe(true);
+    // The pin for the disabled row is disabled too.
+    const pinSettings = screen.getByRole('button', { name: /ปักหมุด ตั้งค่า/ });
+    expect(pinSettings.hasAttribute('disabled')).toBe(true);
   });
 
   it('position selector: 8 spots (3×3 minus center), persisted to localStorage', async () => {
@@ -374,6 +471,31 @@ describe('Dock v2 — Level 2 (เพิ่มเติม)', () => {
     // 92vw cap (345px) plus the 60px icon offset would overflow by 30px.
     const panel = dockPanel() as HTMLElement;
     expect(panel.className).toContain('w-[min(calc(100vw-3.75rem),26rem)]');
+  });
+
+  it('mid-right clamps symmetrically (fix #27 — no LEFT-edge overflow at 375px)', async () => {
+    await renderReader();
+    fireEvent.click(dockIcon());
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
+    fireEvent.click(screen.getByRole('button', { name: 'ตำแหน่งกลางขวา' }));
+
+    const panel = dockPanel() as HTMLElement;
+    expect(panel.className).toContain('w-[min(calc(100vw-3.75rem),26rem)]');
+  });
+
+  it('top-row positions clear the page H1: 14rem mobile / 11rem md (fix #17)', async () => {
+    await renderReader();
+    fireEvent.click(dockIcon());
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
+    fireEvent.click(screen.getByRole('button', { name: 'ตำแหน่งบนซ้าย' }));
+
+    const root = document.querySelector('.lawlib-dock.fixed') as HTMLElement;
+    expect(root.className).toContain('top-[max(14rem,env(safe-area-inset-top))]');
+    expect(root.className).toContain('md:top-[max(11rem,env(safe-area-inset-top))]');
+    // The panel cap follows the raised anchor so it stays fully in-viewport.
+    const panel = dockPanel() as HTMLElement;
+    expect(panel.className).toContain('max-h-[calc(100vh-15.5rem)]');
+    expect(panel.className).toContain('md:max-h-[calc(100vh-12.5rem)]');
   });
 
   it('bookmarks list in Level 2: grouped chapter rows with jump + delete', async () => {

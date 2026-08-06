@@ -59,11 +59,37 @@ export interface EditionTimelineProps {
   editions: LawDoc['editions'];
 }
 
-/** FR11 — reading preferences, persisted by the storage layer. */
+/** FR11 — reading preferences, persisted by the storage layer.
+ *
+ * CONTRACT CHANGE (T10a, ADR-019 D5): fontSize + width are now NUMBERS
+ * (legacy enum strings migrate in validateReadingSettings: 's/m/l/xl' →
+ * 14/16/18/24, 'narrow/normal/wide' → 40/60/80ch). lineHeight clamps
+ * [1.0, 2.0] (was [1.5, 2.2]). paperTone is NOT here — it lives in
+ * ThemeProvider (`lawlib:paperTone`, number 0-100, ADR-019 D8).
+ */
+export type DockToolKey =
+  | 'theme'
+  | 'fontSize'
+  | 'lineHeight'
+  | 'width'
+  | 'bookmark'
+  | 'search'
+  | 'notes'
+  | 'glossary'
+  | 'copy'
+  | 'copyLink'
+  | 'settings';
+
 export type ReadingSettingsValue = {
-  fontSize: 's' | 'm' | 'l' | 'xl';
+  /** Font size in px, 8-32 (default 16). */
+  fontSize: number;
+  /** Line height multiplier, 1.0-2.0 (default 1.8). */
   lineHeight: number;
-  width: 'narrow' | 'normal' | 'wide';
+  /** Content width in ch, 40-80 (default 60). */
+  width: number;
+  /** Dock Level-1 pinned tool keys — render order = array order (defaults to
+   *  the curated row: theme/fontSize/lineHeight/width/bookmark/search/notes). */
+  favoriteToolKeys: DockToolKey[];
 };
 
 export interface ReadingSettingsProps {
