@@ -408,7 +408,9 @@ export default function LawlibDock(props: LawlibDockProps) {
   const toggleFavorite = (key: DockToolKey) => {
     const current = settings.favoriteToolKeys;
     const next = current.includes(key) ? current.filter((k) => k !== key) : [...current, key];
-    setSettings({ ...settings, favoriteToolKeys: next });
+    // Functional update — a snapshot write here could resurrect a stale
+    // autoScrollSpeed (the auto-scroll end-stop writes functionally).
+    setSettings((prev) => ({ ...prev, favoriteToolKeys: next }));
   };
 
   const setDockPosition = (next: DockPosition) => {
@@ -796,19 +798,19 @@ export default function LawlibDock(props: LawlibDockProps) {
           {picker.kind === 'fontSize' && (
             <FontSizePickerContent
               value={settings.fontSize}
-              onChange={(fontSize) => setSettings({ ...settings, fontSize })}
+              onChange={(fontSize) => setSettings((prev) => ({ ...prev, fontSize }))}
             />
           )}
           {picker.kind === 'lineHeight' && (
             <LineHeightPickerContent
               value={settings.lineHeight}
-              onChange={(lineHeight) => setSettings({ ...settings, lineHeight })}
+              onChange={(lineHeight) => setSettings((prev) => ({ ...prev, lineHeight }))}
             />
           )}
           {picker.kind === 'width' && (
             <WidthPickerContent
               value={settings.width}
-              onChange={(width) => setSettings({ ...settings, width })}
+              onChange={(width) => setSettings((prev) => ({ ...prev, width }))}
             />
           )}
           {picker.kind === 'settings' && (

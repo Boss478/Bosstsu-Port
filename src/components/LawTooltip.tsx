@@ -530,8 +530,11 @@ export default function LawTooltip({
         // The tooltip renders outside the Sarabun wrapper (portal to body) —
         // resolve the font through the ROOT layout's variable instead of a
         // literal 'Sarabun' (next/font/local hashes the family name, so the
-        // literal would silently fall back to the sans-serif stack).
-        fontFamily: 'var(--font-sarabun), "Noto Sans Thai", sans-serif',
+        // literal would silently fall back to the sans-serif stack). Prepend
+        // the reader's --lawlib-font-family so an Itim/Sarabun reader sees its
+        // chosen family; the var only resolves where an ancestor defines it
+        // (falls back to Sarabun for glossary/cross-law surfaces).
+        fontFamily: 'var(--lawlib-font-family), var(--font-sarabun), "Noto Sans Thai", sans-serif',
         ...(sheet ? undefined : { left: 0, top: 0, visibility: 'hidden' }),
       }}
       className={

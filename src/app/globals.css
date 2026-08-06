@@ -1527,6 +1527,14 @@ textarea,
 .read .lawlib-panel .lawlib-glass,
 .sepia .lawlib-panel .lawlib-glass {
   background-color: rgba(255, 255, 255, 0.55);
+  /* The 0.55-alpha fill sits on OPAQUE paper (the panel's --read-card) — the
+     var-driven blur beneath is visually dead, so drop it via the
+     --lawlib-dock-blur trick (undefined var → property computes to its
+     initial value `none`), mirroring the .read .lawlib-dock treatment below.
+     Only the reader SearchPanel input matches this selector (the dock is not
+     a .lawlib-panel); the slider vars keep working for non-read surfaces. */
+  -webkit-backdrop-filter: var(--lawlib-dock-blur);
+  backdrop-filter: var(--lawlib-dock-blur);
 }
 
 /* ─── T10b paragraph spacing (0/0.5/1 rem — the value rides
