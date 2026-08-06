@@ -701,3 +701,91 @@ describe('tooltip content parity', () => {
     expect(tooltipRoot()?.querySelector('ul')).toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// T9 mobile batch — popover viewport clamp / explicit ?view= param / TOC
+// collapse / drawer search focus
+// ---------------------------------------------------------------------------
+
+describe('T9 — popover viewport clamp', () => {
+  it('pulls the popover top up so the bottom edge clears a short viewport', async () => {
+    // jsdom has no layout: stub EVERY getBoundingClientRect with a tall
+    // content measure (tooltip.test.tsx precedent) + a 400px viewport. The
+    // lazy position lands at top 100 (side branch); the real 500px height
+    // would push the bottom edge to 600 > 400 — the mount clamp must pull
+    // the top to 8px (400 - 500 - 12, floored at 8).
+    Object.defineProperty(window, 'innerHeight', { value: 400, configurable: true });
+    const rect = {
+      top: 100,
+      left: 100,
+      bottom: 600,
+      right: 400,
+      height: 500,
+      width: 300,
+      x: 100,
+      y: 100,
+      toJSON: () => ({}),
+    };
+    const spy = vi
+      .spyOn(Element.prototype, 'getBoundingClientRect')
+      .mockReturnValue(rect as DOMRect);
+    try {
+      await renderReader();
+      fireEvent.click(memberBtn('5') as HTMLElement);
+      await flush();
+      const dialog = popover();
+      expect(dialog).not.toBeNull();
+      expect(dialog?.style.top).toBe('8px');
+    } finally {
+      spy.mockRestore();
+      Object.defineProperty(window, 'innerHeight', { value: 768, configurable: true });
+    }
+  });
+});
+
+describe('T9 — explicit ?view= respected at mount', () => {
+  it('?view=compact + a non-card hash stays compact (no auto-FULL switch)', async () => {
+    window.history.replaceState(null, '', '/?view=compact#มาตรา-99');
+    try {
+      await renderReader();
+      // Compact preserved: cards still rendered, no FULL article element,
+      // no popover — the explicit view param wins over the jump rule.
+      expect(document.querySelector('[data-lawlib-card]')).not.toBeNull();
+      expect(document.getElementById('มาตรา-99')).toBeNull();
+      expect(popover()).toBeNull();
+    } finally {
+      window.history.replaceState(null, '', '/');
+    }
+  });
+});
+
+describe('T9 — DigestToc mobile collapse', () => {
+  it('below lg the TOC collapses behind a toggle and caps at 50vh', async () => {
+    Object.defineProperty(window, 'innerWidth', { value: 375, configurable: true });
+    try {
+      await renderReader();
+      const toggle = screen.getByRole('button', { name: 'สารบัญ' });
+      expect(toggle.getAttribute('aria-expanded')).toBe('false');
+      const wrapper = document.querySelector('.lawlib-toc > div');
+      expect(wrapper?.className).toContain('hidden');
+      const list = wrapper?.querySelector('ul');
+      expect(list?.className).toContain('max-h-[50vh]');
+
+      fireEvent.click(toggle);
+      expect(toggle.getAttribute('aria-expanded')).toBe('true');
+      expect(wrapper?.className).not.toContain('hidden');
+    } finally {
+      Object.defineProperty(window, 'innerWidth', { value: 1024, configurable: true });
+    }
+  });
+});
+
+describe('T9 — drawer focus lands in the search input', () => {
+  it('opening the search panel focuses #lawlib-search-input, not the close button', async () => {
+    await renderReader();
+    // Expand the collapsed dock (tools icon) → Level-1 search tool.
+    fireEvent.click(screen.getByRole('button', { name: 'เครื่องมืออ่าน' }));
+    fireEvent.click(screen.getByRole('button', { name: 'ค้นหามาตรา' }));
+    expect(document.activeElement).toBe(document.getElementById('lawlib-search-input'));
+  });
+});
