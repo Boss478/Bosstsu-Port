@@ -302,11 +302,19 @@ describe('validateReadingSettings (P3 — T10a numeric contract + T10b fields)',
   it('T10b: clamps glassOpacity into [0,100] and toolbarSize into [24,56]', () => {
     expect(api.validateReadingSettings({ glassOpacity: -5 }).glassOpacity).toBe(0);
     expect(api.validateReadingSettings({ glassOpacity: 150 }).glassOpacity).toBe(100);
-    expect(api.validateReadingSettings({ glassOpacity: 'x' }).glassOpacity).toBe(75);
+    expect(api.validateReadingSettings({ glassOpacity: 'x' }).glassOpacity).toBe(35);
     expect(api.validateReadingSettings({ toolbarSize: 10 }).toolbarSize).toBe(24);
     expect(api.validateReadingSettings({ toolbarSize: 80 }).toolbarSize).toBe(56);
     expect(api.validateReadingSettings({ toolbarSize: 44.7 }).toolbarSize).toBe(45);
     expect(api.validateReadingSettings({ toolbarSize: 'big' }).toolbarSize).toBe(44);
+  });
+
+  it('T12: animateDock only accepts booleans (default true)', () => {
+    expect(api.validateReadingSettings({}).animateDock).toBe(true);
+    expect(api.validateReadingSettings({ animateDock: false }).animateDock).toBe(false);
+    expect(api.validateReadingSettings({ animateDock: true }).animateDock).toBe(true);
+    expect(api.validateReadingSettings({ animateDock: 1 }).animateDock).toBe(true);
+    expect(api.validateReadingSettings({ animateDock: 'no' }).animateDock).toBe(true);
   });
 
   it('T10b: paragraphSpacing snaps to the {0, 0.5, 1} steps', () => {

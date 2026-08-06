@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 /**
- * LawlibDock v2 (T10a — ADR-019 D1/D2/D3/D6) contract tests.
+ * LawlibDock v2.1 (T10a + T12 — ADR-019 D1/D2/D3/D6/D9) contract tests.
  *
  * The dock is exercised THROUGH the full reader client:
  * `<ThemeProvider><LawlibReaderClient law={sampleLaw} /></ThemeProvider>`
@@ -8,24 +8,35 @@
  * reader's storage/theme state).
  *
  * Pinned here:
- * - Level 0 · ยุบ: ONE plain tools icon (aria-expanded=false, no badge)
- * - click expands the Level-1 panel; picker buttons SHOW CURRENT VALUES
- *   (16px / 1.8 / 60 / theme label)
+ * - Level 1 OPEN BY DEFAULT (T12 D9 — reversed D1 default-collapsed):
+ *   panel renders on mount, ย่อ/X visible on Level 1, focus NOT stolen;
+ *   `lawlib:dockCollapsed` memory: user collapse → next visit starts
+ *   collapsed; expand clears it
+ * - picker buttons SHOW CURRENT VALUES (16px / 1.8 / 100% / theme label)
  * - panel STAYS OPEN after actions (picker open, option picked) — no
  *   auto-collapse (D1)
- * - close paths: Esc (focus returns to the icon) · pointerdown-outside ·
- *   re-click the tools icon
+ * - close paths: Esc (focus returns to the icon) · ย่อ button · X button —
+ *   pointerdown-outside NO LONGER closes the dock panel (T12); the picker
+ *   POPOVER still closes on outside click (scrutiny fix — separate handlers)
  * - pickers: click-to-expand popover (aria-expanded), DIRECT choice (no
- *   cycling), Esc closes the popover
+ *   cycling), Esc closes the popover only
+ * - T12 direction-aware layout: side positions (default bottom-right) =
+ *   vertical Level-1 column + 2-col Level-2 grid; middle positions (top/
+ *   bottom-center) = horizontal row + horizontal grid; mobile (≤639px) =
+ *   full-width bottom sheet (open per default)
+ * - T12 non-default value dots: picker button shows a blue dot when its
+ *   value ≠ default; no dot at defaults
+ * - T12 animation: expand/collapse slide+fade ~150ms, gated by
+ *   settings.animateDock AND prefers-reduced-motion (tests default the
+ *   reduced-motion stub ON → instant swaps, so close-path assertions stay
+ *   synchronous; dedicated tests flip it OFF)
  * - bookmark: toggle + aria-pressed + count badge
- * - Level 2 "เพิ่มเติม": ALL tools + per-tool pin (favorites move to
- *   Level 1) + the 8-position selector (3×3 minus center) + ย้อนกลับ
- * - mobile-safe panel: flex-wrap rows + max-h + overflow-y-auto (375px
- *   manual smoke covers the pixel-level check)
+ * - Level 2 "เพิ่มเติม": ALL tools + per-tool pin + 8-position selector
+ * - mobile-safe panel: max-h + overflow-y-auto
  *
- * jsdom gaps stubbed: matchMedia, IntersectionObserver (TocSidebar
- * scroll-spy), localStorage (in-memory store). `next/link` renders a plain
- * <a> (no router in jsdom).
+ * jsdom gaps stubbed: matchMedia (query-aware: dark/mobile/reduced-motion),
+ * IntersectionObserver (TocSidebar scroll-spy), localStorage (in-memory
+ * store). `next/link` renders a plain <a> (no router in jsdom).
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent, screen, act, within } from '@testing-library/react';
@@ -65,19 +76,36 @@ function mockLocalStorage(): void {
   vi.stubGlobal('localStorage', stub);
 }
 
-/** jsdom has no matchMedia — stub it; `matches` = OS dark-mode state. */
-function mockMatchMedia(matches: boolean): void {
-  const mql = {
-    matches,
-    media: '(prefers-color-scheme: dark)',
-    onchange: null,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  } as unknown as MediaQueryList;
-  window.matchMedia = vi.fn().mockReturnValue(mql) as unknown as typeof window.matchMedia;
+/**
+ * Query-aware matchMedia. Defaults: light scheme, DESKTOP (not mobile),
+ * reduced-motion ON (dock animations off → instant collapse keeps the
+ * close-path assertions synchronous).
+ */
+function mockMatchMedia(opts?: { dark?: boolean; mobile?: boolean; reducedMotion?: boolean }) {
+  const dark = opts?.dark ?? false;
+  const mobile = opts?.mobile ?? false;
+  const reducedMotion = opts?.reducedMotion ?? true;
+  window.matchMedia = vi.fn((query: string) => {
+    const matches = query.includes('(max-width: 639px)')
+      ? mobile
+      : query.includes('(prefers-reduced-motion: reduce)')
+        ? reducedMotion
+        : query.includes('(pointer: coarse)')
+          ? false
+          : query.includes('prefers-color-scheme: dark')
+            ? dark
+            : false;
+    return {
+      matches,
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    } as unknown as MediaQueryList;
+  }) as unknown as typeof window.matchMedia;
 }
 
 /** jsdom has no IntersectionObserver — TocSidebar's scroll-spy needs it. */
@@ -91,12 +119,15 @@ class IntersectionObserverStub {
   takeRecords = vi.fn(() => []);
 }
 
+/** The COLLAPSED tools icon (absent while the panel is open). */
 const dockIcon = () => screen.getByRole('button', { name: 'เครื่องมืออ่าน' });
 const dockPanel = () => document.getElementById('lawlib-dock-panel');
+/** The panel header collapse button — VISIBLE on Level 1 (T12 fix). */
+const collapseBtn = () => screen.getByRole('button', { name: 'ย่อแถบเครื่องมือ' });
 
 beforeEach(() => {
   mockLocalStorage();
-  mockMatchMedia(false);
+  mockMatchMedia();
   vi.stubGlobal('IntersectionObserver', IntersectionObserverStub);
   document.documentElement.className = '';
   document.documentElement.removeAttribute('style');
@@ -122,52 +153,69 @@ async function renderReader() {
   return utils;
 }
 
-describe('Dock v2 — Level 0 (collapsed)', () => {
-  it('renders ONE plain tools icon: aria-expanded=false, aria-controls the panel, NO badge', async () => {
+describe('Dock v2.1 — Level 1 OPEN BY DEFAULT (T12)', () => {
+  it('renders the panel on mount: no collapsed icon, ย่อ/X visible on Level 1', async () => {
     await renderReader();
 
-    const icon = dockIcon();
-    expect(icon.getAttribute('aria-expanded')).toBe('false');
-    expect(icon.getAttribute('aria-controls')).toBe('lawlib-dock-panel');
-    expect(dockPanel()).toBeNull();
-    // No badge inside the collapsed icon (D1 — plain tools icon).
-    expect(within(icon).queryByText(/^\d+$/)).toBeNull();
-  });
-});
-
-describe('Dock v2 — Level 1 (expanded favorites)', () => {
-  it('click expands the panel with the default curated row showing CURRENT values', async () => {
-    await renderReader();
-
-    fireEvent.click(dockIcon());
     const panel = dockPanel();
     expect(panel).not.toBeNull();
-    // The collapsed icon is replaced by the panel header (re-click collapses).
-    expect(
-      screen.getByRole('button', { name: 'ย่อแถบเครื่องมือ' }).getAttribute('aria-expanded'),
-    ).toBe('true');
+    expect(screen.queryByRole('button', { name: 'เครื่องมืออ่าน' })).toBeNull();
+    // The collapse control lives in the shared panel header — VISIBLE on
+    // Level 1 (T12 scrutiny fix), not only in Level 2.
+    expect(collapseBtn().getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByRole('button', { name: 'ปิดแถบเครื่องมือ' })).toBeTruthy();
 
-    // The four pickers show their CURRENT values (theme label / px / lh / %).
-    const themeBtn = screen.getByRole('button', { name: /ธีม/ });
-    expect(themeBtn.textContent).toContain('สว่าง');
-    const fontSizeBtn = screen.getByRole('button', { name: /ตัวอักษร/ });
-    expect(fontSizeBtn.textContent).toContain('16px');
-    const lineHeightBtn = screen.getByRole('button', { name: /บรรทัด/ });
-    expect(lineHeightBtn.textContent).toContain('1.8');
-    const widthBtn = screen.getByRole('button', { name: /กว้าง/ });
-    // Width is a PERCENT of the 80ch baseline (user decision 2026-08-06).
-    expect(widthBtn.textContent).toContain('100%');
-
-    // Quick actions + เพิ่มเติม.
+    // The default curated row shows CURRENT values.
+    expect(screen.getByRole('button', { name: /ธีม/ }).textContent).toContain('สว่าง');
+    expect(screen.getByRole('button', { name: /ตัวอักษร/ }).textContent).toContain('16px');
+    expect(screen.getByRole('button', { name: /บรรทัด/ }).textContent).toContain('1.8');
+    expect(screen.getByRole('button', { name: /กว้าง/ }).textContent).toContain('100%');
     expect(screen.getByRole('button', { name: 'ที่คั่นหน้า' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'ค้นหามาตรา' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'บันทึกของฉัน' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'เพิ่มเติม' })).toBeTruthy();
   });
 
+  it('does NOT steal focus on the default-open mount', async () => {
+    await renderReader();
+    // The panel is open on load — focusing its first control would yank the
+    // user's cursor away from the page content.
+    expect(document.activeElement).not.toBe(screen.getByRole('button', { name: 'ค้นหามาตรา' }));
+    expect(document.activeElement).not.toBe(collapseBtn());
+  });
+
+  it('dockCollapsed memory: stored "true" → starts collapsed (Level 0)', async () => {
+    localStorage.setItem('lawlib:dockCollapsed', 'true');
+    await renderReader();
+
+    expect(dockPanel()).toBeNull();
+    const icon = dockIcon();
+    expect(icon.getAttribute('aria-expanded')).toBe('false');
+    expect(icon.getAttribute('aria-controls')).toBe('lawlib-dock-panel');
+    // No badge inside the collapsed icon (D1 — plain tools icon).
+    expect(within(icon).queryByText(/^\d+$/)).toBeNull();
+  });
+
+  it('user expand clears the collapse memory; user collapse persists it', async () => {
+    localStorage.setItem('lawlib:dockCollapsed', 'true');
+    await renderReader();
+    expect(dockPanel()).toBeNull();
+
+    // Expand → memory cleared (next visit opens).
+    fireEvent.click(dockIcon());
+    expect(dockPanel()).not.toBeNull();
+    expect(localStorage.getItem('lawlib:dockCollapsed')).toBe('false');
+
+    // Collapse (ย่อ) → memory set (next visit starts collapsed).
+    fireEvent.click(collapseBtn());
+    expect(dockPanel()).toBeNull();
+    expect(localStorage.getItem('lawlib:dockCollapsed')).toBe('true');
+  });
+});
+
+describe('Dock v2.1 — Level 1 (expanded favorites)', () => {
   it('panel STAYS OPEN after opening a picker and after picking an option (no auto-collapse, D1)', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
     expect(dockPanel()).not.toBeNull();
 
     // Open the theme picker → panel + popover both stay.
@@ -189,7 +237,6 @@ describe('Dock v2 — Level 1 (expanded favorites)', () => {
 
   it('font size picker: −/+ steppers + preset chips change the value directly', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
     const fontSizeBtn = screen.getByRole('button', { name: /ตัวอักษร/ });
     fireEvent.click(fontSizeBtn);
     expect(fontSizeBtn.getAttribute('aria-expanded')).toBe('true');
@@ -205,7 +252,6 @@ describe('Dock v2 — Level 1 (expanded favorites)', () => {
 
   it('line-height + width pickers: sliders apply directly and show the value', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
 
     const lineHeightBtn = screen.getByRole('button', { name: /บรรทัด/ });
     fireEvent.click(lineHeightBtn);
@@ -226,7 +272,6 @@ describe('Dock v2 — Level 1 (expanded favorites)', () => {
 
   it('picker popover closes on Esc; the panel stays open (Esc cascades)', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
     const themeBtn = screen.getByRole('button', { name: /ธีม/ });
     fireEvent.click(themeBtn);
     expect(screen.getByRole('group', { name: 'ธีม' })).toBeTruthy();
@@ -238,7 +283,6 @@ describe('Dock v2 — Level 1 (expanded favorites)', () => {
 
   it('bookmark button: toggle + aria-pressed + count badge', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
 
     const bookmarkBtn = screen.getByRole('button', { name: 'ที่คั่นหน้า' });
     expect(bookmarkBtn.getAttribute('aria-pressed')).toBe('false');
@@ -260,7 +304,6 @@ describe('Dock v2 — Level 1 (expanded favorites)', () => {
 
   it('bookmark active state swaps the ribbon icon — never color-only (fix #9)', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
 
     const bookmarkBtn = screen.getByRole('button', { name: 'ที่คั่นหน้า' });
     expect(bookmarkBtn.querySelector('.fi-sr-bookmark')).not.toBeNull();
@@ -275,7 +318,6 @@ describe('Dock v2 — Level 1 (expanded favorites)', () => {
 
   it('theme picker: exactly 4 themes (night removed) with Thai ซีเปีย label (fix #19/20)', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
     fireEvent.click(screen.getByRole('button', { name: /ธีม/ }));
 
     // Scope to the popover group — the trigger button's own name also
@@ -293,10 +335,9 @@ describe('Dock v2 — Level 1 (expanded favorites)', () => {
   });
 });
 
-describe('Dock v2 — close paths (stays open until explicitly closed)', () => {
+describe('Dock v2.1 — close paths (Esc / ย่อ / X only — T12)', () => {
   it('Esc closes the panel and returns focus to the tools icon', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
     expect(dockPanel()).not.toBeNull();
 
     fireEvent.keyDown(document, { key: 'Escape' });
@@ -305,12 +346,11 @@ describe('Dock v2 — close paths (stays open until explicitly closed)', () => {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 5));
     });
-    expect(screen.getByRole('button', { name: 'เครื่องมืออ่าน' })).toBe(document.activeElement);
+    expect(dockIcon()).toBe(document.activeElement);
   });
 
   it('Esc from an open picker closes ONLY the picker and returns focus to its anchor', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
     const themeBtn = screen.getByRole('button', { name: /ธีม/ });
     fireEvent.click(themeBtn);
     expect(screen.getByRole('group', { name: 'ธีม' })).toBeTruthy();
@@ -325,7 +365,6 @@ describe('Dock v2 — close paths (stays open until explicitly closed)', () => {
 
   it('panel X-close restores focus to the collapsed tools icon (Esc parity)', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
     expect(dockPanel()).not.toBeNull();
 
     fireEvent.click(screen.getByRole('button', { name: 'ปิดแถบเครื่องมือ' }));
@@ -333,37 +372,51 @@ describe('Dock v2 — close paths (stays open until explicitly closed)', () => {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 5));
     });
-    expect(screen.getByRole('button', { name: 'เครื่องมืออ่าน' })).toBe(document.activeElement);
+    expect(dockIcon()).toBe(document.activeElement);
   });
 
-  it('re-clicking the tools icon collapses the panel', async () => {
+  it('the ย่อ collapse button closes the panel (re-click collapses)', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
     expect(dockPanel()).not.toBeNull();
 
-    fireEvent.click(screen.getByRole('button', { name: 'ย่อแถบเครื่องมือ' }));
+    fireEvent.click(collapseBtn());
     expect(dockPanel()).toBeNull();
-    expect(screen.getByRole('button', { name: 'เครื่องมืออ่าน' })).toBeTruthy();
+    expect(dockIcon()).toBeTruthy();
+
+    // Re-click the icon expands again.
+    fireEvent.click(dockIcon());
+    expect(dockPanel()).not.toBeNull();
   });
 
-  it('pointerdown outside the dock closes it (but NOT clicks inside the panel)', async () => {
+  it('pointerdown OUTSIDE the dock does NOT close it (T12 — D1 reversed)', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
     expect(dockPanel()).not.toBeNull();
 
     // A click inside the panel must not close it.
     fireEvent.pointerDown(screen.getByRole('button', { name: 'ค้นหามาตรา' }));
     expect(dockPanel()).not.toBeNull();
 
+    // A click ANYWHERE outside must not close it either — the panel stays
+    // until Esc / ย่อ / X (scrutiny fix: pickers keep their own close).
     fireEvent.pointerDown(document.body);
-    expect(dockPanel()).toBeNull();
+    expect(dockPanel()).not.toBeNull();
+  });
+
+  it('picker popovers STILL close on outside click (separate handlers — scrutiny fix)', async () => {
+    await renderReader();
+    fireEvent.click(screen.getByRole('button', { name: /ธีม/ }));
+    expect(screen.getByRole('group', { name: 'ธีม' })).toBeTruthy();
+
+    fireEvent.pointerDown(document.body);
+    expect(screen.queryByRole('group', { name: 'ธีม' })).toBeNull();
+    // The dock panel itself stays open (only the picker closed).
+    expect(dockPanel()).not.toBeNull();
   });
 });
 
-describe('Dock v2 — Level 2 (เพิ่มเติม)', () => {
+describe('Dock v2.1 — Level 2 (เพิ่มเติม)', () => {
   it('เพิ่มเติม swaps to ALL tools with ย้อนกลับ back + per-tool pin toggles', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
     const moreBtn = screen.getByRole('button', { name: 'เพิ่มเติม' });
     // Level-2 disclosure attrs (fix #1) — read BEFORE the click: the button
     // unmounts when Level 2 replaces Level 1.
@@ -395,7 +448,6 @@ describe('Dock v2 — Level 2 (เพิ่มเติม)', () => {
 
   it('Level-2 open moves focus to ย้อนกลับ — never drops to <body> (fix #1)', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
     fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
     // The focus move is deferred until the back button mounts.
     await act(async () => {
@@ -407,7 +459,6 @@ describe('Dock v2 — Level 2 (เพิ่มเติม)', () => {
 
   it('Esc at Level 2 is 2-layer: first back to Level 1, second closes the dock (fix #16)', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
     fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
     expect(screen.getByText('เครื่องมือทั้งหมด')).toBeTruthy();
 
@@ -426,12 +477,11 @@ describe('Dock v2 — Level 2 (เพิ่มเติม)', () => {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 5));
     });
-    expect(screen.getByRole('button', { name: 'เครื่องมืออ่าน' })).toBe(document.activeElement);
+    expect(dockIcon()).toBe(document.activeElement);
   });
 
   it('ตั้งค่า row is LIVE: opens the settings picker (T10b — no longer disabled)', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
     fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
 
     const settingsRow = screen.getByRole('button', { name: /^ตั้งค่า/ });
@@ -443,7 +493,6 @@ describe('Dock v2 — Level 2 (เพิ่มเติม)', () => {
 
   it('position selector: 8 spots (3×3 minus center), persisted to localStorage', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
     fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
 
     const group = screen.getByRole('group', { name: 'ตำแหน่งปุ่มเครื่องมือ' });
@@ -463,7 +512,6 @@ describe('Dock v2 — Level 2 (เพิ่มเติม)', () => {
 
   it('mid-left position clamps the panel width to 100vw − icon footprint (375px no-overflow)', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
     fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
     fireEvent.click(screen.getByRole('button', { name: 'ตำแหน่งกลางซ้าย' }));
 
@@ -479,7 +527,6 @@ describe('Dock v2 — Level 2 (เพิ่มเติม)', () => {
 
   it('mid-right clamps symmetrically (fix #27 — no LEFT-edge overflow at 375px)', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
     fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
     fireEvent.click(screen.getByRole('button', { name: 'ตำแหน่งกลางขวา' }));
 
@@ -491,7 +538,6 @@ describe('Dock v2 — Level 2 (เพิ่มเติม)', () => {
 
   it('top-row positions clear the page H1: 14rem mobile / 11rem md (fix #17)', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
     fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
     fireEvent.click(screen.getByRole('button', { name: 'ตำแหน่งบนซ้าย' }));
 
@@ -507,7 +553,6 @@ describe('Dock v2 — Level 2 (เพิ่มเติม)', () => {
 
   it('bookmarks list in Level 2: grouped chapter rows with jump + delete', async () => {
     await renderReader();
-    fireEvent.click(dockIcon());
 
     // Bookmark the current article (mount defaulted activeKey to the first).
     fireEvent.click(screen.getByRole('button', { name: 'ที่คั่นหน้า' }));
@@ -523,14 +568,170 @@ describe('Dock v2 — Level 2 (เพิ่มเติม)', () => {
   });
 });
 
-describe('Dock v2 — mobile-safe panel structure', () => {
-  it('panel carries wrap + max-h + overflow-y-auto (375px no-overflow contract)', async () => {
+describe('Dock v2.1 — direction-aware layout (T12)', () => {
+  it('side position (default bottom-right): Level-1 VERTICAL column + Level-2 2-col grid', async () => {
     await renderReader();
+    const panel = dockPanel() as HTMLElement;
+
+    // Level 1 favorites flow top-to-bottom (the row wrapping the pickers).
+    const themeBtn = screen.getByRole('button', { name: /ธีม/ });
+    const favoritesRow = themeBtn.closest('[class*="flex-col"]') as HTMLElement;
+    expect(favoritesRow).not.toBeNull();
+    expect(favoritesRow.className).toContain('flex-col');
+    expect(favoritesRow.className).not.toContain('flex-wrap');
+
+    // Level 2 tools = 2-col grid (vertical panel), no horizontal 3-col step.
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
+    const ul = panel.querySelector('#lawlib-more-panel ul') as HTMLElement;
+    expect(ul.className).toContain('grid grid-cols-2');
+    expect(ul.className).not.toContain('sm:grid-cols-3');
+  });
+
+  it('middle position (top-center): Level-1 HORIZONTAL row + Level-2 horizontal grid', async () => {
+    await renderReader();
+    // Switch the position FIRST (the default bottom-right is a side position
+    // → vertical; L1 only re-renders horizontally once the position lands).
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
+    fireEvent.click(screen.getByRole('button', { name: 'ตำแหน่งบนกลาง' }));
+    fireEvent.click(screen.getByRole('button', { name: /ย้อนกลับ/ }));
+
+    // Capture the Level-1 row BEFORE opening Level 2 again (L1 unmounts
+    // while เพิ่มเติม is shown; the L2 rows also share the ธีม label).
+    const themeBtn = screen.getByRole('button', { name: /ธีม/ });
+    const favoritesRow = themeBtn.closest('[class*="flex-wrap"]') as HTMLElement;
+    expect(favoritesRow).not.toBeNull();
+    expect(favoritesRow.className).toContain('flex-wrap');
+
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
+
+    const panel = dockPanel() as HTMLElement;
+    // Level 2 tools = horizontal grid (3 cols from sm up).
+    const ul = panel.querySelector('#lawlib-more-panel ul') as HTMLElement;
+    expect(ul.className).toContain('grid grid-cols-2');
+    expect(ul.className).toContain('sm:grid-cols-3');
+  });
+
+  it('side positions animate the slide SIDEWAYS with --lawlib-dock-slide', async () => {
+    await renderReader();
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
+    fireEvent.click(screen.getByRole('button', { name: 'ตำแหน่งกลางซ้าย' }));
+
+    const root = document.querySelector('.lawlib-dock.fixed') as HTMLElement;
+    expect(root.style.getPropertyValue('--lawlib-dock-slide')).toBe('-8px');
+  });
+});
+
+describe('Dock v2.1 — mobile bottom sheet (T12)', () => {
+  it('mobile (≤639px): full-width bottom sheet, open per default, horizontal Level 1', async () => {
+    mockMatchMedia({ mobile: true });
+    await renderReader();
+
+    // The sheet is open on load (user: เปิดทั้ง 2 — mobile too).
+    const panel = dockPanel() as HTMLElement;
+    expect(panel).not.toBeNull();
+    expect(panel.className).toContain('fixed inset-x-0 bottom-0');
+    expect(panel.className).toContain('rounded-t-2xl');
+    expect(panel.className).not.toContain('bottom-full');
+    expect(panel.className).toContain('max-h-[min(65vh,34rem)]');
+
+    // The sheet's Level 1 flows horizontally (wrap).
+    const themeBtn = screen.getByRole('button', { name: /ธีม/ });
+    const favoritesRow = themeBtn.closest('[class*="flex-wrap"]') as HTMLElement;
+    expect(favoritesRow).not.toBeNull();
+  });
+
+  it('mobile respects the collapse memory too (user collapsed → sheet closed next visit)', async () => {
+    mockMatchMedia({ mobile: true });
+    localStorage.setItem('lawlib:dockCollapsed', 'true');
+    await renderReader();
+
+    expect(dockPanel()).toBeNull();
     fireEvent.click(dockIcon());
+    expect(dockPanel()).not.toBeNull();
+    expect(localStorage.getItem('lawlib:dockCollapsed')).toBe('false');
+  });
+});
+
+describe('Dock v2.1 — non-default value dots (T12)', () => {
+  it('no dots at defaults; a dot appears on the picker whose value changed', async () => {
+    await renderReader();
+
+    const themeBtn = screen.getByRole('button', { name: /ธีม/ });
+    const fontSizeBtn = screen.getByRole('button', { name: /ตัวอักษร/ });
+    const lineHeightBtn = screen.getByRole('button', { name: /บรรทัด/ });
+    const widthBtn = screen.getByRole('button', { name: /กว้าง/ });
+    expect(themeBtn.querySelector('.bg-blue-500')).toBeNull();
+    expect(fontSizeBtn.querySelector('.bg-blue-500')).toBeNull();
+    expect(lineHeightBtn.querySelector('.bg-blue-500')).toBeNull();
+    expect(widthBtn.querySelector('.bg-blue-500')).toBeNull();
+
+    // Change the font size → ONLY that button gets the dot.
+    fireEvent.click(fontSizeBtn);
+    fireEvent.click(screen.getByRole('button', { name: 'ขนาดตัวอักษร 18px' }));
+    expect(fontSizeBtn.querySelector('.bg-blue-500')).not.toBeNull();
+    expect(themeBtn.querySelector('.bg-blue-500')).toBeNull();
+    expect(lineHeightBtn.querySelector('.bg-blue-500')).toBeNull();
+    expect(widthBtn.querySelector('.bg-blue-500')).toBeNull();
+  });
+
+  it('theme picker dots: non-default theme shows a dot; returning to สว่าง clears it', async () => {
+    await renderReader();
+    const themeBtn = screen.getByRole('button', { name: /ธีม/ });
+
+    fireEvent.click(themeBtn);
+    // The picker STAYS open after a selection (no auto-collapse) — the next
+    // option is one click away without re-toggling the trigger.
+    fireEvent.click(screen.getByRole('button', { name: 'ธีมมืด' }));
+    expect(themeBtn.querySelector('.bg-blue-500')).not.toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'ธีมสว่าง' }));
+    expect(themeBtn.querySelector('.bg-blue-500')).toBeNull();
+  });
+});
+
+describe('Dock v2.1 — animation (T12, gated by animateDock + reduced-motion)', () => {
+  it('animateDock ON + no reduced motion: collapse plays the exit animation (150ms hold)', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderReader();
+
+    fireEvent.click(collapseBtn());
+    // The panel stays mounted while the exit animation runs…
+    const panel = dockPanel() as HTMLElement;
+    expect(panel).not.toBeNull();
+    expect(panel.className).toContain('lawlib-dock-anim-out-up');
+    // …and the collapse memory is already persisted.
+    expect(localStorage.getItem('lawlib:dockCollapsed')).toBe('true');
+
+    // After the 150ms window the panel unmounts and the icon takes over.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    });
+    expect(dockPanel()).toBeNull();
+    expect(dockIcon()).toBeTruthy();
+  });
+
+  it('settings.animateDock=false → instant collapse even without reduced motion', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    localStorage.setItem('lawlib:settings', JSON.stringify({ fontSize: 16, animateDock: false }));
+    await renderReader();
+
+    fireEvent.click(collapseBtn());
+    expect(dockPanel()).toBeNull();
+  });
+
+  it('prefers-reduced-motion → instant collapse (no closing hold)', async () => {
+    // Test default: reducedMotion stub ON.
+    await renderReader();
+    fireEvent.click(collapseBtn());
+    expect(dockPanel()).toBeNull();
+  });
+});
+
+describe('Dock v2.1 — mobile-safe panel structure', () => {
+  it('panel carries max-h + overflow-y-auto (375px no-overflow contract)', async () => {
+    await renderReader();
     const panel = dockPanel() as HTMLElement;
     expect(panel.className).toContain('overflow-y-auto');
     expect(panel.className).toContain('max-h-');
-    // The Level-1 favorites row wraps to 2 rows on narrow screens.
-    expect(panel.querySelector('[class*="flex-wrap"]')).not.toBeNull();
   });
 });

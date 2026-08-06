@@ -84,8 +84,6 @@ class IntersectionObserverStub {
   takeRecords = vi.fn(() => []);
 }
 
-const dockIcon = () => screen.getByRole('button', { name: 'เครื่องมืออ่าน' });
-
 beforeEach(() => {
   mockLocalStorage();
   mockMatchMedia([]);
@@ -111,9 +109,9 @@ async function renderReader() {
   return utils;
 }
 
-/** Open Level 2 → ⚙️ settings picker. Returns the picker group. */
+/** Level 1 is OPEN BY DEFAULT (T12) — เพิ่มเติม → ⚙️ settings picker.
+ *  Returns the picker group. */
 async function openSettings() {
-  fireEvent.click(dockIcon());
   fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
   fireEvent.click(screen.getByRole('button', { name: /^ตั้งค่า/ }));
   const picker = screen.getByRole('group', { name: 'ตั้งค่า' });
@@ -142,7 +140,8 @@ describe('T10b settings panel — ⚙️ wiring', () => {
     await renderReader();
     const picker = await openSettings();
     const slider = within(picker).getByLabelText('ความทึบ (เฉพาะ dock + ค้นหา)');
-    expect((slider as HTMLInputElement).value).toBe('75');
+    // T12: default 35 (real glass) — was 75.
+    expect((slider as HTMLInputElement).value).toBe('35');
     fireEvent.change(slider, { target: { value: '100' } });
     expect(storedSettings().glassOpacity).toBe(100);
     fireEvent.change(slider, { target: { value: '0' } });
@@ -233,6 +232,21 @@ describe('T10b settings panel — focus mode', () => {
     expect(document.body.classList.contains('lawlib-focus')).toBe(false);
     expect(storedSettings().focusMode).toBe(false);
   });
+
+  it('T12: Esc during focus mode NEVER persists a user collapse (dock hidden — its Esc handler stands down)', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    fireEvent.click(within(picker).getByRole('switch', { name: 'เปิดโหมดโฟกัส' }));
+    // The dock closed itself on activation (closeAllInstant) — no memory.
+    expect(localStorage.getItem('lawlib:dockCollapsed')).toBeNull();
+
+    // Esc exits focus mode through the READER handler; the dock's own Esc
+    // handler is stood down (it is display:none) — the hidden dock must not
+    // be collapsed AND remembered as a user collapse.
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(document.body.classList.contains('lawlib-focus')).toBe(false);
+    expect(localStorage.getItem('lawlib:dockCollapsed')).toBeNull();
+  });
 });
 
 describe('T10b settings panel — auto-scroll + reset', () => {
@@ -258,7 +272,6 @@ describe('T10b settings panel — auto-scroll + reset', () => {
     localStorage.setItem('lawlib:dockPosition', 'top-left');
     localStorage.setItem('lawlib:paperTone', '80');
     await renderReader();
-    fireEvent.click(dockIcon());
     fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
     fireEvent.click(screen.getByRole('button', { name: /^ตั้งค่า/ }));
     const picker = screen.getByRole('group', { name: 'ตั้งค่า' });
@@ -274,7 +287,7 @@ describe('T10b settings panel — auto-scroll + reset', () => {
       width: 100,
       favoriteToolKeys: ['theme', 'fontSize', 'lineHeight', 'width', 'bookmark', 'search', 'notes'],
       fontFamily: 'sarabun',
-      glassOpacity: 75,
+      glassOpacity: 35,
       toolbarSize: 44,
       paragraphSpacing: 0,
       fontWeight: 'normal',
@@ -282,6 +295,7 @@ describe('T10b settings panel — auto-scroll + reset', () => {
       hideAmendmentNotes: false,
       focusMode: false,
       autoScrollSpeed: 0,
+      animateDock: true,
     });
     expect(localStorage.getItem('lawlib:dockPosition')).toBe('bottom-right');
     expect(localStorage.getItem('lawlib:paperTone')).toBe('50');
@@ -292,6 +306,136 @@ describe('T10b settings panel — auto-scroll + reset', () => {
           name: 'ตำแหน่งล่างขวา',
         })
         .getAttribute('aria-pressed'),
+    ).toBe('true');
+  });
+});
+
+describe('T12 settings panel — per-setting คืนค่า resets (ADR-019 D9)', () => {
+  it('every reset button is DISABLED at its default value', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    // A representative sample: slider (glass), toggle (hide repealed),
+    // option group (font family), section action (auto-scroll).
+    expect(
+      (within(picker).getByRole('button', { name: 'คืนค่าความทึบ' }) as HTMLButtonElement).disabled,
+    ).toBe(true);
+    expect(
+      (within(picker).getByRole('button', { name: 'คืนค่าซ่อนมาตรา' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    expect(
+      (within(picker).getByRole('button', { name: 'คืนค่าฟอนต์ตัวบท' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    expect(
+      (
+        within(picker).getByRole('button', {
+          name: 'คืนค่าความเร็วเลื่อนอัตโนมัติ',
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+  });
+
+  it('glass slider: คืนค่า resets ONLY glassOpacity (35) — other settings untouched', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    const slider = within(picker).getByLabelText('ความทึบ (เฉพาะ dock + ค้นหา)');
+    fireEvent.change(slider, { target: { value: '100' } });
+    expect(storedSettings().glassOpacity).toBe(100);
+
+    fireEvent.click(within(picker).getByRole('button', { name: 'คืนค่าความทึบ' }));
+    expect(storedSettings().glassOpacity).toBe(35);
+    // ONLY the glass slider moved — the sibling toolbar size stays default.
+    expect(storedSettings().toolbarSize).toBe(44);
+  });
+
+  it('toolbar size: คืนค่า resets to 44', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    fireEvent.change(within(picker).getByLabelText('ขนาดปุ่มเครื่องมือ'), {
+      target: { value: '56' },
+    });
+    expect(storedSettings().toolbarSize).toBe(56);
+
+    fireEvent.click(within(picker).getByRole('button', { name: 'คืนค่าขนาดปุ่ม' }));
+    expect(storedSettings().toolbarSize).toBe(44);
+  });
+
+  it('font family: คืนค่า resets to sarabun', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    fireEvent.click(within(picker).getByRole('button', { name: 'ฟอนต์ Itim' }));
+    expect(storedSettings().fontFamily).toBe('itim');
+
+    fireEvent.click(within(picker).getByRole('button', { name: 'คืนค่าฟอนต์ตัวบท' }));
+    expect(storedSettings().fontFamily).toBe('sarabun');
+  });
+
+  it('paragraph spacing + font weight: each คืนค่า resets only itself', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    fireEvent.click(within(picker).getByRole('button', { name: 'ระยะห่างย่อหน้า 0.5' }));
+    fireEvent.click(within(picker).getByRole('button', { name: 'ความหนาตัวอักษรหนา' }));
+
+    fireEvent.click(within(picker).getByRole('button', { name: 'คืนค่าระยะห่างย่อหน้า' }));
+    expect(storedSettings().paragraphSpacing).toBe(0);
+    // Font weight untouched by the spacing reset.
+    expect(storedSettings().fontWeight).toBe('bold');
+
+    fireEvent.click(within(picker).getByRole('button', { name: 'คืนค่าความหนาตัวอักษร' }));
+    expect(storedSettings().fontWeight).toBe('normal');
+  });
+
+  it('content toggles: each คืนค่า resets only itself', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    fireEvent.click(within(picker).getByRole('switch', { name: 'ซ่อนมาตรา/วรรคที่ถูกยกเลิก' }));
+    fireEvent.click(within(picker).getByRole('switch', { name: 'ซ่อนโน้ตการแก้ไข' }));
+    expect(storedSettings().hideRepealed).toBe(true);
+    expect(storedSettings().hideAmendmentNotes).toBe(true);
+
+    fireEvent.click(within(picker).getByRole('button', { name: 'คืนค่าซ่อนมาตรา' }));
+    expect(storedSettings().hideRepealed).toBe(false);
+    expect(storedSettings().hideAmendmentNotes).toBe(true);
+
+    fireEvent.click(within(picker).getByRole('button', { name: 'คืนค่าซ่อนโน้ต' }));
+    expect(storedSettings().hideAmendmentNotes).toBe(false);
+  });
+
+  it('auto-scroll: คืนค่า resets speed to 0 (off)', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    fireEvent.change(within(picker).getByLabelText('ความเร็ว'), { target: { value: '3' } });
+    expect(storedSettings().autoScrollSpeed).toBe(3);
+
+    fireEvent.click(within(picker).getByRole('button', { name: 'คืนค่าความเร็วเลื่อนอัตโนมัติ' }));
+    expect(storedSettings().autoScrollSpeed).toBe(0);
+  });
+
+  it('animateDock toggle: switch + per-setting reset (default ON)', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    // The new T12 section renders.
+    expect(within(picker).getByRole('heading', { name: 'แอนิเมชัน' })).toBeTruthy();
+
+    // Default ON → the reset is disabled (already the default).
+    const resetBtn = within(picker).getByRole('button', {
+      name: 'คืนค่าแอนิเมชัน',
+    }) as HTMLButtonElement;
+    expect(resetBtn.disabled).toBe(true);
+    const toggle = within(picker).getByRole('switch', { name: 'แอนิเมชันแถบเครื่องมือ' });
+    expect(toggle.getAttribute('aria-checked')).toBe('true');
+
+    // Switch off → persisted; reset re-enables → back to ON.
+    fireEvent.click(toggle);
+    expect(storedSettings().animateDock).toBe(false);
+    expect(resetBtn.disabled).toBe(false);
+    fireEvent.click(resetBtn);
+    expect(storedSettings().animateDock).toBe(true);
+    expect(
+      (
+        within(picker).getByRole('switch', { name: 'แอนิเมชันแถบเครื่องมือ' }) as HTMLButtonElement
+      ).getAttribute('aria-checked'),
     ).toBe('true');
   });
 });

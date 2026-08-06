@@ -1,22 +1,30 @@
 'use client';
 
 /**
- * LawLib — dock v2 (T10a, ADR-019 D1/D2/D3/D6).
+ * LawLib — dock v2.1 (T10a + T12, ADR-019 D1/D2/D3/D6/D9).
  *
  * 3-level hierarchy, ONE mechanism desktop + mobile:
  *   Level 0 · ยุบ:     single plain tools icon (no badge) at one of 8
  *                      positions (persisted `lawlib:dockPosition`).
- *   Level 1 · ขยาย:    favorite/pinned tools (favoriteToolKeys, persisted in
- *                      settings) — 4 value-showing pickers + bookmark/search/
- *                      notes + "อ่านต่อ" (when a per-slug position exists) +
- *                      "เพิ่มเติม" (Level 2).
+ *   Level 1 · ขยาย:    OPEN BY DEFAULT on reader mount (T12 — desktop panel
+ *                      or mobile bottom sheet; reversed D1's default-
+ *                      collapsed). favorite/pinned tools (favoriteToolKeys,
+ *                      persisted in settings) — 4 value-showing pickers +
+ *                      bookmark/search/notes + "อ่านต่อ" (when a per-slug
+ *                      position exists) + "เพิ่มเติม" (Level 2).
  *   Level 2 · เพิ่มเติม: ALL tools with per-tool pin toggles + the grouped
  *                      bookmarks list + the 8-position selector.
  *
- * The panel STAYS OPEN until explicitly closed — Esc / pointerdown-outside /
- * re-click the tools icon. No auto-collapse after any action (D1). Anchor
- * flips per position: top → panel expands DOWN, bottom → UP, mid → SIDE.
- * Mobile follows the same positions with safe-area insets.
+ * The panel closes ONLY via Esc / the ย่อ collapse button / the X button
+ * (D9 — pointerdown-outside no longer closes the DOCK panel; the picker
+ * POPOVERS keep their own Esc/outside close). A user collapse persists
+ * `lawlib:dockCollapsed` → the next visit starts collapsed. Anchor flips per
+ * position: top → panel expands DOWN, bottom → UP, mid → SIDE. Mobile
+ * (≤639px) renders a full-width bottom sheet, open per default. Expansion
+ * is direction-aware (T12): side positions = vertical Level-1 column +
+ * 2-col Level-2 grid; middle positions = horizontal row + horizontal grid.
+ * Expand/collapse animates (150ms slide+fade, settings.animateDock +
+ * prefers-reduced-motion gate).
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { safeGetString, safeSetString } from '@/lib/storage';
@@ -81,6 +89,11 @@ const POSITION_LABELS: Record<DockPosition, string> = {
  * mid→side); `panelMaxH` = viewport-safe cap (the panel scrolls past it);
  * `panelWidth` = optional per-position width override (mid-left AND mid-right
  * clamp to 100vw − icon footprint so the side-anchored panel fits 375px).
+ * `layout` (T12 — ADR-019 D9, direction-aware expansion): side positions
+ * (L/R × top/mid/bot) = VERTICAL Level-1 column + Level-2 two-column grid;
+ * middle positions (top-center/bottom-center) = HORIZONTAL Level-1 row +
+ * Level-2 horizontal grid. Mobile (≤639px) always renders the bottom-sheet
+ * horizontal layout, open by default.
  * Bottom offsets clear BackToTop (bottom-6/10 + ~44px ≈ 84px). Top rows clear
  * the law header (24-231px, a11y fix #17): 14rem on mobile, 11rem from md up;
  * the matching panelMaxH keeps the panel fully in-viewport. Safe areas:
@@ -97,27 +110,32 @@ const POSITION_LABELS: Record<DockPosition, string> = {
  * the calcs use underscored arbitrary values (Tailwind converts _ → space —
  * calc REQUIRES spaces around -). All literals are static — JIT-safe.
  */
+type DockLayout = 'vertical' | 'horizontal';
+
 const POSITION_CONFIG: Record<
   DockPosition,
-  { root: string; panel: string; panelMaxH: string; panelWidth?: string }
+  { root: string; panel: string; panelMaxH: string; panelWidth?: string; layout: DockLayout }
 > = {
   'top-left': {
     root: 'top-[max(14rem,env(safe-area-inset-top))] left-[max(1rem,env(safe-area-inset-left))] md:top-[max(11rem,env(safe-area-inset-top))]',
     panel: 'top-full left-0',
     panelMaxH:
       'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_15rem)] md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]',
+    layout: 'vertical',
   },
   'top-center': {
     root: 'top-[max(14rem,env(safe-area-inset-top))] left-1/2 -translate-x-1/2 md:top-[max(11rem,env(safe-area-inset-top))]',
     panel: 'top-full left-1/2 -translate-x-1/2',
     panelMaxH:
       'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_15rem)] md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]',
+    layout: 'horizontal',
   },
   'top-right': {
     root: 'top-[max(14rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))] md:top-[max(11rem,env(safe-area-inset-top))]',
     panel: 'top-full right-0',
     panelMaxH:
       'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_15rem)] md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]',
+    layout: 'vertical',
   },
   'mid-left': {
     root: 'top-1/2 -translate-y-1/2 left-[max(1rem,env(safe-area-inset-left))]',
@@ -126,6 +144,7 @@ const POSITION_CONFIG: Record<
     // Side-anchored at the icon's right edge (1rem + icon footprint): the
     // shared 92vw cap would push the panel past the viewport at 375px.
     panelWidth: 'w-[min(calc(100vw_-_var(--lawlib-dock-size)_-_1rem),26rem)]',
+    layout: 'vertical',
   },
   'mid-right': {
     root: 'top-1/2 -translate-y-1/2 right-[max(1rem,env(safe-area-inset-right))]',
@@ -137,21 +156,25 @@ const POSITION_CONFIG: Record<
     // goes negative (~14px past the LEFT edge) in landscape with a large
     // env(safe-area-inset-right). The clamp covers both.
     panelWidth: 'w-[min(calc(100vw_-_var(--lawlib-dock-size)_-_1rem),26rem)]',
+    layout: 'vertical',
   },
   'bottom-left': {
     root: 'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1rem))] left-[max(1rem,env(safe-area-inset-left))]',
     panel: 'bottom-full left-0',
     panelMaxH: 'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_4.75rem)]',
+    layout: 'vertical',
   },
   'bottom-center': {
     root: 'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1rem))] left-1/2 -translate-x-1/2',
     panel: 'bottom-full left-1/2 -translate-x-1/2',
     panelMaxH: 'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_4.75rem)]',
+    layout: 'horizontal',
   },
   'bottom-right': {
     root: 'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1rem))] right-[max(1rem,env(safe-area-inset-right))]',
     panel: 'bottom-full right-0',
     panelMaxH: 'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_4.75rem)]',
+    layout: 'vertical',
   },
 };
 
@@ -161,6 +184,24 @@ function loadDockPosition(): DockPosition {
     ? (saved as DockPosition)
     : DEFAULT_DOCK_POSITION;
 }
+
+// ---------------------------------------------------------------------------
+// Dock collapse memory (T12 — ADR-019 D9): a user who collapses the dock
+// manually starts collapsed on the NEXT visit (desktop + mobile). Never
+// collapsed (or key absent) → default OPEN. Written on every explicit
+// user expand/collapse — programmatic closes (focus mode, resume, bookmark
+// jump) do NOT persist.
+// ---------------------------------------------------------------------------
+
+const DOCK_COLLAPSED_KEY = 'lawlib:dockCollapsed';
+
+function loadDockCollapsed(): boolean {
+  return safeGetString(DOCK_COLLAPSED_KEY) === 'true';
+}
+
+/** T12 — expand/collapse animation duration (must match the CSS
+ *  `150ms` in the lawlib-dock-anim-* classes, globals.css). */
+const DOCK_ANIM_MS = 150;
 
 // ---------------------------------------------------------------------------
 // Tool registry (shared by Level 1 favorites + Level 2 ALL tools)
@@ -269,7 +310,15 @@ export default function LawlibDock(props: LawlibDockProps) {
     escBlocked,
   } = props;
 
-  const [expanded, setExpanded] = useState(false);
+  // T12 (ADR-019 D9): Level 1 is OPEN BY DEFAULT (desktop + mobile bottom
+  // sheet) unless the user collapsed it manually on a previous visit
+  // (dockCollapsed memory). The panel closes ONLY via Esc / the collapse
+  // button / the X button — pointerdown-outside NO LONGER closes the dock
+  // panel (reversed D1; the picker POPOVERS keep their own outside-close).
+  const [expanded, setExpanded] = useState<boolean>(() => !loadDockCollapsed());
+  /** Exit-animation hold: while true the panel stays mounted (animating out)
+   *  before the state flips to collapsed. */
+  const [closing, setClosing] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [picker, setPicker] = useState<{ kind: PickerKind; anchor: HTMLElement } | null>(null);
   const [position, setPosition] = useState<DockPosition>(() => loadDockPosition());
@@ -278,6 +327,20 @@ export default function LawlibDock(props: LawlibDockProps) {
   const [coarsePointer] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches,
   );
+  /** T12 — mobile (<640px) renders the expanded dock as a BOTTOM SHEET
+   *  (full-width, horizontal Level 1, open per default). Captured at mount
+   *  like coarsePointer; the sheet is the mobile pattern regardless of the
+   *  chosen position (the position still places the collapsed icon). */
+  const [isMobile] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches,
+  );
+  /** T12 — prefers-reduced-motion: animation always off (plus the CSS
+   *  media-query fallback in globals.css). */
+  const [prefersReducedMotion] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  );
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
@@ -285,23 +348,18 @@ export default function LawlibDock(props: LawlibDockProps) {
   const moreBackRef = useRef<HTMLButtonElement | null>(null);
   /** Level-1 "เพิ่มเติม" button — focus target when Esc leaves Level 2. */
   const moreTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const pickerPortalRef = useRef<HTMLDivElement | null>(null);
   /** Open picker's trigger button — Esc from the picker restores focus here. */
   const pickerAnchorRef = useRef<HTMLElement | null>(null);
 
-  const closeAll = useCallback(() => {
-    setPicker(null);
-    setMoreOpen(false);
-    setExpanded(false);
-    pickerAnchorRef.current = null;
-  }, []);
-
-  const closePicker = useCallback(() => setPicker(null), []);
+  /** T12 — dock expand/collapse animation gate: settings.animateDock AND
+   *  no system reduced-motion preference. */
+  const animateDockNow = settings.animateDock && !prefersReducedMotion;
 
   /** Collapse → hand focus to the collapsed tools icon. Deferred: the icon is
    *  conditionally rendered — toggleRef still points at the just-unmounted
-   *  header button until the re-render lands. Shared by the Esc path and the
-   *  panel X-close (focus parity). */
+   *  header button until the re-render lands (or, with the exit animation,
+   *  until the 150ms closing hold ends). Shared by the Esc path and the
+   *  panel X/ย่อ close (focus parity). */
   const restoreFocusToOpener = useCallback(() => {
     window.setTimeout(() => {
       const opener = toggleRef.current;
@@ -309,13 +367,70 @@ export default function LawlibDock(props: LawlibDockProps) {
     }, 0);
   }, []);
 
-  // Stays open until explicitly closed — Esc / pointerdown-outside / re-click.
+  /** Programmatic close (focus mode / resume / bookmark jump): INSTANT, no
+   *  animation, no collapse-state persistence (the user did not collapse). */
+  const closeAllInstant = useCallback(() => {
+    setPicker(null);
+    setMoreOpen(false);
+    setExpanded(false);
+    pickerAnchorRef.current = null;
+  }, []);
+
+  /** USER-initiated collapse (Esc at Level 1 / ย่อ button / X button):
+   *  persists `lawlib:dockCollapsed` + plays the exit animation when
+   *  enabled (150ms slide+fade — the panel stays mounted while `closing`).
+   *  Focus restore is deferred past the re-render so the collapsed icon
+   *  exists to receive it. */
+  const collapseByUser = useCallback(
+    (restoreFocus: boolean) => {
+      if (closing) return;
+      safeSetString(DOCK_COLLAPSED_KEY, 'true');
+      if (animateDockNow) {
+        setClosing(true);
+        window.setTimeout(() => {
+          setClosing(false);
+          setExpanded(false);
+          if (restoreFocus) restoreFocusToOpener();
+        }, DOCK_ANIM_MS);
+      } else {
+        setExpanded(false);
+        if (restoreFocus) restoreFocusToOpener();
+      }
+    },
+    [closing, animateDockNow, restoreFocusToOpener],
+  );
+
+  /** User close from ANY level — resets picker/Level 2 first (the X button
+   *  can close from Level 2 directly), then collapses with animation. */
+  const userClose = useCallback(
+    (restoreFocus: boolean) => {
+      setPicker(null);
+      setMoreOpen(false);
+      pickerAnchorRef.current = null;
+      collapseByUser(restoreFocus);
+    },
+    [collapseByUser],
+  );
+
+  /** User EXPAND — clears the collapse memory (next visit opens). */
+  const expandByUser = useCallback(() => {
+    safeSetString(DOCK_COLLAPSED_KEY, 'false');
+    setExpanded(true);
+  }, []);
+
+  const closePicker = useCallback(() => setPicker(null), []);
+
+  // Stays open until explicitly closed — Esc / ย่อ / X only (T12 D9).
   // Esc cascades: picker first, then — when Level 2 is open — ONE press back
   // to Level 1 (focus → เพิ่มเติม), a second press closes the dock (a11y fix
   // #16). Stands down while a drawer / tooltip / compact popover owns Escape
-  // (escBlocked).
+  // (escBlocked) AND while focus mode hides the dock (body.lawlib-focus
+  // display:none — its Esc must exit focus mode via the READER's handler,
+  // never collapse/persist the hidden dock; the dock starts OPEN now, so the
+  // old "unreachable handler" assumption no longer holds). The final Esc
+  // collapses the whole dock (persisted).
   useEffect(() => {
-    if (!expanded || escBlocked) return;
+    if (!expanded || escBlocked || settings.focusMode) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
       if (picker !== null) {
@@ -336,37 +451,29 @@ export default function LawlibDock(props: LawlibDockProps) {
         }, 0);
         return;
       }
-      setExpanded(false);
-      restoreFocusToOpener();
+      userClose(true);
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [expanded, escBlocked, picker, moreOpen, restoreFocusToOpener]);
-
-  // Pointerdown-outside closes the dock — EXCEPT inside the dock root and the
-  // open picker portal (both are parts of the same interaction surface).
-  useEffect(() => {
-    if (!expanded) return;
-    const onPointerDown = (e: PointerEvent) => {
-      const target = e.target as Node | null;
-      if (target === null) return;
-      if (rootRef.current?.contains(target)) return;
-      if (pickerPortalRef.current?.contains(target)) return;
-      closeAll();
-    };
-    document.addEventListener('pointerdown', onPointerDown, true);
-    return () => document.removeEventListener('pointerdown', onPointerDown, true);
-  }, [expanded, closeAll]);
+  }, [expanded, escBlocked, settings.focusMode, picker, moreOpen, userClose]);
 
   // Move focus into the panel on expand (a11y — the old dock focused the
-  // first action button on open, L4-1).
+  // first action button on open, L4-1). SKIPPED on the initial mount (the
+  // panel is open by default — it must not steal focus from the page on
+  // load) and while the exit animation runs. `prevExpandedRef` tracks the
+  // transition rather than the state so the guard survives StrictMode-style
+  // effect re-runs.
+  const prevExpandedRef = useRef(expanded);
   useEffect(() => {
-    if (!expanded) return;
+    const wasOpen = prevExpandedRef.current;
+    prevExpandedRef.current = expanded;
+    if (!expanded || closing) return;
+    if (wasOpen) return;
     const root = rootRef.current;
     if (root === null) return;
     const first = root.querySelector<HTMLElement>('button, input');
     if (first !== null && !first.hasAttribute('disabled')) first.focus();
-  }, [expanded]);
+  }, [expanded, closing]);
 
   const togglePicker = (kind: PickerKind, anchor: HTMLElement) => {
     if (picker !== null && picker.kind === kind) {
@@ -436,6 +543,39 @@ export default function LawlibDock(props: LawlibDockProps) {
   const effectiveToolbarSize = coarsePointer
     ? Math.max(TOOLBAR_SIZE_TOUCH_MIN, settings.toolbarSize)
     : settings.toolbarSize;
+
+  // ─── T12 direction-aware layout (ADR-019 D9) ─────────────────────────────
+  // Side positions (L/R × top/mid/bot) → vertical Level-1 column + 2-col
+  // Level-2 grid; middle positions (top/bottom-center) → horizontal Level-1
+  // row + horizontal Level-2 grid; mobile (≤639px) is ALWAYS the bottom
+  // sheet with the horizontal layout.
+  const effectiveLayout: DockLayout = isMobile ? 'horizontal' : cfg.layout;
+  /** Animation slide direction by anchor (T12): top positions slide down
+   *  from the icon, bottom/sheet slide up, mid slides sideways (the panel
+   *  sits beside the icon — --lawlib-dock-slide flips per side). */
+  const animDir = isMobile
+    ? 'up'
+    : position.startsWith('top')
+      ? 'down'
+      : position.startsWith('mid')
+        ? 'side'
+        : 'up';
+  const animClass = animateDockNow
+    ? closing
+      ? `lawlib-dock-anim-out-${animDir}`
+      : `lawlib-dock-anim-in-${animDir}`
+    : '';
+  /** T12 glass: Level 1 + collapsed icon = transparent glass-2 override
+   *  (slider alpha + blur-xs + sheen); Level 2 = glass-3 (opaque-ish). */
+  const panelSurfaceClass = moreOpen
+    ? 'lawlib-glass-strong lawlib-glass-sheen'
+    : 'lawlib-glass lawlib-glass-xs lawlib-glass-sheen';
+  /** T12 mobile bottom sheet (full-width, safe-area bottom inset) vs the
+   *  anchored desktop panel (per-position flip + width cap). */
+  const panelPlacementClass = isMobile
+    ? 'fixed inset-x-0 bottom-0 max-h-[min(65vh,34rem)] overflow-y-auto rounded-t-2xl border-t p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-2xl'
+    : `absolute ${cfg.panel} ${cfg.panelMaxH} overflow-y-auto rounded-2xl border p-2 shadow-2xl ${cfg.panelWidth ?? 'w-[min(92vw,26rem)]'}`;
+
   const pickerValue: Record<PickerKind, string> = {
     theme: THEME_CHOICES.find((c) => c.value === theme)?.label ?? theme,
     fontSize: `${settings.fontSize}px`,
@@ -444,6 +584,18 @@ export default function LawlibDock(props: LawlibDockProps) {
     // 2026-08-06): 80-120%, default 100%.
     width: `${settings.width}%`,
     settings: '',
+  };
+
+  /** T12 (ADR-019 D9): non-default value dots — a picker whose CURRENT value
+   *  differs from the default shows a small blue dot (always on, no toggle).
+   *  Theme compares against 'light' (the site/ThemeProvider default; an
+   *  OS-scheme fallback is out of scope for the dot). */
+  const pickerIsNonDefault: Record<PickerKind, boolean> = {
+    theme: theme !== 'light',
+    fontSize: settings.fontSize !== DEFAULT_READING_SETTINGS.fontSize,
+    lineHeight: settings.lineHeight !== DEFAULT_READING_SETTINGS.lineHeight,
+    width: settings.width !== DEFAULT_READING_SETTINGS.width,
+    settings: false,
   };
 
   // Bookmark count used by the Level-1 badge + Level-2 heading — RESOLVED
@@ -480,17 +632,23 @@ export default function LawlibDock(props: LawlibDockProps) {
           aria-haspopup="true"
           aria-expanded={picker?.kind === kind}
           onClick={(e) => togglePicker(kind, e.currentTarget)}
-          className="flex min-h-11 min-w-[4.5rem] flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg border border-slate-200 bg-white px-1.5 text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:text-blue-300"
+          className="relative flex min-h-11 min-w-[4.5rem] flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg border border-slate-200 bg-white px-1.5 text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:text-blue-300"
         >
           <span className="flex max-w-full items-center gap-1 text-[10px] font-medium">
             <i aria-hidden="true" className={`fi ${tool} text-[9px]`} />
             <span className="truncate">{TOOL_LABELS[key]}</span>
           </span>
-          {key !== 'settings' && (
-            <span className="flex items-center gap-0.5 text-xs font-bold tabular-nums">
-              {pickerValue[kind]}
-              <i aria-hidden="true" className="fi fi-sr-angle-small-down text-[8px]" />
-            </span>
+          <span className="flex items-center gap-0.5 text-xs font-bold tabular-nums">
+            {pickerValue[kind]}
+            <i aria-hidden="true" className="fi fi-sr-angle-small-down text-[8px]" />
+          </span>
+          {/* T12: non-default value dot (always on — a tiny blue dot in the
+              top-right corner; the button itself stays the boundary). */}
+          {key !== 'settings' && pickerIsNonDefault[kind] && (
+            <span
+              aria-hidden="true"
+              className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-blue-500"
+            />
           )}
         </button>
       );
@@ -602,20 +760,30 @@ export default function LawlibDock(props: LawlibDockProps) {
   return (
     <div
       ref={rootRef}
-      style={{ '--lawlib-dock-size': `${effectiveToolbarSize}px` } as React.CSSProperties}
+      style={
+        {
+          '--lawlib-dock-size': `${effectiveToolbarSize}px`,
+          // T12 mid-position slide direction (animating transform only — the
+          // Tailwind translate utilities use the independent `translate`
+          // property, so centering is untouched).
+          ...(animDir === 'side'
+            ? { '--lawlib-dock-slide': position === 'mid-left' ? '-8px' : '8px' }
+            : {}),
+        } as React.CSSProperties
+      }
       className={`lawlib-dock fixed z-50 ${cfg.root}`}
     >
-      {!expanded ? (
+      {!expanded && !closing ? (
         <button
           ref={toggleRef}
           type="button"
-          onClick={() => setExpanded(true)}
+          onClick={expandByUser}
           aria-label="เครื่องมืออ่าน"
           aria-expanded={false}
           aria-haspopup="dialog"
           aria-controls="lawlib-dock-panel"
           title="เครื่องมืออ่าน"
-          className="lawlib-dock lawlib-glass flex h-[var(--lawlib-dock-size)] w-[var(--lawlib-dock-size)] cursor-pointer items-center justify-center rounded-xl border border-slate-200 text-slate-600 shadow-lg transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
+          className="lawlib-dock lawlib-glass lawlib-glass-xs lawlib-glass-sheen flex h-[var(--lawlib-dock-size)] w-[var(--lawlib-dock-size)] cursor-pointer items-center justify-center rounded-xl border border-slate-200 text-slate-600 shadow-lg transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
         >
           <i aria-hidden="true" className="fi fi-sr-sliders-h text-sm leading-none" />
         </button>
@@ -625,14 +793,15 @@ export default function LawlibDock(props: LawlibDockProps) {
           role="dialog"
           aria-modal="false"
           aria-label="เครื่องมืออ่าน"
-          className={`lawlib-dock lawlib-glass absolute ${cfg.panel} ${cfg.panelMaxH} ${cfg.panelWidth ?? 'w-[min(92vw,26rem)]'} overflow-y-auto rounded-2xl border border-slate-200 p-2 shadow-2xl dark:border-slate-700`}
+          className={`lawlib-dock ${panelSurfaceClass} ${panelPlacementClass} border-slate-200 dark:border-slate-700 ${animClass}`}
         >
-          {/* Panel header — the tools icon re-click collapses (D1) */}
+          {/* Panel header — the ย่อ/X close controls are VISIBLE on Level 1
+              (T12 scrutiny fix; the shared header renders for both levels). */}
           <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-slate-100 pb-1.5 dark:border-slate-800">
             <button
               type="button"
               ref={toggleRef}
-              onClick={() => closeAll()}
+              onClick={() => userClose(true)}
               aria-label="ย่อแถบเครื่องมือ"
               aria-expanded={true}
               title="ย่อแถบเครื่องมือ"
@@ -645,10 +814,7 @@ export default function LawlibDock(props: LawlibDockProps) {
             </p>
             <button
               type="button"
-              onClick={() => {
-                closeAll();
-                restoreFocusToOpener();
-              }}
+              onClick={() => userClose(true)}
               aria-label="ปิดแถบเครื่องมือ"
               className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-slate-500 transition-colors hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-slate-400 dark:hover:text-white"
             >
@@ -657,13 +823,14 @@ export default function LawlibDock(props: LawlibDockProps) {
           </div>
 
           {!moreOpen ? (
-            // ─── Level 1 — favorites + เพิ่มเติม ───────────────────────────
+            // ─── Level 1 — favorites + เพิ่มเติม (direction-aware: side
+            // positions = vertical column, middle/mobile = horizontal row) ──
             <div className="flex flex-col gap-1.5">
               {resumeVisible && (
                 <button
                   type="button"
                   onClick={() => {
-                    closeAll();
+                    closeAllInstant();
                     onResume();
                   }}
                   className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-2 text-xs font-semibold text-amber-800 transition-colors hover:border-amber-400 hover:bg-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-amber-500/50 dark:bg-amber-950/40 dark:text-amber-200"
@@ -672,7 +839,11 @@ export default function LawlibDock(props: LawlibDockProps) {
                   อ่านต่อ: {resumeLabel}
                 </button>
               )}
-              <div className="flex flex-wrap gap-1.5">
+              <div
+                className={`flex gap-1.5 ${
+                  effectiveLayout === 'vertical' ? 'flex-col' : 'flex-wrap'
+                }`}
+              >
                 {settings.favoriteToolKeys.map((key) => renderToolButton(key))}
                 <button
                   ref={moreTriggerRef}
@@ -714,7 +885,18 @@ export default function LawlibDock(props: LawlibDockProps) {
               <h2 className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
                 เครื่องมือทั้งหมด
               </h2>
-              <ul className="space-y-1">{DOCK_TOOL_KEYS.map((key) => renderToolRow(key))}</ul>
+              {/* T12 direction-aware Level-2 grid: vertical layout = 2-col
+                  grid; horizontal layout = horizontal grid (2 cols on the
+                  mobile sheet, 3 cols on desktop middle positions). */}
+              <ul
+                className={
+                  effectiveLayout === 'vertical'
+                    ? 'grid grid-cols-2 gap-1'
+                    : 'grid grid-cols-2 gap-1 sm:grid-cols-3'
+                }
+              >
+                {DOCK_TOOL_KEYS.map((key) => renderToolRow(key))}
+              </ul>
 
               <div
                 aria-hidden="true"
@@ -727,7 +909,7 @@ export default function LawlibDock(props: LawlibDockProps) {
                 law={law}
                 keys={bookmarks}
                 onNavigate={(key) => {
-                  closeAll();
+                  closeAllInstant();
                   onJump(key);
                 }}
                 onRemove={onBookmarkRemove}
@@ -783,9 +965,6 @@ export default function LawlibDock(props: LawlibDockProps) {
           }
           label={TOOL_LABELS[picker.kind]}
           onClose={closePicker}
-          registerPortalEl={(el) => {
-            pickerPortalRef.current = el;
-          }}
         >
           {picker.kind === 'theme' && (
             <ThemePickerContent
@@ -827,8 +1006,9 @@ export default function LawlibDock(props: LawlibDockProps) {
                   setSettings((prev) => ({ ...prev, focusMode }));
                   if (focusMode) {
                     // The dock is part of what focus mode hides — close it
-                    // so the panel/picker don't float alone.
-                    closeAll();
+                    // so the panel/picker don't float alone (instant — a
+                    // programmatic close must NOT persist dockCollapsed).
+                    closeAllInstant();
                   }
                 }}
                 onReset={handleReset}

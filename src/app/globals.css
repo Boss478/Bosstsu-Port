@@ -1432,6 +1432,14 @@ textarea,
    - glass-3 (strong/near-opaque: blur-lg + 90%): drawer panels, tooltip,
      article/digest cards (reading surfaces — near-opaque for contrast)
 
+   T12 (ADR-019 D9 — dock v2.1) documents the DOCK deviations from the map:
+   - Level-1 panel + collapsed icon = TRANSPARENT glass (glassOpacity default
+     35%) + blur-xs (4px) via `.lawlib-glass-xs` — "real glass" (user
+     directive 2026-08-06), a documented glass-2 override. Buttons INSIDE the
+     dock keep their own opaque-ish surfaces (contrast AA).
+   - Level-2 (เพิ่มเติม) panel = glass-3 (`.lawlib-glass-strong`) — opaque-ish
+     for readability; the ⚙️ settings picker was already opaque (glass-3+).
+
    Read mode: paper-tinted via the existing `.read` override chain
    (--read-card). No ambient background (user decision) — glass reads via
    translucency + borders + shadow; subtle by design.
@@ -1497,18 +1505,146 @@ textarea,
    by LawlibGlassVars (lawlib layout) from settings.glassOpacity:
    0% → transparent surface (border + focus ring carry the boundary), 100% →
    the JS sets the blur to 'none' (GPU saving). DEFAULTS here keep the
-   surfaces renderable before hydration / on non-lawlib pages.
+   surfaces renderable before hydration / on non-lawlib pages — the light/dark
+   fills default to the T12 35% "real glass" alpha.
    Read/sepia paper overrides BELOW (higher specificity, later in the file)
    keep the paper dock opaque and its backdrop-filter dead (the
    --lawlib-dock-blur trick) and give the search field its paper fill —
    the slider never re-enables blur on the paper dock. */
 .lawlib-glass {
-  background-color: var(--lawlib-glass-bg-light, rgba(255, 255, 255, 0.75));
+  background-color: var(--lawlib-glass-bg-light, rgba(255, 255, 255, 0.35));
   -webkit-backdrop-filter: var(--lawlib-glass-blur, blur(12px));
   backdrop-filter: var(--lawlib-glass-blur, blur(12px));
 }
 .dark .lawlib-glass {
-  background-color: var(--lawlib-glass-bg-dark, rgba(30, 41, 59, 0.75));
+  background-color: var(--lawlib-glass-bg-dark, rgba(30, 41, 59, 0.35));
+}
+/* T12 (ADR-019 D9): blur-xs override for the dock's Level-1 panel + the
+   collapsed icon ("real glass" — documented glass-2 deviation). Rides its
+   own var (set alongside --lawlib-glass-blur by LawlibGlassVars so the
+   slider's 100% → none still applies). Same specificity as .lawlib-glass —
+   declared AFTER it so the blur wins when both classes are present. */
+.lawlib-glass-xs {
+  -webkit-backdrop-filter: var(--lawlib-glass-blur-xs, blur(4px));
+  backdrop-filter: var(--lawlib-glass-blur-xs, blur(4px));
+}
+/* T12: Level-2 (เพิ่มเติม) dock panel surface = glass-3 (opaque-ish for
+   readability — the panel swaps lawlib-glass → lawlib-glass-strong while
+   Level 2 is open). Read/sepia paper overrides below still win (higher
+   specificity). */
+.lawlib-glass-strong {
+  background-color: rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+.dark .lawlib-glass-strong {
+  background-color: rgba(15, 23, 42, 0.9);
+}
+/* T12: classic glass sheen — the TOP border of the dock surfaces reads
+   white/30 (light catching the top edge). Decorative only; killed on paper
+   (no glass to sheen). Applied to the dock panel + collapsed icon. */
+.lawlib-glass-sheen {
+  border-top-color: rgba(255, 255, 255, 0.3);
+}
+.read .lawlib-glass-sheen,
+.sepia .lawlib-glass-sheen {
+  border-top-color: transparent;
+}
+/* T12 (ADR-019 D9): dock expand/collapse animation — slide+fade ~150ms,
+   default ON via settings.animateDock, always skipped under
+   prefers-reduced-motion (JS gate + this CSS fallback). Direction-aware by
+   anchor: top positions slide down from the icon, bottom/sheet slide up,
+   mid slides sideways (--lawlib-dock-slide: ±8px set inline for mid).
+   The keyframes animate `transform` ONLY — Tailwind's translate utilities
+   use the independent `translate` property, so the panel's centering
+   (-translate-y-1/2 etc.) is untouched. */
+@keyframes lawlib-dock-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes lawlib-dock-out-down {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@keyframes lawlib-dock-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes lawlib-dock-out-up {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes lawlib-dock-in-side {
+  from {
+    opacity: 0;
+    transform: translateX(var(--lawlib-dock-slide, 8px));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes lawlib-dock-out-side {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(var(--lawlib-dock-slide, 8px));
+  }
+}
+.lawlib-dock-anim-in-down {
+  animation: lawlib-dock-in-down 150ms ease-out both;
+}
+.lawlib-dock-anim-out-down {
+  animation: lawlib-dock-out-down 150ms ease-in both;
+}
+.lawlib-dock-anim-in-up {
+  animation: lawlib-dock-in-up 150ms ease-out both;
+}
+.lawlib-dock-anim-out-up {
+  animation: lawlib-dock-out-up 150ms ease-in both;
+}
+.lawlib-dock-anim-in-side {
+  animation: lawlib-dock-in-side 150ms ease-out both;
+}
+.lawlib-dock-anim-out-side {
+  animation: lawlib-dock-out-side 150ms ease-in both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lawlib-dock-anim-in-down,
+  .lawlib-dock-anim-out-down,
+  .lawlib-dock-anim-in-up,
+  .lawlib-dock-anim-out-up,
+  .lawlib-dock-anim-in-side,
+  .lawlib-dock-anim-out-side {
+    animation: none;
+  }
 }
 /* List-page search input (SearchInput.tsx — T2 tokens stay; the fill/blur
    ride the same slider vars so the dock+search surfaces stay in sync). */

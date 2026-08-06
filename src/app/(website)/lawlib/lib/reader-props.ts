@@ -106,8 +106,10 @@ export type ReadingSettingsValue = {
   favoriteToolKeys: DockToolKey[];
   /** T10b: reading font family (default 'sarabun'). */
   fontFamily: ReaderFontFamily;
-  /** T10b: chrome translucency 0-100% (default 75 — glass-2). 100 = solid +
-   *  backdrop-filter:none (GPU saving). Dock + search surfaces only. */
+  /** T10b: chrome translucency 0-100% (default 35 — T12 "real glass"; the
+   *  dock's Level-1 panel + collapsed icon blur-xs override, see globals.css
+   *  .lawlib-glass-xs — a documented deviation from the glass-2 tier). 100 =
+   *  solid + backdrop-filter:none (GPU saving). Dock + search surfaces only. */
   glassOpacity: number;
   /** T10b: toolbar size in px 24-56 (default 44). Touch devices floor at 44
    *  (WCAG 2.5.8 — enforced by the dock, not the validator). */
@@ -125,6 +127,9 @@ export type ReadingSettingsValue = {
   focusMode: boolean;
   /** T10b: auto-scroll speed 0-5 (0 = off; pauses on user interaction). */
   autoScrollSpeed: number;
+  /** T12 (ADR-019 D9): dock expand/collapse slide+fade animation (~150ms).
+   *  Default ON; always skipped under prefers-reduced-motion. */
+  animateDock: boolean;
 };
 
 export interface ReadingSettingsProps {

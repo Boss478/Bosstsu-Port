@@ -64,9 +64,13 @@ export interface Highlight {
  * T10a contract change (ADR-019 D4/D5): fontSize 16px (was 'm'), width 100%
  * of the 80ch baseline (was 60ch/'normal'; user decision 2026-08-06 widens
  * the slider to 80-120%), lineHeight 1.8 stays (clamp floor 1.0).
- * T10b (ADR-019 D4): fontFamily sarabun · glassOpacity 75 (glass-2) ·
- * toolbarSize 44 · paragraphSpacing 0 · fontWeight normal · hideRepealed/
+ * T10b (ADR-019 D4): fontFamily sarabun · toolbarSize 44 ·
+ * paragraphSpacing 0 · fontWeight normal · hideRepealed/
  * hideAmendmentNotes/focusMode off · autoScrollSpeed 0 (off).
+ * T12 (ADR-019 D9 — dock v2.1): glassOpacity default 75→35 (real glass —
+ * 30-40% see-through; the L1 panel + collapsed icon blur-xs via
+ * --lawlib-glass-blur-xs) · + animateDock true (expand/collapse animation,
+ * respects prefers-reduced-motion).
  */
 export const DEFAULT_READING_SETTINGS: ReadingSettingsValue = {
   fontSize: 16,
@@ -74,7 +78,7 @@ export const DEFAULT_READING_SETTINGS: ReadingSettingsValue = {
   width: 100,
   favoriteToolKeys: ['theme', 'fontSize', 'lineHeight', 'width', 'bookmark', 'search', 'notes'],
   fontFamily: 'sarabun',
-  glassOpacity: 75,
+  glassOpacity: 35,
   toolbarSize: 44,
   paragraphSpacing: 0,
   fontWeight: 'normal',
@@ -82,6 +86,7 @@ export const DEFAULT_READING_SETTINGS: ReadingSettingsValue = {
   hideAmendmentNotes: false,
   focusMode: false,
   autoScrollSpeed: 0,
+  animateDock: true,
 };
 
 /** All dock tools (runtime list for validation + the dock's Level-2 rows).
@@ -232,6 +237,8 @@ export function validateReadingSettings(input: unknown): ReadingSettingsValue {
     typeof o.autoScrollSpeed === 'number' && Number.isFinite(o.autoScrollSpeed)
       ? clamp(Math.round(o.autoScrollSpeed), AUTO_SCROLL_MIN, AUTO_SCROLL_MAX)
       : DEFAULT_READING_SETTINGS.autoScrollSpeed;
+  const animateDock =
+    typeof o.animateDock === 'boolean' ? o.animateDock : DEFAULT_READING_SETTINGS.animateDock;
 
   let favoriteToolKeys = DEFAULT_READING_SETTINGS.favoriteToolKeys;
   if (Array.isArray(o.favoriteToolKeys)) {
@@ -263,6 +270,7 @@ export function validateReadingSettings(input: unknown): ReadingSettingsValue {
     hideAmendmentNotes,
     focusMode,
     autoScrollSpeed,
+    animateDock,
   };
 }
 

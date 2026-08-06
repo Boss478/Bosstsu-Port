@@ -9,6 +9,7 @@
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { DEFAULT_READING_SETTINGS } from '@/hooks/useReaderStorage';
 import type { Theme } from '@/components/ThemeProvider';
 import type {
   ParagraphSpacing,
@@ -28,7 +29,6 @@ export function PickerPopover({
   widthClass,
   label,
   onClose,
-  registerPortalEl,
   children,
 }: {
   anchorEl: HTMLElement | null;
@@ -37,9 +37,6 @@ export function PickerPopover({
   /** a11y: the popover's aria-label. */
   label: string;
   onClose: () => void;
-  /** Optional portal-root registration — lets the DOCK's pointerdown-outside
-   *  handler treat the picker as part of its interaction surface. */
-  registerPortalEl?: (el: HTMLDivElement | null) => void;
   children: React.ReactNode;
 }) {
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -103,7 +100,6 @@ export function PickerPopover({
     <div
       ref={(el) => {
         rootRef.current = el;
-        registerPortalEl?.(el);
       }}
       // NOT role="dialog": the picker portals INSIDE the dock's dialog —
       // a nested dialog is an APG violation (a11y fix #8). A labelled group
@@ -157,6 +153,9 @@ function SliderRow({
   value,
   display,
   onChange,
+  onReset,
+  resetLabel,
+  resetDisabled,
 }: {
   id: string;
   label: string;
@@ -166,15 +165,30 @@ function SliderRow({
   value: number;
   display: string;
   onChange: (next: number) => void;
+  /** T12 (ADR-019 D9): per-setting คืนค่า — resets ONLY this slider. */
+  onReset?: () => void;
+  /** Accessible name for the reset button (defaults to the slider label). */
+  resetLabel?: string;
+  /** Disable the reset when the value is already the default. */
+  resetDisabled?: boolean;
 }) {
   return (
     <div>
-      <div className="mb-1 flex items-center justify-between">
+      <div className="mb-1 flex items-center justify-between gap-1">
         <label htmlFor={id} className="text-xs font-semibold text-slate-600 dark:text-slate-300">
           {label}
         </label>
-        <span className="text-xs font-bold tabular-nums text-slate-700 dark:text-slate-200">
-          {display}
+        <span className="flex items-center gap-1.5">
+          <span className="text-xs font-bold tabular-nums text-slate-700 dark:text-slate-200">
+            {display}
+          </span>
+          {onReset !== undefined && (
+            <ResetButton
+              label={resetLabel ?? label}
+              disabled={resetDisabled ?? false}
+              onClick={onReset}
+            />
+          )}
         </span>
       </div>
       <input
@@ -389,7 +403,7 @@ export const FONT_FAMILY_OPTIONS: ReadonlyArray<{ value: ReaderFontFamily; label
   { value: 'itim', label: 'Itim' },
 ];
 
-export const GLASS_OPACITY_DEFAULT = 75;
+export const GLASS_OPACITY_DEFAULT = 35;
 export const TOOLBAR_SIZE_MIN = 24;
 export const TOOLBAR_SIZE_MAX = 56;
 /** Touch devices floor the toolbar at 44px (WCAG 2.5.8). */
@@ -402,28 +416,75 @@ export const FONT_WEIGHT_OPTIONS: ReadonlyArray<{ value: ReaderFontWeight; label
   { value: 'bold', label: 'หนา' },
 ];
 
-/** h2 section heading — the a11y pattern from fix2 (settings sections). */
-function SettingsSectionTitle({ children }: { children: React.ReactNode }) {
+/** T12 (ADR-019 D9): per-setting "คืนค่า" — resets ONE setting only.
+ *  Disabled at the default value (the button exists for every control; it is
+ *  a no-op — and visibly so — when there is nothing to restore). */
+function ResetButton({
+  label,
+  disabled,
+  onClick,
+}: {
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+}) {
   return (
-    <h2 className="border-t border-slate-100 pt-3 text-[11px] font-bold uppercase tracking-wide text-slate-500 first:border-t-0 first:pt-0 dark:border-slate-800 dark:text-slate-400">
-      {children}
-    </h2>
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={`คืนค่า${label}`}
+      title="คืนค่าเริ่มต้นของรายการนี้"
+      className="flex min-h-7 shrink-0 cursor-pointer items-center gap-0.5 rounded-md px-1.5 text-[10px] font-semibold text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent disabled:hover:text-slate-300 dark:text-blue-300 dark:hover:bg-blue-950/40 dark:hover:text-blue-200 dark:disabled:text-slate-600"
+    >
+      <i aria-hidden="true" className="fi fi-sr-rotate-left text-[8px]" />
+      คืนค่า
+    </button>
   );
 }
 
-/** Switch row (role="switch" — native switch semantics). */
+/** h2 section heading — the a11y pattern from fix2 (settings sections).
+ *  T12: single-setting sections may pass `action` (the per-setting reset) —
+ *  rendered right-aligned in the heading row. */
+function SettingsSectionTitle({
+  children,
+  action,
+}: {
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-3 first:border-t-0 first:pt-0 dark:border-slate-800">
+      <h2 className="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        {children}
+      </h2>
+      {action !== undefined && <div className="flex shrink-0 items-center">{action}</div>}
+    </div>
+  );
+}
+
+/** Switch row (role="switch" — native switch semantics). T12: optional
+ *  per-setting reset button between the label and the switch. */
 function ToggleRow({
   id,
   label,
   hint,
   checked,
   onChange,
+  onReset,
+  resetLabel,
+  resetDisabled,
 }: {
   id: string;
   label: string;
   hint?: string;
   checked: boolean;
   onChange: (next: boolean) => void;
+  onReset?: () => void;
+  resetLabel?: string;
+  /** Reset disabled when the value already IS the default (defaults to
+   *  `!checked` — toggles are default-OFF). */
+  resetDisabled?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between gap-3">
@@ -440,23 +501,32 @@ function ToggleRow({
           </p>
         )}
       </div>
-      <button
-        id={id}
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-          checked ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'
-        }`}
-      >
-        <span
-          aria-hidden="true"
-          className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-            checked ? 'translate-x-5' : ''
+      <div className="flex shrink-0 items-center gap-1">
+        {onReset !== undefined && (
+          <ResetButton
+            label={resetLabel ?? label}
+            disabled={resetDisabled ?? !checked}
+            onClick={onReset}
+          />
+        )}
+        <button
+          id={id}
+          type="button"
+          role="switch"
+          aria-checked={checked}
+          onClick={() => onChange(!checked)}
+          className={`relative h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+            checked ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'
           }`}
-        />
-      </button>
+        >
+          <span
+            aria-hidden="true"
+            className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+              checked ? 'translate-x-5' : ''
+            }`}
+          />
+        </button>
+      </div>
     </div>
   );
 }
@@ -487,11 +557,24 @@ export function SettingsPanelContent({
   onReset: () => void;
 }) {
   const [confirmReset, setConfirmReset] = useState(false);
+  // T12 (ADR-019 D9): per-setting คืนค่า — resets ONLY that one setting.
+  // The reset button renders for every control and disables at its default.
+  const d = DEFAULT_READING_SETTINGS;
 
   return (
     <div className="space-y-3">
       {/* ─── Font family ───────────────────────────────────────────────── */}
-      <SettingsSectionTitle>ฟอนต์ตัวบท</SettingsSectionTitle>
+      <SettingsSectionTitle
+        action={
+          <ResetButton
+            label="ฟอนต์ตัวบท"
+            disabled={settings.fontFamily === d.fontFamily}
+            onClick={() => onChange((prev) => ({ ...prev, fontFamily: d.fontFamily }))}
+          />
+        }
+      >
+        ฟอนต์ตัวบท
+      </SettingsSectionTitle>
       <div className="grid grid-cols-2 gap-1.5">
         {FONT_FAMILY_OPTIONS.map((family) => (
           <OptionButton
@@ -509,7 +592,17 @@ export function SettingsPanelContent({
       </div>
 
       {/* ─── Glass + toolbar size ──────────────────────────────────────── */}
-      <SettingsSectionTitle>ความโปร่งใสของแถบเครื่องมือ</SettingsSectionTitle>
+      <SettingsSectionTitle
+        action={
+          <ResetButton
+            label="ความทึบ"
+            disabled={settings.glassOpacity === d.glassOpacity}
+            onClick={() => onChange((prev) => ({ ...prev, glassOpacity: d.glassOpacity }))}
+          />
+        }
+      >
+        ความโปร่งใสของแถบเครื่องมือ
+      </SettingsSectionTitle>
       <SliderRow
         id="lawlib-glass-opacity"
         label="ความทึบ (เฉพาะ dock + ค้นหา)"
@@ -524,7 +617,17 @@ export function SettingsPanelContent({
         100% = ทึบและไม่เบลอ (ประหยัดพลังงาน) — กระดาษ/ซีเปียไม่กระทบ
       </p>
 
-      <SettingsSectionTitle>ขนาดแถบเครื่องมือ</SettingsSectionTitle>
+      <SettingsSectionTitle
+        action={
+          <ResetButton
+            label="ขนาดปุ่ม"
+            disabled={settings.toolbarSize === d.toolbarSize}
+            onClick={() => onChange((prev) => ({ ...prev, toolbarSize: d.toolbarSize }))}
+          />
+        }
+      >
+        ขนาดแถบเครื่องมือ
+      </SettingsSectionTitle>
       <SliderRow
         id="lawlib-toolbar-size"
         label="ขนาดปุ่มเครื่องมือ"
@@ -541,10 +644,17 @@ export function SettingsPanelContent({
 
       {/* ─── Paragraph spacing + weight ────────────────────────────────── */}
       <SettingsSectionTitle>ย่อหน้าและตัวอักษร</SettingsSectionTitle>
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-          ระยะห่างย่อหน้า
-        </span>
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
+        <div className="flex min-w-0 items-center gap-1">
+          <span className="shrink-0 text-xs font-semibold text-slate-600 dark:text-slate-300">
+            ระยะห่างย่อหน้า
+          </span>
+          <ResetButton
+            label="ระยะห่างย่อหน้า"
+            disabled={settings.paragraphSpacing === d.paragraphSpacing}
+            onClick={() => onChange((prev) => ({ ...prev, paragraphSpacing: d.paragraphSpacing }))}
+          />
+        </div>
         <div className="flex gap-1.5">
           {PARAGRAPH_SPACING_OPTIONS.map((v) => (
             <OptionButton
@@ -563,10 +673,17 @@ export function SettingsPanelContent({
       <p className="text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
         เฉพาะเวอร์ชันย่อ
       </p>
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-          ความหนาตัวอักษร
-        </span>
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
+        <div className="flex min-w-0 items-center gap-1">
+          <span className="shrink-0 text-xs font-semibold text-slate-600 dark:text-slate-300">
+            ความหนาตัวอักษร
+          </span>
+          <ResetButton
+            label="ความหนาตัวอักษร"
+            disabled={settings.fontWeight === d.fontWeight}
+            onClick={() => onChange((prev) => ({ ...prev, fontWeight: d.fontWeight }))}
+          />
+        </div>
         <div className="flex gap-1.5">
           {FONT_WEIGHT_OPTIONS.map((w) => (
             <OptionButton
@@ -589,6 +706,8 @@ export function SettingsPanelContent({
         hint="ใช้ได้ทั้งฉบับเต็มและเวอร์ชันย่อ"
         checked={settings.hideRepealed}
         onChange={(hideRepealed) => onChange((prev) => ({ ...prev, hideRepealed }))}
+        onReset={() => onChange((prev) => ({ ...prev, hideRepealed: d.hideRepealed }))}
+        resetLabel="ซ่อนมาตรา"
       />
       <ToggleRow
         id="lawlib-hide-amendment-notes"
@@ -596,10 +715,22 @@ export function SettingsPanelContent({
         hint="ซ่อน 'แก้ไขโดยฉบับที่ N' ในป๊อปอัปมาตรา"
         checked={settings.hideAmendmentNotes}
         onChange={(hideAmendmentNotes) => onChange((prev) => ({ ...prev, hideAmendmentNotes }))}
+        onReset={() => onChange((prev) => ({ ...prev, hideAmendmentNotes: d.hideAmendmentNotes }))}
+        resetLabel="ซ่อนโน้ต"
       />
 
       {/* ─── Focus mode (disclosure BEFORE activating) ─────────────────── */}
-      <SettingsSectionTitle>โหมดโฟกัส</SettingsSectionTitle>
+      <SettingsSectionTitle
+        action={
+          <ResetButton
+            label="โหมดโฟกัส"
+            disabled={settings.focusMode === d.focusMode}
+            onClick={() => onChange((prev) => ({ ...prev, focusMode: d.focusMode }))}
+          />
+        }
+      >
+        โหมดโฟกัส
+      </SettingsSectionTitle>
       <div className="rounded-lg border border-amber-300/70 bg-amber-50 px-3 py-2 text-[10px] leading-relaxed text-amber-900 dark:border-amber-500/40 dark:bg-amber-950/40 dark:text-amber-200">
         จะซ่อน: เมนูนำทาง, สารบัญ, แถบเครื่องมือ, footer — เหลือเฉพาะเนื้อหาและ ตัวบอกมาตรา (กด Esc
         เพื่อออก)
@@ -611,8 +742,40 @@ export function SettingsPanelContent({
         onChange={onFocusModeChange}
       />
 
+      {/* ─── Dock animation (T12 — ADR-019 D9) ─────────────────────────── */}
+      <SettingsSectionTitle
+        action={
+          <ResetButton
+            label="แอนิเมชัน"
+            disabled={settings.animateDock === d.animateDock}
+            onClick={() => onChange((prev) => ({ ...prev, animateDock: d.animateDock }))}
+          />
+        }
+      >
+        แอนิเมชัน
+      </SettingsSectionTitle>
+      <ToggleRow
+        id="lawlib-animate-dock"
+        label="แอนิเมชันแถบเครื่องมือ"
+        hint="ขยาย/ย่อแบบเลื่อน+จาง — ปิดอัตโนมัติเมื่อระบบตั้งค่าลดการเคลื่อนไหว"
+        checked={settings.animateDock}
+        onChange={(animateDock) => onChange((prev) => ({ ...prev, animateDock }))}
+        resetLabel="แอนิเมชันแถบเครื่องมือ"
+        resetDisabled={settings.animateDock}
+      />
+
       {/* ─── Auto-scroll ───────────────────────────────────────────────── */}
-      <SettingsSectionTitle>เลื่อนอัตโนมัติ</SettingsSectionTitle>
+      <SettingsSectionTitle
+        action={
+          <ResetButton
+            label="ความเร็วเลื่อนอัตโนมัติ"
+            disabled={settings.autoScrollSpeed === d.autoScrollSpeed}
+            onClick={() => onChange((prev) => ({ ...prev, autoScrollSpeed: d.autoScrollSpeed }))}
+          />
+        }
+      >
+        เลื่อนอัตโนมัติ
+      </SettingsSectionTitle>
       <SliderRow
         id="lawlib-auto-scroll"
         label="ความเร็ว"
