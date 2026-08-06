@@ -539,7 +539,7 @@ export default function LawTooltip({
       }}
       className={
         sheet
-          ? 'lawlib-tooltip fixed inset-x-0 bottom-0 z-[70] max-h-[75vh] origin-bottom overflow-y-auto rounded-t-2xl border-t border-slate-200 bg-white p-4 shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-900'
+          ? 'lawlib-tooltip fixed inset-x-0 bottom-0 z-[70] max-h-[75vh] origin-bottom overflow-y-auto rounded-t-2xl border-t border-slate-200 bg-white px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-900'
           : 'lawlib-tooltip fixed z-[70] w-[min(92vw,28rem)] rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-900'
       }
     >

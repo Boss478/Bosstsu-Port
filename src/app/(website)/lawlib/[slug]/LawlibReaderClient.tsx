@@ -91,7 +91,7 @@ function DigestHistoryBlock({
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-controls="lawlib-digest-history-list"
-        className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-blue-300 hover:text-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:text-blue-300"
+        className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-blue-300 hover:text-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:text-blue-300"
       >
         <i aria-hidden="true" className="fi fi-sr-clock text-xs text-slate-400" />
         ประวัติการแก้ไข ({editionCount} ฉบับ)
@@ -825,20 +825,27 @@ export default function LawlibReaderClient({
     restoreKey: string | null;
     firstKey: string | null;
     viewAtMount: ReaderViewMode;
+    /** The URL carried an explicit `?view=` param at mount (T9 — the
+     *  compact→FULL auto-switch below must NOT override an explicit user
+     *  choice: `?view=compact#มาตรา-N` with no digest card stays compact). */
+    explicitViewParam: boolean;
   } | null>(null);
   if (mountDataRef.current === null) {
     mountDataRef.current = {
       restoreKey: lastPosition,
       firstKey: flat[0] !== undefined ? articleKeyOf(flat[0].article) : null,
       viewAtMount: effectiveView,
+      explicitViewParam:
+        typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('view'),
     };
   }
 
   useEffect(() => {
-    const { restoreKey, firstKey, viewAtMount } = mountDataRef.current as {
+    const { restoreKey, firstKey, viewAtMount, explicitViewParam } = mountDataRef.current as {
       restoreKey: string | null;
       firstKey: string | null;
       viewAtMount: ReaderViewMode;
+      explicitViewParam: boolean;
     };
     // State writes are deferred out of the effect body (compiler rule).
     const timer = window.setTimeout(() => {
@@ -853,8 +860,12 @@ export default function LawlibReaderClient({
           scrollToCard(target);
           return;
         }
-        if (viewAtMount === 'compact') {
-          // no card for the target → FULL + deferred real jump
+        if (viewAtMount === 'compact' && !explicitViewParam) {
+          // No digest card for the target + NO explicit `?view=` in the URL
+          // → the stored view default (compact) gives way to the jump rule:
+          // FULL + deferred real jump. With an explicit `?view=compact` the
+          // user's choice is RESPECTED — no auto-switch (T9; the target is
+          // simply unreachable as a card, and the hash is left unclobbered).
           switchView('full');
           window.setTimeout(() => realNavigateTo(target), 0);
           return;
@@ -925,6 +936,16 @@ export default function LawlibReaderClient({
     if (openPanel === null) return;
     const root = drawerRef.current;
     if (root === null) return;
+    // T9 (a11y #10): the search panel's whole purpose is the query field —
+    // land focus THERE, not on the close button (the drawer header is first
+    // in DOM order).
+    if (openPanel === 'search') {
+      const input = root.querySelector<HTMLInputElement>('#lawlib-search-input');
+      if (input !== null && !input.hasAttribute('disabled')) {
+        input.focus();
+        return;
+      }
+    }
     const first = root.querySelector<HTMLElement>(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     );
@@ -1587,7 +1608,7 @@ export default function LawlibReaderClient({
           in focus mode; the IntersectionObserver label falls back to the
           active article. Esc exits focus mode (reader handler above). */}
       {settings.focusMode && (
-        <div className="lawlib-reading-indicator fixed inset-x-0 top-0 z-40 flex items-center justify-center gap-2 border-b border-slate-200 bg-white/95 px-3 py-1.5 shadow-sm dark:border-slate-700 dark:bg-slate-900/95">
+        <div className="lawlib-reading-indicator fixed inset-x-0 top-[max(0px,env(safe-area-inset-top))] z-40 flex items-center justify-center gap-2 border-b border-slate-200 bg-white/95 px-3 py-1.5 shadow-sm dark:border-slate-700 dark:bg-slate-900/95">
           <i
             aria-hidden="true"
             className="fi fi-sr-book-open-reader text-[10px] text-blue-600 dark:text-blue-300"
@@ -1666,12 +1687,15 @@ export default function LawlibReaderClient({
                 type="button"
                 onClick={() => setOpenPanel(null)}
                 aria-label="ปิด"
-                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors hover:text-slate-800 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white"
+                className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors hover:text-slate-800 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white"
               >
                 <i aria-hidden="true" className="fi fi-sr-cross text-[10px]" />
               </button>
             </header>
-            <div className="flex-1 overflow-y-auto p-4">
+            {/* T9 safe-area: the last drawer row must clear the home
+                indicator (p-4 replaced with explicit sides so the bottom
+                padding rides env(safe-area-inset-bottom)). */}
+            <div className="flex-1 overflow-y-auto px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
               {openPanel === 'search' && (
                 <SearchPanel
                   articles={articles}

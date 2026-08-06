@@ -169,7 +169,7 @@ export default function TocSidebar({
           type="button"
           onClick={() => handleNavigate(key)}
           aria-current={active ? 'true' : undefined}
-          className={`block w-full rounded-md px-2 py-1 text-left text-[13px] leading-relaxed transition-colors ${
+          className={`block min-h-11 w-full rounded-md px-2 py-1 text-left text-[13px] leading-relaxed transition-colors ${
             indent ? 'pl-5' : ''
           } ${
             active
@@ -220,7 +220,7 @@ export default function TocSidebar({
         type="button"
         onClick={() => setPanelOpen((o) => !o)}
         aria-expanded={panelOpen}
-        className="mb-3 flex w-full cursor-pointer items-center justify-between px-1 py-1 text-sm font-semibold text-slate-700 dark:text-slate-200 lg:hidden"
+        className="mb-3 flex min-h-11 w-full cursor-pointer items-center justify-between px-1 py-1 text-sm font-semibold text-slate-700 dark:text-slate-200 lg:hidden"
       >
         สารบัญ
         <i
@@ -255,7 +255,7 @@ export default function TocSidebar({
             <button
               type="button"
               onClick={handleJump}
-              className="shrink-0 cursor-pointer rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+              className="shrink-0 min-h-11 cursor-pointer rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
             >
               ไป
             </button>
@@ -277,7 +277,7 @@ export default function TocSidebar({
             type="button"
             disabled={prevKey === null}
             onClick={() => prevKey !== null && handleNavigate(prevKey)}
-            className="flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+            className="flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
           >
             <i aria-hidden="true" className="fi fi-sr-angle-left text-[10px]" />
             ก่อนหน้า
@@ -286,7 +286,7 @@ export default function TocSidebar({
             type="button"
             disabled={nextKey === null}
             onClick={() => nextKey !== null && handleNavigate(nextKey)}
-            className="flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+            className="flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
           >
             ถัดไป
             <i aria-hidden="true" className="fi fi-sr-angle-right text-[10px]" />

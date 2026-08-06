@@ -88,10 +88,14 @@ export default function Header() {
   };
 
   return (
-    <nav id="site-header" className="fixed top-0 left-0 right-0 z-50 bg-transparent">
+    <nav
+      id="site-header"
+      aria-label="เมนูหลัก"
+      className="fixed top-0 left-0 right-0 z-50 bg-transparent"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" aria-label="Boss478" className="flex items-center gap-2">
             <div className="relative w-10 h-10">
               <Image
                 src="/icon/icon.png"
@@ -199,7 +203,7 @@ export default function Header() {
 
               <button
                 onClick={theme === 'read' ? () => setTheme('light') : toggleTheme}
-                className="px-3 py-2 rounded-full hover:bg-amber-100/50 dark:hover:bg-slate-700/50 transition-transform duration-75 active:scale-95 flex items-center justify-center"
+                className="min-h-11 min-w-11 px-3 py-2 rounded-full hover:bg-amber-100/50 dark:hover:bg-slate-700/50 transition-transform duration-75 active:scale-95 flex items-center justify-center"
                 aria-label={themeAria}
               >
                 <i
@@ -231,7 +235,7 @@ export default function Header() {
           <div className="flex md:hidden items-center gap-2">
             <button
               onClick={theme === 'read' ? () => setTheme('light') : toggleTheme}
-              className="p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-transform duration-75 active:scale-95"
+              className="min-h-11 min-w-11 p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-transform duration-75 active:scale-95"
               aria-label={themeAria}
             >
               <div className="relative w-5 h-5 flex items-center justify-center">
@@ -278,7 +282,7 @@ export default function Header() {
 
             <button
               onClick={toggleMobileMenu}
-              className="p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-transform duration-75 active:scale-95"
+              className="min-h-11 min-w-11 p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-transform duration-75 active:scale-95"
               aria-label="Toggle menu"
             >
               {isOpen ? (

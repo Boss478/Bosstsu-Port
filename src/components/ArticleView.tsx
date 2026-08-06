@@ -280,7 +280,7 @@ function ArticleView({
             aria-haspopup="true"
             aria-describedby={isTooltipOpen(render.headerContent) ? tooltipId : undefined}
             data-lawlib-trigger
-            className="inline-flex cursor-pointer items-center rounded-lg font-bold text-blue-800 underline decoration-dotted decoration-blue-400/70 underline-offset-4 hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
+            className="inline-flex min-h-11 cursor-pointer items-center rounded-lg font-bold text-blue-800 underline decoration-dotted decoration-blue-400/70 underline-offset-4 hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
             {...getTriggerProps(render.headerContent)}
           >
             {articleLabel(article.no, article.suffix)}
@@ -310,7 +310,7 @@ function ArticleView({
                   aria-haspopup="true"
                   data-lawlib-trigger
                   data-lawlib-term={seg.term.term}
-                  className="cursor-pointer rounded-sm border-b-2 border-dashed border-amber-400/80 font-medium text-amber-800 hover:bg-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-amber-500/60 dark:text-amber-300 dark:hover:bg-amber-950/40"
+                  className="cursor-pointer rounded-sm border-b-2 border-dashed border-amber-400/80 font-medium text-amber-800 hover:bg-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-amber-500/60 dark:text-amber-300 dark:hover:bg-amber-950/40 py-1.5 -my-1.5"
                   {...getTriggerProps(seg.content)}
                 >
                   {renderHighlightedText(seg.text, seg.offset, ranges)}
@@ -326,7 +326,7 @@ function ArticleView({
                 aria-expanded={isTooltipOpen(seg.content)}
                 aria-haspopup="true"
                 data-lawlib-trigger
-                className="cursor-pointer font-medium text-blue-700 underline decoration-dotted underline-offset-4 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
+                className="cursor-pointer font-medium text-blue-700 underline decoration-dotted underline-offset-4 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40 py-1.5 -my-1.5"
                 {...getTriggerProps(seg.content)}
               >
                 {seg.ref.display}
@@ -346,7 +346,7 @@ function ArticleView({
                     type="button"
                     onClick={() => toggleRevealed(id)}
                     aria-expanded={open}
-                    className="lawlib-repealed w-full cursor-pointer rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-1.5 text-left text-xs leading-relaxed text-slate-500 transition-colors hover:border-slate-400 hover:text-slate-600 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-slate-300"
+                    className="lawlib-repealed min-h-11 w-full cursor-pointer rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-1.5 text-left text-xs leading-relaxed text-slate-500 transition-colors hover:border-slate-400 hover:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-slate-300"
                   >
                     <span className="flex items-center gap-1.5 font-medium">
                       <i

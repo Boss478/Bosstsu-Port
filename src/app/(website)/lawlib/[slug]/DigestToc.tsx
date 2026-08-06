@@ -102,6 +102,15 @@ export default function DigestToc({
   const entries = useMemo(() => buildDigestToc(view, startIndex), [view, startIndex]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const timeoutRef = useRef<number | null>(null);
+  // T9 (mobile audit): the 88vh TOC wall on <lg had NO collapse — content
+  // was unreachable. Collapse behind a toggle below lg (default), cap the
+  // open list at 50vh. Client-only tree (reader shell is ssr:false), so the
+  // width read is hydration-safe; on lg the list ALWAYS shows regardless of
+  // the toggle state (`lg:block` override — a mobile-collapsed state can
+  // never strand the desktop layout).
+  const [collapsed, setCollapsed] = useState<boolean>(
+    () => typeof window === 'undefined' || window.innerWidth < 1024,
+  );
 
   // Scroll-spy (mirrors TocSidebar): the section/group whose target crosses
   // the center band is active. Targets inside collapsed groups stay hidden.
@@ -148,76 +157,94 @@ export default function DigestToc({
   };
 
   const baseBtn =
-    'block w-full cursor-pointer rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500';
+    'block min-h-11 w-full cursor-pointer rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500';
   const activeBtn = 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300';
   const idleBtn =
     'text-slate-600 hover:bg-slate-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-blue-300';
 
   return (
-    <nav
-      aria-label="สารบัญเวอร์ชันย่อ"
-      className="lawlib-toc sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto"
-    >
-      <ul className="space-y-1">
-        {entries.map((entry) => {
-          if (entry.kind === 'section') {
+    <nav aria-label="สารบัญเวอร์ชันย่อ" className="lawlib-toc sticky top-20">
+      {/* T9 mobile collapse toggle (below lg only — desktop keeps the sticky
+          sidebar column). 44px touch floor; aria-expanded drives the
+          disclosure semantics. */}
+      <button
+        type="button"
+        onClick={() => setCollapsed((c) => !c)}
+        aria-expanded={!collapsed}
+        className="mb-2 flex min-h-11 w-full cursor-pointer items-center justify-between rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800/60 lg:hidden"
+      >
+        สารบัญ
+        <i
+          aria-hidden="true"
+          className={`fi fi-sr-angle-small-down text-xs transition-transform ${
+            collapsed ? '' : 'rotate-180'
+          }`}
+        />
+      </button>
+      {/* lg:block override — a mobile collapse can never strand the desktop
+          layout (the toggle is lg:hidden, so the list must stay reachable). */}
+      <div className={collapsed ? 'hidden lg:block' : 'block'}>
+        <ul className="max-h-[50vh] space-y-1 overflow-y-auto pb-1 lg:max-h-[calc(100vh-6rem)]">
+          {entries.map((entry) => {
+            if (entry.kind === 'section') {
+              return (
+                <li key={entry.id}>
+                  <button
+                    type="button"
+                    onClick={() => scrollToId(entry.id)}
+                    className={`${baseBtn} ${activeId === entry.id ? activeBtn : idleBtn}`}
+                  >
+                    {entry.label}
+                  </button>
+                </li>
+              );
+            }
+            if (entry.kind === 'group') {
+              return (
+                <li key={entry.id}>
+                  <button
+                    type="button"
+                    onClick={() => jumpGroup(entry)}
+                    className={`${baseBtn} font-semibold ${activeId === entry.id ? activeBtn : idleBtn}`}
+                  >
+                    {entry.label}
+                  </button>
+                  <ul className="ml-3 space-y-0.5 border-l border-slate-200 pl-2 dark:border-slate-700">
+                    {entry.articles.map((a) => (
+                      <li key={a.key}>
+                        <button
+                          type="button"
+                          onClick={() => onNavigate(a.key)}
+                          aria-current={activeArticleKey === a.key ? 'true' : undefined}
+                          className={`${baseBtn} py-1.5 text-xs ${
+                            activeArticleKey === a.key ? activeBtn : idleBtn
+                          }`}
+                        >
+                          {a.label}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              );
+            }
             return (
-              <li key={entry.id}>
+              <li key={entry.key}>
                 <button
                   type="button"
-                  onClick={() => scrollToId(entry.id)}
-                  className={`${baseBtn} ${activeId === entry.id ? activeBtn : idleBtn}`}
+                  onClick={() => onNavigate(entry.key)}
+                  aria-current={activeArticleKey === entry.key ? 'true' : undefined}
+                  className={`${baseBtn} py-1.5 text-xs ${
+                    activeArticleKey === entry.key ? activeBtn : idleBtn
+                  }`}
                 >
                   {entry.label}
                 </button>
               </li>
             );
-          }
-          if (entry.kind === 'group') {
-            return (
-              <li key={entry.id}>
-                <button
-                  type="button"
-                  onClick={() => jumpGroup(entry)}
-                  className={`${baseBtn} font-semibold ${activeId === entry.id ? activeBtn : idleBtn}`}
-                >
-                  {entry.label}
-                </button>
-                <ul className="ml-3 space-y-0.5 border-l border-slate-200 pl-2 dark:border-slate-700">
-                  {entry.articles.map((a) => (
-                    <li key={a.key}>
-                      <button
-                        type="button"
-                        onClick={() => onNavigate(a.key)}
-                        aria-current={activeArticleKey === a.key ? 'true' : undefined}
-                        className={`${baseBtn} py-1.5 text-xs ${
-                          activeArticleKey === a.key ? activeBtn : idleBtn
-                        }`}
-                      >
-                        {a.label}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            );
-          }
-          return (
-            <li key={entry.key}>
-              <button
-                type="button"
-                onClick={() => onNavigate(entry.key)}
-                aria-current={activeArticleKey === entry.key ? 'true' : undefined}
-                className={`${baseBtn} py-1.5 text-xs ${
-                  activeArticleKey === entry.key ? activeBtn : idleBtn
-                }`}
-              >
-                {entry.label}
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+          })}
+        </ul>
+      </div>
     </nav>
   );
 }

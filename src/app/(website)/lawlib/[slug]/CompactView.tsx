@@ -28,7 +28,7 @@
  * No dangerouslySetInnerHTML anywhere (loop-3 #2) — all React nodes.
  */
 
-import { Fragment, useEffect, useId, useRef, useState } from 'react';
+import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { LawDoc } from '@/types/lawlib';
 import type { DigestView, RenderLine, RenderSection, RenderToken } from '@/lib/lawlib/digest-view';
@@ -127,7 +127,7 @@ function TokenView({
           aria-haspopup="true"
           data-lawlib-trigger
           data-lawlib-term={token.term}
-          className="cursor-pointer rounded-sm border-b-2 border-dashed border-blue-400/70 font-medium text-blue-800 hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-blue-500/60 dark:text-blue-300 dark:hover:bg-blue-950/40"
+          className="cursor-pointer rounded-sm border-b-2 border-dashed border-blue-400/70 font-medium text-blue-800 hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-blue-500/60 dark:text-blue-300 dark:hover:bg-blue-950/40 py-1.5 -my-1.5"
           {...getTriggerProps({ kind: 'glossary', term: token.term, definition: token.definition })}
         >
           {content}
@@ -168,7 +168,7 @@ function TokenView({
         aria-expanded={isTooltipOpen(content)}
         aria-haspopup="true"
         data-lawlib-trigger
-        className="cursor-pointer rounded-sm font-medium text-blue-700 underline decoration-dotted underline-offset-4 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
+        className="cursor-pointer rounded-sm font-medium text-blue-700 underline decoration-dotted underline-offset-4 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40 py-1.5 -my-1.5"
         {...getTriggerProps(content)}
       >
         {token.label}
@@ -187,7 +187,7 @@ function TokenView({
           const key = keyFromHref(token.href!);
           if (key !== null) onSeeFull(key);
         }}
-        className="ml-1 inline-flex min-h-9 cursor-pointer items-center gap-1 rounded-full bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
+        className="ml-1 inline-flex min-h-11 cursor-pointer items-center gap-1 rounded-full bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
       >
         ดูเต็ม {token.label}
         <i aria-hidden="true" className="fi fi-sr-arrow-small-right text-[10px] leading-none" />
@@ -203,7 +203,7 @@ function TokenView({
           const key = keyFromHref(token.href!);
           if (key !== null) onOpenRef(key);
         }}
-        className="cursor-pointer rounded-sm font-medium text-blue-700 underline decoration-dotted underline-offset-4 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
+        className="cursor-pointer rounded-sm font-medium text-blue-700 underline decoration-dotted underline-offset-4 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40 py-1.5 -my-1.5"
       >
         {token.label}
       </button>
@@ -346,7 +346,7 @@ function ArticleCard({
                   aria-controls={popoverId}
                   aria-expanded={isOpen}
                   aria-describedby={isTooltipOpen(content) ? tooltipId : undefined}
-                  className="inline-flex cursor-pointer items-center rounded-lg font-bold text-blue-800 underline decoration-dotted decoration-blue-400/70 underline-offset-4 hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
+                  className="inline-flex min-h-11 cursor-pointer items-center rounded-lg font-bold text-blue-800 underline decoration-dotted decoration-blue-400/70 underline-offset-4 hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
                   {...getTriggerProps(content)}
                   onPointerUp={undefined}
                   onClick={() => onToggleCard(line.key, key)}
@@ -420,7 +420,11 @@ function ArticlePopover({
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   // Position beside the card once, at open (transient popover — no re-layout
-  // tracking; like the term tooltip's captured anchor).
+  // tracking; like the term tooltip's captured anchor). T9 (mobile audit):
+  // the popover's height is content-driven up to min(70vh, 42rem), so the
+  // lazy top reserves that WORST CASE — a bare `vh - 120` margin let the
+  // bottom edge land 83-318px below the fold at 375px. The mount
+  // useLayoutEffect below then corrects for the REAL height before paint.
   const [pos] = useState<{ left: number; top: number; width: number }>(() => {
     const card = document.querySelector<HTMLElement>(
       `[data-lawlib-card="${CSS.escape(line.key)}"]`,
@@ -431,17 +435,36 @@ function ArticlePopover({
     const vh = window.innerHeight;
     const gap = 12;
     const width = Math.min(416, vw - 32);
+    const maxHeightPx = Math.min(0.7 * vh, 42 * 16); // min(70vh, 42rem)
+    const fitTop = (top: number) => Math.max(8, Math.min(top, vh - maxHeightPx - 16));
     let left = r.right + gap;
-    const top = Math.min(r.top, vh - 120);
+    const top = fitTop(r.top);
     if (left + width > vw - 8) {
       left = r.left - width - gap;
       if (left < 8) {
         // narrow screens → below the card
-        return { left: Math.max(8, r.left), top: Math.min(r.bottom + 8, vh - 24), width };
+        return { left: Math.max(8, r.left), top: fitTop(r.bottom + 8), width };
       }
     }
-    return { left: Math.max(8, left), top: Math.max(8, top), width };
+    return { left: Math.max(8, left), top, width };
   });
+
+  // T9 (mobile audit — popover clamp): the lazy reservation covers the
+  // worst case; if the REAL height still exceeds it on a short viewport,
+  // pull the top up so the bottom edge clears the fold by 12px. Direct
+  // style write (no setState — the compiler set-state-in-effect rule stays
+  // untouched; same pattern as LawTooltip's position effect). Runs once —
+  // the popover mounts fresh per open and its content is synchronous.
+  useLayoutEffect(() => {
+    const el = rootRef.current;
+    if (el === null) return;
+    const vh = window.innerHeight;
+    const current = parseFloat(el.style.top);
+    if (!Number.isFinite(current)) return;
+    const height = el.getBoundingClientRect().height;
+    const clamped = Math.min(current, vh - height - 12);
+    if (clamped < current) el.style.top = `${Math.max(8, clamped)}px`;
+  }, []);
 
   // Focus handoff (loop-4 #3): the hover-open path is gone (Track E), so
   // every mounted popover is interaction-opened — move focus to the
@@ -490,7 +513,7 @@ function ArticlePopover({
           type="button"
           onClick={onClose}
           aria-label="ปิด"
-          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white"
+          className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white"
         >
           <i aria-hidden="true" className="fi fi-sr-cross text-[10px]" />
         </button>
@@ -540,7 +563,7 @@ function ArticlePopover({
         <button
           type="button"
           onClick={() => onSeeFull(line.key)}
-          className="inline-flex min-h-9 cursor-pointer items-center gap-1 rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          className="inline-flex min-h-11 cursor-pointer items-center gap-1 rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           ดูฉบับเต็มที่ {line.label}
           <i aria-hidden="true" className="fi fi-sr-arrow-small-right text-[10px] leading-none" />
@@ -804,7 +827,7 @@ function SectionView({
                   key={chip.key}
                   type="button"
                   onClick={() => onNavigate(chip.key)}
-                  className="inline-flex min-h-9 cursor-pointer items-center rounded-full border border-blue-200 px-2.5 py-1.5 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-600 dark:text-blue-300 dark:hover:bg-slate-800"
+                  className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-blue-200 px-2.5 py-1.5 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-600 dark:text-blue-300 dark:hover:bg-slate-800"
                 >
                   {chip.label}
                 </button>
