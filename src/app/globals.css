@@ -23,13 +23,11 @@ html {
 }
 
 @theme {
+  /* T0 (2026-08-06): deleted unused --backdrop-blur-{2xs,4xs,5xs,6xs,0}.
+     xs/3xs are LIVE site-wide (Header, SettingsMenu, FilterBar, Finance,
+     games, CookieConsentBanner, BackToTop...) — do NOT remove. */
   --backdrop-blur-xs: 3px;
-  --backdrop-blur-2xs: 2px;
   --backdrop-blur-3xs: 1.5px;
-  --backdrop-blur-4xs: 1px;
-  --backdrop-blur-5xs: 0.5px;
-  --backdrop-blur-6xs: 0.25px;
-  --backdrop-blur-0: 0;
 }
 
 @keyframes slideDown {
@@ -1418,13 +1416,31 @@ textarea,
   }
 }
 
-/* ─── Tiered Glassmorphism ────────────────────────────────────────────────── */
-@utility glass-tier {
-  background: var(--glass-bg, rgba(255, 255, 255, 0.1));
-  backdrop-filter: blur(var(--glass-blur, 12px));
-  -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
-  box-shadow: var(--glass-shadow, 0 4px 6px -1px rgba(0, 0, 0, 0.05));
-  border: var(--glass-border, 1px solid rgba(255, 255, 255, 0.2));
+/* ─── Glassmorphism tier system (T0 — LAWLIB design language) ─────────────────
+   Three frosted-glass tiers via Tailwind v4 @utility (composable with other
+   utilities/variants in components).
+
+   SURFACE MAP (component → tier):
+   - glass-1 (subtle: blur-sm + 60%): nav pill, chips, section headers
+   - glass-2 (standard: blur-md + 75%): dock, TOC panels, law cards;
+     search input = glass-2 with `bg-white/60` opacity override (light; dark
+     keeps slate-800/60 — contrast-verified in T2)
+   - glass-3 (strong/near-opaque: blur-lg + 90%): drawer panels, tooltip,
+     article/digest cards (reading surfaces — near-opaque for contrast)
+
+   Read mode: paper-tinted via the existing `.read` override chain
+   (--read-card). No ambient background (user decision) — glass reads via
+   translucency + borders + shadow; subtle by design.
+   NOTE: do NOT reintroduce `.glass-tier` or --backdrop-blur-{2xs,4xs,5xs,6xs,0}
+   (deleted in T0). backdrop-blur-xs/3xs stay live site-wide — untouched. */
+@utility glass-1 {
+  @apply backdrop-blur-sm bg-white/60 dark:bg-slate-800/60;
+}
+@utility glass-2 {
+  @apply backdrop-blur-md bg-white/75 dark:bg-slate-800/75;
+}
+@utility glass-3 {
+  @apply backdrop-blur-lg bg-white/90 dark:bg-slate-900/90;
 }
 
 /* ─── LawLib Read Mode (3-mode theme — paper surfaces) ──────────────────────
