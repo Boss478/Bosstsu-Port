@@ -75,7 +75,7 @@ export default function LawlibIndexPage() {
         <h1 className="text-3xl font-bold leading-relaxed text-slate-900 dark:text-white">
           LawLib — คลังกฎหมาย
         </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
           อ่านกฎหมายไทยแบบเข้าใจง่าย ทั้งฉบับ แบ่งเป็นหมวดและมาตรา พร้อมบทนิยาม
           ประวัติการแก้ไขเพิ่มเติม และการค้นหามาตรา
         </p>

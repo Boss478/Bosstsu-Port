@@ -174,6 +174,7 @@ function TokenView({
   onSeeFull,
   getTriggerProps,
   isTooltipOpen,
+  tooltipId,
   interactive = true,
   digestInfoByKey,
 }: {
@@ -183,6 +184,7 @@ function TokenView({
   onSeeFull: (key: string) => void;
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
+  tooltipId: string;
   interactive?: boolean;
   /** T11 — digest snippets + repealed status for same-law refs (COMPACT body
    *  only; absent for the exported history-block path → refs stay buttons). */
@@ -292,6 +294,7 @@ function TokenView({
           tabIndex={0}
           aria-expanded={isTooltipOpen(content)}
           aria-haspopup="true"
+          aria-describedby={isTooltipOpen(content) ? tooltipId : undefined}
           data-lawlib-trigger
           className="lawlib-chip-hit cursor-pointer rounded-sm font-medium text-blue-700 underline decoration-dotted underline-offset-4 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
           {...getTriggerProps(content)}
@@ -330,6 +333,7 @@ export function TokenList({
   onSeeFull,
   getTriggerProps,
   isTooltipOpen,
+  tooltipId,
   interactive = true,
   digestInfoByKey,
 }: {
@@ -339,6 +343,7 @@ export function TokenList({
   onSeeFull: (key: string) => void;
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
+  tooltipId: string;
   interactive?: boolean;
   digestInfoByKey?: ReadonlyMap<string, DigestInfo>;
 }) {
@@ -353,6 +358,7 @@ export function TokenList({
           onSeeFull={onSeeFull}
           getTriggerProps={getTriggerProps}
           isTooltipOpen={isTooltipOpen}
+          tooltipId={tooltipId}
           interactive={interactive}
           digestInfoByKey={digestInfoByKey}
         />
@@ -416,7 +422,7 @@ function ArticleCard({
         if (target !== null && target.closest('[data-lawlib-trigger],button,a') !== null) return;
         onToggleCard(line.key, 'interaction');
       }}
-      className={`lawlib-digest-card cursor-pointer rounded-xl border border-slate-200 bg-white px-4 py-3 transition-colors dark:border-slate-700 dark:bg-slate-900 ${
+      className={`lawlib-digest-card cursor-pointer rounded-xl border border-slate-200 bg-white px-4 py-3 transition-colors hover:border-blue-300 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-600/60 ${
         isFlash ? 'ring-2 ring-amber-300 dark:ring-amber-500/50' : ''
       } ${isOpen ? 'border-blue-300 dark:border-blue-600/60' : ''}`}
     >
@@ -487,6 +493,7 @@ function ArticleCard({
               onSeeFull={onSeeFull}
               getTriggerProps={getTriggerProps}
               isTooltipOpen={isTooltipOpen}
+              tooltipId={tooltipId}
               digestInfoByKey={digestInfoByKey}
             />
           </p>
@@ -641,7 +648,7 @@ function ArticlePopover({
                 key={k}
                 className={i > 0 ? 'mt-4 border-t border-slate-200 pt-4 dark:border-slate-700' : ''}
               >
-                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                   {label}
                 </p>
                 <ArticleView
@@ -677,7 +684,7 @@ function ArticlePopover({
           ดูฉบับเต็มที่ {line.label}
           <i aria-hidden="true" className="fi fi-sr-arrow-small-right text-[10px] leading-none" />
         </button>
-        <span className="text-xs text-slate-400 dark:text-slate-500">Esc ปิด</span>
+        <span className="text-xs text-slate-600 dark:text-slate-300">Esc ปิด</span>
       </footer>
     </div>
   );
@@ -693,6 +700,7 @@ export function BodyLineView({
   onSeeFull,
   getTriggerProps,
   isTooltipOpen,
+  tooltipId,
   interactive = true,
   digestInfoByKey,
 }: {
@@ -702,6 +710,7 @@ export function BodyLineView({
   onSeeFull: (key: string) => void;
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
+  tooltipId: string;
   interactive?: boolean;
   digestInfoByKey?: ReadonlyMap<string, DigestInfo>;
 }) {
@@ -713,6 +722,7 @@ export function BodyLineView({
       onSeeFull={onSeeFull}
       getTriggerProps={getTriggerProps}
       isTooltipOpen={isTooltipOpen}
+      tooltipId={tooltipId}
       interactive={interactive}
       digestInfoByKey={digestInfoByKey}
     />
@@ -811,7 +821,7 @@ function ChapterGroupView({
         >
           <span>
             {group.label}
-            <span className="ml-2 text-xs font-semibold text-slate-400 dark:text-slate-500">
+            <span className="ml-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
               ({group.articleCount} มาตรา)
             </span>
           </span>
@@ -850,6 +860,7 @@ function ChapterGroupView({
               onSeeFull={onSeeFull}
               getTriggerProps={getTriggerProps}
               isTooltipOpen={isTooltipOpen}
+              tooltipId={tooltipId}
               digestInfoByKey={digestInfoByKey}
             />
           ),
@@ -926,6 +937,7 @@ function SectionView({
         onSeeFull={onSeeFull}
         getTriggerProps={getTriggerProps}
         isTooltipOpen={isTooltipOpen}
+        tooltipId={tooltipId}
         digestInfoByKey={digestInfoByKey}
       />
     );

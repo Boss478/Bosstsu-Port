@@ -70,6 +70,7 @@ function DigestHistoryBlock({
   onSeeFull,
   getTriggerProps,
   isTooltipOpen,
+  tooltipId,
 }: {
   lines: RenderLine[];
   slug: string;
@@ -77,6 +78,7 @@ function DigestHistoryBlock({
   onSeeFull: (key: string) => void;
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
+  tooltipId: string;
 }) {
   const [open, setOpen] = useState(false);
   const editionCount = lines.filter(
@@ -112,6 +114,7 @@ function DigestHistoryBlock({
                 onSeeFull={onSeeFull}
                 getTriggerProps={getTriggerProps}
                 isTooltipOpen={isTooltipOpen}
+                tooltipId={tooltipId}
                 interactive={false}
               />
             ) : null,
@@ -1428,11 +1431,11 @@ export default function LawlibReaderClient({
           <div className="min-w-0">
             <Link
               href="/lawlib"
-              className="inline-flex items-center gap-1 text-sm font-medium text-slate-500 transition-colors hover:text-blue-700 dark:text-slate-400 dark:hover:text-blue-300"
+              className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 transition-colors hover:text-blue-700 dark:text-slate-400 dark:hover:text-blue-300"
             >
               <span aria-hidden="true">←</span> กลับรายการกฎหมาย
             </Link>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400">
               <span className="rounded-full bg-blue-50 px-2 py-0.5 font-semibold text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
                 ภาค {law.part}
               </span>
@@ -1459,6 +1462,7 @@ export default function LawlibReaderClient({
             onSeeFull={handleSeeFull}
             getTriggerProps={getTriggerProps}
             isTooltipOpen={isTooltipOpen}
+            tooltipId={tooltipId}
           />
         ) : (
           <EditionTimeline editions={law.editions} />

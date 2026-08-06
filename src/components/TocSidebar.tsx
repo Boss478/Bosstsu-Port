@@ -169,7 +169,7 @@ export default function TocSidebar({
           type="button"
           onClick={() => handleNavigate(key)}
           aria-current={active ? 'true' : undefined}
-          className={`block min-h-11 w-full rounded-md px-2 py-1 text-left text-[13px] leading-relaxed transition-colors ${
+          className={`block min-h-11 w-full rounded-md px-2 py-1 text-left text-[13px] leading-relaxed transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
             indent ? 'pl-5' : ''
           } ${
             active
@@ -215,7 +215,7 @@ export default function TocSidebar({
   };
 
   return (
-    <div className="lawlib-toc rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900 lg:sticky lg:top-6">
+    <div className="lawlib-toc glass-2 rounded-2xl border border-slate-200 p-3 shadow-sm dark:border-slate-700 lg:sticky lg:top-6">
       <button
         type="button"
         onClick={() => setPanelOpen((o) => !o)}
@@ -250,12 +250,12 @@ export default function TocSidebar({
               placeholder="มาตรา 60 / หมวด 2"
               aria-invalid={jumpFailed}
               aria-describedby={jumpFailed ? 'lawlib-jump-error' : undefined}
-              className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-700 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
             />
             <button
               type="button"
               onClick={handleJump}
-              className="shrink-0 min-h-11 cursor-pointer rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+              className="shrink-0 min-h-11 cursor-pointer rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
               ไป
             </button>
@@ -277,7 +277,7 @@ export default function TocSidebar({
             type="button"
             disabled={prevKey === null}
             onClick={() => prevKey !== null && handleNavigate(prevKey)}
-            className="flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+            className="flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
           >
             <i aria-hidden="true" className="fi fi-sr-angle-left text-[10px]" />
             ก่อนหน้า
@@ -286,7 +286,7 @@ export default function TocSidebar({
             type="button"
             disabled={nextKey === null}
             onClick={() => nextKey !== null && handleNavigate(nextKey)}
-            className="flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+            className="flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
           >
             ถัดไป
             <i aria-hidden="true" className="fi fi-sr-angle-right text-[10px]" />

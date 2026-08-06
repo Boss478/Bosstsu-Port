@@ -64,10 +64,10 @@ export default function Footer() {
           id="footer-copyright"
           className="mt-12 pt-8 border-t border-zinc-200 dark:border-slate-800 text-center space-y-2"
         >
-          <p className="text-zinc-700 dark:text-zinc-500 text-sm">
+          <p className="text-zinc-700 dark:text-zinc-400 text-sm">
             © {new Date().getFullYear()} Boss478. All rights reserved.
           </p>
-          <p className="text-zinc-600 dark:text-zinc-600 text-xs flex items-center justify-center gap-2">
+          <p className="text-zinc-600 dark:text-zinc-400 text-xs flex items-center justify-center gap-2">
             <span>
               Icons by{' '}
               <a
@@ -84,14 +84,14 @@ export default function Footer() {
             <span>·</span>
             <Link
               href="/cookie-policy"
-              className="text-zinc-600 dark:text-zinc-600 hover:text-blue-500 dark:hover:text-blue-400 transition-[color,transform] duration-150 text-xs active:scale-95 active:duration-150"
+              className="text-zinc-600 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-[color,transform] duration-150 text-xs active:scale-95 active:duration-150"
             >
               Cookie Policy
             </Link>
             <span>·</span>
             <Link
               href="/admin"
-              className="text-zinc-600 dark:text-zinc-600 hover:text-blue-500 dark:hover:text-blue-400 transition-[color,transform] duration-150 active:scale-95 active:duration-150"
+              className="text-zinc-600 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-[color,transform] duration-150 active:scale-95 active:duration-150"
               aria-label="Admin"
             >
               <i aria-hidden="true" className="fi fi-sr-settings text-xs mt-1" />

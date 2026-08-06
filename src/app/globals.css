@@ -1599,12 +1599,14 @@ textarea,
 .read .lawlib-dock,
 .read .lawlib-list-card,
 .read .lawlib-digest-card,
+.read .lawlib-tooltip,
 .sepia .lawlib-article-card,
 .sepia .lawlib-toc,
 .sepia .lawlib-panel,
 .sepia .lawlib-dock,
 .sepia .lawlib-list-card,
-.sepia .lawlib-digest-card {
+.sepia .lawlib-digest-card,
+.sepia .lawlib-tooltip {
   background: var(--read-card);
   border-color: #e0d5b0;
   color: var(--read-ink);
@@ -1643,6 +1645,14 @@ textarea,
    force the paper ink in read mode (slate-800 stays for light/dark). */
 .read [data-lawlib-body],
 .sepia [data-lawlib-body] {
+  color: var(--read-ink);
+}
+
+/* Digest card headers carry an explicit `text-slate-900 dark:text-white` —
+   force the paper ink in read mode (same pattern as [data-lawlib-body] above;
+   slate-900 stays for light/dark). */
+.read .lawlib-digest-card [class*='text-slate-900'],
+.sepia .lawlib-digest-card [class*='text-slate-900'] {
   color: var(--read-ink);
 }
 
