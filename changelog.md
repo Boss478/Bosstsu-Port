@@ -1,3 +1,14 @@
+## v1.11.1 (2026-08-06)
++ **Tooltip pin**: click-to-pin + hover preview (union-zone 150ms guard, drag ≥10px guard, content-gated) — WCAG 1.4.13 fix (T1, ADR-018).
++ **Glassmorphism design system**: glass-1/2/3 tiers — search glass-2 (visible boundary + AA tokens), cards glass-3, dead-blur cleanup (T0/T2/T3/T5).
++ **Dock v2**: 3-level dock (collapsed icon → favorites → all tools, pin-your-own) · 4 value-showing pickers (theme 4 modes + paper slider, font 8–32px, line-height, width 80–120%) · bookmark v2 (state + badge + grouped list + tooltip toggle) · tooltip hub (bookmark/quick-note/copy/copy-link) · 8 positions · collapse-stays-open semantics (T10a, ADR-019).
++ **Settings panel ⚙️**: glass slider (dock + search, 0–100) · toolbar size 24–56 · 5 font families (3 new, lazy-loaded) · paragraph spacing · font weight · hide repealed/amendment notes · focus mode (disclosure) · quick-jump มาตรา · auto-scroll · reset · sticky มาตรา X indicator (T10b).
++ **Mobile**: popover clamp · TOC collapse <lg · 44px tap sweep · safe-area insets · cookie z-40 · BackToTop a11y · drawer focus (T9).
++ **COMPACT มาตรา hover-info**: digest snippet + ดูฉบับเต็ม (T11).
++ **A11y**: ~20 contrast fixes · tooltip hub role=dialog · focus mgmt · aria labels · chip hit-area (T4/T5/T6 + fix batches).
+* Night theme removed (4 themes remain: light/dark/read paper tones); width now % of 80ch.
+* Tests: +108 (240 → 348 lawlib + unit), unit 1022 · gates 348/348 · build/typecheck/lint/eval clean.
+
 ## v1.11.0 (2026-08-04 – 2026-08-06)
 * **LawLib**: new legal-library module — reader + digest lanes, markdown → `LawDoc` parser pipeline, and real law content (พ.ร.บ.การศึกษาแห่งชาติ 2542, 82 มาตรา, built + indexed at `national-education-act-2542`; `planned-laws.json` manifest now flags it `"built": true` — 10 laws planned, 1 built).
   + * **Release-prep**: compact JSON emit restored — the pre-commit lint-staged prettier pass had re-inflated the emitted law JSON (138KB compact → 160KB pretty, over the NFR2 150KB ceiling); `src/data/lawlib/**` added to `.prettierignore` so committed data now byte-matches build emission (build deterministic — re-emit diff is format-only); `--check` green.
