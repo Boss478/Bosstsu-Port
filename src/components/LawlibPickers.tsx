@@ -7,9 +7,15 @@
  * + focus moves into the popover on open — same portal + measure pattern as
  * LawTooltip/ArticlePopover).
  */
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Theme } from '@/components/ThemeProvider';
+import type {
+  ParagraphSpacing,
+  ReaderFontFamily,
+  ReaderFontWeight,
+  ReadingSettingsValue,
+} from '@/app/(website)/lawlib/lib/reader-props';
 
 // ---------------------------------------------------------------------------
 // Shared picker popover infra
@@ -362,5 +368,302 @@ export function WidthPickerContent({
       display={`${value}%`}
       onChange={onChange}
     />
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Settings panel (T10b — ⚙️ Level 2, ADR-019 D4/D7/D8): font family ×5,
+// glass opacity (dock+search chrome only), toolbar size (touch floor 44),
+// paragraph spacing, font weight, hide repealed + hide amendment notes,
+// focus mode (with the will-hide disclosure), auto-scroll speed, reset.
+// Stays inside the PickerPopover infra (role="group" — NO nested dialog).
+// The paper slider lives ONLY in the theme picker (single source:
+// lawlib:paperTone + ThemeProvider.setPaperTone — not duplicated here).
+// ---------------------------------------------------------------------------
+
+export const FONT_FAMILY_OPTIONS: ReadonlyArray<{ value: ReaderFontFamily; label: string }> = [
+  { value: 'sarabun', label: 'Sarabun' },
+  { value: 'noto-sans-thai', label: 'Noto Sans Thai' },
+  { value: 'mali', label: 'Mali' },
+  { value: 'bai-jamjuree', label: 'Bai Jamjuree' },
+  { value: 'itim', label: 'Itim' },
+];
+
+export const GLASS_OPACITY_DEFAULT = 75;
+export const TOOLBAR_SIZE_MIN = 24;
+export const TOOLBAR_SIZE_MAX = 56;
+/** Touch devices floor the toolbar at 44px (WCAG 2.5.8). */
+export const TOOLBAR_SIZE_TOUCH_MIN = 44;
+export const AUTO_SCROLL_MIN = 0;
+export const AUTO_SCROLL_MAX = 5;
+export const PARAGRAPH_SPACING_OPTIONS: readonly number[] = [0, 0.5, 1];
+export const FONT_WEIGHT_OPTIONS: ReadonlyArray<{ value: ReaderFontWeight; label: string }> = [
+  { value: 'normal', label: 'ปกติ' },
+  { value: 'bold', label: 'หนา' },
+];
+
+/** h2 section heading — the a11y pattern from fix2 (settings sections). */
+function SettingsSectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="border-t border-slate-100 pt-3 text-[11px] font-bold uppercase tracking-wide text-slate-500 first:border-t-0 first:pt-0 dark:border-slate-800 dark:text-slate-400">
+      {children}
+    </h2>
+  );
+}
+
+/** Switch row (role="switch" — native switch semantics). */
+function ToggleRow({
+  id,
+  label,
+  hint,
+  checked,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  hint?: string;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div className="min-w-0">
+        <label
+          htmlFor={id}
+          className="block text-xs font-semibold text-slate-700 dark:text-slate-200"
+        >
+          {label}
+        </label>
+        {hint !== undefined && (
+          <p className="mt-0.5 text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
+            {hint}
+          </p>
+        )}
+      </div>
+      <button
+        id={id}
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={`relative h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+          checked ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'
+        }`}
+      >
+        <span
+          aria-hidden="true"
+          className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+            checked ? 'translate-x-5' : ''
+          }`}
+        />
+      </button>
+    </div>
+  );
+}
+
+export function SettingsPanelContent({
+  settings,
+  onChange,
+  coarsePointer,
+  reducedMotion,
+  onFocusModeChange,
+  onReset,
+}: {
+  settings: ReadingSettingsValue;
+  /** Full replacement or updater — the dock's setSettings supports both;
+   *  functional updates keep rapid successive clicks from clobbering each
+   *  other (stale-snapshot overwrite). */
+  onChange: (
+    next: ReadingSettingsValue | ((prev: ReadingSettingsValue) => ReadingSettingsValue),
+  ) => void;
+  /** Touch device → the toolbar slider floors at 44 (WCAG 2.5.8). */
+  coarsePointer: boolean;
+  /** prefers-reduced-motion → auto-scroll renders OFF (stored value kept —
+   *  turning motion reduction off later restores the choice). */
+  reducedMotion: boolean;
+  /** Focus-mode toggle — the dock closes itself when focus activates. */
+  onFocusModeChange: (next: boolean) => void;
+  /** Reset EVERYTHING (settings + favorites + dock position + paper tone). */
+  onReset: () => void;
+}) {
+  const [confirmReset, setConfirmReset] = useState(false);
+
+  return (
+    <div className="space-y-3">
+      {/* ─── Font family ───────────────────────────────────────────────── */}
+      <SettingsSectionTitle>ฟอนต์ตัวบท</SettingsSectionTitle>
+      <div className="grid grid-cols-2 gap-1.5">
+        {FONT_FAMILY_OPTIONS.map((family) => (
+          <OptionButton
+            key={family.value}
+            pressed={settings.fontFamily === family.value}
+            onClick={() => onChange((prev) => ({ ...prev, fontFamily: family.value }))}
+            label={`ฟอนต์ ${family.label}`}
+          >
+            {/* Preview MUST NOT force-load the family — names render in the
+                default font; the face applies only on selection (senior
+                MAJOR #4). */}
+            {family.label}
+          </OptionButton>
+        ))}
+      </div>
+
+      {/* ─── Glass + toolbar size ──────────────────────────────────────── */}
+      <SettingsSectionTitle>ความโปร่งใสของแถบเครื่องมือ</SettingsSectionTitle>
+      <SliderRow
+        id="lawlib-glass-opacity"
+        label="ความทึบ (เฉพาะ dock + ค้นหา)"
+        min={0}
+        max={100}
+        step={1}
+        value={settings.glassOpacity}
+        display={`${settings.glassOpacity}%`}
+        onChange={(glassOpacity) => onChange((prev) => ({ ...prev, glassOpacity }))}
+      />
+      <p className="text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
+        100% = ทึบและไม่เบลอ (ประหยัดพลังงาน) — กระดาษ/ซีเปียไม่กระทบ
+      </p>
+
+      <SettingsSectionTitle>ขนาดแถบเครื่องมือ</SettingsSectionTitle>
+      <SliderRow
+        id="lawlib-toolbar-size"
+        label="ขนาดปุ่มเครื่องมือ"
+        min={coarsePointer ? TOOLBAR_SIZE_TOUCH_MIN : TOOLBAR_SIZE_MIN}
+        max={TOOLBAR_SIZE_MAX}
+        step={1}
+        value={Math.max(
+          settings.toolbarSize,
+          coarsePointer ? TOOLBAR_SIZE_TOUCH_MIN : TOOLBAR_SIZE_MIN,
+        )}
+        display={`${Math.max(settings.toolbarSize, coarsePointer ? TOOLBAR_SIZE_TOUCH_MIN : 0)}px`}
+        onChange={(toolbarSize) => onChange((prev) => ({ ...prev, toolbarSize }))}
+      />
+
+      {/* ─── Paragraph spacing + weight ────────────────────────────────── */}
+      <SettingsSectionTitle>ย่อหน้าและตัวอักษร</SettingsSectionTitle>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+          ระยะห่างย่อหน้า
+        </span>
+        <div className="flex gap-1.5">
+          {PARAGRAPH_SPACING_OPTIONS.map((v) => (
+            <OptionButton
+              key={v}
+              pressed={settings.paragraphSpacing === v}
+              onClick={() =>
+                onChange((prev) => ({ ...prev, paragraphSpacing: v as ParagraphSpacing }))
+              }
+              label={`ระยะห่างย่อหน้า ${v}`}
+            >
+              {v === 0 ? 'ปกติ' : v === 0.5 ? 'ปานกลาง' : 'กว้าง'}
+            </OptionButton>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+          ความหนาตัวอักษร
+        </span>
+        <div className="flex gap-1.5">
+          {FONT_WEIGHT_OPTIONS.map((w) => (
+            <OptionButton
+              key={w.value}
+              pressed={settings.fontWeight === w.value}
+              onClick={() => onChange((prev) => ({ ...prev, fontWeight: w.value }))}
+              label={`ความหนาตัวอักษร${w.label}`}
+            >
+              {w.label}
+            </OptionButton>
+          ))}
+        </div>
+      </div>
+
+      {/* ─── Content toggles ───────────────────────────────────────────── */}
+      <SettingsSectionTitle>เนื้อหา</SettingsSectionTitle>
+      <ToggleRow
+        id="lawlib-hide-repealed"
+        label="ซ่อนมาตรา/วรรคที่ถูกยกเลิก"
+        hint="ใช้ได้ทั้งฉบับเต็มและเวอร์ชันย่อ"
+        checked={settings.hideRepealed}
+        onChange={(hideRepealed) => onChange((prev) => ({ ...prev, hideRepealed }))}
+      />
+      <ToggleRow
+        id="lawlib-hide-amendment-notes"
+        label="ซ่อนโน้ตการแก้ไข"
+        hint="ซ่อน 'แก้ไขโดยฉบับที่ N' ในป๊อปอัปมาตรา"
+        checked={settings.hideAmendmentNotes}
+        onChange={(hideAmendmentNotes) => onChange((prev) => ({ ...prev, hideAmendmentNotes }))}
+      />
+
+      {/* ─── Focus mode (disclosure BEFORE activating) ─────────────────── */}
+      <SettingsSectionTitle>โหมดโฟกัส</SettingsSectionTitle>
+      <div className="rounded-lg border border-amber-300/70 bg-amber-50 px-3 py-2 text-[10px] leading-relaxed text-amber-900 dark:border-amber-500/40 dark:bg-amber-950/40 dark:text-amber-200">
+        จะซ่อน: เมนูนำทาง, สารบัญ, แถบเครื่องมือ, footer — เหลือเฉพาะเนื้อหาและ ตัวบอกมาตรา (กด Esc
+        เพื่อออก)
+      </div>
+      <ToggleRow
+        id="lawlib-focus-mode"
+        label="เปิดโหมดโฟกัส"
+        checked={settings.focusMode}
+        onChange={onFocusModeChange}
+      />
+
+      {/* ─── Auto-scroll ───────────────────────────────────────────────── */}
+      <SettingsSectionTitle>เลื่อนอัตโนมัติ</SettingsSectionTitle>
+      <SliderRow
+        id="lawlib-auto-scroll"
+        label="ความเร็ว"
+        min={AUTO_SCROLL_MIN}
+        max={AUTO_SCROLL_MAX}
+        step={1}
+        value={reducedMotion ? 0 : settings.autoScrollSpeed}
+        display={
+          settings.autoScrollSpeed === 0 || reducedMotion ? 'ปิด' : `${settings.autoScrollSpeed}`
+        }
+        onChange={(autoScrollSpeed) => onChange((prev) => ({ ...prev, autoScrollSpeed }))}
+      />
+      <p className="text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
+        หยุดเมื่อคุณเลื่อนหรือแตะหน้าจอ
+        {reducedMotion && ' — ปิดชั่วคราวเพราะตั้งค่าลดการเคลื่อนไหวของระบบ'}
+      </p>
+
+      {/* ─── Reset (inline confirm — no nested dialog in the popover) ──── */}
+      <SettingsSectionTitle>รีเซ็ต</SettingsSectionTitle>
+      {!confirmReset ? (
+        <button
+          type="button"
+          onClick={() => setConfirmReset(true)}
+          className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2 text-xs font-semibold text-red-700 transition-colors hover:border-red-300 hover:bg-red-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-300"
+        >
+          <i aria-hidden="true" className="fi fi-sr-rotate-left text-[10px]" />
+          คืนค่าเริ่มต้น
+        </button>
+      ) : (
+        <div className="space-y-1.5 rounded-lg border border-red-200 bg-red-50 p-2 dark:border-red-500/40 dark:bg-red-950/40">
+          <p role="status" className="text-[10px] leading-relaxed text-red-800 dark:text-red-200">
+            คืนค่าทั้งหมด รวมถึงรายการปักหมุด ตำแหน่งปุ่ม และความเหลืองของกระดาษ?
+          </p>
+          <div className="flex gap-1.5">
+            <button
+              type="button"
+              onClick={() => {
+                setConfirmReset(false);
+                onReset();
+              }}
+              className="flex min-h-9 flex-1 cursor-pointer items-center justify-center rounded-lg bg-red-600 px-2 text-xs font-semibold text-white transition-colors hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            >
+              ยืนยัน
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmReset(false)}
+              className="flex min-h-9 flex-1 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white px-2 text-xs font-medium text-slate-600 transition-colors hover:border-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+            >
+              ยกเลิก
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

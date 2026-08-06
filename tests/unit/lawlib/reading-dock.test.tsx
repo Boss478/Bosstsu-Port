@@ -429,16 +429,16 @@ describe('Dock v2 — Level 2 (เพิ่มเติม)', () => {
     expect(screen.getByRole('button', { name: 'เครื่องมืออ่าน' })).toBe(document.activeElement);
   });
 
-  it('disabled rows (ตั้งค่า) get a disabled pin toggle (fix #21)', async () => {
+  it('ตั้งค่า row is LIVE: opens the settings picker (T10b — no longer disabled)', async () => {
     await renderReader();
     fireEvent.click(dockIcon());
     fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
 
     const settingsRow = screen.getByRole('button', { name: /^ตั้งค่า/ });
-    expect(settingsRow.hasAttribute('disabled')).toBe(true);
-    // The pin for the disabled row is disabled too.
-    const pinSettings = screen.getByRole('button', { name: /ปักหมุด ตั้งค่า/ });
-    expect(pinSettings.hasAttribute('disabled')).toBe(true);
+    expect(settingsRow.hasAttribute('disabled')).toBe(false);
+    fireEvent.click(settingsRow);
+    // The settings picker opens as a labelled group (no nested dialog).
+    expect(screen.getByRole('group', { name: 'ตั้งค่า' })).toBeTruthy();
   });
 
   it('position selector: 8 spots (3×3 minus center), persisted to localStorage', async () => {
@@ -468,9 +468,13 @@ describe('Dock v2 — Level 2 (เพิ่มเติม)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'ตำแหน่งกลางซ้าย' }));
 
     // Side-anchored panels must not exceed the viewport: at 375px the shared
-    // 92vw cap (345px) plus the 60px icon offset would overflow by 30px.
+    // 92vw cap (345px) plus the icon offset would overflow. T10b: the icon
+    // footprint rides --lawlib-dock-size (toolbar slider 24-56, default 44 →
+    // 44px + 1rem = 3.75rem at the default).
     const panel = dockPanel() as HTMLElement;
-    expect(panel.className).toContain('w-[min(calc(100vw-3.75rem),26rem)]');
+    expect(panel.className).toContain(
+      'w-[min(calc(100vw_-_var(--lawlib-dock-size)_-_1rem),26rem)]',
+    );
   });
 
   it('mid-right clamps symmetrically (fix #27 — no LEFT-edge overflow at 375px)', async () => {
@@ -480,7 +484,9 @@ describe('Dock v2 — Level 2 (เพิ่มเติม)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'ตำแหน่งกลางขวา' }));
 
     const panel = dockPanel() as HTMLElement;
-    expect(panel.className).toContain('w-[min(calc(100vw-3.75rem),26rem)]');
+    expect(panel.className).toContain(
+      'w-[min(calc(100vw_-_var(--lawlib-dock-size)_-_1rem),26rem)]',
+    );
   });
 
   it('top-row positions clear the page H1: 14rem mobile / 11rem md (fix #17)', async () => {
@@ -492,10 +498,11 @@ describe('Dock v2 — Level 2 (เพิ่มเติม)', () => {
     const root = document.querySelector('.lawlib-dock.fixed') as HTMLElement;
     expect(root.className).toContain('top-[max(14rem,env(safe-area-inset-top))]');
     expect(root.className).toContain('md:top-[max(11rem,env(safe-area-inset-top))]');
-    // The panel cap follows the raised anchor so it stays fully in-viewport.
+    // The panel cap follows the raised anchor + the toolbar-size var
+    // (T10b) so it stays fully in-viewport at every size 24-56.
     const panel = dockPanel() as HTMLElement;
-    expect(panel.className).toContain('max-h-[calc(100vh-15.5rem)]');
-    expect(panel.className).toContain('md:max-h-[calc(100vh-12.5rem)]');
+    expect(panel.className).toContain('max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_15rem)]');
+    expect(panel.className).toContain('md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]');
   });
 
   it('bookmarks list in Level 2: grouped chapter rows with jump + delete', async () => {

@@ -43,8 +43,13 @@ import LawTooltip from '@/components/LawTooltip';
 import { SearchPanel } from '@/components/SearchPanel';
 import { GlossaryPanel } from '@/components/GlossaryPanel';
 import { EditionTimeline } from '@/components/EditionTimeline';
-import { useReaderStorage } from '@/hooks/useReaderStorage';
+import {
+  useReaderStorage,
+  SETTINGS_CHANGED_EVENT,
+  loadGlobalSettings,
+} from '@/hooks/useReaderStorage';
 import type { ReaderViewMode } from '@/hooks/useReaderStorage';
+import type { ReaderFontFamily } from '@/app/(website)/lawlib/lib/reader-props';
 import { useTheme } from '@/components/ThemeProvider';
 import LawlibDock from '@/components/LawlibDock';
 import type { DigestSearchLine } from '@/app/(website)/lawlib/lib/reader-props';
@@ -140,6 +145,18 @@ type PanelKind = keyof typeof PANEL_LABELS;
  */
 const FONT_SIZE_CLASS = 'text-[length:var(--lawlib-font-size)]';
 const WIDTH_CLASS = 'max-w-[length:var(--lawlib-width)]';
+
+/** T10b font family CSS values (ADR-019 D4). Sarabun/Mali resolve through
+ *  the EXISTING next/font/local vars (hashed families — re-@font-face would
+ *  double-download, senior MAJOR #4); the 3 new families are raw @font-face
+ *  names (globals.css) that download ONLY when selected. */
+const FONT_FAMILY_CSS: Record<ReaderFontFamily, string> = {
+  sarabun: 'var(--font-sarabun)',
+  'noto-sans-thai': "'Noto Sans Thai'",
+  mali: 'var(--font-mali)',
+  'bai-jamjuree': "'Bai Jamjuree'",
+  itim: "'Itim'",
+};
 
 /**
  * '#มาตรา-10' | '#มาตรา-10ทวิ' | '#มาตรา-10/1' → article key ('10'…).
@@ -1166,11 +1183,182 @@ export default function LawlibReaderClient({
   /** T10a numeric typography via CSS custom properties (see FONT_SIZE_CLASS/
    *  WIDTH_CLASS above) — set on the reader root so both views inherit.
    *  Width is a PERCENT of the 80ch baseline: max-width: calc(80ch * pct/100)
-   *  (user decision 2026-08-06 — 100% = the legacy 80ch reading measure). */
+   *  (user decision 2026-08-06 — 100% = the legacy 80ch reading measure).
+   *  T10b (ADR-019 D4): fontFamily (single application point — the root's
+   *  inline font-family consumes the var; Sarabun/Mali resolve through the
+   *  existing next/font vars, the 3 new families through the raw @font-face
+   *  declarations), fontWeight (ปกติ/หนา), paragraphSpacing (0/0.5/1 rem). */
   const typographyVars = {
     '--lawlib-font-size': `${settings.fontSize}px`,
     '--lawlib-width': `calc(80ch * ${settings.width} / 100)`,
+    '--lawlib-font-family': FONT_FAMILY_CSS[settings.fontFamily],
+    '--lawlib-font-weight': settings.fontWeight === 'bold' ? '700' : '400',
+    '--lawlib-para-spacing': `${settings.paragraphSpacing}rem`,
   } as React.CSSProperties;
+
+  /** Reading-root font/weight — the chosen family applies to the whole
+   *  reading surface (article text + compact cards). Note: the tooltip
+   *  PORTAL renders into document.body (outside this root) — it keeps the
+   *  lawlib layout's Sarabun default (documented trade-off). */
+  const readerSurfaceStyle: React.CSSProperties = {
+    ...typographyVars,
+    fontFamily: 'var(--lawlib-font-family)',
+    fontWeight: 'var(--lawlib-font-weight)',
+  };
+
+  // --- T10b body classes: focus mode + hide repealed + hide amendment
+  //     notes (CSS in globals.css — FULL and COMPACT both render through
+  //     ArticleView / the article tooltip, so the class hooks cover both).
+  useEffect(() => {
+    const body = document.body;
+    body.classList.toggle('lawlib-focus', settings.focusMode);
+    body.classList.toggle('lawlib-hide-repealed', settings.hideRepealed);
+    body.classList.toggle('lawlib-hide-amendment-notes', settings.hideAmendmentNotes);
+    return () => {
+      body.classList.remove('lawlib-focus', 'lawlib-hide-repealed', 'lawlib-hide-amendment-notes');
+    };
+  }, [settings.focusMode, settings.hideRepealed, settings.hideAmendmentNotes]);
+
+  // --- T10b focus mode: easy exit via Esc. Stands down while a drawer /
+  //     tooltip / compact popover owns Escape (the dock's escBlocked
+  //     contract — the dock itself is hidden by CSS while in focus mode,
+  //     so its own Esc handler is unreachable). */
+  const escBlockedForFocus = openPanel !== null || tooltip !== null || expandedKey !== null;
+  useEffect(() => {
+    if (!settings.focusMode || escBlockedForFocus) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSettings((prev) => ({ ...prev, focusMode: false }));
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [settings.focusMode, escBlockedForFocus, setSettings]);
+
+  // --- T10b auto-scroll (D7): speed 0-5 (0=off), rAF over the window
+  //     scroll, pause on ANY user wheel/touch/pointer/key interaction,
+  //     stops at the document end. prefers-reduced-motion → never starts
+  //     (the stored value is preserved — turning the OS setting off later
+  //     restores the user's choice). The pause state drives the floating
+  //     chip's resume button; the loop reads the REF so the chip can toggle
+  //     it without restarting the rAF chain.
+  const [autoScrollPaused, setAutoScrollPaused] = useState(false);
+  const autoScrollPausedRef = useRef(false);
+  useEffect(() => {
+    autoScrollPausedRef.current = autoScrollPaused;
+  }, [autoScrollPaused]);
+  // A fresh speed choice (settings slider — the only other writer besides
+  // the chip's stop/end-of-document) restarts a paused auto-scroll. The
+  // closure captures the pre-change speed: unrelated settings changes
+  // compare equal and must NOT unpause (the user paused to read/edit).
+  useEffect(() => {
+    const onSettingsChanged = () => {
+      const fresh = loadGlobalSettings();
+      if (fresh !== null && fresh.autoScrollSpeed !== settings.autoScrollSpeed) {
+        setAutoScrollPaused(false);
+      }
+    };
+    window.addEventListener(SETTINGS_CHANGED_EVENT, onSettingsChanged);
+    return () => window.removeEventListener(SETTINGS_CHANGED_EVENT, onSettingsChanged);
+  }, [settings]);
+  useEffect(() => {
+    const speed = settings.autoScrollSpeed;
+    if (speed <= 0 || reducedMotionNow()) {
+      return;
+    }
+    let raf = 0;
+    let last = performance.now();
+    const step = (now: number) => {
+      const dt = Math.min(now - last, 100);
+      last = now;
+      if (!autoScrollPausedRef.current) {
+        const px = speed * 0.8 * (dt / 16.667);
+        const maxY = document.documentElement.scrollHeight - window.innerHeight;
+        const nextY = window.scrollY + px;
+        if (maxY <= 0 || nextY >= maxY - 2) {
+          // Natural end — stop (a paused-at-bottom resume would be a dead
+          // loop). Speed 0 = the setting's "off".
+          window.scrollTo(0, Math.max(0, maxY));
+          setSettings((prev) =>
+            prev.autoScrollSpeed === speed ? { ...prev, autoScrollSpeed: 0 } : prev,
+          );
+          return;
+        }
+        window.scrollTo(0, nextY);
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    // User interaction pauses — EXCEPT clicks inside the control chip itself
+    // (its own pause/resume/stop buttons must not double-toggle).
+    const pause = (e: Event) => {
+      if (e.target instanceof Element && e.target.closest('.lawlib-autoscroll-chip') !== null) {
+        return;
+      }
+      setAutoScrollPaused(true);
+    };
+    window.addEventListener('wheel', pause, { passive: true });
+    window.addEventListener('touchstart', pause, { passive: true });
+    window.addEventListener('pointerdown', pause);
+    window.addEventListener('keydown', pause);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('wheel', pause);
+      window.removeEventListener('touchstart', pause);
+      window.removeEventListener('pointerdown', pause);
+      window.removeEventListener('keydown', pause);
+    };
+  }, [settings.autoScrollSpeed, setSettings]);
+
+  // --- T10b focus-mode reading indicator (D7 — "กำลังอ่าน: มาตรา X"):
+  //     IntersectionObserver over the article/card elements; shown ONLY in
+  //     focus mode (that is when the user has no nav/TOC to orient by).
+  //     Falls back to activeKey until the observer reports.
+  const [focusArticleLabel, setFocusArticleLabel] = useState('');
+  useEffect(() => {
+    if (!settings.focusMode) return;
+    const els = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-lawlib-article], [data-lawlib-card]'),
+    );
+    const labelOfEl = (el: HTMLElement): string | null => {
+      const key = el.getAttribute('data-lawlib-article') ?? el.getAttribute('data-lawlib-card');
+      if (key === null || key === '') return null;
+      const hit = findArticleByKey(law, key);
+      return hit !== undefined ? articleLabel(hit.article.no, hit.article.suffix) : `มาตรา ${key}`;
+    };
+    // Seed with the FIRST article/card (DOM order) — the bar must never read
+    // "—" before the observer's initial callback lands. Deferred into a
+    // timeout (compiler rule: no synchronous setState in the effect body —
+    // same pattern as the mount restore effect) and gated on the state still
+    // being empty so a faster IO update wins.
+    const first = els[0];
+    const seedTimer =
+      first !== undefined
+        ? window.setTimeout(() => {
+            const label = labelOfEl(first);
+            if (label !== null) setFocusArticleLabel((prev) => (prev === '' ? label : prev));
+          }, 0)
+        : null;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const hits = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        const target = hits[0]?.target as HTMLElement | undefined;
+        if (target === undefined) return;
+        const label = labelOfEl(target);
+        if (label !== null) setFocusArticleLabel(label);
+      },
+      { rootMargin: '-40% 0px -55% 0px' },
+    );
+    els.forEach((el) => io.observe(el));
+    return () => {
+      io.disconnect();
+      if (seedTimer !== null) window.clearTimeout(seedTimer);
+    };
+  }, [settings.focusMode, effectiveView, law]);
+  const focusLabel =
+    focusArticleLabel !== '' ? focusArticleLabel : activeKey !== null ? labelOf(activeKey) : '—';
 
   /** Tooltip article-actions hub (T10a) — same-law ref content only. All
    *  callbacks are keyed to the TOOLTIP's article (a ref tooltip can be open
@@ -1197,7 +1385,7 @@ export default function LawlibReaderClient({
       : undefined;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6" style={typographyVars}>
+    <div className="mx-auto max-w-6xl px-4 py-6" style={readerSurfaceStyle}>
       {/* sr-only view-switch announcement — set ONLY in the toggle handler (loop-4 #2) */}
       <p role="status" className="sr-only">
         {statusText}
@@ -1394,6 +1582,67 @@ export default function LawlibReaderClient({
         onBookmarkRemove={(key) => toggleBookmark(key)}
         escBlocked={openPanel !== null || tooltip !== null || expandedKey !== null}
       />
+
+      {/* T10b focus-mode reading indicator (D7) — sticky bar, visible ONLY
+          in focus mode; the IntersectionObserver label falls back to the
+          active article. Esc exits focus mode (reader handler above). */}
+      {settings.focusMode && (
+        <div className="lawlib-reading-indicator fixed inset-x-0 top-0 z-40 flex items-center justify-center gap-2 border-b border-slate-200 bg-white/95 px-3 py-1.5 shadow-sm dark:border-slate-700 dark:bg-slate-900/95">
+          <i
+            aria-hidden="true"
+            className="fi fi-sr-book-open-reader text-[10px] text-blue-600 dark:text-blue-300"
+          />
+          <span className="truncate text-xs font-bold text-slate-700 dark:text-slate-200">
+            กำลังอ่าน: {focusLabel}
+          </span>
+          <button
+            type="button"
+            onClick={() => setSettings({ ...settings, focusMode: false })}
+            aria-label="ออกจากโหมดโฟกัส"
+            title="ออกจากโหมดโฟกัส (Esc)"
+            className="flex h-9 shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-blue-300 bg-blue-50 px-2 text-[11px] font-semibold text-blue-700 transition-colors hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-blue-500/50 dark:bg-blue-950/50 dark:text-blue-300"
+          >
+            ออก
+            <i aria-hidden="true" className="fi fi-sr-cross text-[8px]" />
+          </button>
+        </div>
+      )}
+
+      {/* T10b auto-scroll control chip — visible while auto-scroll runs;
+          pause/resume + stop (speed 0). Pauses on ANY user interaction via
+          the reader effect (wheel/touch/pointer/key). */}
+      {settings.autoScrollSpeed > 0 && !reducedMotionNow() && (
+        <div className="lawlib-autoscroll-chip fixed bottom-24 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-slate-200 bg-white/95 py-1 pl-3 pr-1 shadow-lg dark:border-slate-700 dark:bg-slate-900/95">
+          <span className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+            <i
+              aria-hidden="true"
+              className="fi fi-sr-arrow-small-down text-[10px] text-blue-600 dark:text-blue-300"
+            />
+            เลื่อนอัตโนมัติ
+          </span>
+          <button
+            type="button"
+            aria-pressed={!autoScrollPaused}
+            onClick={() => setAutoScrollPaused((p) => !p)}
+            className="flex h-9 cursor-pointer items-center gap-1 rounded-full bg-blue-600 px-3 text-[11px] font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            <i
+              aria-hidden="true"
+              className={`fi text-[9px] ${autoScrollPaused ? 'fi-sr-play' : 'fi-sr-pause'}`}
+            />
+            {autoScrollPaused ? 'เล่นต่อ' : 'หยุดชั่วคราว'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setSettings({ ...settings, autoScrollSpeed: 0 })}
+            aria-label="ปิดเลื่อนอัตโนมัติ"
+            title="ปิดเลื่อนอัตโนมัติ"
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-slate-500 transition-colors hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-slate-400 dark:hover:text-white"
+          >
+            <i aria-hidden="true" className="fi fi-sr-cross text-[9px]" />
+          </button>
+        </div>
+      )}
 
       {/* panels (drawer + dimmed overlay — bg-black/10 only, no blur) */}
       {openPanel !== null && (

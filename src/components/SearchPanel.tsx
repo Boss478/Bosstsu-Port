@@ -64,6 +64,20 @@ export function SearchPanel({ articles, onJump, digestLines, onDigestLineJump }:
     return map;
   }, [articles]);
 
+  // ─── Quick-jump (ADR-019 D7 — พิมพ์เลขมาตรา → ข้ามไป): a query that is
+  //     JUST a number (Thai digits normalize via normalizeText) or
+  //     "มาตรา N" becomes a direct jump — "32" → มาตรา 32. Parsed from the
+  //     RAW query (the Enter key must work before the 180ms debounce);
+  //     non-existent numbers get a helpful error instead of "no results".
+  const jumpTarget = useMemo(() => {
+    const q = normalizeText(query);
+    const m = /^(?:มาตรา)?\s*(\d{1,3})$/.exec(q);
+    if (m === null) return null;
+    const no = Number(m[1]);
+    const hit = articles.find((a) => a.no === no && (a.suffix === undefined || a.suffix === ''));
+    return hit !== undefined ? { no, key: articleKey(hit) } : { no, key: null };
+  }, [articles, query]);
+
   const normQuery = normalizeText(debouncedQuery);
 
   const results = useMemo<Match[]>(() => {
@@ -104,10 +118,37 @@ export function SearchPanel({ articles, onJump, digestLines, onDigestLineJump }:
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              // Enter with a quick-jump target jumps immediately (the
+              // debounce would otherwise swallow the keystroke).
+              if (e.key === 'Enter' && jumpTarget !== null && jumpTarget.key !== null) {
+                e.preventDefault();
+                onJump(jumpTarget.key);
+              }
+            }}
             placeholder="ค้นหาข้อความในมาตรา เช่น เงินกู้ หรือ มาตรา 10"
-            className="w-full rounded-full border border-slate-200 bg-white py-2 pl-9 pr-4 text-sm text-zinc-700 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-zinc-200 dark:placeholder:text-zinc-500"
+            className="lawlib-glass w-full rounded-full border border-slate-200 bg-white py-2 pl-9 pr-4 text-sm text-zinc-700 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-zinc-200 dark:placeholder:text-zinc-500"
           />
         </div>
+        {/* Quick-jump row (ADR-019 D7) — a pure มาตรา number jumps directly. */}
+        {jumpTarget !== null &&
+          (jumpTarget.key !== null ? (
+            <button
+              type="button"
+              onClick={() => onJump(jumpTarget.key as string)}
+              className="mt-2 flex min-h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-blue-300 bg-blue-50 px-3 text-sm font-semibold text-blue-800 transition-colors hover:border-blue-400 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-blue-500/50 dark:bg-blue-950/50 dark:text-blue-200"
+            >
+              ข้ามไป มาตรา {jumpTarget.no}
+              <i aria-hidden="true" className="fi fi-sr-arrow-small-right text-xs" />
+            </button>
+          ) : (
+            <p
+              role="status"
+              className="mt-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800 dark:border-amber-500/40 dark:bg-amber-950/40 dark:text-amber-200"
+            >
+              ไม่พบมาตรา {jumpTarget.no} ในกฎหมายฉบับนี้ — ลองพิมพ์คำค้นแทน
+            </p>
+          ))}
         {normQuery.length > 0 && (
           <p role="status" className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
             {results.length === 0 && digestResults.length === 0

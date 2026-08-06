@@ -23,7 +23,13 @@
  */
 import { useCallback, useMemo, useState } from 'react';
 import { safeGetJSON, safeGetString, safeSetJSON, safeSetString } from '@/lib/storage';
-import type { DockToolKey, ReadingSettingsValue } from '@/app/(website)/lawlib/lib/reader-props';
+import type {
+  DockToolKey,
+  ParagraphSpacing,
+  ReaderFontFamily,
+  ReaderFontWeight,
+  ReadingSettingsValue,
+} from '@/app/(website)/lawlib/lib/reader-props';
 
 const KEY_BASES = {
   bookmarks: 'bookmarks',
@@ -58,12 +64,24 @@ export interface Highlight {
  * T10a contract change (ADR-019 D4/D5): fontSize 16px (was 'm'), width 100%
  * of the 80ch baseline (was 60ch/'normal'; user decision 2026-08-06 widens
  * the slider to 80-120%), lineHeight 1.8 stays (clamp floor 1.0).
+ * T10b (ADR-019 D4): fontFamily sarabun · glassOpacity 75 (glass-2) ·
+ * toolbarSize 44 · paragraphSpacing 0 · fontWeight normal · hideRepealed/
+ * hideAmendmentNotes/focusMode off · autoScrollSpeed 0 (off).
  */
 export const DEFAULT_READING_SETTINGS: ReadingSettingsValue = {
   fontSize: 16,
   lineHeight: 1.8,
   width: 100,
   favoriteToolKeys: ['theme', 'fontSize', 'lineHeight', 'width', 'bookmark', 'search', 'notes'],
+  fontFamily: 'sarabun',
+  glassOpacity: 75,
+  toolbarSize: 44,
+  paragraphSpacing: 0,
+  fontWeight: 'normal',
+  hideRepealed: false,
+  hideAmendmentNotes: false,
+  focusMode: false,
+  autoScrollSpeed: 0,
 };
 
 /** All dock tools (runtime list for validation + the dock's Level-2 rows).
@@ -92,6 +110,26 @@ const WIDTH_MAX = 120;
 /** Line height clamp (was [1.5, 2.2] — T10a widens to [1.0, 2.0]). */
 const LINE_HEIGHT_MIN = 1.0;
 const LINE_HEIGHT_MAX = 2.0;
+/** T10b clamps (ADR-019 D4): glass 0-100% · toolbar 24-56px · auto-scroll
+ *  0-5 (int). The toolbar floor stays 24 HERE — the 44px touch floor is a
+ *  DOCK policy (WCAG 2.5.8), not a storage rule (a 24px desktop choice must
+ *  survive a reload on the same device). */
+const GLASS_OPACITY_MIN = 0;
+const GLASS_OPACITY_MAX = 100;
+const TOOLBAR_SIZE_MIN = 24;
+const TOOLBAR_SIZE_MAX = 56;
+const AUTO_SCROLL_MIN = 0;
+const AUTO_SCROLL_MAX = 5;
+/** T10b whitelists — unknown stored values fall back to the defaults. */
+const FONT_FAMILIES: readonly ReaderFontFamily[] = [
+  'sarabun',
+  'noto-sans-thai',
+  'mali',
+  'bai-jamjuree',
+  'itim',
+];
+const FONT_WEIGHTS: readonly ReaderFontWeight[] = ['normal', 'bold'];
+const PARAGRAPH_SPACINGS: readonly number[] = [0, 0.5, 1];
 /** Legacy enum → number migrations (ADR-019 D4/D5 — MUST NOT drop stored
  *  values: a user on 'l' must keep 18px, not silently reset to 16). Width
  *  map moved to the PERCENT scale 2026-08-06 (was 40/60/80ch). */
@@ -100,6 +138,26 @@ const LEGACY_WIDTH: Record<string, number> = { narrow: 80, normal: 100, wide: 12
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
+}
+
+/** T10b: round a stored paragraphSpacing to the nearest allowed step {0,.5,1}
+ *  (idempotent on valid values). */
+function sanitizeParagraphSpacing(value: unknown): ParagraphSpacing {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
+  const snapped = PARAGRAPH_SPACINGS.reduce((best, s) =>
+    Math.abs(s - value) < Math.abs(best - value) ? s : best,
+  );
+  return snapped as ParagraphSpacing;
+}
+
+/** T10b: settings change notification — LawlibGlassVars (lawlib layout)
+ *  listens so the dock+search glass vars track the slider on every page. */
+export const SETTINGS_CHANGED_EVENT = 'lawlib:settings-changed';
+
+function notifySettingsChanged(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(SETTINGS_CHANGED_EVENT));
+  }
 }
 
 /**
@@ -144,6 +202,37 @@ export function validateReadingSettings(input: unknown): ReadingSettingsValue {
       ? clamp(o.lineHeight, LINE_HEIGHT_MIN, LINE_HEIGHT_MAX)
       : DEFAULT_READING_SETTINGS.lineHeight;
 
+  // --- T10b fields (ADR-019 D4): whitelists + clamps, defaults on garbage.
+  //     Every migration is IDEMPOTENT — the validator runs on every load, so
+  //     a stored valid value must pass through unchanged.
+  const fontFamily = FONT_FAMILIES.includes(o.fontFamily as ReaderFontFamily)
+    ? (o.fontFamily as ReaderFontFamily)
+    : DEFAULT_READING_SETTINGS.fontFamily;
+  const glassOpacity =
+    typeof o.glassOpacity === 'number' && Number.isFinite(o.glassOpacity)
+      ? clamp(o.glassOpacity, GLASS_OPACITY_MIN, GLASS_OPACITY_MAX)
+      : DEFAULT_READING_SETTINGS.glassOpacity;
+  const toolbarSize =
+    typeof o.toolbarSize === 'number' && Number.isFinite(o.toolbarSize)
+      ? clamp(Math.round(o.toolbarSize), TOOLBAR_SIZE_MIN, TOOLBAR_SIZE_MAX)
+      : DEFAULT_READING_SETTINGS.toolbarSize;
+  const paragraphSpacing = sanitizeParagraphSpacing(o.paragraphSpacing);
+  const fontWeight = FONT_WEIGHTS.includes(o.fontWeight as ReaderFontWeight)
+    ? (o.fontWeight as ReaderFontWeight)
+    : DEFAULT_READING_SETTINGS.fontWeight;
+  const hideRepealed =
+    typeof o.hideRepealed === 'boolean' ? o.hideRepealed : DEFAULT_READING_SETTINGS.hideRepealed;
+  const hideAmendmentNotes =
+    typeof o.hideAmendmentNotes === 'boolean'
+      ? o.hideAmendmentNotes
+      : DEFAULT_READING_SETTINGS.hideAmendmentNotes;
+  const focusMode =
+    typeof o.focusMode === 'boolean' ? o.focusMode : DEFAULT_READING_SETTINGS.focusMode;
+  const autoScrollSpeed =
+    typeof o.autoScrollSpeed === 'number' && Number.isFinite(o.autoScrollSpeed)
+      ? clamp(Math.round(o.autoScrollSpeed), AUTO_SCROLL_MIN, AUTO_SCROLL_MAX)
+      : DEFAULT_READING_SETTINGS.autoScrollSpeed;
+
   let favoriteToolKeys = DEFAULT_READING_SETTINGS.favoriteToolKeys;
   if (Array.isArray(o.favoriteToolKeys)) {
     const seen = new Set<DockToolKey>();
@@ -160,7 +249,21 @@ export function validateReadingSettings(input: unknown): ReadingSettingsValue {
     favoriteToolKeys = filtered;
   }
 
-  return { fontSize, lineHeight, width, favoriteToolKeys };
+  return {
+    fontSize,
+    lineHeight,
+    width,
+    favoriteToolKeys,
+    fontFamily,
+    glassOpacity,
+    toolbarSize,
+    paragraphSpacing,
+    fontWeight,
+    hideRepealed,
+    hideAmendmentNotes,
+    focusMode,
+    autoScrollSpeed,
+  };
 }
 
 /**
@@ -246,7 +349,11 @@ function makeId(): string {
 
 export interface ReaderStorage {
   settings: ReadingSettingsValue;
-  setSettings: (next: ReadingSettingsValue) => void;
+  /** Full replacement or updater — the settings never mutate partial state.
+   *  Persists + dispatches `lawlib:settings-changed` (LawlibGlassVars). */
+  setSettings: (
+    next: ReadingSettingsValue | ((prev: ReadingSettingsValue) => ReadingSettingsValue),
+  ) => void;
   /** Per-slug view mode (`lawlib:<scope>:view`); null when unset — caller applies the default. */
   view: ReaderViewMode | null;
   setView: (mode: ReaderViewMode) => void;
@@ -303,9 +410,13 @@ export function useReaderStorage(scope?: string): ReaderStorage {
   );
 
   const setSettings = useCallback(
-    (next: ReadingSettingsValue) => {
-      setSettingsState(next);
-      safeSetJSON(keys.settings, next);
+    (next: ReadingSettingsValue | ((prev: ReadingSettingsValue) => ReadingSettingsValue)) => {
+      setSettingsState((prev) => {
+        const resolved = typeof next === 'function' ? next(prev) : next;
+        safeSetJSON(keys.settings, resolved);
+        return resolved;
+      });
+      notifySettingsChanged();
     },
     [keys],
   );

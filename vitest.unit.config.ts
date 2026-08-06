@@ -36,6 +36,8 @@ const unitInclude = [
   'tests/unit/lawlib/quick-note.test.tsx',
   'tests/unit/lawlib/reader-settings.test.ts',
   'tests/unit/lawlib/reading-dock.test.tsx',
+  'tests/unit/lawlib/search-panel.test.tsx',
+  'tests/unit/lawlib/settings-panel.test.tsx',
   'tests/unit/lawlib/theme-provider.test.tsx',
   'tests/unit/lawlib/tooltip.test.tsx',
   'tests/unit/phonics/achievement-checker.test.ts',

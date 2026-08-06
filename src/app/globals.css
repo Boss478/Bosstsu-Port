@@ -1447,6 +1447,102 @@ textarea,
   @apply backdrop-blur-lg bg-white/90 dark:bg-slate-900/90;
 }
 
+/* ─── T10b font families (ADR-019 D4 — 3 NEW families, raw @font-face
+   display:swap, self-hosted woff2 under public/fonts/lawlib/). Sarabun and
+   Mali are NOT re-declared here — they resolve through the existing
+   next/font/local vars (var(--font-sarabun)/var(--font-mali), hashed family
+   names — re-@font-face would double-download). Files are subsetless
+   (Thai + Latin), same convention as src/fonts/sarabun/. Itim ships a
+   single 400 weight; the settings' หนา (700) falls back to synthesized
+   bold for Itim (documented trade-off). Only the SELECTED family downloads —
+   the @font-face declarations themselves are inert until used. */
+@font-face {
+  font-family: 'Noto Sans Thai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/lawlib/noto-sans-thai/NotoSansThai-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Noto Sans Thai';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/lawlib/noto-sans-thai/NotoSansThai-Bold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Bai Jamjuree';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/lawlib/bai-jamjuree/BaiJamjuree-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Bai Jamjuree';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/lawlib/bai-jamjuree/BaiJamjuree-Bold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Itim';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/lawlib/itim/Itim-Regular.woff2') format('woff2');
+}
+
+/* ─── T10b glass slider (ADR-019 D4/D8 — chrome ONLY: dock + search).
+   --lawlib-glass-bg-light/dark + --lawlib-glass-blur are applied on <html>
+   by LawlibGlassVars (lawlib layout) from settings.glassOpacity:
+   0% → transparent surface (border + focus ring carry the boundary), 100% →
+   the JS sets the blur to 'none' (GPU saving). DEFAULTS here keep the
+   surfaces renderable before hydration / on non-lawlib pages.
+   Read/sepia paper overrides BELOW (higher specificity, later in the file)
+   keep the paper dock opaque and its backdrop-filter dead (the
+   --lawlib-dock-blur trick) and give the search field its paper fill —
+   the slider never re-enables blur on the paper dock. */
+.lawlib-glass {
+  background-color: var(--lawlib-glass-bg-light, rgba(255, 255, 255, 0.75));
+  -webkit-backdrop-filter: var(--lawlib-glass-blur, blur(12px));
+  backdrop-filter: var(--lawlib-glass-blur, blur(12px));
+}
+.dark .lawlib-glass {
+  background-color: var(--lawlib-glass-bg-dark, rgba(30, 41, 59, 0.75));
+}
+/* List-page search input (SearchInput.tsx — T2 tokens stay; the fill/blur
+   ride the same slider vars so the dock+search surfaces stay in sync). */
+.lawlib-search-field {
+  background-color: var(--lawlib-glass-bg-light, rgba(255, 255, 255, 0.6));
+  -webkit-backdrop-filter: var(--lawlib-glass-blur, blur(12px));
+  backdrop-filter: var(--lawlib-glass-blur, blur(12px));
+}
+.dark .lawlib-search-field {
+  background-color: var(--lawlib-glass-bg-dark, rgba(30, 41, 59, 0.6));
+}
+/* Reader search-drawer input on paper (SearchPanel is a .lawlib-panel
+   surface) — translucent paper fill like the list-page field, so the
+   drawer input matches the T2 read treatment. The DOCK is NOT a
+   .lawlib-panel — its paper override comes from .read .lawlib-dock below. */
+.read .lawlib-panel .lawlib-glass,
+.sepia .lawlib-panel .lawlib-glass {
+  background-color: rgba(255, 255, 255, 0.55);
+}
+
+/* ─── T10b paragraph spacing (0/0.5/1 rem — the value rides
+   --lawlib-para-spacing set on the reader root by typographyVars).
+   COMPACT paragraphs are block <p> (BodyLineView mt-3 = 0.75rem baseline →
+   spacing ADDS on top); FULL article segments are inline spans (paragraph
+   breaks render inside whitespace-pre-line) so the body rule mirrors the
+   legacy space-y-2 and only gains visual effect if the segments ever become
+   block (documented limitation — ArticleView is do-not-touch). */
+.lawlib-article-card p + p {
+  margin-top: calc(0.75rem + var(--lawlib-para-spacing, 0rem));
+}
+[data-lawlib-body] > * + * {
+  margin-top: calc(0.5rem + var(--lawlib-para-spacing, 0rem));
+}
+
 /* ─── LawLib Read Mode (4-mode theme — paper surfaces) ───────────────────
    Centralized `.read` overrides per plan §4.2: read mode is fully styled on
    LawLib surfaces only; everywhere else it degrades to paper body + light
@@ -1610,6 +1706,27 @@ textarea,
     background: transparent;
     box-shadow: none;
   }
+}
+
+/* ─── T10b focus mode (ADR-019 D4/D7): the reader sets body.lawlib-focus
+   alongside the existing .lawlib-immersive. Hides the site chrome — nav,
+   BOTH TOCs (FULL .lawlib-toc + COMPACT DigestToc .lawlib-toc), the dock
+   and the footer — while the reading surface + the sticky มาตรา indicator
+   (lawlib-reading-indicator, reader-rendered) stay. Content is display:none
+   (out of the a11y tree — Esc exits focus mode, no focus trap). */
+body.lawlib-focus #site-header,
+body.lawlib-focus .lawlib-toc,
+body.lawlib-focus .lawlib-dock,
+body.lawlib-focus footer {
+  display: none;
+}
+
+/* T10b hide repealed / hide amendment notes (FULL + COMPACT — both views
+   render through ArticleView (.lawlib-repealed) and the article tooltip
+   (.lawlib-amendment-notes — LawTooltip's amendedBy block)). */
+body.lawlib-hide-repealed .lawlib-repealed,
+body.lawlib-hide-amendment-notes .lawlib-amendment-notes {
+  display: none;
 }
 
 @media (scripting: none) {

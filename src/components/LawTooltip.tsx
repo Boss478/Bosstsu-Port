@@ -13,8 +13,10 @@
  *    internal scroll, NO truncation) + history block ONLY when amendedBy is
  *    non-empty ("แก้ไขโดยฉบับที่ N (gazette date) — note"; the "— note"
  *    segment renders only when the note is non-empty — bare markers carry
- *    note: '') + "เปิดมาตรานี้" link + copy shortcut (full article +
- *    "— <code> มาตรา N" citation line)
+ *    note: ''). The block carries `.lawlib-amendment-notes` — T10b's
+ *    "ซ่อนโน้ตการแก้ไข" hides it via body.lawlib-hide-amendment-notes
+ *    (FULL + COMPACT share this portal) + "เปิดมาตรานี้" link + copy
+ *    shortcut (full article + "— <code> มาตรา N" citation line)
  *  - cross-law ref → lazy registry load (cached); miss → "ยังไม่เปิดให้อ่าน"
  */
 
@@ -304,7 +306,7 @@ function ArticleBody({
           </div>
 
           {target.amendedBy !== undefined && target.amendedBy.length > 0 && (
-            <ul className="space-y-1 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+            <ul className="lawlib-amendment-notes space-y-1 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
               {target.amendedBy.map((am, i) => {
                 const edition = law.editions.find((e) => e.no === am.editionNo);
                 return (

@@ -20,7 +20,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { safeGetString, safeSetString } from '@/lib/storage';
-import { DOCK_TOOL_KEYS } from '@/hooks/useReaderStorage';
+import { DEFAULT_READING_SETTINGS, DOCK_TOOL_KEYS } from '@/hooks/useReaderStorage';
 import type { DockToolKey, ReadingSettingsValue } from '@/app/(website)/lawlib/lib/reader-props';
 import type { LawDoc } from '@/types/lawlib';
 import { articleLabel, findArticleByKey } from '@/lib/lawlib-reader';
@@ -29,11 +29,13 @@ import {
   FontSizePickerContent,
   LineHeightPickerContent,
   PickerPopover,
+  SettingsPanelContent,
   THEME_CHOICES,
   ThemePickerContent,
+  TOOLBAR_SIZE_TOUCH_MIN,
   WidthPickerContent,
 } from '@/components/LawlibPickers';
-import type { Theme } from '@/components/ThemeProvider';
+import { DEFAULT_PAPER_TONE, type Theme } from '@/components/ThemeProvider';
 
 // ---------------------------------------------------------------------------
 // Dock position — 8 spots (3×3 minus center), persisted `lawlib:dockPosition`
@@ -82,8 +84,18 @@ const POSITION_LABELS: Record<DockPosition, string> = {
  * Bottom offsets clear BackToTop (bottom-6/10 + ~44px ≈ 84px). Top rows clear
  * the law header (24-231px, a11y fix #17): 14rem on mobile, 11rem from md up;
  * the matching panelMaxH keeps the panel fully in-viewport. Safe areas:
- * bottom/left/right insets via env(). Tailwind arbitrary values are static
- * literals here — JIT-safe.
+ * bottom/left/right insets via env().
+ *
+ * T10b toolbar-size parametrization (ADR-019 D4 — the slider is 24-56,
+ * default 44): the ICON footprint (--lawlib-dock-size, set inline on the
+ * dock root from settings.toolbarSize) enters every calc:
+ *   - panelWidth mid-*: 100vw − icon − 1rem side gutter
+ *   - panelMaxH top-*:  100vh − icon − anchor offset − bottom margin
+ *   - panelMaxH bottom-*: 100vh − (icon + 3.25rem bottom offset) − top margin
+ *   - bottom roots: max(icon + 3.25rem, 5.25rem floor — BackToTop clearance)
+ * The `max()` floors keep small sizes from colliding with BackToTop/header;
+ * the calcs use underscored arbitrary values (Tailwind converts _ → space —
+ * calc REQUIRES spaces around -). All literals are static — JIT-safe.
  */
 const POSITION_CONFIG: Record<
   DockPosition,
@@ -92,51 +104,54 @@ const POSITION_CONFIG: Record<
   'top-left': {
     root: 'top-[max(14rem,env(safe-area-inset-top))] left-[max(1rem,env(safe-area-inset-left))] md:top-[max(11rem,env(safe-area-inset-top))]',
     panel: 'top-full left-0',
-    panelMaxH: 'max-h-[calc(100vh-15.5rem)] md:max-h-[calc(100vh-12.5rem)]',
+    panelMaxH:
+      'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_15rem)] md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]',
   },
   'top-center': {
     root: 'top-[max(14rem,env(safe-area-inset-top))] left-1/2 -translate-x-1/2 md:top-[max(11rem,env(safe-area-inset-top))]',
     panel: 'top-full left-1/2 -translate-x-1/2',
-    panelMaxH: 'max-h-[calc(100vh-15.5rem)] md:max-h-[calc(100vh-12.5rem)]',
+    panelMaxH:
+      'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_15rem)] md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]',
   },
   'top-right': {
     root: 'top-[max(14rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))] md:top-[max(11rem,env(safe-area-inset-top))]',
     panel: 'top-full right-0',
-    panelMaxH: 'max-h-[calc(100vh-15.5rem)] md:max-h-[calc(100vh-12.5rem)]',
+    panelMaxH:
+      'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_15rem)] md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]',
   },
   'mid-left': {
     root: 'top-1/2 -translate-y-1/2 left-[max(1rem,env(safe-area-inset-left))]',
     panel: 'left-full top-1/2 -translate-y-1/2',
     panelMaxH: 'max-h-[70vh]',
-    // Side-anchored at the icon's right edge (1rem + 44px icon = 3.75rem):
-    // the shared 92vw cap would push the panel past the viewport at 375px.
-    panelWidth: 'w-[min(calc(100vw-3.75rem),26rem)]',
+    // Side-anchored at the icon's right edge (1rem + icon footprint): the
+    // shared 92vw cap would push the panel past the viewport at 375px.
+    panelWidth: 'w-[min(calc(100vw_-_var(--lawlib-dock-size)_-_1rem),26rem)]',
   },
   'mid-right': {
     root: 'top-1/2 -translate-y-1/2 right-[max(1rem,env(safe-area-inset-right))]',
     panel: 'right-full top-1/2 -translate-y-1/2',
     panelMaxH: 'max-h-[70vh]',
     // Symmetric clamp (fix #27): the expanded panel anchors 1rem from the
-    // right edge (the 60px icon footprint only applies while collapsed), so
-    // the shared 92vw cap at 375px portrait leaves ~14px clearance — it only
+    // right edge (the icon footprint only applies while collapsed), so the
+    // shared 92vw cap at 375px portrait leaves ~14px clearance — it only
     // goes negative (~14px past the LEFT edge) in landscape with a large
     // env(safe-area-inset-right). The clamp covers both.
-    panelWidth: 'w-[min(calc(100vw-3.75rem),26rem)]',
+    panelWidth: 'w-[min(calc(100vw_-_var(--lawlib-dock-size)_-_1rem),26rem)]',
   },
   'bottom-left': {
-    root: 'bottom-[max(6rem,calc(env(safe-area-inset-bottom)+1rem))] left-[max(1rem,env(safe-area-inset-left))]',
+    root: 'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1rem))] left-[max(1rem,env(safe-area-inset-left))]',
     panel: 'bottom-full left-0',
-    panelMaxH: 'max-h-[calc(100vh-7.5rem)]',
+    panelMaxH: 'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_4.75rem)]',
   },
   'bottom-center': {
-    root: 'bottom-[max(6rem,calc(env(safe-area-inset-bottom)+1rem))] left-1/2 -translate-x-1/2',
+    root: 'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1rem))] left-1/2 -translate-x-1/2',
     panel: 'bottom-full left-1/2 -translate-x-1/2',
-    panelMaxH: 'max-h-[calc(100vh-7.5rem)]',
+    panelMaxH: 'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_4.75rem)]',
   },
   'bottom-right': {
-    root: 'bottom-[max(6rem,calc(env(safe-area-inset-bottom)+1rem))] right-[max(1rem,env(safe-area-inset-right))]',
+    root: 'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1rem))] right-[max(1rem,env(safe-area-inset-right))]',
     panel: 'bottom-full right-0',
-    panelMaxH: 'max-h-[calc(100vh-7.5rem)]',
+    panelMaxH: 'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_4.75rem)]',
   },
 };
 
@@ -151,7 +166,7 @@ function loadDockPosition(): DockPosition {
 // Tool registry (shared by Level 1 favorites + Level 2 ALL tools)
 // ---------------------------------------------------------------------------
 
-type PickerKind = 'theme' | 'fontSize' | 'lineHeight' | 'width';
+type PickerKind = 'theme' | 'fontSize' | 'lineHeight' | 'width' | 'settings';
 type DockPanelKind = 'search' | 'glossary' | 'notes';
 
 const TOOL_LABELS: Record<DockToolKey, string> = {
@@ -200,7 +215,11 @@ export interface LawlibDockProps {
   paperTone: number;
   setPaperTone: (next: number) => void;
   settings: ReadingSettingsValue;
-  setSettings: (next: ReadingSettingsValue) => void;
+  /** Full replacement or updater — functional updates keep rapid successive
+   *  panel actions from clobbering each other (stale-snapshot overwrite). */
+  setSettings: (
+    next: ReadingSettingsValue | ((prev: ReadingSettingsValue) => ReadingSettingsValue),
+  ) => void;
   /** Current article bookmarked (Level-1 bookmark toggle state). */
   isBookmarked: boolean;
   onToggleBookmark: () => void;
@@ -254,6 +273,11 @@ export default function LawlibDock(props: LawlibDockProps) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [picker, setPicker] = useState<{ kind: PickerKind; anchor: HTMLElement } | null>(null);
   const [position, setPosition] = useState<DockPosition>(() => loadDockPosition());
+  /** Touch device (primary pointer coarse) — the toolbar slider floors at
+   *  44px (WCAG 2.5.8) and stored sub-44 values are lifted at render. */
+  const [coarsePointer] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches,
+  );
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
@@ -356,6 +380,10 @@ export default function LawlibDock(props: LawlibDockProps) {
   };
 
   const activateTool = (key: DockToolKey, anchor?: HTMLElement) => {
+    if (key === 'settings') {
+      if (anchor !== undefined) togglePicker('settings', anchor);
+      return;
+    }
     if (PICKER_KEYS.includes(key)) {
       if (anchor !== undefined) togglePicker(key as PickerKind, anchor);
       return;
@@ -370,8 +398,6 @@ export default function LawlibDock(props: LawlibDockProps) {
       case 'copyLink':
         if (canCopy) onCopyLink();
         return;
-      case 'settings':
-        return; // T10b placeholder — the row renders disabled.
       default: {
         const panel = ACTION_PANEL_MAP[key];
         if (panel !== undefined) onOpenPanel(panel);
@@ -390,7 +416,24 @@ export default function LawlibDock(props: LawlibDockProps) {
     safeSetString('lawlib:dockPosition', next);
   };
 
+  /** คืนค่าเริ่มต้น (D7): ALL reading settings + favorites (part of the
+   *  settings object) + the dock position + the paper tone. Theme stays
+   *  untouched (site-wide preference, ThemeProvider — out of the reading
+   *  settings contract). Bookmarks/notes/highlights are USER DATA, not
+   *  settings — never wiped. */
+  const handleReset = () => {
+    setSettings(DEFAULT_READING_SETTINGS);
+    setPosition(DEFAULT_DOCK_POSITION);
+    safeSetString('lawlib:dockPosition', DEFAULT_DOCK_POSITION);
+    setPaperTone(DEFAULT_PAPER_TONE);
+  };
+
   const cfg = POSITION_CONFIG[position];
+  /** Effective toolbar size — touch devices never go below 44 (WCAG 2.5.8).
+   *  Drives --lawlib-dock-size (icon footprint + geometry calcs). */
+  const effectiveToolbarSize = coarsePointer
+    ? Math.max(TOOLBAR_SIZE_TOUCH_MIN, settings.toolbarSize)
+    : settings.toolbarSize;
   const pickerValue: Record<PickerKind, string> = {
     theme: THEME_CHOICES.find((c) => c.value === theme)?.label ?? theme,
     fontSize: `${settings.fontSize}px`,
@@ -398,6 +441,7 @@ export default function LawlibDock(props: LawlibDockProps) {
     // Width slider is a percentage of the 80ch baseline (user decision
     // 2026-08-06): 80-120%, default 100%.
     width: `${settings.width}%`,
+    settings: '',
   };
 
   // Bookmark count used by the Level-1 badge + Level-2 heading — RESOLVED
@@ -425,8 +469,8 @@ export default function LawlibDock(props: LawlibDockProps) {
 
   const renderToolButton = (key: DockToolKey) => {
     const tool = TOOL_ICONS[key];
-    if (PICKER_KEYS.includes(key)) {
-      const kind = key as PickerKind;
+    if (PICKER_KEYS.includes(key) || key === 'settings') {
+      const kind = key === 'settings' ? 'settings' : (key as PickerKind);
       return (
         <button
           key={key}
@@ -440,10 +484,12 @@ export default function LawlibDock(props: LawlibDockProps) {
             <i aria-hidden="true" className={`fi ${tool} text-[9px]`} />
             <span className="truncate">{TOOL_LABELS[key]}</span>
           </span>
-          <span className="flex items-center gap-0.5 text-xs font-bold tabular-nums">
-            {pickerValue[kind]}
-            <i aria-hidden="true" className="fi fi-sr-angle-small-down text-[8px]" />
-          </span>
+          {key !== 'settings' && (
+            <span className="flex items-center gap-0.5 text-xs font-bold tabular-nums">
+              {pickerValue[kind]}
+              <i aria-hidden="true" className="fi fi-sr-angle-small-down text-[8px]" />
+            </span>
+          )}
         </button>
       );
     }
@@ -472,7 +518,7 @@ export default function LawlibDock(props: LawlibDockProps) {
         }
         title={TOOL_LABELS[key]}
         aria-pressed={active}
-        disabled={key === 'settings' || ((key === 'copy' || key === 'copyLink') && !canCopy)}
+        disabled={(key === 'copy' || key === 'copyLink') && !canCopy}
         onClick={() => activateTool(key)}
         className={`relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 ${
           active
@@ -494,11 +540,9 @@ export default function LawlibDock(props: LawlibDockProps) {
 
   const renderToolRow = (key: DockToolKey) => {
     const pinned = settings.favoriteToolKeys.includes(key);
-    const isPicker = PICKER_KEYS.includes(key);
-    const settingsDisabled = key === 'settings';
-    const rowValue = isPicker ? pickerValue[key as PickerKind] : undefined;
-    const disabled =
-      settingsDisabled || (key === 'copy' && !canCopy) || (key === 'copyLink' && !canCopy);
+    const isPicker = PICKER_KEYS.includes(key) || key === 'settings';
+    const rowValue = isPicker && key !== 'settings' ? pickerValue[key as PickerKind] : undefined;
+    const disabled = (key === 'copy' && !canCopy) || (key === 'copyLink' && !canCopy);
     return (
       <li key={key} className="flex items-center gap-1.5">
         <button
@@ -514,16 +558,11 @@ export default function LawlibDock(props: LawlibDockProps) {
           <i
             aria-hidden="true"
             className={`fi ${TOOL_ICONS[key]} text-xs ${
-              settingsDisabled
-                ? 'text-slate-500 dark:text-slate-500'
-                : 'text-slate-500 dark:text-slate-400'
+              disabled ? 'text-slate-500 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'
             }`}
           />
           <span className="flex-1 truncate text-xs font-medium text-slate-700 dark:text-slate-200">
             {TOOL_LABELS[key]}
-            {settingsDisabled && (
-              <span className="ml-1 text-[10px] text-slate-400">(เร็วๆ นี้)</span>
-            )}
           </span>
           {rowValue !== undefined && (
             <span className="text-xs font-bold tabular-nums text-slate-500 dark:text-slate-400">
@@ -559,7 +598,11 @@ export default function LawlibDock(props: LawlibDockProps) {
   };
 
   return (
-    <div ref={rootRef} className={`lawlib-dock fixed z-50 ${cfg.root}`}>
+    <div
+      ref={rootRef}
+      style={{ '--lawlib-dock-size': `${effectiveToolbarSize}px` } as React.CSSProperties}
+      className={`lawlib-dock fixed z-50 ${cfg.root}`}
+    >
       {!expanded ? (
         <button
           ref={toggleRef}
@@ -570,7 +613,7 @@ export default function LawlibDock(props: LawlibDockProps) {
           aria-haspopup="dialog"
           aria-controls="lawlib-dock-panel"
           title="เครื่องมืออ่าน"
-          className="lawlib-dock flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white/75 text-slate-600 shadow-lg backdrop-blur-md transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800/75 dark:text-slate-300 dark:hover:text-white"
+          className="lawlib-dock lawlib-glass flex h-[var(--lawlib-dock-size)] w-[var(--lawlib-dock-size)] cursor-pointer items-center justify-center rounded-xl border border-slate-200 text-slate-600 shadow-lg transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
         >
           <i aria-hidden="true" className="fi fi-sr-sliders-h text-sm leading-none" />
         </button>
@@ -580,7 +623,7 @@ export default function LawlibDock(props: LawlibDockProps) {
           role="dialog"
           aria-modal="false"
           aria-label="เครื่องมืออ่าน"
-          className={`lawlib-dock absolute ${cfg.panel} ${cfg.panelMaxH} ${cfg.panelWidth ?? 'w-[min(92vw,26rem)]'} overflow-y-auto rounded-2xl border border-slate-200 bg-white/90 p-2 shadow-2xl backdrop-blur-lg dark:border-slate-700 dark:bg-slate-900/90`}
+          className={`lawlib-dock lawlib-glass absolute ${cfg.panel} ${cfg.panelMaxH} ${cfg.panelWidth ?? 'w-[min(92vw,26rem)]'} overflow-y-auto rounded-2xl border border-slate-200 p-2 shadow-2xl dark:border-slate-700`}
         >
           {/* Panel header — the tools icon re-click collapses (D1) */}
           <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-slate-100 pb-1.5 dark:border-slate-800">
@@ -728,7 +771,13 @@ export default function LawlibDock(props: LawlibDockProps) {
         <PickerPopover
           anchorEl={picker.anchor}
           widthClass={
-            picker.kind === 'theme' ? 'w-64' : picker.kind === 'fontSize' ? 'w-60' : 'w-56'
+            picker.kind === 'settings'
+              ? 'w-72'
+              : picker.kind === 'theme'
+                ? 'w-64'
+                : picker.kind === 'fontSize'
+                  ? 'w-60'
+                  : 'w-56'
           }
           label={TOOL_LABELS[picker.kind]}
           onClose={closePicker}
@@ -761,6 +810,28 @@ export default function LawlibDock(props: LawlibDockProps) {
               value={settings.width}
               onChange={(width) => setSettings({ ...settings, width })}
             />
+          )}
+          {picker.kind === 'settings' && (
+            <div className="max-h-[min(60vh,30rem)] overflow-y-auto pr-0.5">
+              <SettingsPanelContent
+                settings={settings}
+                onChange={setSettings}
+                coarsePointer={coarsePointer}
+                reducedMotion={
+                  typeof window !== 'undefined' &&
+                  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+                }
+                onFocusModeChange={(focusMode) => {
+                  setSettings((prev) => ({ ...prev, focusMode }));
+                  if (focusMode) {
+                    // The dock is part of what focus mode hides — close it
+                    // so the panel/picker don't float alone.
+                    closeAll();
+                  }
+                }}
+                onReset={handleReset}
+              />
+            </div>
           )}
         </PickerPopover>
       )}

@@ -82,6 +82,18 @@ export type DockToolKey =
   | 'copyLink'
   | 'settings';
 
+/** T10b (ADR-019 D4): the 5 reading font families. Sarabun/Mali resolve to
+ *  the existing next/font/local vars (NEVER re-@font-face them — hashed
+ *  family names would double-download); the other three are raw @font-face
+ *  families (globals.css) that only download when selected. */
+export type ReaderFontFamily = 'sarabun' | 'noto-sans-thai' | 'mali' | 'bai-jamjuree' | 'itim';
+
+/** T10b: body font weight — ปกติ (400) / หนา (700). */
+export type ReaderFontWeight = 'normal' | 'bold';
+
+/** T10b: inter-paragraph spacing in rem — 0/0.5/1. */
+export type ParagraphSpacing = 0 | 0.5 | 1;
+
 export type ReadingSettingsValue = {
   /** Font size in px, 8-32 (default 16). */
   fontSize: number;
@@ -92,6 +104,27 @@ export type ReadingSettingsValue = {
   /** Dock Level-1 pinned tool keys — render order = array order (defaults to
    *  the curated row: theme/fontSize/lineHeight/width/bookmark/search/notes). */
   favoriteToolKeys: DockToolKey[];
+  /** T10b: reading font family (default 'sarabun'). */
+  fontFamily: ReaderFontFamily;
+  /** T10b: chrome translucency 0-100% (default 75 — glass-2). 100 = solid +
+   *  backdrop-filter:none (GPU saving). Dock + search surfaces only. */
+  glassOpacity: number;
+  /** T10b: toolbar size in px 24-56 (default 44). Touch devices floor at 44
+   *  (WCAG 2.5.8 — enforced by the dock, not the validator). */
+  toolbarSize: number;
+  /** T10b: inter-paragraph spacing in rem (default 0). */
+  paragraphSpacing: ParagraphSpacing;
+  /** T10b: body font weight (default 'normal'). */
+  fontWeight: ReaderFontWeight;
+  /** T10b: hide repealed-paragraph blocks (`.lawlib-repealed`, FULL+COMPACT). */
+  hideRepealed: boolean;
+  /** T10b: hide amendment notes (แก้ไขโดยฉบับที่ N — the tooltip's amber
+   *  block, `.lawlib-amendment-notes`). */
+  hideAmendmentNotes: boolean;
+  /** T10b: focus mode — hides nav/TOC/dock/footer (body class lawlib-focus). */
+  focusMode: boolean;
+  /** T10b: auto-scroll speed 0-5 (0 = off; pauses on user interaction). */
+  autoScrollSpeed: number;
 };
 
 export interface ReadingSettingsProps {

@@ -23,12 +23,19 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DEFAULT_READING_SETTINGS } from '@/hooks/useReaderStorage';
+import type { ReadingSettingsValue } from '@/app/(website)/lawlib/lib/reader-props';
 
 type StorageApi = typeof import('@/hooks/useReaderStorage');
 
 const SETTINGS_KEY = 'lawlib:settings';
 
 let api: StorageApi;
+
+/** T10b contract extension: the validator always emits the full shape —
+ *  expected values merge over the defaults so partial literals stay terse. */
+function withDefaults(over: Partial<ReadingSettingsValue>): ReadingSettingsValue {
+  return { ...DEFAULT_READING_SETTINGS, ...over };
+}
 
 /** In-memory localStorage stub (repo pattern: tests/unit/phonics/save.test.ts). */
 function mockLocalStorage(): void {
@@ -57,7 +64,7 @@ beforeEach(async () => {
   mockLocalStorage();
 });
 
-describe('validateReadingSettings (P3 — T10a numeric contract)', () => {
+describe('validateReadingSettings (P3 — T10a numeric contract + T10b fields)', () => {
   it('passes every valid numeric combination through unchanged', () => {
     for (const fontSize of [8, 14, 16, 18, 24, 32]) {
       for (const width of [80, 100, 120]) {
@@ -67,7 +74,7 @@ describe('validateReadingSettings (P3 — T10a numeric contract)', () => {
           width,
           favoriteToolKeys: ['theme', 'width'],
         };
-        expect(api.validateReadingSettings(input)).toEqual(input);
+        expect(api.validateReadingSettings(input)).toEqual(withDefaults(input));
       }
     }
     expect(
@@ -77,7 +84,7 @@ describe('validateReadingSettings (P3 — T10a numeric contract)', () => {
         width: 100,
         favoriteToolKeys: [],
       }),
-    ).toEqual({ fontSize: 16, lineHeight: 1.0, width: 100, favoriteToolKeys: [] });
+    ).toEqual(withDefaults({ fontSize: 16, lineHeight: 1.0, width: 100, favoriteToolKeys: [] }));
     expect(
       api.validateReadingSettings({
         fontSize: 16,
@@ -85,7 +92,7 @@ describe('validateReadingSettings (P3 — T10a numeric contract)', () => {
         width: 100,
         favoriteToolKeys: [],
       }),
-    ).toEqual({ fontSize: 16, lineHeight: 2.0, width: 100, favoriteToolKeys: [] });
+    ).toEqual(withDefaults({ fontSize: 16, lineHeight: 2.0, width: 100, favoriteToolKeys: [] }));
   });
 
   it('MIGRATES legacy enum font sizes: s/m/l/xl → 14/16/18/24 (values never silently reset)', () => {
@@ -173,18 +180,8 @@ describe('validateReadingSettings (P3 — T10a numeric contract)', () => {
 
   it('fills missing fields with defaults', () => {
     expect(api.validateReadingSettings({})).toEqual(DEFAULT_READING_SETTINGS);
-    expect(api.validateReadingSettings({ fontSize: 18 })).toEqual({
-      fontSize: 18,
-      lineHeight: 1.8,
-      width: 100,
-      favoriteToolKeys: DEFAULT_READING_SETTINGS.favoriteToolKeys,
-    });
-    expect(api.validateReadingSettings({ width: 90 })).toEqual({
-      fontSize: 16,
-      lineHeight: 1.8,
-      width: 90,
-      favoriteToolKeys: DEFAULT_READING_SETTINGS.favoriteToolKeys,
-    });
+    expect(api.validateReadingSettings({ fontSize: 18 })).toEqual(withDefaults({ fontSize: 18 }));
+    expect(api.validateReadingSettings({ width: 90 })).toEqual(withDefaults({ width: 90 }));
   });
 
   it('returns defaults for null, undefined and non-object input', () => {
@@ -273,6 +270,73 @@ describe('validateReadingSettings (P3 — T10a numeric contract)', () => {
       DEFAULT_READING_SETTINGS.favoriteToolKeys,
     );
   });
+
+  // ─── T10b fields (ADR-019 D4 — fontFamily, glassOpacity, toolbarSize,
+  //     paragraphSpacing, fontWeight, hideRepealed, hideAmendmentNotes,
+  //     focusMode, autoScrollSpeed) ──────────────────────────────────────
+
+  it('T10b: passes every valid new field through unchanged (idempotent)', () => {
+    const input: ReadingSettingsValue = {
+      ...DEFAULT_READING_SETTINGS,
+      fontFamily: 'itim',
+      glassOpacity: 33,
+      toolbarSize: 32,
+      paragraphSpacing: 0.5,
+      fontWeight: 'bold',
+      hideRepealed: true,
+      hideAmendmentNotes: true,
+      focusMode: true,
+      autoScrollSpeed: 3,
+    };
+    expect(api.validateReadingSettings(input)).toEqual(input);
+    // A second pass is byte-identical (the validator runs on every load).
+    expect(api.validateReadingSettings(api.validateReadingSettings(input))).toEqual(input);
+  });
+
+  it('T10b: unknown fontFamily / fontWeight fall back to the defaults', () => {
+    expect(api.validateReadingSettings({ fontFamily: 'comic-sans' }).fontFamily).toBe('sarabun');
+    expect(api.validateReadingSettings({ fontFamily: 42 }).fontFamily).toBe('sarabun');
+    expect(api.validateReadingSettings({ fontWeight: 'italic' }).fontWeight).toBe('normal');
+  });
+
+  it('T10b: clamps glassOpacity into [0,100] and toolbarSize into [24,56]', () => {
+    expect(api.validateReadingSettings({ glassOpacity: -5 }).glassOpacity).toBe(0);
+    expect(api.validateReadingSettings({ glassOpacity: 150 }).glassOpacity).toBe(100);
+    expect(api.validateReadingSettings({ glassOpacity: 'x' }).glassOpacity).toBe(75);
+    expect(api.validateReadingSettings({ toolbarSize: 10 }).toolbarSize).toBe(24);
+    expect(api.validateReadingSettings({ toolbarSize: 80 }).toolbarSize).toBe(56);
+    expect(api.validateReadingSettings({ toolbarSize: 44.7 }).toolbarSize).toBe(45);
+    expect(api.validateReadingSettings({ toolbarSize: 'big' }).toolbarSize).toBe(44);
+  });
+
+  it('T10b: paragraphSpacing snaps to the {0, 0.5, 1} steps', () => {
+    expect(api.validateReadingSettings({ paragraphSpacing: 0 }).paragraphSpacing).toBe(0);
+    expect(api.validateReadingSettings({ paragraphSpacing: 0.5 }).paragraphSpacing).toBe(0.5);
+    expect(api.validateReadingSettings({ paragraphSpacing: 1 }).paragraphSpacing).toBe(1);
+    expect(api.validateReadingSettings({ paragraphSpacing: 0.4 }).paragraphSpacing).toBe(0.5);
+    expect(api.validateReadingSettings({ paragraphSpacing: 0.8 }).paragraphSpacing).toBe(1);
+    expect(api.validateReadingSettings({ paragraphSpacing: 'wide' }).paragraphSpacing).toBe(0);
+  });
+
+  it('T10b: boolean toggles only accept booleans', () => {
+    expect(api.validateReadingSettings({ hideRepealed: true }).hideRepealed).toBe(true);
+    expect(api.validateReadingSettings({ hideRepealed: 1 }).hideRepealed).toBe(false);
+    expect(api.validateReadingSettings({ hideAmendmentNotes: true }).hideAmendmentNotes).toBe(true);
+    expect(api.validateReadingSettings({ hideAmendmentNotes: 'yes' }).hideAmendmentNotes).toBe(
+      false,
+    );
+    expect(api.validateReadingSettings({ focusMode: true }).focusMode).toBe(true);
+    expect(api.validateReadingSettings({ focusMode: 'on' }).focusMode).toBe(false);
+  });
+
+  it('T10b: autoScrollSpeed rounds + clamps into [0,5]', () => {
+    expect(api.validateReadingSettings({ autoScrollSpeed: 0 }).autoScrollSpeed).toBe(0);
+    expect(api.validateReadingSettings({ autoScrollSpeed: 5 }).autoScrollSpeed).toBe(5);
+    expect(api.validateReadingSettings({ autoScrollSpeed: 2.6 }).autoScrollSpeed).toBe(3);
+    expect(api.validateReadingSettings({ autoScrollSpeed: -1 }).autoScrollSpeed).toBe(0);
+    expect(api.validateReadingSettings({ autoScrollSpeed: 9 }).autoScrollSpeed).toBe(5);
+    expect(api.validateReadingSettings({ autoScrollSpeed: 'fast' }).autoScrollSpeed).toBe(0);
+  });
 });
 
 describe('loadGlobalSettings (P3 — shared validator path)', () => {
@@ -290,12 +354,9 @@ describe('loadGlobalSettings (P3 — shared validator path)', () => {
       SETTINGS_KEY,
       JSON.stringify({ fontSize: 24, lineHeight: 2.0, width: 80, favoriteToolKeys: ['theme'] }),
     );
-    expect(api.loadGlobalSettings()).toEqual({
-      fontSize: 24,
-      lineHeight: 2.0,
-      width: 80,
-      favoriteToolKeys: ['theme'],
-    });
+    expect(api.loadGlobalSettings()).toEqual(
+      withDefaults({ fontSize: 24, lineHeight: 2.0, width: 80, favoriteToolKeys: ['theme'] }),
+    );
   });
 
   it('sanitizes invalid values through the shared validator (clamps too)', () => {
@@ -303,12 +364,9 @@ describe('loadGlobalSettings (P3 — shared validator path)', () => {
       SETTINGS_KEY,
       JSON.stringify({ fontSize: 'xs', lineHeight: 9, width: 'huge' }),
     );
-    expect(api.loadGlobalSettings()).toEqual({
-      fontSize: 16,
-      lineHeight: 2.0,
-      width: 100,
-      favoriteToolKeys: DEFAULT_READING_SETTINGS.favoriteToolKeys,
-    });
+    expect(api.loadGlobalSettings()).toEqual(
+      withDefaults({ fontSize: 16, lineHeight: 2.0, width: 100 }),
+    );
   });
 
   it('MIGRATES a legacy v1.10.x stored object through the shared validator', () => {
@@ -316,12 +374,9 @@ describe('loadGlobalSettings (P3 — shared validator path)', () => {
       SETTINGS_KEY,
       JSON.stringify({ fontSize: 'l', lineHeight: 2.1, width: 'wide' }),
     );
-    expect(api.loadGlobalSettings()).toEqual({
-      fontSize: 18,
-      lineHeight: 2.0,
-      width: 120,
-      favoriteToolKeys: DEFAULT_READING_SETTINGS.favoriteToolKeys,
-    });
+    expect(api.loadGlobalSettings()).toEqual(
+      withDefaults({ fontSize: 18, lineHeight: 2.0, width: 120 }),
+    );
   });
 
   it('returns defaults for parseable but non-object values', () => {
@@ -332,34 +387,32 @@ describe('loadGlobalSettings (P3 — shared validator path)', () => {
 
 describe('saveGlobalSettings (P3 — new export)', () => {
   it('writes the settings to lawlib:settings as JSON', () => {
-    api.saveGlobalSettings({ fontSize: 24, lineHeight: 2.0, width: 80, favoriteToolKeys: [] });
-    expect(JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? 'null')).toEqual({
-      fontSize: 24,
-      lineHeight: 2.0,
-      width: 80,
-      favoriteToolKeys: [],
-    });
+    api.saveGlobalSettings(
+      withDefaults({ fontSize: 24, lineHeight: 2.0, width: 80, favoriteToolKeys: [] }),
+    );
+    expect(JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? 'null')).toEqual(
+      withDefaults({ fontSize: 24, lineHeight: 2.0, width: 80, favoriteToolKeys: [] }),
+    );
   });
 
   it('round-trips through loadGlobalSettings', () => {
-    const value = {
+    const value = withDefaults({
       fontSize: 14,
       lineHeight: 1.7,
       width: 100,
       favoriteToolKeys: ['bookmark', 'copy'],
-    };
+    });
     api.saveGlobalSettings(value);
     expect(api.loadGlobalSettings()).toEqual(value);
   });
 
   it('last write wins', () => {
     api.saveGlobalSettings(DEFAULT_READING_SETTINGS);
-    api.saveGlobalSettings({ fontSize: 24, lineHeight: 2.2, width: 80, favoriteToolKeys: [] });
-    expect(api.loadGlobalSettings()).toEqual({
-      fontSize: 24,
-      lineHeight: 2.0,
-      width: 80,
-      favoriteToolKeys: [],
-    });
+    api.saveGlobalSettings(
+      withDefaults({ fontSize: 24, lineHeight: 2.2, width: 80, favoriteToolKeys: [] }),
+    );
+    expect(api.loadGlobalSettings()).toEqual(
+      withDefaults({ fontSize: 24, lineHeight: 2.0, width: 80, favoriteToolKeys: [] }),
+    );
   });
 });

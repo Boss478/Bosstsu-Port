@@ -1,5 +1,6 @@
 import localFont from 'next/font/local';
 import type { Metadata } from 'next';
+import { LawlibGlassVars } from '@/components/LawlibGlassVars';
 
 // FR13 print styles — plain law text only on print (hide toolbar/TOC/panels,
 // page break per .lawlib-chapter). Loaded at layout level so print works even
@@ -31,6 +32,11 @@ export default function LawlibLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className={`${sarabun.variable} font-[family-name:var(--font-sarabun)]`}>{children}</div>
+    <div className={`${sarabun.variable} font-[family-name:var(--font-sarabun)]`}>
+      {/* T10b glass slider vars — dock + search chrome on every lawlib page
+          (client; re-applies on the settings-changed event). */}
+      <LawlibGlassVars />
+      {children}
+    </div>
   );
 }
