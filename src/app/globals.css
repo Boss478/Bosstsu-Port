@@ -1536,6 +1536,25 @@ textarea,
   -webkit-backdrop-filter: var(--lawlib-dock-blur);
   backdrop-filter: var(--lawlib-dock-blur);
 }
+/* ─── T9/T10 in-text term/ref chip hit area (best-effort only).
+   CSS 2.1 §8.3.1: vertical margins do NOT apply to non-replaced inline
+   boxes, so -my-1.5 was a dead no-op while py-1.5 dragged the dashed
+   underline ~6px into the line below and hover/focus halos bled into
+   adjacent lines (Thai descenders ภ ว ม ห ฤ ร — see AGENTS.md gotchas).
+   A true 44px tap target is physically impossible for in-text chips (it
+   would cover neighboring words) — this is the accepted best-effort: a
+   position:relative span + an invisible absolute ::before that extends the
+   CLICK region ±6px vertically with ZERO layout/visual impact. The pseudo
+   carries no paint (no background/border) so nothing bleeds; it only
+   widens the pointer-hit area. */
+.lawlib-chip-hit {
+  position: relative;
+}
+.lawlib-chip-hit::before {
+  content: '';
+  position: absolute;
+  inset: -6px 0;
+}
 
 /* ─── T10b paragraph spacing (0/0.5/1 rem — the value rides
    --lawlib-para-spacing set on the reader root by typographyVars).

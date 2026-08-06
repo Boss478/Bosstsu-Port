@@ -7,6 +7,8 @@ import type { LawDoc } from '../../types/lawlib';
 export const registry: Record<string, () => Promise<LawDoc>> = {
   'compulsory-education-act-2545': () =>
     import('./laws/compulsory-education-act-2545.json') as Promise<LawDoc>,
+  'ministry-of-education-administration-act-2546': () =>
+    import('./laws/ministry-of-education-administration-act-2546.json') as Promise<LawDoc>,
   'national-education-act-2542': () =>
     import('./laws/national-education-act-2542.json') as Promise<LawDoc>,
   sample: () => import('./laws/sample.json') as Promise<LawDoc>,

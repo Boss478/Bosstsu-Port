@@ -127,7 +127,7 @@ function TokenView({
           aria-haspopup="true"
           data-lawlib-trigger
           data-lawlib-term={token.term}
-          className="cursor-pointer rounded-sm border-b-2 border-dashed border-blue-400/70 font-medium text-blue-800 hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-blue-500/60 dark:text-blue-300 dark:hover:bg-blue-950/40 py-1.5 -my-1.5"
+          className="lawlib-chip-hit cursor-pointer rounded-sm border-b-2 border-dashed border-blue-400/70 font-medium text-blue-800 hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-blue-500/60 dark:text-blue-300 dark:hover:bg-blue-950/40"
           {...getTriggerProps({ kind: 'glossary', term: token.term, definition: token.definition })}
         >
           {content}
@@ -168,7 +168,7 @@ function TokenView({
         aria-expanded={isTooltipOpen(content)}
         aria-haspopup="true"
         data-lawlib-trigger
-        className="cursor-pointer rounded-sm font-medium text-blue-700 underline decoration-dotted underline-offset-4 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40 py-1.5 -my-1.5"
+        className="lawlib-chip-hit cursor-pointer rounded-sm font-medium text-blue-700 underline decoration-dotted underline-offset-4 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
         {...getTriggerProps(content)}
       >
         {token.label}

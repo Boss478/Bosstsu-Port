@@ -310,7 +310,7 @@ function ArticleView({
                   aria-haspopup="true"
                   data-lawlib-trigger
                   data-lawlib-term={seg.term.term}
-                  className="cursor-pointer rounded-sm border-b-2 border-dashed border-amber-400/80 font-medium text-amber-800 hover:bg-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-amber-500/60 dark:text-amber-300 dark:hover:bg-amber-950/40 py-1.5 -my-1.5"
+                  className="lawlib-chip-hit cursor-pointer rounded-sm border-b-2 border-dashed border-amber-400/80 font-medium text-amber-800 hover:bg-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-amber-500/60 dark:text-amber-300 dark:hover:bg-amber-950/40"
                   {...getTriggerProps(seg.content)}
                 >
                   {renderHighlightedText(seg.text, seg.offset, ranges)}
@@ -326,7 +326,7 @@ function ArticleView({
                 aria-expanded={isTooltipOpen(seg.content)}
                 aria-haspopup="true"
                 data-lawlib-trigger
-                className="cursor-pointer font-medium text-blue-700 underline decoration-dotted underline-offset-4 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40 py-1.5 -my-1.5"
+                className="lawlib-chip-hit cursor-pointer font-medium text-blue-700 underline decoration-dotted underline-offset-4 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
                 {...getTriggerProps(seg.content)}
               >
                 {seg.ref.display}
