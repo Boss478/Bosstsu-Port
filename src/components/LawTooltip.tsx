@@ -35,6 +35,30 @@ import { formatThaiBEDate } from '@/lib/lawlib/format';
 import type { TooltipContent } from '@/hooks/useLawTooltip';
 
 /**
+ * T11 digest-ref content: a same-law ref carrying the COMPACT digest snippet
+ * (ฉบับย่อ) of the referenced article + its repealed status. Modeled as
+ * `kind: 'ref'` + extra fields ON PURPOSE — the TooltipContent union lives
+ * in useLawTooltip.ts (T1, READ-ONLY), and `sameContent` compares refs by
+ * article identity (lawSlug/articleNo/articleSuffix), so a digest-ref
+ * behaves as a ref in the hook's content-gate / aria-expanded / pin-toggle
+ * logic with zero hook changes. LawTooltip detects it duck-typed
+ * (isDigestRefContent) and renders the compact branch; member-button refs
+ * (no digest fields) keep the full-article ArticleBody branch.
+ */
+export type DigestRefContent = TooltipContent & {
+  kind: 'ref';
+  /** Compact digest snippet (ฉบับย่อ) of the referenced article. */
+  digest: string;
+  /** Repealed status → ถูกยกเลิก badge in the snippet. */
+  repealed: boolean;
+};
+
+/** Duck-typed guard — digest-refs are structurally refs with `digest`. */
+function isDigestRefContent(content: TooltipContent): content is DigestRefContent {
+  return content.kind === 'ref' && 'digest' in content;
+}
+
+/**
  * Article-actions hub (ADR-019 D3/D7 — T10a): bookmark ± · notes read +
  * quick-write (autosave) + link to the full notes panel · copy (existing) ·
  * copy-link. Rendered INSIDE the registered tooltip root; the
@@ -364,6 +388,72 @@ function ArticleBody({
   );
 }
 
+/**
+ * T11 digest-ref body: the COMPACT ฉบับย่อ snippet of the referenced article
+ * (+ ถูกยกเลิก badge when repealed) + the article-actions hub (same-law refs
+ * carry the hub) + ดูฉบับเต็ม → the reader's onOpenArticle (sanctioned close
+ * path: handleTooltipOpenArticle closes the tooltip, then opens the compact
+ * ArticlePopover for in-digest articles / jumps FULL otherwise).
+ */
+function DigestRefBody({
+  content,
+  code,
+  onOpenArticle,
+  onClose,
+  hub,
+}: {
+  content: DigestRefContent;
+  code: string;
+  onOpenArticle: (articleKey: string) => void;
+  onClose: () => void;
+  hub?: LawTooltipHub;
+}) {
+  const label = articleLabel(content.articleNo, content.articleSuffix);
+  const key = articleKeyOf({ no: content.articleNo, suffix: content.articleSuffix });
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-sm font-bold text-slate-800 dark:text-slate-100">{label}</span>
+        {content.repealed && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold leading-relaxed text-red-700 dark:bg-red-950/50 dark:text-red-300">
+            <i aria-hidden="true" className="fi fi-sr-exclamation text-[10px]" />
+            ถูกยกเลิก
+          </span>
+        )}
+      </div>
+      {content.digest !== '' ? (
+        <p
+          aria-live="polite"
+          className="max-h-[60vh] overflow-y-auto whitespace-pre-line pr-1 text-sm leading-relaxed text-slate-700 dark:text-slate-200"
+        >
+          {content.digest}
+        </p>
+      ) : (
+        <p className="text-sm text-slate-500 dark:text-slate-400">ไม่พบข้อมูลฉบับย่อของมาตรานี้</p>
+      )}
+      {hub !== undefined && (
+        // Keyed by article — ref→ref swaps on the same portal root must
+        // remount the hub (ArticleBody precedent, T10a BLOCKER fix).
+        <ArticleHub key={key} hub={hub} onClose={onClose} />
+      )}
+      <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-2 dark:border-slate-800">
+        <button
+          type="button"
+          onClick={() => onOpenArticle(key)}
+          className="inline-flex min-h-11 cursor-pointer items-center gap-1 rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        >
+          ดูฉบับเต็ม
+          <i aria-hidden="true" className="fi fi-sr-arrow-small-right text-[10px] leading-none" />
+        </button>
+        <span className="text-[11px] text-slate-500 dark:text-slate-400">
+          — {code} {label}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 /** Cross-law resolution — keyed by lawCode so each law restarts at 'loading'. */
 function CrossLawArticle({
   lawCode,
@@ -491,6 +581,16 @@ export default function LawTooltip({
           {content.definition}
         </p>
       </div>
+    ) : isDigestRefContent(content) ? (
+      // T11 compact digest ref — ฉบับย่อ snippet + ดูฉบับเต็ม (opened via the
+      // reader's sanctioned onOpenArticle path) + the article-actions hub.
+      <DigestRefBody
+        content={content}
+        code={law.code}
+        onOpenArticle={onOpenArticle}
+        onClose={onClose}
+        hub={hub}
+      />
     ) : content.lawSlug !== undefined ? (
       <CrossLawArticle
         key={content.lawSlug}

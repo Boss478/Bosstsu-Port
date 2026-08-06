@@ -1218,9 +1218,12 @@ export default function LawlibReaderClient({
   } as React.CSSProperties;
 
   /** Reading-root font/weight — the chosen family applies to the whole
-   *  reading surface (article text + compact cards). Note: the tooltip
-   *  PORTAL renders into document.body (outside this root) — it keeps the
-   *  lawlib layout's Sarabun default (documented trade-off). */
+   *  reading surface (article text + compact cards). The tooltip PORTAL
+   *  renders into document.body (outside this root) — the body-class
+   *  effect below mirrors --lawlib-font-family at body level so tooltips
+   *  on lawlib reader pages resolve the same family (user decision
+   *  2026-08-06); elsewhere the var is unset and the tooltip falls back
+   *  to Sarabun. */
   const readerSurfaceStyle: React.CSSProperties = {
     ...typographyVars,
     fontFamily: 'var(--lawlib-font-family)',
@@ -1235,10 +1238,18 @@ export default function LawlibReaderClient({
     body.classList.toggle('lawlib-focus', settings.focusMode);
     body.classList.toggle('lawlib-hide-repealed', settings.hideRepealed);
     body.classList.toggle('lawlib-hide-amendment-notes', settings.hideAmendmentNotes);
+    // Tooltip PORTAL renders into document.body (outside the reader root),
+    // so the root-scoped --lawlib-font-family never reaches it. Mirror the
+    // var at body level — the tooltip's `var(--lawlib-font-family), ...`
+    // prepend then resolves to the reader's chosen family (user decision
+    // 2026-08-06). Removed on cleanup / when the font setting changes, and
+    // never set outside lawlib reader pages (this effect only runs there).
+    body.style.setProperty('--lawlib-font-family', FONT_FAMILY_CSS[settings.fontFamily]);
     return () => {
       body.classList.remove('lawlib-focus', 'lawlib-hide-repealed', 'lawlib-hide-amendment-notes');
+      body.style.removeProperty('--lawlib-font-family');
     };
-  }, [settings.focusMode, settings.hideRepealed, settings.hideAmendmentNotes]);
+  }, [settings.focusMode, settings.hideRepealed, settings.hideAmendmentNotes, settings.fontFamily]);
 
   // --- T10b focus mode: easy exit via Esc. Stands down while a drawer /
   //     tooltip / compact popover owns Escape (the dock's escBlocked

@@ -80,7 +80,17 @@ const law: LawDoc = {
       title: 'บททั่วไป',
       articles: [
         { no: 5, text: [{ kind: 'text', t: 'ให้ผู้ปกครองส่งเด็กเข้าเรียนในสถานศึกษา' }] },
-        { no: 6, text: [{ kind: 'text', t: 'ให้สถานศึกษาจัดการศึกษา' }] },
+        {
+          no: 6,
+          text: [{ kind: 'text', t: 'ให้สถานศึกษาจัดการศึกษา' }],
+          repealedParagraphs: [
+            {
+              paras: 'วรรคสอง',
+              repealedBy: 'พระราชบัญญัติทดสอบ (ฉบับที่ 2) พ.ศ. 2545',
+              text: 'ความในวรรคสองเดิมถูกยกเลิก',
+            },
+          ],
+        },
         { no: 7, text: [{ kind: 'text', t: 'ผู้ปกครองที่ไม่ปฏิบัติตามมาตรา 5 มีความผิด' }] },
         {
           no: 11,
@@ -121,7 +131,7 @@ const DIGEST_MD = `# พจนานุกรมกฎหมาย — ทดส
 
 ## 4. มาตราสำคัญ
 
-**มาตรา 5** : ให้ผู้ปกครองส่งเด็กเข้าเรียนในสถานศึกษา
+**มาตรา 5** : ให้ผู้ปกครองส่งเด็กเข้าเรียนในสถานศึกษา ตาม[[มาตรา 6]]
 **มาตรา 6** : ให้สถานศึกษาจัดการศึกษา
 **มาตรา 7** : ผู้ปกครองที่ไม่ปฏิบัติตาม[[มาตรา 5]] มีความผิด
 **มาตรา 11 - มาตรา 12** : เนื้อความรวมมาตรา 11 และ 12
@@ -252,16 +262,18 @@ const tooltipRoot = () => document.body.querySelector<HTMLElement>('.lawlib-tool
 const compactCard = (key: string) =>
   document.querySelector<HTMLElement>(`[data-lawlib-card="${key}"]`);
 
-/** The same-law ref BUTTON inside a card's body (scoped — TOC chips and
- *  member buttons share the 'มาตรา N' accessible names). */
-function bodyRefButton(cardKey: string, label: string): HTMLButtonElement {
+/** The same-law ref TRIGGER inside a card's body (scoped — TOC chips and
+ *  member buttons share the 'มาตรา N' accessible names; member buttons are
+ *  excluded via data-lawlib-member). T11: body refs are inline tooltip
+ *  triggers (span role=button + data-lawlib-trigger), not <button>s. */
+function bodyRefTrigger(cardKey: string, label: string): HTMLElement {
   const card = compactCard(cardKey);
   expect(card).not.toBeNull();
-  const btn = Array.from(card!.querySelectorAll('button')).find(
-    (b) => b.textContent?.trim() === label,
+  const el = Array.from(card!.querySelectorAll<HTMLElement>('[data-lawlib-trigger]')).find(
+    (b) => b.textContent?.trim() === label && !b.hasAttribute('data-lawlib-member'),
   );
-  expect(btn, `ref button '${label}' inside card ${cardKey}`).not.toBeUndefined();
-  return btn as HTMLButtonElement;
+  expect(el, `ref trigger '${label}' inside card ${cardKey}`).not.toBeUndefined();
+  return el as HTMLElement;
 }
 
 /** Flush the reader's 50ms open/scroll windows + setTimeout(0) focus restores. */
@@ -288,13 +300,21 @@ async function renderReader() {
 // ---------------------------------------------------------------------------
 
 describe('merged-member routing', () => {
-  it('body-ref to member 12 of "มาตรา 11 - มาตรา 12" opens the merged card popover (NO FULL switch)', async () => {
+  it('digest-ref to member 12 of "มาตรา 11 - มาตรา 12" → ฉบับย่อ tooltip; ดูฉบับเต็ม opens the merged card popover (NO FULL switch)', async () => {
     await renderReader();
 
-    fireEvent.click(bodyRefButton('13', 'มาตรา 12'));
+    fireEvent.click(bodyRefTrigger('13', 'มาตรา 12'));
     await flush();
 
-    // popover for the MERGED card (key '11'), still in compact view
+    // click pins the digest tooltip — the MERGED card's summary (ฉบับย่อ)
+    expect(tooltipRoot()).not.toBeNull();
+    expect(tooltipRoot()?.textContent).toContain('เนื้อความรวมมาตรา 11 และ 12');
+
+    // ดูฉบับเต็ม → the merged card's popover, compact still rendered
+    fireEvent.click(screen.getByRole('button', { name: 'ดูฉบับเต็ม' }));
+    await flush();
+
+    expect(tooltipRoot()).toBeNull();
     expect(popover()).not.toBeNull();
     expect(compactCard('11')).not.toBeNull(); // compact still rendered → no FULL
     // stacked ArticleView: BOTH members render the REAL article text
@@ -498,8 +518,10 @@ describe('keyboard', () => {
   it('hidden-guard: Esc on a card inside a re-collapsed group falls back to its first member', async () => {
     await renderReader();
 
-    // open the collapsed บทเฉพาะกาล card 71 via the body-ref router
-    fireEvent.click(bodyRefButton('13', 'มาตรา 71'));
+    // open the collapsed บทเฉพาะกาล card 71 via the digest-ref → ดูฉบับเต็ม
+    fireEvent.click(bodyRefTrigger('13', 'มาตรา 71'));
+    await flush();
+    fireEvent.click(screen.getByRole('button', { name: 'ดูฉบับเต็ม' }));
     await flush();
     expect(popover()).not.toBeNull();
     // group auto-expanded by the router
@@ -582,13 +604,21 @@ describe('a11y wiring', () => {
 // ---------------------------------------------------------------------------
 
 describe('non-card key routing (FULL fallback)', () => {
-  it('body-ref to an article with no digest card → FULL switch + jump, no popover', async () => {
+  it('digest-ref to an article with no digest card → ฉบับย่อ falls back to the full text; ดูฉบับเต็ม → FULL switch + jump', async () => {
     await renderReader();
     const scrollIntoView = Element.prototype.scrollIntoView as ReturnType<typeof vi.fn>;
 
-    fireEvent.click(bodyRefButton('13', 'มาตรา 99'));
+    fireEvent.click(bodyRefTrigger('13', 'มาตรา 99'));
     await flush();
 
+    // pinned digest tooltip; มาตรา 99 has no card → the law JSON text fallback
+    expect(tooltipRoot()).not.toBeNull();
+    expect(tooltipRoot()?.textContent).toContain('บทเฉพาะกาลของฉบับเต็ม');
+
+    fireEvent.click(screen.getByRole('button', { name: 'ดูฉบับเต็ม' }));
+    await flush();
+
+    expect(tooltipRoot()).toBeNull();
     expect(popover()).toBeNull();
     // compact unmounted → FULL rendered the real article
     expect(document.querySelector('[data-lawlib-card]')).toBeNull();
@@ -631,7 +661,12 @@ describe('openCardPopover mechanics', () => {
     const region = document.getElementById('ch-x-1-region');
     expect(region?.hasAttribute('hidden')).toBe(true); // collapsed at mount
 
-    fireEvent.click(bodyRefButton('13', 'มาตรา 71'));
+    // pin the มาตรา 71 digest tooltip, then ดูฉบับเต็ม routes to the popover
+    fireEvent.click(bodyRefTrigger('13', 'มาตรา 71'));
+    await flush();
+    expect(tooltipRoot()).not.toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'ดูฉบับเต็ม' }));
 
     // group expansion is SYNCHRONOUS (before the 50ms scroll/open window)
     expect(region?.hasAttribute('hidden')).toBe(false);
@@ -648,8 +683,10 @@ describe('openCardPopover mechanics', () => {
   it('Esc within the 50ms window cancels the pending open (Track E NIT token)', async () => {
     await renderReader();
 
-    // schedule an open for card 71 (50ms pending)
-    fireEvent.click(bodyRefButton('13', 'มาตรา 71'));
+    // pin the มาตรา 71 digest tooltip and schedule its popover open (50ms)
+    fireEvent.click(bodyRefTrigger('13', 'มาตรา 71'));
+    await flush();
+    fireEvent.click(screen.getByRole('button', { name: 'ดูฉบับเต็ม' }));
     // immediately open card 5 via a direct member click (sync toggle)
     fireEvent.click(memberBtn('5') as HTMLElement);
     expect(popover()).not.toBeNull();
@@ -699,6 +736,79 @@ describe('tooltip content parity', () => {
     expect(tooltipRoot()?.textContent).toContain('ให้ผู้ปกครองส่งเด็กเข้าเรียนในสถานศึกษา');
     // no amendment list on a non-amended article
     expect(tooltipRoot()?.querySelector('ul')).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T11 — COMPACT inline "มาตรา X" digest-ref tooltips (ฉบับย่อ + ดูฉบับเต็ม)
+// ---------------------------------------------------------------------------
+
+describe('T11 — digest-ref inline tooltips', () => {
+  it('hovering a same-law ref shows the digest ฉบับย่อ (NOT the full text); aria-expanded flips; no popover', async () => {
+    await renderReader();
+    const ref = bodyRefTrigger('13', 'มาตรา 12');
+    expect(ref.getAttribute('aria-expanded')).toBe('false');
+
+    fireEvent.pointerEnter(ref, { pointerType: 'mouse' });
+    expect(tooltipRoot()).not.toBeNull();
+    expect(ref.getAttribute('aria-expanded')).toBe('true');
+    // the snippet is the MERGED card's summary — the full มาตรา 12 text must
+    // NOT leak into the preview (that is the ArticleBody/ดูฉบับเต็ม path)
+    expect(tooltipRoot()?.textContent).toContain('เนื้อความรวมมาตรา 11 และ 12');
+    expect(tooltipRoot()?.textContent).not.toContain(
+      'จัดการศึกษาเป็นพิเศษสำหรับเด็กที่มีความบกพร่อง',
+    );
+    // the ดูฉบับเต็ม action is present; hover never opens the popover
+    expect(screen.getByRole('button', { name: 'ดูฉบับเต็ม' })).not.toBeNull();
+    expect(popover()).toBeNull();
+
+    // hover-leave closes the preview (jsdom zero rects → instant close)
+    fireEvent.pointerLeave(ref, { pointerType: 'mouse' });
+    expect(tooltipRoot()).toBeNull();
+    expect(ref.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('click pins the digest tooltip — pointerleave does NOT close; Esc does', async () => {
+    await renderReader();
+    const ref = bodyRefTrigger('13', 'มาตรา 12');
+
+    fireEvent.pointerDown(ref, { pointerType: 'mouse' });
+    fireEvent.pointerUp(ref, { pointerType: 'mouse' });
+    fireEvent.click(ref);
+    expect(tooltipRoot()).not.toBeNull();
+    expect(ref.getAttribute('aria-expanded')).toBe('true');
+
+    fireEvent.pointerLeave(ref, { pointerType: 'mouse' });
+    expect(tooltipRoot()).not.toBeNull(); // pinned → sticky
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(tooltipRoot()).toBeNull();
+    expect(ref.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('repealed ref → ถูกยกเลิก badge in the snippet', async () => {
+    await renderReader();
+    fireEvent.pointerEnter(bodyRefTrigger('5', 'มาตรา 6'), { pointerType: 'mouse' });
+    expect(tooltipRoot()?.textContent).toContain('มาตรา 6');
+    expect(tooltipRoot()?.textContent).toContain('ถูกยกเลิก');
+    expect(tooltipRoot()?.textContent).toContain('ให้สถานศึกษาจัดการศึกษา');
+  });
+
+  it('keyboard: Enter on a ref opens the tooltip and moves focus into it', async () => {
+    await renderReader();
+    const ref = bodyRefTrigger('13', 'มาตรา 71');
+    ref.focus();
+
+    fireEvent.keyDown(ref, { key: 'Enter' });
+    await flush();
+
+    expect(tooltipRoot()).not.toBeNull();
+    expect(tooltipRoot()?.textContent).toContain('บทเฉพาะกาลฉบับสอง');
+    // keyboard-mode → focus lands in the tooltip root (Tab cycles its actions)
+    expect(document.activeElement).toBe(tooltipRoot());
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(tooltipRoot()).toBeNull();
   });
 });
 

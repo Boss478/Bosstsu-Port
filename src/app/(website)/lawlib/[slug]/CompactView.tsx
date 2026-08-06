@@ -28,13 +28,14 @@
  * No dangerouslySetInnerHTML anywhere (loop-3 #2) — all React nodes.
  */
 
-import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { LawDoc } from '@/types/lawlib';
 import type { DigestView, RenderLine, RenderSection, RenderToken } from '@/lib/lawlib/digest-view';
 import type { ArticleHighlight } from '@/components/ArticleView';
 import ArticleView from '@/components/ArticleView';
-import { articleLabel, findArticleByKey } from '@/lib/lawlib-reader';
+import { articleLabel, articlePlainText, findArticleByKey } from '@/lib/lawlib-reader';
+import type { DigestRefContent } from '@/components/LawTooltip';
 import type { TooltipContent, TooltipTriggerHandlers } from '@/hooks/useLawTooltip';
 import DigestToc from './DigestToc';
 
@@ -91,6 +92,77 @@ function isSameLawHref(href: string, slug: string): boolean {
   return href.startsWith(`/lawlib/${slug}#มาตรา-`);
 }
 
+/** Digest snippet + repealed status of a referenced article (T11 map value). */
+interface DigestInfo {
+  /** ฉบับย่อ text — the digest card's summary, else the full article text. */
+  digest: string;
+  /** Any repealed paragraph → the ถูกยกเลิก badge. */
+  repealed: boolean;
+}
+
+/** RenderToken[] → plain text (refs/seefull render their labels). */
+function tokensToText(tokens: RenderToken[]): string {
+  return tokens
+    .map((t) => (t.kind === 'text' ? t.text : t.kind === 'term' ? t.term : t.label))
+    .join('');
+}
+
+/** Extract the article key + no/suffix from a key ('51/1' → no 51, '/1'). */
+function keyParts(key: string): { no: number; suffix?: string } | null {
+  const m = /^(\d+)(.*)$/.exec(key);
+  if (m === null) return null;
+  return m[2] !== '' ? { no: Number(m[1]), suffix: m[2] } : { no: Number(m[1]) };
+}
+
+/**
+ * T11 — client-side digest map, ONE pass over the render model + one law
+ * lookup per REFERENCED key (no new queries — everything rides the data the
+ * reader already holds):
+ *  - ฉบับย่อ snippet = the referenced article's digest card summary (merged
+ *    cards share it); an article the digest references WITHOUT a card falls
+ *    back to its full text (the law JSON — in memory already);
+ *  - repealed = any repealedParagraphs on the article (badge in the snippet).
+ *  The key scan mirrors TokenView's render surface exactly — the refs that
+ *  become T11 triggers are the same-law refs of the COMPACT body.
+ */
+function buildDigestInfoMap(view: DigestView, law: LawDoc): ReadonlyMap<string, DigestInfo> {
+  const sectionLines = (s: RenderSection): RenderLine[] => [
+    ...s.lines,
+    ...(s.groups ?? []).flatMap((g) => g.lines),
+  ];
+  const cardSnippet = new Map<string, string>();
+  const refKeys = new Set<string>();
+  const scanTokens = (tokens: RenderToken[]) => {
+    for (const t of tokens) {
+      if (t.kind !== 'ref' || t.href === null) continue;
+      const k = keyFromHref(t.href);
+      if (k !== null && isSameLawHref(t.href, law.slug)) refKeys.add(k);
+    }
+  };
+  for (const section of view.sections) {
+    for (const line of sectionLines(section)) {
+      if (line.kind === 'article') {
+        const snippet = line.parts.map((p) => tokensToText(p.tokens)).join('\n');
+        for (const k of line.keys ?? [line.key]) {
+          if (!cardSnippet.has(k)) cardSnippet.set(k, snippet);
+        }
+        for (const p of line.parts) scanTokens(p.tokens);
+      } else {
+        scanTokens(line.tokens);
+      }
+    }
+  }
+  const out = new Map<string, DigestInfo>();
+  for (const key of refKeys) {
+    const flat = findArticleByKey(law, key);
+    out.set(key, {
+      digest: cardSnippet.get(key) ?? (flat !== undefined ? articlePlainText(flat.article) : ''),
+      repealed: (flat?.article.repealedParagraphs?.length ?? 0) > 0,
+    });
+  }
+  return out;
+}
+
 /** Inline token renderer — text/term with bold/strike, refs, seefull.
  *  `interactive=false` renders a hover-inert static block (the merged history
  *  section — user 2026-08-05: hover must not affect it): terms become plain
@@ -103,6 +175,7 @@ function TokenView({
   getTriggerProps,
   isTooltipOpen,
   interactive = true,
+  digestInfoByKey,
 }: {
   token: RenderToken;
   slug: string;
@@ -111,6 +184,9 @@ function TokenView({
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
   interactive?: boolean;
+  /** T11 — digest snippets + repealed status for same-law refs (COMPACT body
+   *  only; absent for the exported history-block path → refs stay buttons). */
+  digestInfoByKey?: ReadonlyMap<string, DigestInfo>;
 }) {
   if (token.kind === 'text' || token.kind === 'term') {
     const content = token.kind === 'text' ? token.text : token.term;
@@ -194,16 +270,43 @@ function TokenView({
       </button>
     );
   }
-  // same-law ref → in-page button (unified popover routing); cross-law ref → Link
+  // same-law ref → T11 tooltip trigger (hover = ฉบับย่อ preview, click = pin,
+  // ดูฉบับเต็ม inside opens the ArticlePopover); when the digest map is
+  // absent (exported history-block path) → the legacy in-page jump button.
   if (isSameLawHref(token.href, slug)) {
+    const key = keyFromHref(token.href);
+    const parts = key !== null ? keyParts(key) : null;
+    const info = key !== null ? digestInfoByKey?.get(key) : undefined;
+    if (parts !== null && info !== undefined) {
+      const content: DigestRefContent = {
+        kind: 'ref',
+        articleNo: parts.no,
+        ...(parts.suffix !== undefined ? { articleSuffix: parts.suffix } : {}),
+        display: token.label,
+        digest: info.digest,
+        repealed: info.repealed,
+      };
+      return (
+        <span
+          role="button"
+          tabIndex={0}
+          aria-expanded={isTooltipOpen(content)}
+          aria-haspopup="true"
+          data-lawlib-trigger
+          className="lawlib-chip-hit cursor-pointer rounded-sm font-medium text-blue-700 underline decoration-dotted underline-offset-4 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
+          {...getTriggerProps(content)}
+        >
+          {token.label}
+        </span>
+      );
+    }
     return (
       <button
         type="button"
         onClick={() => {
-          const key = keyFromHref(token.href!);
           if (key !== null) onOpenRef(key);
         }}
-        className="cursor-pointer rounded-sm font-medium text-blue-700 underline decoration-dotted underline-offset-4 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40 py-1.5 -my-1.5"
+        className="cursor-pointer rounded-sm py-1.5 -my-1.5 font-medium text-blue-700 underline decoration-dotted underline-offset-4 hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-950/40"
       >
         {token.label}
       </button>
@@ -228,6 +331,7 @@ export function TokenList({
   getTriggerProps,
   isTooltipOpen,
   interactive = true,
+  digestInfoByKey,
 }: {
   tokens: RenderToken[];
   slug: string;
@@ -236,6 +340,7 @@ export function TokenList({
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
   interactive?: boolean;
+  digestInfoByKey?: ReadonlyMap<string, DigestInfo>;
 }) {
   return (
     <>
@@ -249,6 +354,7 @@ export function TokenList({
           getTriggerProps={getTriggerProps}
           isTooltipOpen={isTooltipOpen}
           interactive={interactive}
+          digestInfoByKey={digestInfoByKey}
         />
       ))}
     </>
@@ -273,6 +379,7 @@ function ArticleCard({
   flashKey,
   getTriggerProps,
   isTooltipOpen,
+  digestInfoByKey,
 }: {
   line: Extract<RenderLine, { kind: 'article' }>;
   law: LawDoc;
@@ -288,6 +395,7 @@ function ArticleCard({
   flashKey: string | null;
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
+  digestInfoByKey?: ReadonlyMap<string, DigestInfo>;
 }) {
   // Merged cards (line.keys): flash when ANY member key is the target.
   const isFlash =
@@ -379,6 +487,7 @@ function ArticleCard({
               onSeeFull={onSeeFull}
               getTriggerProps={getTriggerProps}
               isTooltipOpen={isTooltipOpen}
+              digestInfoByKey={digestInfoByKey}
             />
           </p>
         ))}
@@ -585,6 +694,7 @@ export function BodyLineView({
   getTriggerProps,
   isTooltipOpen,
   interactive = true,
+  digestInfoByKey,
 }: {
   line: Exclude<RenderLine, { kind: 'article' }>;
   slug: string;
@@ -593,6 +703,7 @@ export function BodyLineView({
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
   interactive?: boolean;
+  digestInfoByKey?: ReadonlyMap<string, DigestInfo>;
 }) {
   const tokens = (
     <TokenList
@@ -603,6 +714,7 @@ export function BodyLineView({
       getTriggerProps={getTriggerProps}
       isTooltipOpen={isTooltipOpen}
       interactive={interactive}
+      digestInfoByKey={digestInfoByKey}
     />
   );
   if (line.kind === 'h3') {
@@ -669,6 +781,7 @@ function ChapterGroupView({
   flashKey,
   getTriggerProps,
   isTooltipOpen,
+  digestInfoByKey,
 }: {
   group: { id: string; label: string; articleCount: number; lines: RenderLine[] };
   collapsed: boolean;
@@ -683,6 +796,7 @@ function ChapterGroupView({
   flashKey: string | null;
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
+  digestInfoByKey?: ReadonlyMap<string, DigestInfo>;
 }) {
   return (
     <div className="mt-4">
@@ -725,6 +839,7 @@ function ChapterGroupView({
               flashKey={flashKey}
               getTriggerProps={getTriggerProps}
               isTooltipOpen={isTooltipOpen}
+              digestInfoByKey={digestInfoByKey}
             />
           ) : (
             <BodyLineView
@@ -735,6 +850,7 @@ function ChapterGroupView({
               onSeeFull={onSeeFull}
               getTriggerProps={getTriggerProps}
               isTooltipOpen={isTooltipOpen}
+              digestInfoByKey={digestInfoByKey}
             />
           ),
         )}
@@ -763,6 +879,7 @@ function SectionView({
   onToggleGroup,
   getTriggerProps,
   isTooltipOpen,
+  digestInfoByKey,
 }: {
   section: RenderSection;
   sectionIndex: number;
@@ -780,6 +897,7 @@ function SectionView({
   onToggleGroup: (id: string) => void;
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
+  digestInfoByKey?: ReadonlyMap<string, DigestInfo>;
 }) {
   const hasGroups = section.groups !== undefined;
   const renderLine = (line: RenderLine) =>
@@ -797,6 +915,7 @@ function SectionView({
         flashKey={flashKey}
         getTriggerProps={getTriggerProps}
         isTooltipOpen={isTooltipOpen}
+        digestInfoByKey={digestInfoByKey}
       />
     ) : (
       <BodyLineView
@@ -807,6 +926,7 @@ function SectionView({
         onSeeFull={onSeeFull}
         getTriggerProps={getTriggerProps}
         isTooltipOpen={isTooltipOpen}
+        digestInfoByKey={digestInfoByKey}
       />
     );
 
@@ -856,6 +976,7 @@ function SectionView({
                 flashKey={flashKey}
                 getTriggerProps={getTriggerProps}
                 isTooltipOpen={isTooltipOpen}
+                digestInfoByKey={digestInfoByKey}
               />
             ))}
           </>
@@ -894,6 +1015,10 @@ export default function CompactView({
   // Popover root id — stable across open/close; member buttons reference it
   // via aria-controls (plan v6 #7: multiple triggers, one dialog = APG-accepted).
   const popoverId = useId();
+
+  // T11 — digest snippets + repealed status for same-law inline refs. Built
+  // once per view/law (client-side, no new queries — see buildDigestInfoMap).
+  const digestInfoByKey = useMemo(() => buildDigestInfoMap(view, law), [view, law]);
 
   // The popover's article line (looked up by key — rendered once at the root).
   const expandedLine = (() => {
@@ -954,6 +1079,7 @@ export default function CompactView({
               onToggleGroup={onToggleGroup}
               getTriggerProps={getTriggerProps}
               isTooltipOpen={isTooltipOpen}
+              digestInfoByKey={digestInfoByKey}
             />
           ))}
         </div>
