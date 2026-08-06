@@ -31,7 +31,10 @@
  *   reduced-motion stub ON → instant swaps, so close-path assertions stay
  *   synchronous; dedicated tests flip it OFF)
  * - bookmark: toggle + aria-pressed + count badge
- * - Level 2 "เพิ่มเติม": ALL tools + per-tool pin + 8-position selector
+ * - Level 2 "เพิ่มเติม": ALL tools + per-tool pin (the 8-position selector
+ *   MOVED to the ⚙️ settings panel — T12c)
+ * - T12c theme dot: baselines on the RESOLVED initial theme (OS-dark
+ *   fallback users see no false dot on first visit)
  * - mobile-safe panel: max-h + overflow-y-auto
  *
  * jsdom gaps stubbed: matchMedia (query-aware: dark/mobile/reduced-motion),
@@ -124,6 +127,15 @@ const dockIcon = () => screen.getByRole('button', { name: 'เครื่อง
 const dockPanel = () => document.getElementById('lawlib-dock-panel');
 /** The panel header collapse button — VISIBLE on Level 1 (T12 fix). */
 const collapseBtn = () => screen.getByRole('button', { name: 'ย่อแถบเครื่องมือ' });
+
+/** T12c: the position grid moved into the ⚙️ settings picker — open it
+ *  (เพิ่มเติม → ตั้งค่า) and click the named spot there. */
+function clickPositionInSettings(label: string): void {
+  fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
+  fireEvent.click(screen.getByRole('button', { name: /^ตั้งค่า/ }));
+  const picker = screen.getByRole('group', { name: 'ตั้งค่า' });
+  fireEvent.click(within(picker).getByRole('button', { name: `ตำแหน่ง${label}` }));
+}
 
 beforeEach(() => {
   mockLocalStorage();
@@ -491,11 +503,13 @@ describe('Dock v2.1 — Level 2 (เพิ่มเติม)', () => {
     expect(screen.getByRole('group', { name: 'ตั้งค่า' })).toBeTruthy();
   });
 
-  it('position selector: 8 spots (3×3 minus center), persisted to localStorage', async () => {
+  it('T12c: position selector: 8 spots (3×3 minus center) now live in the ⚙️ settings panel, persisted', async () => {
     await renderReader();
     fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
+    fireEvent.click(screen.getByRole('button', { name: /^ตั้งค่า/ }));
+    const picker = screen.getByRole('group', { name: 'ตั้งค่า' });
 
-    const group = screen.getByRole('group', { name: 'ตำแหน่งปุ่มเครื่องมือ' });
+    const group = within(picker).getByRole('group', { name: 'ตำแหน่งปุ่มเครื่องมือ' });
     const spots = within(group).getAllByRole('button');
     expect(spots.length).toBe(8);
     // Default = bottom-right.
@@ -510,10 +524,17 @@ describe('Dock v2.1 — Level 2 (เพิ่มเติม)', () => {
     expect(localStorage.getItem('lawlib:dockPosition')).toBe('top-left');
   });
 
-  it('mid-left position clamps the panel width to 100vw − icon footprint (375px no-overflow)', async () => {
+  it('T12c: the position selector is GONE from Level 2 (settings-only now)', async () => {
     await renderReader();
     fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
-    fireEvent.click(screen.getByRole('button', { name: 'ตำแหน่งกลางซ้าย' }));
+    // The old Level-2 section (heading + 3×3 grid) no longer renders.
+    expect(screen.queryByText('ตำแหน่งปุ่มเครื่องมือ')).toBeNull();
+    expect(screen.queryByRole('group', { name: 'ตำแหน่งปุ่มเครื่องมือ' })).toBeNull();
+  });
+
+  it('mid-left position clamps the panel width to 100vw − icon footprint (375px no-overflow)', async () => {
+    await renderReader();
+    clickPositionInSettings('กลางซ้าย');
 
     // Side-anchored panels must not exceed the viewport: at 375px the shared
     // 92vw cap (345px) plus the icon offset would overflow. T10b: the icon
@@ -527,8 +548,7 @@ describe('Dock v2.1 — Level 2 (เพิ่มเติม)', () => {
 
   it('mid-right clamps symmetrically (fix #27 — no LEFT-edge overflow at 375px)', async () => {
     await renderReader();
-    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
-    fireEvent.click(screen.getByRole('button', { name: 'ตำแหน่งกลางขวา' }));
+    clickPositionInSettings('กลางขวา');
 
     const panel = dockPanel() as HTMLElement;
     expect(panel.className).toContain(
@@ -538,8 +558,7 @@ describe('Dock v2.1 — Level 2 (เพิ่มเติม)', () => {
 
   it('top-row positions clear the page H1: 14rem mobile / 11rem md (fix #17)', async () => {
     await renderReader();
-    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
-    fireEvent.click(screen.getByRole('button', { name: 'ตำแหน่งบนซ้าย' }));
+    clickPositionInSettings('บนซ้าย');
 
     const root = document.querySelector('.lawlib-dock.fixed') as HTMLElement;
     expect(root.className).toContain('top-[max(14rem,env(safe-area-inset-top))]');
@@ -591,8 +610,10 @@ describe('Dock v2.1 — direction-aware layout (T12)', () => {
     await renderReader();
     // Switch the position FIRST (the default bottom-right is a side position
     // → vertical; L1 only re-renders horizontally once the position lands).
-    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
-    fireEvent.click(screen.getByRole('button', { name: 'ตำแหน่งบนกลาง' }));
+    // T12c: the position grid lives in the ⚙️ settings picker.
+    clickPositionInSettings('บนกลาง');
+    // Esc closes the picker only — Level 2 stays; then ย้อนกลับ → Level 1.
+    fireEvent.keyDown(document, { key: 'Escape' });
     fireEvent.click(screen.getByRole('button', { name: /ย้อนกลับ/ }));
 
     // Capture the Level-1 row BEFORE opening Level 2 again (L1 unmounts
@@ -613,8 +634,7 @@ describe('Dock v2.1 — direction-aware layout (T12)', () => {
 
   it('side positions animate the slide SIDEWAYS with --lawlib-dock-slide', async () => {
     await renderReader();
-    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
-    fireEvent.click(screen.getByRole('button', { name: 'ตำแหน่งกลางซ้าย' }));
+    clickPositionInSettings('กลางซ้าย');
 
     const root = document.querySelector('.lawlib-dock.fixed') as HTMLElement;
     expect(root.style.getPropertyValue('--lawlib-dock-slide')).toBe('-8px');
@@ -686,6 +706,21 @@ describe('Dock v2.1 — non-default value dots (T12)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'ธีมสว่าง' }));
     expect(themeBtn.querySelector('.bg-blue-500')).toBeNull();
+  });
+
+  it('T12c: OS-dark first visit (no stored theme) shows NO theme dot — the baseline is the RESOLVED initial theme', async () => {
+    mockMatchMedia({ dark: true });
+    await renderReader();
+    const themeBtn = screen.getByRole('button', { name: /ธีม/ });
+    // The theme resolved to dark (OS fallback — nothing stored).
+    expect(themeBtn.textContent).toContain('มืด');
+    // NO false dot: dark IS this user's resolved initial theme.
+    expect(themeBtn.querySelector('.bg-blue-500')).toBeNull();
+
+    // A REAL change from the baseline (light) shows the dot.
+    fireEvent.click(themeBtn);
+    fireEvent.click(screen.getByRole('button', { name: 'ธีมสว่าง' }));
+    expect(themeBtn.querySelector('.bg-blue-500')).not.toBeNull();
   });
 });
 

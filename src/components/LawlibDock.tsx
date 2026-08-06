@@ -13,7 +13,8 @@
  *                      bookmark/search/notes + "อ่านต่อ" (when a per-slug
  *                      position exists) + "เพิ่มเติม" (Level 2).
  *   Level 2 · เพิ่มเติม: ALL tools with per-tool pin toggles + the grouped
- *                      bookmarks list + the 8-position selector.
+ *                      bookmarks list (the 8-position selector MOVED to the
+ *                      ⚙️ settings panel — T12c, ADR-019 D9).
  *
  * The panel closes ONLY via Esc / the ย่อ collapse button / the X button
  * (D9 — pointerdown-outside no longer closes the DOCK panel; the picker
@@ -34,6 +35,8 @@ import type { LawDoc } from '@/types/lawlib';
 import { articleLabel, findArticleByKey } from '@/lib/lawlib-reader';
 import { BookmarksPanel } from '@/components/BookmarksPanel';
 import {
+  DEFAULT_DOCK_POSITION,
+  DOCK_POSITIONS,
   FontSizePickerContent,
   LineHeightPickerContent,
   PickerPopover,
@@ -42,46 +45,9 @@ import {
   ThemePickerContent,
   TOOLBAR_SIZE_TOUCH_MIN,
   WidthPickerContent,
+  type DockPosition,
 } from '@/components/LawlibPickers';
-import { DEFAULT_PAPER_TONE, type Theme } from '@/components/ThemeProvider';
-
-// ---------------------------------------------------------------------------
-// Dock position — 8 spots (3×3 minus center), persisted `lawlib:dockPosition`
-// ---------------------------------------------------------------------------
-
-export type DockPosition =
-  | 'top-left'
-  | 'top-center'
-  | 'top-right'
-  | 'mid-left'
-  | 'mid-right'
-  | 'bottom-left'
-  | 'bottom-center'
-  | 'bottom-right';
-
-export const DOCK_POSITIONS: readonly DockPosition[] = [
-  'top-left',
-  'top-center',
-  'top-right',
-  'mid-left',
-  'mid-right',
-  'bottom-left',
-  'bottom-center',
-  'bottom-right',
-];
-
-const DEFAULT_DOCK_POSITION: DockPosition = 'bottom-right';
-
-const POSITION_LABELS: Record<DockPosition, string> = {
-  'top-left': 'บนซ้าย',
-  'top-center': 'บนกลาง',
-  'top-right': 'บนขวา',
-  'mid-left': 'กลางซ้าย',
-  'mid-right': 'กลางขวา',
-  'bottom-left': 'ล่างซ้าย',
-  'bottom-center': 'ล่างกลาง',
-  'bottom-right': 'ล่างขวา',
-};
+import { DEFAULT_PAPER_TONE, getInitialTheme, type Theme } from '@/components/ThemeProvider';
 
 /**
  * Per-position layout: `root` = the fixed wrapper spot; `panel` = the
@@ -322,6 +288,11 @@ export default function LawlibDock(props: LawlibDockProps) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [picker, setPicker] = useState<{ kind: PickerKind; anchor: HTMLElement } | null>(null);
   const [position, setPosition] = useState<DockPosition>(() => loadDockPosition());
+  /** T12c — the THEME dot baselines on the RESOLVED initial theme (see
+   *  pickerIsNonDefault below): stored preference wins, else OS scheme. */
+  const [resolvedInitialTheme] = useState<Theme>(() =>
+    typeof window !== 'undefined' ? getInitialTheme() : 'light',
+  );
   /** Touch device (primary pointer coarse) — the toolbar slider floors at
    *  44px (WCAG 2.5.8) and stored sub-44 values are lifted at render. */
   const [coarsePointer] = useState(
@@ -587,11 +558,14 @@ export default function LawlibDock(props: LawlibDockProps) {
   };
 
   /** T12 (ADR-019 D9): non-default value dots — a picker whose CURRENT value
-   *  differs from the default shows a small blue dot (always on, no toggle).
-   *  Theme compares against 'light' (the site/ThemeProvider default; an
-   *  OS-scheme fallback is out of scope for the dot). */
+   *  differs from its baseline shows a small blue dot (always on, no toggle).
+   *  T12c: the THEME baseline is the RESOLVED initial theme (resolvedInitialTheme
+   *  above — stored preference wins, else OS scheme) rather than a hard-coded
+   *  'light': an OS-dark fallback user would otherwise see a FALSE dot on
+   *  first visit (theme resolves to dark with nothing stored). The other
+   *  pickers baseline on the reading-settings defaults (never OS-dependent). */
   const pickerIsNonDefault: Record<PickerKind, boolean> = {
-    theme: theme !== 'light',
+    theme: theme !== resolvedInitialTheme,
     fontSize: settings.fontSize !== DEFAULT_READING_SETTINGS.fontSize,
     lineHeight: settings.lineHeight !== DEFAULT_READING_SETTINGS.lineHeight,
     width: settings.width !== DEFAULT_READING_SETTINGS.width,
@@ -870,7 +844,8 @@ export default function LawlibDock(props: LawlibDockProps) {
               </div>
             </div>
           ) : (
-            // ─── Level 2 — ALL tools + pins + bookmarks + position ─────────
+            // ─── Level 2 — ALL tools + pins + bookmarks (the position
+            // selector lives in the ⚙️ settings picker — T12c) ─────────────
             <div id="lawlib-more-panel" className="flex flex-col gap-2">
               <button
                 ref={moreBackRef}
@@ -914,37 +889,6 @@ export default function LawlibDock(props: LawlibDockProps) {
                 }}
                 onRemove={onBookmarkRemove}
               />
-
-              <div
-                aria-hidden="true"
-                className="h-px w-full shrink-0 bg-slate-200 dark:bg-slate-700"
-              />
-              <h2 className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                ตำแหน่งปุ่มเครื่องมือ
-              </h2>
-              <div
-                role="group"
-                aria-label="ตำแหน่งปุ่มเครื่องมือ"
-                className="grid grid-cols-3 gap-1"
-              >
-                {DOCK_POSITIONS.map((pos) => (
-                  <button
-                    key={pos}
-                    type="button"
-                    aria-pressed={position === pos}
-                    aria-label={`ตำแหน่ง${POSITION_LABELS[pos]}`}
-                    title={POSITION_LABELS[pos]}
-                    onClick={() => setDockPosition(pos)}
-                    className={`flex h-11 cursor-pointer items-center justify-center rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                      position === pos
-                        ? 'border-blue-400 bg-blue-50 text-blue-600 dark:border-blue-500/60 dark:bg-blue-950/50 dark:text-blue-300'
-                        : 'border-slate-200 bg-white text-slate-500 hover:border-blue-300 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:text-blue-300'
-                    }`}
-                  >
-                    <i aria-hidden="true" className="fi fi-sr-circle-small text-[10px]" />
-                  </button>
-                ))}
-              </div>
             </div>
           )}
         </div>
@@ -1012,6 +956,8 @@ export default function LawlibDock(props: LawlibDockProps) {
                   }
                 }}
                 onReset={handleReset}
+                dockPosition={position}
+                onDockPositionChange={setDockPosition}
               />
             </div>
           )}

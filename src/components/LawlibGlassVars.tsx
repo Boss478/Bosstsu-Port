@@ -12,15 +12,17 @@
  *
  * Consumed ONLY by chrome surfaces: `.lawlib-glass` (dock + reader search
  * drawer) and `.lawlib-search-field` (list-page SearchInput — do-not-touch,
- * the fill rides the same vars). 100% → 'none' (solid + no backdrop-filter
- * = GPU saving); 0% → transparent, the border + focus ring carry the
- * boundary (D8).
+ * the fill rides the same vars). T12b: the article tooltip panel joins the
+ * chrome set (`.lawlib-glass` + blur-xs + sheen — its content keeps its own
+ * solid surface). 100% → 'none' (solid + no backdrop-filter = GPU saving);
+ * 0% → transparent, the border + focus ring carry the boundary (D8).
  *
  * Mounted in the lawlib LAYOUT so both the list page and the reader pages
  * apply the vars; re-applies on the `lawlib:settings-changed` event
  * (dispatched by useReaderStorage.setSettings) so the slider takes effect
- * immediately everywhere. Read/sepia paper overrides live in globals.css
- * with higher specificity — they win over these vars on paper surfaces.
+ * immediately everywhere. T12c (user 2026-08-06): the vars drive the chrome
+ * in EVERY theme — the read/sepia paper overrides for dock/tooltip/search
+ * were removed from globals.css (paper stays only on cards/TOC/panels).
  */
 import { useEffect } from 'react';
 import { loadGlobalSettings, SETTINGS_CHANGED_EVENT } from '@/hooks/useReaderStorage';

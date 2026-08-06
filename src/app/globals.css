@@ -1439,10 +1439,17 @@ textarea,
      dock keep their own opaque-ish surfaces (contrast AA).
    - Level-2 (เพิ่มเติม) panel = glass-3 (`.lawlib-glass-strong`) — opaque-ish
      for readability; the ⚙️ settings picker was already opaque (glass-3+).
+   - T12b: the article TOOLTIP is glass too — panel follows the slider
+     (fill + blur-xs + sheen), its CONTENT keeps its own solid surface
+     (LawTooltip's white/slate-900 inner wrapper → AA at 35%).
 
-   Read mode: paper-tinted via the existing `.read` override chain
-   (--read-card). No ambient background (user decision) — glass reads via
-   translucency + borders + shadow; subtle by design.
+   Chrome vs paper (T12c, user 2026-08-06): the THREE chrome surfaces —
+   dock (L1 + collapsed icon), tooltip, list search field — are glass in
+   EVERY theme INCLUDING read/sepia (paper overrides + dead-blur kill
+   removed below). Paper stays ONLY on reading surfaces: article/digest
+   cards, `.lawlib-toc`, `.lawlib-panel` (incl. the reader search drawer).
+   No ambient background (user decision) — glass reads via translucency +
+   borders + shadow; subtle by design.
    NOTE: do NOT reintroduce `.glass-tier` or --backdrop-blur-{2xs,4xs,5xs,6xs,0}
    (deleted in T0). backdrop-blur-xs/3xs stay live site-wide — untouched. */
 @utility glass-1 {
@@ -1500,17 +1507,17 @@ textarea,
   src: url('/fonts/lawlib/itim/Itim-Regular.woff2') format('woff2');
 }
 
-/* ─── T10b glass slider (ADR-019 D4/D8 — chrome ONLY: dock + search).
-   --lawlib-glass-bg-light/dark + --lawlib-glass-blur are applied on <html>
-   by LawlibGlassVars (lawlib layout) from settings.glassOpacity:
+/* ─── T10b glass slider (ADR-019 D4/D8 — chrome ONLY: dock, tooltip,
+   search). --lawlib-glass-bg-light/dark + --lawlib-glass-blur are applied on
+   <html> by LawlibGlassVars (lawlib layout) from settings.glassOpacity:
    0% → transparent surface (border + focus ring carry the boundary), 100% →
    the JS sets the blur to 'none' (GPU saving). DEFAULTS here keep the
    surfaces renderable before hydration / on non-lawlib pages — the light/dark
    fills default to the T12 35% "real glass" alpha.
-   Read/sepia paper overrides BELOW (higher specificity, later in the file)
-   keep the paper dock opaque and its backdrop-filter dead (the
-   --lawlib-dock-blur trick) and give the search field its paper fill —
-   the slider never re-enables blur on the paper dock. */
+   T12c (user 2026-08-06): these vars drive the chrome in EVERY theme —
+   the read/sepia paper overrides for dock/tooltip/search are REMOVED below
+   (the slider re-enables blur on read chrome; GPU returns to read mode —
+   user accepted). Paper surfaces (cards/TOC/panels) keep their overrides. */
 .lawlib-glass {
   background-color: var(--lawlib-glass-bg-light, rgba(255, 255, 255, 0.35));
   -webkit-backdrop-filter: var(--lawlib-glass-blur, blur(12px));
@@ -1530,8 +1537,9 @@ textarea,
 }
 /* T12: Level-2 (เพิ่มเติม) dock panel surface = glass-3 (opaque-ish for
    readability — the panel swaps lawlib-glass → lawlib-glass-strong while
-   Level 2 is open). Read/sepia paper overrides below still win (higher
-   specificity). */
+   Level 2 is open). Glass in every theme — T12c removed the read/sepia
+   paper override for the dock (the 90% white fill stays readable on cream
+   paper with no override). */
 .lawlib-glass-strong {
   background-color: rgba(255, 255, 255, 0.9);
   -webkit-backdrop-filter: blur(16px);
@@ -1540,15 +1548,12 @@ textarea,
 .dark .lawlib-glass-strong {
   background-color: rgba(15, 23, 42, 0.9);
 }
-/* T12: classic glass sheen — the TOP border of the dock surfaces reads
-   white/30 (light catching the top edge). Decorative only; killed on paper
-   (no glass to sheen). Applied to the dock panel + collapsed icon. */
+/* T12: classic glass sheen — the TOP border of the glass surfaces reads
+   white/30 (light catching the top edge). Decorative; shown in EVERY theme
+   (T12c — chrome glass in read/sepia too, no sheen kill). Applied to the
+   dock panel + collapsed icon + the tooltip panel (T12b). */
 .lawlib-glass-sheen {
   border-top-color: rgba(255, 255, 255, 0.3);
-}
-.read .lawlib-glass-sheen,
-.sepia .lawlib-glass-sheen {
-  border-top-color: transparent;
 }
 /* T12 (ADR-019 D9): dock expand/collapse animation — slide+fade ~150ms,
    default ON via settings.animateDock, always skipped under
@@ -1658,17 +1663,18 @@ textarea,
 }
 /* Reader search-drawer input on paper (SearchPanel is a .lawlib-panel
    surface) — translucent paper fill like the list-page field, so the
-   drawer input matches the T2 read treatment. The DOCK is NOT a
-   .lawlib-panel — its paper override comes from .read .lawlib-dock below. */
+   drawer input matches the T2 read treatment. T12c: the DOCK/TOOLTIP/SEARCH
+   chrome became glass in read/sepia, but the drawer STAYS paper with the
+   rest of .lawlib-panel — this override survives. Only the reader SearchPanel
+   input matches this selector; the dock is not a .lawlib-panel. */
 .read .lawlib-panel .lawlib-glass,
 .sepia .lawlib-panel .lawlib-glass {
   background-color: rgba(255, 255, 255, 0.55);
   /* The 0.55-alpha fill sits on OPAQUE paper (the panel's --read-card) — the
      var-driven blur beneath is visually dead, so drop it via the
      --lawlib-dock-blur trick (undefined var → property computes to its
-     initial value `none`), mirroring the .read .lawlib-dock treatment below.
-     Only the reader SearchPanel input matches this selector (the dock is not
-     a .lawlib-panel); the slider vars keep working for non-read surfaces. */
+     initial value `none`). This stays valid for the drawer even though the
+     chrome dead-blur kills were removed (T12c). */
   -webkit-backdrop-filter: var(--lawlib-dock-blur);
   backdrop-filter: var(--lawlib-dock-blur);
 }
@@ -1728,48 +1734,32 @@ textarea,
   background: var(--background);
 }
 
-/* Paper card surfaces (per tone via --read-card, D10). */
+/* Paper card surfaces (per tone via --read-card, D10). T12c (ADR-019 D9):
+   the CHROME surfaces — dock, tooltip, search field — are glass in read/
+   sepia too and NO LONGER listed here; paper stays for the READING
+   surfaces: article/digest cards, TOC, panels (incl. the reader search
+   drawer). */
 .read .lawlib-article-card,
 .read .lawlib-toc,
 .read .lawlib-panel,
-.read .lawlib-dock,
 .read .lawlib-list-card,
 .read .lawlib-digest-card,
-.read .lawlib-tooltip,
 .sepia .lawlib-article-card,
 .sepia .lawlib-toc,
 .sepia .lawlib-panel,
-.sepia .lawlib-dock,
 .sepia .lawlib-list-card,
-.sepia .lawlib-digest-card,
-.sepia .lawlib-tooltip {
+.sepia .lawlib-digest-card {
   background: var(--read-card);
   border-color: #e0d5b0;
   color: var(--read-ink);
 }
 
-/* Read/sepia dock v2: the panel surface is OPAQUE paper (no translucency to
-   refract) — kill the backdrop blur on the fixed element (T3 — GPU saving on
-   every scroll frame). The value rides through an UNDEFINED custom property:
-   `backdrop-filter: none` equals the property's INITIAL value, which
-   LightningCSS dead-code-eliminates even with !important (empirically: only
-   the -webkit- declaration survived, and Chrome computes the utility's
-   unprefixed blur). var(--lawlib-dock-blur) is deliberately never defined —
-   an invalid var() makes the property compute to its initial value `none`. */
-.read .lawlib-dock,
-.sepia .lawlib-dock {
-  -webkit-backdrop-filter: var(--lawlib-dock-blur);
-  backdrop-filter: var(--lawlib-dock-blur);
-}
-
-/* Read/sepia collapsed dock icon: the direct child button's slate-200 border
-   nearly vanishes on paper — give it the paper-adjacent border tone (a11y
-   fix #23). Only the COLLAPSED icon is a direct child (the panel wraps its
-   buttons deeper). */
-.read .lawlib-dock > button,
-.sepia .lawlib-dock > button {
-  border-color: #d4c49a;
-}
+/* T12c (ADR-019 D9 — user 2026-08-06): chrome glass in read/sepia, NO
+   exceptions. The old paper-dock dead-blur kill (--lawlib-dock-blur trick)
+   and the collapsed-icon paper-border rule are REMOVED — the dock is glass
+   per the slider in read/sepia like every other theme (GPU returns to read;
+   user accepted). The `.read .lawlib-panel .lawlib-glass` dead-blur above
+   stays — the drawer is a PAPER surface, not chrome. */
 
 /* Highlights: amber deep enough on paper. */
 .read mark,
@@ -1826,19 +1816,11 @@ textarea,
   color: #7a6845;
 }
 
-/* Search field surface on paper (T2): the glass border (white/60) + slate
-   border vanish on cream paper — give the SearchInput field a paper-adjacent
-   boundary #8a7a55 (≈4:1 — non-text 3:1 pass; the 4.5:1 TEXT ink stays
-   #7a6845 above) + translucent paper fill rgba(255,255,255,.55) so the
-   backdrop blur still reads. Scoped via the Sarabun wrapper + the
-   .lawlib-search-field hook (SearchInput only) — the TOC jump input and the
-   drawer search (SearchPanel) are separate components with their own
-   surfaces and must stay untouched. */
-.read [class*='font-[family-name:var(--font-sarabun)]'] .lawlib-search-field,
-.sepia [class*='font-[family-name:var(--font-sarabun)]'] .lawlib-search-field {
-  border-color: #8a7a55;
-  background: rgba(255, 255, 255, 0.55);
-}
+/* Search field surface: T12c removed the read/sepia paper override (paper
+   fill + #8a7a55 border) — the list-page SearchInput is CHROME and follows
+   the glass slider in every theme now. The ink overrides above (placeholder
+   #7a6845, zinc-500 #7a6845) stay — they guarantee text contrast on the
+   35% glass fill over cream paper. */
 
 /* SettingsMenu section labels (ธีม) live in the #site-header dropdown with no
    lawlib ancestor — zinc-500 ≈ 4.37:1 on paper. */

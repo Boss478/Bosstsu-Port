@@ -309,6 +309,22 @@ describe('validateReadingSettings (P3 — T10a numeric contract + T10b fields)',
     expect(api.validateReadingSettings({ toolbarSize: 'big' }).toolbarSize).toBe(44);
   });
 
+  it('T12c: stored glassOpacity 75 (the v1.11.1 SHIPPED DEFAULT) migrates to 35 — other values are settings-sacred', () => {
+    // 75 was the old shipped default: an untouched user (or a reset) stored
+    // it without ever choosing — it becomes the new default 35.
+    expect(api.validateReadingSettings({ glassOpacity: 75 }).glassOpacity).toBe(35);
+    // Settings-sacred otherwise: deliberate choices pass through, incl. the
+    // extremes 0/100 and any hand-tuned value.
+    expect(api.validateReadingSettings({ glassOpacity: 0 }).glassOpacity).toBe(0);
+    expect(api.validateReadingSettings({ glassOpacity: 100 }).glassOpacity).toBe(100);
+    expect(api.validateReadingSettings({ glassOpacity: 33 }).glassOpacity).toBe(33);
+    expect(api.validateReadingSettings({ glassOpacity: 76 }).glassOpacity).toBe(76);
+    // Idempotent: a second pass over the migrated value stays 35.
+    expect(
+      api.validateReadingSettings(api.validateReadingSettings({ glassOpacity: 75 })).glassOpacity,
+    ).toBe(35);
+  });
+
   it('T12: animateDock only accepts booleans (default true)', () => {
     expect(api.validateReadingSettings({}).animateDock).toBe(true);
     expect(api.validateReadingSettings({ animateDock: false }).animateDock).toBe(false);

@@ -386,13 +386,55 @@ export function WidthPickerContent({
 }
 
 // ---------------------------------------------------------------------------
+// Dock position (T12c — MOVED here from the dock's Level 2, ADR-019 D9:
+// "ตั้งค่าทั้งหมดอยู่ที่เดียว"): the 8-spot grid (3×3 minus center) now lives
+// in the ⚙️ settings panel; the dock imports the type + constants from here
+// (one-way dependency — LawlibPickers never imports LawlibDock).
+// ---------------------------------------------------------------------------
+
+export type DockPosition =
+  | 'top-left'
+  | 'top-center'
+  | 'top-right'
+  | 'mid-left'
+  | 'mid-right'
+  | 'bottom-left'
+  | 'bottom-center'
+  | 'bottom-right';
+
+export const DOCK_POSITIONS: readonly DockPosition[] = [
+  'top-left',
+  'top-center',
+  'top-right',
+  'mid-left',
+  'mid-right',
+  'bottom-left',
+  'bottom-center',
+  'bottom-right',
+];
+
+export const DEFAULT_DOCK_POSITION: DockPosition = 'bottom-right';
+
+const POSITION_LABELS: Record<DockPosition, string> = {
+  'top-left': 'บนซ้าย',
+  'top-center': 'บนกลาง',
+  'top-right': 'บนขวา',
+  'mid-left': 'กลางซ้าย',
+  'mid-right': 'กลางขวา',
+  'bottom-left': 'ล่างซ้าย',
+  'bottom-center': 'ล่างกลาง',
+  'bottom-right': 'ล่างขวา',
+};
+
+// ---------------------------------------------------------------------------
 // Settings panel (T10b — ⚙️ Level 2, ADR-019 D4/D7/D8): font family ×5,
-// glass opacity (dock+search chrome only), toolbar size (touch floor 44),
-// paragraph spacing, font weight, hide repealed + hide amendment notes,
-// focus mode (with the will-hide disclosure), auto-scroll speed, reset.
-// Stays inside the PickerPopover infra (role="group" — NO nested dialog).
-// The paper slider lives ONLY in the theme picker (single source:
-// lawlib:paperTone + ThemeProvider.setPaperTone — not duplicated here).
+// glass opacity (chrome only: dock + search + tooltip), toolbar size (touch
+// floor 44), dock POSITION (T12c), paragraph spacing, font weight, hide
+// repealed + hide amendment notes, focus mode (with the will-hide
+// disclosure), auto-scroll speed, reset. Stays inside the PickerPopover
+// infra (role="group" — NO nested dialog). The paper slider lives ONLY in
+// the theme picker (single source: lawlib:paperTone +
+// ThemeProvider.setPaperTone — not duplicated here).
 // ---------------------------------------------------------------------------
 
 export const FONT_FAMILY_OPTIONS: ReadonlyArray<{ value: ReaderFontFamily; label: string }> = [
@@ -418,7 +460,9 @@ export const FONT_WEIGHT_OPTIONS: ReadonlyArray<{ value: ReaderFontWeight; label
 
 /** T12 (ADR-019 D9): per-setting "คืนค่า" — resets ONE setting only.
  *  Disabled at the default value (the button exists for every control; it is
- *  a no-op — and visibly so — when there is nothing to restore). */
+ *  a no-op — and visibly so — when there is nothing to restore).
+ *  T12c (a11y re-check): min-h-7 → min-h-11 — the 44px touch floor (WCAG
+ *  2.5.8) applies to these reset buttons too. */
 function ResetButton({
   label,
   disabled,
@@ -435,7 +479,7 @@ function ResetButton({
       disabled={disabled}
       aria-label={`คืนค่า${label}`}
       title="คืนค่าเริ่มต้นของรายการนี้"
-      className="flex min-h-7 shrink-0 cursor-pointer items-center gap-0.5 rounded-md px-1.5 text-[10px] font-semibold text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent disabled:hover:text-slate-300 dark:text-blue-300 dark:hover:bg-blue-950/40 dark:hover:text-blue-200 dark:disabled:text-slate-600"
+      className="flex min-h-11 shrink-0 cursor-pointer items-center gap-0.5 rounded-md px-1.5 text-[10px] font-semibold text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent disabled:hover:text-slate-300 dark:text-blue-300 dark:hover:bg-blue-950/40 dark:hover:text-blue-200 dark:disabled:text-slate-600"
     >
       <i aria-hidden="true" className="fi fi-sr-rotate-left text-[8px]" />
       คืนค่า
@@ -538,6 +582,8 @@ export function SettingsPanelContent({
   reducedMotion,
   onFocusModeChange,
   onReset,
+  dockPosition,
+  onDockPositionChange,
 }: {
   settings: ReadingSettingsValue;
   /** Full replacement or updater — the dock's setSettings supports both;
@@ -555,6 +601,9 @@ export function SettingsPanelContent({
   onFocusModeChange: (next: boolean) => void;
   /** Reset EVERYTHING (settings + favorites + dock position + paper tone). */
   onReset: () => void;
+  /** T12c — dock position (persisted `lawlib:dockPosition` by the dock). */
+  dockPosition: DockPosition;
+  onDockPositionChange: (next: DockPosition) => void;
 }) {
   const [confirmReset, setConfirmReset] = useState(false);
   // T12 (ADR-019 D9): per-setting คืนค่า — resets ONLY that one setting.
@@ -641,6 +690,40 @@ export function SettingsPanelContent({
         display={`${Math.max(settings.toolbarSize, coarsePointer ? TOOLBAR_SIZE_TOUCH_MIN : 0)}px`}
         onChange={(toolbarSize) => onChange((prev) => ({ ...prev, toolbarSize }))}
       />
+
+      {/* ─── Dock position (T12c — moved from Level 2, ADR-019 D9: all
+          settings in one place). 8 spots, 3×3 minus center, per-setting
+          คืนค่า like every other section. */}
+      <SettingsSectionTitle
+        action={
+          <ResetButton
+            label="ตำแหน่งปุ่มเครื่องมือ"
+            disabled={dockPosition === DEFAULT_DOCK_POSITION}
+            onClick={() => onDockPositionChange(DEFAULT_DOCK_POSITION)}
+          />
+        }
+      >
+        ตำแหน่งปุ่มเครื่องมือ
+      </SettingsSectionTitle>
+      <div role="group" aria-label="ตำแหน่งปุ่มเครื่องมือ" className="grid grid-cols-3 gap-1">
+        {DOCK_POSITIONS.map((pos) => (
+          <button
+            key={pos}
+            type="button"
+            aria-pressed={dockPosition === pos}
+            aria-label={`ตำแหน่ง${POSITION_LABELS[pos]}`}
+            title={POSITION_LABELS[pos]}
+            onClick={() => onDockPositionChange(pos)}
+            className={`flex h-11 cursor-pointer items-center justify-center rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+              dockPosition === pos
+                ? 'border-blue-400 bg-blue-50 text-blue-600 dark:border-blue-500/60 dark:bg-blue-950/50 dark:text-blue-300'
+                : 'border-slate-200 bg-white text-slate-500 hover:border-blue-300 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:text-blue-300'
+            }`}
+          >
+            <i aria-hidden="true" className="fi fi-sr-circle-small text-[10px]" />
+          </button>
+        ))}
+      </div>
 
       {/* ─── Paragraph spacing + weight ────────────────────────────────── */}
       <SettingsSectionTitle>ย่อหน้าและตัวอักษร</SettingsSectionTitle>

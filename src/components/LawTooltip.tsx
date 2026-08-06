@@ -18,6 +18,13 @@
  *    (FULL + COMPACT share this portal) + "เปิดมาตรานี้" link + copy
  *    shortcut (full article + "— <code> มาตรา N" citation line)
  *  - cross-law ref → lazy registry load (cached); miss → "ยังไม่เปิดให้อ่าน"
+ *
+ * T12b (ADR-019 D9): the PANEL is glass — slider-driven fill (glassOpacity
+ * 0-100, default 35) + blur-xs + sheen, the same mechanism as the dock
+ * Level-1 (.lawlib-glass + .lawlib-glass-xs + .lawlib-glass-sheen). The
+ * CONTENT keeps its own solid surface (white/slate-900 inner wrapper) so
+ * body text measures ≥4.5:1 on a 35%-transparent panel — buttons and the
+ * quick-note textarea already carry their own surfaces.
  */
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -652,8 +659,12 @@ export default function LawTooltip({
       }}
       className={
         sheet
-          ? 'lawlib-tooltip fixed inset-x-0 bottom-0 z-[70] max-h-[75vh] origin-bottom overflow-y-auto rounded-t-2xl border-t border-slate-200 bg-white px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-900'
-          : 'lawlib-tooltip fixed z-[70] w-[min(92vw,28rem)] rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-900'
+          ? // T12b (ADR-019 D9): the PANEL is glass — slider-driven fill +
+            // blur-xs + sheen, same mechanism as the dock Level-1 (the
+            // `bg-white dark:bg-slate-900` solid fill moved onto the inner
+            // content wrapper below so body text keeps AA on a 35% panel).
+            'lawlib-tooltip lawlib-glass lawlib-glass-xs lawlib-glass-sheen fixed inset-x-0 bottom-0 z-[70] max-h-[75vh] origin-bottom overflow-y-auto rounded-t-2xl border-t border-slate-200 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700'
+          : 'lawlib-tooltip lawlib-glass lawlib-glass-xs lawlib-glass-sheen fixed z-[70] w-[min(92vw,28rem)] rounded-2xl border border-slate-200 p-4 shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700'
       }
     >
       {sheet && (
@@ -675,7 +686,12 @@ export default function LawTooltip({
           </div>
         </>
       )}
-      {inner}
+      {/* T12b — the CONTENT keeps its own SOLID surface (panel glass, content
+          opaque): article text containers, buttons and the quick-note
+          textarea sit on white/slate-900, so body text measures ≥4.5:1 even
+          at 35% panel opacity over a dark page. The sheet close button above
+          already carries its own surface. */}
+      <div className="rounded-xl bg-white dark:bg-slate-900">{inner}</div>
     </div>,
     document.body,
   );

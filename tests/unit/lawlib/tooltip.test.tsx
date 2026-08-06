@@ -12,6 +12,8 @@
  *    while open, absent when closed; glossary/ref spans untouched
  *  - regression pin: mouse pointerenter opens / pointerleave closes
  *    (existing semantics intact — this commit is a11y wiring ONLY)
+ *  - T12b: root panel = glass (slider vars + blur-xs + sheen), content keeps
+ *    its own solid surface (AA on a 35%-transparent panel)
  *
  * Extensibility: the compact-feature track extends THIS file with reader-level
  * pins (Esc close, sameContent guard, touch pointerup <10px, "Esc-restore does
@@ -195,6 +197,38 @@ describe('LawTooltip — root carries the stable id', () => {
     const root = tooltipRoot();
     expect(root).not.toBeNull();
     expect(root?.hasAttribute('id')).toBe(false);
+  });
+
+  it('T12b: the root PANEL is glass (slider vars + blur-xs + sheen) while the CONTENT keeps its own solid surface', () => {
+    render(
+      <LawTooltip
+        content={headerContent}
+        anchorRect={{ left: 0, top: 0, right: 100, bottom: 24, width: 100, height: 24 } as DOMRect}
+        sheet={false} // desktop variant — the common case for the surface
+        law={law}
+        onClose={() => {}}
+        onOpenArticle={() => {}}
+        registerTooltipEl={() => {}}
+        onPointerLeave={() => {}}
+        tooltipId="lawlib-tooltip-test-id"
+      />,
+    );
+
+    const root = tooltipRoot();
+    expect(root).not.toBeNull();
+    // The panel consumes the same glass mechanism as the dock Level-1:
+    // slider-driven fill (--lawlib-glass-bg-*) + blur-xs + top sheen.
+    expect(root?.className).toContain('lawlib-glass');
+    expect(root?.className).toContain('lawlib-glass-xs');
+    expect(root?.className).toContain('lawlib-glass-sheen');
+    // The old solid ROOT fill moved off the panel…
+    expect(root?.className).not.toContain('bg-white');
+    expect(root?.className).not.toContain('dark:bg-slate-900');
+    // …onto the inner content wrapper — body text stays ≥4.5:1 on a 35%
+    // transparent panel (the AA contract of T12b).
+    const inner = root?.querySelector<HTMLElement>('.rounded-xl.bg-white');
+    expect(inner).not.toBeNull();
+    expect(inner?.textContent).toContain('มาตรา 1');
   });
 });
 

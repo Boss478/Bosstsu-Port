@@ -213,10 +213,17 @@ export function validateReadingSettings(input: unknown): ReadingSettingsValue {
   const fontFamily = FONT_FAMILIES.includes(o.fontFamily as ReaderFontFamily)
     ? (o.fontFamily as ReaderFontFamily)
     : DEFAULT_READING_SETTINGS.fontFamily;
-  const glassOpacity =
+  let glassOpacity =
     typeof o.glassOpacity === 'number' && Number.isFinite(o.glassOpacity)
       ? clamp(o.glassOpacity, GLASS_OPACITY_MIN, GLASS_OPACITY_MAX)
       : DEFAULT_READING_SETTINGS.glassOpacity;
+  // T12c (ADR-019 D9): 75 was the v1.11.1 SHIPPED DEFAULT — a stored 75 means
+  // the user never touched the slider (or reset it), so it MIGRATES to the
+  // new default 35 ("settings-sacred EXCEPT the old default"). Every other
+  // stored value — including the deliberate extremes 0 and 100 — passes
+  // through untouched. Behaviorally idempotent: 75 is treated as 35 on every
+  // load, and the next settings write persists 35.
+  if (glassOpacity === 75) glassOpacity = DEFAULT_READING_SETTINGS.glassOpacity;
   const toolbarSize =
     typeof o.toolbarSize === 'number' && Number.isFinite(o.toolbarSize)
       ? clamp(Math.round(o.toolbarSize), TOOLBAR_SIZE_MIN, TOOLBAR_SIZE_MAX)

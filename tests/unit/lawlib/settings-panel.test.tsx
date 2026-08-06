@@ -15,6 +15,8 @@
  *   sets body.lawlib-focus AND closes the dock; Esc exits (escBlocked-aware)
  * - reset: inline confirm → settings + favorites + dock position + paper
  *   tone all back to defaults (bookmarks untouched)
+ * - T12c: dock position section — 8-spot grid + per-setting reset (the
+ *   selector MOVED here from Level 2; Level 2 no longer renders it)
  * - toolbar slider floors at 44 on coarse pointers (WCAG 2.5.8)
  * - auto-scroll: speed > 0 shows the control chip; 0 hides it
  */
@@ -130,6 +132,8 @@ describe('T10b settings panel — ⚙️ wiring', () => {
       within(picker).getByRole('heading', { name: 'ความโปร่งใสของแถบเครื่องมือ' }),
     ).toBeTruthy();
     expect(within(picker).getByRole('heading', { name: 'ขนาดแถบเครื่องมือ' })).toBeTruthy();
+    // T12c: the dock position section moved here from Level 2.
+    expect(within(picker).getByRole('heading', { name: 'ตำแหน่งปุ่มเครื่องมือ' })).toBeTruthy();
     expect(within(picker).getByRole('heading', { name: 'โหมดโฟกัส' })).toBeTruthy();
     expect(within(picker).getByRole('heading', { name: 'รีเซ็ต' })).toBeTruthy();
     // NOT a dialog — the PickerPopover group stays non-modal (no nesting).
@@ -264,6 +268,34 @@ describe('T10b settings panel — auto-scroll + reset', () => {
     fireEvent.click(screen.getByRole('button', { name: 'ปิดเลื่อนอัตโนมัติ' }));
     expect(storedSettings().autoScrollSpeed).toBe(0);
     expect(screen.queryByRole('button', { name: /หยุดชั่วคราว/ })).toBeNull();
+  });
+
+  it('T12c: dock position section — 8 spots, default bottom-right, click persists, per-setting reset', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    const group = within(picker).getByRole('group', { name: 'ตำแหน่งปุ่มเครื่องมือ' });
+    expect(within(group).getAllByRole('button').length).toBe(8);
+    expect(
+      within(group).getByRole('button', { name: 'ตำแหน่งล่างขวา' }).getAttribute('aria-pressed'),
+    ).toBe('true');
+    // The per-setting คืนค่า is disabled at the default position.
+    expect(
+      (
+        within(picker).getByRole('button', {
+          name: 'คืนค่าตำแหน่งปุ่มเครื่องมือ',
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+
+    fireEvent.click(within(group).getByRole('button', { name: 'ตำแหน่งกลางซ้าย' }));
+    expect(localStorage.getItem('lawlib:dockPosition')).toBe('mid-left');
+    expect(
+      within(group).getByRole('button', { name: 'ตำแหน่งกลางซ้าย' }).getAttribute('aria-pressed'),
+    ).toBe('true');
+
+    // Per-setting reset → back to the default position.
+    fireEvent.click(within(picker).getByRole('button', { name: 'คืนค่าตำแหน่งปุ่มเครื่องมือ' }));
+    expect(localStorage.getItem('lawlib:dockPosition')).toBe('bottom-right');
   });
 
   it('reset: inline confirm wipes settings + favorites + position + paper tone', async () => {
