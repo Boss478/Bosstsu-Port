@@ -18,7 +18,7 @@
  *  - cross-law ref → lazy registry load (cached); miss → "ยังไม่เปิดให้อ่าน"
  */
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { LawDoc } from '@/types/lawlib';
 import {
@@ -31,6 +31,27 @@ import {
 import { copyText } from '@/lib/copy-print';
 import { formatThaiBEDate } from '@/lib/lawlib/format';
 import type { TooltipContent } from '@/hooks/useLawTooltip';
+
+/**
+ * Article-actions hub (ADR-019 D3/D7 — T10a): bookmark ± · notes read +
+ * quick-write (autosave) + link to the full notes panel · copy (existing) ·
+ * copy-link. Rendered INSIDE the registered tooltip root; the
+ * "open notes panel" button goes through onClose (closeTooltip — the
+ * sanctioned close path) before opening the drawer.
+ */
+export interface LawTooltipHub {
+  /** Current tooltip article bookmarked? */
+  isBookmarked: boolean;
+  onToggleBookmark: () => void;
+  /** Latest note text for the tooltip article ('' when none). */
+  noteText: string;
+  /** Autosave upsert: '' + existing → delete; '' + none → no-op. */
+  onNoteSave: (text: string) => void;
+  /** Close the tooltip (via onClose) + open the full notes panel. */
+  onOpenNotes: () => void;
+  /** Copy the deep link to this article. */
+  onCopyLink: () => void;
+}
 
 interface LawTooltipProps {
   content: TooltipContent;
@@ -49,9 +70,153 @@ interface LawTooltipProps {
    * Absent → the root renders without an id (pre-wiring callers).
    */
   tooltipId?: string;
+  /**
+   * Article-actions hub (T10a). Same-law ref content only; absent for
+   * glossary/cross-law content and for pre-wiring callers (tests) → the hub
+   * section is not rendered.
+   */
+  hub?: LawTooltipHub;
 }
 
 const GAP = 8;
+
+/** Debounced autosave note box (ADR-019 D7 — โน้ตเขียนด่วน). Saves 500ms
+ *  after the last keystroke, flushed on blur AND on unmount (a closing
+ *  tooltip must not drop the last keystrokes). Ref mirrors are updated in
+ *  effects (react-compiler: no ref writes during render). */
+function QuickNoteBox({
+  initialText,
+  onSave,
+  onOpenNotes,
+}: {
+  initialText: string;
+  onSave: (text: string) => void;
+  onOpenNotes: () => void;
+}) {
+  const [draft, setDraft] = useState(initialText);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Latest-draft / latest-onSave mirrors — read by the stable flush (a timer
+  // callback can't see fresh state; the unmount flush must not be stale).
+  const draftRef = useRef(initialText);
+  const saveRef = useRef(onSave);
+
+  useEffect(() => {
+    draftRef.current = draft;
+  });
+  useEffect(() => {
+    saveRef.current = onSave;
+  });
+
+  const flush = useCallback(() => {
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    saveRef.current(draftRef.current);
+  }, []);
+
+  // Flush on unmount: a closing tooltip must not drop the last keystrokes.
+  // React 19 strict-mode double-mount: the first cleanup runs before the
+  // user typed — flushing an empty draft is a no-op (onSave('') with no
+  // existing note does not create one).
+  useEffect(() => {
+    return () => flush();
+  }, [flush]);
+
+  const handleChange = (value: string) => {
+    setDraft(value);
+    if (timerRef.current !== null) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(flush, 500);
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+          โน้ตด่วน
+        </span>
+        <button
+          type="button"
+          onClick={onOpenNotes}
+          className="cursor-pointer text-[11px] font-medium text-blue-700 underline-offset-2 hover:underline dark:text-blue-300"
+        >
+          เปิดโน้ตทั้งแผง →
+        </button>
+      </div>
+      <textarea
+        value={draft}
+        onChange={(e) => handleChange(e.target.value)}
+        onBlur={flush}
+        rows={2}
+        aria-label="โน้ตด่วนสำหรับมาตราที่เปิด"
+        placeholder="จดโน้ตด่วน… (บันทึกอัตโนมัติ)"
+        className="w-full resize-none rounded-lg border border-slate-200 bg-white p-2 text-xs leading-relaxed text-slate-700 placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+      />
+    </div>
+  );
+}
+
+/** Article-actions hub row: bookmark ± · copy-link (copy lives in the header
+ *  row above). ALL controls live inside the registered tooltip root. */
+function ArticleHub({ hub, onClose }: { hub: LawTooltipHub; onClose: () => void }) {
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const handleCopyLink = async () => {
+    await hub.onCopyLink();
+    setLinkCopied(true);
+    window.setTimeout(() => setLinkCopied(false), 2000);
+  };
+
+  return (
+    <div className="space-y-2 border-t border-slate-100 pt-2 dark:border-slate-800">
+      <div className="flex flex-wrap gap-1.5">
+        <button
+          type="button"
+          onClick={hub.onToggleBookmark}
+          aria-pressed={hub.isBookmarked}
+          aria-label={hub.isBookmarked ? 'นำออกจากที่คั่นหน้า' : 'เพิ่มที่คั่นหน้า'}
+          className={`inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+            hub.isBookmarked
+              ? 'border-blue-400 bg-blue-50 text-blue-700 dark:border-blue-500/60 dark:bg-blue-950/50 dark:text-blue-300'
+              : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-blue-300'
+          }`}
+        >
+          <i
+            aria-hidden="true"
+            className="fi fi-sr-bookmark text-[10px] text-blue-600 dark:text-blue-300"
+          />
+          {hub.isBookmarked ? 'ที่คั่นแล้ว' : 'ที่คั่น'}
+        </button>
+        <button
+          type="button"
+          onClick={handleCopyLink}
+          aria-label="คัดลอกลิงก์มาตรานี้"
+          className={`inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+            linkCopied
+              ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-500/60 dark:bg-emerald-950/40 dark:text-emerald-300'
+              : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-blue-300'
+          }`}
+        >
+          <i
+            aria-hidden="true"
+            className={`fi ${linkCopied ? 'fi-sr-check-circle' : 'fi-sr-link'} text-[10px]`}
+          />
+          {linkCopied ? 'คัดลอกลิงก์แล้ว' : 'คัดลอกลิงก์'}
+        </button>
+      </div>
+      <QuickNoteBox
+        initialText={hub.noteText}
+        onSave={hub.onNoteSave}
+        onOpenNotes={() => {
+          // The sanctioned close path — the hub never bypasses closeTooltip
+          // (constraint from the T10a intake: buttons call onClose).
+          onClose();
+          hub.onOpenNotes();
+        }}
+      />
+    </div>
+  );
+}
 
 /** มาตรา N [suffix] — display label for citations. */
 function ArticleBody({
@@ -61,6 +226,7 @@ function ArticleBody({
   onOpenArticle,
   onClose,
   crossHref,
+  hub,
 }: {
   law: LawDoc;
   article: { no: number; suffix?: string };
@@ -69,6 +235,8 @@ function ArticleBody({
   onClose: () => void;
   /** Cross-law: full page link instead of the same-page anchor. */
   crossHref?: string;
+  /** T10a article-actions hub — same-law refs only (see LawTooltipProps). */
+  hub?: LawTooltipHub;
 }) {
   const [copied, setCopied] = useState(false);
   const key = articleKeyOf(article);
@@ -137,6 +305,14 @@ function ArticleBody({
         </>
       ) : (
         <p className="text-sm text-slate-500 dark:text-slate-400">ไม่พบมาตรานี้ในข้อมูลปัจจุบัน</p>
+      )}
+
+      {hub !== undefined && (
+        // Keyed by article: a ref→ref swap (same portal root, replaced
+        // content) must REMOUNT the hub — the QuickNoteBox draft resets to
+        // the new article's note and the unmount flush saves any pending
+        // draft to the OLD article (BLOCKER fix, T10a review).
+        <ArticleHub key={key} hub={hub} onClose={onClose} />
       )}
 
       <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-2 dark:border-slate-800">
@@ -236,6 +412,7 @@ export default function LawTooltip({
   onPointerLeave,
   focusOnOpen = false,
   tooltipId,
+  hub,
 }: LawTooltipProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
 
@@ -302,6 +479,7 @@ export default function LawTooltip({
         code={law.code}
         onOpenArticle={onOpenArticle}
         onClose={onClose}
+        hub={hub}
       />
     );
 

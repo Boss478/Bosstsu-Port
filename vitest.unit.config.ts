@@ -33,6 +33,7 @@ const unitInclude = [
   'tests/unit/alphabet-adventure.test.ts',
   'tests/unit/challenge-generators.test.ts',
   'tests/unit/lawlib/compact-routing.test.tsx',
+  'tests/unit/lawlib/quick-note.test.tsx',
   'tests/unit/lawlib/reader-settings.test.ts',
   'tests/unit/lawlib/reading-dock.test.tsx',
   'tests/unit/lawlib/theme-provider.test.tsx',
