@@ -5,6 +5,8 @@ import type { LawDoc } from '../../types/lawlib';
 // emitted JSON was zod-validated (validate.ts) before being written.
 /** Static-literal lazy loaders only — template-literal imports break webpack. */
 export const registry: Record<string, () => Promise<LawDoc>> = {
+  'compulsory-education-act-2545': () =>
+    import('./laws/compulsory-education-act-2545.json') as Promise<LawDoc>,
   'national-education-act-2542': () =>
     import('./laws/national-education-act-2542.json') as Promise<LawDoc>,
   sample: () => import('./laws/sample.json') as Promise<LawDoc>,
