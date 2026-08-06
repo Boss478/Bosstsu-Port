@@ -809,3 +809,71 @@ describe('T1 regressions — touch tap-pin + keyboard sticky unchanged', () => {
     expect(tooltipRoot()).toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// T13 — ArticleBody fallback repealed badge (no-digest ref, LawTooltip.tsx
+// :316-323). The shared fixtures above have no repealedParagraphs; standalone
+// fixture mirrors the T11 compact-routing one (มาตรา 6) so the shared
+// Harness/law stay untouched. A no-digest ref (kind:'ref' without digest
+// fields) renders the ArticleBody branch — the badge must come from the law
+// fixture, NOT from DigestRefContent.repealed.
+// ---------------------------------------------------------------------------
+
+const repealedLaw: LawDoc = {
+  slug: 'tooltip-repealed-test',
+  code: 'พ.ร.บ. ทดสอบ',
+  titleTh: 'กฎหมายทดสอบ',
+  subject: 'ทดสอบ',
+  part: 'ก',
+  tags: [],
+  verifiedAt: '2026-08-05',
+  gazetteRef: '—',
+  editions: [],
+  definitions: [],
+  chapters: [
+    {
+      no: 1,
+      title: 'หมวด 1',
+      articles: [
+        {
+          no: 6,
+          text: [{ kind: 'text', t: 'ให้สถานศึกษาจัดการศึกษา' }],
+          repealedParagraphs: [
+            {
+              paras: 'วรรคสอง',
+              repealedBy: 'พระราชบัญญัติทดสอบ (ฉบับที่ 2) พ.ศ. 2545',
+              text: 'ความในวรรคสองเดิมถูกยกเลิก',
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+describe('T13 — no-digest ref to a repealed article shows the ถูกยกเลิก badge (ArticleBody fallback)', () => {
+  it('renders the badge from the law fixture repealedParagraphs', () => {
+    render(
+      <LawTooltip
+        content={{ kind: 'ref', articleNo: 6, display: 'มาตรา 6' }}
+        anchorRect={{ left: 0, top: 0, right: 100, bottom: 24, width: 100, height: 24 } as DOMRect}
+        sheet={true} // skip positioning — jsdom-safe
+        law={repealedLaw}
+        onClose={() => {}}
+        onOpenArticle={() => {}}
+        registerTooltipEl={() => {}}
+        onPointerLeave={() => {}}
+        tooltipId="lawlib-tooltip-repealed-test"
+      />,
+    );
+
+    const root = tooltipRoot();
+    expect(root).not.toBeNull();
+    // ArticleBody branch (no digest fields → never DigestRefBody): the full
+    // article label + body render, and the repealedParagraphs guard paints
+    // the ถูกยกเลิก badge — the T13 fallback path in LawTooltip.tsx:316-323.
+    expect(root?.textContent).toContain('มาตรา 6');
+    expect(root?.textContent).toContain('ถูกยกเลิก');
+    expect(root?.textContent).toContain('ให้สถานศึกษาจัดการศึกษา');
+  });
+});
