@@ -20,7 +20,44 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTheme, THEMES } from './ThemeProvider';
 import type { Theme } from './ThemeProvider';
-import { Segment } from './ReadingSettings';
+
+/** Segmented control — moved here from the deleted ReadingSettings.tsx
+ *  (2026-08-06, senior review of 28d6bae): that component was dead code
+ *  with a stale ch-scale width contract; only this theme picker used it. */
+interface SegmentProps<T extends string> {
+  label: string;
+  options: ReadonlyArray<{ value: T; label: string; aria: string }>;
+  value: T;
+  onSelect: (value: T) => void;
+}
+
+function Segment<T extends string>({ label, options, value, onSelect }: SegmentProps<T>) {
+  return (
+    <div
+      role="group"
+      aria-label={label}
+      className="flex rounded-lg border border-slate-200 bg-white p-0.5 dark:border-slate-700 dark:bg-slate-800/40"
+    >
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          aria-pressed={value === opt.value}
+          aria-label={opt.aria}
+          title={opt.aria}
+          onClick={() => onSelect(opt.value)}
+          className={`flex-1 rounded-md px-2 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+            value === opt.value
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-zinc-600 hover:bg-blue-100/60 dark:text-zinc-300 dark:hover:bg-slate-700/60'
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 const THEME_LABELS: Record<Theme, string> = {
   light: 'สว่าง',

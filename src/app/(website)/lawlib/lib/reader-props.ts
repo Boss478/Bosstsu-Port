@@ -63,9 +63,11 @@ export interface EditionTimelineProps {
  *
  * CONTRACT CHANGE (T10a, ADR-019 D5): fontSize + width are now NUMBERS
  * (legacy enum strings migrate in validateReadingSettings: 's/m/l/xl' →
- * 14/16/18/24, 'narrow/normal/wide' → 40/60/80ch). lineHeight clamps
- * [1.0, 2.0] (was [1.5, 2.2]). paperTone is NOT here — it lives in
- * ThemeProvider (`lawlib:paperTone`, number 0-100, ADR-019 D8).
+ * 14/16/18/24, 'narrow/normal/wide' → 80/100/120% — the width scale moved
+ * from ch to PERCENT of the 80ch baseline, 80-120, default 100; legacy
+ * numeric ch values [40,80) rescale linearly (+40, idempotent)).
+ * lineHeight clamps [1.0, 2.0] (was [1.5, 2.2]). paperTone is NOT here —
+ * it lives in ThemeProvider (`lawlib:paperTone`, number 0-100, ADR-019 D8).
  */
 export type DockToolKey =
   | 'theme'

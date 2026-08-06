@@ -466,6 +466,14 @@ export default function LawTooltip({
 
   if (typeof document === 'undefined') return null;
 
+  // The hub root is role="dialog" — give it an accessible name (senior
+  // review of 28d6bae; hub only mounts for ref content). articleLabel
+  // already includes the มาตรา prefix ("มาตรา 1").
+  const dialogLabel =
+    hub !== undefined && content.kind !== 'glossary'
+      ? articleLabel(content.articleNo, content.articleSuffix)
+      : undefined;
+
   const inner =
     content.kind === 'glossary' ? (
       <div className="space-y-1.5">
@@ -512,6 +520,7 @@ export default function LawTooltip({
       // root a non-modal DIALOG; glossary-only content keeps role="tooltip"
       // (a11y fix #7 — role=tooltip must not contain interactive elements).
       role={hub !== undefined ? 'dialog' : 'tooltip'}
+      aria-label={dialogLabel}
       aria-modal={hub !== undefined ? 'false' : undefined}
       tabIndex={-1}
       onPointerLeave={onPointerLeave}

@@ -1447,7 +1447,7 @@ textarea,
   @apply backdrop-blur-lg bg-white/90 dark:bg-slate-900/90;
 }
 
-/* ─── LawLib Read Mode (5-mode theme — paper surfaces) ────────────────────
+/* ─── LawLib Read Mode (4-mode theme — paper surfaces) ───────────────────
    Centralized `.read` overrides per plan §4.2: read mode is fully styled on
    LawLib surfaces only; everywhere else it degrades to paper body + light
    components. Unlayered rules here beat Tailwind's layered utilities, so the

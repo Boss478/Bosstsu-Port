@@ -10,8 +10,9 @@
  *
  * Leaf panels (SearchPanel/GlossaryPanel/EditionTimeline + useReaderStorage)
  * are built by the D1 lane against the frozen props contract in
- * `(website)/lawlib/lib/reader-props.ts`. (ReadingSettings no longer mounts
- * here — it lives on for the site SettingsMenu only.)
+ * `(website)/lawlib/lib/reader-props.ts`. Reading settings live in the dock
+ * (LawlibDock + LawlibPickers) — the old ReadingSettings.tsx was deleted
+ * 2026-08-06 (senior review of 28d6bae: dead code, stale ch-scale contract).
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -1377,7 +1378,6 @@ export default function LawlibReaderClient({
         settings={settings}
         setSettings={setSettings}
         isBookmarked={isBookmarked}
-        bookmarksCount={bookmarks.length}
         onToggleBookmark={handleBookmarkCurrent}
         activePanel={openPanel}
         onOpenPanel={handleOpenPanelFromDock}

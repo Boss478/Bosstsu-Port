@@ -4,8 +4,9 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { paperToneVars, parsePaperTone } from '@/lib/lawlib/paper-tone';
 
 /**
- * Site theme (T10a: extended to 5 modes, night REMOVED 2026-08-06 — user
- * decision; the dock v2 theme picker offers สว่าง/มืด/กระดาษ/ซีเปีย).
+ * Site theme (T10a: 4 modes — สว่าง/มืด/กระดาษ/ซีเปีย; the 5th, night,
+ * REMOVED 2026-08-06 — user decision; the dock v2 theme picker offers
+ * สว่าง/มืด/กระดาษ/ซีเปีย).
  * Exactly ONE of .light/.dark/.read/.sepia sits on <html>; sepia reuses the
  * `.read` paper-surface chain via the `read` custom variant (globals.css).
  * Stored 'night' migrates to 'dark' on read (see getInitialTheme).

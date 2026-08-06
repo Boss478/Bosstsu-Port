@@ -116,8 +116,11 @@ const POSITION_CONFIG: Record<
     root: 'top-1/2 -translate-y-1/2 right-[max(1rem,env(safe-area-inset-right))]',
     panel: 'right-full top-1/2 -translate-y-1/2',
     panelMaxH: 'max-h-[70vh]',
-    // Symmetric clamp (fix #27): the shared 92vw cap would push the panel
-    // ~30px past the LEFT viewport edge at 375px (right-full anchor).
+    // Symmetric clamp (fix #27): the expanded panel anchors 1rem from the
+    // right edge (the 60px icon footprint only applies while collapsed), so
+    // the shared 92vw cap at 375px portrait leaves ~14px clearance — it only
+    // goes negative (~14px past the LEFT edge) in landscape with a large
+    // env(safe-area-inset-right). The clamp covers both.
     panelWidth: 'w-[min(calc(100vw-3.75rem),26rem)]',
   },
   'bottom-left': {
@@ -200,9 +203,6 @@ export interface LawlibDockProps {
   setSettings: (next: ReadingSettingsValue) => void;
   /** Current article bookmarked (Level-1 bookmark toggle state). */
   isBookmarked: boolean;
-  /** Bookmark count (resolved-only count is derived inside the dock — fix
-   *  #24; this prop is kept for caller compatibility). */
-  bookmarksCount: number;
   onToggleBookmark: () => void;
   activePanel: DockPanelKind | null;
   onOpenPanel: (panel: DockPanelKind) => void;
@@ -402,7 +402,7 @@ export default function LawlibDock(props: LawlibDockProps) {
 
   // Bookmark count used by the Level-1 badge + Level-2 heading — RESOLVED
   // keys only (stale keys the BookmarksPanel skips must not be counted, fix
-  // #24). The `bookmarksCount` prop stays on the contract for callers.
+  // #24). Derived here — the bookmarksCount prop was removed 2026-08-06.
   const resolvedBookmarkCount = bookmarks.filter(
     (k) => findArticleByKey(law, k) !== undefined,
   ).length;
