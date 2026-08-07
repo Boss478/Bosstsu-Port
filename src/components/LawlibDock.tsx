@@ -1,20 +1,28 @@
 'use client';
 
 /**
- * LawLib — dock v2.1 (T10a + T12, ADR-019 D1/D2/D3/D6/D9).
+ * LawLib — dock v2.2 (T14, ADR-019 D1/D2/D3/D6/D9/D10).
  *
  * 3-level hierarchy, ONE mechanism desktop + mobile:
  *   Level 0 · ยุบ:     single plain tools icon (no badge) at one of 8
  *                      positions (persisted `lawlib:dockPosition`).
  *   Level 1 · ขยาย:    OPEN BY DEFAULT on reader mount (T12 — desktop panel
  *                      or mobile bottom sheet; reversed D1's default-
- *                      collapsed). favorite/pinned tools (favoriteToolKeys,
- *                      persisted in settings) — 4 value-showing pickers +
- *                      bookmark/search/notes + "อ่านต่อ" (when a per-slug
- *                      position exists) + "เพิ่มเติม" (Level 2).
- *   Level 2 · เพิ่มเติม: ALL tools with per-tool pin toggles + the grouped
- *                      bookmarks list (the 8-position selector MOVED to the
- *                      ⚙️ settings panel — T12c, ADR-019 D9).
+ *                      collapsed). T14 layout: the 4 pickers show their ICON
+ *                      with the CURRENT VALUE as a tiny label beneath
+ *                      (ธีม = icon ONLY — sun/moon/book/palette glyphs
+ *                      reflect the state); actions (bookmark/search/notes/
+ *                      อ่านต่อ/เพิ่มเติม) are icon-only 44px buttons.
+ *                      favoriteToolKeys (persisted in settings) + the
+ *                      per-slug อ่านต่อ (when a position exists) + เพิ่มเติม
+ *                      (Level 2).
+ *   Level 2 · เพิ่มเติม: T14 icon-only 2-row grid — row 1 = the Level-1
+ *                      favorite set, row 2 = the rest (glossary · bookmarks-
+ *                      ALL · copy · copy-link · ⚙️ settings) + ย้อนกลับ.
+ *                      NO section titles / text rows / pin toggles (pin
+ *                      management moved into the ⚙️ settings panel —
+ *                      เครื่องมือแถวลัด). bookmarks-all opens the bookmarks
+ *                      PANEL (converted from the old L2 section).
  *
  * The panel closes ONLY via Esc / the ย่อ collapse button / the X button
  * (D9 — pointerdown-outside no longer closes the DOCK panel; the picker
@@ -33,7 +41,6 @@ import { DEFAULT_READING_SETTINGS, DOCK_TOOL_KEYS } from '@/hooks/useReaderStora
 import type { DockToolKey, ReadingSettingsValue } from '@/app/(website)/lawlib/lib/reader-props';
 import type { LawDoc } from '@/types/lawlib';
 import { articleLabel, findArticleByKey } from '@/lib/lawlib-reader';
-import { BookmarksPanel } from '@/components/BookmarksPanel';
 import {
   DEFAULT_DOCK_POSITION,
   DOCK_POSITIONS,
@@ -44,7 +51,10 @@ import {
   THEME_CHOICES,
   ThemePickerContent,
   TOOLBAR_SIZE_TOUCH_MIN,
+  TOOL_ICONS,
+  TOOL_LABELS,
   WidthPickerContent,
+  type DockMoreToolKey,
   type DockPosition,
 } from '@/components/LawlibPickers';
 import { DEFAULT_PAPER_TONE, getInitialTheme, type Theme } from '@/components/ThemeProvider';
@@ -170,46 +180,26 @@ function loadDockCollapsed(): boolean {
 const DOCK_ANIM_MS = 150;
 
 // ---------------------------------------------------------------------------
-// Tool registry (shared by Level 1 favorites + Level 2 ALL tools)
+// Tool registry — labels + icons + panel map (single source: LawlibPickers —
+// shared with the ⚙️ เครื่องมือแถวลัด favorites editor).
 // ---------------------------------------------------------------------------
 
 type PickerKind = 'theme' | 'fontSize' | 'lineHeight' | 'width' | 'settings';
-type DockPanelKind = 'search' | 'glossary' | 'notes';
-
-const TOOL_LABELS: Record<DockToolKey, string> = {
-  theme: 'ธีม',
-  fontSize: 'ตัวอักษร',
-  lineHeight: 'บรรทัด',
-  width: 'กว้าง',
-  bookmark: 'ที่คั่นหน้า',
-  search: 'ค้นหามาตรา',
-  notes: 'บันทึกของฉัน',
-  glossary: 'บทนิยาม',
-  copy: 'คัดลอกมาตรานี้',
-  copyLink: 'คัดลอกลิงก์มาตรานี้',
-  settings: 'ตั้งค่า',
-};
-
-const TOOL_ICONS: Record<DockToolKey, string> = {
-  theme: 'fi-sr-sun',
-  fontSize: 'fi-sr-italic',
-  lineHeight: 'fi-sr-align-justify',
-  width: 'fi-sr-expand',
-  bookmark: 'fi-sr-bookmark',
-  search: 'fi-sr-search',
-  notes: 'fi-sr-note-sticky',
-  glossary: 'fi-sr-book-bookmark',
-  copy: 'fi-sr-copy',
-  copyLink: 'fi-sr-link',
-  settings: 'fi-sr-settings',
-};
+type DockPanelKind = 'search' | 'glossary' | 'notes' | 'bookmarks';
 
 const PICKER_KEYS: readonly DockToolKey[] = ['theme', 'fontSize', 'lineHeight', 'width'];
-const ACTION_PANEL_MAP: Partial<Record<DockToolKey, DockPanelKind>> = {
+const ACTION_PANEL_MAP: Partial<Record<DockMoreToolKey, DockPanelKind>> = {
   search: 'search',
   glossary: 'glossary',
   notes: 'notes',
+  // T14 — bookmarks-ALL opens the bookmarks PANEL (converted from the old
+  // Level-2 section; the L1 bookmark button stays the in-place toggle).
+  bookmarksAll: 'bookmarks',
 };
+/** T14 Level-2 row-2 order: the full tool set + the L2-only bookmarks-all
+ *  (never pinnable — the L1 bookmark TOGGLE already carries the count).
+ *  favoriteToolKeys are filtered OUT of row 2 (row 1 = the favorites). */
+const MORE_REST_KEYS: readonly DockMoreToolKey[] = [...DOCK_TOOL_KEYS, 'bookmarksAll'];
 
 // ---------------------------------------------------------------------------
 // Dock props + component
@@ -241,10 +231,10 @@ export interface LawlibDockProps {
   resumeKey: string | null;
   activeKey: string | null;
   onResume: () => void;
-  /** Bookmark list in Level 2 — jump (closes the dock) / delete. */
+  /** Bookmark count badge on the Level-1 bookmark toggle (the bookmarks
+   *  LIST itself lives in the reader's panel — opened from Level 2's
+   *  bookmarks-all icon — so jump/remove are the reader's own handlers). */
   bookmarks: string[];
-  onJump: (key: string) => void;
-  onBookmarkRemove: (key: string) => void;
   /** Drawer/tooltip/popover open → the dock's Esc handler stands down. */
   escBlocked: boolean;
 }
@@ -270,8 +260,6 @@ export default function LawlibDock(props: LawlibDockProps) {
     resumeKey,
     activeKey,
     onResume,
-    onJump,
-    onBookmarkRemove,
     bookmarks,
     escBlocked,
   } = props;
@@ -457,12 +445,12 @@ export default function LawlibDock(props: LawlibDockProps) {
     setPicker({ kind, anchor });
   };
 
-  const activateTool = (key: DockToolKey, anchor?: HTMLElement) => {
+  const activateTool = (key: DockMoreToolKey, anchor?: HTMLElement) => {
     if (key === 'settings') {
       if (anchor !== undefined) togglePicker('settings', anchor);
       return;
     }
-    if (PICKER_KEYS.includes(key)) {
+    if (key !== 'bookmarksAll' && PICKER_KEYS.includes(key)) {
       if (anchor !== undefined) togglePicker(key as PickerKind, anchor);
       return;
     }
@@ -481,14 +469,6 @@ export default function LawlibDock(props: LawlibDockProps) {
         if (panel !== undefined) onOpenPanel(panel);
       }
     }
-  };
-
-  const toggleFavorite = (key: DockToolKey) => {
-    const current = settings.favoriteToolKeys;
-    const next = current.includes(key) ? current.filter((k) => k !== key) : [...current, key];
-    // Functional update — a snapshot write here could resurrect a stale
-    // autoScrollSpeed (the auto-scroll end-stop writes functionally).
-    setSettings((prev) => ({ ...prev, favoriteToolKeys: next }));
   };
 
   const setDockPosition = (next: DockPosition) => {
@@ -593,29 +573,39 @@ export default function LawlibDock(props: LawlibDockProps) {
         })()
       : '';
 
-  // --- Level 1 tool button ---------------------------------------------------
+  // --- Level 1 tool button (T14 — ADR-019 D10) -------------------------------
+  // Pickers = ICON + the current value as a tiny label BENEATH the icon (the
+  // 44px button includes the label zone — WCAG 2.5.8). ธีม = icon ONLY (its
+  // glyph mirrors the theme state: ☀️/🌙/📖/🎨). Actions = icon-only 44px.
+  // The T12 non-default dots stay on the pickers.
 
   const renderToolButton = (key: DockToolKey) => {
-    const tool = TOOL_ICONS[key];
     if (PICKER_KEYS.includes(key) || key === 'settings') {
       const kind = key === 'settings' ? 'settings' : (key as PickerKind);
+      const icon =
+        key === 'theme'
+          ? (THEME_CHOICES.find((c) => c.value === theme)?.icon ?? 'fi-sr-sun')
+          : TOOL_ICONS[key];
+      // The accessible name carries the tool + CURRENT value (the value is
+      // also visible under the icon — except theme/settings, icon-only).
+      const accessibleName = `${TOOL_LABELS[key]} ${pickerValue[kind]}`;
       return (
         <button
           key={key}
           type="button"
+          aria-label={accessibleName}
+          title={TOOL_LABELS[key]}
           aria-haspopup="true"
           aria-expanded={picker?.kind === kind}
           onClick={(e) => togglePicker(kind, e.currentTarget)}
-          className="relative flex min-h-11 min-w-[4.5rem] flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg border border-slate-200 bg-white px-1.5 text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:text-blue-300"
+          className="relative flex min-h-11 min-w-11 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg border border-slate-200 bg-white px-1 text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:text-blue-300"
         >
-          <span className="flex max-w-full items-center gap-1 text-[10px] font-medium">
-            <i aria-hidden="true" className={`fi ${tool} text-[9px]`} />
-            <span className="truncate">{TOOL_LABELS[key]}</span>
-          </span>
-          <span className="flex items-center gap-0.5 text-xs font-bold tabular-nums">
-            {pickerValue[kind]}
-            <i aria-hidden="true" className="fi fi-sr-angle-small-down text-[8px]" />
-          </span>
+          <i aria-hidden="true" className={`fi ${icon} text-sm leading-none`} />
+          {key !== 'theme' && key !== 'settings' && (
+            <span className="text-[10px] font-bold leading-none tabular-nums">
+              {pickerValue[kind]}
+            </span>
+          )}
           {/* T12: non-default value dot (always on — a tiny blue dot in the
               top-right corner; the button itself stays the boundary). */}
           {key !== 'settings' && pickerIsNonDefault[kind] && (
@@ -628,20 +618,35 @@ export default function LawlibDock(props: LawlibDockProps) {
       );
     }
 
-    // Action buttons (icon-only 44px, badge where relevant).
-    let badge: number | undefined;
-    if (key === 'bookmark') badge = resolvedBookmarkCount;
-    if (key === 'notes') badge = notesCount;
-    let active = false;
-    if (key === 'bookmark') active = isBookmarked;
-    if (key === 'search') active = activePanel === 'search';
-    if (key === 'notes') active = activePanel === 'notes';
-    if (key === 'glossary') active = activePanel === 'glossary';
+    return renderActionIconButton(key, true);
+  };
+
+  // Shared action-state helpers (used by the Level-1 + Level-2 icon buttons):
+  // active panel/toggle highlight + the check-circle glyph swap (never
+  // color-only — WCAG 1.4.1, a11y fix #9).
+  const toolActive = (key: DockMoreToolKey): boolean => {
+    if (key === 'bookmark') return isBookmarked;
+    if (key === 'search') return activePanel === 'search';
+    if (key === 'notes') return activePanel === 'notes';
+    if (key === 'glossary') return activePanel === 'glossary';
+    if (key === 'bookmarksAll') return activePanel === 'bookmarks';
+    return false;
+  };
+  const toolGlyph = (key: DockMoreToolKey, active: boolean): string => {
     const flash = key === 'copy' && copiedFlash === 'article';
     const linkFlash = key === 'copyLink' && copiedFlash === 'link';
-    // Active bookmark swaps the ribbon for a check-circle — the state is
-    // never color-only (WCAG 1.4.1, a11y fix #9; aria-pressed stays).
-    const icon = flash || linkFlash || (key === 'bookmark' && active) ? 'fi-sr-check-circle' : tool;
+    return flash || linkFlash || (key === 'bookmark' && active)
+      ? 'fi-sr-check-circle'
+      : TOOL_ICONS[key];
+  };
+
+  /** Action icon button — Level 1 (badges: bookmark count + notes count). */
+  const renderActionIconButton = (key: DockToolKey, withBadge: boolean) => {
+    let badge: number | undefined;
+    if (withBadge && key === 'bookmark') badge = resolvedBookmarkCount;
+    if (withBadge && key === 'notes') badge = notesCount;
+    const active = toolActive(key);
+    const icon = toolGlyph(key, active);
 
     return (
       <button
@@ -670,64 +675,36 @@ export default function LawlibDock(props: LawlibDockProps) {
     );
   };
 
-  // --- Level 2 row -----------------------------------------------------------
+  // --- Level 2 icon-only grid button (T14 — ADR-019 D10) ---------------------
+  // PURE icon 44px squares: no text rows, no pin toggles. Pickers open their
+  // popover (anchor = the icon); actions act directly; copy/copy-link disable
+  // without a target article. Active states mirror Level 1.
 
-  const renderToolRow = (key: DockToolKey) => {
-    const pinned = settings.favoriteToolKeys.includes(key);
-    const isPicker = PICKER_KEYS.includes(key) || key === 'settings';
-    const rowValue = isPicker && key !== 'settings' ? pickerValue[key as PickerKind] : undefined;
-    const disabled = (key === 'copy' && !canCopy) || (key === 'copyLink' && !canCopy);
+  const renderMoreIconButton = (key: DockMoreToolKey) => {
+    const isPicker = (key !== 'bookmarksAll' && PICKER_KEYS.includes(key)) || key === 'settings';
+    const kind = key === 'settings' ? 'settings' : (key as PickerKind);
+    const pickerOpen = isPicker && picker?.kind === kind;
+    const active = toolActive(key);
+    const icon = toolGlyph(key, active);
     return (
-      <li key={key} className="flex items-center gap-1.5">
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={(e) => activateTool(key, e.currentTarget)}
-          className={`flex min-h-11 flex-1 cursor-pointer items-center gap-2 rounded-lg border px-2.5 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 ${
-            isPicker && picker?.kind === key
-              ? 'border-blue-400 bg-blue-50 dark:border-blue-500/60 dark:bg-blue-950/50'
-              : 'border-slate-200 bg-white hover:border-blue-300 dark:border-slate-700 dark:bg-slate-800/60'
-          }`}
-        >
-          <i
-            aria-hidden="true"
-            className={`fi ${TOOL_ICONS[key]} text-xs ${
-              disabled ? 'text-slate-500 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'
-            }`}
-          />
-          <span className="flex-1 truncate text-xs font-medium text-slate-700 dark:text-slate-200">
-            {TOOL_LABELS[key]}
-          </span>
-          {rowValue !== undefined && (
-            <span className="text-xs font-bold tabular-nums text-slate-500 dark:text-slate-400">
-              {rowValue}
-            </span>
-          )}
-          {isPicker && (
-            <i
-              aria-hidden="true"
-              className={`fi fi-sr-angle-small-down text-[9px] text-slate-500 ${picker?.kind === key ? 'rotate-180' : ''}`}
-            />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => toggleFavorite(key)}
-          aria-pressed={pinned}
-          aria-label={`${pinned ? 'ถอด' : 'ปักหมุด'} ${TOOL_LABELS[key]}${pinned ? ' (อยู่แถวหลัก)' : ' ไปแถวหลัก'}`}
-          title={pinned ? 'ถอดออกจากแถวหลัก' : 'ปักหมุดไปแถวหลัก'}
-          // Disabled rows (settings/copy-without-target) get a disabled pin —
-          // a live toggle on a dead row is a dead end (fix #21).
-          disabled={disabled}
-          className={`flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 ${
-            pinned
-              ? 'border-blue-400 bg-blue-50 text-blue-600 dark:border-blue-500/60 dark:bg-blue-950/50 dark:text-blue-300'
-              : 'border-slate-200 bg-white text-slate-500 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:text-blue-300'
-          }`}
-        >
-          <i aria-hidden="true" className="fi fi-sr-pin text-xs leading-none" />
-        </button>
-      </li>
+      <button
+        key={key}
+        type="button"
+        aria-label={TOOL_LABELS[key]}
+        title={TOOL_LABELS[key]}
+        aria-pressed={active}
+        aria-haspopup={isPicker ? 'true' : undefined}
+        aria-expanded={isPicker ? pickerOpen : undefined}
+        disabled={(key === 'copy' || key === 'copyLink') && !canCopy}
+        onClick={(e) => activateTool(key, e.currentTarget)}
+        className={`relative flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 ${
+          pickerOpen || active
+            ? 'border-blue-400 bg-blue-50 text-blue-700 dark:border-blue-500/60 dark:bg-blue-950/50 dark:text-blue-300'
+            : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:text-blue-300'
+        }`}
+      >
+        <i aria-hidden="true" className={`fi ${icon} text-xs leading-none`} />
+      </button>
     );
   };
 
@@ -797,27 +774,29 @@ export default function LawlibDock(props: LawlibDockProps) {
           </div>
 
           {!moreOpen ? (
-            // ─── Level 1 — favorites + เพิ่มเติม (direction-aware: side
-            // positions = vertical column, middle/mobile = horizontal row) ──
+            // ─── Level 1 (T14 — ADR-019 D10): icon+value pickers, icon-only
+            // actions, อ่านต่อ + เพิ่มเติม (direction-aware: side positions =
+            // vertical column, middle/mobile = horizontal row) ──────────────
             <div className="flex flex-col gap-1.5">
-              {resumeVisible && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    closeAllInstant();
-                    onResume();
-                  }}
-                  className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-2 text-xs font-semibold text-amber-800 transition-colors hover:border-amber-400 hover:bg-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-amber-500/50 dark:bg-amber-950/40 dark:text-amber-200"
-                >
-                  <i aria-hidden="true" className="fi fi-sr-time-past text-xs" />
-                  อ่านต่อ: {resumeLabel}
-                </button>
-              )}
               <div
                 className={`flex gap-1.5 ${
                   effectiveLayout === 'vertical' ? 'flex-col' : 'flex-wrap'
                 }`}
               >
+                {resumeVisible && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeAllInstant();
+                      onResume();
+                    }}
+                    aria-label={`อ่านต่อ: ${resumeLabel}`}
+                    title={`อ่านต่อ: ${resumeLabel}`}
+                    className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-amber-300 bg-amber-50 text-amber-800 transition-colors hover:border-amber-400 hover:bg-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-amber-500/50 dark:bg-amber-950/40 dark:text-amber-200"
+                  >
+                    <i aria-hidden="true" className="fi fi-sr-time-past text-sm leading-none" />
+                  </button>
+                )}
                 {settings.favoriteToolKeys.map((key) => renderToolButton(key))}
                 <button
                   ref={moreTriggerRef}
@@ -835,34 +814,42 @@ export default function LawlibDock(props: LawlibDockProps) {
                   aria-expanded={moreOpen}
                   aria-haspopup="true"
                   aria-controls="lawlib-more-panel"
-                  className="flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:text-blue-300"
+                  aria-label="เพิ่มเติม"
+                  title="เพิ่มเติม"
+                  className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:text-blue-300"
                 >
-                  <i aria-hidden="true" className="fi fi-sr-apps text-xs" />
-                  เพิ่มเติม
-                  <i aria-hidden="true" className="fi fi-sr-angle-small-right text-[9px]" />
+                  <i aria-hidden="true" className="fi fi-sr-apps text-sm leading-none" />
                 </button>
               </div>
             </div>
           ) : (
-            // ─── Level 2 — ALL tools + pins + bookmarks (the position
-            // selector lives in the ⚙️ settings picker — T12c) ─────────────
-            <div id="lawlib-more-panel" className="flex flex-col gap-2">
-              <button
-                ref={moreBackRef}
-                data-more-back
-                type="button"
-                onClick={() => setMoreOpen(false)}
-                className="flex min-h-11 w-fit cursor-pointer items-center gap-1 rounded-lg px-1 text-xs font-medium text-slate-500 transition-colors hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-slate-400 dark:hover:text-blue-300"
-              >
-                <i aria-hidden="true" className="fi fi-sr-angle-left text-[10px]" />
-                ย้อนกลับ
-              </button>
-              <h2 className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                เครื่องมือทั้งหมด
-              </h2>
-              {/* T12 direction-aware Level-2 grid: vertical layout = 2-col
-                  grid; horizontal layout = horizontal grid (2 cols on the
-                  mobile sheet, 3 cols on desktop middle positions). */}
+            // ─── Level 2 (T14 — ADR-019 D10): icon-only 2-row grid —
+            // row 1 = the Level-1 favorite set, row 2 = the rest (glossary ·
+            // bookmarks-ALL · copy · copy-link · ⚙️ settings) + ย้อนกลับ.
+            // NO section titles / text rows / pin toggles (the favorites
+            // editor lives in the ⚙️ settings picker; the position selector
+            // too — T12c). Direction-aware: vertical layout = 2-col grid per
+            // row; horizontal = 3-col from sm up (mobile sheet = 2 cols). ──
+            <div id="lawlib-more-panel" className="flex flex-col gap-1.5">
+              {settings.favoriteToolKeys.length > 0 && (
+                <>
+                  <ul
+                    className={
+                      effectiveLayout === 'vertical'
+                        ? 'grid grid-cols-2 gap-1'
+                        : 'grid grid-cols-2 gap-1 sm:grid-cols-3'
+                    }
+                  >
+                    {settings.favoriteToolKeys.map((key) => (
+                      <li key={key}>{renderMoreIconButton(key)}</li>
+                    ))}
+                  </ul>
+                  <div
+                    aria-hidden="true"
+                    className="h-px w-full shrink-0 bg-slate-200 dark:bg-slate-700"
+                  />
+                </>
+              )}
               <ul
                 className={
                   effectiveLayout === 'vertical'
@@ -870,25 +857,25 @@ export default function LawlibDock(props: LawlibDockProps) {
                     : 'grid grid-cols-2 gap-1 sm:grid-cols-3'
                 }
               >
-                {DOCK_TOOL_KEYS.map((key) => renderToolRow(key))}
+                {MORE_REST_KEYS.filter(
+                  (key) => !settings.favoriteToolKeys.some((k) => k === key),
+                ).map((key) => (
+                  <li key={key}>{renderMoreIconButton(key)}</li>
+                ))}
+                <li>
+                  <button
+                    ref={moreBackRef}
+                    data-more-back
+                    type="button"
+                    onClick={() => setMoreOpen(false)}
+                    aria-label="ย้อนกลับ"
+                    title="ย้อนกลับ"
+                    className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:border-blue-300 hover:text-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:text-blue-300"
+                  >
+                    <i aria-hidden="true" className="fi fi-sr-angle-left text-xs leading-none" />
+                  </button>
+                </li>
               </ul>
-
-              <div
-                aria-hidden="true"
-                className="h-px w-full shrink-0 bg-slate-200 dark:bg-slate-700"
-              />
-              <h2 className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                ที่คั่นหน้า ({resolvedBookmarkCount})
-              </h2>
-              <BookmarksPanel
-                law={law}
-                keys={bookmarks}
-                onNavigate={(key) => {
-                  closeAllInstant();
-                  onJump(key);
-                }}
-                onRemove={onBookmarkRemove}
-              />
             </div>
           )}
         </div>

@@ -43,6 +43,7 @@ import LawTooltip from '@/components/LawTooltip';
 import { SearchPanel } from '@/components/SearchPanel';
 import { GlossaryPanel } from '@/components/GlossaryPanel';
 import { EditionTimeline } from '@/components/EditionTimeline';
+import { BookmarksPanel } from '@/components/BookmarksPanel';
 import {
   useReaderStorage,
   SETTINGS_CHANGED_EVENT,
@@ -134,6 +135,10 @@ const PANEL_LABELS = {
   search: 'ค้นหามาตรา',
   glossary: 'บทนิยาม',
   notes: 'บันทึกของฉัน',
+  // T14 (ADR-019 D10): bookmarks-ALL is a PANEL like search/notes (converted
+  // from the dock's old Level-2 section — the L1 bookmark button stays the
+  // in-place toggle + count badge).
+  bookmarks: 'ที่คั่นหน้าทั้งหมด',
 } as const;
 
 type PanelKind = keyof typeof PANEL_LABELS;
@@ -1614,8 +1619,6 @@ export default function LawlibReaderClient({
         activeKey={activeKey}
         onResume={handleResume}
         bookmarks={bookmarks}
-        onJump={handlePanelJump}
-        onBookmarkRemove={(key) => toggleBookmark(key)}
         escBlocked={openPanel !== null || tooltip !== null || expandedKey !== null}
       />
 
@@ -1736,6 +1739,14 @@ export default function LawlibReaderClient({
                   onDelete={(id) => deleteNote(id)}
                   onClearHighlights={handleClearHighlights}
                   hasHighlights={highlightCountFor}
+                />
+              )}
+              {openPanel === 'bookmarks' && (
+                <BookmarksPanel
+                  law={law}
+                  keys={bookmarks}
+                  onNavigate={handlePanelJump}
+                  onRemove={(key) => toggleBookmark(key)}
                 />
               )}
             </div>

@@ -123,6 +123,17 @@ async function openSettings() {
 const storedSettings = () =>
   JSON.parse(localStorage.getItem('lawlib:settings') ?? 'null') as Record<string, unknown>;
 
+/** The curated Level-1 default row (DEFAULT_READING_SETTINGS.favoriteToolKeys). */
+const DEFAULT_FAVORITE_KEYS_EXPECTED = [
+  'theme',
+  'fontSize',
+  'lineHeight',
+  'width',
+  'bookmark',
+  'search',
+  'notes',
+] as const;
+
 describe('T10b settings panel — ⚙️ wiring', () => {
   it('opens the settings picker from Level 2 with the section headings', async () => {
     await renderReader();
@@ -469,5 +480,90 @@ describe('T12 settings panel — per-setting คืนค่า resets (ADR-019 
         within(picker).getByRole('switch', { name: 'แอนิเมชันแถบเครื่องมือ' }) as HTMLButtonElement
       ).getAttribute('aria-checked'),
     ).toBe('true');
+  });
+});
+
+describe('T14 settings panel — เครื่องมือแถวลัด favorites editor (ADR-019 D10)', () => {
+  it('renders one switch per tool (11 total); the curated 7 start checked; per-setting reset disabled', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    expect(within(picker).getByRole('heading', { name: 'เครื่องมือแถวลัด' })).toBeTruthy();
+
+    const switches = within(picker).getAllByRole('switch');
+    // 11 tool switches (the section) + 3 content/animation switches (hide
+    // repealed, hide amendment notes, animateDock) + focus-mode switch.
+    const favSwitches = switches.filter((s) => s.id.startsWith('lawlib-fav-'));
+    expect(favSwitches.length).toBe(11);
+    // The curated default row is checked.
+    for (const name of [
+      'ธีม',
+      'ตัวอักษร',
+      'บรรทัด',
+      'กว้าง',
+      'ที่คั่นหน้า',
+      'ค้นหามาตรา',
+      'บันทึกของฉัน',
+    ]) {
+      expect(within(picker).getByRole('switch', { name }).getAttribute('aria-checked')).toBe(
+        'true',
+      );
+    }
+    expect(
+      within(picker).getByRole('switch', { name: 'บทนิยาม' }).getAttribute('aria-checked'),
+    ).toBe('false');
+    // Per-setting คืนค่า disabled at the curated default.
+    expect(
+      (within(picker).getByRole('button', { name: 'คืนค่าเครื่องมือแถวลัด' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+  });
+
+  it('unpin ธีม → Level 1 loses the theme picker; Level 2 row 2 gains it', async () => {
+    await renderReader();
+    expect(screen.getByRole('button', { name: /ธีม/ })).toBeTruthy();
+    const picker = await openSettings();
+
+    fireEvent.click(within(picker).getByRole('switch', { name: 'ธีม' }));
+    expect(storedSettings().favoriteToolKeys).toEqual([
+      'fontSize',
+      'lineHeight',
+      'width',
+      'bookmark',
+      'search',
+      'notes',
+    ]);
+
+    // Close the settings picker + Level 2 → Level 1 no longer has ธีม.
+    fireEvent.keyDown(document, { key: 'Escape' }); // picker
+    fireEvent.click(screen.getByRole('button', { name: /ย้อนกลับ/ })); // L2 → L1
+    expect(screen.queryByRole('button', { name: /ธีม/ })).toBeNull();
+    // …but Level 2 row 2 still offers it (row 2 = everything not pinned).
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
+    expect(screen.getByRole('button', { name: /ธีม/ })).toBeTruthy();
+  });
+
+  it('pin บทนิยาม → Level 1 gains the glossary icon (row-2 dedup keeps it off row 1 twice)', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    fireEvent.click(within(picker).getByRole('switch', { name: 'บทนิยาม' }));
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    fireEvent.click(screen.getByRole('button', { name: /ย้อนกลับ/ }));
+    expect(screen.getByRole('button', { name: 'บทนิยาม' })).toBeTruthy();
+
+    // Row 2 dedups: บทนิยาม lives in row 1 only — Level 2 shows ONE instance.
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
+    expect(screen.getAllByRole('button', { name: 'บทนิยาม' }).length).toBe(1);
+  });
+
+  it('per-setting คืนค่า restores the curated favorites', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    fireEvent.click(within(picker).getByRole('switch', { name: 'ธีม' }));
+    fireEvent.click(within(picker).getByRole('switch', { name: 'บทนิยาม' }));
+    expect(storedSettings().favoriteToolKeys).not.toEqual(DEFAULT_FAVORITE_KEYS_EXPECTED);
+
+    fireEvent.click(within(picker).getByRole('button', { name: 'คืนค่าเครื่องมือแถวลัด' }));
+    expect(storedSettings().favoriteToolKeys).toEqual(DEFAULT_FAVORITE_KEYS_EXPECTED);
   });
 });

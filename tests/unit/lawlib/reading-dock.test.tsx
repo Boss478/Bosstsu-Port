@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 /**
- * LawlibDock v2.1 (T10a + T12 — ADR-019 D1/D2/D3/D6/D9) contract tests.
+ * LawlibDock v2.2 (T10a + T12 + T14 — ADR-019 D1/D2/D3/D6/D9/D10) contract
+ * tests.
  *
  * The dock is exercised THROUGH the full reader client:
  * `<ThemeProvider><LawlibReaderClient law={sampleLaw} /></ThemeProvider>`
@@ -12,7 +13,9 @@
  *   panel renders on mount, ย่อ/X visible on Level 1, focus NOT stolen;
  *   `lawlib:dockCollapsed` memory: user collapse → next visit starts
  *   collapsed; expand clears it
- * - picker buttons SHOW CURRENT VALUES (16px / 1.8 / 100% / theme label)
+ * - T14 picker buttons: ICON + current value label UNDER the icon
+ *   (16px / 1.8 / 100%); ธีม = icon ONLY — the glyph mirrors the theme
+ *   (☀️/🌙/📖/🎨) and the accessible name carries the current value
  * - panel STAYS OPEN after actions (picker open, option picked) — no
  *   auto-collapse (D1)
  * - close paths: Esc (focus returns to the icon) · ย่อ button · X button —
@@ -24,6 +27,12 @@
  *   vertical Level-1 column + 2-col Level-2 grid; middle positions (top/
  *   bottom-center) = horizontal row + horizontal grid; mobile (≤639px) =
  *   full-width bottom sheet (open per default)
+ * - T14 Level 2 = ICON-ONLY 2-row grid: row 1 = the Level-1 favorites, row 2
+ *   = the rest (glossary · bookmarks-ALL · copy · copy-link · ⚙️ settings) +
+ *   ย้อนกลับ — NO section titles / text rows / pin toggles (the favorites
+ *   editor lives in the ⚙️ settings panel — เครื่องมือแถวลัด)
+ * - T14 bookmarks-ALL opens the bookmarks PANEL (drawer like search/notes —
+ *   converted from the old L2 section; the L1 bookmark stays the toggle)
  * - T12 non-default value dots: picker button shows a blue dot when its
  *   value ≠ default; no dot at defaults
  * - T12 animation: expand/collapse slide+fade ~150ms, gated by
@@ -31,8 +40,6 @@
  *   reduced-motion stub ON → instant swaps, so close-path assertions stay
  *   synchronous; dedicated tests flip it OFF)
  * - bookmark: toggle + aria-pressed + count badge
- * - Level 2 "เพิ่มเติม": ALL tools + per-tool pin (the 8-position selector
- *   MOVED to the ⚙️ settings panel — T12c)
  * - T12c theme dot: baselines on the RESOLVED initial theme (OS-dark
  *   fallback users see no false dot on first visit)
  * - mobile-safe panel: max-h + overflow-y-auto
@@ -177,8 +184,12 @@ describe('Dock v2.1 — Level 1 OPEN BY DEFAULT (T12)', () => {
     expect(collapseBtn().getAttribute('aria-expanded')).toBe('true');
     expect(screen.getByRole('button', { name: 'ปิดแถบเครื่องมือ' })).toBeTruthy();
 
-    // The default curated row shows CURRENT values.
-    expect(screen.getByRole('button', { name: /ธีม/ }).textContent).toContain('สว่าง');
+    // The default curated row shows CURRENT values: pickers = icon + value
+    // label UNDER the icon (T14); ธีม = icon ONLY (its glyph mirrors the
+    // state — light → ☀️ fi-sr-sun), the value rides the accessible name.
+    const themeBtn = screen.getByRole('button', { name: /ธีม/ });
+    expect(themeBtn.querySelector('.fi-sr-sun')).not.toBeNull();
+    expect(themeBtn.getAttribute('aria-label')).toBe('ธีม สว่าง');
     expect(screen.getByRole('button', { name: /ตัวอักษร/ }).textContent).toContain('16px');
     expect(screen.getByRole('button', { name: /บรรทัด/ }).textContent).toContain('1.8');
     expect(screen.getByRole('button', { name: /กว้าง/ }).textContent).toContain('100%');
@@ -243,8 +254,11 @@ describe('Dock v2.1 — Level 1 (expanded favorites)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'ธีมมืด' }));
     expect(document.documentElement.classList.contains('dark')).toBe(true);
     expect(dockPanel()).not.toBeNull();
-    // The picker button now shows the NEW current value.
-    expect(themeBtn.textContent).toContain('มืด');
+    // The picker button now shows the NEW current value: the theme glyph
+    // swaps ☀️→🌙 (icon-only) and the accessible name carries the value.
+    expect(themeBtn.querySelector('.fi-sr-moon')).not.toBeNull();
+    expect(themeBtn.querySelector('.fi-sr-sun')).toBeNull();
+    expect(themeBtn.getAttribute('aria-label')).toBe('ธีม มืด');
   });
 
   it('font size picker: −/+ steppers + preset chips change the value directly', async () => {
@@ -426,8 +440,8 @@ describe('Dock v2.1 — close paths (Esc / ย่อ / X only — T12)', () => {
   });
 });
 
-describe('Dock v2.1 — Level 2 (เพิ่มเติม)', () => {
-  it('เพิ่มเติม swaps to ALL tools with ย้อนกลับ back + per-tool pin toggles', async () => {
+describe('Dock v2.2 — Level 2 (เพิ่มเติม — T14 icon-only 2-row grid)', () => {
+  it('เพิ่มเติม swaps to the icon-only 2-row grid: favorites + rest + ย้อนกลับ; NO pins/text', async () => {
     await renderReader();
     const moreBtn = screen.getByRole('button', { name: 'เพิ่มเติม' });
     // Level-2 disclosure attrs (fix #1) — read BEFORE the click: the button
@@ -436,26 +450,38 @@ describe('Dock v2.1 — Level 2 (เพิ่มเติม)', () => {
     expect(moreBtn.getAttribute('aria-expanded')).toBe('false');
     expect(moreBtn.getAttribute('aria-controls')).toBe('lawlib-more-panel');
     fireEvent.click(moreBtn);
-    expect(document.getElementById('lawlib-more-panel')).not.toBeNull();
+    const panel = document.getElementById('lawlib-more-panel');
+    expect(panel).not.toBeNull();
 
-    // All 11 tools listed (glossary/copy/copy-link/settings present).
-    expect(screen.getByText('เครื่องมือทั้งหมด')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'บทนิยาม' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'คัดลอกมาตรานี้' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'คัดลอกลิงก์มาตรานี้' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: /^ตั้งค่า/ })).toBeTruthy();
-    // 11 pin toggles (หนึ่งปุ่มต่อเครื่องมือ).
-    expect(screen.getAllByRole('button', { name: /ปักหมุด|ถอด/ }).length).toBe(11);
+    // Row 1 = the Level-1 favorite set (default curated row), row 2 = the
+    // rest (glossary · bookmarks-ALL · copy · copy-link · ⚙️ settings) +
+    // ย้อนกลับ — ALL icons with accessible names (labels ride aria-label).
+    expect(within(panel as HTMLElement).getByRole('button', { name: /ธีม/ })).toBeTruthy();
+    expect(within(panel as HTMLElement).getByRole('button', { name: /ตัวอักษร/ })).toBeTruthy();
+    expect(within(panel as HTMLElement).getByRole('button', { name: /กว้าง/ })).toBeTruthy();
+    expect(within(panel as HTMLElement).getByRole('button', { name: 'ที่คั่นหน้า' })).toBeTruthy();
+    expect(within(panel as HTMLElement).getByRole('button', { name: 'บทนิยาม' })).toBeTruthy();
+    expect(
+      within(panel as HTMLElement).getByRole('button', { name: 'ที่คั่นหน้าทั้งหมด' }),
+    ).toBeTruthy();
+    expect(
+      within(panel as HTMLElement).getByRole('button', { name: 'คัดลอกมาตรานี้' }),
+    ).toBeTruthy();
+    expect(
+      within(panel as HTMLElement).getByRole('button', { name: 'คัดลอกลิงก์มาตรานี้' }),
+    ).toBeTruthy();
+    expect(within(panel as HTMLElement).getByRole('button', { name: /^ตั้งค่า/ })).toBeTruthy();
+    expect(within(panel as HTMLElement).getByRole('button', { name: 'ย้อนกลับ' })).toBeTruthy();
 
-    // Pin ธีม already pinned by default (curated row) — pin 'บทนิยาม' instead.
-    const pinGlossary = screen.getByRole('button', { name: 'ปักหมุด บทนิยาม ไปแถวหลัก' });
-    fireEvent.click(pinGlossary);
-    expect(pinGlossary.getAttribute('aria-pressed')).toBe('true');
-
-    // ย้อนกลับ → Level 1 now includes บทนิยาม.
-    fireEvent.click(screen.getByRole('button', { name: /ย้อนกลับ/ }));
-    expect(screen.getByRole('button', { name: 'บทนิยาม' })).toBeTruthy();
+    // NO section titles / text rows / pin toggles (T14 — pins moved to ⚙️).
     expect(screen.queryByText('เครื่องมือทั้งหมด')).toBeNull();
+    expect(screen.queryByText(/ที่คั่นหน้า \(\d+\)/)).toBeNull();
+    expect(screen.queryByRole('button', { name: /ปักหมุด|ถอด/ })).toBeNull();
+
+    // ย้อนกลับ → Level 1 again (the L2 grid unmounts).
+    fireEvent.click(screen.getByRole('button', { name: /ย้อนกลับ/ }));
+    expect(screen.queryByRole('button', { name: 'ย้อนกลับ' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'เพิ่มเติม' })).toBeTruthy();
   });
 
   it('Level-2 open moves focus to ย้อนกลับ — never drops to <body> (fix #1)', async () => {
@@ -472,12 +498,12 @@ describe('Dock v2.1 — Level 2 (เพิ่มเติม)', () => {
   it('Esc at Level 2 is 2-layer: first back to Level 1, second closes the dock (fix #16)', async () => {
     await renderReader();
     fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
-    expect(screen.getByText('เครื่องมือทั้งหมด')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'ย้อนกลับ' })).toBeTruthy();
 
     // First Esc → Level 1 (panel stays open), focus returns to เพิ่มเติม.
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(dockPanel()).not.toBeNull();
-    expect(screen.queryByText('เครื่องมือทั้งหมด')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'ย้อนกลับ' })).toBeNull();
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 5));
     });
@@ -570,20 +596,27 @@ describe('Dock v2.1 — Level 2 (เพิ่มเติม)', () => {
     expect(panel.className).toContain('md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]');
   });
 
-  it('bookmarks list in Level 2: grouped chapter rows with jump + delete', async () => {
+  it('T14: bookmarks-ALL icon opens the bookmarks PANEL (drawer, like search/notes) with jump + delete', async () => {
     await renderReader();
 
     // Bookmark the current article (mount defaulted activeKey to the first).
     fireEvent.click(screen.getByRole('button', { name: 'ที่คั่นหน้า' }));
 
     fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
-    expect(screen.getByText(/ที่คั่นหน้า \(1\)/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'ที่คั่นหน้าทั้งหมด' }));
 
-    const panel = dockPanel() as HTMLElement;
-    // TOC sidebar also renders มาตรา N buttons — scope to the dock panel.
-    expect(within(panel).getByRole('button', { name: /^มาตรา \d/ })).toBeTruthy();
-    fireEvent.click(within(panel).getByRole('button', { name: /ลบที่คั่นหน้า/ }));
-    expect(screen.getByText(/ที่คั่นหน้า \(0\)/)).toBeTruthy();
+    // The bookmarks LIST is now a modal panel — the old L2 section is gone.
+    const dialog = screen.getByRole('dialog', { name: 'ที่คั่นหน้าทั้งหมด' });
+    expect(dialog).toBeTruthy();
+    // TOC sidebar also renders มาตรา N buttons — scope to the dialog.
+    expect(within(dialog).getByRole('button', { name: /^มาตรา \d/ })).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', { name: /ลบที่คั่นหน้า/ }));
+    expect(within(dialog).getByText(/ยังไม่มีที่คั่นหน้า/)).toBeTruthy();
+
+    // Esc closes the panel (drawer); the dock stays open.
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: 'ที่คั่นหน้าทั้งหมด' })).toBeNull();
+    expect(dockPanel()).not.toBeNull();
   });
 });
 
@@ -712,8 +745,10 @@ describe('Dock v2.1 — non-default value dots (T12)', () => {
     mockMatchMedia({ dark: true });
     await renderReader();
     const themeBtn = screen.getByRole('button', { name: /ธีม/ });
-    // The theme resolved to dark (OS fallback — nothing stored).
-    expect(themeBtn.textContent).toContain('มืด');
+    // The theme resolved to dark (OS fallback — nothing stored): the glyph
+    // shows 🌙 and the accessible name carries the resolved value.
+    expect(themeBtn.querySelector('.fi-sr-moon')).not.toBeNull();
+    expect(themeBtn.getAttribute('aria-label')).toBe('ธีม มืด');
     // NO false dot: dark IS this user's resolved initial theme.
     expect(themeBtn.querySelector('.bg-blue-500')).toBeNull();
 

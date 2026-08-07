@@ -9,14 +9,55 @@
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { DEFAULT_READING_SETTINGS } from '@/hooks/useReaderStorage';
+import { DEFAULT_READING_SETTINGS, DOCK_TOOL_KEYS } from '@/hooks/useReaderStorage';
 import type { Theme } from '@/components/ThemeProvider';
 import type {
+  DockToolKey,
   ParagraphSpacing,
   ReaderFontFamily,
   ReaderFontWeight,
   ReadingSettingsValue,
 } from '@/app/(website)/lawlib/lib/reader-props';
+
+// ---------------------------------------------------------------------------
+// Tool registry — SINGLE source for every dock surface (Level 1 favorites,
+// Level 2 grid, the ⚙️ "เครื่องมือแถวลัด" favorites editor — T14, ADR-019
+// D10). `bookmarksAll` (opens the bookmarks PANEL) is a Level-2-ONLY tool:
+// it is NOT part of the frozen DockToolKey contract and can never be pinned
+// to Level 1 (the L1 bookmark TOGGLE already carries the count badge).
+// ---------------------------------------------------------------------------
+
+export type DockMoreToolKey = DockToolKey | 'bookmarksAll';
+
+export const TOOL_LABELS: Record<DockMoreToolKey, string> = {
+  theme: 'ธีม',
+  fontSize: 'ตัวอักษร',
+  lineHeight: 'บรรทัด',
+  width: 'กว้าง',
+  bookmark: 'ที่คั่นหน้า',
+  search: 'ค้นหามาตรา',
+  notes: 'บันทึกของฉัน',
+  glossary: 'บทนิยาม',
+  copy: 'คัดลอกมาตรานี้',
+  copyLink: 'คัดลอกลิงก์มาตรานี้',
+  settings: 'ตั้งค่า',
+  bookmarksAll: 'ที่คั่นหน้าทั้งหมด',
+};
+
+export const TOOL_ICONS: Record<DockMoreToolKey, string> = {
+  theme: 'fi-sr-sun',
+  fontSize: 'fi-sr-italic',
+  lineHeight: 'fi-sr-align-justify',
+  width: 'fi-sr-expand',
+  bookmark: 'fi-sr-bookmark',
+  search: 'fi-sr-search',
+  notes: 'fi-sr-note-sticky',
+  glossary: 'fi-sr-book-bookmark',
+  copy: 'fi-sr-copy',
+  copyLink: 'fi-sr-link',
+  settings: 'fi-sr-settings',
+  bookmarksAll: 'fi-sr-books',
+};
 
 // ---------------------------------------------------------------------------
 // Shared picker popover infra
@@ -520,7 +561,7 @@ function ToggleRow({
   resetDisabled,
 }: {
   id: string;
-  label: string;
+  label: React.ReactNode;
   hint?: string;
   checked: boolean;
   onChange: (next: boolean) => void;
@@ -548,7 +589,7 @@ function ToggleRow({
       <div className="flex shrink-0 items-center gap-1">
         {onReset !== undefined && (
           <ResetButton
-            label={resetLabel ?? label}
+            label={typeof label === 'string' ? (resetLabel ?? label) : (resetLabel ?? '')}
             disabled={resetDisabled ?? !checked}
             onClick={onReset}
           />
@@ -609,6 +650,11 @@ export function SettingsPanelContent({
   // T12 (ADR-019 D9): per-setting คืนค่า — resets ONLY that one setting.
   // The reset button renders for every control and disables at its default.
   const d = DEFAULT_READING_SETTINGS;
+  /** T14 (ADR-019 D10): the เครื่องมือแถวลัด per-setting reset is disabled
+   *  when the favorite keys equal the curated default (order matters). */
+  const favoritesEqualDefault =
+    settings.favoriteToolKeys.length === d.favoriteToolKeys.length &&
+    settings.favoriteToolKeys.every((k, i) => k === d.favoriteToolKeys[i]);
 
   return (
     <div className="space-y-3">
@@ -690,6 +736,48 @@ export function SettingsPanelContent({
         display={`${Math.max(settings.toolbarSize, coarsePointer ? TOOLBAR_SIZE_TOUCH_MIN : 0)}px`}
         onChange={(toolbarSize) => onChange((prev) => ({ ...prev, toolbarSize }))}
       />
+
+      {/* ─── เครื่องมือแถวลัด (T14 — ADR-019 D10: pin management MOVED here
+          from Level 2; the L2 icons carry no pin toggles anymore). One
+          switch per tool — checked = shown on Level 1, order = array order
+          (unpin → re-pin appends at the end). */}
+      <SettingsSectionTitle
+        action={
+          <ResetButton
+            label="เครื่องมือแถวลัด"
+            disabled={favoritesEqualDefault}
+            onClick={() => onChange((prev) => ({ ...prev, favoriteToolKeys: d.favoriteToolKeys }))}
+          />
+        }
+      >
+        เครื่องมือแถวลัด
+      </SettingsSectionTitle>
+      <div className="space-y-1.5">
+        {DOCK_TOOL_KEYS.map((key) => (
+          <ToggleRow
+            key={key}
+            id={`lawlib-fav-${key}`}
+            label={
+              <span className="flex items-center gap-1.5">
+                <i aria-hidden="true" className={`fi ${TOOL_ICONS[key]} text-[10px]`} />
+                {TOOL_LABELS[key]}
+              </span>
+            }
+            checked={settings.favoriteToolKeys.includes(key)}
+            onChange={(on) =>
+              onChange((prev) => ({
+                ...prev,
+                favoriteToolKeys: on
+                  ? [...prev.favoriteToolKeys, key]
+                  : prev.favoriteToolKeys.filter((k) => k !== key),
+              }))
+            }
+          />
+        ))}
+      </div>
+      <p className="text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
+        เลือกเครื่องมือที่แสดงในแถวหลักของแถบเครื่องมือ
+      </p>
 
       {/* ─── Dock position (T12c — moved from Level 2, ADR-019 D9: all
           settings in one place). 8 spots, 3×3 minus center, per-setting
