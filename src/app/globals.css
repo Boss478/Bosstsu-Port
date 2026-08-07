@@ -1756,10 +1756,24 @@ textarea,
 
 /* T12c (ADR-019 D9 — user 2026-08-06): chrome glass in read/sepia, NO
    exceptions. The old paper-dock dead-blur kill (--lawlib-dock-blur trick)
-   and the collapsed-icon paper-border rule are REMOVED — the dock is glass
-   per the slider in read/sepia like every other theme (GPU returns to read;
-   user accepted). The `.read .lawlib-panel .lawlib-glass` dead-blur above
-   stays — the drawer is a PAPER surface, not chrome. */
+   is REMOVED — the dock is glass per the slider in read/sepia like every
+   other theme (GPU returns to read; user accepted). The `.read
+   .lawlib-panel .lawlib-glass` dead-blur above stays — the drawer is a
+   PAPER surface, not chrome. */
+
+/* R1 (Wave 3 — 2026-08-07): collapsed dock icon border restored on paper.
+   The button's slate-200 border (~1.08:1 on cream) nearly vanished once
+   T12c made the dock glass in read/sepia — back to the paper-adjacent
+   #d4c49a (a11y fix #23, removed in T12c). 1.4.11 EXCEPTION rationale:
+   the border alone fails the 3:1 boundary bar, but the control stays
+   identifiable via the icon glyph (4.7:1 on cream), the drop shadow, and
+   the focus ring — the border is a bonus boundary cue, not the sole
+   signal. Only the COLLAPSED icon is a direct child of .lawlib-dock (the
+   panel wraps its buttons deeper — a11y fix #23). */
+.read .lawlib-dock > button,
+.sepia .lawlib-dock > button {
+  border-color: #d4c49a;
+}
 
 /* Highlights: amber deep enough on paper. */
 .read mark,

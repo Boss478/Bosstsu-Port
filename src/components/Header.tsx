@@ -189,7 +189,7 @@ export default function Header() {
               {pathname.startsWith('/boss478') && (
                 <button
                   onClick={() => setNavMode(navMode === 'public' ? 'private' : 'public')}
-                  className={`px-2.5 py-2 rounded-full transition-transform duration-75 active:scale-95 flex items-center justify-center ${
+                  className={`min-h-11 min-w-11 px-2.5 py-2 rounded-full transition-transform duration-75 active:scale-95 flex items-center justify-center ${
                     navMode === 'private'
                       ? 'bg-blue-600 text-white shadow-sm'
                       : 'hover:bg-gray-300/70 dark:hover:bg-slate-400/80 text-zinc-500 dark:text-zinc-400'
@@ -268,7 +268,7 @@ export default function Header() {
             {pathname.startsWith('/boss478') && (
               <button
                 onClick={() => setNavMode(navMode === 'public' ? 'private' : 'public')}
-                className={`p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-transform duration-75 active:scale-95 ${
+                className={`min-h-11 min-w-11 p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-transform duration-75 active:scale-95 ${
                   navMode === 'private' ? 'bg-white/85 dark:bg-slate-800/85' : ''
                 }`}
                 aria-label="Switch nav mode"
