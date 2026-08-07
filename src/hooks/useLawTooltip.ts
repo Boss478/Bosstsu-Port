@@ -32,6 +32,16 @@
  *  - drag guard: pointerup with ≥10px movement marks the tap state — the
  *             click then skips open ENTIRELY (mouse AND touch; touch's
  *             pointerup open is skipped by the same flag).
+ *  - Esc-suppression window (real UX bug, W3-4): a tall tooltip (full-text
+ *             fallback) that cannot fit beside its trigger clamps OVER the
+ *             trigger, so a mouse parked on the trigger ends up under the
+ *             tooltip. Esc closes it, but the browser then re-fires
+ *             pointerenter on the trigger underneath → INSTANT reopen → Esc
+ *             looks broken. Esc-initiated closes arm a 200ms pointerenter
+ *             gate (suppressPointerEnterUntilRef); ONLY Esc arms it —
+ *             outside-click / toggle / scrollend / resize closes never do.
+ *             Keyboard/touch opens never go through pointerenter, so they
+ *             are unaffected.
  * Content is announced on OPEN (LawTooltip uses aria-live) — never on focus.
  */
 
@@ -82,6 +92,14 @@ const MOVE_LIMIT = 10;
 const CORRIDOR_PX = 12;
 /** Pointerleave grace window before a hover-preview close fires. */
 const GRACE_MS = 150;
+/**
+ * Post-Esc pointerenter suppression window (W3-4). Esc closes a tooltip whose
+ * clamp pushed it OVER its trigger (tall full-text tooltips); the browser
+ * then re-fires pointerenter on the trigger underneath → instant reopen.
+ * Only ESC-initiated closes arm the suppression (outside-click/toggle/
+ * scrollend/resize closes cannot loop this way and never set it).
+ */
+const ESC_SUPPRESS_MS = 200;
 
 /**
  * Per-trigger pointer bookkeeping — module map keyed by trigger element
@@ -155,6 +173,13 @@ export function useLawTooltip() {
   const openContentRef = useRef<TooltipContent | null>(null);
   /** Pending pointerleave grace timer (union-zone guard). */
   const graceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /**
+   * Wall-clock deadline (Date.now()) until which mouse pointerenter is
+   * ignored. Armed ONLY by an Esc-initiated close (see the global-close
+   * effect); 0 = no suppression. Read-only gate — no other close path sets
+   * it, and opens never clear it (it just expires).
+   */
+  const suppressPointerEnterUntilRef = useRef(0);
 
   const cancelGrace = useCallback(() => {
     if (graceTimerRef.current !== null) {
@@ -227,6 +252,15 @@ export function useLawTooltip() {
     (content: TooltipContent): TooltipTriggerHandlers => ({
       onPointerEnter: (e) => {
         if (e.pointerType !== 'mouse') return;
+        // W3-4 Esc-suppression window: Esc closed a tooltip whose clamp had
+        // pushed it OVER this trigger — the browser re-fires pointerenter on
+        // the trigger underneath, and without this gate the reopen is
+        // instant (Esc looks broken for mouse users on tall tooltips). The
+        // 200ms window also covers a scroll passing a NEW trigger under the
+        // parked cursor. Keyboard/touch opens never come through
+        // pointerenter, so they are unaffected; a deliberate re-hover after
+        // the window (or a click — the pin path) opens normally.
+        if (Date.now() < suppressPointerEnterUntilRef.current) return;
         openTooltip(content, e.currentTarget);
       },
       onPointerLeave: (e) => {
@@ -365,7 +399,16 @@ export function useLawTooltip() {
       closeTooltip();
     };
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeTooltip();
+      if (e.key === 'Escape') {
+        // W3-4: arm the pointerenter suppression BEFORE closing — a mouse
+        // parked on the trigger (the tooltip's clamp pushed it OVER the
+        // trigger) would otherwise get a re-fired pointerenter the instant
+        // the tooltip unmounts and reopen the tooltip. ONLY this path arms
+        // it: outside-click/toggle/scrollend/resize closes are not followed
+        // by a synthetic pointerenter and must reopen on hover immediately.
+        suppressPointerEnterUntilRef.current = Date.now() + ESC_SUPPRESS_MS;
+        closeTooltip();
+      }
     };
     const onScrollEnd = (e: Event) => {
       if (openedByKeyboard) return;

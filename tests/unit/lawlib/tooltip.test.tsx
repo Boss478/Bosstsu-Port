@@ -14,6 +14,11 @@
  *    (existing semantics intact — this commit is a11y wiring ONLY)
  *  - T12b: root panel = glass (slider vars + blur-xs + sheen), content keeps
  *    its own solid surface (AA on a 35%-transparent panel)
+ *  - W3-4 (Esc-reopen loop fix): Esc closes arm a 200ms pointerenter
+ *    suppression (a tall tooltip clamped OVER its trigger re-fires
+ *    pointerenter on the trigger underneath → instant reopen); outside-click
+ *    / toggle / scrollend closes do NOT arm it; computeTooltipPosition keeps
+ *    a >=8px trigger gap whenever the viewport can fit the tooltip anywhere
  *
  * Extensibility: the compact-feature track extends THIS file with reader-level
  * pins (Esc close, sameContent guard, touch pointerup <10px, "Esc-restore does
@@ -34,7 +39,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, renderHook, fireEvent, screen, act } from '@testing-library/react';
 import { useLawTooltip, type TooltipContent } from '@/hooks/useLawTooltip';
 import ArticleView from '@/components/ArticleView';
-import LawTooltip from '@/components/LawTooltip';
+import LawTooltip, { computeTooltipPosition } from '@/components/LawTooltip';
 import type { LawDoc } from '@/types/lawlib';
 
 /** jsdom has no matchMedia — stub it; `matches` = <640px (bottom-sheet). */
@@ -875,5 +880,153 @@ describe('T13 — no-digest ref to a repealed article shows the ถูกยก�
     expect(root?.textContent).toContain('มาตรา 6');
     expect(root?.textContent).toContain('ถูกยกเลิก');
     expect(root?.textContent).toContain('ให้สถานศึกษาจัดการศึกษา');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// W3-4 — Esc-reopen loop (real UX bug from the e2e spec): a tall tooltip
+// (full-text fallback) that cannot fit beside its trigger clamps OVER the
+// trigger, so a mouse parked on the trigger ends up UNDER the tooltip. Esc
+// closes it, but the browser then re-fires pointerenter on the trigger
+// underneath → instant reopen → Esc looks broken. Fix: (a) Esc-initiated
+// closes arm a 200ms pointerenter suppression (ONLY Esc — outside-click /
+// toggle / scrollend closes never arm it); (b) computeTooltipPosition keeps
+// a >=8px trigger gap whenever the viewport can fit the tooltip anywhere.
+// ---------------------------------------------------------------------------
+
+describe('W3-4 — Esc close arms the pointerenter suppression window', () => {
+  it('pointerenter within the 200ms window does NOT reopen; after it, a real re-hover does', () => {
+    vi.useFakeTimers();
+    stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
+    render(<Harness />);
+    const trigger = headerTrigger();
+
+    // hover-open (preview), then Esc-close.
+    fireEvent.pointerEnter(trigger, { pointerType: 'mouse' });
+    expect(tooltipRoot()).not.toBeNull();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(tooltipRoot()).toBeNull();
+
+    // The browser re-fires pointerenter on the trigger underneath the
+    // (clamped-over-it) tooltip — within the window it must NOT reopen.
+    fireEvent.pointerEnter(trigger, { pointerType: 'mouse' });
+    expect(tooltipRoot()).toBeNull();
+
+    // 150ms in: still inside the 200ms window → still suppressed.
+    act(() => {
+      vi.advanceTimersByTime(150);
+    });
+    fireEvent.pointerEnter(trigger, { pointerType: 'mouse' });
+    expect(tooltipRoot()).toBeNull();
+
+    // Past the window: a deliberate re-hover opens normally.
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+    fireEvent.pointerEnter(trigger, { pointerType: 'mouse' });
+    expect(tooltipRoot()).not.toBeNull();
+  });
+});
+
+describe('W3-4 — non-Esc closes do NOT arm the suppression (reopen immediately)', () => {
+  it('pointerdown-outside close: pointerenter reopens at once', () => {
+    stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
+    render(<Harness />);
+    const trigger = headerTrigger();
+
+    mouseClick(trigger, 150, 115); // pin open
+    fireEvent.pointerLeave(trigger, { pointerType: 'mouse' });
+    expect(tooltipRoot()).not.toBeNull();
+
+    fireEvent.pointerDown(document.body, { pointerType: 'mouse' });
+    expect(tooltipRoot()).toBeNull();
+
+    // No suppression armed → the parked-mouse pointerenter reopens NOW.
+    fireEvent.pointerEnter(trigger, { pointerType: 'mouse' });
+    expect(tooltipRoot()).not.toBeNull();
+  });
+
+  it('toggle re-click close: pointerenter reopens at once', () => {
+    stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
+    render(<Harness />);
+    const trigger = headerTrigger();
+
+    mouseClick(trigger, 150, 115); // pin open
+    mouseClick(trigger, 150, 115); // toggle closed
+    expect(tooltipRoot()).toBeNull();
+
+    fireEvent.pointerEnter(trigger, { pointerType: 'mouse' });
+    expect(tooltipRoot()).not.toBeNull();
+  });
+
+  it('scrollend close: pointerenter reopens at once', () => {
+    stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
+    render(<Harness />);
+    const trigger = headerTrigger();
+
+    mouseClick(trigger, 150, 115); // pin open
+    fireEvent.pointerLeave(trigger, { pointerType: 'mouse' });
+    expect(tooltipRoot()).not.toBeNull();
+
+    act(() => {
+      document.dispatchEvent(new Event('scrollend'));
+    });
+    expect(tooltipRoot()).toBeNull();
+
+    fireEvent.pointerEnter(trigger, { pointerType: 'mouse' });
+    expect(tooltipRoot()).not.toBeNull();
+  });
+});
+
+describe('W3-4 — gap clamp: computeTooltipPosition never overlaps the trigger when avoidable', () => {
+  const anchor = (top: number, bottom: number, left = 100, width = 100) =>
+    ({ left, top, right: left + width, bottom, width, height: bottom - top }) as DOMRect;
+
+  it('tall tooltip + low trigger: flips ABOVE with >=8px gap when the viewport allows', () => {
+    // vh 800, trigger 700–730, tooltip 500 tall. Below needs 738+500=1238 >
+    // 792 → flip above: top = 700−500−8 = 192; gap = 700−(192+500) = 8.
+    const pos = computeTooltipPosition(anchor(700, 730), 300, 500, 1280, 800);
+    expect(pos.top).toBe(192);
+    expect(700 - (pos.top + 500)).toBeGreaterThanOrEqual(8);
+    expect(pos.origin).toBe('bottom');
+  });
+
+  it('keeps the trigger gap below even when the bottom margin is reduced (fits in the viewport)', () => {
+    // The OLD single clamp demanded the full 8px bottom margin (798 > 792 →
+    // no) and then fell to max(100−660−8, 8) = 8 → tooltip [8,668] OVERLAPPED
+    // the trigger [100,130] although 798 ≤ 800 fits. Now: below at 138 keeps
+    // the 8px trigger gap and stays inside the viewport.
+    const pos = computeTooltipPosition(anchor(100, 130), 300, 660, 1280, 800);
+    expect(pos.top).toBe(138);
+    expect(pos.top - 130).toBeGreaterThanOrEqual(8);
+    expect(pos.top + 660).toBeLessThanOrEqual(800);
+    expect(pos.origin).toBe('top');
+  });
+
+  it('prefers below when both sides fit with full gaps', () => {
+    const pos = computeTooltipPosition(anchor(300, 330), 300, 200, 1280, 800);
+    expect(pos.top).toBe(338); // 330 + 8
+    expect(pos.origin).toBe('top');
+  });
+
+  it('overlaps the trigger ONLY when the viewport cannot fit the tooltip anywhere with a gap', () => {
+    // vh 800, trigger 300–330, tooltip 500: below 338+500=838 > 792 AND
+    // above 300−500−8 < 8 AND below doesn't fit the viewport (838 > 800) →
+    // nothing fits → clamp top to GAP (still in-viewport; overlap is the
+    // documented unavoidable case).
+    const pos = computeTooltipPosition(anchor(300, 330), 300, 500, 1280, 800);
+    expect(pos.top).toBe(8);
+    expect(pos.top).toBeGreaterThanOrEqual(0);
+    expect(pos.top + 500).toBeGreaterThan(330); // unavoidable overlap
+    expect(pos.origin).toBe('bottom');
+  });
+
+  it('clamps horizontally: centered on the anchor, kept inside the viewport', () => {
+    // centered: 600 + 50 − 150 = 500
+    expect(computeTooltipPosition(anchor(100, 130, 600), 300, 100, 1280, 800).left).toBe(500);
+    // left edge: 10 + 50 − 150 = −90 → clamped to GAP
+    expect(computeTooltipPosition(anchor(100, 130, 10), 300, 100, 1280, 800).left).toBe(8);
+    // right edge: 1200 + 50 − 150 = 1100 → clamped to 1280 − 300 − 8 = 972
+    expect(computeTooltipPosition(anchor(100, 130, 1200), 300, 100, 1280, 800).left).toBe(972);
   });
 });

@@ -113,6 +113,56 @@ interface LawTooltipProps {
 
 const GAP = 8;
 
+export interface TooltipPosition {
+  left: number;
+  top: number;
+  /** Entry-animation pivot: 'top' when placed BELOW the anchor (grows
+   *  downward), 'bottom' when placed above (grows upward). */
+  origin: 'top' | 'bottom';
+}
+
+/**
+ * W3-4 gap-aware placement. Horizontal: centered on the anchor, clamped into
+ * the viewport. Vertical preference, in order:
+ *  1. below the anchor with the full gap on BOTH sides (trigger gap + 8px
+ *     viewport bottom margin)
+ *  2. above the anchor with the full gap on BOTH sides
+ *  3. below with a REDUCED viewport bottom margin — the trigger gap is the
+ *     hard requirement: the tooltip must never overlap the trigger when the
+ *     viewport can physically fit it anywhere (the old single clamp could
+ *     push a tall tooltip OVER its trigger even when the space below fit it
+ *     within the viewport — that overlap is what strands a parked mouse
+ *     under the tooltip and turns Esc into an instant reopen loop)
+ *  4. nothing fits → clamp into the viewport (may overlap the trigger — the
+ *     documented unavoidable case)
+ */
+export function computeTooltipPosition(
+  anchorRect: Pick<DOMRect, 'left' | 'top' | 'bottom' | 'width'>,
+  tooltipWidth: number,
+  tooltipHeight: number,
+  vw: number,
+  vh: number,
+  gap = GAP,
+): TooltipPosition {
+  const left = Math.min(
+    Math.max(anchorRect.left + anchorRect.width / 2 - tooltipWidth / 2, gap),
+    Math.max(vw - tooltipWidth - gap, gap),
+  );
+  const below = anchorRect.bottom + gap;
+  const above = anchorRect.top - tooltipHeight - gap;
+  let top: number;
+  if (below + tooltipHeight <= vh - gap) {
+    top = below;
+  } else if (above >= gap) {
+    top = above;
+  } else if (below + tooltipHeight <= vh) {
+    top = below;
+  } else {
+    top = Math.max(above, gap);
+  }
+  return { left, top, origin: top === below ? 'top' : 'bottom' };
+}
+
 /** Debounced autosave note box (ADR-019 D7 — โน้ตเขียนด่วน). Saves 500ms
  *  after the last keystroke, flushed on blur AND on unmount (a closing
  *  tooltip must not drop the last keystrokes). Ref mirrors are updated in
@@ -548,25 +598,25 @@ export default function LawTooltip({
 
   // Position once measured — direct style writes (no setState), so the
   // compiler set-state-in-effect rule stays untouched. Visibility flips after
-  // the first measurement → no flash at the origin corner.
+  // the first measurement → no flash at the origin corner. W3-4: the
+  // placement lives in computeTooltipPosition (gap-aware flip/clamp — never
+  // overlaps the trigger when the viewport can fit the tooltip anywhere).
   useLayoutEffect(() => {
     const el = rootRef.current;
     if (el === null || sheet) return;
     const rect = el.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const left = Math.min(
-      Math.max(anchorRect.left + anchorRect.width / 2 - rect.width / 2, GAP),
-      Math.max(vw - rect.width - GAP, GAP),
+    const { left, top, origin } = computeTooltipPosition(
+      anchorRect,
+      rect.width,
+      rect.height,
+      window.innerWidth,
+      window.innerHeight,
     );
-    const below = anchorRect.bottom + GAP;
-    const top =
-      below + rect.height <= vh - GAP ? below : Math.max(anchorRect.top - rect.height - GAP, GAP);
     el.style.left = `${left}px`;
     el.style.top = `${top}px`;
     // Entry animation pivots from the anchor edge (below → top origin, flipped
     // above → bottom origin); the sheet variant pivots from bottom-center.
-    el.style.transformOrigin = top === below ? 'top' : 'bottom';
+    el.style.transformOrigin = origin;
     el.style.visibility = 'visible';
   }, [anchorRect, content, sheet]);
 
