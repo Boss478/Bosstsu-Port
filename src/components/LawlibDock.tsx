@@ -588,7 +588,9 @@ export default function LawlibDock(props: LawlibDockProps) {
           : TOOL_ICONS[key];
       // The accessible name carries the tool + CURRENT value (the value is
       // also visible under the icon — except theme/settings, icon-only).
-      const accessibleName = `${TOOL_LABELS[key]} ${pickerValue[kind]}`;
+      // Settings has no value (pickerValue.settings = '') — no empty suffix.
+      const accessibleName =
+        kind === 'settings' ? TOOL_LABELS[key] : `${TOOL_LABELS[key]} ${pickerValue[kind]}`;
       return (
         <button
           key={key}
@@ -632,6 +634,16 @@ export default function LawlibDock(props: LawlibDockProps) {
     if (key === 'bookmarksAll') return activePanel === 'bookmarks';
     return false;
   };
+  /** True ONLY for the real toggle buttons (bookmark/search/notes/glossary/
+   *  bookmarksAll). copy/copyLink act directly and pickers open popovers —
+   *  they must NOT carry aria-pressed, or SR announces a toggle that isn't
+   *  one (T14 a11y findings). */
+  const isToolToggle = (key: DockMoreToolKey): boolean =>
+    key === 'bookmark' ||
+    key === 'search' ||
+    key === 'notes' ||
+    key === 'glossary' ||
+    key === 'bookmarksAll';
   const toolGlyph = (key: DockMoreToolKey, active: boolean): string => {
     const flash = key === 'copy' && copiedFlash === 'article';
     const linkFlash = key === 'copyLink' && copiedFlash === 'link';
@@ -656,7 +668,10 @@ export default function LawlibDock(props: LawlibDockProps) {
           badge !== undefined && badge > 0 ? `${TOOL_LABELS[key]} (${badge})` : TOOL_LABELS[key]
         }
         title={TOOL_LABELS[key]}
-        aria-pressed={active}
+        // aria-pressed ONLY on the real toggles (bookmark/search/notes/
+        // glossary/bookmarksAll) — copy/copyLink act directly, so no
+        // aria-pressed (a `false` would fake a toggle for SR).
+        aria-pressed={isToolToggle(key) ? active : undefined}
         disabled={(key === 'copy' || key === 'copyLink') && !canCopy}
         onClick={() => activateTool(key)}
         className={`relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 ${
@@ -692,7 +707,9 @@ export default function LawlibDock(props: LawlibDockProps) {
         type="button"
         aria-label={TOOL_LABELS[key]}
         title={TOOL_LABELS[key]}
-        aria-pressed={active}
+        // aria-pressed ONLY on the real toggles — pickers announce via
+        // aria-haspopup/aria-expanded, so no aria-pressed (no fake toggle).
+        aria-pressed={isToolToggle(key) ? active : undefined}
         aria-haspopup={isPicker ? 'true' : undefined}
         aria-expanded={isPicker ? pickerOpen : undefined}
         disabled={(key === 'copy' || key === 'copyLink') && !canCopy}
