@@ -1,3 +1,10 @@
+## v1.11.1-a (2026-08-07)
++ **Dock v2.1**: real glass 30–40% (default 35) + highlight border + blur-xs · Level 1 open by default (desktop + mobile sheet) · outside-click no longer closes (Esc/collapse/X only) · direction-aware expansion (sides = vertical, middle = horizontal) · expand/collapse animation (reduced-motion safe, toggle in settings) · non-default value dots on pickers · per-setting reset · collapse-state memory (T12, ADR-019 D9 additions).
++ **Tooltip glass**: follows the glass slider (clear ↔ opaque), content keeps solid surface (T12b).
++ **Chrome glass in ALL themes**: dock/tooltip/search glass in read/sepia too — no exceptions; paper kept for content cards/TOC (T12b).
++ **Merged-ref split**: มาตรา 75 - มาตรา 78 → 4 individual hoverable links (full-text tooltip + ดูฉบับเต็ม per article) · prose ranges มาตรา 75–76 split · cross-law refs guarded · repealed badge on full-text fallback (T13).
+* Position selector moved to ⚙️ settings · stored glassOpacity 75→35 migration · theme-dot baseline fix · +37 tests (385 lawlib+unit, 1059 unit total) · gates 385/385, eval 17/17, build/typecheck/lint clean.
+
 ## v1.11.1 (2026-08-06)
 + **Tooltip pin**: click-to-pin + hover preview (union-zone 150ms guard, drag ≥10px guard, content-gated) — WCAG 1.4.13 fix (T1, ADR-018).
 + **Glassmorphism design system**: glass-1/2/3 tiers — search glass-2 (visible boundary + AA tokens), cards glass-3, dead-blur cleanup (T0/T2/T3/T5).
