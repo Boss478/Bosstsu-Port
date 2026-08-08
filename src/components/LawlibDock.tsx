@@ -826,7 +826,7 @@ export default function LawlibDock(props: LawlibDockProps) {
                 anchored L2 sibling is never clipped). */}
             <div
               data-lawlib-l1-tools
-              className={`flex gap-1.5 ${effectiveLayout === 'vertical' ? 'flex-col' : 'flex-wrap'} ${toolsPlacementClass}`}
+              className={`flex gap-1.5 ${effectiveLayout === 'vertical' ? 'flex-col' : 'flex-wrap min-w-max'} ${toolsPlacementClass}`}
             >
               {resumeVisible && (
                 <button
