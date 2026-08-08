@@ -570,6 +570,11 @@ span[class*=' fi-sr-']:before {
   content: '\f665';
 }
 
+/* menu-dots */
+.fi-sr-menu-dots:before {
+  content: '\f667';
+}
+
 /* minus */
 .fi-sr-minus:before {
   content: '\f684';

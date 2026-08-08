@@ -337,8 +337,10 @@ test.describe('LawLib Reader — national-education-act-2542', () => {
     const dock = page.locator(DOCK_PANEL);
     await expect(dock).toBeVisible();
 
-    // Side position → vertical Level-1 column.
-    const level1 = page.getByRole('button', { name: /^เพิ่มเติม$/ }).locator('xpath=..');
+    // Side position → vertical Level-1 column (T15 v2.3: the ⋯/× control
+    // pair sits in its own row at the column's end, so the flex-direction
+    // assertions target the marked L1 container — not the เพิ่มเติม parent).
+    const level1 = page.locator('[data-lawlib-l1]');
     await expect(level1).toHaveCSS('flex-direction', 'column');
     let box = (await dock.boundingBox())!;
     // Bottom-anchored (expands UP from the bottom-right icon).

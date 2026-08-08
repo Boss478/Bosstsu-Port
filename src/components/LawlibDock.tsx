@@ -1,37 +1,51 @@
 'use client';
 
 /**
- * LawLib — dock v2.2 (T14, ADR-019 D1/D2/D3/D6/D9/D10).
+ * LawLib — dock v2.3 COMPACT (T15, ADR-019 D11).
  *
  * 3-level hierarchy, ONE mechanism desktop + mobile:
  *   Level 0 · ยุบ:     single plain tools icon (no badge) at one of 8
  *                      positions (persisted `lawlib:dockPosition`).
  *   Level 1 · ขยาย:    OPEN BY DEFAULT on reader mount (T12 — desktop panel
  *                      or mobile bottom sheet; reversed D1's default-
- *                      collapsed). T14 layout: the 4 pickers show their ICON
- *                      with the CURRENT VALUE as a tiny label beneath
- *                      (ธีม = icon ONLY — sun/moon/book/palette glyphs
- *                      reflect the state); actions (bookmark/search/notes/
- *                      อ่านต่อ/เพิ่มเติม) are icon-only 44px buttons.
- *                      favoriteToolKeys (persisted in settings) + the
- *                      per-slug อ่านต่อ (when a position exists) + เพิ่มเติม
- *                      (Level 2).
- *   Level 2 · เพิ่มเติม: T14 icon-only 2-row grid — row 1 = the Level-1
- *                      favorite set, row 2 = the rest (glossary · bookmarks-
- *                      ALL · copy · copy-link · ⚙️ settings) + ย้อนกลับ.
- *                      NO section titles / text rows / pin toggles (pin
+ *                      collapsed). T15 v2.3 COMPACT (user-confirmed
+ *                      2026-08-08): the L1 GLASS PANEL is kept (border + bg +
+ *                      blur — `lawlib-glass lawlib-glass-xs
+ *                      lawlib-glass-sheen`, NEVER removed) but shrunk to a
+ *                      64px column (w-16) on side positions; the panel HEADER
+ *                      is gone; the pickers keep their ICON + current-value
+ *                      label-under look (they stretch to the ~52px content
+ *                      column; ธีม = icon ONLY — the glyph mirrors the
+ *                      theme state); actions (bookmark/search/notes/อ่านต่อ)
+ *                      are icon-only 44px squares. favoriteToolKeys
+ *                      (persisted in settings) + the per-slug อ่านต่อ (when a
+ *                      position exists) fill the column.
+ *   Level 2 · เพิ่มเติม: T15 v2.3 — a SEPARATE 112px glass panel (w-28) that
+ *                      renders as a SIBLING of Level 1 (NOT inside the 416px
+ *                      wrapper of T14): same uniform glass as L1, anchored by
+ *                      the per-position flip (`more` in POSITION_CONFIG —
+ *                      expands AWAY from the screen edge). Icon-only 2-col
+ *                      grid (32×32 icons): row 1 = the Level-1 favorite set,
+ *                      divider, row 2 = the rest (glossary · bookmarks-ALL ·
+ *                      copy · copy-link · ⚙️ settings). NO back button / NO
+ *                      section titles / NO text rows / NO pin toggles (pin
  *                      management moved into the ⚙️ settings panel —
  *                      เครื่องมือแถวลัด). bookmarks-all opens the bookmarks
  *                      PANEL (converted from the old L2 section).
  *
- * The panel closes ONLY via Esc / the ย่อ collapse button / the X button
- * (D9 — pointerdown-outside no longer closes the DOCK panel; the picker
- * POPOVERS keep their own Esc/outside close). A user collapse persists
- * `lawlib:dockCollapsed` → the next visit starts collapsed. Anchor flips per
- * position: top → panel expands DOWN, bottom → UP, mid → SIDE. Mobile
- * (≤639px) renders a full-width bottom sheet, open per default. Expansion
- * is direction-aware (T12): side positions = vertical Level-1 column +
- * 2-col Level-2 grid; middle positions = horizontal row + horizontal grid.
+ * Controls: the panel header (⚙️ ย่อ + title + ×) is REMOVED — instead a
+ * 28×28 pair sits at the END of Level 1: ⋯ (fi-sr-menu-dots, aria-label
+ * เพิ่มเติม) TOGGLES Level 2, × (fi-sr-cross, ปิดแถบเครื่องมือ) collapses the
+ * dock to Level 0. The dock closes ONLY via Esc / the × button (D9 —
+ * pointerdown-outside no longer closes the DOCK panel; the picker POPOVERS
+ * keep their own Esc/outside close). A user collapse persists
+ * `lawlib:dockCollapsed` → the next visit starts collapsed. Esc cascades:
+ * picker → Level 2 (focus → เพิ่มเติม) → close dock (focus → icon). Anchor
+ * flips per position: top → panel expands DOWN, bottom → UP, mid → SIDE;
+ * Level 2 flips AWAY from the edge (right-side dock → L2 on the LEFT).
+ * Mobile (≤639px) renders a full-width bottom sheet, open per default, with
+ * Level 2 COLLAPSED (⋯ expands it). Expansion is direction-aware (T12): side
+ * positions = vertical Level-1 column; middle positions = horizontal row.
  * Expand/collapse animates (150ms slide+fade, settings.animateDock +
  * prefers-reduced-motion gate).
  */
@@ -61,15 +75,17 @@ import { DEFAULT_PAPER_TONE, getInitialTheme, type Theme } from '@/components/Th
 
 /**
  * Per-position layout: `root` = the fixed wrapper spot; `panel` = the
- * expanded panel anchored to the icon with the flip (top→down, bottom→up,
- * mid→side); `panelMaxH` = viewport-safe cap (the panel scrolls past it);
- * `panelWidth` = optional per-position width override (mid-left AND mid-right
- * clamp to 100vw − icon footprint so the side-anchored panel fits 375px).
- * `layout` (T12 — ADR-019 D9, direction-aware expansion): side positions
- * (L/R × top/mid/bot) = VERTICAL Level-1 column + Level-2 two-column grid;
- * middle positions (top-center/bottom-center) = HORIZONTAL Level-1 row +
- * Level-2 horizontal grid. Mobile (≤639px) always renders the bottom-sheet
- * horizontal layout, open by default.
+ * expanded Level-1 panel anchored to the icon with the flip (top→down,
+ * bottom→up, mid→side); `more` = the Level-2 panel anchored to Level 1
+ * expanding AWAY from the screen edge (right-side dock → L2 on the LEFT,
+ * left-side → RIGHT, top-center → BELOW, bottom-center → ABOVE — T15 v2.3,
+ * the same flip class set as the old panel); `panelMaxH` = viewport-safe cap
+ * for the Level-1 TOOLS column (it scrolls past it; the L2 sibling stays
+ * uncapped except its own 70vh safety); `layout` (T12 — ADR-019 D9,
+ * direction-aware expansion): side positions (L/R × top/mid/bot) = VERTICAL
+ * Level-1 column; middle positions (top-center/bottom-center) = HORIZONTAL
+ * Level-1 row. Mobile (≤639px) always renders the bottom-sheet horizontal
+ * layout, open by default.
  * Bottom offsets clear BackToTop (bottom-6/10 + ~44px ≈ 84px). Top rows clear
  * the law header (24-231px, a11y fix #17): 14rem on mobile, 11rem from md up;
  * the matching panelMaxH keeps the panel fully in-viewport. Safe areas:
@@ -78,7 +94,6 @@ import { DEFAULT_PAPER_TONE, getInitialTheme, type Theme } from '@/components/Th
  * T10b toolbar-size parametrization (ADR-019 D4 — the slider is 24-56,
  * default 44): the ICON footprint (--lawlib-dock-size, set inline on the
  * dock root from settings.toolbarSize) enters every calc:
- *   - panelWidth mid-*: 100vw − icon − 1rem side gutter
  *   - panelMaxH top-*:  100vh − icon − anchor offset − bottom margin
  *   - panelMaxH bottom-*: 100vh − (icon + 3.25rem bottom offset) − top margin
  *   - bottom roots: max(icon + 3.25rem, 5.25rem floor — BackToTop clearance)
@@ -90,11 +105,12 @@ type DockLayout = 'vertical' | 'horizontal';
 
 const POSITION_CONFIG: Record<
   DockPosition,
-  { root: string; panel: string; panelMaxH: string; panelWidth?: string; layout: DockLayout }
+  { root: string; panel: string; more: string; panelMaxH: string; layout: DockLayout }
 > = {
   'top-left': {
     root: 'top-[max(14rem,env(safe-area-inset-top))] left-[max(1rem,env(safe-area-inset-left))] md:top-[max(11rem,env(safe-area-inset-top))]',
     panel: 'top-full left-0',
+    more: 'left-full top-0',
     panelMaxH:
       'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_15rem)] md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]',
     layout: 'vertical',
@@ -102,6 +118,7 @@ const POSITION_CONFIG: Record<
   'top-center': {
     root: 'top-[max(14rem,env(safe-area-inset-top))] left-1/2 -translate-x-1/2 md:top-[max(11rem,env(safe-area-inset-top))]',
     panel: 'top-full left-1/2 -translate-x-1/2',
+    more: 'top-full left-1/2 -translate-x-1/2',
     panelMaxH:
       'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_15rem)] md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]',
     layout: 'horizontal',
@@ -109,6 +126,7 @@ const POSITION_CONFIG: Record<
   'top-right': {
     root: 'top-[max(14rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))] md:top-[max(11rem,env(safe-area-inset-top))]',
     panel: 'top-full right-0',
+    more: 'right-full top-0',
     panelMaxH:
       'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_15rem)] md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]',
     layout: 'vertical',
@@ -116,39 +134,35 @@ const POSITION_CONFIG: Record<
   'mid-left': {
     root: 'top-1/2 -translate-y-1/2 left-[max(1rem,env(safe-area-inset-left))]',
     panel: 'left-full top-1/2 -translate-y-1/2',
+    more: 'left-full top-0',
     panelMaxH: 'max-h-[70vh]',
-    // Side-anchored at the icon's right edge (1rem + icon footprint): the
-    // shared 92vw cap would push the panel past the viewport at 375px.
-    panelWidth: 'w-[min(calc(100vw_-_var(--lawlib-dock-size)_-_1rem),26rem)]',
     layout: 'vertical',
   },
   'mid-right': {
     root: 'top-1/2 -translate-y-1/2 right-[max(1rem,env(safe-area-inset-right))]',
     panel: 'right-full top-1/2 -translate-y-1/2',
+    more: 'right-full top-0',
     panelMaxH: 'max-h-[70vh]',
-    // Symmetric clamp (fix #27): the expanded panel anchors 1rem from the
-    // right edge (the icon footprint only applies while collapsed), so the
-    // shared 92vw cap at 375px portrait leaves ~14px clearance — it only
-    // goes negative (~14px past the LEFT edge) in landscape with a large
-    // env(safe-area-inset-right). The clamp covers both.
-    panelWidth: 'w-[min(calc(100vw_-_var(--lawlib-dock-size)_-_1rem),26rem)]',
     layout: 'vertical',
   },
   'bottom-left': {
     root: 'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1rem))] left-[max(1rem,env(safe-area-inset-left))]',
     panel: 'bottom-full left-0',
+    more: 'left-full bottom-0',
     panelMaxH: 'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_4.75rem)]',
     layout: 'vertical',
   },
   'bottom-center': {
     root: 'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1rem))] left-1/2 -translate-x-1/2',
     panel: 'bottom-full left-1/2 -translate-x-1/2',
+    more: 'bottom-full left-1/2 -translate-x-1/2',
     panelMaxH: 'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_4.75rem)]',
     layout: 'horizontal',
   },
   'bottom-right': {
     root: 'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1rem))] right-[max(1rem,env(safe-area-inset-right))]',
     panel: 'bottom-full right-0',
+    more: 'right-full bottom-0',
     panelMaxH: 'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_4.75rem)]',
     layout: 'vertical',
   },
@@ -303,9 +317,7 @@ export default function LawlibDock(props: LawlibDockProps) {
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
-  /** Level-2 "ย้อนกลับ" button — focus target when Level 2 opens (fix #1). */
-  const moreBackRef = useRef<HTMLButtonElement | null>(null);
-  /** Level-1 "เพิ่มเติม" button — focus target when Esc leaves Level 2. */
+  /** Level-1 "เพิ่มเติม" (⋯) button — focus target when Esc leaves Level 2. */
   const moreTriggerRef = useRef<HTMLButtonElement | null>(null);
   /** Open picker's trigger button — Esc from the picker restores focus here. */
   const pickerAnchorRef = useRef<HTMLElement | null>(null);
@@ -315,10 +327,10 @@ export default function LawlibDock(props: LawlibDockProps) {
   const animateDockNow = settings.animateDock && !prefersReducedMotion;
 
   /** Collapse → hand focus to the collapsed tools icon. Deferred: the icon is
-   *  conditionally rendered — toggleRef still points at the just-unmounted
-   *  header button until the re-render lands (or, with the exit animation,
-   *  until the 150ms closing hold ends). Shared by the Esc path and the
-   *  panel X/ย่อ close (focus parity). */
+   *  conditionally rendered — toggleRef only points at the collapsed icon
+   *  (the old header button is gone), so the focus must wait for the
+   *  re-render to land (or, with the exit animation, until the 150ms closing
+   *  hold ends). Shared by the Esc path and the × close (focus parity). */
   const restoreFocusToOpener = useCallback(() => {
     window.setTimeout(() => {
       const opener = toggleRef.current;
@@ -335,11 +347,10 @@ export default function LawlibDock(props: LawlibDockProps) {
     pickerAnchorRef.current = null;
   }, []);
 
-  /** USER-initiated collapse (Esc at Level 1 / ย่อ button / X button):
-   *  persists `lawlib:dockCollapsed` + plays the exit animation when
-   *  enabled (150ms slide+fade — the panel stays mounted while `closing`).
-   *  Focus restore is deferred past the re-render so the collapsed icon
-   *  exists to receive it. */
+  /** USER-initiated collapse (Esc at Level 1 / × button): persists
+   *  `lawlib:dockCollapsed` + plays the exit animation when enabled (150ms
+   *  slide+fade — the panel stays mounted while `closing`). Focus restore is
+   *  deferred past the re-render so the collapsed icon exists to receive it. */
   const collapseByUser = useCallback(
     (restoreFocus: boolean) => {
       if (closing) return;
@@ -379,15 +390,15 @@ export default function LawlibDock(props: LawlibDockProps) {
 
   const closePicker = useCallback(() => setPicker(null), []);
 
-  // Stays open until explicitly closed — Esc / ย่อ / X only (T12 D9).
-  // Esc cascades: picker first, then — when Level 2 is open — ONE press back
-  // to Level 1 (focus → เพิ่มเติม), a second press closes the dock (a11y fix
-  // #16). Stands down while a drawer / tooltip / compact popover owns Escape
-  // (escBlocked) AND while focus mode hides the dock (body.lawlib-focus
-  // display:none — its Esc must exit focus mode via the READER's handler,
-  // never collapse/persist the hidden dock; the dock starts OPEN now, so the
-  // old "unreachable handler" assumption no longer holds). The final Esc
-  // collapses the whole dock (persisted).
+  // Stays open until explicitly closed — Esc / × only (T12 D9).
+  // Esc cascades: picker first, then — when Level 2 is open — ONE press
+  // closes Level 2 (focus → เพิ่มเติม ⋯), a second press closes the dock
+  // (a11y fix #16). Stands down while a drawer / tooltip / compact popover
+  // owns Escape (escBlocked) AND while focus mode hides the dock
+  // (body.lawlib-focus display:none — its Esc must exit focus mode via the
+  // READER's handler, never collapse/persist the hidden dock; the dock
+  // starts OPEN now, so the old "unreachable handler" assumption no longer
+  // holds). The final Esc collapses the whole dock (persisted).
   useEffect(() => {
     if (!expanded || escBlocked || settings.focusMode) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -402,7 +413,8 @@ export default function LawlibDock(props: LawlibDockProps) {
         return;
       }
       if (moreOpen) {
-        // Level 2 → Level 1. Deferred: เพิ่มเติม remounts on the re-render.
+        // Level 2 → Level 1 (L1 stays mounted — เพิ่มเติม only needs its
+        // focus restored, deferred until the re-render settles).
         setMoreOpen(false);
         window.setTimeout(() => {
           const trigger = moreTriggerRef.current;
@@ -433,6 +445,23 @@ export default function LawlibDock(props: LawlibDockProps) {
     const first = root.querySelector<HTMLElement>('button, input');
     if (first !== null && !first.hasAttribute('disabled')) first.focus();
   }, [expanded, closing]);
+
+  // T15 (v2.3): opening Level 2 moves focus to its FIRST icon button (the
+  // old back-button target is gone — the level swap must not drop focus to
+  // <body>, a11y fix #1). Deferred: the L2 panel mounts on the re-render.
+  const prevMoreOpenRef = useRef(moreOpen);
+  useEffect(() => {
+    const wasOpen = prevMoreOpenRef.current;
+    prevMoreOpenRef.current = moreOpen;
+    if (!moreOpen || wasOpen) return;
+    window.setTimeout(() => {
+      const panel = document.getElementById('lawlib-more-panel');
+      const first = panel?.querySelector<HTMLButtonElement>('button');
+      if (first !== undefined && first !== null && !first.hasAttribute('disabled')) {
+        first.focus();
+      }
+    }, 0);
+  }, [moreOpen]);
 
   const togglePicker = (kind: PickerKind, anchor: HTMLElement) => {
     if (picker !== null && picker.kind === kind) {
@@ -516,16 +545,35 @@ export default function LawlibDock(props: LawlibDockProps) {
       ? `lawlib-dock-anim-out-${animDir}`
       : `lawlib-dock-anim-in-${animDir}`
     : '';
-  /** T12 glass: Level 1 + collapsed icon = transparent glass-2 override
-   *  (slider alpha + blur-xs + sheen); Level 2 = glass-3 (opaque-ish). */
-  const panelSurfaceClass = moreOpen
-    ? 'lawlib-glass-strong lawlib-glass-sheen'
-    : 'lawlib-glass lawlib-glass-xs lawlib-glass-sheen';
-  /** T12 mobile bottom sheet (full-width, safe-area bottom inset) vs the
-   *  anchored desktop panel (per-position flip + width cap). */
+  /** T15 (v2.3): UNIFORM glass for Level 1 + Level 2 + collapsed icon
+   *  (transparent glass-2 override: slider alpha + blur-xs + sheen). The
+   *  old `lawlib-glass-strong` Level-2 distinction is GONE — L2 is a
+   *  sibling panel with the SAME glass surface. */
+  const panelSurfaceClass = 'lawlib-glass lawlib-glass-xs lawlib-glass-sheen';
+  /** T15 (v2.3): the L1 panel is a COMPACT 64px column on side positions
+   *  (user: "Still large → L1 = 64px"); middle positions keep a content-
+   *  width row (the horizontal layout needs width to lay out). The old
+   *  shared 416px panel width (w-[min(92vw,26rem)]) is gone — Level 2 no
+   *  longer lives inside this panel. `overflow`/`max-h` moved to the L1
+   *  TOOLS wrapper (below) so the absolutely-anchored L2 sibling is never
+   *  clipped by the scroll container. Mobile bottom sheet: full-width,
+   *  safe-area bottom inset, keeps its own scroll. */
   const panelPlacementClass = isMobile
     ? 'fixed inset-x-0 bottom-0 max-h-[min(65vh,34rem)] overflow-y-auto rounded-t-2xl border-t p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-2xl'
-    : `absolute ${cfg.panel} ${cfg.panelMaxH} overflow-y-auto rounded-2xl border p-2 shadow-2xl ${cfg.panelWidth ?? 'w-[min(92vw,26rem)]'}`;
+    : `absolute ${cfg.panel} rounded-2xl border p-1.5 shadow-2xl ${
+        effectiveLayout === 'vertical' ? 'w-16' : 'max-w-[min(92vw,26rem)]'
+      }`;
+  /** Desktop only: the L1 tools column carries the viewport-safe cap + its
+   *  own scroll (the panel wrapper itself stays overflow-visible so the L2
+   *  sibling anchored to its edge is not clipped). */
+  const toolsPlacementClass = isMobile ? '' : `${cfg.panelMaxH} overflow-y-auto`;
+  /** T15 (v2.3): Level 2 = a SEPARATE 112px glass panel (w-28), anchored to
+   *  Level 1 with the per-position flip (`more` — away from the screen
+   *  edge). Mobile: an in-flow full-width block inside the sheet (dots ⋯
+   *  expands it). */
+  const morePanelPlacementClass = isMobile
+    ? 'mt-1 w-full rounded-xl border p-1.5'
+    : `absolute ${cfg.more} max-h-[70vh] w-28 overflow-y-auto rounded-2xl border p-1.5 shadow-2xl`;
 
   const pickerValue: Record<PickerKind, string> = {
     theme: THEME_CHOICES.find((c) => c.value === theme)?.label ?? theme,
@@ -690,8 +738,8 @@ export default function LawlibDock(props: LawlibDockProps) {
     );
   };
 
-  // --- Level 2 icon-only grid button (T14 — ADR-019 D10) ---------------------
-  // PURE icon 44px squares: no text rows, no pin toggles. Pickers open their
+  // --- Level 2 icon-only grid button (T14 — ADR-019 D10, T15 v2.3: 32px) ---
+  // PURE icon 32×32 squares: no text rows, no pin toggles. Pickers open their
   // popover (anchor = the icon); actions act directly; copy/copy-link disable
   // without a target article. Active states mirror Level 1.
 
@@ -714,7 +762,7 @@ export default function LawlibDock(props: LawlibDockProps) {
         aria-expanded={isPicker ? pickerOpen : undefined}
         disabled={(key === 'copy' || key === 'copyLink') && !canCopy}
         onClick={(e) => activateTool(key, e.currentTarget)}
-        className={`relative flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 ${
+        className={`relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 ${
           pickerOpen || active
             ? 'border-blue-400 bg-blue-50 text-blue-700 dark:border-blue-500/60 dark:bg-blue-950/50 dark:text-blue-300'
             : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:text-blue-300'
@@ -763,136 +811,110 @@ export default function LawlibDock(props: LawlibDockProps) {
           aria-label="เครื่องมืออ่าน"
           className={`lawlib-dock ${panelSurfaceClass} ${panelPlacementClass} border-slate-200 dark:border-slate-700 ${animClass}`}
         >
-          {/* Panel header — the ย่อ/X close controls are VISIBLE on Level 1
-              (T12 scrutiny fix; the shared header renders for both levels). */}
-          <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-slate-100 pb-1.5 dark:border-slate-800">
-            <button
-              type="button"
-              ref={toggleRef}
-              onClick={() => userClose(true)}
-              aria-label="ย่อแถบเครื่องมือ"
-              aria-expanded={true}
-              title="ย่อแถบเครื่องมือ"
-              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg border border-blue-400 bg-blue-50 text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-blue-500/60 dark:bg-blue-950/50 dark:text-blue-300"
+          {/* ─── Level 1 (T15 v2.3 COMPACT): ALWAYS visible while expanded —
+              the tools column/row + the ⋯/× control pair at its end. The
+              panel header is gone; Level 2 is a SIBLING panel, not a swap.
+              Side positions = vertical column (pickers stretch to the
+              ~52px content width; actions stay 44px squares); middle +
+              mobile = horizontal row. ──────────────────────────────────── */}
+          <div
+            data-lawlib-l1
+            className={`flex gap-1.5 ${effectiveLayout === 'vertical' ? 'flex-col' : 'flex-wrap'}`}
+          >
+            {/* Tools — desktop side positions scroll internally (the panel
+                wrapper itself stays overflow-visible so the absolutely
+                anchored L2 sibling is never clipped). */}
+            <div
+              data-lawlib-l1-tools
+              className={`flex gap-1.5 ${effectiveLayout === 'vertical' ? 'flex-col' : 'flex-wrap'} ${toolsPlacementClass}`}
             >
-              <i aria-hidden="true" className="fi fi-sr-sliders-h text-xs leading-none" />
-            </button>
-            <p className="min-w-0 flex-1 text-xs font-bold text-slate-700 dark:text-slate-200">
-              เครื่องมืออ่าน
-            </p>
-            <button
-              type="button"
-              onClick={() => userClose(true)}
-              aria-label="ปิดแถบเครื่องมือ"
-              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-slate-500 transition-colors hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-slate-400 dark:hover:text-white"
-            >
-              <i aria-hidden="true" className="fi fi-sr-cross text-[10px]" />
-            </button>
-          </div>
-
-          {!moreOpen ? (
-            // ─── Level 1 (T14 — ADR-019 D10): icon+value pickers, icon-only
-            // actions, อ่านต่อ + เพิ่มเติม (direction-aware: side positions =
-            // vertical column, middle/mobile = horizontal row) ──────────────
-            <div className="flex flex-col gap-1.5">
-              <div
-                className={`flex gap-1.5 ${
-                  effectiveLayout === 'vertical' ? 'flex-col' : 'flex-wrap'
-                }`}
-              >
-                {resumeVisible && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      closeAllInstant();
-                      onResume();
-                    }}
-                    aria-label={`อ่านต่อ: ${resumeLabel}`}
-                    title={`อ่านต่อ: ${resumeLabel}`}
-                    className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-amber-300 bg-amber-50 text-amber-800 transition-colors hover:border-amber-400 hover:bg-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-amber-500/50 dark:bg-amber-950/40 dark:text-amber-200"
-                  >
-                    <i aria-hidden="true" className="fi fi-sr-time-past text-sm leading-none" />
-                  </button>
-                )}
-                {settings.favoriteToolKeys.map((key) => renderToolButton(key))}
+              {resumeVisible && (
                 <button
-                  ref={moreTriggerRef}
                   type="button"
                   onClick={() => {
-                    setMoreOpen(true);
-                    // Focus moves to ย้อนกลับ — the Level swap must not drop
-                    // focus to <body> (deferred: the button mounts on the
-                    // re-render, a11y fix #1).
-                    window.setTimeout(() => {
-                      const back = moreBackRef.current;
-                      if (back !== null && back.isConnected) back.focus();
-                    }, 0);
+                    closeAllInstant();
+                    onResume();
                   }}
-                  aria-expanded={moreOpen}
-                  aria-haspopup="true"
-                  aria-controls="lawlib-more-panel"
-                  aria-label="เพิ่มเติม"
-                  title="เพิ่มเติม"
-                  className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:text-blue-300"
+                  aria-label={`อ่านต่อ: ${resumeLabel}`}
+                  title={`อ่านต่อ: ${resumeLabel}`}
+                  className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-amber-300 bg-amber-50 text-amber-800 transition-colors hover:border-amber-400 hover:bg-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-amber-500/50 dark:bg-amber-950/40 dark:text-amber-200"
                 >
-                  <i aria-hidden="true" className="fi fi-sr-apps text-sm leading-none" />
+                  <i aria-hidden="true" className="fi fi-sr-time-past text-sm leading-none" />
                 </button>
-              </div>
-            </div>
-          ) : (
-            // ─── Level 2 (T14 — ADR-019 D10): icon-only 2-row grid —
-            // row 1 = the Level-1 favorite set, row 2 = the rest (glossary ·
-            // bookmarks-ALL · copy · copy-link · ⚙️ settings) + ย้อนกลับ.
-            // NO section titles / text rows / pin toggles (the favorites
-            // editor lives in the ⚙️ settings picker; the position selector
-            // too — T12c). Direction-aware: vertical layout = 2-col grid per
-            // row; horizontal = 3-col from sm up (mobile sheet = 2 cols). ──
-            <div id="lawlib-more-panel" className="flex flex-col gap-1.5">
-              {settings.favoriteToolKeys.length > 0 && (
-                <>
-                  <ul
-                    className={
-                      effectiveLayout === 'vertical'
-                        ? 'grid grid-cols-2 gap-1'
-                        : 'grid grid-cols-2 gap-1 sm:grid-cols-3'
-                    }
-                  >
-                    {settings.favoriteToolKeys.map((key) => (
-                      <li key={key}>{renderMoreIconButton(key)}</li>
-                    ))}
-                  </ul>
-                  <div
-                    aria-hidden="true"
-                    className="h-px w-full shrink-0 bg-slate-200 dark:bg-slate-700"
-                  />
-                </>
               )}
-              <ul
-                className={
-                  effectiveLayout === 'vertical'
-                    ? 'grid grid-cols-2 gap-1'
-                    : 'grid grid-cols-2 gap-1 sm:grid-cols-3'
-                }
+              {settings.favoriteToolKeys.map((key) => renderToolButton(key))}
+            </div>
+
+            {/* Control pair (replaces the removed panel header): ⋯ toggles
+                Level 2, × collapses the dock to the icon. Side positions =
+                full-bleed row at the column's bottom; middle/mobile = at
+                the end of the row flow. */}
+            <div
+              className={`flex gap-1.5 ${
+                effectiveLayout === 'vertical' ? '-mx-1.5 justify-center' : ''
+              }`}
+            >
+              <button
+                ref={moreTriggerRef}
+                type="button"
+                onClick={() => setMoreOpen((prev) => !prev)}
+                aria-expanded={moreOpen}
+                aria-haspopup="true"
+                aria-controls="lawlib-more-panel"
+                aria-label="เพิ่มเติม"
+                title="เพิ่มเติม"
+                className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:text-blue-300"
               >
-                {MORE_REST_KEYS.filter(
-                  (key) => !settings.favoriteToolKeys.some((k) => k === key),
-                ).map((key) => (
-                  <li key={key}>{renderMoreIconButton(key)}</li>
-                ))}
-                <li>
-                  <button
-                    ref={moreBackRef}
-                    data-more-back
-                    type="button"
-                    onClick={() => setMoreOpen(false)}
-                    aria-label="ย้อนกลับ"
-                    title="ย้อนกลับ"
-                    className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:border-blue-300 hover:text-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:text-blue-300"
-                  >
-                    <i aria-hidden="true" className="fi fi-sr-angle-left text-xs leading-none" />
-                  </button>
-                </li>
-              </ul>
+                <i aria-hidden="true" className="fi fi-sr-menu-dots text-xs leading-none" />
+              </button>
+              <button
+                type="button"
+                onClick={() => userClose(true)}
+                aria-label="ปิดแถบเครื่องมือ"
+                title="ปิดแถบเครื่องมือ"
+                className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:border-blue-300 hover:text-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:text-blue-300"
+              >
+                <i aria-hidden="true" className="fi fi-sr-cross text-[10px] leading-none" />
+              </button>
+            </div>
+          </div>
+
+          {/* ─── Level 2 (T15 v2.3): SIBLING glass panel — a SEPARATE 112px
+              surface beside Level 1, flip-anchored away from the screen
+              edge (desktop) / an in-flow block inside the sheet (mobile).
+              Icon-only 2-col grid: row 1 = the Level-1 favorite set, row 2
+              = the rest (glossary · bookmarks-ALL · copy · copy-link · ⚙️
+              settings). NO back button / section titles / text rows / pin
+              toggles (the favorites editor lives in the ⚙️ settings
+              picker; the position selector too — T12c). ──────────────── */}
+          {moreOpen && (
+            <div
+              id="lawlib-more-panel"
+              data-lawlib-l2
+              className={`lawlib-glass lawlib-glass-xs lawlib-glass-sheen ${morePanelPlacementClass} border-slate-200 dark:border-slate-700`}
+            >
+              <div className="flex flex-col gap-1.5">
+                {settings.favoriteToolKeys.length > 0 && (
+                  <>
+                    <ul className="grid grid-cols-2 justify-items-center gap-0.5">
+                      {settings.favoriteToolKeys.map((key) => (
+                        <li key={key}>{renderMoreIconButton(key)}</li>
+                      ))}
+                    </ul>
+                    <div
+                      aria-hidden="true"
+                      className="h-px w-full shrink-0 bg-slate-200 dark:bg-slate-700"
+                    />
+                  </>
+                )}
+                <ul className="grid grid-cols-2 justify-items-center gap-0.5">
+                  {MORE_REST_KEYS.filter(
+                    (key) => !settings.favoriteToolKeys.some((k) => k === key),
+                  ).map((key) => (
+                    <li key={key}>{renderMoreIconButton(key)}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           )}
         </div>

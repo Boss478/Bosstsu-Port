@@ -533,12 +533,13 @@ describe('T14 settings panel — เครื่องมือแถวลั�
       'notes',
     ]);
 
-    // Close the settings picker + Level 2 → Level 1 no longer has ธีม.
+    // Close the settings picker, then ⋯ toggles Level 2 closed (T15 v2.3 —
+    // the ย้อนกลับ back button is gone) → Level 1 no longer has ธีม.
     fireEvent.keyDown(document, { key: 'Escape' }); // picker
-    fireEvent.click(screen.getByRole('button', { name: /ย้อนกลับ/ })); // L2 → L1
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' })); // L2 → L1
     expect(screen.queryByRole('button', { name: /ธีม/ })).toBeNull();
     // …but Level 2 row 2 still offers it (row 2 = everything not pinned).
-    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' })); // ⋯ reopens L2
     expect(screen.getByRole('button', { name: /ธีม/ })).toBeTruthy();
   });
 
@@ -548,12 +549,16 @@ describe('T14 settings panel — เครื่องมือแถวลั�
     fireEvent.click(within(picker).getByRole('switch', { name: 'บทนิยาม' }));
 
     fireEvent.keyDown(document, { key: 'Escape' });
-    fireEvent.click(screen.getByRole('button', { name: /ย้อนกลับ/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' })); // ⋯ toggles L2 closed
     expect(screen.getByRole('button', { name: 'บทนิยาม' })).toBeTruthy();
 
-    // Row 2 dedups: บทนิยาม lives in row 1 only — Level 2 shows ONE instance.
-    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
-    expect(screen.getAllByRole('button', { name: 'บทนิยาม' }).length).toBe(1);
+    // Row 2 dedups: บทนิยาม lives in row 1 only — the L2 sibling panel
+    // shows ONE instance (scoped: L1 renders SIMULTANEOUSLY now, so the
+    // unscoped getAllByRole would count the L1 button too — T15 v2.3).
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' })); // ⋯ reopens L2
+    const more = document.getElementById('lawlib-more-panel');
+    expect(more).not.toBeNull();
+    expect(within(more as HTMLElement).getAllByRole('button', { name: 'บทนิยาม' }).length).toBe(1);
   });
 
   it('per-setting คืนค่า restores the curated favorites', async () => {
