@@ -1,3 +1,13 @@
+## v1.11.1-b (2026-08-08)
++ **Dock v2.2 (T14)**: pickers show ICON + current value as a tiny label beneath (ตัวอักษร "14px" / บรรทัด "1.8" / ความกว้าง "100%") · ธีม = icon only (☀️/🌙/📖/🎨 สะท้อนสถานะ) · L2 = icon-only 2-row grid (row 1 = favorites, row 2 = the rest) — no text rows/pins · favorites editor (เครื่องมือแถวลัด) moved into ⚙️ settings · ที่คั่นหน้าทั้งหมด → panel · a11y: aria-pressed only on genuine toggles, settings aria-label trimmed.
++ **Dock v2.3 COMPACT (T15)**: L1 panel 416px → **64px** (side columns) / horizontal row at middle positions (min-w-max fix — 7 buttons on ONE row, was wrapping into a vertical column) · L2 = **separate 112px glass sibling panel** anchored away from the screen edge (right dock → L2 left, bottom → L2 up…) · panel header removed → ⋯ dots toggle (28px, fi-sr-menu-dots, toggles L2) + × close at L1 end · uniform glass L1+L2 · mobile sheet = L1 only, L2 collapsed by default.
++ **Tooltip height cap (T16)**: desktop tooltip capped at `100vh − 2rem` with root scroll — no more full-screen tooltip (was 799.7px on an 800px viewport) · positions below/above the trigger correctly.
++ **Quick Note collapsed-to-icon (T16)**: โน้ตด่วน = note icon by default (click to expand + focus the textarea) · draft/autosave/blur-flush/unmount-flush preserved · existing note shown via "มีโน้ต" label + amber dot · เปิดโน้ตทั้งแผง stays.
++ **e2e lawlib spec (W3-3)**: 9 tests — 375px sheet, hover/keyboard digest-refs, repealed badge, prose split, cross-law guard, direction-aware dock.
+* **Esc-reopen loop fix (W3-4)**: tooltip overlapping its trigger no longer reopens instantly after Esc — 200ms suppression window + 4-branch gap clamp (no trigger overlap when the viewport allows).
+* read/sepia collapsed-icon border restored (#d4c49a, 1.4.11 rationale) · header lock buttons 44px (W3-1+2).
+* Tests: 406 lawlib+unit (was 385), 1080 unit total · gates 406/406, eval 17/17, e2e 9/9, build/typecheck/lint clean.
+
 ## v1.11.1-a (2026-08-07)
 + **Dock v2.1**: real glass 30–40% (default 35) + highlight border + blur-xs · Level 1 open by default (desktop + mobile sheet) · outside-click no longer closes (Esc/collapse/X only) · direction-aware expansion (sides = vertical, middle = horizontal) · expand/collapse animation (reduced-motion safe, toggle in settings) · non-default value dots on pickers · per-setting reset · collapse-state memory (T12, ADR-019 D9 additions).
 + **Tooltip glass**: follows the glass slider (clear ↔ opaque), content keeps solid surface (T12b).
