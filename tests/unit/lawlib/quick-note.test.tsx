@@ -101,6 +101,11 @@ function QuickNoteHarness({
 
 const textarea = () => screen.getByRole('textbox', { name: 'โน้ตด่วนสำหรับมาตราที่เปิด' });
 
+/** T16: QuickNoteBox starts COLLAPSED — expand it before typing. The
+ *  collapsed control is the icon button (โน้ตด่วน / โน้ตด่วน (มีโน้ต)); the
+ *  regex matches both label states and never the expanded × (ปิดโน้ตด่วน). */
+const expandQuickNote = () => fireEvent.click(screen.getByRole('button', { name: /^โน้ตด่วน/ }));
+
 beforeEach(() => {
   vi.useFakeTimers();
 });
@@ -116,6 +121,7 @@ describe('QuickNoteBox — debounced autosave (ADR-019 D7)', () => {
     const item = makeItem(1, 'มาตรา 1', '', onNoteSave);
     render(<QuickNoteHarness item={item} onClose={() => {}} />);
 
+    expandQuickNote();
     fireEvent.change(textarea(), { target: { value: 'ข้อความด่วน' } });
 
     // Inside the debounce window → no save yet.
@@ -143,6 +149,7 @@ describe('QuickNoteBox — debounced autosave (ADR-019 D7)', () => {
     const item = makeItem(1, 'มาตรา 1', '', onNoteSave);
     render(<QuickNoteHarness item={item} onClose={() => {}} />);
 
+    expandQuickNote();
     fireEvent.change(textarea(), { target: { value: 'ฉบับ' } });
     act(() => {
       vi.advanceTimersByTime(300);
@@ -168,6 +175,7 @@ describe('QuickNoteBox — debounced autosave (ADR-019 D7)', () => {
     const item = makeItem(1, 'มาตรา 1', '', onNoteSave);
     const { unmount } = render(<QuickNoteHarness item={item} onClose={() => {}} />);
 
+    expandQuickNote();
     fireEvent.change(textarea(), { target: { value: 'ยังไม่ครบ 500ms' } });
 
     // Unmount mid-debounce (tooltip closed by the user) — no timer advance.
@@ -199,6 +207,7 @@ describe('QuickNoteBox — debounced autosave (ADR-019 D7)', () => {
     // The article ALREADY has a note → the draft initializes from it.
     const item = makeItem(1, 'มาตรา 1', 'บันทึกเดิม', onNoteSave);
     render(<QuickNoteHarness item={item} onClose={() => {}} />);
+    expandQuickNote();
     expect((textarea() as HTMLTextAreaElement).value).toBe('บันทึกเดิม');
 
     fireEvent.change(textarea(), { target: { value: '' } });
@@ -218,6 +227,7 @@ describe('QuickNoteBox — ref→ref swap (BLOCKER regression: keyed remount)', 
     const itemA = makeItem(1, 'มาตรา 1', 'โน้ต ก', saveA);
     const itemB = makeItem(2, 'มาตรา 2', 'โน้ต ข', saveB);
     const { rerender } = render(<QuickNoteHarness item={itemA} onClose={() => {}} />);
+    expandQuickNote();
     expect((textarea() as HTMLTextAreaElement).value).toBe('โน้ต ก');
 
     // Type into A's box — debounce still pending (no timer advance yet).
@@ -234,6 +244,10 @@ describe('QuickNoteBox — ref→ref swap (BLOCKER regression: keyed remount)', 
     expect(saveA).toHaveBeenCalledWith('โน้ต ก แก้ไข');
     // ...and B has seen nothing of A's draft.
     expect(saveB).not.toHaveBeenCalled();
+
+    // The keyed remount also resets the T16 collapsed state — re-expand B's
+    // box before reading/writing its draft.
+    expandQuickNote();
 
     // BLOCKER: the draft RESET to B's latest note.
     expect((textarea() as HTMLTextAreaElement).value).toBe('โน้ต ข');
@@ -263,6 +277,7 @@ describe('QuickNoteBox — ref→ref swap (BLOCKER regression: keyed remount)', 
     expect(saveA).toHaveBeenCalledTimes(1);
     expect(saveA).toHaveBeenCalledWith('โน้ต ก');
     expect(saveB).not.toHaveBeenCalled();
+    expandQuickNote(); // the keyed remount resets the T16 collapsed state
     expect((textarea() as HTMLTextAreaElement).value).toBe('');
   });
 });
@@ -275,6 +290,7 @@ describe('QuickNoteBox — เปิดโน้ตทั้งแผง (sancti
     const onClose = vi.fn(() => calls.push('close'));
     render(<QuickNoteHarness item={item} onClose={onClose} />);
 
+    expandQuickNote();
     fireEvent.click(screen.getByRole('button', { name: /เปิดโน้ตทั้งแผง/ }));
 
     // The hub never bypasses closeTooltip (T10a intake constraint).

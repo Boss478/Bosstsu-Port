@@ -1030,3 +1030,110 @@ describe('W3-4 — gap clamp: computeTooltipPosition never overlaps the trigger 
     expect(computeTooltipPosition(anchor(100, 130, 1200), 300, 100, 1280, 800).left).toBe(972);
   });
 });
+
+// ---------------------------------------------------------------------------
+// T16 — desktop root height cap + collapsed-by-default Quick Note
+// (t16-tooltip-height-cap.md). jsdom cannot do real layout — the cap is
+// asserted as class presence here; the real-geometry proof (tooltip height
+// ≤ viewport) lives in tests/e2e/lawlib-reader.spec.ts (member-75 hover).
+// ---------------------------------------------------------------------------
+
+function makeT16Hub(noteText = '', onNoteSave: (text: string) => void = () => {}) {
+  return {
+    isBookmarked: false,
+    onToggleBookmark: () => {},
+    noteText,
+    onNoteSave,
+    onOpenNotes: () => {},
+    onCopyLink: () => {},
+  };
+}
+
+/** Desktop (non-sheet) tooltip WITH the article-actions hub — the hub only
+ *  mounts for same-law ref content (headerContent) and flips the root role
+ *  to dialog, so these tests query the root by class, not role. */
+function renderHubTooltip(noteText = '', onNoteSave: (text: string) => void = () => {}) {
+  return render(
+    <LawTooltip
+      content={headerContent}
+      anchorRect={{ left: 0, top: 0, right: 100, bottom: 24, width: 100, height: 24 } as DOMRect}
+      sheet={false}
+      law={law}
+      onClose={() => {}}
+      onOpenArticle={() => {}}
+      registerTooltipEl={() => {}}
+      onPointerLeave={() => {}}
+      tooltipId="lawlib-tooltip-t16"
+      hub={makeT16Hub(noteText, onNoteSave)}
+    />,
+  );
+}
+
+const hubRoot = () => document.body.querySelector<HTMLElement>('.lawlib-tooltip');
+const noteTextbox = () => screen.getByRole('textbox', { name: 'โน้ตด่วนสำหรับมาตราที่เปิด' });
+
+describe('T16 — desktop tooltip root height cap', () => {
+  it('the non-sheet root carries the viewport cap + root scroll (max-h-[calc(100vh-2rem)] overflow-y-auto)', () => {
+    renderHubTooltip();
+    const root = hubRoot();
+    expect(root).not.toBeNull();
+    // The fix classes — without them the root grows to viewport height
+    // (measured 799.7px on an 800px viewport) and the position clamp pins
+    // it to the top edge.
+    expect(root?.className).toContain('max-h-[calc(100vh-2rem)]');
+    expect(root?.className).toContain('overflow-y-auto');
+    // The width cap survives untouched.
+    expect(root?.className).toContain('w-[min(92vw,28rem)]');
+  });
+});
+
+describe('T16 — Quick Note is a collapsed icon control by default', () => {
+  it('renders ONLY the icon button — no textarea, no header row in the DOM', () => {
+    renderHubTooltip();
+    expect(screen.queryByRole('textbox', { name: 'โน้ตด่วนสำหรับมาตราที่เปิด' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /เปิดโน้ตทั้งแผง/ })).toBeNull();
+    expect(screen.getByRole('button', { name: /^โน้ตด่วน$/ })).not.toBeNull();
+  });
+
+  it('clicking the icon expands the textarea and moves focus into it', () => {
+    renderHubTooltip();
+    fireEvent.click(screen.getByRole('button', { name: /^โน้ตด่วน$/ }));
+    expect(document.activeElement).toBe(noteTextbox());
+    // The expanded header row (with เปิดโน้ตทั้งแผง) is back.
+    expect(screen.getByRole('button', { name: /เปิดโน้ตทั้งแผง/ })).not.toBeNull();
+  });
+
+  it('collapsing keeps the draft — type, collapse, re-expand → text intact, autosave still fires', () => {
+    vi.useFakeTimers();
+    const onNoteSave = vi.fn();
+    renderHubTooltip('', onNoteSave);
+    fireEvent.click(screen.getByRole('button', { name: /^โน้ตด่วน$/ }));
+    fireEvent.change(noteTextbox(), { target: { value: 'บันทึกคร่าวๆ' } });
+
+    // Collapse via the × — the box stays MOUNTED (draft must survive).
+    fireEvent.click(screen.getByRole('button', { name: /^ปิดโน้ตด่วน$/ }));
+    expect(screen.queryByRole('textbox', { name: 'โน้ตด่วนสำหรับมาตราที่เปิด' })).toBeNull();
+
+    // Re-expand → the draft is still there.
+    fireEvent.click(screen.getByRole('button', { name: /^โน้ตด่วน$/ }));
+    expect((noteTextbox() as HTMLTextAreaElement).value).toBe('บันทึกคร่าวๆ');
+
+    // And the 500ms autosave contract still holds after collapse/expand.
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+    expect(onNoteSave).toHaveBeenCalledTimes(1);
+    expect(onNoteSave).toHaveBeenCalledWith('บันทึกคร่าวๆ');
+  });
+
+  it('an existing note is discoverable while collapsed — aria-label + dot; expansion shows the saved text', () => {
+    renderHubTooltip('บันทึกเดิม');
+    const icon = screen.getByRole('button', { name: 'โน้ตด่วน (มีโน้ต)' });
+    // The label is the non-color cue; the amber dot reinforces it.
+    expect(icon.querySelector('.bg-amber-500')).not.toBeNull();
+    expect(screen.queryByRole('textbox', { name: 'โน้ตด่วนสำหรับมาตราที่เปิด' })).toBeNull();
+
+    fireEvent.click(icon);
+    expect((noteTextbox() as HTMLTextAreaElement).value).toBe('บันทึกเดิม');
+  });
+});

@@ -166,7 +166,17 @@ export function computeTooltipPosition(
 /** Debounced autosave note box (ADR-019 D7 — โน้ตเขียนด่วน). Saves 500ms
  *  after the last keystroke, flushed on blur AND on unmount (a closing
  *  tooltip must not drop the last keystrokes). Ref mirrors are updated in
- *  effects (react-compiler: no ref writes during render). */
+ *  effects (react-compiler: no ref writes during render).
+ *
+ *  T16: COLLAPSED by default — an icon-only Quick-Note button (44px, matching
+ *  the hub action buttons). Clicking expands the header row + textarea and
+ *  moves focus INTO the textarea; clicking the × collapses again. The box
+ *  stays MOUNTED across collapse/expand (only the inner section is
+ *  conditionally rendered), so the draft, the 500ms autosave, the blur flush
+ *  and the unmount flush all keep working exactly as before. An existing
+ *  saved note (initialText !== '') is discoverable while collapsed: the
+ *  aria-label becomes "โน้ตด่วน (มีโน้ต)" + a tiny amber dot — the LABEL is
+ *  the non-color cue. */
 function QuickNoteBox({
   initialText,
   onSave,
@@ -178,12 +188,16 @@ function QuickNoteBox({
 }) {
   const [draft, setDraft] = useState(initialText);
   const [saved, setSaved] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Latest-draft / latest-onSave mirrors — read by the stable flush (a timer
   // callback can't see fresh state; the unmount flush must not be stale).
   const draftRef = useRef(initialText);
   const saveRef = useRef(onSave);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const hasNote = initialText !== '';
 
   useEffect(() => {
     draftRef.current = draft;
@@ -191,6 +205,12 @@ function QuickNoteBox({
   useEffect(() => {
     saveRef.current = onSave;
   });
+
+  // T16: move focus into the textarea on EXPAND only — the effect re-runs on
+  // every `expanded` change, so typing while expanded never re-focuses.
+  useEffect(() => {
+    if (expanded) textareaRef.current?.focus();
+  }, [expanded]);
 
   const flush = useCallback(() => {
     if (timerRef.current !== null) {
@@ -223,36 +243,82 @@ function QuickNoteBox({
     timerRef.current = setTimeout(flush, 500);
   };
 
+  // ONE persistent toggle control: collapsed → the Quick-Note icon button;
+  // expanded → the × in the header row. The button never unmounts, so focus
+  // stays on it across collapse (no focus fall to body).
+  const toggleButton = (
+    <button
+      type="button"
+      onClick={() => setExpanded((v) => !v)}
+      aria-expanded={expanded}
+      aria-label={expanded ? 'ปิดโน้ตด่วน' : hasNote ? 'โน้ตด่วน (มีโน้ต)' : 'โน้ตด่วน'}
+      title={expanded ? 'ปิดโน้ตด่วน' : hasNote ? 'โน้ตด่วน (มีโน้ต)' : 'โน้ตด่วน'}
+      className={
+        expanded
+          ? // Compact × in the expanded header row (the row's link is 28px;
+            // the PRIMARY control below is the 44px icon button).
+            'flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white'
+          : // Collapsed: 44×44 icon button — same target/contrast language as
+            // the hub action buttons (min-h-11 + border + slate surface).
+            'relative inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-blue-300'
+      }
+    >
+      <i
+        aria-hidden="true"
+        className={`fi ${expanded ? 'fi-sr-cross' : 'fi-sr-note-sticky'} text-[10px]`}
+      />
+      {!expanded && hasNote && (
+        // T16: existing-note indicator — the aria-label change to "โน้ตด่วน
+        // (มีโน้ต)" is the non-color cue; the amber dot (ArticleView's note
+        // color) reinforces it.
+        <span
+          aria-hidden="true"
+          className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-500"
+        />
+      )}
+    </button>
+  );
+
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-          โน้ตด่วน
-        </span>
-        <button
-          type="button"
-          onClick={onOpenNotes}
-          className="flex min-h-7 cursor-pointer items-center text-[11px] font-medium text-blue-700 underline-offset-2 hover:underline dark:text-blue-300"
-        >
-          เปิดโน้ตทั้งแผง →
-        </button>
-      </div>
-      <textarea
-        value={draft}
-        onChange={(e) => handleChange(e.target.value)}
-        onBlur={flush}
-        rows={2}
-        aria-label="โน้ตด่วนสำหรับมาตราที่เปิด"
-        placeholder="จดโน้ตด่วน… (บันทึกอัตโนมัติ)"
-        className="w-full resize-none rounded-lg border border-slate-200 bg-white p-2 text-xs leading-relaxed text-slate-700 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:placeholder:text-slate-400"
-      />
-      <p
-        aria-live="polite"
-        role="status"
-        className="min-h-3.5 text-right text-[10px] text-slate-500 dark:text-slate-400"
-      >
-        {saved ? 'บันทึกแล้ว' : ''}
-      </p>
+      {expanded ? (
+        <>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+              โน้ตด่วน
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onOpenNotes}
+                className="flex min-h-7 cursor-pointer items-center text-[11px] font-medium text-blue-700 underline-offset-2 hover:underline dark:text-blue-300"
+              >
+                เปิดโน้ตทั้งแผง →
+              </button>
+              {toggleButton}
+            </div>
+          </div>
+          <textarea
+            ref={textareaRef}
+            value={draft}
+            onChange={(e) => handleChange(e.target.value)}
+            onBlur={flush}
+            rows={2}
+            aria-label="โน้ตด่วนสำหรับมาตราที่เปิด"
+            placeholder="จดโน้ตด่วน… (บันทึกอัตโนมัติ)"
+            className="w-full resize-none rounded-lg border border-slate-200 bg-white p-2 text-xs leading-relaxed text-slate-700 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:placeholder:text-slate-400"
+          />
+          <p
+            aria-live="polite"
+            role="status"
+            className="min-h-3.5 text-right text-[10px] text-slate-500 dark:text-slate-400"
+          >
+            {saved ? 'บันทึกแล้ว' : ''}
+          </p>
+        </>
+      ) : (
+        toggleButton
+      )}
     </div>
   );
 }
@@ -714,7 +780,13 @@ export default function LawTooltip({
             // `bg-white dark:bg-slate-900` solid fill moved onto the inner
             // content wrapper below so body text keeps AA on a 35% panel).
             'lawlib-tooltip lawlib-glass lawlib-glass-xs lawlib-glass-sheen fixed inset-x-0 bottom-0 z-[70] max-h-[75vh] origin-bottom overflow-y-auto rounded-t-2xl border-t border-slate-200 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700'
-          : 'lawlib-tooltip lawlib-glass lawlib-glass-xs lawlib-glass-sheen fixed z-[70] w-[min(92vw,28rem)] rounded-2xl border border-slate-200 p-4 shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700'
+          : // T16: the desktop root gets the SAME viewport bound the sheet has
+            // (max-h-[75vh]) — without it, header + 60vh body + hub + footer
+            // sum past the viewport (measured 799.7px on an 800px viewport)
+            // and the position clamp pins it to the top edge. The cap makes
+            // computeTooltipPosition's below/above flip work; the ROOT scrolls
+            // (overflow-y-auto) when the content still exceeds the cap.
+            'lawlib-tooltip lawlib-glass lawlib-glass-xs lawlib-glass-sheen fixed z-[70] max-h-[calc(100vh-2rem)] w-[min(92vw,28rem)] overflow-y-auto rounded-2xl border border-slate-200 p-4 shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700'
       }
     >
       {sheet && (

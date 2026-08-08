@@ -199,6 +199,16 @@ test.describe('LawLib Reader — national-education-act-2542', () => {
     const tooltip = page.getByRole('dialog', { name: /^มาตรา 75$/ });
     await expect(tooltip).toBeVisible();
     await expect(tooltip).toContainText('ซึ่งเป็นองค์การมหาชนเฉพาะกิจที่จัดตั้งขึ้น');
+
+    // T16: the desktop tooltip must never exceed the viewport height (before
+    // the root max-h cap it measured 799.7px on this 800px viewport and the
+    // position clamp pinned it to the top edge). Measure AFTER the entry
+    // animation settles — a grow-from-origin animation would otherwise pass
+    // a too-tall final size.
+    await waitForAnimationsSettled(tooltip);
+    const viewport = page.viewportSize()!;
+    const box = (await tooltip.boundingBox())!;
+    expect(box.height).toBeLessThanOrEqual(viewport.height);
   });
 
   test('digest-ref keyboard: Tab to trigger, Enter opens with focus inside, Esc closes + restores', async ({
