@@ -52,6 +52,12 @@ export default function AdminSessionProvider({ children }: { children: ReactNode
   }, [isUploading]);
 
   const redirectToLogin = useCallback(() => {
+    // Hard reload is intentional: an auth-failure redirect must wipe root-mounted
+    // admin state (this provider's isUploading/isAFK/isLoggingOut, React Query
+    // cache, in-memory token holders) that would otherwise survive a soft
+    // router.push under the shared /admin layout, and let middleware re-evaluate
+    // the now-invalid session cookie server-side.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- auth failure: guaranteed full reset of admin singletons + fresh server cookie check
     window.location.assign('/admin/login');
   }, []);
 

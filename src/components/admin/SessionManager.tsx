@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { endSession } from '@/app/admin/tools/actions';
 import QRSessionCode from '@/components/tools/QRSessionCode';
@@ -18,6 +19,7 @@ export default function SessionManager({
   onToggleCodeFullScreen,
 }: SessionManagerProps) {
   const [pending, setPending] = useState(false);
+  const router = useRouter();
 
   const handleEnd = async () => {
     if (!confirm('End this session? Students will no longer be able to submit responses.')) return;
@@ -26,7 +28,7 @@ export default function SessionManager({
     fd.append('sessionId', session._id);
     await endSession(fd);
     setPending(false);
-    window.location.href = '/admin/tools';
+    router.push('/admin/tools');
   };
 
   return (

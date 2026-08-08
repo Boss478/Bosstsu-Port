@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, startTransition } from 'react';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { toolKeys } from '@/lib/query/keys';
 import StepIndicator from './StepIndicator';
@@ -117,6 +118,9 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
     });
   }, [session._id, session.requireStudentName, enableMascots]);
 
+  const { setForceTier, setCustomConfig, forced } = useDeviceTier();
+  const router = useRouter();
+
   const { broadcastMessage, connected, clearBroadcast } = useSSE(session._id, {
     onStepChange: (newStep) => {
       if (newStep !== latestStepRef.current) {
@@ -137,12 +141,15 @@ export default function MultiStepSessionView({ session }: MultiStepSessionViewPr
         setStudentName('');
         setNameConfirmed(false);
       } else {
-        window.location.assign('/study');
+        // Reset root-mounted device-tier overrides before the soft nav — a hard
+        // reload used to wipe them; keep /study (and the next session joined)
+        // behaviorally identical to before.
+        setForceTier(undefined);
+        setCustomConfig(undefined);
+        router.push('/study');
       }
     },
   });
-
-  const { setForceTier, setCustomConfig, forced } = useDeviceTier();
 
   useEffect(() => {
     const cfg = session.config;

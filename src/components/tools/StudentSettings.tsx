@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useDeviceTier } from '@/lib/device-tier-provider';
 import { getTierConfig, type Tier, type TierConfig } from '@/lib/device-tier';
 import MascotSelector from './mascots/MascotSelector';
@@ -106,6 +107,7 @@ export default function StudentSettings({
   const setOpen = onOpenChange || setInternalOpen;
 
   const { tier, forced, config, setForceTier, setCustomConfig } = useDeviceTier();
+  const router = useRouter();
   const [selectedPreset, setSelectedPreset] = useState<PresetValue>(() => (forced ? tier : ''));
   const [overrides, setOverrides] = useState<Partial<TierConfig>>({});
   const [soundOn, setSoundOn] = useState(() => localStorage.getItem('tools_sound') !== 'off');
@@ -699,7 +701,11 @@ export default function StudentSettings({
             <button
               type="button"
               onClick={() => {
-                window.location.href = '/study';
+                // Reset root-mounted device-tier overrides before the soft nav —
+                // a hard reload used to wipe them on leaving the classroom.
+                setForceTier(undefined);
+                setCustomConfig(undefined);
+                router.push('/study');
               }}
               title="Leave the classroom and return to session list"
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/30 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors text-sm font-medium cursor-pointer"
