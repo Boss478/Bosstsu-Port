@@ -4,7 +4,7 @@ Welcome to the Boss478 project repository! This project serves as a comprehensiv
 
 ## System Requirements
 
-- **Node.js**: v20 or higher
+- **Node.js**: v24.15.0 or higher (Node 24 LTS)
 - **Package Manager**: npm (v10+)
 - **Environment Variables**: Configure local environment variables for the database and secrets (e.g., MongoDB connection string).
 
@@ -19,7 +19,7 @@ Designed to act as an immersive personal showcase highlighting previous work (Po
 
 ## Frontend
 
-- **Framework**: Next.js 16.2 (App Router)
+- **Framework**: Next.js 16.3 (App Router)
 - **Library**: React 19.2
 - **Styling Architecture**: Tailwind CSS v4 configured with PostCSS
 - **State & Theme Management**: Next-Themes built into a centralized `<ThemeProvider>` (Dark/Light mode support)
@@ -34,7 +34,7 @@ Designed to act as an immersive personal showcase highlighting previous work (Po
 ## Database Design
 
 - **Database System**: MongoDB 
-- **ODM**: Mongoose v9.1.6
+- **ODM**: Mongoose v9.9.1
 - **Architecture / Models**: 
   - `Portfolio`: Contains structured records of project showcases.
   - `Gallery`: Stores robust image metadata and uploaded gallery items.
