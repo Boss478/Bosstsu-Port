@@ -19,6 +19,7 @@
     "assemble-words": "npx tsx scripts/assemble-words.ts",
     "lawlib:build": "npx tsx scripts/lawlib/build.ts",
     "lawlib:check": "npx tsx scripts/lawlib/build.ts --check",
+    "eval": "./.agents/evals/run-evals.sh",
     "test": "npm run test:check-inventory && npm run test:unit && npm run test:db",
     "test:check-inventory": "npx tsx scripts/check-test-inventory.ts",
     "test:unit": "vitest run --config vitest.unit.config.ts",
