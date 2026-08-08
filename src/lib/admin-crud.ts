@@ -28,11 +28,7 @@ export function revalidateContentPaths(adminPath: string, publicPath: string): v
   revalidatePath(publicPath);
 }
 
-export function createTogglePublished(
-  Model: Model<unknown>,
-  adminPath: string,
-  publicPath: string,
-) {
+export function createTogglePublished<T>(Model: Model<T>, adminPath: string, publicPath: string) {
   return async function togglePublished(id: string) {
     return withAuth(async () => {
       try {
@@ -51,7 +47,7 @@ export function createTogglePublished(
   };
 }
 
-export function createDeleteItem(Model: Model<unknown>, adminPath: string, publicPath: string) {
+export function createDeleteItem<T>(Model: Model<T>, adminPath: string, publicPath: string) {
   return async function deleteItem(id: string) {
     return withAuth(async () => {
       try {

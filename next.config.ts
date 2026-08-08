@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   compress: true,
   reactCompiler: true, // Auto-memoization via React Forget
   poweredByHeader: false,
+  agentRules: false, // Prevent next dev 16.3 auto-upsert of AGENTS.md/CLAUDE.md blocks (user decision 2026-08-08)
   allowedDevOrigins: ['localhost', '100.97.15.5', '0.0.0.0'],
   experimental: {
     serverActions: {
