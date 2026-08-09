@@ -911,6 +911,21 @@ textarea,
   animation: lawlib-morph-in 0.2s var(--ease-ios-spring) both;
 }
 
+/* T27c icon morph (AC-4): rotate -30deg + scale 0.8 + fade in, 300ms spring. */
+@keyframes lawlib-icon-swap {
+  from {
+    opacity: 0;
+    transform: rotate(-30deg) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+.lawlib-icon-swap {
+  animation: lawlib-icon-swap 0.3s var(--ease-ios-spring) both;
+}
+
 /* Auto-scroll chip level pop when the value changes — scale 1.1→1, 100ms. */
 @keyframes lawlib-chip-pop {
   from {

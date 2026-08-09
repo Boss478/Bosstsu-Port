@@ -93,6 +93,7 @@ function Probe() {
       <button onClick={toggleTheme}>toggle</button>
       <button onClick={() => setPaperTone(30)}>set-tone-30</button>
       <button onClick={() => setPaperTone(80)}>set-tone-80</button>
+      <button onClick={() => setPaperTone(80, { animated: true })}>set-tone-80-anim</button>
     </div>
   );
 }
@@ -295,6 +296,106 @@ describe('paperTone (T10a — numeric 0-100 + inline CSS vars)', () => {
     renderProvider();
     fireEvent.click(screen.getByText('set-tone-30'));
     expect(screen.getByTestId('paper-tone').textContent).toBe('30');
+  });
+});
+
+describe('T27c — VT direction contract (AC-3/AC-5)', () => {
+  /** jsdom has no startViewTransition — stub it with a spy that (a) records
+   *  `--vt-dir` AT CALL TIME (proving the dir lands on <html> BEFORE the
+   *  transition starts — AC-3 CSSOM ordering) and (b) runs the callback
+   *  synchronously (the production path flushSyncs inside it). */
+  function stubViewTransition(): {
+    vt: ReturnType<typeof vi.fn>;
+    dirAtCall: () => string;
+  } {
+    let dirAtCall = '';
+    const vt = vi.fn((cb: () => void) => {
+      dirAtCall = document.documentElement.style.getPropertyValue('--vt-dir');
+      cb();
+      return {
+        finished: Promise.resolve(),
+        ready: Promise.resolve(),
+        updateCallbackDone: Promise.resolve(),
+        skipTransition: () => {},
+      };
+    });
+    document.startViewTransition = vt as unknown as typeof document.startViewTransition;
+    return { vt, dirAtCall: () => dirAtCall };
+  }
+
+  function restoreViewTransitionStub(): void {
+    document.startViewTransition = undefined as unknown as typeof document.startViewTransition;
+    window.history.pushState({}, '', '/');
+  }
+
+  it('setTheme on a lawlib route sets --vt-dir BEFORE startViewTransition (AC-3)', () => {
+    window.history.pushState({}, '', '/lawlib/test');
+    const { vt, dirAtCall } = stubViewTransition();
+    renderProvider();
+
+    fireEvent.click(screen.getByText('set-dark'));
+    expect(vt).toHaveBeenCalledTimes(1);
+    expect(dirAtCall()).toBe('to-dark');
+    expect(themeClasses()).toEqual(['dark']);
+
+    fireEvent.click(screen.getByText('set-read'));
+    expect(dirAtCall()).toBe('to-paper');
+    expect(themeClasses()).toEqual(['read']);
+
+    fireEvent.click(screen.getByText('set-sepia'));
+    expect(dirAtCall()).toBe('to-paper');
+    expect(themeClasses()).toEqual(['sepia']);
+
+    fireEvent.click(screen.getByText('set-light'));
+    expect(dirAtCall()).toBe('to-light');
+    expect(themeClasses()).toEqual(['light']);
+
+    restoreViewTransitionStub();
+  });
+
+  it('animated paper-tone commits VT with to-paper; plain calls stay instant (AC-5)', () => {
+    window.history.pushState({}, '', '/lawlib/test');
+    const { vt, dirAtCall } = stubViewTransition();
+    renderProvider();
+
+    // Slider path (no opts) — NEVER a View Transition (user decision).
+    fireEvent.click(screen.getByText('set-tone-30'));
+    expect(vt).not.toHaveBeenCalled();
+    expect(screen.getByTestId('paper-tone').textContent).toBe('30');
+
+    // Discrete commit (animated: true) — warm VT + dir before the call.
+    fireEvent.click(screen.getByText('set-tone-80-anim'));
+    expect(vt).toHaveBeenCalledTimes(1);
+    expect(dirAtCall()).toBe('to-paper');
+    expect(screen.getByTestId('paper-tone').textContent).toBe('80');
+
+    restoreViewTransitionStub();
+  });
+
+  it('reduced-motion falls back to the instant swap — no VT, no dir change (AC-1)', () => {
+    window.history.pushState({}, '', '/lawlib/test');
+    mockMatchMedia(true); // OS dark + prefers-reduced-motion: reduce
+    const { vt } = stubViewTransition();
+    renderProvider();
+    expect(screen.getByTestId('theme').textContent).toBe('dark');
+
+    fireEvent.click(screen.getByText('set-light'));
+    expect(vt).not.toHaveBeenCalled();
+    expect(themeClasses()).toEqual(['light']);
+
+    restoreViewTransitionStub();
+  });
+
+  it('non-lawlib routes fall back to the instant swap — no VT (route gate)', () => {
+    window.history.pushState({}, '', '/games');
+    const { vt } = stubViewTransition();
+    renderProvider();
+
+    fireEvent.click(screen.getByText('set-dark'));
+    expect(vt).not.toHaveBeenCalled();
+    expect(themeClasses()).toEqual(['dark']);
+
+    restoreViewTransitionStub();
   });
 });
 

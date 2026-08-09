@@ -920,7 +920,19 @@ export default function LawlibDock(props: LawlibDockProps) {
               : 'border-slate-200/90 bg-white/90 text-slate-600 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 hover:shadow-sm dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
           }`}
         >
-          <i aria-hidden="true" className={`fi ${icon} text-sm md:text-[15px] leading-none`} />
+          {/* T27c (AC-4) — theme icon morph: keyed by the theme value so a
+              theme change REMOUNTS the glyph and replays lawlib-icon-swap
+              (300ms rotate-fade + spring pop). ONE animation on this <i>
+              (D10) — the button's own hover transition stays on the
+              button. Non-theme pickers keep the stable icon (no key, no
+              swap class). */}
+          <i
+            key={key === 'theme' ? theme : undefined}
+            aria-hidden="true"
+            className={`fi ${icon} ${
+              key === 'theme' ? 'lawlib-icon-swap' : ''
+            } text-sm md:text-[15px] leading-none`}
+          />
           {key !== 'theme' && key !== 'settings' && (
             <span className="text-[9.5px] md:text-[10px] font-bold leading-none tabular-nums tracking-tight">
               {pickerValue[kind]}

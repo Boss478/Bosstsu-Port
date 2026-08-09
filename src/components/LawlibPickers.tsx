@@ -626,20 +626,29 @@ export const FONT_WEIGHT_OPTIONS: ReadonlyArray<{ value: ReaderFontWeight; label
   { value: 'normal', label: 'ปกติ' },
   { value: 'bold', label: 'หนา' },
 ];
+/** T27c (AC-5) — paper-tone chip pop duration: must match the inline
+ *  animationDuration override on the คืนค่า button (200ms spring). */
+const TONE_CHIP_POP_MS = 200;
 
 /** T12 (ADR-019 D9): per-setting "คืนค่า" — resets ONE setting only.
  *  Disabled at the default value (the button exists for every control; it is
  *  a no-op — and visibly so — when there is nothing to restore).
  *  T12c (a11y re-check): min-h-7 → min-h-11 — the 44px touch floor (WCAG
- *  2.5.8) applies to these reset buttons too. */
+ *  2.5.8) applies to these reset buttons too.
+ *  T27c (AC-5): `pop` adds the tone-chip spring pop (lawlib-chip-pop
+ *  keyframe + 200ms duration override — the D10 duration-override pattern)
+ *  to the paper-tone คืนค่า button on discrete commits. */
 function ResetButton({
   label,
   disabled,
   onClick,
+  pop,
 }: {
   label: string;
   disabled: boolean;
   onClick: () => void;
+  /** T27c — replay the 200ms spring pop on the next discrete commit. */
+  pop?: boolean;
 }) {
   return (
     <button
@@ -648,7 +657,10 @@ function ResetButton({
       disabled={disabled}
       aria-label={`คืนค่า${label}`}
       title="คืนค่าเริ่มต้นของรายการนี้"
-      className="flex min-h-11 shrink-0 cursor-pointer items-center gap-0.5 rounded-md px-1.5 text-[10px] font-semibold text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent disabled:hover:text-slate-300 dark:text-blue-300 dark:hover:bg-blue-950/40 dark:hover:text-blue-200 dark:disabled:text-slate-600"
+      className={`flex min-h-11 shrink-0 cursor-pointer items-center gap-0.5 rounded-md px-1.5 text-[10px] font-semibold text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent disabled:hover:text-slate-300 dark:text-blue-300 dark:hover:bg-blue-950/40 dark:hover:text-blue-200 dark:disabled:text-slate-600 ${
+        pop ? 'lawlib-chip-pop' : ''
+      }`}
+      style={pop ? { animationDuration: '200ms' } : undefined}
     >
       <i aria-hidden="true" className="fi fi-sr-rotate-left text-[8px]" />
       คืนค่า
@@ -778,13 +790,51 @@ export function SettingsPanelContent({
   dockPosition: DockPosition;
   onDockPositionChange: (next: DockPosition) => void;
   /** T23 — theme + paper tone (ThemeProvider state, owned by the dock —
-   *  passed down so the 5 reading-surface sections share the L1 state). */
+   *  passed down so the 5 reading-surface sections share the L1 state).
+   *  T27c: setPaperTone accepts the `animated` opt — discrete commits
+   *  (the paper-tone คืนค่า button) pass `{ animated: true }` for the warm
+   *  View Transition; the slider never does (AC-5 — user decision). */
   theme: Theme;
   setTheme: (next: Theme) => void;
   paperTone: number;
-  setPaperTone: (next: number) => void;
+  setPaperTone: (next: number, opts?: { animated?: boolean }) => void;
 }) {
   const [confirmReset, setConfirmReset] = useState(false);
+  /** T27c (AC-5) — tone-chip pop re-trigger: the paper-tone คืนค่า button
+   *  pops (200ms spring) on every discrete tone commit. Cleared by a TIMER
+   *  (T30 chip pattern — onAnimationEnd is unreliable in throttled tabs)
+   *  so the class leaves before the next re-add can replay it. */
+  const [tonePop, setTonePop] = useState(false);
+  const tonePopTimerRef = useRef<number | null>(null);
+
+  // T27c — a pending tone-pop timer must never outlive the panel (T30
+  // pattern: stale timers firing on an unmounted panel).
+  useEffect(() => {
+    return () => {
+      if (tonePopTimerRef.current !== null) {
+        window.clearTimeout(tonePopTimerRef.current);
+        tonePopTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  /** T27c (AC-5) — the paper-tone คืนค่า BUTTON is a discrete commit: warm
+   *  VT (400ms, provider-side `animated` opt) + the button's spring pop.
+   *  Reduced-motion → no pop (the provider also falls back to the instant
+   *  swap via its own RM gate). */
+  const handleToneReset = () => {
+    setPaperTone(DEFAULT_PAPER_TONE, { animated: true });
+    if (reducedMotion) return;
+    if (tonePopTimerRef.current !== null) {
+      window.clearTimeout(tonePopTimerRef.current);
+      tonePopTimerRef.current = null;
+    }
+    setTonePop(true);
+    tonePopTimerRef.current = window.setTimeout(() => {
+      tonePopTimerRef.current = null;
+      setTonePop(false);
+    }, TONE_CHIP_POP_MS);
+  };
   // T12 (ADR-019 D9): per-setting คืนค่า — resets ONLY that one setting.
   // The reset button renders for every control and disables at its default.
   const d = DEFAULT_READING_SETTINGS;
@@ -826,7 +876,8 @@ export function SettingsPanelContent({
             <ResetButton
               label="ความเหลืองของกระดาษ"
               disabled={paperTone === DEFAULT_PAPER_TONE}
-              onClick={() => setPaperTone(DEFAULT_PAPER_TONE)}
+              onClick={handleToneReset}
+              pop={tonePop}
             />
           }
         >

@@ -95,6 +95,21 @@ function applyPaperToneVars(tone: PaperTone): void {
   html.style.setProperty('--read-card', card);
 }
 
+/** T27c (AC-3) — VT direction by TARGET theme: globals.css keys the
+ *  directional root keyframes on `html[style*='--vt-dir: to-…']`, and CSSOM
+ *  serializes the inline style with a space after the colon — so the dir
+ *  MUST be set via style.setProperty (never setAttribute) on
+ *  document.documentElement BEFORE startViewTransition. read/sepia share
+ *  the warm to-paper direction; every Theme maps to one of the three known
+ *  dirs, and any unknown dir would match NO selector → the T27b plain
+ *  400ms crossfade covers it (guaranteed fallback). */
+const VT_DIR_BY_THEME: Record<Theme, string> = {
+  light: 'to-light',
+  dark: 'to-dark',
+  read: 'to-paper',
+  sepia: 'to-paper',
+};
+
 /**
  * T27 gate (adr-023 D3) — startViewTransition ONLY for discrete theme
  * commits on lawlib routes: SSR-safe feature-detect, JS reduced-motion
@@ -156,6 +171,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     if (canUseViewTransition() && next !== theme) {
       try {
+        // T27c (AC-3): the direction MUST land on <html> before the
+        // transition starts — the keyframes are keyed on the serialized
+        // inline style (setProperty, never setAttribute).
+        document.documentElement.style.setProperty('--vt-dir', VT_DIR_BY_THEME[next]);
         document.startViewTransition(() => {
           flushSync(() => setThemeState(next));
           applyThemeClass(next);
@@ -194,6 +213,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     if (opts?.animated && canUseViewTransition() && clamped !== paperTone) {
       try {
+        // T27c (AC-5): tone commits always crossfade warm (to-paper) — set
+        // BEFORE the transition starts (same CSSOM rule as setTheme).
+        document.documentElement.style.setProperty('--vt-dir', 'to-paper');
         document.startViewTransition(() => {
           flushSync(() => setPaperToneState(clamped));
           applyPaperToneVars(clamped);
