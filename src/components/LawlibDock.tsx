@@ -27,7 +27,8 @@
  *                      expands AWAY from the screen edge). Icon-only 2-col
  *                      grid (32×32 icons): row 1 = the Level-1 favorite set,
  *                      divider, row 2 = the rest (glossary · bookmarks-ALL ·
- *                      copy · copy-link · ⚙️ settings). NO back button / NO
+ *                      copy · copy-link · ⚙️ settings · โฟกัส · อ่านอัตโนมัติ
+ *                      — T23). NO back button / NO
  *                      section titles / NO text rows / NO pin toggles (pin
  *                      management moved into the ⚙️ settings panel —
  *                      เครื่องมือแถวลัด). bookmarks-all opens the bookmarks
@@ -203,7 +204,8 @@ const ACTION_PANEL_MAP: Partial<Record<DockMoreToolKey, DockPanelKind>> = {
 };
 /** T14 Level-2 row-2 order: the full tool set + the L2-only bookmarks-all
  *  (never pinnable — the L1 bookmark TOGGLE already carries the count).
- *  favoriteToolKeys are filtered OUT of row 2 (row 1 = the favorites). */
+ *  favoriteToolKeys are filtered OUT of row 2 (row 1 = the favorites).
+ *  T23: focusMode + autoScroll flow in via DOCK_TOOL_KEYS (13 tools). */
 const MORE_REST_KEYS: readonly DockMoreToolKey[] = [...DOCK_TOOL_KEYS, 'bookmarksAll'];
 
 // ---------------------------------------------------------------------------
@@ -225,6 +227,9 @@ export interface LawlibDockProps {
   /** Current article bookmarked (Level-1 bookmark toggle state). */
   isBookmarked: boolean;
   onToggleBookmark: () => void;
+  /** T23 — auto-scroll dock tool (L1/L2): toggles speed 0 ↔ last level.
+   *  The level memory lives in the reader (session ref). */
+  onToggleAutoScroll: () => void;
   activePanel: DockPanelKind | null;
   onOpenPanel: (panel: DockPanelKind) => void;
   notesCount: number;
@@ -255,6 +260,7 @@ export default function LawlibDock(props: LawlibDockProps) {
     setSettings,
     isBookmarked,
     onToggleBookmark,
+    onToggleAutoScroll,
     activePanel,
     onOpenPanel,
     notesCount,
@@ -341,6 +347,19 @@ export default function LawlibDock(props: LawlibDockProps) {
     setExpanded(false);
     pickerAnchorRef.current = null;
   }, []);
+
+  /** T23 — focus mode is SETTINGS state (persisted; the reader applies
+   *  body.lawlib-focus / Esc-exit / the reading indicator). ONE dock-level
+   *  handler for EVERY mount: the L1/L2 โฟกัส tool + the ⚙️ settings toggle.
+   *  Activating also closes the dock — it is part of what focus mode hides
+   *  (instant close, NOT a persisted user collapse). */
+  const handleFocusModeChange = useCallback(
+    (next: boolean) => {
+      setSettings((prev) => ({ ...prev, focusMode: next }));
+      if (next) closeAllInstant();
+    },
+    [setSettings, closeAllInstant],
+  );
 
   /** USER-initiated collapse (Esc at Level 1 / × button): persists
    *  `lawlib:dockCollapsed` + plays the exit animation when enabled (150ms
@@ -524,6 +543,16 @@ export default function LawlibDock(props: LawlibDockProps) {
         return;
       case 'copyLink':
         if (canCopy) onCopyLink();
+        return;
+      // T23 — explicit cases: the default branch maps to ACTION_PANEL_MAP[key]
+      // = undefined, which would leave these two buttons DEAD no-ops.
+      case 'focusMode':
+        // The dock closes itself when focus activates (shared handler —
+        // same semantics as the ⚙️ settings toggle).
+        handleFocusModeChange(true);
+        return;
+      case 'autoScroll':
+        onToggleAutoScroll();
         return;
       default: {
         const panel = ACTION_PANEL_MAP[key];
@@ -738,24 +767,34 @@ export default function LawlibDock(props: LawlibDockProps) {
     if (key === 'notes') return activePanel === 'notes';
     if (key === 'glossary') return activePanel === 'glossary';
     if (key === 'bookmarksAll') return activePanel === 'bookmarks';
+    // T23 — both live in SETTINGS: focusMode is the persisted boolean;
+    // autoScroll is ON whenever a speed is stored (level 1-5).
+    if (key === 'focusMode') return settings.focusMode;
+    if (key === 'autoScroll') return settings.autoScrollSpeed > 0;
     return false;
   };
   /** True ONLY for the real toggle buttons (bookmark/search/notes/glossary/
-   *  bookmarksAll). copy/copyLink act directly and pickers open popovers —
-   *  they must NOT carry aria-pressed, or SR announces a toggle that isn't
-   *  one (T14 a11y findings). */
+   *  bookmarksAll + T23 focusMode/autoScroll). copy/copyLink act directly
+   *  and pickers open popovers — they must NOT carry aria-pressed, or SR
+   *  announces a toggle that isn't one (T14 a11y findings). */
   const isToolToggle = (key: DockMoreToolKey): boolean =>
     key === 'bookmark' ||
     key === 'search' ||
     key === 'notes' ||
     key === 'glossary' ||
-    key === 'bookmarksAll';
+    key === 'bookmarksAll' ||
+    key === 'focusMode' ||
+    key === 'autoScroll';
   const toolGlyph = (key: DockMoreToolKey, active: boolean): string => {
     const flash = key === 'copy' && copiedFlash === 'article';
     const linkFlash = key === 'copyLink' && copiedFlash === 'link';
-    return flash || linkFlash || (key === 'bookmark' && active)
-      ? 'fi-sr-check-circle'
-      : TOOL_ICONS[key];
+    if (flash || linkFlash || (key === 'bookmark' && active)) {
+      return 'fi-sr-check-circle';
+    }
+    // T23 — active autoScroll swaps play → pause (the chip's own glyph
+    // language; never color-only, WCAG 1.4.1).
+    if (key === 'autoScroll' && active) return 'fi-sr-pause';
+    return TOOL_ICONS[key];
   };
 
   /** Action icon button — Level 1 (badges: bookmark count + notes count). */
@@ -1052,18 +1091,14 @@ export default function LawlibDock(props: LawlibDockProps) {
                   typeof window !== 'undefined' &&
                   window.matchMedia('(prefers-reduced-motion: reduce)').matches
                 }
-                onFocusModeChange={(focusMode) => {
-                  setSettings((prev) => ({ ...prev, focusMode }));
-                  if (focusMode) {
-                    // The dock is part of what focus mode hides — close it
-                    // so the panel/picker don't float alone (instant — a
-                    // programmatic close must NOT persist dockCollapsed).
-                    closeAllInstant();
-                  }
-                }}
+                onFocusModeChange={handleFocusModeChange}
                 onReset={handleReset}
                 dockPosition={position}
                 onDockPositionChange={setDockPosition}
+                theme={theme}
+                setTheme={setTheme}
+                paperTone={paperTone}
+                setPaperTone={setPaperTone}
               />
             </div>
           )}

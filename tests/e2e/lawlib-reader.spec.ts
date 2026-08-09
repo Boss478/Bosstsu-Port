@@ -372,4 +372,15 @@ test.describe('LawLib Reader — national-education-act-2542', () => {
     expect(box.x + box.width / 2).toBeGreaterThan(600);
     expect(box.x + box.width / 2).toBeLessThan(680);
   });
+
+  test('T23: Level 2 shows the โฟกัส + อ่านอัตโนมัติ tools (icon-only toggles)', async ({
+    page,
+  }) => {
+    await openReader(page);
+    await page.getByRole('button', { name: 'เพิ่มเติม' }).click();
+    const more = page.locator('#lawlib-more-panel');
+    // Both new tools render in the L2 grid with their Thai labels.
+    await expect(more.getByRole('button', { name: 'โฟกัส' })).toBeVisible();
+    await expect(more.getByRole('button', { name: 'อ่านอัตโนมัติ' })).toBeVisible();
+  });
 });

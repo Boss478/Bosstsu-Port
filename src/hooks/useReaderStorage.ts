@@ -103,6 +103,8 @@ export const DOCK_TOOL_KEYS: readonly DockToolKey[] = [
   'copy',
   'copyLink',
   'settings',
+  'focusMode',
+  'autoScroll',
 ];
 
 /** Font size clamp (px). */

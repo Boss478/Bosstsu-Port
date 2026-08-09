@@ -80,7 +80,9 @@ export type DockToolKey =
   | 'glossary'
   | 'copy'
   | 'copyLink'
-  | 'settings';
+  | 'settings'
+  | 'focusMode'
+  | 'autoScroll';
 
 /** T10b (ADR-019 D4): the 5 reading font families. Sarabun/Mali resolve to
  *  the existing next/font/local vars (NEVER re-@font-face them — hashed

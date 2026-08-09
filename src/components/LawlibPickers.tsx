@@ -10,7 +10,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DEFAULT_READING_SETTINGS, DOCK_TOOL_KEYS } from '@/hooks/useReaderStorage';
-import type { Theme } from '@/components/ThemeProvider';
+import { DEFAULT_PAPER_TONE, type Theme } from '@/components/ThemeProvider';
 import type {
   DockToolKey,
   ParagraphSpacing,
@@ -42,6 +42,9 @@ export const TOOL_LABELS: Record<DockMoreToolKey, string> = {
   copyLink: 'คัดลอกลิงก์มาตรานี้',
   settings: 'ตั้งค่า',
   bookmarksAll: 'ที่คั่นหน้าทั้งหมด',
+  // T23 — focus mode + auto scroll as dock tools (L2 + pin-able L1).
+  focusMode: 'โฟกัส',
+  autoScroll: 'อ่านอัตโนมัติ',
 };
 
 export const TOOL_ICONS: Record<DockMoreToolKey, string> = {
@@ -57,7 +60,22 @@ export const TOOL_ICONS: Record<DockMoreToolKey, string> = {
   copyLink: 'fi-sr-link',
   settings: 'fi-sr-settings',
   bookmarksAll: 'fi-sr-books',
+  // T23 — glyphs already in the flaticon subset (no font regeneration).
+  // autoScroll swaps to fi-sr-pause while active (bookmark pattern).
+  focusMode: 'fi-sr-eye',
+  autoScroll: 'fi-sr-play',
 };
+
+/**
+ * T23 — seconds per line for the auto-scroll speed display (⚙️ slider):
+ * the scroll rate is 48 px/s per level (= 0.8 px/frame × 60 — dt-normalized,
+ * 120Hz-safe), so one line of `fontSize × lineHeight` px takes
+ * (fontSize × lineHeight) / (speed × 48) seconds. `null` when OFF.
+ */
+export function secondsPerLine(speed: number, fontSize: number, lineHeight: number): number | null {
+  if (speed <= 0) return null;
+  return Number(((fontSize * lineHeight) / (speed * 48)).toFixed(1));
+}
 
 // ---------------------------------------------------------------------------
 // Shared picker popover infra
@@ -486,9 +504,15 @@ const POSITION_LABELS: Record<DockPosition, string> = {
 // floor 44), dock POSITION (T12c), paragraph spacing, font weight, hide
 // repealed + hide amendment notes, focus mode (with the will-hide
 // disclosure), auto-scroll speed, reset. Stays inside the PickerPopover
-// infra (role="group" — NO nested dialog). The paper slider lives ONLY in
-// the theme picker (single source: lawlib:paperTone +
-// ThemeProvider.setPaperTone — not duplicated here).
+// infra (role="group" — NO nested dialog).
+// T23 (user decision 2026-08-09 — "both side settings"): the 5 reading
+// surface controls ALSO live here (Theme / paper tone / text size / line
+// spacing / width — the SAME L1 picker components, second mount point).
+// The paper slider is therefore NOT single-source anymore: it lives in the
+// L1 theme picker AND the ⚙️ Paper tone section — both mounts write the
+// same `lawlib:paperTone` key through the same ThemeProvider.setPaperTone,
+// so the state stays consistent (the old "lives ONLY in the theme picker"
+// single-source comment is obsolete).
 // ---------------------------------------------------------------------------
 
 export const FONT_FAMILY_OPTIONS: ReadonlyArray<{ value: ReaderFontFamily; label: string }> = [
@@ -638,6 +662,10 @@ export function SettingsPanelContent({
   onReset,
   dockPosition,
   onDockPositionChange,
+  theme,
+  setTheme,
+  paperTone,
+  setPaperTone,
 }: {
   settings: ReadingSettingsValue;
   /** Full replacement or updater — the dock's setSettings supports both;
@@ -658,6 +686,12 @@ export function SettingsPanelContent({
   /** T12c — dock position (persisted `lawlib:dockPosition` by the dock). */
   dockPosition: DockPosition;
   onDockPositionChange: (next: DockPosition) => void;
+  /** T23 — theme + paper tone (ThemeProvider state, owned by the dock —
+   *  passed down so the 5 reading-surface sections share the L1 state). */
+  theme: Theme;
+  setTheme: (next: Theme) => void;
+  paperTone: number;
+  setPaperTone: (next: number) => void;
 }) {
   const [confirmReset, setConfirmReset] = useState(false);
   // T12 (ADR-019 D9): per-setting คืนค่า — resets ONLY that one setting.
@@ -671,6 +705,93 @@ export function SettingsPanelContent({
 
   return (
     <div className="space-y-3">
+      {/* ─── T23: reading-surface controls (user decision 2026-08-09 — the
+          L1 pickers' components, second mount point; L1 pickers stay) ──── */}
+      <SettingsSectionTitle>ธีม</SettingsSectionTitle>
+      <div className="grid grid-cols-2 gap-1.5">
+        {THEME_CHOICES.map((choice) => (
+          <OptionButton
+            key={choice.value}
+            pressed={theme === choice.value}
+            onClick={() => setTheme(choice.value)}
+            label={`ธีม${choice.label}`}
+          >
+            <i aria-hidden="true" className={`fi ${choice.icon} text-[10px]`} />
+            {choice.label}
+          </OptionButton>
+        ))}
+      </div>
+
+      <SettingsSectionTitle
+        action={
+          <ResetButton
+            label="ความเหลืองของกระดาษ"
+            disabled={paperTone === DEFAULT_PAPER_TONE}
+            onClick={() => setPaperTone(DEFAULT_PAPER_TONE)}
+          />
+        }
+      >
+        ความเหลืองของกระดาษ
+      </SettingsSectionTitle>
+      <SliderRow
+        id="lawlib-paper-tone-settings"
+        label="ความเหลืองของกระดาษ"
+        min={0}
+        max={100}
+        step={1}
+        value={paperTone}
+        display={`${paperTone}`}
+        onChange={setPaperTone}
+      />
+
+      <SettingsSectionTitle
+        action={
+          <ResetButton
+            label="ขนาดตัวอักษร"
+            disabled={settings.fontSize === d.fontSize}
+            onClick={() => onChange((prev) => ({ ...prev, fontSize: d.fontSize }))}
+          />
+        }
+      >
+        ขนาดตัวอักษร
+      </SettingsSectionTitle>
+      <FontSizePickerContent
+        value={settings.fontSize}
+        onChange={(fontSize) => onChange((prev) => ({ ...prev, fontSize }))}
+      />
+
+      <SettingsSectionTitle
+        action={
+          <ResetButton
+            label="ความสูงบรรทัด"
+            disabled={settings.lineHeight === d.lineHeight}
+            onClick={() => onChange((prev) => ({ ...prev, lineHeight: d.lineHeight }))}
+          />
+        }
+      >
+        ความสูงบรรทัด
+      </SettingsSectionTitle>
+      <LineHeightPickerContent
+        value={settings.lineHeight}
+        onChange={(lineHeight) => onChange((prev) => ({ ...prev, lineHeight }))}
+      />
+
+      <SettingsSectionTitle
+        action={
+          <ResetButton
+            label="ความกว้างเนื้อหา"
+            disabled={settings.width === d.width}
+            onClick={() => onChange((prev) => ({ ...prev, width: d.width }))}
+          />
+        }
+      >
+        ความกว้างเนื้อหา
+      </SettingsSectionTitle>
+      <WidthPickerContent
+        value={settings.width}
+        onChange={(width) => onChange((prev) => ({ ...prev, width }))}
+      />
+
       {/* ─── Font family ───────────────────────────────────────────────── */}
       <SettingsSectionTitle
         action={
@@ -985,8 +1106,16 @@ export function SettingsPanelContent({
         max={AUTO_SCROLL_MAX}
         step={1}
         value={reducedMotion ? 0 : settings.autoScrollSpeed}
+        // T23 — level + seconds per line (48 px/s per level; null when OFF).
+        // 'ปิด' when speed 0 OR reduced-motion (matches the forced value).
         display={
-          settings.autoScrollSpeed === 0 || reducedMotion ? 'ปิด' : `${settings.autoScrollSpeed}`
+          settings.autoScrollSpeed === 0 || reducedMotion
+            ? 'ปิด'
+            : `ระดับ ${settings.autoScrollSpeed} · ${secondsPerLine(
+                settings.autoScrollSpeed,
+                settings.fontSize,
+                settings.lineHeight,
+              )} วิ/บรรทัด`
         }
         onChange={(autoScrollSpeed) => onChange((prev) => ({ ...prev, autoScrollSpeed }))}
       />

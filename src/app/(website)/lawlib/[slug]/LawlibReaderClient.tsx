@@ -1282,6 +1282,20 @@ export default function LawlibReaderClient({
   //     restores the user's choice). The pause state drives the floating
   //     chip's resume button; the loop reads the REF so the chip can toggle
   //     it without restarting the rAF chain.
+  //     T23 — the dock's อ่านอัตโนมัติ tool toggles speed 0 ↔ the LAST
+  //     level (session memory; default 3 when there is no history yet).
+  const lastAutoScrollLevelRef = useRef(3);
+  const handleToggleAutoScroll = useCallback(() => {
+    if (settings.autoScrollSpeed > 0) {
+      lastAutoScrollLevelRef.current = settings.autoScrollSpeed;
+      setSettings((prev) => ({ ...prev, autoScrollSpeed: 0 }));
+    } else {
+      setSettings((prev) => ({
+        ...prev,
+        autoScrollSpeed: lastAutoScrollLevelRef.current || 3,
+      }));
+    }
+  }, [settings.autoScrollSpeed, setSettings]);
   const [autoScrollPaused, setAutoScrollPaused] = useState(false);
   const autoScrollPausedRef = useRef(false);
   useEffect(() => {
@@ -1608,6 +1622,7 @@ export default function LawlibReaderClient({
         setSettings={setSettings}
         isBookmarked={isBookmarked}
         onToggleBookmark={handleBookmarkCurrent}
+        onToggleAutoScroll={handleToggleAutoScroll}
         activePanel={openPanel}
         onOpenPanel={handleOpenPanelFromDock}
         notesCount={notes.length}

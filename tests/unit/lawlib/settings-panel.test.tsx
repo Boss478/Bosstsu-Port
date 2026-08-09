@@ -484,16 +484,17 @@ describe('T12 settings panel — per-setting คืนค่า resets (ADR-019 
 });
 
 describe('T14 settings panel — เครื่องมือแถวลัด favorites editor (ADR-019 D10)', () => {
-  it('renders one switch per tool (11 total); the curated 7 start checked; per-setting reset disabled', async () => {
+  it('renders one switch per tool (13 total); the curated 7 start checked; per-setting reset disabled', async () => {
     await renderReader();
     const picker = await openSettings();
     expect(within(picker).getByRole('heading', { name: 'เครื่องมือแถวลัด' })).toBeTruthy();
 
     const switches = within(picker).getAllByRole('switch');
-    // 11 tool switches (the section) + 3 content/animation switches (hide
-    // repealed, hide amendment notes, animateDock) + focus-mode switch.
+    // 13 tool switches (T23 — + focusMode + autoScroll) + 3 content/
+    // animation switches (hide repealed, hide amendment notes, animateDock)
+    // + focus-mode switch.
     const favSwitches = switches.filter((s) => s.id.startsWith('lawlib-fav-'));
-    expect(favSwitches.length).toBe(11);
+    expect(favSwitches.length).toBe(13);
     // The curated default row is checked.
     for (const name of [
       'ธีม',
@@ -510,6 +511,14 @@ describe('T14 settings panel — เครื่องมือแถวลั�
     }
     expect(
       within(picker).getByRole('switch', { name: 'บทนิยาม' }).getAttribute('aria-checked'),
+    ).toBe('false');
+    // T23 — the new tools render as switches (pinnable) but are NOT in the
+    // default favorites.
+    expect(within(picker).getByRole('switch', { name: 'โฟกัส' }).getAttribute('aria-checked')).toBe(
+      'false',
+    );
+    expect(
+      within(picker).getByRole('switch', { name: 'อ่านอัตโนมัติ' }).getAttribute('aria-checked'),
     ).toBe('false');
     // Per-setting คืนค่า disabled at the curated default.
     expect(
@@ -570,5 +579,143 @@ describe('T14 settings panel — เครื่องมือแถวลั�
 
     fireEvent.click(within(picker).getByRole('button', { name: 'คืนค่าเครื่องมือแถวลัด' }));
     expect(storedSettings().favoriteToolKeys).toEqual(DEFAULT_FAVORITE_KEYS_EXPECTED);
+  });
+});
+
+describe('T23 settings panel — auto-scroll speed display (ระดับ N · X.X วิ/บรรทัด)', () => {
+  it('slider label shows ระดับ {n} · {x.x} วิ/บรรทัด at speed > 0 (default 16px × 1.8)', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    const slider = within(picker).getByLabelText('ความเร็ว') as HTMLInputElement;
+
+    // Off → ปิด (aria-valuetext mirrors the visible label).
+    expect(within(picker).getByText('ปิด')).toBeTruthy();
+    expect(slider.getAttribute('aria-valuetext')).toBe('ปิด');
+
+    // Speed 1 @ 16×1.8 → 28.8/48 = 0.6 s/line.
+    fireEvent.change(slider, { target: { value: '1' } });
+    expect(within(picker).getByText('ระดับ 1 · 0.6 วิ/บรรทัด')).toBeTruthy();
+    expect(slider.getAttribute('aria-valuetext')).toBe('ระดับ 1 · 0.6 วิ/บรรทัด');
+
+    // Speed 3 → 28.8/144 = 0.2.
+    fireEvent.change(slider, { target: { value: '3' } });
+    expect(within(picker).getByText('ระดับ 3 · 0.2 วิ/บรรทัด')).toBeTruthy();
+
+    // Speed 5 → 28.8/240 = 0.12 → 0.1 (1 decimal).
+    fireEvent.change(slider, { target: { value: '5' } });
+    expect(within(picker).getByText('ระดับ 5 · 0.1 วิ/บรรทัด')).toBeTruthy();
+  });
+
+  it('reduced-motion renders ปิด even with a stored speed (forced-off value)', async () => {
+    mockMatchMedia([['(prefers-reduced-motion: reduce)', true]]);
+    localStorage.setItem('lawlib:settings', JSON.stringify({ autoScrollSpeed: 3 }));
+    await renderReader();
+    const picker = await openSettings();
+    const slider = within(picker).getByLabelText('ความเร็ว') as HTMLInputElement;
+    // The stored 3 survives (validator) but the slider + label render OFF.
+    expect(storedSettings().autoScrollSpeed).toBe(3);
+    expect(slider.value).toBe('0');
+    expect(within(picker).getByText('ปิด')).toBeTruthy();
+  });
+});
+
+describe('T23 settings panel — 5 reading-surface sections (both mounts, same state)', () => {
+  it('renders Theme / Paper tone / Text size / Line spacing / Width sections', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    expect(within(picker).getByRole('heading', { name: 'ธีม' })).toBeTruthy();
+    expect(within(picker).getByRole('heading', { name: 'ความเหลืองของกระดาษ' })).toBeTruthy();
+    expect(within(picker).getByRole('heading', { name: 'ขนาดตัวอักษร' })).toBeTruthy();
+    expect(within(picker).getByRole('heading', { name: 'ความสูงบรรทัด' })).toBeTruthy();
+    expect(within(picker).getByRole('heading', { name: 'ความกว้างเนื้อหา' })).toBeTruthy();
+
+    // The controls themselves: 4 theme modes + stepper + sliders.
+    for (const label of ['ธีมสว่าง', 'ธีมมืด', 'ธีมกระดาษ', 'ธีมซีเปีย']) {
+      expect(within(picker).getByRole('button', { name: label })).toBeTruthy();
+    }
+    expect(within(picker).getByRole('button', { name: 'ตัวอักษรใหญ่ขึ้น' })).toBeTruthy();
+    expect(within(picker).getByRole('slider', { name: 'ความสูงบรรทัด' })).toBeTruthy();
+    expect(within(picker).getByRole('slider', { name: 'ความกว้างเนื้อหา' })).toBeTruthy();
+    expect(within(picker).getByRole('slider', { name: 'ความเหลืองของกระดาษ' })).toBeTruthy();
+  });
+
+  it('text size / line spacing / width changes in ⚙️ reflect on the L1 pickers (same settings state)', async () => {
+    await renderReader();
+    const picker = await openSettings();
+
+    // Text size stepper + → 17px (persisted + L1 button label).
+    fireEvent.click(within(picker).getByRole('button', { name: 'ตัวอักษรใหญ่ขึ้น' }));
+    expect(storedSettings().fontSize).toBe(17);
+    expect(screen.getByRole('button', { name: 'ตัวอักษร 17px' })).toBeTruthy();
+
+    // Line spacing slider → 1.2.
+    fireEvent.change(within(picker).getByRole('slider', { name: 'ความสูงบรรทัด' }), {
+      target: { value: '1.2' },
+    });
+    expect(storedSettings().lineHeight).toBe(1.2);
+    expect(screen.getByRole('button', { name: 'บรรทัด 1.2' })).toBeTruthy();
+
+    // Width slider → 110%.
+    fireEvent.change(within(picker).getByRole('slider', { name: 'ความกว้างเนื้อหา' }), {
+      target: { value: '110' },
+    });
+    expect(storedSettings().width).toBe(110);
+    expect(screen.getByRole('button', { name: 'กว้าง 110%' })).toBeTruthy();
+  });
+
+  it('theme + paper tone in ⚙️ share the ThemeProvider state with the L1 theme picker', async () => {
+    await renderReader();
+    const picker = await openSettings();
+
+    // Theme → ซีเปีย: html class + the L1 theme button mirrors it (icon +
+    // accessible name — the SAME ThemeProvider state both mounts read).
+    fireEvent.click(within(picker).getByRole('button', { name: 'ธีมซีเปีย' }));
+    expect(document.documentElement.classList.contains('sepia')).toBe(true);
+    const l1Theme = screen.getByRole('button', { name: 'ธีม ซีเปีย' });
+    expect(l1Theme.querySelector('.fi-sr-palette')).not.toBeNull();
+
+    // Paper tone in ⚙️ → persisted under lawlib:paperTone.
+    const paperSlider = within(picker).getByRole('slider', { name: 'ความเหลืองของกระดาษ' });
+    fireEvent.change(paperSlider, { target: { value: '80' } });
+    expect(localStorage.getItem('lawlib:paperTone')).toBe('80');
+
+    // The L1 theme picker shows the SAME tone (both mounts write the same
+    // key through the same ThemeProvider.setPaperTone).
+    fireEvent.keyDown(document, { key: 'Escape' }); // close ⚙️ picker
+    fireEvent.click(l1Theme); // open the L1 theme picker (sepia → slider)
+    const l1Paper = screen.getByRole('slider', { name: 'ความเหลืองของกระดาษ' });
+    expect((l1Paper as HTMLInputElement).value).toBe('80');
+  });
+
+  it('the 5 sections carry per-setting คืนค่า resets (disabled at defaults)', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    // Theme has no reset (site-wide preference — out of the settings
+    // contract); paper tone resets to DEFAULT_PAPER_TONE 50.
+    expect(
+      (
+        within(picker).getByRole('button', {
+          name: 'คืนค่าความเหลืองของกระดาษ',
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+    expect(
+      (within(picker).getByRole('button', { name: 'คืนค่าขนาดตัวอักษร' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    expect(
+      (within(picker).getByRole('button', { name: 'คืนค่าความสูงบรรทัด' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    expect(
+      (within(picker).getByRole('button', { name: 'คืนค่าความกว้างเนื้อหา' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+
+    // A change enables only that section's reset.
+    fireEvent.click(within(picker).getByRole('button', { name: 'ตัวอักษรใหญ่ขึ้น' }));
+    expect(storedSettings().fontSize).toBe(17);
+    fireEvent.click(within(picker).getByRole('button', { name: 'คืนค่าขนาดตัวอักษร' }));
+    expect(storedSettings().fontSize).toBe(16);
   });
 });

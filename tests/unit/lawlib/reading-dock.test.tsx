@@ -59,6 +59,7 @@ import { render, fireEvent, screen, act, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import LawlibReaderClient from '@/app/(website)/lawlib/[slug]/LawlibReaderClient';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { DEFAULT_READING_SETTINGS, DOCK_TOOL_KEYS } from '@/hooks/useReaderStorage';
 import sampleLawRaw from '@/data/lawlib/laws/sample.json';
 import type { LawDoc } from '@/types/lawlib';
 
@@ -980,5 +981,130 @@ describe('Dock v2.4 — position-aware bottom offset (T20/T21)', () => {
 
     clickPositionInSettings('ล่างกลาง');
     expect(dockRoot().className).toContain(mobileClass);
+  });
+});
+
+describe('Dock v2.5 — T23 focus mode + auto scroll as dock tools', () => {
+  const storedSettings = () =>
+    JSON.parse(localStorage.getItem('lawlib:settings') ?? 'null') as Record<string, unknown>;
+
+  it('T23: focusMode/autoScroll are registered tools but NOT in the default favorites (pin-able only)', () => {
+    expect(DOCK_TOOL_KEYS).toContain('focusMode');
+    expect(DOCK_TOOL_KEYS).toContain('autoScroll');
+    expect(DEFAULT_READING_SETTINGS.favoriteToolKeys).not.toContain('focusMode');
+    expect(DEFAULT_READING_SETTINGS.favoriteToolKeys).not.toContain('autoScroll');
+  });
+
+  it('T23: L2 row 2 (ul:last-child) has the โฟกัส + อ่านอัตโนมัติ toggles (icon-only, aria-pressed)', async () => {
+    await renderReader();
+    fireEvent.click(moreBtn());
+    const row2 = document.querySelector('#lawlib-more-panel ul:last-child') as HTMLElement;
+    expect(row2).not.toBeNull();
+
+    const focusBtn = within(row2).getByRole('button', { name: 'โฟกัส' });
+    const scrollBtn = within(row2).getByRole('button', { name: 'อ่านอัตโนมัติ' });
+    // Genuine toggles (T14 fix): aria-pressed present, OFF at defaults.
+    expect(focusBtn.getAttribute('aria-pressed')).toBe('false');
+    expect(scrollBtn.getAttribute('aria-pressed')).toBe('false');
+    // Icon-only per the L2 convention (labels ride aria-label).
+    expect(focusBtn.querySelector('.fi-sr-eye')).not.toBeNull();
+    expect(scrollBtn.querySelector('.fi-sr-play')).not.toBeNull();
+  });
+
+  it('T23: L2 โฟกัส activates the SAME focus mode as the ⚙️ toggle — dock closes itself, no collapse memory', async () => {
+    await renderReader();
+    fireEvent.click(moreBtn());
+    fireEvent.click(within(morePanel() as HTMLElement).getByRole('button', { name: 'โฟกัส' }));
+
+    expect(storedSettings().focusMode).toBe(true);
+    expect(document.body.classList.contains('lawlib-focus')).toBe(true);
+    // The dock is part of what focus mode hides — it closes INSTANTLY and
+    // must NOT persist a user collapse (programmatic close).
+    expect(dockPanel()).toBeNull();
+    expect(localStorage.getItem('lawlib:dockCollapsed')).toBeNull();
+  });
+
+  it('T23: autoScroll tool toggles speed 0 ↔ last level (default 3 when no history)', async () => {
+    await renderReader();
+    fireEvent.click(moreBtn());
+    // Re-query each time — re-renders replace the button node.
+    const scrollBtn = () =>
+      within(morePanel() as HTMLElement).getByRole('button', { name: 'อ่านอัตโนมัติ' });
+
+    // OFF → ON: starts at the default level 3.
+    fireEvent.click(scrollBtn());
+    expect(storedSettings().autoScrollSpeed).toBe(3);
+    expect(scrollBtn().getAttribute('aria-pressed')).toBe('true');
+    // Active state swaps play → pause (never color-only, WCAG 1.4.1).
+    expect(scrollBtn().querySelector('.fi-sr-pause')).not.toBeNull();
+    expect(scrollBtn().querySelector('.fi-sr-play')).toBeNull();
+
+    // ON → OFF: saves the level, speed 0.
+    fireEvent.click(scrollBtn());
+    expect(storedSettings().autoScrollSpeed).toBe(0);
+    expect(scrollBtn().getAttribute('aria-pressed')).toBe('false');
+    expect(scrollBtn().querySelector('.fi-sr-play')).not.toBeNull();
+
+    // OFF → ON again: restores the remembered level (3).
+    fireEvent.click(scrollBtn());
+    expect(storedSettings().autoScrollSpeed).toBe(3);
+  });
+
+  it('T23: toggling OFF saves the CURRENT level — ON restores it, not the default 3', async () => {
+    localStorage.setItem('lawlib:settings', JSON.stringify({ autoScrollSpeed: 4 }));
+    await renderReader();
+    fireEvent.click(moreBtn());
+    const scrollBtn = () =>
+      within(morePanel() as HTMLElement).getByRole('button', { name: 'อ่านอัตโนมัติ' });
+
+    fireEvent.click(scrollBtn()); // ON(4) → OFF: saves 4.
+    expect(storedSettings().autoScrollSpeed).toBe(0);
+    fireEvent.click(scrollBtn()); // OFF → ON: restores 4.
+    expect(storedSettings().autoScrollSpeed).toBe(4);
+  });
+
+  it('T23: pinned L1 โฟกัส/อ่านอัตโนมัติ render as toggle buttons with active states from settings', async () => {
+    localStorage.setItem(
+      'lawlib:settings',
+      JSON.stringify({
+        favoriteToolKeys: ['focusMode', 'autoScroll'],
+        focusMode: true,
+        autoScrollSpeed: 3,
+      }),
+    );
+    await renderReader();
+
+    const focusBtn = screen.getByRole('button', { name: 'โฟกัส' });
+    const scrollBtn = screen.getByRole('button', { name: 'อ่านอัตโนมัติ' });
+    expect(focusBtn.getAttribute('aria-pressed')).toBe('true');
+    expect(scrollBtn.getAttribute('aria-pressed')).toBe('true');
+    // AutoScroll active → pause glyph; focus keeps its eye.
+    expect(scrollBtn.querySelector('.fi-sr-pause')).not.toBeNull();
+    expect(scrollBtn.querySelector('.fi-sr-play')).toBeNull();
+    expect(focusBtn.querySelector('.fi-sr-eye')).not.toBeNull();
+    // The L1 toggles act too: clicking autoScroll turns it off (level saved).
+    fireEvent.click(scrollBtn);
+    expect(storedSettings().autoScrollSpeed).toBe(0);
+    expect(screen.getByRole('button', { name: 'อ่านอัตโนมัติ' }).getAttribute('aria-pressed')).toBe(
+      'false',
+    );
+  });
+
+  it('T23: L2 favorites row 1 dedups — the new tools move from row 2 to row 1 when pinned', async () => {
+    localStorage.setItem(
+      'lawlib:settings',
+      JSON.stringify({ favoriteToolKeys: ['autoScroll', 'theme'] }),
+    );
+    await renderReader();
+    fireEvent.click(moreBtn());
+
+    // Row 1 (ul:first-child) carries the pinned autoScroll…
+    const row1 = document.querySelector('#lawlib-more-panel ul:first-child') as HTMLElement;
+    expect(within(row1).getByRole('button', { name: 'อ่านอัตโนมัติ' })).toBeTruthy();
+    // …and row 2 no longer duplicates it (the L2 panel shows ONE instance).
+    const row2 = document.querySelector('#lawlib-more-panel ul:last-child') as HTMLElement;
+    expect(within(row2).queryByRole('button', { name: 'อ่านอัตโนมัติ' })).toBeNull();
+    // Unpinned focusMode stays in row 2.
+    expect(within(row2).getByRole('button', { name: 'โฟกัส' })).toBeTruthy();
   });
 });
