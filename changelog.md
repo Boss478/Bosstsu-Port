@@ -1,3 +1,12 @@
+## v1.12.2 (2026-08-09)
++ **Tooltip side placement + preview (T19)**: วางซ้าย/ขวาเมื่อล่าง/บนไม่พอ (ไม่ทับ "มาตรา" ที่ hover — W3-4 invariant คงไว้) · hover = **preview 5 แถว + ปุ่ม "ดูเพิ่มเติม"** (line-clamp-5 + aria-controls) · click-pin/คีย์บอร์ด = เปิดเต็มบทความทันที · glossary/ฉบับย่อ/บทความเต็ม ได้หมด
++ **Dock ไม่ scroll ภายใน (T20)**: L1/L2 แสดงครบทุกปุ่มเสมอ (ตัด height cap + overflow — sheet mobile เก็บ safety ไว้)
++ **Dock ชิดล่าง position-aware (T21)**: bottom-center/left ชิดขอบตลอด (20px desktop / เหนือ navbar 76px mobile) · bottom-right ยกขึ้น 96px เฉพาะเมื่อ BackToTop โผล่ (scrollY>200, transition 200ms)
++ **ซ่อน BackToTop เมื่อ sheet เปิด (T22)**: event `lawlib:dock-sheet` — บน mobile sheet เปิด → BTT ซ่อน (invisible + tabIndex -1) · ปิด sheet → คืนมา
++ **Focus Mode + Auto Scroll เป็นปุ่ม dock (T23)**: L2 ได้ปุ่ม โฟกัส (fi-sr-eye) + อ่านอัตโนมัติ (fi-sr-play→pause) · พินไป L1 ได้ (13 สวิตช์ในเครื่องมือแถวลัด, ไม่ใส่ default) · autoScroll toggle = speed 0 ↔ ระดับเดิม (default 3) · ⚙️ slider แสดง **"ระดับ {n} · {x.x} วิ/บรรทัด"** (คำนวณจากฟอนต์จริง, 'ปิด' เมื่อ 0/reduced-motion) · **⚙️ settings เพิ่ม 5 sections: ธีม · ความเหลืองของกระดาษ · ขนาดตัวอักษร · ความสูงบรรทัด · ความกว้างเนื้อหา** (state เดียวกับ L1 pickers — ADR-019 D14)
+* **Commit message hook (ADR-022)**: commit-msg ตรวจ grammar `type: subject (ref)` — 13 types, release form `release: (vX.Y.Z)` · เช็ค inventory test ครบ (vitest.unit.config)
+* Tests: 1179 unit (was 1122) · lawlib 459 · eval 34/34 · e2e 10/10 · build/typecheck/lint clean
+
 ## v1.12.1 (2026-08-09)
 + **Content-surface glass (T17, ADR-021)**: hover tooltip + compact click popover เปลี่ยนจาก solid → **glass** (`.lawlib-glass-content`) — ค่า opacity ตาม slider ด้วยสูตรของตัวเอง: **0.55 / 0.7 (default) / 0.95** (piecewise anchor 0/35/100 — พื้นผิวเนื้อหาอ่านไม่โปร่งเกิน 0.55 และไม่มีพื้นผิวใดทึบ 100%) · dock/search cap alpha **0.95 @ slider 100** (เดิม 1.0) · blur เปลี่ยนเป็น **dynamic ตาม slider**: dock 1.5–3.5px · search 3–5px · content 6–8px (ยกเลิก GPU-kill blur none @100%) · tooltip/popover body ink รวมเป็น slate-800 (AA: @slider 0 = 4.96:1 — UI review HIGH fix)
 + **Dock anchor rework**: panel ชิดไอคอน (top-0/left-0/bottom-0 — ไม่มีช่องว่าง) · ตำแหน่ง dock ชิดขอบ (1.25rem / md:6) · L2 เว้นระยะ 3 · position picker เป็น **3×3 grid** (center ว่าง)
