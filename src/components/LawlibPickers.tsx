@@ -7,7 +7,7 @@
  * + focus moves into the popover on open — same portal + measure pattern as
  * LawTooltip/ArticlePopover).
  */
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DEFAULT_READING_SETTINGS, DOCK_TOOL_KEYS } from '@/hooks/useReaderStorage';
 import { DEFAULT_PAPER_TONE, type Theme } from '@/components/ThemeProvider';
@@ -83,6 +83,11 @@ export function secondsPerLine(speed: number, fontSize: number, lineHeight: numb
 
 const POPOVER_GAP = 6;
 
+/** T29 — picker popover exit hold (ADR-023 D9: pop-out 200ms in-curve —
+ *  the 60–75% rule mirror of the 300ms entry). The delay-unmount keeps the
+ *  popover mounted exactly this long while lawlib-pop-out plays. */
+const PICKER_EXIT_MS = 200;
+
 export function PickerPopover({
   anchorEl,
   widthClass,
@@ -99,6 +104,39 @@ export function PickerPopover({
   children: React.ReactNode;
 }) {
   const rootRef = useRef<HTMLDivElement | null>(null);
+  /** T29 — exit-animation hold (ADR-023 D4, T25 moreClosing pattern): while
+   *  true the popover stays mounted playing lawlib-pop-out (200ms) before
+   *  onClose unmounts it. OUTSIDE-click closes only — Esc stays INSTANT
+   *  (the dock's Esc handler unmounts before this listener runs; keyboard-
+   *  instant is T28 parity) and the anchor toggle / programmatic closes
+   *  unmount through the dock's own state. */
+  const [closing, setClosing] = useState(false);
+  /** T29 — the exit-hold timer. Tracked in a ref so a re-open (anchor
+   *  change) can CANCEL a pending exit — a stale timer must never unmount
+   *  a re-opened popover (ADR-023 D4). */
+  const exitTimerRef = useRef<number | null>(null);
+  /** T29 (ADR-023 D8): prefers-reduced-motion → close is INSTANT, no exit
+   *  hold (the CSS kill already zeroes the entry/stagger animations). */
+  const [reducedMotion] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  );
+
+  /** T29 — animated close (outside-click): pop-out 200ms + delay-unmount;
+   *  reduced-motion → instant (AC-5). */
+  const requestClose = useCallback(() => {
+    if (closing) return;
+    if (reducedMotion) {
+      onClose();
+      return;
+    }
+    setClosing(true);
+    exitTimerRef.current = window.setTimeout(() => {
+      exitTimerRef.current = null;
+      onClose();
+    }, PICKER_EXIT_MS);
+  }, [closing, reducedMotion, onClose]);
 
   // Position once, at open (captured anchor rect — transient popover, like
   // LawTooltip/ArticlePopover). Below the button, flipped above when the
@@ -110,6 +148,14 @@ export function PickerPopover({
   useLayoutEffect(() => {
     const el = rootRef.current;
     if (el === null || anchorEl === null) return;
+    // Re-open while closing (new anchor — the dock reuses this instance):
+    // cancel the pending exit hold and reset closing BEFORE paint so the
+    // fresh popover pops IN instead of finishing the old exit.
+    if (exitTimerRef.current !== null) {
+      window.clearTimeout(exitTimerRef.current);
+      exitTimerRef.current = null;
+    }
+    setClosing(false);
     const rect = el.getBoundingClientRect();
     const anchor = anchorEl.getBoundingClientRect();
     const vw = window.innerWidth;
@@ -133,6 +179,9 @@ export function PickerPopover({
   }, [anchorEl]);
 
   // Esc + outside-close (the anchor button is excluded — its click toggles).
+  // T29: outside → requestClose (animated, closing state); Esc stays
+  // INSTANT onClose (keyboard skip — T28 parity; the dock's own Esc handler
+  // unmounts first anyway, this is the fallback).
   useEffect(() => {
     if (anchorEl === null) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -143,7 +192,7 @@ export function PickerPopover({
       if (target === null) return;
       if (rootRef.current?.contains(target)) return;
       if (anchorEl.contains(target)) return;
-      onClose();
+      requestClose();
     };
     document.addEventListener('keydown', onKeyDown);
     document.addEventListener('pointerdown', onPointerDown, true);
@@ -151,7 +200,18 @@ export function PickerPopover({
       document.removeEventListener('keydown', onKeyDown);
       document.removeEventListener('pointerdown', onPointerDown, true);
     };
-  }, [anchorEl, onClose]);
+  }, [anchorEl, onClose, requestClose]);
+
+  // Unmount — a pending exit timer must never outlive the popover (a stale
+  // unmount would also kill a RE-opened picker that reused this instance).
+  useEffect(() => {
+    return () => {
+      if (exitTimerRef.current !== null) {
+        window.clearTimeout(exitTimerRef.current);
+        exitTimerRef.current = null;
+      }
+    };
+  }, []);
 
   // Focus the first control (option button / slider) on open.
   useEffect(() => {
@@ -177,17 +237,23 @@ export function PickerPopover({
         left: 0,
         top: 0,
         visibility: 'hidden',
-        // T29 (ADR-023 D9): pop-in 300ms spring — the .lawlib-pop-in class
-        // default is 200ms; the inline duration is the locked override (D10
-        // "animation-duration after the shorthand"). The RM kill zeroes it.
-        animationDuration: '300ms',
+        // T29 (ADR-023 D9): pop-in 300ms spring / pop-out 200ms in-curve —
+        // the class defaults are 200/140ms; the inline duration is the
+        // locked override (D10 "animation-duration after the shorthand").
+        // The RM kill zeroes it → instant.
+        animationDuration: closing ? '200ms' : '300ms',
       }}
       // T29 — AC-4: `vt-picker` = the UNIQUE view-transition-name for this
       // fixed surface (theme-change inventory, globals.css). The SURFACE
       // (rounded/border/shadow/width) moved to the inner wrapper — D10 (one
       // animation per element): the OUTER pops (scale + fade), the INNER
       // rises (lawlib-fade-rise, 8px) — the locked "pop + rise" pair.
-      className="lawlib-picker vt-picker fixed z-[65] outline-none lawlib-pop-in"
+      // Closing swaps the pop keyframes (class change restarts the
+      // animation from the pop-out from-frame — no jump: both start at
+      // opacity 1 / scale 1).
+      className={`lawlib-picker vt-picker fixed z-[65] outline-none ${
+        closing ? 'lawlib-pop-out' : 'lawlib-pop-in'
+      }`}
     >
       <div
         className={`rounded-xl border border-slate-200 bg-white p-3 shadow-xl lawlib-fade-rise dark:border-slate-700 dark:bg-slate-900 ${widthClass}`}
@@ -731,91 +797,106 @@ export function SettingsPanelContent({
   return (
     <div className="space-y-3">
       {/* ─── T23: reading-surface controls (user decision 2026-08-09 — the
-          L1 pickers' components, second mount point; L1 pickers stay) ──── */}
-      <SettingsSectionTitle>ธีม</SettingsSectionTitle>
-      <div className="grid grid-cols-2 gap-1.5">
-        {THEME_CHOICES.map((choice) => (
-          <OptionButton
-            key={choice.value}
-            pressed={theme === choice.value}
-            onClick={() => setTheme(choice.value)}
-            label={`ธีม${choice.label}`}
-          >
-            <i aria-hidden="true" className={`fi ${choice.icon} text-[10px]`} />
-            {choice.label}
-          </OptionButton>
-        ))}
+          L1 pickers' components, second mount point; L1 pickers stay).
+          T29: the 5 sections stagger in 40ms steps on open (ADR-023 D9 —
+          เนื้อหา stagger 40ms; T24 .lawlib-stagger is 60ms, its contract
+          untouched). Each wrapper owns ONE animation (D10): lawlib-fade-rise
+          with the locked step as inline animation-delay — mount-only, live
+          re-renders don't re-stagger; the RM kill zeroes delay+duration. ── */}
+      <div className="lawlib-fade-rise space-y-3" style={{ animationDelay: '0ms' }}>
+        <SettingsSectionTitle>ธีม</SettingsSectionTitle>
+        <div className="grid grid-cols-2 gap-1.5">
+          {THEME_CHOICES.map((choice) => (
+            <OptionButton
+              key={choice.value}
+              pressed={theme === choice.value}
+              onClick={() => setTheme(choice.value)}
+              label={`ธีม${choice.label}`}
+            >
+              <i aria-hidden="true" className={`fi ${choice.icon} text-[10px]`} />
+              {choice.label}
+            </OptionButton>
+          ))}
+        </div>
       </div>
 
-      <SettingsSectionTitle
-        action={
-          <ResetButton
-            label="ความเหลืองของกระดาษ"
-            disabled={paperTone === DEFAULT_PAPER_TONE}
-            onClick={() => setPaperTone(DEFAULT_PAPER_TONE)}
-          />
-        }
-      >
-        ความเหลืองของกระดาษ
-      </SettingsSectionTitle>
-      <SliderRow
-        id="lawlib-paper-tone-settings"
-        label="ความเหลืองของกระดาษ"
-        min={0}
-        max={100}
-        step={1}
-        value={paperTone}
-        display={`${paperTone}`}
-        onChange={setPaperTone}
-      />
+      <div className="lawlib-fade-rise space-y-3" style={{ animationDelay: '40ms' }}>
+        <SettingsSectionTitle
+          action={
+            <ResetButton
+              label="ความเหลืองของกระดาษ"
+              disabled={paperTone === DEFAULT_PAPER_TONE}
+              onClick={() => setPaperTone(DEFAULT_PAPER_TONE)}
+            />
+          }
+        >
+          ความเหลืองของกระดาษ
+        </SettingsSectionTitle>
+        <SliderRow
+          id="lawlib-paper-tone-settings"
+          label="ความเหลืองของกระดาษ"
+          min={0}
+          max={100}
+          step={1}
+          value={paperTone}
+          display={`${paperTone}`}
+          onChange={setPaperTone}
+        />
+      </div>
 
-      <SettingsSectionTitle
-        action={
-          <ResetButton
-            label="ขนาดตัวอักษร"
-            disabled={settings.fontSize === d.fontSize}
-            onClick={() => onChange((prev) => ({ ...prev, fontSize: d.fontSize }))}
-          />
-        }
-      >
-        ขนาดตัวอักษร
-      </SettingsSectionTitle>
-      <FontSizePickerContent
-        value={settings.fontSize}
-        onChange={(fontSize) => onChange((prev) => ({ ...prev, fontSize }))}
-      />
+      <div className="lawlib-fade-rise space-y-3" style={{ animationDelay: '80ms' }}>
+        <SettingsSectionTitle
+          action={
+            <ResetButton
+              label="ขนาดตัวอักษร"
+              disabled={settings.fontSize === d.fontSize}
+              onClick={() => onChange((prev) => ({ ...prev, fontSize: d.fontSize }))}
+            />
+          }
+        >
+          ขนาดตัวอักษร
+        </SettingsSectionTitle>
+        <FontSizePickerContent
+          value={settings.fontSize}
+          onChange={(fontSize) => onChange((prev) => ({ ...prev, fontSize }))}
+        />
+      </div>
 
-      <SettingsSectionTitle
-        action={
-          <ResetButton
-            label="ความสูงบรรทัด"
-            disabled={settings.lineHeight === d.lineHeight}
-            onClick={() => onChange((prev) => ({ ...prev, lineHeight: d.lineHeight }))}
-          />
-        }
-      >
-        ความสูงบรรทัด
-      </SettingsSectionTitle>
-      <LineHeightPickerContent
-        value={settings.lineHeight}
-        onChange={(lineHeight) => onChange((prev) => ({ ...prev, lineHeight }))}
-      />
+      <div className="lawlib-fade-rise space-y-3" style={{ animationDelay: '120ms' }}>
+        <SettingsSectionTitle
+          action={
+            <ResetButton
+              label="ความสูงบรรทัด"
+              disabled={settings.lineHeight === d.lineHeight}
+              onClick={() => onChange((prev) => ({ ...prev, lineHeight: d.lineHeight }))}
+            />
+          }
+        >
+          ความสูงบรรทัด
+        </SettingsSectionTitle>
+        <LineHeightPickerContent
+          value={settings.lineHeight}
+          onChange={(lineHeight) => onChange((prev) => ({ ...prev, lineHeight }))}
+        />
+      </div>
 
-      <SettingsSectionTitle
-        action={
-          <ResetButton
-            label="ความกว้างเนื้อหา"
-            disabled={settings.width === d.width}
-            onClick={() => onChange((prev) => ({ ...prev, width: d.width }))}
-          />
-        }
-      >
-        ความกว้างเนื้อหา
-      </SettingsSectionTitle>
-      <WidthPickerContent
-        value={settings.width}
-        onChange={(width) => onChange((prev) => ({ ...prev, width }))}
-      />
+      <div className="lawlib-fade-rise space-y-3" style={{ animationDelay: '160ms' }}>
+        <SettingsSectionTitle
+          action={
+            <ResetButton
+              label="ความกว้างเนื้อหา"
+              disabled={settings.width === d.width}
+              onClick={() => onChange((prev) => ({ ...prev, width: d.width }))}
+            />
+          }
+        >
+          ความกว้างเนื้อหา
+        </SettingsSectionTitle>
+        <WidthPickerContent
+          value={settings.width}
+          onChange={(width) => onChange((prev) => ({ ...prev, width }))}
+        />
+      </div>
 
       {/* ─── Font family ───────────────────────────────────────────────── */}
       <SettingsSectionTitle
