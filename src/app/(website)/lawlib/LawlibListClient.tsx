@@ -78,11 +78,11 @@ const MAX_RESULTS = 20;
  * grid (branch switch below), and without a gate the fade-rise would
  * re-play. The `.lawlib-stagger` class therefore drops after the longest
  * possible animation window — 420ms max nth-child delay + 300ms fade-rise
- * = 720ms, rounded to 800ms. Removal is invisible (`both` fill ends at the
+ * = 720ms, rounded to 900ms. Removal is invisible (`both` fill ends at the
  * natural state) and harmless under reduced motion (T24 kill already
  * zeroes delay + duration).
  */
-const ENTRANCE_SETTLE_MS = 800;
+const ENTRANCE_SETTLE_MS = 900;
 
 /**
  * SDO part taxonomy (SCRUTINY-L4-1): ภาค ก = กฎหมาย-ข้าราชการที่ดี ·
