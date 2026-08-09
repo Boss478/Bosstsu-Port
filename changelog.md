@@ -4,6 +4,7 @@
 + **Tooltip hub restyle**: ปุ่ม hub → rounded-full bg-white/90 + close button + inner-wrapper removal
 * **Fix BackToTop overlap**: dock bottom positions คืน clearance เดิม `max(icon+3.25rem, 5.25rem)` — icon ชนปุ่มกลับขึ้นบนหลัง anchor rework (verified 390px + 1280px, gap 10–26px)
 * **Fix footer overlap (T18)**: tooltip/popover ท้ายหน้าทับ footer logo (วัดได้ 448×61px) → footer-aware flip — วางล่างถูกปฏิเสธเมื่อข้าม `#site-footer` และมีที่ว่างเหนือ trigger (popover narrow-screen fallback พลิกเหนือการ์ด) · กลางหน้ายังวางล่างปกติ
++ **Commit message rule (ADR-022)**: commit-msg hook บังคับ Conventional Commits — 13 lowercase types (no scope), optional end ref group (`(T23)` / `(#42)` / `(PR-7)` / `(krulaw)`), `release: (vX.Y.Z) <details>` as the release form (old `Release vX.Y.Z:` exempt — history compat) · zero-dependency validator `scripts/commit-msg-check.mjs` + 41 fixture-driven unit tests · AGENTS.md convention section + cheat-sheet (5 real→new conversions) · advisory-only subject length (>72) — no hard cap · dogfooded: first commit through the live hook (6e3aafd)
 * Tests: 1085 unit (was 1080) · lawlib 234 · eval 34/34 · e2e 9/9 · build/typecheck/lint clean
 
 ## v1.12.0 (2026-08-08)
