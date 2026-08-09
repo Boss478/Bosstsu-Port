@@ -1986,6 +1986,24 @@ textarea,
     animation: none;
   }
 }
+/* T26 (ADR-023 D9) — dock ROOT RAISE → transform (AC-2): `bottom` stays
+   fixed at the flush value (LawlibDock bottomOffsetClass); the raised
+   state (bottom-right while BackToTop is visible) lifts the whole dock
+   with translateY instead of animating `bottom` — the old
+   transition-[bottom] animated a layout property. Desktop:
+   −(size + 3.25rem) = −96px at the default 44px toolbar size (the
+   historical BackToTop clearance calc); mobile: −(size + 0.75rem) =
+   −56px. The 100ms transition ships in the root class list
+   (transition-[transform] duration-100); the global reduced-motion kill
+   above zeroes transition-duration → instant class swap. */
+.lawlib-dock-raised {
+  transform: translateY(calc(-1 * (var(--lawlib-dock-size) + 3.25rem)));
+}
+@media (max-width: 639px) {
+  .lawlib-dock-raised {
+    transform: translateY(calc(-1 * (var(--lawlib-dock-size) + 0.75rem)));
+  }
+}
 /* List-page search input (SearchInput.tsx — T2 tokens stay; the fill/blur
    ride the same slider vars so the dock+search surfaces stay in sync). */
 .lawlib-search-field {

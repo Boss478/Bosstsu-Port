@@ -1064,12 +1064,14 @@ describe('Dock v2.3 — mobile-safe panel structure (T12/T15)', () => {
   });
 });
 
-describe('Dock v2.4 — position-aware bottom offset (T20/T21)', () => {
+describe('Dock v2.4 — position-aware bottom offset (T20/T21, T26 transform raise)', () => {
   // T21 matrix (user decisions 2026-08-09) — the EXACT static class strings.
+  // T26 (AC-2): `bottom` is FIXED at the flush value; the BackToTop
+  // clearance RAISE became a compositor-only transform class — the old
+  // raised bottom class (bottom-[max(size+3.25rem,…)]) is GONE.
   const flushClass = 'bottom-[max(1.25rem,env(safe-area-inset-bottom))] md:bottom-6';
-  const clearanceClass =
-    'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1.25rem))]';
   const mobileClass = 'bottom-[max(4.75rem,calc(env(safe-area-inset-bottom)_+_1.25rem))]';
+  const raisedClass = 'lawlib-dock-raised';
 
   const dockRoot = () => document.querySelector('.lawlib-dock.fixed') as HTMLElement;
 
@@ -1109,55 +1111,65 @@ describe('Dock v2.4 — position-aware bottom offset (T20/T21)', () => {
 
     const center = dockRoot();
     expect(center.className).toContain(flushClass);
-    expect(center.className).not.toContain(clearanceClass);
+    expect(center.className).not.toContain(raisedClass);
     // Scrolled 300px → BackToTop visible, but center can never collide
-    // (BackToTop is right-corner) — STILL flush.
+    // (BackToTop is right-corner) — STILL flush, never raised.
     setScrollY(300);
     await flushRaf();
     expect(dockRoot().className).toContain(flushClass);
-    expect(dockRoot().className).not.toContain(clearanceClass);
+    expect(dockRoot().className).not.toContain(raisedClass);
 
     switchPosition('ล่างซ้าย');
     const left = dockRoot();
     expect(left.className).toContain(flushClass);
-    expect(left.className).not.toContain(clearanceClass);
+    expect(left.className).not.toContain(raisedClass);
     setScrollY(0);
     await flushRaf();
     expect(left.className).toContain(flushClass);
-    expect(left.className).not.toContain(clearanceClass);
+    expect(left.className).not.toContain(raisedClass);
   });
 
-  it('bottom-right: flush at the top → raises to the BackToTop clearance once scrolled past 200px → lowers back at the top', async () => {
+  it('bottom-right: flush at the top → raises via transform once scrolled past 200px → lowers back at the top', async () => {
     await renderReader(); // default position = bottom-right
     const root = dockRoot();
+    // T26 (AC-2): `bottom` NEVER moves — the flush class stays on the root
+    // through the whole cycle; the raise is the transform class only.
     expect(root.className).toContain(flushClass);
-    expect(root.className).not.toContain(clearanceClass);
+    expect(root.className).not.toContain(raisedClass);
 
     setScrollY(300);
     await flushRaf();
-    expect(dockRoot().className).toContain(clearanceClass);
-    expect(dockRoot().className).not.toContain(flushClass);
+    const raisedRoot = dockRoot();
+    expect(raisedRoot.className).toContain(flushClass); // bottom fixed
+    expect(raisedRoot.className).toContain(raisedClass);
+    expect(raisedRoot.className).not.toContain('transition-[bottom]');
 
     setScrollY(0);
     await flushRaf();
     expect(dockRoot().className).toContain(flushClass);
-    expect(dockRoot().className).not.toContain(clearanceClass);
+    expect(dockRoot().className).not.toContain(raisedClass);
   });
 
-  it('mobile: bottom positions sit at the navbar clearance (4.75rem) regardless of scroll', async () => {
+  it('mobile: bottom positions sit at the navbar clearance (4.75rem); bottom-right RAISES via transform once scrolled past 200px', async () => {
     mockMatchMedia({ mobile: true });
     await renderReader();
     // Default bottom-right on mobile → 4.75rem (76px > BackToTop's mobile
     // 68px ✓ + clears the 64px navbar with a 12px gap).
     expect(dockRoot().className).toContain(mobileClass);
-    expect(dockRoot().className).not.toContain(clearanceClass);
+    expect(dockRoot().className).not.toContain(raisedClass);
 
+    // T26 (AC-2): mobile raise = −56px (size + 0.75rem) — the locked
+    // mobile delta. The bottom class STAYS 4.75rem; the transform lifts.
     setScrollY(300);
     await flushRaf();
-    expect(dockRoot().className).toContain(mobileClass);
+    const raisedRoot = dockRoot();
+    expect(raisedRoot.className).toContain(mobileClass);
+    expect(raisedRoot.className).toContain(raisedClass);
 
+    // Center position never raises on mobile either.
     clickPositionInSettings('ล่างกลาง');
     expect(dockRoot().className).toContain(mobileClass);
+    expect(dockRoot().className).not.toContain(raisedClass);
   });
 });
 

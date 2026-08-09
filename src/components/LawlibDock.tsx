@@ -748,20 +748,31 @@ export default function LawlibDock(props: LawlibDockProps) {
     ? 'mt-2 w-full rounded-2xl border border-slate-200/80 dark:border-slate-700/70 p-2'
     : `absolute ${cfg.more} w-28 md:w-32 rounded-3xl border border-slate-200/80 dark:border-slate-700/70 p-2.5 md:p-3 shadow-2xl shadow-slate-900/15 dark:shadow-black/50`;
 
-  /** T21 (user decision 2026-08-09) — position-aware bottom offset matrix:
-   *  bottom-center/bottom-left ALWAYS flush (BackToTop is right-corner,
-   *  never overlaps); bottom-right flushes while BackToTop is hidden and
-   *  raises to the clearance calc once it becomes visible (scrollY > 200).
-   *  Mobile (<768px): 4.75rem always — navbar 64px + 12px gap (also clears
-   *  BackToTop's mobile 68px). Every branch is a FULL static string
-   *  (JIT-safe — no dynamic construction). */
+  /** T21 matrix (user decision 2026-08-09) — position-aware bottom offset,
+   *  T26 (AC-2/AC-4) — FLUSH-ONLY now: this class list is the FIXED
+   *  `bottom`; the BackToTop-clearance RAISE moved to a compositor-only
+   *  transform (`.lawlib-dock-raised` — the old transition-[bottom]
+   *  animated a layout property). Selection semantics unchanged:
+   *  bottom-center/bottom-left always flush (BackToTop is right-corner,
+   *  never overlaps); bottom-right raises only while BackToTop is visible
+   *  (scrollY > 200, rAF-throttled listener). Mobile (<640px): 4.75rem
+   *  always — navbar 64px + 12px gap (also clears BackToTop's mobile
+   *  68px). Every branch is a FULL static string (JIT-safe — no dynamic
+   *  construction). */
   const isBottomPosition =
     position === 'bottom-left' || position === 'bottom-center' || position === 'bottom-right';
   const bottomOffsetClass = isMobile
     ? 'bottom-[max(4.75rem,calc(env(safe-area-inset-bottom)_+_1.25rem))]'
-    : position === 'bottom-right' && backToTopVisible
-      ? 'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1.25rem))]'
-      : 'bottom-[max(1.25rem,env(safe-area-inset-bottom))] md:bottom-6';
+    : 'bottom-[max(1.25rem,env(safe-area-inset-bottom))] md:bottom-6';
+  /** T26 (AC-2) — the RAISE itself: `bottom` stays fixed at the flush
+   *  value above; the raised state lifts the whole dock with
+   *  translateY(calc(-1 * (var(--lawlib-dock-size) + 3.25rem))) = −96px at
+   *  the default 44px toolbar size (the historical size + 3.25rem
+   *  clearance calc); mobile = −(size + 0.75rem) = −56px. The 100ms
+   *  transform transition lives on the root class list
+   *  (transition-[transform] duration-100). Only bottom-right ever raises
+   *  (the T21 matrix). */
+  const dockRaised = position === 'bottom-right' && backToTopVisible;
 
   const pickerValue: Record<PickerKind, string> = {
     theme: THEME_CHOICES.find((c) => c.value === theme)?.label ?? theme,
@@ -992,7 +1003,7 @@ export default function LawlibDock(props: LawlibDockProps) {
       }
       className={`lawlib-dock vt-dock fixed z-50 ${cfg.root} ${
         isBottomPosition ? bottomOffsetClass : ''
-      } transition-[bottom] duration-200`}
+      } ${dockRaised ? 'lawlib-dock-raised' : ''} transition-[transform] duration-100`}
     >
       {!expanded && !closing ? (
         <button
