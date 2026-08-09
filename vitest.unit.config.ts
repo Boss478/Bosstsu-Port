@@ -38,6 +38,7 @@ const unitInclude = [
   'tests/unit/lawlib/compact-routing.test.tsx',
   'tests/unit/lawlib/glass-formulas.test.ts',
   'tests/unit/lawlib/quick-note.test.tsx',
+  'tests/unit/lawlib/reader-motion.test.tsx',
   'tests/unit/lawlib/reader-settings.test.ts',
   'tests/unit/lawlib/reading-dock.test.tsx',
   'tests/unit/lawlib/search-panel.test.tsx',
