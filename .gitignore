@@ -77,3 +77,11 @@ tasks/
 public/uploads/
 /uploads/
 report/
+
+# Track agent archive dirs (T4b — archive-only safety net; .agents/ stays ignored otherwise)
+# Parent re-inclusions required: git prunes excluded parents before child negations apply
+!.agents/
+!.agents/memory/
+!.agents/memory/archive/
+!.agents/report/
+!.agents/report/archive/

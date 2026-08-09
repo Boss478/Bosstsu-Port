@@ -1,0 +1,83 @@
+id,title,tier,sortOrder,wordCount,activityTypes,stageCount,lessonCount,totalActivities,baseLength,color,icon
+animals,"Animals & Pets",easy,1,725,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,4,#2EC4B6,fi-sr-paw
+body-parts,"Body Parts",easy,2,1153,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,4,#FF70A6,fi-sr-user
+colors-shapes,"Colors & Shapes",easy,3,435,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,4,#FFBA08,fi-sr-droplet
+family-people,"Family & People",easy,4,531,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,4,#E2B237,fi-sr-users
+fruits-vegetables,"Fruits & Vegetables",easy,5,110,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,4,#2ECC71,fi-sr-apple
+meals-dishes,"Meals & Dishes",easy,6,233,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,4,#E67E22,fi-sr-food
+drinks-beverages,"Drinks & Beverages",easy,7,400,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,4,#3498DB,fi-sr-glass
+house-home,"House & Home",easy,8,363,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,4,#9B59B6,fi-sr-home
+clothing,"Clothing",easy,9,785,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,4,#E74C3C,fi-sr-shirt
+time-calendar,"Time & Calendar",easy,10,878,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,4,#1ABC9C,fi-sr-clock
+weather,"Weather",easy,11,551,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,4,#5DADE2,fi-sr-cloud
+numbers-math,"Numbers & Math",easy,12,976,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,4,#F39C12,fi-sr-calculator
+toys-playtime,"Toys & Playtime",easy,13,86,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,4,#E91E63,fi-sr-gamepad
+school-supplies,"School Supplies",easy,14,214,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,4,#00BCD4,fi-sr-backpack
+nature-outdoors,"Nature & Outdoors",easy-medium,1,406,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,6,#27AE60,fi-sr-tree
+emotions-feelings,"Emotions & Feelings",easy-medium,2,346,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,6,#E84393,fi-sr-emoji
+travel-transport,"Travel & Transport",easy-medium,3,817,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,6,#0984E3,fi-sr-plane
+sports-fitness,"Sports & Fitness",easy-medium,4,1064,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,6,#00B894,fi-sr-trophy
+school-education,"School & Education",easy-medium,5,1327,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,6,#6C5CE7,fi-sr-graduation-cap
+jobs-occupations,"Jobs & Occupations",easy-medium,6,604,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,6,#FD79A8,fi-sr-briefcase
+city-places,"City & Places",easy-medium,7,627,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,6,#E17055,fi-sr-building
+money-shopping,"Money & Shopping",easy-medium,8,793,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,6,#FDCB6E,fi-sr-wallet
+music-sound,"Music & Sound",easy-medium,9,551,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,6,#A29BFE,fi-sr-music
+cooking-kitchen,"Cooking & Kitchen",easy-medium,10,282,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,6,#D63031,fi-sr-utensils
+celebrations-holidays,"Celebrations & Holidays",easy-medium,11,302,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,6,#FF7675,fi-sr-gift
+furniture-appliances,"Furniture & Appliances",easy-medium,12,255,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,6,#636E72,fi-sr-lamp
+hobbies-interests,"Hobbies & Interests",easy-medium,13,675,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,6,#00CEC9,fi-sr-camera
+describing-people,"Describing People",easy-medium,14,1391,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,6,#74B9FF,fi-sr-user
+communication-media,"Communication & Media",medium,1,565,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#0984E3,fi-sr-comment
+technology-devices,"Technology & Devices",medium,2,636,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#2D3436,fi-sr-laptop
+entertainment-leisure,"Entertainment & Leisure",medium,3,615,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#E17055,fi-sr-ticket
+art-creativity,"Art & Creativity",medium,4,701,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#E84393,fi-sr-palette
+health-body,"Health & Body",medium,5,378,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#00B894,fi-sr-heart
+daily-life-routines,"Daily Life & Routines",medium,6,659,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#FDCB6E,fi-sr-calendar
+actions-movement,"Actions & Movement",medium,7,921,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#6C5CE7,fi-sr-running
+geography-places,"Geography & Places",medium,8,631,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#00CEC9,fi-sr-globe
+environment-ecology,"Environment & Ecology",medium,9,210,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#27AE60,fi-sr-leaf
+big-synonyms,"BIG Synonyms",medium,10,2,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,8,#2D3436,fi-sr-expand
+personality-traits,"Personality & Character",medium,11,170,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#A29BFE,fi-sr-user
+relationships-social,"Relationships & Social",medium,12,608,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#FD79A8,fi-sr-handshake
+success-achievement,"Success & Achievement",medium,13,595,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#F39C12,fi-sr-star
+problems-solutions,"Problems & Solutions",medium,14,1221,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#E74C3C,fi-sr-exclamation
+memory-thinking,"Memory & Thinking",medium,15,569,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#6C5CE7,fi-sr-brain
+opinions-arguments,"Opinions & Arguments",medium,16,789,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#E17055,fi-sr-comment-dots
+fashion-style,"Fashion & Style",medium,17,538,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#E84393,fi-sr-shirt
+books-literature,"Books & Literature",medium,18,368,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#A29BFE,fi-sr-book
+movies-television,"Movies & Television",medium,19,501,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#0984E3,fi-sr-film
+internet-digital,"Internet & Digital Life",medium,20,801,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#00CEC9,fi-sr-wifi
+buildings-architecture,"Buildings & Architecture",medium,21,580,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#636E72,fi-sr-building
+work-business,"Work & Business",medium,22,746,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#2D3436,fi-sr-briefcase
+materials-textures,"Materials & Textures",medium,23,1123,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,8,#B2BEC3,fi-sr-paper
+good-synonyms,"GOOD Synonyms",medium-hard,1,5,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#27AE60,fi-sr-thumbs-up
+bad-synonyms,"BAD Synonyms",medium-hard,2,1,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#E74C3C,fi-sr-thumbs-down
+beautiful-synonyms,"BEAUTIFUL Synonyms",medium-hard,3,2,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#E84393,fi-sr-heart
+happy-synonyms,"HAPPY Synonyms",medium-hard,4,2,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#FDCB6E,fi-sr-smile
+sad-synonyms,"SAD Synonyms",medium-hard,5,0,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#5DADE2,fi-sr-frown
+angry-synonyms,"ANGRY Synonyms",medium-hard,6,0,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#E74C3C,fi-sr-angry
+fast-synonyms,"FAST Synonyms",medium-hard,7,1,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#0984E3,fi-sr-rocket
+important-synonyms,"IMPORTANT Synonyms",medium-hard,8,2,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#F39C12,fi-sr-star
+difficult-synonyms,"DIFFICULT Synonyms",medium-hard,9,2,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#6C5CE7,fi-sr-puzzle
+smart-synonyms,"SMART Synonyms",medium-hard,10,2,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#00CEC9,fi-sr-lightbulb
+funny-synonyms,"FUNNY Synonyms",medium-hard,11,0,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#E17055,fi-sr-laugh
+strange-synonyms,"STRANGE Synonyms",medium-hard,12,3,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#A29BFE,fi-sr-question
+kind-synonyms,"KIND Synonyms",medium-hard,13,1,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#00B894,fi-sr-hearts
+brave-synonyms,"BRAVE Synonyms",medium-hard,14,0,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#E74C3C,fi-sr-shield
+famous-synonyms,"FAMOUS Synonyms",medium-hard,15,0,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#F39C12,fi-sr-crown
+quiet-synonyms,"QUIET Synonyms",medium-hard,16,1,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#636E72,fi-sr-moon
+honest-synonyms,"HONEST Synonyms",medium-hard,17,0,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#27AE60,fi-sr-check
+strong-synonyms,"STRONG Synonyms",hard,1,1,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#2D3436,fi-sr-dumbbell
+scared-synonyms,"SCARED Synonyms",hard,2,0,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#6C5CE7,fi-sr-scream
+old-synonyms,"OLD Synonyms",hard,3,0,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#636E72,fi-sr-hourglass
+new-synonyms,"NEW Synonyms",hard,4,0,"definitions/antonyms/collocations/fill-blank/word-assoc/vocab-exercise",1,2,2,10,#00CEC9,fi-sr-sparkle
+business-commerce,"Business & Commerce",hard,5,271,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,12,#0984E3,fi-sr-chart
+law-justice,"Law & Justice",hard,6,340,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,12,#E17055,fi-sr-gavel
+science-research,"Science & Research",hard,7,460,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,12,#00B894,fi-sr-flask
+politics-government,"Politics & Government",hard,8,338,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,12,#6C5CE7,fi-sr-podium
+war-military,"War & Military",hard,9,920,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,12,#E74C3C,fi-sr-shield
+space-astronomy,"Space & Astronomy",hard,10,224,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,12,#2D3436,fi-sr-rocket
+philosophy-ethics,"Philosophy & Ethics",hard,11,335,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,12,#A29BFE,fi-sr-think
+psychology-behavior,"Psychology & Behavior",hard,12,896,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,12,#E84393,fi-sr-brain
+economics-finance,"Economics & Finance",hard,13,173,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,12,#F39C12,fi-sr-stats
+medicine-healthcare,"Medicine & Healthcare",hard,14,355,"definitions/synonyms/antonyms/collocations/fill-blank/word-assoc/vocab-exercise/exercise",3,3,9,12,#E74C3C,fi-sr-hospital

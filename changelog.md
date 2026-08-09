@@ -1,19 +1,19 @@
 ## v1.12.2 (2026-08-09)
-+ **Tooltip side placement + preview (T19)**: วางซ้าย/ขวาเมื่อล่าง/บนไม่พอ (ไม่ทับ "มาตรา" ที่ hover — W3-4 invariant คงไว้) · hover = **preview 5 แถว + ปุ่ม "ดูเพิ่มเติม"** (line-clamp-5 + aria-controls) · click-pin/คีย์บอร์ด = เปิดเต็มบทความทันที · glossary/ฉบับย่อ/บทความเต็ม ได้หมด
-+ **Dock ไม่ scroll ภายใน (T20)**: L1/L2 แสดงครบทุกปุ่มเสมอ (ตัด height cap + overflow — sheet mobile เก็บ safety ไว้)
-+ **Dock ชิดล่าง position-aware (T21)**: bottom-center/left ชิดขอบตลอด (20px desktop / เหนือ navbar 76px mobile) · bottom-right ยกขึ้น 96px เฉพาะเมื่อ BackToTop โผล่ (scrollY>200, transition 200ms)
-+ **ซ่อน BackToTop เมื่อ sheet เปิด (T22)**: event `lawlib:dock-sheet` — บน mobile sheet เปิด → BTT ซ่อน (invisible + tabIndex -1) · ปิด sheet → คืนมา
-+ **Focus Mode + Auto Scroll เป็นปุ่ม dock (T23)**: L2 ได้ปุ่ม โฟกัส (fi-sr-eye) + อ่านอัตโนมัติ (fi-sr-play→pause) · พินไป L1 ได้ (13 สวิตช์ในเครื่องมือแถวลัด, ไม่ใส่ default) · autoScroll toggle = speed 0 ↔ ระดับเดิม (default 3) · ⚙️ slider แสดง **"ระดับ {n} · {x.x} วิ/บรรทัด"** (คำนวณจากฟอนต์จริง, 'ปิด' เมื่อ 0/reduced-motion) · **⚙️ settings เพิ่ม 5 sections: ธีม · ความเหลืองของกระดาษ · ขนาดตัวอักษร · ความสูงบรรทัด · ความกว้างเนื้อหา** (state เดียวกับ L1 pickers — ADR-019 D14)
-* **Commit message hook (ADR-022)**: commit-msg ตรวจ grammar `type: subject (ref)` — 13 types, release form `release: (vX.Y.Z)` · เช็ค inventory test ครบ (vitest.unit.config)
++ **Tooltip side placement + preview (T19)**: placed left/right of the trigger when below/above don't fit (never covers the hovered Section — W3-4 invariant kept) · hover = **5-row preview + "See more" button** (line-clamp-5 + aria-controls) · click-pin/keyboard = full article text immediately · applies to glossary/digest/full-article bodies
++ **Dock — no internal scrolling (T20)**: L1/L2 always show every button (height caps + overflow removed — mobile sheet keeps the safety scroll)
++ **Dock flush-bottom position-aware (T21)**: bottom-center/left always flush to the edge (20px desktop / 76px above navbar mobile) · bottom-right raises 96px only when BackToTop appears (scrollY>200, 200ms transition)
++ **Hide BackToTop while the sheet is open (T22)**: `lawlib:dock-sheet` event — on mobile, sheet open → BTT hidden (invisible + tabIndex -1) · sheet closed → restored
++ **Focus Mode + Auto Scroll as dock tools (T23)**: L2 gains Focus (fi-sr-eye) + Auto Scroll (fi-sr-play→pause) buttons · pinnable to L1 (13 switches in the favorites editor, not in defaults) · autoScroll toggle = speed 0 ↔ last level (default 3) · ⚙️ slider shows **"Level {n} · {x.x} s/line"** (computed from the real font, 'Off' at 0/reduced-motion) · **⚙️ settings gains 5 sections: Theme · Paper yellowness · Text size · Line height · Content width** (same state as L1 pickers — ADR-019 D14)
+* **Commit message hook (ADR-022)**: commit-msg enforces grammar `type: subject (ref)` — 13 types, release form `release: (vX.Y.Z)` · test inventory check (vitest.unit.config)
 * Tests: 1179 unit (was 1122) · lawlib 459 · eval 34/34 · e2e 10/10 · build/typecheck/lint clean
 
 ## v1.12.1 (2026-08-09)
-+ **Content-surface glass (T17, ADR-021)**: hover tooltip + compact click popover เปลี่ยนจาก solid → **glass** (`.lawlib-glass-content`) — ค่า opacity ตาม slider ด้วยสูตรของตัวเอง: **0.55 / 0.7 (default) / 0.95** (piecewise anchor 0/35/100 — พื้นผิวเนื้อหาอ่านไม่โปร่งเกิน 0.55 และไม่มีพื้นผิวใดทึบ 100%) · dock/search cap alpha **0.95 @ slider 100** (เดิม 1.0) · blur เปลี่ยนเป็น **dynamic ตาม slider**: dock 1.5–3.5px · search 3–5px · content 6–8px (ยกเลิก GPU-kill blur none @100%) · tooltip/popover body ink รวมเป็น slate-800 (AA: @slider 0 = 4.96:1 — UI review HIGH fix)
-+ **Dock anchor rework**: panel ชิดไอคอน (top-0/left-0/bottom-0 — ไม่มีช่องว่าง) · ตำแหน่ง dock ชิดขอบ (1.25rem / md:6) · L2 เว้นระยะ 3 · position picker เป็น **3×3 grid** (center ว่าง)
-+ **Tooltip hub restyle**: ปุ่ม hub → rounded-full bg-white/90 + close button + inner-wrapper removal
-* **Fix BackToTop overlap**: dock bottom positions คืน clearance เดิม `max(icon+3.25rem, 5.25rem)` — icon ชนปุ่มกลับขึ้นบนหลัง anchor rework (verified 390px + 1280px, gap 10–26px)
-* **Fix footer overlap (T18)**: tooltip/popover ท้ายหน้าทับ footer logo (วัดได้ 448×61px) → footer-aware flip — วางล่างถูกปฏิเสธเมื่อข้าม `#site-footer` และมีที่ว่างเหนือ trigger (popover narrow-screen fallback พลิกเหนือการ์ด) · กลางหน้ายังวางล่างปกติ
-+ **Commit message rule (ADR-022)**: commit-msg hook บังคับ Conventional Commits — 13 lowercase types (no scope), optional end ref group (`(T23)` / `(#42)` / `(PR-7)` / `(krulaw)`), `release: (vX.Y.Z) <details>` as the release form (old `Release vX.Y.Z:` exempt — history compat) · zero-dependency validator `scripts/commit-msg-check.mjs` + 41 fixture-driven unit tests · AGENTS.md convention section + cheat-sheet (5 real→new conversions) · advisory-only subject length (>72) — no hard cap · dogfooded: first commit through the live hook (6e3aafd)
++ **Content-surface glass (T17, ADR-021)**: hover tooltip + compact click popover switch from solid → **glass** (`.lawlib-glass-content`) — opacity follows the slider via its own formula: **0.55 / 0.7 (default) / 0.95** (piecewise anchors 0/35/100 — content surfaces never below 0.55 readability, no surface fully opaque) · dock/search alpha capped **0.95 @ slider 100** (was 1.0) · blur becomes **slider-dynamic**: dock 1.5–3.5px · search 3–5px · content 6–8px (GPU-kill blur-none @100% removed) · tooltip/popover body ink unified to slate-800 (AA: @slider 0 = 4.96:1 — UI review HIGH fix)
++ **Dock anchor rework**: panels flush to the icon (top-0/left-0/bottom-0 — no gap) · dock positions flush to the edge (1.25rem / md:6) · L2 spacing 3 · position picker is a **3×3 grid** (center empty)
++ **Tooltip hub restyle**: hub button → rounded-full bg-white/90 + close button + inner-wrapper removal
+* **Fix BackToTop overlap**: dock bottom positions restored to the original clearance `max(icon+3.25rem, 5.25rem)` — icon collided with the back-to-top button after the anchor rework (verified 390px + 1280px, gap 10–26px)
+* **Fix footer overlap (T18)**: tooltip/popover at the page end overlapped the footer logo (measured 448×61px) → footer-aware flip — below placement rejected when crossing `#site-footer` with room above the trigger (popover narrow-screen fallback flips above the card) · mid-page still places below
++ **Commit message rule (ADR-022)**: commit-msg hook enforces Conventional Commits — 13 lowercase types (no scope), optional end ref group (`(T23)` / `(#42)` / `(PR-7)` / `(krulaw)`), `release: (vX.Y.Z) <details>` as the release form (old `Release vX.Y.Z:` exempt — history compat) · zero-dependency validator `scripts/commit-msg-check.mjs` + 41 fixture-driven unit tests · AGENTS.md convention section + cheat-sheet (5 real→new conversions) · advisory-only subject length (>72) — no hard cap · dogfooded: first commit through the live hook (6e3aafd)
 * Tests: 1085 unit (was 1080) · lawlib 234 · eval 34/34 · e2e 9/9 · build/typecheck/lint clean
 
 ## v1.12.0 (2026-08-08)
@@ -23,10 +23,10 @@
 - **Gates**: typecheck/lint clean · build clean ×2 (matching outputs) · eval 34/34, pass³ = 1.00 · k6 50 VU — poll p95 12.15ms (vs 20.2ms baseline @100 VU), public p95 20.56ms, 0% errors, no pool-3 saturation · audit 12→9→7→6 (remaining = known out-of-scope yahoo-finance2/archiver chains) · Playwright specs pass. OPS NOTE: no prod deploy — VisperHost pending (ADR-013).
 
 ## v1.11.1-b (2026-08-08)
-+ **Dock v2.2 (T14)**: pickers show ICON + current value as a tiny label beneath (ตัวอักษร "14px" / บรรทัด "1.8" / ความกว้าง "100%") · ธีม = icon only (☀️/🌙/📖/🎨 สะท้อนสถานะ) · L2 = icon-only 2-row grid (row 1 = favorites, row 2 = the rest) — no text rows/pins · favorites editor (เครื่องมือแถวลัด) moved into ⚙️ settings · ที่คั่นหน้าทั้งหมด → panel · a11y: aria-pressed only on genuine toggles, settings aria-label trimmed.
++ **Dock v2.2 (T14)**: pickers show ICON + current value as a tiny label beneath (text "14px" / line "1.8" / width "100%") · theme = icon only (☀️/🌙/📖/🎨 reflecting state) · L2 = icon-only 2-row grid (row 1 = favorites, row 2 = the rest) — no text rows/pins · favorites editor moved into ⚙️ settings · all bookmarks → panel · a11y: aria-pressed only on genuine toggles, settings aria-label trimmed.
 + **Dock v2.3 COMPACT (T15)**: L1 panel 416px → **64px** (side columns) / horizontal row at middle positions (min-w-max fix — 7 buttons on ONE row, was wrapping into a vertical column) · L2 = **separate 112px glass sibling panel** anchored away from the screen edge (right dock → L2 left, bottom → L2 up…) · panel header removed → ⋯ dots toggle (28px, fi-sr-menu-dots, toggles L2) + × close at L1 end · uniform glass L1+L2 · mobile sheet = L1 only, L2 collapsed by default.
 + **Tooltip height cap (T16)**: desktop tooltip capped at `100vh − 2rem` with root scroll — no more full-screen tooltip (was 799.7px on an 800px viewport) · positions below/above the trigger correctly.
-+ **Quick Note collapsed-to-icon (T16)**: โน้ตด่วน = note icon by default (click to expand + focus the textarea) · draft/autosave/blur-flush/unmount-flush preserved · existing note shown via "มีโน้ต" label + amber dot · เปิดโน้ตทั้งแผง stays.
++ **Quick Note collapsed-to-icon (T16)**: quick note = note icon by default (click to expand + focus the textarea) · draft/autosave/blur-flush/unmount-flush preserved · existing note shown via "has note" label + amber dot · full-panel note stays.
 + **e2e lawlib spec (W3-3)**: 9 tests — 375px sheet, hover/keyboard digest-refs, repealed badge, prose split, cross-law guard, direction-aware dock.
 * **Esc-reopen loop fix (W3-4)**: tooltip overlapping its trigger no longer reopens instantly after Esc — 200ms suppression window + 4-branch gap clamp (no trigger overlap when the viewport allows).
 * read/sepia collapsed-icon border restored (#d4c49a, 1.4.11 rationale) · header lock buttons 44px (W3-1+2).
@@ -36,38 +36,38 @@
 + **Dock v2.1**: real glass 30–40% (default 35) + highlight border + blur-xs · Level 1 open by default (desktop + mobile sheet) · outside-click no longer closes (Esc/collapse/X only) · direction-aware expansion (sides = vertical, middle = horizontal) · expand/collapse animation (reduced-motion safe, toggle in settings) · non-default value dots on pickers · per-setting reset · collapse-state memory (T12, ADR-019 D9 additions).
 + **Tooltip glass**: follows the glass slider (clear ↔ opaque), content keeps solid surface (T12b).
 + **Chrome glass in ALL themes**: dock/tooltip/search glass in read/sepia too — no exceptions; paper kept for content cards/TOC (T12b).
-+ **Merged-ref split**: มาตรา 75 - มาตรา 78 → 4 individual hoverable links (full-text tooltip + ดูฉบับเต็ม per article) · prose ranges มาตรา 75–76 split · cross-law refs guarded · repealed badge on full-text fallback (T13).
++ **Merged-ref split**: Sections 75–78 → 4 individual hoverable links (full-text tooltip + view-full per article) · prose ranges Sections 75–76 split · cross-law refs guarded · repealed badge on full-text fallback (T13).
 * Position selector moved to ⚙️ settings · stored glassOpacity 75→35 migration · theme-dot baseline fix · +37 tests (385 lawlib+unit, 1059 unit total) · gates 385/385, eval 17/17, build/typecheck/lint clean.
 
 ## v1.11.1 (2026-08-06)
 + **Tooltip pin**: click-to-pin + hover preview (union-zone 150ms guard, drag ≥10px guard, content-gated) — WCAG 1.4.13 fix (T1, ADR-018).
 + **Glassmorphism design system**: glass-1/2/3 tiers — search glass-2 (visible boundary + AA tokens), cards glass-3, dead-blur cleanup (T0/T2/T3/T5).
 + **Dock v2**: 3-level dock (collapsed icon → favorites → all tools, pin-your-own) · 4 value-showing pickers (theme 4 modes + paper slider, font 8–32px, line-height, width 80–120%) · bookmark v2 (state + badge + grouped list + tooltip toggle) · tooltip hub (bookmark/quick-note/copy/copy-link) · 8 positions · collapse-stays-open semantics (T10a, ADR-019).
-+ **Settings panel ⚙️**: glass slider (dock + search, 0–100) · toolbar size 24–56 · 5 font families (3 new, lazy-loaded) · paragraph spacing · font weight · hide repealed/amendment notes · focus mode (disclosure) · quick-jump มาตรา · auto-scroll · reset · sticky มาตรา X indicator (T10b).
++ **Settings panel ⚙️**: glass slider (dock + search, 0–100) · toolbar size 24–56 · 5 font families (3 new, lazy-loaded) · paragraph spacing · font weight · hide repealed/amendment notes · focus mode (disclosure) · quick-jump Section · auto-scroll · reset · sticky Section indicator (T10b).
 + **Mobile**: popover clamp · TOC collapse <lg · 44px tap sweep · safe-area insets · cookie z-40 · BackToTop a11y · drawer focus (T9).
-+ **COMPACT มาตรา hover-info**: digest snippet + ดูฉบับเต็ม (T11).
++ **COMPACT Section hover-info**: digest snippet + view-full (T11).
 + **A11y**: ~20 contrast fixes · tooltip hub role=dialog · focus mgmt · aria labels · chip hit-area (T4/T5/T6 + fix batches).
 * Night theme removed (4 themes remain: light/dark/read paper tones); width now % of 80ch.
 * Tests: +108 (240 → 348 lawlib + unit), unit 1022 · gates 348/348 · build/typecheck/lint/eval clean.
 
 ## v1.11.0 (2026-08-04 – 2026-08-06)
-* **LawLib**: new legal-library module — reader + digest lanes, markdown → `LawDoc` parser pipeline, and real law content (พ.ร.บ.การศึกษาแห่งชาติ 2542, 82 มาตรา, built + indexed at `national-education-act-2542`; `planned-laws.json` manifest now flags it `"built": true` — 10 laws planned, 1 built).
+* **LawLib**: new legal-library module — reader + digest lanes, markdown → `LawDoc` parser pipeline, and real law content (National Education Act B.E. 2542, 82 sections, built + indexed at `national-education-act-2542`; `planned-laws.json` manifest now flags it `"built": true` — 10 laws planned, 1 built).
   + * **Release-prep**: compact JSON emit restored — the pre-commit lint-staged prettier pass had re-inflated the emitted law JSON (138KB compact → 160KB pretty, over the NFR2 150KB ceiling); `src/data/lawlib/**` added to `.prettierignore` so committed data now byte-matches build emission (build deterministic — re-emit diff is format-only); `--check` green.
   + * **Module**: reader (`(website)/lawlib/[slug]`) + digest lane + parser/normalize/snippet/validate pipeline (`src/lib/lawlib/`) + 148+ tests (152 in `tests/lawlib/`) + eval; build `--check`/tsc/lint/vitest green.
 + **Dev tooling perf**: dev → Turbopack (`next dev -p 3300`, obsolete `--webpack` opt-out dropped) · lint cache (`eslint --cache`, `.eslintcache` gitignored) · vitest split into parallel unit suite (37 files) + serial DB suite (19 files, shared-Mongo safety preserved) with a test-inventory rot guard (`test:check-inventory` fails `npm run test` if any test file is dropped or double-listed) · `analyze` migrated to `next experimental-analyze`, `@next/bundle-analyzer` devDep removed.
 + * **Reading Redesign — LawLib reader/digest UX overhaul (8 issues, TDD-first, 3-agent review)**:
-+   + * **3-mode theme**: light / dark / **read** (paper). Read mode = paper tones — ครีม (soft) / คลาสสิก (classic) / เหลือง (warm, user-adjustable yellowness, persisted at `lawlib:paperTone`, stored setting wins else classic); warm tone truly yellow (bg `#f9ecc0`, cards `#fdf5cf` — different tones, muted text ≥4.5:1 on both); `useTheme()` API + `THEMES`/`PAPER_TONES` consts + `validateReadingSettings`/`loadGlobalSettings`/`saveGlobalSettings` (`lawlib:settings`, null-safe defaults); light-mode white-text bug fixed; header theme button in read mode now switches read↔light (desktop + mobile).
-+   + * **Floating reading dock**: all toolbar actions + reading controls (font size S/M/L/XL, line-height slider, content width แคบ/ปกติ/กว้าง) float above the BackToTop FAB; mobile clearance fixes (`p-4 pr-18` → `md:pr-24`) so content never hides behind it; FAB lowered to clear the dock.
++   + * **3-mode theme**: light / dark / **read** (paper). Read mode = paper tones — cream (soft) / classic / warm (user-adjustable yellowness, persisted at `lawlib:paperTone`, stored setting wins else classic); warm tone truly yellow (bg `#f9ecc0`, cards `#fdf5cf` — different tones, muted text ≥4.5:1 on both); `useTheme()` API + `THEMES`/`PAPER_TONES` consts + `validateReadingSettings`/`loadGlobalSettings`/`saveGlobalSettings` (`lawlib:settings`, null-safe defaults); light-mode white-text bug fixed; header theme button in read mode now switches read↔light (desktop + mobile).
++   + * **Floating reading dock**: all toolbar actions + reading controls (font size S/M/L/XL, line-height slider, content width narrow/normal/wide) float above the BackToTop FAB; mobile clearance fixes (`p-4 pr-18` → `md:pr-24`) so content never hides behind it; FAB lowered to clear the dock.
 +   + * **Card/paper design**: `lawlib-article-card`, TOC, panel, dock, list + digest cards all become paper surfaces (`--read-card` per tone) with paper ink (`--read-ink`); contrast pass — muted text darkened to `#7a6845` (4.57–5.00:1 across tones, was ~3.9:1); header/settings labels + search placeholder + empty states fixed in read mode; read-mode navbar hidden on `/lawlib/[slug]` + `/lawlib/digest` (list keeps it).
-+   + * **Settings menu**: header gear opens full settings (theme + tone + reading settings); shared `Segment` component (duplicate removed); honest mode labels (โหมดอ่าน / Reading Mode); settings global, bookmarks/notes/highlights per-law.
++   + * **Settings menu**: header gear opens full settings (theme + tone + reading settings); shared `Segment` component (duplicate removed); honest mode labels (Reading Mode); settings global, bookmarks/notes/highlights per-law.
 +   + * **41 broken icons fixed** (Flaticon nearest-glyph subset rebuild, v2.4.0 match — 21 aliases) · print.css cleanup · dock test suite added (1102 → 1106 tests, then unit dir realigned to `tests/unit/lawlib/` + dock added to `unitInclude` after the rename).
 
 + **LawLib FULL/COMPACT merge — digest into the law reader (5 scrutiny loops, 38 findings, 2 senior reviews)**:
-  + * **View toggle**: `/lawlib/[slug]` gains a FULL | COMPACT radio group (ฉบับเต็ม | เวอร์ชันย่อ) — **default COMPACT when a digest exists**; per-slug memory (`lawlib:<slug>:view`) + shareable `?view=compact|full` URLs (replaceState, hash preserved); no-digest laws stay FULL (toggle hidden, params ignored); sr-only status announcement + scroll-to-top + activeKey reset on switch (a11y WCAG 2.2 AA: radiogroup semantics, roving tabindex, arrow keys).
-  + * **COMPACT view**: digest-structure TOC (sections + chapter groups + **all 76 มาตรา**, scroll-spy, click = auto-expand + jump) in FULL's two-column card frame (card-in-card, user redesign); **มาตราสำคัญ heading + chips removed** (groups are the structure); reader typography settings (font/width/line-height/paper) apply.
-  + * **Hover-to-full**: compact มาตรา cards expand on hover/tap to the REAL article via the same ArticleView (`singleKey` mode — model short-circuit 1/82 + per-law WeakMap cache); focus handoff, Escape collapse (panel > card > dock precedence), hover never moves focus, hover-expansion suppressed 400ms after programmatic collapse (synthetic mouseenter fix).
+  + * **View toggle**: `/lawlib/[slug]` gains a FULL | COMPACT radio group (Full | Compact) — **default COMPACT when a digest exists**; per-slug memory (`lawlib:<slug>:view`) + shareable `?view=compact|full` URLs (replaceState, hash preserved); no-digest laws stay FULL (toggle hidden, params ignored); sr-only status announcement + scroll-to-top + activeKey reset on switch (a11y WCAG 2.2 AA: radiogroup semantics, roving tabindex, arrow keys).
+  + * **COMPACT view**: digest-structure TOC (sections + chapter groups + **all 76 sections**, scroll-spy, click = auto-expand + jump) in FULL's two-column card frame (card-in-card, user redesign); **key sections heading + chips removed** (groups are the structure); reader typography settings (font/width/line-height/paper) apply.
+  + * **Hover-to-full**: compact section cards expand on hover/tap to the REAL article via the same ArticleView (`singleKey` mode — model short-circuit 1/82 + per-law WeakMap cache); focus handoff, Escape collapse (panel > card > dock precedence), hover never moves focus, hover-expansion suppressed 400ms after programmatic collapse (synthetic mouseenter fix).
   + * **Jump rule everywhere**: view-aware `navigateTo` — card-first in compact (auto-expanding collapsed groups), else FULL + deferred jump; covers chips/refs/search/glossary/TOC/bookmarks/tooltip/deep-links/restore; mount-restore rewritten (viewAtMount + digestHasCard, no firstKey default in compact); reader keyed by law.slug (mid-session switch reset).
-  + * **Digest search**: search panel also matches digest lines in COMPACT (grouped "ในเวอร์ชันย่อ", combined status "พบ N มาตรา, M รายการในเวอร์ชันย่อ", prefixed aria-labels); jumps close the panel, auto-expand the containing group, scroll+focus the line (`tabindex=-1`) + 2s flash (contrast-safe colors, skipped under reduced motion); FROZEN SearchPanelProps extended with optional `digestLines`/`onDigestLineJump`.
+  + * **Digest search**: search panel also matches digest lines in COMPACT (grouped "in the compact view", combined status "found N sections, M items in the compact view", prefixed aria-labels); jumps close the panel, auto-expand the containing group, scroll+focus the line (`tabindex=-1`) + 2s flash (contrast-safe colors, skipped under reduced motion); FROZEN SearchPanelProps extended with optional `digestLines`/`onDigestLineJump`.
   + * **Crawler-friendly hybrid (SEO)**: digest-bearing pages render a static full-text region in the HTML (`.lawlib-static-full`, display:none — indexed; `@media (scripting:none)` no-JS reveal; NO ids/data-* — the app owns them; after the shell in DOM; excluded from print); **metadataBase** added to root layout (origin centralized in `CONFIG.SITE.URL` — without it the relative canonical resolved to localhost and the dedup mechanism silently died); canonical alternates + digest-first meta description; measured page total ≈295KB raw / ~38KB gzip-9 (region ≈15.3KB gzip), gate ≤85KB.
   + * **Delete `/lawlib/digest`** (user decision, no redirect — SEO re-index accepted): route, sitemap entry, dead `.lawlib-theme-fab` CSS removed; content now at `/lawlib/<slug>?view=compact`.
   + * **Digest model**: `digest-view.ts` moved to `src/lib/lawlib/` (pure, slug-parametrized) — term tokens (tooltips in digest text, marker-aware `**`/`~~` flags), global `lawlib-dline-<n>` ids, `digestHasCard`; digest md renamed to the slug convention (`content/lawlib/digests/<slug>.md`); build.ts prints digest pairing info.
@@ -76,9 +76,9 @@
   + * **Docs**: ADR-017 (decisions D1–D19 + rejected alternatives); scrutiny log in the plan (rev 5.5).
 
 * **LawLib — compact hover tooltips = FULL parity (6 scrutiny loops → v6 plan · parallel 5-track execution · verify GO)**:
-  + * **Hover**: compact มาตรา card labels (member buttons, incl. merged "มาตรา 11 - มาตรา 12") show the SAME tooltip as FULL — ประวัติการแก้ไข (amended) / full article text (non-amended) + เปิดมาตรานี้ + copy; interactive tooltip per user decision (FULL parity, a11y tradeoff accepted).
+  + * **Hover**: compact section card labels (member buttons, incl. merged "Sections 11–12") show the SAME tooltip as FULL — amendment history (amended) / full article text (non-amended) + open this section + copy; interactive tooltip per user decision (FULL parity, a11y tradeoff accepted).
   + * **Popover**: click/tap label or card body opens the full-article popover EXACTLY once (closest-guard); hover no longer opens it (body hover inert, cursor-pointer); merged cards stack all member articles; Esc/X close + focus restore to the last-clicked member (hidden-guard fallback).
-  + * **Routing**: body refs + tooltip เปิดมาตรานี้ → openCardPopover (memberToCardMap — merged members included); non-card keys → FULL + jump; TOC chips stay scroll-only; collapsed groups auto-expand before scroll (50ms, cancel-token race fix).
+  + * **Routing**: body refs + tooltip open-this-section → openCardPopover (memberToCardMap — merged members included); non-card keys → FULL + jump; TOC chips stay scroll-only; collapsed groups auto-expand before scroll (50ms, cancel-token race fix).
   + * **A11y**: popover role=dialog aria-modal=false + stable popoverId (aria-controls/expanded); tooltip root stable id (useId) + aria-describedby iff open; no interactive nesting (member buttons = siblings in a plain div).
   + * **Fixes**: React 19 synthesized pointer events (`relatedTarget=window`) → `rt instanceof Node` guard; reading-dock digestView `== null` hardening (4/4 green); dead digest history field removed.
   + * **Tests/QA**: +21 compact-routing tests (merged routing, double-fire guard, keyboard Esc/X restore, a11y wiring, non-card FULL, group expand) + 9 tooltip tests; 41 files/926 unit + 188 lawlib; eval 17/17 pass³=1.00; QA 22/22 ×2; build clean.
@@ -90,7 +90,7 @@
   + * **Perf**: 5 tool boards code-split (`next/dynamic` per session type) · mascot whitelist as id-set (21.6KB out of API bundles).
   + * **Tests**: 147 tools tests (edit/admin emission, SSE caps, join-code gate, coalescing, hook lifecycle) — full suite 907 green.
   - **OPS NOTE**: no prod deploy this release — KVM1 VPS expired 2026-08; deploy pending VisperHost provision (ADR-013). `ANALYTICS_SALT` still required before first deploy (v1.10.86 note).
-* **LawLib (pre-release, no bump) — law slugs switched to English titles (ADR-015)**: all 10 planned slugs + the built พ.ร.บ.การศึกษาแห่งชาติ 2542 renamed to English translation slugs (`national-education-act-2542`, `compulsory-education-act-2545`, … — user-reviewed one-by-one); law file + `_extracts` renamed, manifest + `LAW_CODE_ALIASES` + eval #11 + digest deep links + parser test comments updated; registry/index regenerated (0 stale `phra-ratchabanyat` refs in live code); build `--check`/tsc/lint/vitest 148/148/run-evals 15/15 (pass@3 = 1.00).
+* **LawLib (pre-release, no bump) — law slugs switched to English titles (ADR-015)**: all 10 planned slugs + the built National Education Act B.E. 2542 renamed to English translation slugs (`national-education-act-2542`, `compulsory-education-act-2545`, … — user-reviewed one-by-one); law file + `_extracts` renamed, manifest + `LAW_CODE_ALIASES` + eval #11 + digest deep links + parser test comments updated; registry/index regenerated (0 stale `phra-ratchabanyat` refs in live code); build `--check`/tsc/lint/vitest 148/148/run-evals 15/15 (pass@3 = 1.00).
 
 ## v1.10.86 (2026-08-03)
 * **Perf / Security / A11y batch (senior-approved)**:
@@ -733,7 +733,7 @@
 * **Analytics /test/ path pollution fix**: `/test/*` bot paths inflating total view count (~30k) and dominating Top Pages are now filtered at ingress (`route.ts`), aggregation layer (`aggregations.ts`), and all dashboard queries (`admin.ts`). 36k existing polluted events deleted from production MongoDB. Backup saved to `backup/2026-06-11/`.
 
 ## v1.10.2 (2026-06-12)
-* **HEIC upload fix (client-side conversion)**: iPhone HEIC images now converted to JPEG in-browser via `heic2any` (WASM) before XHR upload. Removes dependency on server-side `heic-convert` native bindings (`libheif`) that failed on production VPS. Added `clientConvertHeic()` with try/catch fallback → original file on failure. Status text "กำลังแปลงรูป HEIC..." shown during conversion. Scrutiny: 2 fix-its (progress status, fallback) verified before ship.
+* **HEIC upload fix (client-side conversion)**: iPhone HEIC images now converted to JPEG in-browser via `heic2any` (WASM) before XHR upload. Removes dependency on server-side `heic-convert` native bindings (`libheif`) that failed on production VPS. Added `clientConvertHeic()` with try/catch fallback → original file on failure. Status text "Converting HEIC image..." shown during conversion. Scrutiny: 2 fix-its (progress status, fallback) verified before ship.
 
 ## v1.10.1 (2026-06-10)
 - **Refactor (dead code elimination)**: Removed 20 LOC `createToken` from `auth-base.ts` (no callers). Cleaned unused exports in phonics game: `CEFR_LEVELS`, `CEFR_LABELS`, `ROUND_LENGTHS`, `PHONEME_MAP` (constants), `parseMapGrid` (map), `isGuestMode`/`updatePhonemeStat` (save), 6 sprite constants (sprites). Build/lint clean, tests passing.
@@ -862,7 +862,7 @@
 + **Hero Parallax**: 8 floating dots drift at scroll-dependent speeds (5–61px offset) via CSS custom property — rAF-throttled, passive listener, zero React state updates
 
 ## v1.9.48 (2026-06-06)
-+ **Homepage Redesign**: New hero with Thai greeting (`สวัสดี ผมชื่อ Boss478`), CSS floating dot background (GPU composited, zero JS), 3rd CTA button for games
++ **Homepage Redesign**: New hero with Thai greeting ("Hello, I'm Boss478"), CSS floating dot background (GPU composited, zero JS), 3rd CTA button for games
 + **Stats Bar**: MongoDB-powered counters (portfolio/gallery/games/resources) with IntersectionObserver-triggered count-up animation, respects `prefers-reduced-motion`
 + **Spotlight Section**: Latest 3 portfolio items fetched from DB with lazy-loaded cover images, graceful fallback on DB outage
 + **Categories**: 4-column grid on desktop, watermark icon, enhanced hover effects
@@ -967,7 +967,7 @@
   + Linter cleanup (resolved React warnings, removed unused variables, imports, and callbacks)
 
 ## v1.9.36 (2026-06-04)
-+ **2 new levels**: Thai Match (จับคู่ภาษาไทย) + Phonics Match (จับคู่เสียงอ่าน) — reordered 6 levels total
++ **2 new levels**: Thai Match (Thai word matching) + Phonics Match (sound matching) — reordered, 6 levels total
 + **Sound button**: First 3 levels — click letter card to hear pronunciation via speech synthesis
 + **Score in feedback**: Praise messages now show score delta (e.g., "Great job! +5")
 + **Streak tracking**: Consecutive correct answers tracked + displayed in HUD + feedback
@@ -1211,7 +1211,7 @@
 + Added missing `@utility animate-fade-in-up` CSS animation (was referenced in 6 components but never defined)
 * Removed duplicate `createErrorResponse()` function — identical to `getError()`, migrated 4 callers to `getError()`
 * Fixed CSS typo / cleanup: removed 4 unused backdrop-blur tokens, 3 unused CSS custom props, 2 unused color vars, 1 unused `@utility` (-12 lines total)
-* Fixed Thai typo in error T09: `เซสึนหมดอายุแล้ว` → `เซสชันหมดอายุแล้ว`
+* Fixed Thai typo in error T09: "session expired" message — misspelled Thai transcription corrected
 - Removed unused imports across 8 files (GalleryClient, GamesClient, PlayView, PortfolioClient, ResourcesClient, ExportButton, QuickStartModal, PhotoLightbox, tool-translations, admin resources actions)
 
 ## v1.9.14 (2026-05-25)
@@ -1389,7 +1389,7 @@
 
 ## v1.8.27 (2026-05-21)
 
-* Fixed "All" filter button not active on first load for /games, /portfolio, /gallery — changed server default from `""` to `"ทั้งหมด"` to match client button label
+* Fixed "All" filter button not active on first load for /games, /portfolio, /gallery — changed server default from `""` to `"all"` to match the client button label
 * Removed zero-width space (`\u200b`) accidentally injected by sed command in server files
 * Removed `NavigationPendingBar` component entirely — no loading indicator during navigation, consistent with instant-response UX from v1.8.25
 * Deleted `src/components/NavigationPendingBar.tsx` — no longer used
@@ -1482,7 +1482,7 @@
 * Fixed resources and games pagination links to preserve search, sort, and limit params
 * Fixed SearchFilter layout — search, sort, type filter, and page size now render in same row with proper spacing
 * Fixed ToggleActive icon — changed `fi-sr-signal-stream-2` to `fi-sr-signal-stream` (variant didn't exist)
-* Fixed PageSizeSelector — removed "รายการ" text, now shows just the number
+* Fixed PageSizeSelector — removed the "items" text, now shows just the number
 
 ## v1.8.17 (2026-05-20)
 
@@ -1816,12 +1816,12 @@
   - `package.json`: Added `-p 3300` to dev script
   - `AGENTS.md`: Updated session start protocol and key URLs documentation
   - `docker-compose.yml`: Changed port mapping from `"3000:3000"` to `"3300:3300"`
-* **Fixed Hero CTA button**: Changed second CTA link from `/gallery` to `/resources` — the button labeled "สื่อการเรียนรู้" now correctly navigates to resources section
+* **Fixed Hero CTA button**: Changed second CTA link from `/gallery` to `/resources` — the button labeled "learning resources" now correctly navigates to the resources section
 + **Hero logo `priority` preload**: Added `priority` prop to hero Image component for faster above-fold render (~150ms LCP improvement)
 + **Lazy loading for content images**: Added `loading="lazy"` to all grid and sidebar images in portfolio, gallery, resources, and games lists — reduces initial bandwidth by ~5-8MB per list page
 + **Glassmorphism consistency**: Applied `bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm` card pattern to gallery, resources, and games lists per AGENTS.md spec (portfolio already had it)
 + **Navigation loading indicator**: Added thin pulsing progress bar + dimmed content (`opacity-60`) during filter/sort/pagination transitions — gives users immediate feedback that their click registered
-+ **Skip-to-content link**: Added accessibility link "ข้ามไปที่เนื้อหาหลัก" — invisible by default, appears on Tab key focus for keyboard/screen-reader users
++ **Skip-to-content link**: Added accessibility link "skip to main content" — invisible by default, appears on Tab key focus for keyboard/screen-reader users
 + **Detail page content width capping**: Added `max-w-3xl` (~768px) to portfolio detail article body — improves desktop readability (optimal 65-75 char line length)
 - **Dead code cleanup**: Removed empty whitespace lines from home page
 
@@ -1874,7 +1874,7 @@
 ## v1.5.15 (2026-04-19)
 
 + **Enhanced Admin: New Resource Page**: Added comprehensive type-specific content management:
-  - Subject options changed to Thai (English) format (e.g., คณิตศาสตร์ (Mathematics))
+  - Subject options changed to bilingual "Thai (English)" format (e.g., Mathematics with its Thai name alongside)
   - Added 8 new resource types: Article, Presentation, Video, Lesson Plan, Sheet, Worksheet, Scratch, Interactive
   - Type-specific UI per type:
     - Article: HTML Editor (React Quill) + Image Upload + Video URL + Link Management + PDF Support
@@ -1919,7 +1919,7 @@
 + **Centralized Config Files**: Created 2 new centralized files for easy configuration management:
   - `src/lib/constants.ts` — DB timeouts, pool settings, animation durations, route paths, Mongo Express URL config
 + **Centralized Error Codes**: Created single `src/lib/error-code.ts` — unified HTTP (400, 401, 404, etc.) and app-specific error codes in one flat structure.
-  - Format: `ERROR_404 [404]: ไม่พบข้อมูล (NOT FOUND)` for HTTP, `ERROR_U01 [413]: ไฟล์มีขนาดใหญ่เกินไป (File is too large)` for app codes
+  - Format: `ERROR_404 [404]: data not found (NOT FOUND)` for HTTP, `ERROR_U01 [413]: file too large (File is too large)` for app codes
   - Returns structured JSON: `{ code, httpStatus, message, translation }`
   - Usage: `getError('404')` or `getError('U01')` — single key lookup
 + **DB Settings Centralized**: Moved hardcoded `serverSelectionTimeoutMS`, `socketTimeoutMS`, `connectTimeoutMS`, and pool settings from `src/lib/db.ts` to use centralized constants from `src/lib/constants.ts`
@@ -2023,7 +2023,7 @@
 + **Usage Examples**: Added inline code examples for built-in functions.
 * **Refactor**: Moved "Learning" section to `/resources` for routing consistency.
 * **Study Mode Refinement**: Fixed aggressive syntax highlights and false positive errors for user-defined symbols.
-* **Localization**: Refined Thai descriptions for Study Mode parameters (e.g., `print(ข้อความ)`).
+* **Localization**: Refined Thai descriptions for Study Mode parameters (e.g., `print(message)`).
 
 ## v1.4.4 (2026-03-27)
 
