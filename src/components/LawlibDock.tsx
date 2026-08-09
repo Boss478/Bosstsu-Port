@@ -181,6 +181,21 @@ const MORE_POP_ORIGIN: Record<DockPosition, string> = {
   'bottom-right': 'right bottom',
 };
 
+/** T25 — L1 morph transform-origin per position: the panel grows FROM the
+ *  dock icon — top positions scale from their top edge, bottom from bottom,
+ *  mid from the icon-adjacent side; the mobile bottom sheet grows from its
+ *  bottom edge. */
+const MORPH_ORIGIN: Record<DockPosition, string> = {
+  'top-left': 'top left',
+  'top-center': 'top center',
+  'top-right': 'top right',
+  'mid-left': 'left center',
+  'mid-right': 'right center',
+  'bottom-left': 'bottom left',
+  'bottom-center': 'bottom center',
+  'bottom-right': 'bottom right',
+};
+
 function loadDockPosition(): DockPosition {
   const saved = safeGetString('lawlib:dockPosition');
   return saved !== null && (DOCK_POSITIONS as readonly string[]).includes(saved)
@@ -681,11 +696,18 @@ export default function LawlibDock(props: LawlibDockProps) {
       : position.startsWith('mid')
         ? 'side'
         : 'up';
+  /** T25 — the L1 panel animates in with the 200ms icon→panel MORPH
+   *  (lawlib-morph-in, spring overshoot) replacing the old directional
+   *  dock-in; the 150ms directional dock-out stays for collapse (the sheet
+   *  path — DOCK_ANIM_MS is untouched). */
   const animClass = animateDockNow
     ? closing
       ? `lawlib-dock-anim-out-${animDir}`
-      : `lawlib-dock-anim-in-${animDir}`
+      : 'lawlib-morph-in'
     : '';
+  /** T25 — L1 morph origin at the dock icon (mobile = the bottom sheet,
+   *  grows from its bottom edge). Applied only while the morph runs. */
+  const panelMorphOrigin = isMobile ? 'bottom center' : MORPH_ORIGIN[position];
   /** T25 — L2 pop origin per the `more` flip (mobile = in-flow block under
    *  the ⋯ row, grows downward). */
   const morePopOrigin = isMobile ? 'top center' : MORE_POP_ORIGIN[position];
@@ -951,6 +973,10 @@ export default function LawlibDock(props: LawlibDockProps) {
   };
 
   return (
+    // T25 (AC-4): `vt-dock` (view-transition-name: dock-chrome) lives on the
+    // ROOT wrapper ONLY — the collapsed icon + L1 panel + L2 menu all share
+    // the `.lawlib-dock` base class but must NOT carry the VT name: duplicate
+    // view-transition-names make the browser skip the whole transition.
     <div
       ref={rootRef}
       style={
@@ -964,7 +990,7 @@ export default function LawlibDock(props: LawlibDockProps) {
             : {}),
         } as React.CSSProperties
       }
-      className={`lawlib-dock fixed z-50 ${cfg.root} ${
+      className={`lawlib-dock vt-dock fixed z-50 ${cfg.root} ${
         isBottomPosition ? bottomOffsetClass : ''
       } transition-[bottom] duration-200`}
     >
@@ -988,6 +1014,7 @@ export default function LawlibDock(props: LawlibDockProps) {
           role="dialog"
           aria-modal="false"
           aria-label="เครื่องมืออ่าน"
+          style={{ ...(animateDockNow && !closing ? { transformOrigin: panelMorphOrigin } : {}) }}
           className={`lawlib-dock ${panelSurfaceClass} ${panelPlacementClass} border-slate-200 dark:border-slate-700 ${animClass}`}
         >
           {/* ─── Level 1 (T15 v2.3 COMPACT): ALWAYS visible while expanded —
