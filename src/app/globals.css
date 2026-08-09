@@ -1439,9 +1439,11 @@ textarea,
      dock keep their own opaque-ish surfaces (contrast AA).
    - Level-2 (เพิ่มเติม) panel = glass-3 (`.lawlib-glass-strong`) — opaque-ish
      for readability; the ⚙️ settings picker was already opaque (glass-3+).
-   - T12b: the article TOOLTIP is glass too — panel follows the slider
-     (fill + blur-xs + sheen), its CONTENT keeps its own solid surface
-     (LawTooltip's white/slate-900 inner wrapper → AA at 35%).
+   - T12b/T17: the article TOOLTIP + compact popover are CONTENT glass —
+      panel follows the slider via the content formula (0.5–0.95 alpha +
+      6–8px blur, `.lawlib-glass-content`), the whole card is ONE uniform
+      glass surface — interactive hub buttons + the repealed badge keep
+      their own solid surfaces (contrast AA).
 
    Chrome vs paper (T12c, user 2026-08-06): the THREE chrome surfaces —
    dock (L1 + collapsed icon), tooltip, list search field — are glass in
@@ -1507,33 +1509,48 @@ textarea,
   src: url('/fonts/lawlib/itim/Itim-Regular.woff2') format('woff2');
 }
 
-/* ─── T10b glass slider (ADR-019 D4/D8 — chrome ONLY: dock, tooltip,
-   search). --lawlib-glass-bg-light/dark + --lawlib-glass-blur are applied on
+/* ─── T10b glass slider (ADR-019 D4/D8, T17/ADR-020 — chrome surfaces:
+   dock, tooltip, popover, search). --lawlib-glass-bg-light/dark,
+   --lawlib-glass-content-bg-light/dark + the three blur vars are applied on
    <html> by LawlibGlassVars (lawlib layout) from settings.glassOpacity:
    0% → transparent surface (border + focus ring carry the boundary), 100% →
-   the JS sets the blur to 'none' (GPU saving). DEFAULTS here keep the
-   surfaces renderable before hydration / on non-lawlib pages — the light/dark
-   fills default to the T12 35% "real glass" alpha.
+   max alpha 0.95 + max blur (dock 3.5 · search 5 · content 8 — the
+   100% → 'none' GPU-kill rule is REMOVED, blur scales continuously).
+   DEFAULTS here keep the surfaces renderable before hydration / on
+   non-lawlib pages — the light/dark fills default to the T12 35% "real
+   glass" alpha.
    T12c (user 2026-08-06): these vars drive the chrome in EVERY theme —
    the read/sepia paper overrides for dock/tooltip/search are REMOVED below
    (the slider re-enables blur on read chrome; GPU returns to read mode —
    user accepted). Paper surfaces (cards/TOC/panels) keep their overrides. */
 .lawlib-glass {
   background-color: var(--lawlib-glass-bg-light, rgba(255, 255, 255, 0.35));
-  -webkit-backdrop-filter: var(--lawlib-glass-blur, blur(12px));
-  backdrop-filter: var(--lawlib-glass-blur, blur(12px));
+  -webkit-backdrop-filter: var(--lawlib-glass-blur, blur(3.5px));
+  backdrop-filter: var(--lawlib-glass-blur, blur(3.5px));
 }
 .dark .lawlib-glass {
   background-color: var(--lawlib-glass-bg-dark, rgba(30, 41, 59, 0.35));
 }
 /* T12 (ADR-019 D9): blur-xs override for the dock's Level-1 panel + the
    collapsed icon ("real glass" — documented glass-2 deviation). Rides its
-   own var (set alongside --lawlib-glass-blur by LawlibGlassVars so the
-   slider's 100% → none still applies). Same specificity as .lawlib-glass —
-   declared AFTER it so the blur wins when both classes are present. */
+   own var --lawlib-glass-blur-xs (T17: dynamic dockBlur, 1.5–3.5px).
+   Same specificity as .lawlib-glass — declared AFTER it so the blur wins
+   when both classes are present. */
 .lawlib-glass-xs {
-  -webkit-backdrop-filter: var(--lawlib-glass-blur-xs, blur(4px));
-  backdrop-filter: var(--lawlib-glass-blur-xs, blur(4px));
+  -webkit-backdrop-filter: var(--lawlib-glass-blur-xs, blur(2px));
+  backdrop-filter: var(--lawlib-glass-blur-xs, blur(2px));
+}
+/* T17 (ADR-020): content-surface glass — LawTooltip panel + compact
+   ArticlePopover (previously solid white/slate-900). Rides its own fill
+   vars + --lawlib-glass-blur-content (contentBlur, 6–8px, dynamic).
+   Same specificity as .lawlib-glass — declared after it for overrides. */
+.lawlib-glass-content {
+  background-color: var(--lawlib-glass-content-bg-light, rgba(255, 255, 255, 0.7));
+  -webkit-backdrop-filter: var(--lawlib-glass-blur-content, blur(6.5px));
+  backdrop-filter: var(--lawlib-glass-blur-content, blur(6.5px));
+}
+.dark .lawlib-glass-content {
+  background-color: var(--lawlib-glass-content-bg-dark, rgba(30, 41, 59, 0.7));
 }
 /* T12: Level-2 (เพิ่มเติม) dock panel surface = glass-3 (opaque-ish for
    readability — the panel swaps lawlib-glass → lawlib-glass-strong while

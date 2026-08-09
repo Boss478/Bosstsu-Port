@@ -19,12 +19,13 @@
  *    shortcut (full article + "— <code> มาตรา N" citation line)
  *  - cross-law ref → lazy registry load (cached); miss → "ยังไม่เปิดให้อ่าน"
  *
- * T12b (ADR-019 D9): the PANEL is glass — slider-driven fill (glassOpacity
- * 0-100, default 35) + blur-xs + sheen, the same mechanism as the dock
- * Level-1 (.lawlib-glass + .lawlib-glass-xs + .lawlib-glass-sheen). The
- * CONTENT keeps its own solid surface (white/slate-900 inner wrapper) so
- * body text measures ≥4.5:1 on a 35%-transparent panel — buttons and the
- * quick-note textarea already carry their own surfaces.
+ * T12b/T17 (ADR-019 D9 / ADR-020): the PANEL is CONTENT glass —
+ * slider-driven fill via the content formula (contentGlassAlpha 0.5–0.95)
+ * + content blur (6–8px), `.lawlib-glass-content` + sheen — a DISTINCT
+ * surface from the dock/search chrome (which keeps the old fill + blur-xs
+ * vars). The whole card is ONE uniform glass surface — no nested solid
+ * wrapper; interactive hub buttons and the repealed badge keep their own
+ * solid surfaces (contrast AA).
  */
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -255,12 +256,8 @@ function QuickNoteBox({
       title={expanded ? 'ปิดโน้ตด่วน' : hasNote ? 'โน้ตด่วน (มีโน้ต)' : 'โน้ตด่วน'}
       className={
         expanded
-          ? // Compact × in the expanded header row (the row's link is 28px;
-            // the PRIMARY control below is the 44px icon button).
-            'flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white'
-          : // Collapsed: 44×44 icon button — same target/contrast language as
-            // the hub action buttons (min-h-11 + border + slate surface).
-            'relative inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-blue-300'
+          ? 'flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-slate-500 shadow-xs transition-all duration-150 hover:scale-110 hover:border-rose-400/80 hover:bg-white hover:text-rose-600 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-400 dark:hover:border-rose-400/60 dark:hover:text-rose-300'
+          : 'relative inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-slate-600 shadow-xs backdrop-blur-xs transition-all duration-150 hover:scale-105 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
       }
     >
       <i
@@ -268,12 +265,9 @@ function QuickNoteBox({
         className={`fi ${expanded ? 'fi-sr-cross' : 'fi-sr-note-sticky'} text-[10px]`}
       />
       {!expanded && hasNote && (
-        // T16: existing-note indicator — the aria-label change to "โน้ตด่วน
-        // (มีโน้ต)" is the non-color cue; the amber dot (ArticleView's note
-        // color) reinforces it.
         <span
           aria-hidden="true"
-          className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-500"
+          className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-amber-500 ring-1.5 ring-white dark:ring-slate-900"
         />
       )}
     </button>
@@ -306,7 +300,7 @@ function QuickNoteBox({
             rows={2}
             aria-label="โน้ตด่วนสำหรับมาตราที่เปิด"
             placeholder="จดโน้ตด่วน… (บันทึกอัตโนมัติ)"
-            className="w-full resize-none rounded-lg border border-slate-200 bg-white p-2 text-xs leading-relaxed text-slate-700 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:placeholder:text-slate-400"
+            className="w-full resize-none rounded-xl border border-slate-200/90 bg-white/90 p-2.5 text-xs leading-relaxed text-slate-700 placeholder:text-slate-400 shadow-xs backdrop-blur-xs focus:border-blue-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:border-slate-700/80 dark:bg-slate-800/90 dark:text-slate-200 dark:placeholder:text-slate-400 dark:focus:bg-slate-800"
           />
           <p
             aria-live="polite"
@@ -335,17 +329,17 @@ function ArticleHub({ hub, onClose }: { hub: LawTooltipHub; onClose: () => void 
   };
 
   return (
-    <div className="space-y-2 border-t border-slate-100 pt-2 dark:border-slate-800">
+    <div className="space-y-2 border-t border-slate-200/60 pt-2.5 dark:border-slate-700/60">
       <div className="flex flex-wrap gap-1.5">
         <button
           type="button"
           onClick={hub.onToggleBookmark}
           aria-pressed={hub.isBookmarked}
           aria-label={hub.isBookmarked ? 'นำออกจากที่คั่นหน้า' : 'เพิ่มที่คั่นหน้า'}
-          className={`inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+          className={`inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-xs font-medium shadow-xs transition-all duration-150 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
             hub.isBookmarked
-              ? 'border-blue-400 bg-blue-50 text-blue-700 dark:border-blue-500/60 dark:bg-blue-950/50 dark:text-blue-300'
-              : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-blue-300'
+              ? 'border-blue-500/80 bg-blue-50/90 text-blue-600 shadow-xs ring-2 ring-blue-500/20 dark:border-blue-400/80 dark:bg-blue-950/70 dark:text-blue-300 dark:ring-blue-400/20'
+              : 'border-slate-200/90 bg-white/90 text-slate-600 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
           }`}
         >
           <i
@@ -358,10 +352,10 @@ function ArticleHub({ hub, onClose }: { hub: LawTooltipHub; onClose: () => void 
           type="button"
           onClick={handleCopyLink}
           aria-label="คัดลอกลิงก์มาตรานี้"
-          className={`inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+          className={`inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-xs font-medium shadow-xs transition-all duration-150 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
             linkCopied
-              ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-500/60 dark:bg-emerald-950/40 dark:text-emerald-300'
-              : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-blue-300'
+              ? 'border-emerald-400/80 bg-emerald-50/90 text-emerald-700 dark:border-emerald-500/60 dark:bg-emerald-950/50 dark:text-emerald-300'
+              : 'border-slate-200/90 bg-white/90 text-slate-600 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
           }`}
         >
           <i
@@ -375,8 +369,6 @@ function ArticleHub({ hub, onClose }: { hub: LawTooltipHub; onClose: () => void 
         initialText={hub.noteText}
         onSave={hub.onNoteSave}
         onOpenNotes={() => {
-          // The sanctioned close path — the hub never bypasses closeTooltip
-          // (constraint from the T10a intake: buttons call onClose).
           onClose();
           hub.onOpenNotes();
         }}
@@ -412,8 +404,6 @@ function ArticleBody({
 
   const handleCopy = async () => {
     if (!target) return;
-    // Same payload shape as buildCitation (copy-print.ts): blank line before
-    // the citation line.
     const ok = await copyText(`${articlePlainText(target)}\n\n— ${code} ${label}`);
     if (ok) {
       setCopied(true);
@@ -426,13 +416,10 @@ function ArticleBody({
       <div className="flex items-center justify-between gap-2">
         <span className="flex min-w-0 flex-wrap items-center gap-2">
           <span className="text-sm font-bold text-slate-800 dark:text-slate-100">{label}</span>
-          {/* T13 — the no-digest full-article fallback must show repealed
-              status too (merged-header members / prose ranges hover via
-              ArticleBody): same badge as DigestRefBody. */}
           {target !== undefined &&
             target.repealedParagraphs !== undefined &&
             target.repealedParagraphs.length > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold leading-relaxed text-red-700 dark:bg-red-950/50 dark:text-red-300">
+              <span className="inline-flex items-center gap-1 rounded-full border border-red-200/80 bg-red-50/90 px-2.5 py-0.5 text-[11px] font-semibold leading-relaxed text-red-700 dark:border-red-500/40 dark:bg-red-950/50 dark:text-red-300">
                 <i aria-hidden="true" className="fi fi-sr-exclamation text-[10px]" />
                 ถูกยกเลิก
               </span>
@@ -441,7 +428,7 @@ function ArticleBody({
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-blue-300"
+          className="inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-slate-200/90 bg-white/90 px-3 text-xs text-slate-600 shadow-xs backdrop-blur-xs transition-all duration-150 hover:scale-105 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 active:scale-95 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300"
         >
           <i
             aria-hidden="true"
@@ -466,14 +453,11 @@ function ArticleBody({
           </div>
 
           {target.amendedBy !== undefined && target.amendedBy.length > 0 && (
-            <ul className="lawlib-amendment-notes space-y-1 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+            <ul className="lawlib-amendment-notes space-y-1 rounded-xl border border-amber-300/60 bg-amber-50/80 px-3 py-2 text-xs leading-relaxed text-amber-900 dark:border-amber-500/40 dark:bg-amber-950/40 dark:text-amber-200">
               {target.amendedBy.map((am, i) => {
                 const edition = law.editions.find((e) => e.no === am.editionNo);
                 return (
                   <li key={i}>
-                    {/* Authored full line (law md marker note — user 2026-08-05):
-                        e.g. 'ฉบับที่ 2 (2545) - แก้ไข: กระทรวง: … -> …' — shown
-                        verbatim; empty notes fall back to the legacy format. */}
                     {am.note !== ''
                       ? am.note
                       : `แก้ไขโดยฉบับที่ ${am.editionNo}${edition ? ` (${formatThaiBEDate(edition.gazetteDate)})` : ''}`}
@@ -487,15 +471,9 @@ function ArticleBody({
         <p className="text-sm text-slate-500 dark:text-slate-400">ไม่พบมาตรานี้ในข้อมูลปัจจุบัน</p>
       )}
 
-      {hub !== undefined && (
-        // Keyed by article: a ref→ref swap (same portal root, replaced
-        // content) must REMOUNT the hub — the QuickNoteBox draft resets to
-        // the new article's note and the unmount flush saves any pending
-        // draft to the OLD article (BLOCKER fix, T10a review).
-        <ArticleHub key={key} hub={hub} onClose={onClose} />
-      )}
+      {hub !== undefined && <ArticleHub key={key} hub={hub} onClose={onClose} />}
 
-      <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-2 dark:border-slate-800">
+      <div className="flex items-center justify-between gap-2 border-t border-slate-200/60 pt-2.5 dark:border-slate-700/60">
         {crossHref !== undefined ? (
           <a
             href={crossHref}
@@ -552,7 +530,7 @@ function DigestRefBody({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm font-bold text-slate-800 dark:text-slate-100">{label}</span>
         {content.repealed && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold leading-relaxed text-red-700 dark:bg-red-950/50 dark:text-red-300">
+          <span className="inline-flex items-center gap-1 rounded-full border border-red-200/80 bg-red-50/90 px-2.5 py-0.5 text-[11px] font-semibold leading-relaxed text-red-700 dark:border-red-500/40 dark:bg-red-950/50 dark:text-red-300">
             <i aria-hidden="true" className="fi fi-sr-exclamation text-[10px]" />
             ถูกยกเลิก
           </span>
@@ -568,16 +546,12 @@ function DigestRefBody({
       ) : (
         <p className="text-sm text-slate-500 dark:text-slate-400">ไม่พบข้อมูลฉบับย่อของมาตรานี้</p>
       )}
-      {hub !== undefined && (
-        // Keyed by article — ref→ref swaps on the same portal root must
-        // remount the hub (ArticleBody precedent, T10a BLOCKER fix).
-        <ArticleHub key={key} hub={hub} onClose={onClose} />
-      )}
-      <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-2 dark:border-slate-800">
+      {hub !== undefined && <ArticleHub key={key} hub={hub} onClose={onClose} />}
+      <div className="flex items-center justify-between gap-2 border-t border-slate-200/60 pt-2.5 dark:border-slate-700/60">
         <button
           type="button"
           onClick={() => onOpenArticle(key)}
-          className="inline-flex min-h-11 cursor-pointer items-center gap-1 rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition-all duration-150 hover:scale-105 hover:bg-blue-700 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           ดูฉบับเต็ม
           <i aria-hidden="true" className="fi fi-sr-arrow-small-right text-[10px] leading-none" />
@@ -775,18 +749,8 @@ export default function LawTooltip({
       }}
       className={
         sheet
-          ? // T12b (ADR-019 D9): the PANEL is glass — slider-driven fill +
-            // blur-xs + sheen, same mechanism as the dock Level-1 (the
-            // `bg-white dark:bg-slate-900` solid fill moved onto the inner
-            // content wrapper below so body text keeps AA on a 35% panel).
-            'lawlib-tooltip lawlib-glass lawlib-glass-xs lawlib-glass-sheen fixed inset-x-0 bottom-0 z-[70] max-h-[75vh] origin-bottom overflow-y-auto rounded-t-2xl border-t border-slate-200 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700'
-          : // T16: the desktop root gets the SAME viewport bound the sheet has
-            // (max-h-[75vh]) — without it, header + 60vh body + hub + footer
-            // sum past the viewport (measured 799.7px on an 800px viewport)
-            // and the position clamp pins it to the top edge. The cap makes
-            // computeTooltipPosition's below/above flip work; the ROOT scrolls
-            // (overflow-y-auto) when the content still exceeds the cap.
-            'lawlib-tooltip lawlib-glass lawlib-glass-xs lawlib-glass-sheen fixed z-[70] max-h-[calc(100vh-2rem)] w-[min(92vw,28rem)] overflow-y-auto rounded-2xl border border-slate-200 p-4 shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700'
+          ? 'lawlib-tooltip lawlib-glass-content lawlib-glass-sheen fixed inset-x-0 bottom-0 z-[70] max-h-[75vh] origin-bottom overflow-y-auto rounded-t-2xl border-t border-slate-200/80 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/70'
+          : 'lawlib-tooltip lawlib-glass-content lawlib-glass-sheen fixed z-[70] max-h-[calc(100vh-2rem)] w-[min(92vw,28rem)] overflow-y-auto rounded-2xl border border-slate-200/80 p-4 shadow-2xl shadow-slate-900/10 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/70 dark:shadow-black/40'
       }
     >
       {sheet && (
@@ -801,19 +765,16 @@ export default function LawTooltip({
               type="button"
               onClick={onClose}
               aria-label="ปิด"
-              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors hover:text-slate-800 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white"
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-slate-500 shadow-xs transition-all duration-150 hover:scale-105 hover:text-slate-800 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-400 dark:hover:text-white"
             >
               <i aria-hidden="true" className="fi fi-sr-cross text-[10px]" />
             </button>
           </div>
         </>
       )}
-      {/* T12b — the CONTENT keeps its own SOLID surface (panel glass, content
-          opaque): article text containers, buttons and the quick-note
-          textarea sit on white/slate-900, so body text measures ≥4.5:1 even
-          at 35% panel opacity over a dark page. The sheet close button above
-          already carries its own surface. */}
-      <div className="rounded-xl bg-white dark:bg-slate-900">{inner}</div>
+      {/* Uniform glass surface: the whole tooltip card shares the single
+          glass surface without a nested static background container. */}
+      <div className="space-y-3">{inner}</div>
     </div>,
     document.body,
   );

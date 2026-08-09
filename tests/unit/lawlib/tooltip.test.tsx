@@ -12,8 +12,8 @@
  *    while open, absent when closed; glossary/ref spans untouched
  *  - regression pin: mouse pointerenter opens / pointerleave closes
  *    (existing semantics intact — this commit is a11y wiring ONLY)
- *  - T12b: root panel = glass (slider vars + blur-xs + sheen), content keeps
- *    its own solid surface (AA on a 35%-transparent panel)
+ *  - T12b/T17: root panel = content glass (content slider vars + sheen),
+ *    the whole card is one uniform glass surface
  *  - W3-4 (Esc-reopen loop fix): Esc closes arm a 200ms pointerenter
  *    suppression (a tall tooltip clamped OVER its trigger re-fires
  *    pointerenter on the trigger underneath → instant reopen); outside-click
@@ -204,7 +204,7 @@ describe('LawTooltip — root carries the stable id', () => {
     expect(root?.hasAttribute('id')).toBe(false);
   });
 
-  it('T12b: the root PANEL is glass (slider vars + blur-xs + sheen) while the CONTENT keeps its own solid surface', () => {
+  it('the root PANEL is uniform CONTENT glass (content vars + sheen) across the whole card', () => {
     render(
       <LawTooltip
         content={headerContent}
@@ -221,19 +221,13 @@ describe('LawTooltip — root carries the stable id', () => {
 
     const root = tooltipRoot();
     expect(root).not.toBeNull();
-    // The panel consumes the same glass mechanism as the dock Level-1:
-    // slider-driven fill (--lawlib-glass-bg-*) + blur-xs + top sheen.
-    expect(root?.className).toContain('lawlib-glass');
-    expect(root?.className).toContain('lawlib-glass-xs');
+    // The whole tooltip card is a single uniform content-glass surface:
+    expect(root?.className).toContain('lawlib-glass-content');
     expect(root?.className).toContain('lawlib-glass-sheen');
-    // The old solid ROOT fill moved off the panel…
     expect(root?.className).not.toContain('bg-white');
     expect(root?.className).not.toContain('dark:bg-slate-900');
-    // …onto the inner content wrapper — body text stays ≥4.5:1 on a 35%
-    // transparent panel (the AA contract of T12b).
-    const inner = root?.querySelector<HTMLElement>('.rounded-xl.bg-white');
-    expect(inner).not.toBeNull();
-    expect(inner?.textContent).toContain('มาตรา 1');
+    // Content is rendered directly on the glass surface without nested solid background wrapper:
+    expect(root?.textContent).toContain('มาตรา 1');
   });
 });
 

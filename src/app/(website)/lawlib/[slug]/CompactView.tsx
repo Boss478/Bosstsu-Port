@@ -772,7 +772,7 @@ function ArticlePopover({
         maxHeight: 'min(70vh, 42rem)',
         zIndex: 40,
       }}
-      className="lawlib-popover flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+      className="lawlib-popover lawlib-glass-content lawlib-glass-sheen flex flex-col overflow-hidden rounded-2xl border border-slate-200 shadow-2xl dark:border-slate-700"
     >
       <header className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-200 px-4 py-2.5 dark:border-slate-700">
         <span className="text-sm font-bold leading-relaxed text-slate-900 dark:text-white">

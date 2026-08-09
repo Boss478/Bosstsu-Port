@@ -3,19 +3,28 @@
 /**
  * T10b glass slider (ADR-019 D4/D8) — applies the device-wide reading
  * settings' `glassOpacity` as CSS custom properties on <html>:
- *   --lawlib-glass-bg-light / --lawlib-glass-bg-dark  (rgba fills)
- *   --lawlib-glass-blur                                (blur(12px) | none)
- *   --lawlib-glass-blur-xs                             (blur(4px) | none —
- *     T12 dock v2.1: the dock's Level-1 panel + collapsed icon use blur-xs,
- *     a documented deviation from the glass-2 tier; the slider's 100% →
- *     none still kills BOTH blurs for the GPU saving)
+ *   --lawlib-glass-bg-light / --lawlib-glass-bg-dark
+ *                                 (dock + search chrome rgba fills)
+ *   --lawlib-glass-content-bg-light / --lawlib-glass-content-bg-dark
+ *                                 (content-surface rgba fills — T17)
+ *   --lawlib-glass-blur           (search blur(Xpx) — T17 dynamic)
+ *   --lawlib-glass-blur-xs        (dock blur(Xpx) — T17 dynamic)
+ *   --lawlib-glass-blur-content   (content blur(Xpx) — T17 new)
+ *
+ * T17 (ADR-020): opacity AND blur are DYNAMIC per-surface (was: static
+ * blur(12px)/blur(4px); the 100% → 'none' GPU-kill rule is REMOVED — blur
+ * now scales linearly to its max at 100%: dock 3.5 · search 5 · content 8,
+ * max 8px < the old static 12px). Dock/search alpha caps at 0.95 (was 1.0
+ * solid — no surface ever goes fully opaque). Content surfaces (tooltip +
+ * compact popover) follow their own piecewise formula: 0 → 0.5 · 35 → 0.7 ·
+ * 100 → 0.95 (never below 0.5 so body text stays readable).
  *
  * Consumed ONLY by chrome surfaces: `.lawlib-glass` (dock + reader search
- * drawer) and `.lawlib-search-field` (list-page SearchInput — do-not-touch,
- * the fill rides the same vars). T12b: the article tooltip panel joins the
- * chrome set (`.lawlib-glass` + blur-xs + sheen — its content keeps its own
- * solid surface). 100% → 'none' (solid + no backdrop-filter = GPU saving);
- * 0% → transparent, the border + focus ring carry the boundary (D8).
+ * drawer), `.lawlib-search-field` (list-page SearchInput — do-not-touch,
+ * the fill rides the same vars), and `.lawlib-glass-content` (T17:
+ * LawTooltip panel + compact ArticlePopover — their content keeps its own
+ * solid surfaces for interactive contrast). 0% → transparent, the border +
+ * focus ring carry the boundary (D8).
  *
  * Mounted in the lawlib LAYOUT so both the list page and the reader pages
  * apply the vars; re-applies on the `lawlib:settings-changed` event
@@ -29,15 +38,63 @@ import { loadGlobalSettings, SETTINGS_CHANGED_EVENT } from '@/hooks/useReaderSto
 
 export const GLASS_OPACITY_DEFAULT = 35;
 
+/** Clamp the slider input into [0, 100] FIRST, then apply the formula. */
+function clampOpacity(v: number): number {
+  return Math.min(100, Math.max(0, v));
+}
+
+/**
+ * T17 (ADR-020): content-surface (tooltip + popover) fill alpha — piecewise,
+ * anchored at the slider default 35: 0 → 0.5 · 35 → 0.7 · 100 → 0.95.
+ * Monotonic; content surfaces never drop below 0.5 (readability) and never
+ * go fully opaque (max 0.95 — stays glass). Round 3 decimals so float noise
+ * (e.g. 0.7000000000000001) never leaks into the rgba strings.
+ */
+export function contentGlassAlpha(v: number): number {
+  const c = clampOpacity(v);
+  const a = c <= 35 ? 0.5 + (c / 35) * 0.2 : 0.7 + ((c - 35) / 65) * 0.25;
+  return Number(a.toFixed(3));
+}
+
+/**
+ * T17: dock/search chrome alpha — unchanged below 95 (35 → 0.35 default),
+ * caps at 0.95 (was 1.0 solid). Never fully opaque.
+ */
+export function dockGlassAlpha(v: number): number {
+  return Number(Math.min(clampOpacity(v) / 100, 0.95).toFixed(3));
+}
+
+/** T17: dynamic blur radii (px, 1 decimal) — linear 0.02px per slider step. */
+export function dockBlur(v: number): number {
+  return Number((1.5 + 0.02 * clampOpacity(v)).toFixed(1));
+}
+export function searchBlur(v: number): number {
+  return Number((3 + 0.02 * clampOpacity(v)).toFixed(1));
+}
+export function contentBlur(v: number): number {
+  return Number((6 + 0.02 * clampOpacity(v)).toFixed(1));
+}
+
 function applyGlassVars(): void {
   const settings = loadGlobalSettings();
-  const opacity = Math.min(100, Math.max(0, settings?.glassOpacity ?? GLASS_OPACITY_DEFAULT));
-  const alpha = (opacity / 100).toFixed(3);
+  const opacity = clampOpacity(settings?.glassOpacity ?? GLASS_OPACITY_DEFAULT);
   const html = document.documentElement;
-  html.style.setProperty('--lawlib-glass-bg-light', `rgba(255, 255, 255, ${alpha})`);
-  html.style.setProperty('--lawlib-glass-bg-dark', `rgba(30, 41, 59, ${alpha})`);
-  html.style.setProperty('--lawlib-glass-blur', opacity >= 100 ? 'none' : 'blur(12px)');
-  html.style.setProperty('--lawlib-glass-blur-xs', opacity >= 100 ? 'none' : 'blur(4px)');
+  html.style.setProperty(
+    '--lawlib-glass-bg-light',
+    `rgba(255, 255, 255, ${dockGlassAlpha(opacity)})`,
+  );
+  html.style.setProperty('--lawlib-glass-bg-dark', `rgba(30, 41, 59, ${dockGlassAlpha(opacity)})`);
+  html.style.setProperty(
+    '--lawlib-glass-content-bg-light',
+    `rgba(255, 255, 255, ${contentGlassAlpha(opacity)})`,
+  );
+  html.style.setProperty(
+    '--lawlib-glass-content-bg-dark',
+    `rgba(30, 41, 59, ${contentGlassAlpha(opacity)})`,
+  );
+  html.style.setProperty('--lawlib-glass-blur', `blur(${searchBlur(opacity)}px)`);
+  html.style.setProperty('--lawlib-glass-blur-xs', `blur(${dockBlur(opacity)}px)`);
+  html.style.setProperty('--lawlib-glass-blur-content', `blur(${contentBlur(opacity)}px)`);
 }
 
 export function LawlibGlassVars() {

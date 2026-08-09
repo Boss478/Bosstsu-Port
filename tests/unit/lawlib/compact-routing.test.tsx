@@ -317,6 +317,10 @@ describe('merged-member routing', () => {
     expect(tooltipRoot()).toBeNull();
     expect(popover()).not.toBeNull();
     expect(compactCard('11')).not.toBeNull(); // compact still rendered → no FULL
+    // T17: the popover is a content-glass surface (slider-driven fill + blur)
+    expect(popover()?.className).toContain('lawlib-glass-content');
+    expect(popover()?.className).toContain('lawlib-glass-sheen');
+    expect(popover()?.className).not.toContain('bg-white');
     // stacked ArticleView: BOTH members render the REAL article text
     expect(popover()?.textContent).toContain('ให้จัดการศึกษาขั้นพื้นฐานแก่ผู้เรียน');
     expect(popover()?.textContent).toContain('จัดการศึกษาเป็นพิเศษสำหรับเด็กที่มีความบกพร่อง');
