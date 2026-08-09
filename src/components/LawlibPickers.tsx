@@ -102,7 +102,11 @@ export function PickerPopover({
 
   // Position once, at open (captured anchor rect — transient popover, like
   // LawTooltip/ArticlePopover). Below the button, flipped above when the
-  // viewport is too short; horizontal clamped to the viewport.
+  // viewport is too short; horizontal clamped to the viewport. T29: also
+  // sets the pop's transform-origin AT THE TRIGGER (ADR-023 D10 — origin
+  // per placement): horizontal = the anchor's center clamped into the
+  // popover; vertical = the edge the popover grew from (top when opening
+  // below, bottom when flipped above).
   useLayoutEffect(() => {
     const el = rootRef.current;
     if (el === null || anchorEl === null) return;
@@ -121,6 +125,10 @@ export function PickerPopover({
     );
     el.style.left = `${left}px`;
     el.style.top = `${top}px`;
+    const anchorCx = anchor.left + anchor.width / 2;
+    const originX = Math.min(Math.max(anchorCx - left, 0), rect.width);
+    const originY = top === below ? 0 : rect.height;
+    el.style.transformOrigin = `${originX}px ${originY}px`;
     el.style.visibility = 'visible';
   }, [anchorEl]);
 
@@ -165,10 +173,27 @@ export function PickerPopover({
       // keeps Esc/outside close + focus-first intact.
       role="group"
       aria-label={label}
-      style={{ left: 0, top: 0, visibility: 'hidden' }}
-      className={`lawlib-picker fixed z-[65] rounded-xl border border-slate-200 bg-white p-3 shadow-xl outline-none dark:border-slate-700 dark:bg-slate-900 ${widthClass}`}
+      style={{
+        left: 0,
+        top: 0,
+        visibility: 'hidden',
+        // T29 (ADR-023 D9): pop-in 300ms spring — the .lawlib-pop-in class
+        // default is 200ms; the inline duration is the locked override (D10
+        // "animation-duration after the shorthand"). The RM kill zeroes it.
+        animationDuration: '300ms',
+      }}
+      // T29 — AC-4: `vt-picker` = the UNIQUE view-transition-name for this
+      // fixed surface (theme-change inventory, globals.css). The SURFACE
+      // (rounded/border/shadow/width) moved to the inner wrapper — D10 (one
+      // animation per element): the OUTER pops (scale + fade), the INNER
+      // rises (lawlib-fade-rise, 8px) — the locked "pop + rise" pair.
+      className="lawlib-picker vt-picker fixed z-[65] outline-none lawlib-pop-in"
     >
-      {children}
+      <div
+        className={`rounded-xl border border-slate-200 bg-white p-3 shadow-xl lawlib-fade-rise dark:border-slate-700 dark:bg-slate-900 ${widthClass}`}
+      >
+        {children}
+      </div>
     </div>,
     document.body,
   );
