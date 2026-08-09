@@ -1,0 +1,2 @@
+command -v node >/dev/null 2>&1 || { echo "commit-msg hook: node not found in PATH — add /opt/homebrew/opt/node@24/bin (or your node 24 location)"; exit 1; }
+node scripts/commit-msg-check.mjs "$1"
