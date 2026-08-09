@@ -79,91 +79,82 @@ import { DEFAULT_PAPER_TONE, getInitialTheme, type Theme } from '@/components/Th
  * bottom→up, mid→side); `more` = the Level-2 panel anchored to Level 1
  * expanding AWAY from the screen edge (right-side dock → L2 on the LEFT,
  * left-side → RIGHT, top-center → BELOW, bottom-center → ABOVE — T15 v2.3,
- * the same flip class set as the old panel); `panelMaxH` = viewport-safe cap
- * for the Level-1 TOOLS column (it scrolls past it; the L2 sibling stays
- * uncapped except its own 70vh safety); `layout` (T12 — ADR-019 D9,
+ * the same flip class set as the old panel); `layout` (T12 — ADR-019 D9,
  * direction-aware expansion): side positions (L/R × top/mid/bot) = VERTICAL
  * Level-1 column; middle positions (top-center/bottom-center) = HORIZONTAL
  * Level-1 row. Mobile (≤639px) always renders the bottom-sheet horizontal
  * layout, open by default.
- * Bottom offsets clear BackToTop (bottom-6/10 + ~44px ≈ 84px). Top rows clear
- * the law header (24-231px, a11y fix #17): 14rem on mobile, 11rem from md up;
- * the matching panelMaxH keeps the panel fully in-viewport. Safe areas:
- * bottom/left/right insets via env().
+ * Bottom offsets (T21, user decision 2026-08-09): bottom positions FLUSH at
+ * the bottom — bottom-center/bottom-left always; bottom-right raises to the
+ * BackToTop clearance (right corner — it never overlaps the others) ONLY
+ * while BackToTop is visible (scrollY > 200, rAF-throttled listener). Top
+ * rows clear the law header (24-231px, a11y fix #17): 14rem on mobile, 11rem
+ * from md up. Safe areas: bottom/left/right insets via env().
  *
  * T10b toolbar-size parametrization (ADR-019 D4 — the slider is 24-56,
  * default 44): the ICON footprint (--lawlib-dock-size, set inline on the
- * dock root from settings.toolbarSize) enters every calc:
- *   - panelMaxH top-*:  100vh − icon − anchor offset − bottom margin
- *   - panelMaxH bottom-*: 100vh − (icon + 3.25rem bottom offset) − top margin
- *   - bottom roots: max(icon + 3.25rem, 5.25rem floor — BackToTop clearance)
- * The `max()` floors keep small sizes from colliding with BackToTop/header;
- * the calcs use underscored arbitrary values (Tailwind converts _ → space —
- * calc REQUIRES spaces around -). All literals are static — JIT-safe.
+ * dock root from settings.toolbarSize) enters the bottom-right clearance
+ * calc — max(icon + 3.25rem, 5.25rem floor — BackToTop clearance, safe-area
+ * inset). The `max()` floors keep small sizes from colliding with
+ * BackToTop; the calcs use underscored arbitrary values (Tailwind converts
+ * _ → space — calc REQUIRES spaces around -). All literals are static —
+ * JIT-safe.
  */
 type DockLayout = 'vertical' | 'horizontal';
 
 const POSITION_CONFIG: Record<
   DockPosition,
-  { root: string; panel: string; more: string; panelMaxH: string; layout: DockLayout }
+  { root: string; panel: string; more: string; layout: DockLayout }
 > = {
   'top-left': {
     root: 'top-[max(14rem,env(safe-area-inset-top))] left-[max(1.25rem,env(safe-area-inset-left))] md:top-[max(11rem,env(safe-area-inset-top))] md:left-6',
     panel: 'top-0 left-0',
     more: 'left-full top-0 ml-3',
-    panelMaxH:
-      'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_15rem)] md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]',
     layout: 'vertical',
   },
   'top-center': {
     root: 'top-[max(14rem,env(safe-area-inset-top))] left-1/2 -translate-x-1/2 md:top-[max(11rem,env(safe-area-inset-top))]',
     panel: 'top-0 left-1/2 -translate-x-1/2',
     more: 'top-full mt-3 left-1/2 -translate-x-1/2',
-    panelMaxH:
-      'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_15rem)] md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]',
     layout: 'horizontal',
   },
   'top-right': {
     root: 'top-[max(14rem,env(safe-area-inset-top))] right-[max(1.25rem,env(safe-area-inset-right))] md:top-[max(11rem,env(safe-area-inset-top))] md:right-6',
     panel: 'top-0 right-0',
     more: 'right-full top-0 mr-3',
-    panelMaxH:
-      'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_15rem)] md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]',
     layout: 'vertical',
   },
   'mid-left': {
     root: 'top-1/2 -translate-y-1/2 left-[max(1.25rem,env(safe-area-inset-left))] md:left-6',
     panel: 'top-1/2 -translate-y-1/2 left-0',
     more: 'left-full top-0 ml-3',
-    panelMaxH: 'max-h-[70vh]',
     layout: 'vertical',
   },
   'mid-right': {
     root: 'top-1/2 -translate-y-1/2 right-[max(1.25rem,env(safe-area-inset-right))] md:right-6',
     panel: 'top-1/2 -translate-y-1/2 right-0',
     more: 'right-full top-0 mr-3',
-    panelMaxH: 'max-h-[70vh]',
     layout: 'vertical',
   },
   'bottom-left': {
-    root: 'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1.25rem))] left-[max(1.25rem,env(safe-area-inset-left))] md:left-6',
+    // T21 — the bottom offset is position-aware (bottomOffsetClass below):
+    // flush always for bottom-left (BackToTop is right-corner, never
+    // overlaps). Insets only here — the bottom-* lives on the root render.
+    root: 'left-[max(1.25rem,env(safe-area-inset-left))] md:left-6',
     panel: 'bottom-0 left-0',
     more: 'left-full bottom-0 ml-3',
-    panelMaxH: 'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_4.75rem)]',
     layout: 'vertical',
   },
   'bottom-center': {
-    root: 'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1.25rem))] left-1/2 -translate-x-1/2',
+    root: 'left-1/2 -translate-x-1/2',
     panel: 'bottom-0 left-1/2 -translate-x-1/2',
     more: 'bottom-full mb-3 left-1/2 -translate-x-1/2',
-    panelMaxH: 'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_4.75rem)]',
     layout: 'horizontal',
   },
   'bottom-right': {
-    root: 'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1.25rem))] right-[max(1.25rem,env(safe-area-inset-right))] md:right-6',
+    root: 'right-[max(1.25rem,env(safe-area-inset-right))] md:right-6',
     panel: 'bottom-0 right-0',
     more: 'right-full bottom-0 mr-3',
-    panelMaxH: 'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_4.75rem)]',
     layout: 'vertical',
   },
 };
@@ -314,6 +305,10 @@ export default function LawlibDock(props: LawlibDockProps) {
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
+  /** T21 — BackToTop visibility (scrollY > 200, rAF-throttled scroll
+   *  listener below): drives the bottom-right offset only — the other bottom
+   *  positions flush always (BackToTop is right-corner, never overlaps). */
+  const [backToTopVisible, setBackToTopVisible] = useState(false);
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
@@ -446,6 +441,26 @@ export default function LawlibDock(props: LawlibDockProps) {
     if (first !== null && !first.hasAttribute('disabled')) first.focus();
   }, [expanded, closing]);
 
+  // T21 — BackToTop visibility for the bottom-right dock offset (same
+  // rAF-throttled pattern as BackToTop.tsx:8-22 — passive listener, one
+  // state write per frame max). Only bottom-right ever collides with the
+  // fixed back-to-top button; the listener runs always (cheap) so a position
+  // switch needs no re-subscription.
+  useEffect(() => {
+    let rafId = 0;
+    const handleScroll = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        setBackToTopVisible(window.scrollY > 200);
+      });
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      cancelAnimationFrame(rafId);
+    };
+  }, []);
+
   // T15 (v2.3): opening Level 2 moves focus to its FIRST icon button (the
   // old back-button target is gone — the level swap must not drop focus to
   // <body>, a11y fix #1). Deferred: the L2 panel mounts on the re-render.
@@ -565,21 +580,37 @@ export default function LawlibDock(props: LawlibDockProps) {
           ? 'w-16 py-2 px-1.5 md:py-2.5'
           : 'max-w-[calc(100vw-2rem)] w-max px-3 py-2 md:px-4 md:py-2.5'
       }`;
-  /** Desktop only: the L1 tools column carries the viewport-safe cap + its
-   *  own scroll (the panel wrapper itself stays overflow-visible so the L2
-   *  sibling anchored to its edge is not clipped). */
-  const toolsPlacementClass = isMobile
-    ? ''
-    : effectiveLayout === 'vertical'
-      ? `${cfg.panelMaxH} overflow-y-auto`
-      : 'flex-row flex-nowrap';
+  /** T20 (user decision 2026-08-09): the desktop L1 tools column NO LONGER
+   *  scrolls — the viewport caps + overflow-y-auto are gone, the panel grows
+   *  with its content ("I don't need inside the dock to be scrollable"). The
+   *  panel wrapper stays overflow-visible so the L2 sibling is never
+   *  clipped. */
+  const toolsPlacementClass =
+    isMobile || effectiveLayout === 'vertical' ? '' : 'flex-row flex-nowrap';
   /** T15 (v2.3): Level 2 = a SEPARATE 112px glass panel (w-28), anchored to
    *  Level 1 with the per-position flip (`more` — away from the screen
    *  edge). Mobile: an in-flow full-width block inside the sheet (dots ⋯
-   *  expands it). */
+   *  expands it). T20: the desktop 70vh cap + scroll are gone too — the
+   *  panel grows with its content (only the mobile SHEET keeps its own
+   *  max-h + scroll — safety, L2 collapsed by default there). */
   const morePanelPlacementClass = isMobile
     ? 'mt-2 w-full rounded-2xl border border-slate-200/80 dark:border-slate-700/70 p-2'
-    : `absolute ${cfg.more} max-h-[70vh] w-28 md:w-32 overflow-y-auto rounded-3xl border border-slate-200/80 dark:border-slate-700/70 p-2.5 md:p-3 shadow-2xl shadow-slate-900/15 dark:shadow-black/50`;
+    : `absolute ${cfg.more} w-28 md:w-32 rounded-3xl border border-slate-200/80 dark:border-slate-700/70 p-2.5 md:p-3 shadow-2xl shadow-slate-900/15 dark:shadow-black/50`;
+
+  /** T21 (user decision 2026-08-09) — position-aware bottom offset matrix:
+   *  bottom-center/bottom-left ALWAYS flush (BackToTop is right-corner,
+   *  never overlaps); bottom-right flushes while BackToTop is hidden and
+   *  raises to the clearance calc once it becomes visible (scrollY > 200).
+   *  Mobile (<768px): 4.75rem always — navbar 64px + 12px gap (also clears
+   *  BackToTop's mobile 68px). Every branch is a FULL static string
+   *  (JIT-safe — no dynamic construction). */
+  const isBottomPosition =
+    position === 'bottom-left' || position === 'bottom-center' || position === 'bottom-right';
+  const bottomOffsetClass = isMobile
+    ? 'bottom-[max(4.75rem,calc(env(safe-area-inset-bottom)_+_1.25rem))]'
+    : position === 'bottom-right' && backToTopVisible
+      ? 'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1.25rem))]'
+      : 'bottom-[max(1.25rem,env(safe-area-inset-bottom))] md:bottom-6';
 
   const pickerValue: Record<PickerKind, string> = {
     theme: THEME_CHOICES.find((c) => c.value === theme)?.label ?? theme,
@@ -794,7 +825,9 @@ export default function LawlibDock(props: LawlibDockProps) {
             : {}),
         } as React.CSSProperties
       }
-      className={`lawlib-dock fixed z-50 ${cfg.root}`}
+      className={`lawlib-dock fixed z-50 ${cfg.root} ${
+        isBottomPosition ? bottomOffsetClass : ''
+      } transition-[bottom] duration-200`}
     >
       {!expanded && !closing ? (
         <button
@@ -828,9 +861,10 @@ export default function LawlibDock(props: LawlibDockProps) {
             data-lawlib-l1
             className={`flex items-center gap-1.5 md:gap-2 ${effectiveLayout === 'vertical' ? 'flex-col' : 'flex-wrap'}`}
           >
-            {/* Tools — desktop side positions scroll internally (the panel
-                wrapper itself stays overflow-visible so the absolutely
-                anchored L2 sibling is never clipped). */}
+            {/* Tools — desktop side positions (T20: NO internal scroll — the
+                panel grows with its content; the wrapper stays
+                overflow-visible so the absolutely anchored L2 sibling is
+                never clipped). */}
             <div
               data-lawlib-l1-tools
               className={`flex items-center gap-1.5 md:gap-2 ${effectiveLayout === 'vertical' ? 'flex-col' : 'flex-nowrap shrink-0'} ${toolsPlacementClass}`}

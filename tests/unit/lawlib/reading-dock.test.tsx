@@ -47,8 +47,8 @@
  * - bookmark: toggle + aria-pressed + count badge
  * - T12c theme dot: baselines on the RESOLVED initial theme (OS-dark
  *   fallback users see no false dot on first visit)
- * - mobile-safe panel: max-h + overflow-y-auto (desktop: on the L1 tools
- *   wrapper so the L2 sibling is never clipped; mobile: on the sheet)
+ * - mobile-safe panel: max-h + overflow-y-auto (T20 — desktop: NONE, the
+ *   panel grows with its content; mobile: on the sheet only)
  *
  * jsdom gaps stubbed: matchMedia (query-aware: dark/mobile/reduced-motion),
  * IntersectionObserver (TocSidebar scroll-spy), localStorage (in-memory
@@ -147,9 +147,8 @@ const morePanel = () => document.getElementById('lawlib-more-panel');
 /** T15 v2.3: the Level-1 direction container (flex-col on side positions,
  *  flex-wrap on middle/mobile). */
 const l1Container = () => document.querySelector('[data-lawlib-l1]') as HTMLElement | null;
-/** T15 v2.3: the Level-1 TOOLS wrapper (desktop side positions scroll
- *  internally — max-h + overflow-y-auto — so the L2 sibling is never
- *  clipped by the panel's scroll container). */
+/** T15 v2.3: the Level-1 TOOLS wrapper (desktop side positions — T20: no
+ *  max-h / overflow anymore, the panel grows with its content). */
 const l1Tools = () => document.querySelector('[data-lawlib-l1-tools]') as HTMLElement | null;
 
 /** T12c: the position grid moved into the ⚙️ settings picker — open it
@@ -637,13 +636,11 @@ describe('Dock v2.3 — Level 2 (⋯ dots — T15 sibling glass panel)', () => {
     const root = document.querySelector('.lawlib-dock.fixed') as HTMLElement;
     expect(root.className).toContain('top-[max(14rem,env(safe-area-inset-top))]');
     expect(root.className).toContain('md:top-[max(11rem,env(safe-area-inset-top))]');
-    // The cap follows the raised anchor + the toolbar-size var (T10b) so the
-    // tools column stays fully in-viewport at every size 24-56. It lives on
-    // the L1 TOOLS wrapper now (the panel wrapper stays overflow-visible so
-    // the L2 sibling is never clipped).
+    // T20 (user decision 2026-08-09): the tools column NEVER scrolls — the
+    // viewport caps are gone, the panel grows with its content.
     const tools = l1Tools() as HTMLElement;
-    expect(tools.className).toContain('max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_15rem)]');
-    expect(tools.className).toContain('md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]');
+    expect(tools.className).not.toContain('max-h-');
+    expect(tools.className).not.toContain('overflow-y-auto');
   });
 
   it('T14: bookmarks-ALL icon opens the bookmarks PANEL (drawer, like search/notes) with jump + delete', async () => {
@@ -866,13 +863,14 @@ describe('Dock v2.3 — animation (T12, gated by animateDock + reduced-motion)',
 });
 
 describe('Dock v2.3 — mobile-safe panel structure (T12/T15)', () => {
-  it('desktop: the L1 TOOLS wrapper carries max-h + overflow-y-auto; the panel wrapper stays overflow-visible (L2 sibling never clipped)', async () => {
+  it('desktop: the L1 TOOLS wrapper has NO max-h/overflow (T20 — no internal scroll); the panel wrapper stays overflow-visible (L2 sibling never clipped)', async () => {
     await renderReader();
-    // The scroll lives on the L1 tools wrapper (desktop)…
+    // T20 (user decision 2026-08-09): "I don't need inside the dock to be
+    // scrollable" — the tools column's viewport caps + overflow are gone.
     const tools = l1Tools() as HTMLElement;
     expect(tools).not.toBeNull();
-    expect(tools.className).toContain('overflow-y-auto');
-    expect(tools.className).toContain('max-h-');
+    expect(tools.className).not.toContain('overflow-y-auto');
+    expect(tools.className).not.toContain('max-h-');
     // …so the panel itself must NOT clip the absolutely-anchored L2 sibling.
     const panel = dockPanel() as HTMLElement;
     expect(panel.className).not.toContain('overflow-y-auto');
@@ -885,5 +883,102 @@ describe('Dock v2.3 — mobile-safe panel structure (T12/T15)', () => {
     const panel = dockPanel() as HTMLElement;
     expect(panel.className).toContain('overflow-y-auto');
     expect(panel.className).toContain('max-h-[min(65vh,34rem)]');
+  });
+});
+
+describe('Dock v2.4 — position-aware bottom offset (T20/T21)', () => {
+  // T21 matrix (user decisions 2026-08-09) — the EXACT static class strings.
+  const flushClass = 'bottom-[max(1.25rem,env(safe-area-inset-bottom))] md:bottom-6';
+  const clearanceClass =
+    'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1.25rem))]';
+  const mobileClass = 'bottom-[max(4.75rem,calc(env(safe-area-inset-bottom)_+_1.25rem))]';
+
+  const dockRoot = () => document.querySelector('.lawlib-dock.fixed') as HTMLElement;
+
+  /** jsdom never scrolls — override window.scrollY + dispatch the scroll
+   *  event (the dock reads it via the same rAF-throttled listener as
+   *  BackToTop). */
+  function setScrollY(y: number): void {
+    Object.defineProperty(window, 'scrollY', { value: y, configurable: true, writable: true });
+    fireEvent.scroll(window);
+  }
+  /** The dock throttles scroll via requestAnimationFrame — flush the
+   *  callback inside act (jsdom pretendToBeVisual drives rAF on ~16ms). */
+  async function flushRaf(): Promise<void> {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 30));
+    });
+  }
+
+  afterEach(() => {
+    // Restore jsdom's own scrollY (undefined>200 is false — harmless), so
+    // later describes read a pristine window.
+    Reflect.deleteProperty(window, 'scrollY');
+  });
+
+  /** The settings picker does NOT auto-close after a selection — reset the
+   *  picker + L2 (Esc cascade: picker → L2 → dock) so the ⋯ toggle of
+   *  clickPositionInSettings works for a SECOND position switch. */
+  function switchPosition(label: string): void {
+    fireEvent.keyDown(document, { key: 'Escape' });
+    fireEvent.keyDown(document, { key: 'Escape' });
+    clickPositionInSettings(label);
+  }
+
+  it('bottom-center + bottom-left: ALWAYS flush at the bottom (no BackToTop clearance) at any scroll position', async () => {
+    await renderReader();
+    clickPositionInSettings('ล่างกลาง');
+
+    const center = dockRoot();
+    expect(center.className).toContain(flushClass);
+    expect(center.className).not.toContain(clearanceClass);
+    // Scrolled 300px → BackToTop visible, but center can never collide
+    // (BackToTop is right-corner) — STILL flush.
+    setScrollY(300);
+    await flushRaf();
+    expect(dockRoot().className).toContain(flushClass);
+    expect(dockRoot().className).not.toContain(clearanceClass);
+
+    switchPosition('ล่างซ้าย');
+    const left = dockRoot();
+    expect(left.className).toContain(flushClass);
+    expect(left.className).not.toContain(clearanceClass);
+    setScrollY(0);
+    await flushRaf();
+    expect(left.className).toContain(flushClass);
+    expect(left.className).not.toContain(clearanceClass);
+  });
+
+  it('bottom-right: flush at the top → raises to the BackToTop clearance once scrolled past 200px → lowers back at the top', async () => {
+    await renderReader(); // default position = bottom-right
+    const root = dockRoot();
+    expect(root.className).toContain(flushClass);
+    expect(root.className).not.toContain(clearanceClass);
+
+    setScrollY(300);
+    await flushRaf();
+    expect(dockRoot().className).toContain(clearanceClass);
+    expect(dockRoot().className).not.toContain(flushClass);
+
+    setScrollY(0);
+    await flushRaf();
+    expect(dockRoot().className).toContain(flushClass);
+    expect(dockRoot().className).not.toContain(clearanceClass);
+  });
+
+  it('mobile: bottom positions sit at the navbar clearance (4.75rem) regardless of scroll', async () => {
+    mockMatchMedia({ mobile: true });
+    await renderReader();
+    // Default bottom-right on mobile → 4.75rem (76px > BackToTop's mobile
+    // 68px ✓ + clears the 64px navbar with a 12px gap).
+    expect(dockRoot().className).toContain(mobileClass);
+    expect(dockRoot().className).not.toContain(clearanceClass);
+
+    setScrollY(300);
+    await flushRaf();
+    expect(dockRoot().className).toContain(mobileClass);
+
+    clickPositionInSettings('ล่างกลาง');
+    expect(dockRoot().className).toContain(mobileClass);
   });
 });
