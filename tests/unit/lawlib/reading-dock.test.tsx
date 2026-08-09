@@ -1080,23 +1080,26 @@ describe('Dock v2.7 — T26 position-change re-trigger + transform raise (ADR-02
     expect(dockRoot().style.getPropertyValue('--lawlib-dock-slide')).toBe('-8px');
   });
 
-  it('same-direction move (bottom-left → bottom-right, both up): the reflow RE-TRIGGERS even though the class never changes', async () => {
+  it('same-direction move (bottom-left → bottom-right, both up): the two-frame re-trigger restarts even though the class never changes', async () => {
     mockMatchMedia({ reducedMotion: false });
     await renderReader();
     clickPositionInSettings('ล่างซ้าย');
     const wrapper = posWrapper()!;
     expect(wrapper.className).toContain('lawlib-dock-pos-in-up');
-    // Pin the mechanism observable: the effect must read offsetWidth (the
-    // reflow) on the SAME node — an instance spy proves the restart idiom
-    // ran and that nothing was key-remounted (a remount would orphan this
-    // element and the spy would never fire).
-    const reflowSpy = vi.spyOn(wrapper, 'offsetWidth', 'get');
-    expect(reflowSpy).not.toHaveBeenCalled();
 
     switchPosition('ล่างขวา'); // same animDir — class identical
     expect(wrapper.className).toContain('lawlib-dock-pos-in-up');
-    expect(reflowSpy).toHaveBeenCalled();
-    // Inline `animation: none` was set then cleared (back to the class).
+    // Phase 1 (effect): `animation: none` is inlined — the engine cancels
+    // the finished fill-mode animation at the next frame's style recalc
+    // (the class-driven name is re-applied later, so the keyframe
+    // restarts). The SAME node is mutated — nothing was key-remounted
+    // (a remount would orphan this element and phase 1 would not land).
+    expect(wrapper.style.animation).toBe('none');
+    // Phase 2 (two rAFs later): the inline is cleared → the class-driven
+    // animation is re-created → the enter keyframe restarts.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
     expect(wrapper.style.animation).toBe('');
   });
 
@@ -1115,17 +1118,18 @@ describe('Dock v2.7 — T26 position-change re-trigger + transform raise (ADR-02
     expect(document.getElementById('lawlib-more-panel')).not.toBeNull();
   });
 
-  it('gate OFF (animateDock=false): instant class swap — no pos class, no reflow read (AC-3)', async () => {
+  it('gate OFF (animateDock=false): instant class swap — no pos class, no re-trigger inline (AC-3)', async () => {
     mockMatchMedia({ reducedMotion: false });
     localStorage.setItem('lawlib:settings', JSON.stringify({ fontSize: 16, animateDock: false }));
     await renderReader();
     const wrapper = posWrapper()!;
     expect(wrapper.className).not.toContain('lawlib-dock-pos-in');
-    const reflowSpy = vi.spyOn(wrapper, 'offsetWidth', 'get');
+    expect(wrapper.style.animation).toBe('');
 
     clickPositionInSettings('บนซ้าย');
     expect(wrapper.className).not.toContain('lawlib-dock-pos-in');
-    expect(reflowSpy).not.toHaveBeenCalled();
+    // The re-trigger effect early-returns under the gate — no 'none' phase.
+    expect(wrapper.style.animation).toBe('');
   });
 
   it('root: transition-[bottom] is GONE → transition-[transform] duration-100; non-bottom positions get no bottom/raise classes', async () => {

@@ -599,20 +599,39 @@ export default function LawlibDock(props: LawlibDockProps) {
 
   // T26 (AC-1) — position-change RE-TRIGGER: the dock no longer teleports
   // between the 8 spots. Restart the 100ms enter keyframe
-  // (lawlib-dock-pos-in-*) on the inner wrapper with the classic
-  // `animation: none` + `void el.offsetWidth` reflow idiom — it restarts
-  // the animation even when the direction class is unchanged (bottom-left
-  // → bottom-right are both 'up'). Target is the INNER wrapper ref, NEVER
-  // the vt-dock root (AC-5). Gated by animateDockNow — reduced-motion /
-  // animateDock off = instant class swap (AC-3). One reflow per position
-  // change (negligible; client-only).
+  // (lawlib-dock-pos-in-*) on the inner wrapper. Target is the INNER
+  // wrapper ref, NEVER the vt-dock root (AC-5). Gated by animateDockNow —
+  // reduced-motion / animateDock off = instant class swap (AC-3).
+  /** T26 — generation counter for the two-frame re-trigger: a newer
+   *  position change supersedes a pending restore (rapid chip clicks). */
+  const posAnimGenRef = useRef(0);
   useEffect(() => {
     if (!animateDockNow) return;
     const el = posAnimRef.current;
     if (el === null) return;
+    // Two-frame re-trigger (root-caused live in Chromium, 2026-08-09): the
+    // engine only processes animation-name changes during a FRAME's style
+    // recalc — not during forced recalcs (getComputedStyle/offsetWidth) —
+    // and only when the name survives until that recalc. Phase 1 sets
+    // `animation: none`; frame N's recalc cancels the finished fill-mode
+    // animation. Phase 2 restores the class-driven animation in frame
+    // N+1's rAF; that recalc RE-CREATES it → the enter keyframe restarts.
+    // A single-task dance (none → reflow → restore) collapses both states
+    // into one recalc and is silently skipped.
+    const gen = ++posAnimGenRef.current;
     el.style.animation = 'none';
-    void el.offsetWidth; // reflow — force the keyframe restart
-    el.style.animation = '';
+    let raf2 = 0;
+    const raf1 = window.requestAnimationFrame(() => {
+      raf2 = window.requestAnimationFrame(() => {
+        if (posAnimGenRef.current !== gen) return; // superseded
+        if (posAnimRef.current !== el) return;
+        el.style.animation = '';
+      });
+    });
+    return () => {
+      window.cancelAnimationFrame(raf1);
+      if (raf2 !== 0) window.cancelAnimationFrame(raf2);
+    };
   }, [position, animateDockNow]);
 
   // T15 (v2.3): opening Level 2 moves focus to its FIRST icon button (the
