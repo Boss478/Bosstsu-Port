@@ -1509,7 +1509,7 @@ textarea,
   src: url('/fonts/lawlib/itim/Itim-Regular.woff2') format('woff2');
 }
 
-/* ─── T10b glass slider (ADR-019 D4/D8, T17/ADR-020 — chrome surfaces:
+/* ─── T10b glass slider (ADR-019 D4/D8, T17/ADR-021 — chrome surfaces:
    dock, tooltip, popover, search). --lawlib-glass-bg-light/dark,
    --lawlib-glass-content-bg-light/dark + the three blur vars are applied on
    <html> by LawlibGlassVars (lawlib layout) from settings.glassOpacity:
@@ -1540,7 +1540,7 @@ textarea,
   -webkit-backdrop-filter: var(--lawlib-glass-blur-xs, blur(2px));
   backdrop-filter: var(--lawlib-glass-blur-xs, blur(2px));
 }
-/* T17 (ADR-020): content-surface glass — LawTooltip panel + compact
+/* T17 (ADR-021): content-surface glass — LawTooltip panel + compact
    ArticlePopover (previously solid white/slate-900). Rides its own fill
    vars + --lawlib-glass-blur-content (contentBlur, 6–8px, dynamic).
    Same specificity as .lawlib-glass — declared after it for overrides. */
@@ -1672,8 +1672,8 @@ textarea,
    ride the same slider vars so the dock+search surfaces stay in sync). */
 .lawlib-search-field {
   background-color: var(--lawlib-glass-bg-light, rgba(255, 255, 255, 0.6));
-  -webkit-backdrop-filter: var(--lawlib-glass-blur, blur(12px));
-  backdrop-filter: var(--lawlib-glass-blur, blur(12px));
+  -webkit-backdrop-filter: var(--lawlib-glass-blur, blur(5px));
+  backdrop-filter: var(--lawlib-glass-blur, blur(5px));
 }
 .dark .lawlib-search-field {
   background-color: var(--lawlib-glass-bg-dark, rgba(30, 41, 59, 0.6));

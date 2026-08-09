@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 /**
- * T17 (ADR-020) — glass-formula pure functions from LawlibGlassVars.
+ * T17 (ADR-021) — glass-formula pure functions from LawlibGlassVars.
  *
  * Anchors (user 2026-08-08):
  *  - contentGlassAlpha: 0 → 0.5 · 35 → 0.7 · 100 → 0.95 (piecewise,
@@ -69,8 +69,9 @@ describe('dynamic blur radii (T17 — never none)', () => {
     expect(dockBlur(100)).toBe(3.5);
   });
 
-  it('searchBlur: 0 → 3 · 100 → 5', () => {
+  it('searchBlur: 0 → 3 · 50 → 4 · 100 → 5', () => {
     expect(searchBlur(0)).toBe(3);
+    expect(searchBlur(50)).toBe(4);
     expect(searchBlur(100)).toBe(5);
   });
 

@@ -11,7 +11,7 @@
  *   --lawlib-glass-blur-xs        (dock blur(Xpx) — T17 dynamic)
  *   --lawlib-glass-blur-content   (content blur(Xpx) — T17 new)
  *
- * T17 (ADR-020): opacity AND blur are DYNAMIC per-surface (was: static
+ * T17 (ADR-021): opacity AND blur are DYNAMIC per-surface (was: static
  * blur(12px)/blur(4px); the 100% → 'none' GPU-kill rule is REMOVED — blur
  * now scales linearly to its max at 100%: dock 3.5 · search 5 · content 8,
  * max 8px < the old static 12px). Dock/search alpha caps at 0.95 (was 1.0
@@ -44,7 +44,7 @@ function clampOpacity(v: number): number {
 }
 
 /**
- * T17 (ADR-020): content-surface (tooltip + popover) fill alpha — piecewise,
+ * T17 (ADR-021): content-surface (tooltip + popover) fill alpha — piecewise,
  * anchored at the slider default 35: 0 → 0.5 · 35 → 0.7 · 100 → 0.95.
  * Monotonic; content surfaces never drop below 0.5 (readability) and never
  * go fully opaque (max 0.95 — stays glass). Round 3 decimals so float noise

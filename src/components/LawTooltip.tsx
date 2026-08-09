@@ -19,7 +19,7 @@
  *    shortcut (full article + "— <code> มาตรา N" citation line)
  *  - cross-law ref → lazy registry load (cached); miss → "ยังไม่เปิดให้อ่าน"
  *
- * T12b/T17 (ADR-019 D9 / ADR-020): the PANEL is CONTENT glass —
+ * T12b/T17 (ADR-019 D9 / ADR-021): the PANEL is CONTENT glass —
  * slider-driven fill via the content formula (contentGlassAlpha 0.5–0.95)
  * + content blur (6–8px), `.lawlib-glass-content` + sheen — a DISTINCT
  * surface from the dock/search chrome (which keeps the old fill + blur-xs
