@@ -42,19 +42,28 @@ import ArticleView from '@/components/ArticleView';
 import LawTooltip, { computeTooltipPosition, type DigestRefContent } from '@/components/LawTooltip';
 import type { LawDoc } from '@/types/lawlib';
 
-/** jsdom has no matchMedia — stub it; `matches` = <640px (bottom-sheet). */
-function mockMatchMedia(matches: boolean): void {
-  const mql = {
-    matches,
-    media: '(max-width: 639px)',
-    onchange: null,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  } as unknown as MediaQueryList;
-  window.matchMedia = vi.fn().mockReturnValue(mql) as unknown as typeof window.matchMedia;
+/**
+ * jsdom has no matchMedia — stub it. `matches` = <640px (bottom-sheet);
+ * `reducedMotion` = the T28 prefers-reduced-motion gate (AC-5: instant
+ * close, no delay-unmount). The SAME stub serves every query, keyed by the
+ * media string — the hook now calls matchMedia with both queries (sheet
+ * check in openTooltip :198 + the reduced-motion check in closeTooltip).
+ */
+function mockMatchMedia(matches: boolean, reducedMotion = false): void {
+  const makeMql = (media: string) =>
+    ({
+      matches: media.includes('prefers-reduced-motion') ? reducedMotion : matches,
+      media,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }) as unknown as MediaQueryList;
+  window.matchMedia = vi.fn((media: string) =>
+    makeMql(String(media)),
+  ) as unknown as typeof window.matchMedia;
 }
 
 /**
@@ -145,6 +154,9 @@ afterEach(() => {
 
 describe('useLawTooltip — stable tooltip id', () => {
   it('exposes a non-empty tooltipId that is stable across open/close cycles', () => {
+    // reduced-motion: the T28 animated close (120ms delay-unmount) must not
+    // hold the cycle open — the id-stability contract pins instant teardown.
+    mockMatchMedia(false, true);
     const { result } = renderHook(() => useLawTooltip());
     const anchor = document.createElement('span');
 
@@ -241,6 +253,10 @@ describe('aria-describedby wiring (ArticleView header trigger)', () => {
   });
 
   it('references the stable tooltip id while open and drops it when closed', () => {
+    // reduced-motion: the pointerleave close below asserts INSTANT unmount
+    // (the pre-T28 synchronous-close pin — the T28 exit tests cover the
+    // 120ms animated path separately).
+    mockMatchMedia(false, true);
     render(<Harness />);
     const trigger = headerTrigger();
     const tooltipId = screen.getByTestId('tooltip-id').textContent ?? '';
@@ -274,6 +290,9 @@ describe('aria-describedby wiring (ArticleView header trigger)', () => {
 
 describe('regression pins — pointer semantics unchanged', () => {
   it('mouse pointerenter opens the tooltip and pointerleave closes it', () => {
+    // reduced-motion: pointerleave (jsdom zero-rects → the rect-empty instant
+    // close) must unmount SYNCHRONOUSLY — the pre-T28 regression pin.
+    mockMatchMedia(false, true);
     render(<Harness />);
     const trigger = headerTrigger();
 
@@ -493,6 +512,7 @@ describe('T1 click-pin — mouse pointer (ADR-018 D1)', () => {
   });
 
   it('pinned tooltip closes on pointerdown outside the trigger/tooltip', () => {
+    mockMatchMedia(false, true); // reduced-motion → synchronous close
     stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
     render(<Harness />);
     const trigger = headerTrigger();
@@ -505,6 +525,7 @@ describe('T1 click-pin — mouse pointer (ADR-018 D1)', () => {
   });
 
   it('pinned tooltip closes on scrollend', () => {
+    mockMatchMedia(false, true); // reduced-motion → synchronous close
     stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
     render(<Harness />);
     const trigger = headerTrigger();
@@ -519,6 +540,7 @@ describe('T1 click-pin — mouse pointer (ADR-018 D1)', () => {
   });
 
   it('pinned tooltip closes on resize', () => {
+    mockMatchMedia(false, true); // reduced-motion → synchronous close
     stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
     render(<Harness />);
     const trigger = headerTrigger();
@@ -533,6 +555,7 @@ describe('T1 click-pin — mouse pointer (ADR-018 D1)', () => {
   });
 
   it('re-clicking a pinned trigger toggles it closed (pointer branch only)', () => {
+    mockMatchMedia(false, true); // reduced-motion → synchronous toggle close
     stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
     render(<Harness />);
     const trigger = headerTrigger();
@@ -573,7 +596,7 @@ describe('T1 click-pin — mouse pointer (ADR-018 D1)', () => {
   });
 
   it('pinned tooltip closes via the X close button (closeTooltip path)', () => {
-    mockMatchMedia(true); // sheet layout → the X (ปิด) button renders
+    mockMatchMedia(true, true); // sheet layout + reduced-motion → sync close
     stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
     render(<Harness />);
     const trigger = headerTrigger();
@@ -662,7 +685,8 @@ describe('T1 union-zone hover guard (replaces relatedTarget containment)', () =>
     // relatedTarget alone must not; the 150ms grace expires and it closes.
     fireEvent.pointerLeave(trigger, { pointerType: 'mouse', relatedTarget: root as Element });
     act(() => {
-      vi.advanceTimersByTime(200);
+      // 150ms grace + the T28 120ms exit delay-unmount = 270ms to fully close.
+      vi.advanceTimersByTime(300);
     });
     expect(tooltipRoot()).toBeNull();
   });
@@ -698,9 +722,9 @@ describe('T1 union-zone hover guard (replaces relatedTarget containment)', () =>
     });
     expect(tooltipRoot()).not.toBeNull();
 
-    // 200ms total > 150ms grace → closed.
+    // 300ms total > 150ms grace + the T28 120ms exit delay-unmount → closed.
     act(() => {
-      vi.advanceTimersByTime(100);
+      vi.advanceTimersByTime(200);
     });
     expect(tooltipRoot()).toBeNull();
   });
@@ -924,6 +948,7 @@ describe('W3-4 — Esc close arms the pointerenter suppression window', () => {
 
 describe('W3-4 — non-Esc closes do NOT arm the suppression (reopen immediately)', () => {
   it('pointerdown-outside close: pointerenter reopens at once', () => {
+    mockMatchMedia(false, true); // reduced-motion → synchronous close
     stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
     render(<Harness />);
     const trigger = headerTrigger();
@@ -941,6 +966,7 @@ describe('W3-4 — non-Esc closes do NOT arm the suppression (reopen immediately
   });
 
   it('toggle re-click close: pointerenter reopens at once', () => {
+    mockMatchMedia(false, true); // reduced-motion → synchronous toggle close
     stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
     render(<Harness />);
     const trigger = headerTrigger();
@@ -954,6 +980,7 @@ describe('W3-4 — non-Esc closes do NOT arm the suppression (reopen immediately
   });
 
   it('scrollend close: pointerenter reopens at once', () => {
+    mockMatchMedia(false, true); // reduced-motion → synchronous scrollend close
     stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
     render(<Harness />);
     const trigger = headerTrigger();
@@ -1503,6 +1530,7 @@ function PreviewHarness({ triggers }: { triggers: TooltipContent[] }) {
 
 describe('T19b — user decision: hover → preview, click-pin → full text directly', () => {
   it('hover-open shows the 5-row preview; click-pin on the SAME trigger opens full text (no clamp, no button)', () => {
+    mockMatchMedia(false, true); // reduced-motion → the pointerdown-outside close is synchronous
     stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
     render(<PreviewHarness triggers={[longGlossary]} />);
     const trigger = screen.getByTestId('preview-trigger-0');
@@ -1583,5 +1611,143 @@ describe('T19b — user decision: hover → preview, click-pin → full text dir
     expect(clampEl()).not.toBeNull();
     expect(expandButton()).not.toBeNull();
     expect(clampEl()?.textContent).toContain('สถานพัฒนาเด็กปฐมวัย');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T28 — tooltip EXIT (ADR-023 D4/D9, user-locked 120ms; plan §4.3): the
+// `closing` state lives in the HOOK (unmount is hook-driven). A normal close
+// (pointer / outside / scrollend / resize / toggle / X) enters `closing` and
+// delay-unmounts after TOOLTIP_EXIT_MS (120ms); keyboard-opened closes and
+// Esc are INSTANT (e2e Tab contract — AC-4); reduced-motion skips the
+// delay-unmount (AC-5); a reopen during the exit window cancels the pending
+// unmount (AC-3). These hook-level tests pin the state machine; the DOM
+// layer (exit class / entry-direction attrs) is covered in the component
+// suite below.
+// ---------------------------------------------------------------------------
+
+describe('T28 — exit closing state (hook)', () => {
+  it('a normal close enters `closing`, keeps the tooltip mounted, and unmounts after 120ms', () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useLawTooltip());
+    const anchor = document.createElement('span');
+
+    act(() => result.current.openTooltip(headerContent, anchor));
+    expect(result.current.closing).toBe(false);
+    expect(result.current.tooltip).not.toBeNull();
+
+    act(() => result.current.closeTooltip());
+    // The exit window: still mounted, `closing` true…
+    expect(result.current.closing).toBe(true);
+    expect(result.current.tooltip).not.toBeNull();
+
+    // …still mounted just before the delay elapses…
+    act(() => {
+      vi.advanceTimersByTime(119);
+    });
+    expect(result.current.tooltip).not.toBeNull();
+
+    // …unmounted exactly at the delay, `closing` cleared.
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(result.current.tooltip).toBeNull();
+    expect(result.current.closing).toBe(false);
+  });
+
+  it('a reopen during the exit window cancels the pending unmount (AC-3)', () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useLawTooltip());
+    const anchorA = document.createElement('span');
+    const anchorB = document.createElement('span');
+
+    act(() => result.current.openTooltip(glossaryA, anchorA));
+    act(() => result.current.closeTooltip());
+    expect(result.current.closing).toBe(true);
+
+    // Reopen with DIFFERENT content within the 120ms window — the stale
+    // exit timer must not unmount the fresh tooltip.
+    act(() => result.current.openTooltip(glossaryB, anchorB));
+    expect(result.current.closing).toBe(false);
+    expect(result.current.tooltip?.content).toEqual(glossaryB);
+
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(result.current.tooltip).not.toBeNull();
+    expect(result.current.tooltip?.content).toEqual(glossaryB);
+  });
+});
+
+describe('T28 — exit skips (keyboard / Esc / reduced-motion)', () => {
+  it('keyboard-opened close is INSTANT — no closing state (AC-4)', () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useLawTooltip());
+    const anchor = document.createElement('span');
+
+    act(() => result.current.openTooltip(headerContent, anchor, { keyboard: true }));
+    expect(result.current.tooltip).not.toBeNull();
+
+    act(() => result.current.closeTooltip());
+    expect(result.current.tooltip).toBeNull();
+    expect(result.current.closing).toBe(false);
+
+    // No stray timer may unmount anything later (nothing to unmount — the
+    // assertion is that no closing state was ever entered).
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+    expect(result.current.tooltip).toBeNull();
+  });
+
+  it('Esc closes a MOUSE-opened tooltip instantly — no closing state (AC-4)', () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useLawTooltip());
+    const anchor = document.createElement('span');
+
+    act(() => result.current.openTooltip(headerContent, anchor));
+    expect(result.current.tooltip).not.toBeNull();
+
+    act(() => {
+      fireEvent.keyDown(document, { key: 'Escape' });
+    });
+    expect(result.current.tooltip).toBeNull();
+    expect(result.current.closing).toBe(false);
+  });
+
+  it('reduced-motion: close is INSTANT — no closing state, no delay-unmount (AC-5)', () => {
+    mockMatchMedia(false, true); // prefers-reduced-motion ON
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useLawTooltip());
+    const anchor = document.createElement('span');
+
+    act(() => result.current.openTooltip(headerContent, anchor));
+    expect(result.current.tooltip).not.toBeNull();
+
+    act(() => result.current.closeTooltip());
+    expect(result.current.tooltip).toBeNull();
+    expect(result.current.closing).toBe(false);
+
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+    expect(result.current.tooltip).toBeNull();
+  });
+
+  it('Esc closes during an in-flight exit instantly (immediate wins over the pending timer)', () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useLawTooltip());
+    const anchor = document.createElement('span');
+
+    act(() => result.current.openTooltip(headerContent, anchor));
+    act(() => result.current.closeTooltip());
+    expect(result.current.closing).toBe(true);
+
+    // Esc mid-fade → instant unmount (the pending 120ms timer is cancelled).
+    act(() => {
+      fireEvent.keyDown(document, { key: 'Escape' });
+    });
+    expect(result.current.tooltip).toBeNull();
+    expect(result.current.closing).toBe(false);
   });
 });

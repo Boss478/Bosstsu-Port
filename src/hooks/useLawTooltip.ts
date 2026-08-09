@@ -93,6 +93,12 @@ const CORRIDOR_PX = 12;
 /** Pointerleave grace window before a hover-preview close fires. */
 const GRACE_MS = 150;
 /**
+ * T28 — exit animation length (ADR-023 D4/D9, user-locked): a normal close
+ * enters the `closing` state (LawTooltip renders `lawlib-tooltip-out`), then
+ * the hook delay-unmounts after this window. Mirrors the CSS class's 0.12s.
+ */
+const TOOLTIP_EXIT_MS = 120;
+/**
  * Post-Esc pointerenter suppression window (W3-4). Esc closes a tooltip whose
  * clamp pushed it OVER its trigger (tall full-text tooltips); the browser
  * then re-fires pointerenter on the trigger underneath → instant reopen.
@@ -150,6 +156,19 @@ function pointInCorridor(x: number, y: number, r: DOMRect): boolean {
 export function useLawTooltip() {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const tooltipElRef = useRef<HTMLElement | null>(null);
+  /**
+   * T28 — true while the EXIT animation plays (a normal close): LawTooltip
+   * renders `lawlib-tooltip-out` and the hook delay-unmounts after
+   * TOOLTIP_EXIT_MS. LIVES IN THE HOOK (not the component) because unmount is
+   * hook-driven (LawlibReaderClient:1774). Keyboard/Esc/reduced-motion closes
+   * skip it entirely (instant unmount — AC-4/AC-5). Ref mirror for the
+   * animated-close guard: reading the STATE here would churn closeTooltip's
+   * identity and re-attach the global listeners mid-fade.
+   */
+  const [closing, setClosing] = useState(false);
+  const closingRef = useRef(false);
+  /** T28 — pending exit delay-unmount timer (cancelled by openTooltip: AC-3). */
+  const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** True when the open came from keyboard activation (Enter/Space/AT click).
    *  Set ONLY on keyboard-mode opens; cleared ONLY in closeTooltip (L1-8). */
   const [openedByKeyboard, setOpenedByKeyboard] = useState(false);
@@ -200,6 +219,16 @@ export function useLawTooltip() {
       openContentRef.current = content;
       // A new open supersedes any pending deferred close (trigger→trigger).
       cancelGrace();
+      // T28 (AC-3): a reopen during the 120ms exit window cancels the pending
+      // delay-unmount — trigger→trigger (or hover→pin) reopens must never die
+      // to a stale exit timer. `closing` clears with it (the exit keyframe
+      // class drops, the entry-direction animation-name override returns).
+      if (exitTimerRef.current !== null) {
+        clearTimeout(exitTimerRef.current);
+        exitTimerRef.current = null;
+      }
+      setClosing(false);
+      closingRef.current = false;
       // Keyboard mode is sticky until closeTooltip — never cleared here.
       if (opts?.keyboard === true) setOpenedByKeyboard(true);
       // Only mouse pointer-clicks pin; hover/touch/keyboard opens never do.
@@ -209,9 +238,26 @@ export function useLawTooltip() {
     [cancelGrace],
   );
 
-  const closeTooltip = useCallback(() => {
+  /** T28 — reduced-motion gate (AC-5): instant close, no exit animation.
+   *  Mirrors the reader's reducedMotionNow / dock's animateDock pattern. */
+  const prefersReducedMotion = useCallback(
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    [],
+  );
+
+  /**
+   * Instant teardown — the pre-T28 close body, shared by the animated close
+   * (after the exit window) and every skip path (keyboard / Esc /
+   * reduced-motion). Also clears `closing` (the exit state must never
+   * survive an unmount).
+   */
+  const unmountTooltip = useCallback(() => {
     setTooltip(null);
     setPinned(false);
+    setClosing(false);
+    closingRef.current = false;
     cancelGrace();
     if (openedByKeyboard) {
       // Keyboard-opened → the trigger lost focus to the tooltip; give it back
@@ -224,6 +270,42 @@ export function useLawTooltip() {
     triggerElRef.current = null;
     openContentRef.current = null;
   }, [openedByKeyboard, cancelGrace]);
+
+  /** Esc-path close (AC-4): INSTANT — no exit animation, no delay-unmount.
+   *  Keyboard users never wait, and the W3-4 pointerenter-suppression window
+   *  starts from the actual unmount, not 120ms later. */
+  const closeTooltipImmediate = useCallback(() => {
+    if (exitTimerRef.current !== null) {
+      clearTimeout(exitTimerRef.current);
+      exitTimerRef.current = null;
+    }
+    unmountTooltip();
+  }, [unmountTooltip]);
+
+  /**
+   * T28 — animated close (AC-2/AC-4/AC-5): `closing` → LawTooltip plays
+   * `lawlib-tooltip-out` → delay-unmount after TOOLTIP_EXIT_MS. Skips
+   * straight to the unmount for keyboard-opened tooltips (the e2e Tab
+   * contract must never wait) and under prefers-reduced-motion. A second
+   * close while already exiting is a no-op (the pending timer unmounts it).
+   */
+  const closeTooltip = useCallback(() => {
+    if (closingRef.current) return;
+    if (exitTimerRef.current !== null) {
+      clearTimeout(exitTimerRef.current);
+      exitTimerRef.current = null;
+    }
+    if (openedByKeyboard || prefersReducedMotion()) {
+      unmountTooltip();
+      return;
+    }
+    setClosing(true);
+    closingRef.current = true;
+    exitTimerRef.current = setTimeout(() => {
+      exitTimerRef.current = null;
+      unmountTooltip();
+    }, TOOLTIP_EXIT_MS);
+  }, [openedByKeyboard, prefersReducedMotion, unmountTooltip]);
 
   /**
    * Union-zone deferred close: 150ms grace, cancelled by an in-zone
@@ -380,6 +462,12 @@ export function useLawTooltip() {
     return () => {
       document.removeEventListener('pointermove', onDocPointerMove, true);
       cancelGrace();
+      // T28: a hook unmount must never fire the pending exit unmount (no
+      // setState-after-unmount) — the delay timer dies with the hook.
+      if (exitTimerRef.current !== null) {
+        clearTimeout(exitTimerRef.current);
+        exitTimerRef.current = null;
+      }
     };
   }, [cancelGrace]);
 
@@ -407,7 +495,9 @@ export function useLawTooltip() {
         // it: outside-click/toggle/scrollend/resize closes are not followed
         // by a synthetic pointerenter and must reopen on hover immediately.
         suppressPointerEnterUntilRef.current = Date.now() + ESC_SUPPRESS_MS;
-        closeTooltip();
+        // T28 (AC-4): Esc closes INSTANTLY — no exit animation (keyboard
+        // users never wait; the Tab-cycle contract asserts immediate unmount).
+        closeTooltipImmediate();
       }
     };
     const onScrollEnd = (e: Event) => {
@@ -429,7 +519,7 @@ export function useLawTooltip() {
       document.removeEventListener('scrollend', onScrollEnd);
       window.removeEventListener('resize', onResize);
     };
-  }, [tooltip, closeTooltip, openedByKeyboard]);
+  }, [tooltip, closeTooltip, closeTooltipImmediate, openedByKeyboard]);
 
   const registerTooltipEl = useCallback((el: HTMLElement | null) => {
     tooltipElRef.current = el;
@@ -462,6 +552,12 @@ export function useLawTooltip() {
     handleTooltipPointerLeave,
     /** Keyboard-opened → LawTooltip takes focus on mount (Tab cycles its actions). */
     openedByKeyboard,
+    /**
+     * T28 — true while the EXIT animation plays (normal close): LawTooltip
+     * renders `lawlib-tooltip-out`; the hook delay-unmounts after 120ms.
+     * Keyboard/Esc/reduced-motion closes never enter it (instant unmount).
+     */
+    closing,
     /**
      * True when the open came from a mouse pointer-click (pin). T19: the
      * reader wires `preview={!pinned && !openedByKeyboard}` into LawTooltip —
