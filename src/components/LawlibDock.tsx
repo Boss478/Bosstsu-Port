@@ -362,6 +362,11 @@ export default function LawlibDock(props: LawlibDockProps) {
   const [backToTopVisible, setBackToTopVisible] = useState(false);
 
   const rootRef = useRef<HTMLDivElement | null>(null);
+  /** T26 (AC-1) — the position-change ANIMATION target: an INNER wrapper
+   *  inside the root (never the ref'd root — vt-dock + focus management
+   *  stay untouched). The re-trigger effect restarts its enter keyframe on
+   *  every position change via `animation: none` + reflow. */
+  const posAnimRef = useRef<HTMLDivElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
   /** Level-1 "เพิ่มเติม" (⋯) button — focus target when Esc leaves Level 2. */
   const moreTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -592,6 +597,24 @@ export default function LawlibDock(props: LawlibDockProps) {
     };
   }, [expanded, isMobile]);
 
+  // T26 (AC-1) — position-change RE-TRIGGER: the dock no longer teleports
+  // between the 8 spots. Restart the 100ms enter keyframe
+  // (lawlib-dock-pos-in-*) on the inner wrapper with the classic
+  // `animation: none` + `void el.offsetWidth` reflow idiom — it restarts
+  // the animation even when the direction class is unchanged (bottom-left
+  // → bottom-right are both 'up'). Target is the INNER wrapper ref, NEVER
+  // the vt-dock root (AC-5). Gated by animateDockNow — reduced-motion /
+  // animateDock off = instant class swap (AC-3). One reflow per position
+  // change (negligible; client-only).
+  useEffect(() => {
+    if (!animateDockNow) return;
+    const el = posAnimRef.current;
+    if (el === null) return;
+    el.style.animation = 'none';
+    void el.offsetWidth; // reflow — force the keyframe restart
+    el.style.animation = '';
+  }, [position, animateDockNow]);
+
   // T15 (v2.3): opening Level 2 moves focus to its FIRST icon button (the
   // old back-button target is gone — the level swap must not drop focus to
   // <body>, a11y fix #1). Deferred: the L2 panel mounts on the re-render.
@@ -705,6 +728,14 @@ export default function LawlibDock(props: LawlibDockProps) {
       ? `lawlib-dock-anim-out-${animDir}`
       : 'lawlib-morph-in'
     : '';
+  /** T26 (AC-1) — position-change ENTER class on the INNER wrapper: 100ms
+   *  fade + directional slide (lawlib-dock-pos-in-*, same lawlib-dock-in-*
+   *  keyframes as the T12 family, on the locked var(--ease-ios-expo)
+   *  curve). The re-trigger effect above restarts it on every position
+   *  change. Gated by animateDockNow → reduced-motion/off = instant class
+   *  swap (AC-3). The class sits on the wrapper only — the vt-dock root
+   *  (AC-5) and the panel's own T25 morph/dock-out classes are untouched. */
+  const posAnimClass = animateDockNow ? `lawlib-dock-pos-in-${animDir}` : '';
   /** T25 — L1 morph origin at the dock icon (mobile = the bottom sheet,
    *  grows from its bottom edge). Applied only while the morph runs. */
   const panelMorphOrigin = isMobile ? 'bottom center' : MORPH_ORIGIN[position];
@@ -1005,166 +1036,173 @@ export default function LawlibDock(props: LawlibDockProps) {
         isBottomPosition ? bottomOffsetClass : ''
       } ${dockRaised ? 'lawlib-dock-raised' : ''} transition-[transform] duration-100`}
     >
-      {!expanded && !closing ? (
-        <button
-          ref={toggleRef}
-          type="button"
-          onClick={expandByUser}
-          aria-label="เครื่องมืออ่าน"
-          aria-expanded={false}
-          aria-haspopup="dialog"
-          aria-controls="lawlib-dock-panel"
-          title="เครื่องมืออ่าน"
-          className="lawlib-dock lawlib-glass lawlib-glass-xs lawlib-glass-sheen flex h-[var(--lawlib-dock-size)] w-[var(--lawlib-dock-size)] cursor-pointer items-center justify-center rounded-full border border-slate-200/90 text-slate-600 shadow-xl shadow-slate-900/10 transition-all duration-150 hover:scale-105 hover:border-blue-400/80 hover:text-blue-700 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:text-slate-300 dark:shadow-black/40 dark:hover:border-blue-400/60 dark:hover:text-white"
-        >
-          <i aria-hidden="true" className="fi fi-sr-sliders-h text-sm leading-none" />
-        </button>
-      ) : (
-        <div
-          id="lawlib-dock-panel"
-          role="dialog"
-          aria-modal="false"
-          aria-label="เครื่องมืออ่าน"
-          style={{ ...(animateDockNow && !closing ? { transformOrigin: panelMorphOrigin } : {}) }}
-          className={`lawlib-dock ${panelSurfaceClass} ${panelPlacementClass} border-slate-200 dark:border-slate-700 ${animClass}`}
-        >
-          {/* ─── Level 1 (T15 v2.3 COMPACT): ALWAYS visible while expanded —
+      {/* T26 (AC-1) — the position-change ANIMATION wrapper: keyed target of
+          the re-trigger effect (animation:none + reflow), carries the
+          directional enter class. Deliberately NOT positioned (no relative)
+          — the panel/L2 absolute anchors keep resolving to the fixed ROOT.
+          The vt-dock root (AC-5) and the portaled pickers stay outside. */}
+      <div ref={posAnimRef} data-lawlib-pos className={posAnimClass}>
+        {!expanded && !closing ? (
+          <button
+            ref={toggleRef}
+            type="button"
+            onClick={expandByUser}
+            aria-label="เครื่องมืออ่าน"
+            aria-expanded={false}
+            aria-haspopup="dialog"
+            aria-controls="lawlib-dock-panel"
+            title="เครื่องมืออ่าน"
+            className="lawlib-dock lawlib-glass lawlib-glass-xs lawlib-glass-sheen flex h-[var(--lawlib-dock-size)] w-[var(--lawlib-dock-size)] cursor-pointer items-center justify-center rounded-full border border-slate-200/90 text-slate-600 shadow-xl shadow-slate-900/10 transition-all duration-150 hover:scale-105 hover:border-blue-400/80 hover:text-blue-700 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:text-slate-300 dark:shadow-black/40 dark:hover:border-blue-400/60 dark:hover:text-white"
+          >
+            <i aria-hidden="true" className="fi fi-sr-sliders-h text-sm leading-none" />
+          </button>
+        ) : (
+          <div
+            id="lawlib-dock-panel"
+            role="dialog"
+            aria-modal="false"
+            aria-label="เครื่องมืออ่าน"
+            style={{ ...(animateDockNow && !closing ? { transformOrigin: panelMorphOrigin } : {}) }}
+            className={`lawlib-dock ${panelSurfaceClass} ${panelPlacementClass} border-slate-200 dark:border-slate-700 ${animClass}`}
+          >
+            {/* ─── Level 1 (T15 v2.3 COMPACT): ALWAYS visible while expanded —
               the tools column/row + the ⋯/× control pair at its end. The
               panel header is gone; Level 2 is a SIBLING panel, not a swap.
               Side positions = vertical column (pickers stretch to the
               ~52px content width; actions stay 44px squares); middle +
               mobile = horizontal row. ──────────────────────────────────── */}
-          <div
-            data-lawlib-l1
-            className={`flex items-center gap-1.5 md:gap-2 ${effectiveLayout === 'vertical' ? 'flex-col' : 'flex-wrap'}`}
-          >
-            {/* Tools — desktop side positions (T20: NO internal scroll — the
+            <div
+              data-lawlib-l1
+              className={`flex items-center gap-1.5 md:gap-2 ${effectiveLayout === 'vertical' ? 'flex-col' : 'flex-wrap'}`}
+            >
+              {/* Tools — desktop side positions (T20: NO internal scroll — the
                 panel grows with its content; the wrapper stays
                 overflow-visible so the absolutely anchored L2 sibling is
                 never clipped). */}
-            <div
-              data-lawlib-l1-tools
-              className={`flex items-center gap-1.5 md:gap-2 ${effectiveLayout === 'vertical' ? 'flex-col' : 'flex-nowrap shrink-0'} ${toolsPlacementClass}`}
-            >
-              {resumeVisible && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    closeAllInstant();
-                    onResume();
-                  }}
-                  aria-label={`อ่านต่อ: ${resumeLabel}`}
-                  title={`อ่านต่อ: ${resumeLabel}`}
-                  className="flex h-11 w-11 md:h-12 md:w-12 min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-300/90 bg-amber-50/90 text-amber-800 shadow-xs backdrop-blur-xs transition-all duration-150 hover:scale-105 hover:border-amber-400 hover:bg-amber-100/90 hover:shadow-sm active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-amber-500/50 dark:bg-amber-950/60 dark:text-amber-200 dark:hover:border-amber-400 dark:hover:bg-amber-900/60"
-                >
-                  <i
-                    aria-hidden="true"
-                    className="fi fi-sr-time-past text-sm md:text-[15px] leading-none"
-                  />
-                </button>
+              <div
+                data-lawlib-l1-tools
+                className={`flex items-center gap-1.5 md:gap-2 ${effectiveLayout === 'vertical' ? 'flex-col' : 'flex-nowrap shrink-0'} ${toolsPlacementClass}`}
+              >
+                {resumeVisible && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeAllInstant();
+                      onResume();
+                    }}
+                    aria-label={`อ่านต่อ: ${resumeLabel}`}
+                    title={`อ่านต่อ: ${resumeLabel}`}
+                    className="flex h-11 w-11 md:h-12 md:w-12 min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-300/90 bg-amber-50/90 text-amber-800 shadow-xs backdrop-blur-xs transition-all duration-150 hover:scale-105 hover:border-amber-400 hover:bg-amber-100/90 hover:shadow-sm active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-amber-500/50 dark:bg-amber-950/60 dark:text-amber-200 dark:hover:border-amber-400 dark:hover:bg-amber-900/60"
+                  >
+                    <i
+                      aria-hidden="true"
+                      className="fi fi-sr-time-past text-sm md:text-[15px] leading-none"
+                    />
+                  </button>
+                )}
+                {settings.favoriteToolKeys.map((key) => renderToolButton(key))}
+              </div>
+
+              {/* Divider between tools and control pair */}
+              {effectiveLayout === 'vertical' ? (
+                <div
+                  aria-hidden="true"
+                  className="my-1 h-px w-6 md:w-7 shrink-0 bg-slate-200/80 dark:bg-slate-700/80"
+                />
+              ) : (
+                <div
+                  aria-hidden="true"
+                  className="mx-1 my-auto h-7 md:h-8 w-px shrink-0 bg-slate-200/80 dark:bg-slate-700/80"
+                />
               )}
-              {settings.favoriteToolKeys.map((key) => renderToolButton(key))}
-            </div>
 
-            {/* Divider between tools and control pair */}
-            {effectiveLayout === 'vertical' ? (
-              <div
-                aria-hidden="true"
-                className="my-1 h-px w-6 md:w-7 shrink-0 bg-slate-200/80 dark:bg-slate-700/80"
-              />
-            ) : (
-              <div
-                aria-hidden="true"
-                className="mx-1 my-auto h-7 md:h-8 w-px shrink-0 bg-slate-200/80 dark:bg-slate-700/80"
-              />
-            )}
-
-            {/* Control pair (replaces the removed panel header): ⋯ toggles
+              {/* Control pair (replaces the removed panel header): ⋯ toggles
                 Level 2, × collapses the dock to the icon. Side positions =
                 full-bleed row at the column's bottom; middle/mobile = at
                 the end of the row flow. */}
-            <div
-              className={`flex items-center gap-1.5 md:gap-2 shrink-0 ${
-                effectiveLayout === 'vertical' ? 'flex-col justify-center' : 'flex-nowrap'
-              }`}
-            >
-              <button
-                ref={moreTriggerRef}
-                type="button"
-                onClick={toggleMore}
-                aria-expanded={moreOpen}
-                aria-haspopup="true"
-                aria-controls="lawlib-more-panel"
-                aria-label="เพิ่มเติม"
-                title="เพิ่มเติม"
-                className={`flex h-7 w-7 md:h-8 md:w-8 cursor-pointer items-center justify-center rounded-full border shadow-xs transition-all duration-150 hover:scale-110 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                  moreOpen
-                    ? 'border-blue-500/80 bg-blue-50/90 text-blue-600 ring-1.5 ring-blue-500/20 dark:border-blue-400/80 dark:bg-blue-950/70 dark:text-blue-300 dark:ring-blue-400/20'
-                    : 'border-slate-200/90 bg-white/90 text-slate-600 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
+              <div
+                className={`flex items-center gap-1.5 md:gap-2 shrink-0 ${
+                  effectiveLayout === 'vertical' ? 'flex-col justify-center' : 'flex-nowrap'
                 }`}
               >
-                <i
-                  aria-hidden="true"
-                  className="fi fi-sr-menu-dots text-xs md:text-[13px] leading-none"
-                />
-              </button>
-              <button
-                type="button"
-                onClick={() => userClose(true)}
-                aria-label="ปิดแถบเครื่องมือ"
-                title="ปิดแถบเครื่องมือ"
-                className="flex h-7 w-7 md:h-8 md:w-8 cursor-pointer items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-slate-500 shadow-xs transition-all duration-150 hover:scale-110 hover:border-rose-400/80 hover:bg-white hover:text-rose-600 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-400 dark:hover:border-rose-400/60 dark:hover:text-rose-300"
-              >
-                <i
-                  aria-hidden="true"
-                  className="fi fi-sr-cross text-[10px] md:text-xs leading-none"
-                />
-              </button>
+                <button
+                  ref={moreTriggerRef}
+                  type="button"
+                  onClick={toggleMore}
+                  aria-expanded={moreOpen}
+                  aria-haspopup="true"
+                  aria-controls="lawlib-more-panel"
+                  aria-label="เพิ่มเติม"
+                  title="เพิ่มเติม"
+                  className={`flex h-7 w-7 md:h-8 md:w-8 cursor-pointer items-center justify-center rounded-full border shadow-xs transition-all duration-150 hover:scale-110 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                    moreOpen
+                      ? 'border-blue-500/80 bg-blue-50/90 text-blue-600 ring-1.5 ring-blue-500/20 dark:border-blue-400/80 dark:bg-blue-950/70 dark:text-blue-300 dark:ring-blue-400/20'
+                      : 'border-slate-200/90 bg-white/90 text-slate-600 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
+                  }`}
+                >
+                  <i
+                    aria-hidden="true"
+                    className="fi fi-sr-menu-dots text-xs md:text-[13px] leading-none"
+                  />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => userClose(true)}
+                  aria-label="ปิดแถบเครื่องมือ"
+                  title="ปิดแถบเครื่องมือ"
+                  className="flex h-7 w-7 md:h-8 md:w-8 cursor-pointer items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-slate-500 shadow-xs transition-all duration-150 hover:scale-110 hover:border-rose-400/80 hover:bg-white hover:text-rose-600 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-400 dark:hover:border-rose-400/60 dark:hover:text-rose-300"
+                >
+                  <i
+                    aria-hidden="true"
+                    className="fi fi-sr-cross text-[10px] md:text-xs leading-none"
+                  />
+                </button>
+              </div>
             </div>
-          </div>
 
-          {/* ─── Level 2 (T15 v2.3): SIBLING glass panel — a SEPARATE 112px glass panel (w-28), anchored to
+            {/* ─── Level 2 (T15 v2.3): SIBLING glass panel — a SEPARATE 112px glass panel (w-28), anchored to
               Level 1 with the per-position flip (`more` — away from the screen
               edge). Mobile: an in-flow full-width block inside the sheet (dots ⋯
               expands it). T25: mounts while OPEN or mid-exit (`moreClosing`) —
               pop-in 200ms spring from the ⋯ side (transform-origin per
               position) on open; pop-out 140ms + delay-unmount on close; gate
               off (animateDock off / reduced motion) → instant, no class. ──── */}
-          {(moreOpen || moreClosing) && (
-            <div
-              id="lawlib-more-panel"
-              data-lawlib-l2
-              style={{ transformOrigin: morePopOrigin }}
-              className={`lawlib-glass lawlib-glass-xs lawlib-glass-sheen ${morePanelPlacementClass} border-slate-200 dark:border-slate-700 ${
-                moreClosing ? 'lawlib-pop-out' : animateDockNow ? 'lawlib-pop-in' : ''
-              }`}
-            >
-              <div className="flex flex-col gap-1.5 md:gap-2">
-                {settings.favoriteToolKeys.length > 0 && (
-                  <>
-                    <ul className="grid grid-cols-2 justify-items-center gap-0.5">
-                      {settings.favoriteToolKeys.map((key) => (
-                        <li key={key}>{renderMoreIconButton(key)}</li>
-                      ))}
-                    </ul>
-                    <div
-                      aria-hidden="true"
-                      className="h-px w-full shrink-0 bg-slate-200 dark:bg-slate-700"
-                    />
-                  </>
-                )}
-                <ul className="grid grid-cols-2 justify-items-center gap-0.5">
-                  {MORE_REST_KEYS.filter(
-                    (key) => !settings.favoriteToolKeys.some((k) => k === key),
-                  ).map((key) => (
-                    <li key={key}>{renderMoreIconButton(key)}</li>
-                  ))}
-                </ul>
+            {(moreOpen || moreClosing) && (
+              <div
+                id="lawlib-more-panel"
+                data-lawlib-l2
+                style={{ transformOrigin: morePopOrigin }}
+                className={`lawlib-glass lawlib-glass-xs lawlib-glass-sheen ${morePanelPlacementClass} border-slate-200 dark:border-slate-700 ${
+                  moreClosing ? 'lawlib-pop-out' : animateDockNow ? 'lawlib-pop-in' : ''
+                }`}
+              >
+                <div className="flex flex-col gap-1.5 md:gap-2">
+                  {settings.favoriteToolKeys.length > 0 && (
+                    <>
+                      <ul className="grid grid-cols-2 justify-items-center gap-0.5">
+                        {settings.favoriteToolKeys.map((key) => (
+                          <li key={key}>{renderMoreIconButton(key)}</li>
+                        ))}
+                      </ul>
+                      <div
+                        aria-hidden="true"
+                        className="h-px w-full shrink-0 bg-slate-200 dark:bg-slate-700"
+                      />
+                    </>
+                  )}
+                  <ul className="grid grid-cols-2 justify-items-center gap-0.5">
+                    {MORE_REST_KEYS.filter(
+                      (key) => !settings.favoriteToolKeys.some((k) => k === key),
+                    ).map((key) => (
+                      <li key={key}>{renderMoreIconButton(key)}</li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Pickers — anchored popovers (portal; Esc/outside close, aria-expanded) */}
       {picker !== null && (

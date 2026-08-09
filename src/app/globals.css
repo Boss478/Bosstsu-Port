@@ -1982,7 +1982,12 @@ textarea,
   .lawlib-dock-anim-in-up,
   .lawlib-dock-anim-out-up,
   .lawlib-dock-anim-in-side,
-  .lawlib-dock-anim-out-side {
+  .lawlib-dock-anim-out-side,
+  /* T26 — the position-change enter (JS-gated too; CSS fallback parity
+     with the T12 in/out family above). */
+  .lawlib-dock-pos-in-down,
+  .lawlib-dock-pos-in-up,
+  .lawlib-dock-pos-in-side {
     animation: none;
   }
 }
@@ -2003,6 +2008,24 @@ textarea,
   .lawlib-dock-raised {
     transform: translateY(calc(-1 * (var(--lawlib-dock-size) + 0.75rem)));
   }
+}
+/* T26 (ADR-023 D9) — dock POSITION-CHANGE enter (AC-1): the 8-spot moves
+   re-trigger the directional lawlib-dock-in-* keyframes at 100ms on the
+   locked var(--ease-ios-expo) curve (Fast timing — no overshoot). Applied
+   to the INNER wrapper (data-lawlib-pos — never the vt-dock root); the JS
+   re-trigger (animation:none + void el.offsetWidth reflow) restarts them
+   on every position change — even when the direction class is unchanged
+   (bottom-left → bottom-right are both 'up'). The side keyframes read
+   --lawlib-dock-slide (±8px inline on the root for mid positions; the
+   wrapper inherits it). */
+.lawlib-dock-pos-in-down {
+  animation: lawlib-dock-in-down 100ms var(--ease-ios-expo) both;
+}
+.lawlib-dock-pos-in-up {
+  animation: lawlib-dock-in-up 100ms var(--ease-ios-expo) both;
+}
+.lawlib-dock-pos-in-side {
+  animation: lawlib-dock-in-side 100ms var(--ease-ios-expo) both;
 }
 /* List-page search input (SearchInput.tsx — T2 tokens stay; the fill/blur
    ride the same slider vars so the dock+search surfaces stay in sync). */
