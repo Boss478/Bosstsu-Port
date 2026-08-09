@@ -47,8 +47,12 @@
  * Mobile (≤639px) renders a full-width bottom sheet, open per default, with
  * Level 2 COLLAPSED (⋯ expands it). Expansion is direction-aware (T12): side
  * positions = vertical Level-1 column; middle positions = horizontal row.
- * Expand/collapse animates (150ms slide+fade, settings.animateDock +
- * prefers-reduced-motion gate).
+ * T25 (ADR-023 D9): the L2 menu POPS from the ⋯ trigger (200ms spring
+ * lawlib-pop-in, origin per the `more` flip) and exits with a 140ms
+ * lawlib-pop-out + delay-unmount (L2_ANIM_MS); L1 expand MORPHS from the
+ * dock icon (200ms lawlib-morph-in — replaces the old dock-in). Both gated
+ * by settings.animateDock + prefers-reduced-motion; the 150ms dock-out
+ * collapse (DOCK_ANIM_MS) is unchanged.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { safeGetString, safeSetString } from '@/lib/storage';
@@ -160,6 +164,23 @@ const POSITION_CONFIG: Record<
   },
 };
 
+/** T25 — L2 pop transform-origin per position (ADR-023 D5 — contextual
+ *  linkage: menus grow from their trigger). Side docks flip to the
+ *  L1-adjacent edge — the ⋯ control pair sits at the column's BOTTOM, so
+ *  the vertical origin is bottom-aligned there; centered docks grow along
+ *  their vertical axis (top-center → below the row, bottom-center → above).
+ *  Mobile renders L2 as an in-flow block under the ⋯ row → top center. */
+const MORE_POP_ORIGIN: Record<DockPosition, string> = {
+  'top-left': 'left bottom',
+  'top-center': 'top center',
+  'top-right': 'right bottom',
+  'mid-left': 'left bottom',
+  'mid-right': 'right bottom',
+  'bottom-left': 'left bottom',
+  'bottom-center': 'bottom center',
+  'bottom-right': 'right bottom',
+};
+
 function loadDockPosition(): DockPosition {
   const saved = safeGetString('lawlib:dockPosition');
   return saved !== null && (DOCK_POSITIONS as readonly string[]).includes(saved)
@@ -184,6 +205,11 @@ function loadDockCollapsed(): boolean {
 /** T12 — expand/collapse animation duration (must match the CSS
  *  `150ms` in the lawlib-dock-anim-* classes, globals.css). */
 const DOCK_ANIM_MS = 150;
+
+/** T25 — L2 menu animation duration (must match the CSS `0.2s` in
+ *  .lawlib-pop-in, globals.css). Also drives the close delay-unmount: the
+ *  exit (lawlib-pop-out, 140ms) always finishes inside this hold. */
+const L2_ANIM_MS = 200;
 
 // ---------------------------------------------------------------------------
 // Tool registry — labels + icons + panel map (single source: LawlibPickers —
@@ -285,6 +311,10 @@ export default function LawlibDock(props: LawlibDockProps) {
    *  before the state flips to collapsed. */
   const [closing, setClosing] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  /** T25 — L2 exit-animation hold: while true the menu stays mounted
+   *  (animating out, lawlib-pop-out 140ms) before the state flips to
+   *  closed. Mirrors the L1 `closing` pattern (DOCK_ANIM_MS above). */
+  const [moreClosing, setMoreClosing] = useState(false);
   const [picker, setPicker] = useState<{ kind: PickerKind; anchor: HTMLElement } | null>(null);
   const [position, setPosition] = useState<DockPosition>(() => loadDockPosition());
   /** T12c — the THEME dot baselines on the RESOLVED initial theme (see
@@ -322,6 +352,11 @@ export default function LawlibDock(props: LawlibDockProps) {
   const moreTriggerRef = useRef<HTMLButtonElement | null>(null);
   /** Open picker's trigger button — Esc from the picker restores focus here. */
   const pickerAnchorRef = useRef<HTMLElement | null>(null);
+  /** T25 — the L2 exit-hold timer (delayed unmount, DOCK_ANIM_MS pattern).
+   *  Tracked in a ref so a re-open (or an instant close) can CANCEL a
+   *  pending exit — a stale timer must never unmount a re-opened menu
+   *  (ADR-023 D4). */
+  const moreExitTimerRef = useRef<number | null>(null);
 
   /** T12 — dock expand/collapse animation gate: settings.animateDock AND
    *  no system reduced-motion preference. */
@@ -340,13 +375,54 @@ export default function LawlibDock(props: LawlibDockProps) {
   }, []);
 
   /** Programmatic close (focus mode / resume / bookmark jump): INSTANT, no
-   *  animation, no collapse-state persistence (the user did not collapse). */
+   *  animation, no collapse-state persistence (the user did not collapse).
+   *  T25: also cancels any pending L2 exit hold — an instant close must
+   *  never leave a ghost `moreClosing` behind for the next expand. */
   const closeAllInstant = useCallback(() => {
     setPicker(null);
     setMoreOpen(false);
+    setMoreClosing(false);
     setExpanded(false);
     pickerAnchorRef.current = null;
   }, []);
+
+  /** T25 — cancel a pending L2 exit-hold timer (re-open / instant close). */
+  const cancelMoreExit = useCallback(() => {
+    if (moreExitTimerRef.current !== null) {
+      window.clearTimeout(moreExitTimerRef.current);
+      moreExitTimerRef.current = null;
+    }
+  }, []);
+
+  /** T25 — close Level 2: gated exit (140ms pop-out + L2_ANIM_MS hold) or
+   *  instant unmount. Every USER close routes here (⋯ toggle + Esc). The
+   *  panel-level collapse (userClose) and programmatic closes
+   *  (closeAllInstant) stay INSTANT for L2 — the panel exit owns that
+   *  dismissal (a hold there would outlive the panel and ghost-render). */
+  const closeMore = useCallback(() => {
+    if (animateDockNow) {
+      cancelMoreExit();
+      setMoreClosing(true);
+      setMoreOpen(false);
+      moreExitTimerRef.current = window.setTimeout(() => {
+        moreExitTimerRef.current = null;
+        setMoreClosing(false);
+      }, L2_ANIM_MS);
+    } else {
+      setMoreOpen(false);
+    }
+  }, [animateDockNow, cancelMoreExit]);
+
+  /** T25 — ⋯ toggle: open (cancelling any pending exit) / gated close. */
+  const toggleMore = useCallback(() => {
+    if (moreOpen) {
+      closeMore();
+    } else {
+      cancelMoreExit();
+      setMoreClosing(false);
+      setMoreOpen(true);
+    }
+  }, [moreOpen, closeMore, cancelMoreExit]);
 
   /** T23 — focus mode is SETTINGS state (persisted; the reader applies
    *  body.lawlib-focus / Esc-exit / the reading indicator). ONE dock-level
@@ -385,11 +461,14 @@ export default function LawlibDock(props: LawlibDockProps) {
   );
 
   /** User close from ANY level — resets picker/Level 2 first (the X button
-   *  can close from Level 2 directly), then collapses with animation. */
+   *  can close from Level 2 directly), then collapses with animation. T25:
+   *  L2 closes INSTANT here (the panel exit owns the dismissal) and any
+   *  pending exit hold is cancelled — no ghost L2 on a re-expand. */
   const userClose = useCallback(
     (restoreFocus: boolean) => {
       setPicker(null);
       setMoreOpen(false);
+      setMoreClosing(false);
       pickerAnchorRef.current = null;
       collapseByUser(restoreFocus);
     },
@@ -428,8 +507,9 @@ export default function LawlibDock(props: LawlibDockProps) {
       }
       if (moreOpen) {
         // Level 2 → Level 1 (L1 stays mounted — เพิ่มเติม only needs its
-        // focus restored, deferred until the re-render settles).
-        setMoreOpen(false);
+        // focus restored, deferred until the re-render settles). T25: the
+        // same gated pop-out exit as the ⋯ toggle (Esc parity).
+        closeMore();
         window.setTimeout(() => {
           const trigger = moreTriggerRef.current;
           if (trigger !== null && trigger.isConnected) trigger.focus();
@@ -440,7 +520,7 @@ export default function LawlibDock(props: LawlibDockProps) {
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [expanded, escBlocked, settings.focusMode, picker, moreOpen, userClose]);
+  }, [expanded, escBlocked, settings.focusMode, picker, moreOpen, userClose, closeMore]);
 
   // Move focus into the panel on expand (a11y — the old dock focused the
   // first action button on open, L4-1). SKIPPED on the initial mount (the
@@ -606,6 +686,9 @@ export default function LawlibDock(props: LawlibDockProps) {
       ? `lawlib-dock-anim-out-${animDir}`
       : `lawlib-dock-anim-in-${animDir}`
     : '';
+  /** T25 — L2 pop origin per the `more` flip (mobile = in-flow block under
+   *  the ⋯ row, grows downward). */
+  const morePopOrigin = isMobile ? 'top center' : MORE_POP_ORIGIN[position];
   /** T15 (v2.3): UNIFORM glass for Level 1 + Level 2 + collapsed icon
    *  (transparent glass-2 override: slider alpha + blur-xs + sheen). The
    *  old `lawlib-glass-strong` Level-2 distinction is GONE — L2 is a
@@ -970,7 +1053,7 @@ export default function LawlibDock(props: LawlibDockProps) {
               <button
                 ref={moreTriggerRef}
                 type="button"
-                onClick={() => setMoreOpen((prev) => !prev)}
+                onClick={toggleMore}
                 aria-expanded={moreOpen}
                 aria-haspopup="true"
                 aria-controls="lawlib-more-panel"
@@ -1005,12 +1088,18 @@ export default function LawlibDock(props: LawlibDockProps) {
           {/* ─── Level 2 (T15 v2.3): SIBLING glass panel — a SEPARATE 112px glass panel (w-28), anchored to
               Level 1 with the per-position flip (`more` — away from the screen
               edge). Mobile: an in-flow full-width block inside the sheet (dots ⋯
-              expands it). ──────────────── */}
-          {moreOpen && (
+              expands it). T25: mounts while OPEN or mid-exit (`moreClosing`) —
+              pop-in 200ms spring from the ⋯ side (transform-origin per
+              position) on open; pop-out 140ms + delay-unmount on close; gate
+              off (animateDock off / reduced motion) → instant, no class. ──── */}
+          {(moreOpen || moreClosing) && (
             <div
               id="lawlib-more-panel"
               data-lawlib-l2
-              className={`lawlib-glass lawlib-glass-xs lawlib-glass-sheen ${morePanelPlacementClass} border-slate-200 dark:border-slate-700`}
+              style={{ transformOrigin: morePopOrigin }}
+              className={`lawlib-glass lawlib-glass-xs lawlib-glass-sheen ${morePanelPlacementClass} border-slate-200 dark:border-slate-700 ${
+                moreClosing ? 'lawlib-pop-out' : animateDockNow ? 'lawlib-pop-in' : ''
+              }`}
             >
               <div className="flex flex-col gap-1.5 md:gap-2">
                 {settings.favoriteToolKeys.length > 0 && (
