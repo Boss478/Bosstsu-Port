@@ -2259,6 +2259,15 @@ textarea,
    and the footer — while the reading surface + the sticky มาตรา indicator
    (lawlib-reading-indicator, reader-rendered) stay. Content is display:none
    (out of the a11y tree — Esc exits focus mode, no focus trap). */
+
+/* T31 (AC-2) — the focus-mode indicator springs in on mount: 200ms pop
+   spring (scale 0.94→1 + fade). It mounts exactly when focusMode flips
+   true, so a plain class animation runs once per entry; the global
+   reduced-motion kill zeroes it. */
+.lawlib-reading-indicator {
+  animation: lawlib-pop-in 0.2s var(--ease-ios-spring) both;
+}
+
 body.lawlib-focus #site-header,
 body.lawlib-focus .lawlib-toc,
 body.lawlib-focus .lawlib-dock,

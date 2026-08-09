@@ -1378,12 +1378,14 @@ export default function LawlibReaderClient({
     fontWeight: 'var(--lawlib-font-weight)',
   };
 
-  // --- T10b body classes: focus mode + hide repealed + hide amendment
-  //     notes (CSS in globals.css — FULL and COMPACT both render through
-  //     ArticleView / the article tooltip, so the class hooks cover both).
+  // --- T10b body classes: hide repealed + hide amendment notes (CSS in
+  //     globals.css — FULL and COMPACT both render through ArticleView /
+  //     the article tooltip, so the class hooks cover both). T31 (AC-2):
+  //     body.lawlib-focus moved OUT of this effect — the focus two-step
+  //     effect below owns it (surface fade → toggle on enter; toggle →
+  //     fade-in on exit).
   useEffect(() => {
     const body = document.body;
-    body.classList.toggle('lawlib-focus', settings.focusMode);
     body.classList.toggle('lawlib-hide-repealed', settings.hideRepealed);
     body.classList.toggle('lawlib-hide-amendment-notes', settings.hideAmendmentNotes);
     // Tooltip PORTAL renders into document.body (outside the reader root),
@@ -1397,7 +1399,51 @@ export default function LawlibReaderClient({
       body.classList.remove('lawlib-focus', 'lawlib-hide-repealed', 'lawlib-hide-amendment-notes');
       body.style.removeProperty('--lawlib-font-family');
     };
-  }, [settings.focusMode, settings.hideRepealed, settings.hideAmendmentNotes, settings.fontFamily]);
+  }, [settings.hideRepealed, settings.hideAmendmentNotes, settings.fontFamily]);
+
+  // --- T31 (AC-2) focus mode two-step: the reading surface fades out over
+  //     300ms (lawlib-focus-fade — the keyframe does fade + scale 0.995
+  //     together) BEFORE the chrome hides (body.lawlib-focus = display:none
+  //     — instant per AC, don't fight it); exit reverses: chrome back
+  //     instantly, then the surface fades in. The `both` fill holds the
+  //     surface invisible while focus mode is on. Reduced-motion = instant
+  //     toggle (JS gate — reducedMotionNow() pattern; the CSS RM kill can't
+  //     defer the body class for us).
+  const focusSurfaceRef = useRef<HTMLDivElement | null>(null);
+  const focusWasOnRef = useRef(false);
+  useEffect(() => {
+    const body = document.body;
+    const el = focusSurfaceRef.current;
+    const wasOn = focusWasOnRef.current;
+    focusWasOnRef.current = settings.focusMode;
+    const setFocusClass = (on: boolean) => body.classList.toggle('lawlib-focus', on);
+    if (reducedMotionNow()) {
+      setFocusClass(settings.focusMode);
+      if (el !== null) el.style.animation = '';
+      return;
+    }
+    if (settings.focusMode) {
+      // ENTER: fade the surface out (300ms), THEN hide the chrome.
+      if (el !== null) {
+        el.style.animation = 'lawlib-focus-fade 0.3s var(--ease-ios-in) both';
+      }
+      const t = window.setTimeout(() => setFocusClass(true), 300);
+      return () => window.clearTimeout(t);
+    }
+    // Mount with focus off, or no-op — nothing to reverse.
+    if (!wasOn) return;
+    // EXIT: chrome back instantly, then the surface fades in (300ms),
+    // after which the inline animation is cleared (no persistent scale).
+    setFocusClass(false);
+    if (el !== null) {
+      el.style.animation = 'lawlib-focus-fade 0.3s var(--ease-ios-in) reverse both';
+      const t = window.setTimeout(() => {
+        el.style.animation = '';
+      }, 300);
+      return () => window.clearTimeout(t);
+    }
+    return;
+  }, [settings.focusMode]);
 
   // --- T10b focus mode: easy exit via Esc. Stands down while a drawer /
   //     tooltip / compact popover owns Escape (the dock's escBlocked
@@ -1728,7 +1774,7 @@ export default function LawlibReaderClient({
         </div>
       )}
 
-      <div id="lawlib-reader-content" className="mt-6">
+      <div id="lawlib-reader-content" ref={focusSurfaceRef} className="mt-6">
         {effectiveView === 'compact' && digestView !== null ? (
           <CompactView
             view={digestView}
