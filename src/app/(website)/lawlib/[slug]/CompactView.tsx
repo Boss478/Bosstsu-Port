@@ -1021,13 +1021,22 @@ function ChapterGroupView({
           </span>
           <i
             aria-hidden="true"
-            className={`fi fi-sr-angle-small-down text-xs text-slate-400 transition-transform dark:text-slate-500 ${
+            className={`fi fi-sr-angle-small-down text-xs text-slate-400 transition-transform duration-200 ease-ios-spring dark:text-slate-500 ${
               collapsed ? '' : 'rotate-180'
             }`}
           />
         </button>
       </h3>
-      <div id={`${group.id}-region`} hidden={collapsed} className="mt-2 space-y-3">
+      {/* T31 (AC-1): expand = content lawlib-fade-rise 150ms (keyed remount
+          re-triggers the animation per expand — plan §5 key-remount pattern);
+          collapse stays instant (hidden). NO height animation (layout — D2). */}
+      <div
+        key={collapsed ? 'collapsed' : 'expanded'}
+        id={`${group.id}-region`}
+        hidden={collapsed}
+        className="lawlib-fade-rise mt-2 space-y-3"
+        style={{ animationDuration: '150ms' }}
+      >
         {group.lines.map((line) =>
           line.kind === 'article' ? (
             <ArticleCard
