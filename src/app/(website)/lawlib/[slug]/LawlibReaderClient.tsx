@@ -449,8 +449,12 @@ export default function LawlibReaderClient({
   const [chipClosing, setChipClosing] = useState(false);
   const chipCloseTimerRef = useRef<number | null>(null);
   /** T30 (AC-3) — chip level-pop trigger: a speed value CHANGE while the
-   *  chip is live re-adds lawlib-chip-pop (cleared onAnimationEnd). */
+   *  chip is live re-adds lawlib-chip-pop. Cleared by a TIMER (CHIP_ANIM_MS)
+   *  rather than onAnimationEnd — browsers can skip the event (background-
+   *  tab animation throttling) and a stale class would silently kill every
+   *  later re-pop (the class must leave for the next re-add to replay). */
   const [chipPop, setChipPop] = useState(false);
+  const chipPopTimerRef = useRef<number | null>(null);
   /** Skip the pop on the chip's FIRST mount (entry = fade-rise only); pop
    *  fires on subsequent speed changes (ระดับ pop — AC-3). Doubles as the
    *  "chip was live at least once" gate for the exit-hold. */
@@ -1518,6 +1522,13 @@ export default function LawlibReaderClient({
         if (chipPoppedOnceRef.current) setChipPop(true);
       });
       chipPoppedOnceRef.current = true;
+      // Pop clear: timer-based (see chipPop — onAnimationEnd is unreliable
+      // in throttled/background tabs and jsdom cannot synthesize it).
+      if (chipPopTimerRef.current !== null) window.clearTimeout(chipPopTimerRef.current);
+      chipPopTimerRef.current = window.setTimeout(() => {
+        chipPopTimerRef.current = null;
+        setChipPop(false);
+      }, CHIP_ANIM_MS);
       return;
     }
     if (chipPoppedOnceRef.current && !reducedMotionNow()) {
@@ -1531,12 +1542,17 @@ export default function LawlibReaderClient({
     startTransition(() => setChipClosing(false));
   }, [settings.autoScrollSpeed, setSettings]);
 
-  // Unmount — a pending chip exit timer must never outlive the reader.
+  // Unmount — pending chip timers (exit hold + pop clear) must never outlive
+  // the reader.
   useEffect(() => {
     return () => {
       if (chipCloseTimerRef.current !== null) {
         window.clearTimeout(chipCloseTimerRef.current);
         chipCloseTimerRef.current = null;
+      }
+      if (chipPopTimerRef.current !== null) {
+        window.clearTimeout(chipPopTimerRef.current);
+        chipPopTimerRef.current = null;
       }
     };
   }, []);
@@ -1855,7 +1871,6 @@ export default function LawlibReaderClient({
         >
           <div
             className={`flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/95 py-1 pl-3 pr-1 shadow-lg dark:border-slate-700 dark:bg-slate-900/95 ${chipPop ? 'lawlib-chip-pop' : ''}`}
-            onAnimationEnd={() => setChipPop(false)}
           >
             <span className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
               <i
