@@ -1000,6 +1000,152 @@ textarea,
   view-transition-name: autoscroll-chip;
 }
 
+/* ─── Theme-change View Transitions (T27b, ADR-023 D3 / AC-3) ─────────────── */
+
+/* Fallback direction BEFORE the T27 call sites set `--vt-dir` inline on
+   <html> via document.documentElement.style.setProperty('--vt-dir', dir)
+   (CSSOM serializes the inline style with a space after the colon — the
+   direction selectors below match exactly that). */
+:root {
+  --vt-dir: to-light;
+}
+
+/* Directional keyframes — root snapshot only; named groups keep the plain
+   400ms crossfade. transform/opacity/filter only; filter does the tint work
+   (sepia warm-through for read/sepia, brightness dim/bright for dark/light). */
+@keyframes vt-root-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-root-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes vt-root-out-dim {
+  from {
+    opacity: 1;
+    transform: scale(1);
+    filter: none;
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.995);
+    filter: brightness(0.7);
+  }
+}
+@keyframes vt-root-in-dim {
+  from {
+    opacity: 0;
+    transform: scale(0.995);
+    filter: brightness(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: none;
+  }
+}
+@keyframes vt-root-out-bright {
+  from {
+    opacity: 1;
+    transform: scale(1);
+    filter: none;
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.005);
+    filter: brightness(1.3);
+  }
+}
+@keyframes vt-root-in-bright {
+  from {
+    opacity: 0;
+    transform: scale(1.005);
+    filter: brightness(1.3);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: none;
+  }
+}
+@keyframes vt-root-out-warm {
+  from {
+    opacity: 1;
+    filter: none;
+  }
+  to {
+    opacity: 0;
+    filter: sepia(0.55) saturate(1.35) brightness(0.96);
+  }
+}
+@keyframes vt-root-in-warm {
+  from {
+    opacity: 0;
+    filter: sepia(0.55) saturate(1.35) brightness(0.96);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+/* All VT styling gated on no-preference (the ThemeProvider JS gate already
+   blocks startViewTransition under reduced-motion — belt and braces: the
+   global kill at 679 does NOT cover ::view-transition-* pseudo-elements). */
+@media (prefers-reduced-motion: no-preference) {
+  /* Named groups MUST share the root's 400ms + curve (default ~200-250ms
+     on named groups vs 400ms root = disjointed crossfade — senior finding,
+     AC-3). Group gets longhands ONLY (a shorthand would wipe the UA
+     animation-name); old/new get an explicit crossfade so named elements
+     don't hard-cut while the root fades. */
+  ::view-transition-group(*) {
+    animation-duration: 400ms;
+    animation-timing-function: var(--ease-ios-out);
+  }
+  ::view-transition-old(*) {
+    animation: vt-root-fade-out 400ms var(--ease-ios-out) both;
+  }
+  ::view-transition-new(*) {
+    animation: vt-root-fade-in 400ms var(--ease-ios-out) both;
+  }
+
+  /* to-dark (light → dark): old fades toward dim (slight 0.995 scale),
+     new fades in from dim. */
+  html[style*='--vt-dir: to-dark']::view-transition-old(root) {
+    animation: vt-root-out-dim 400ms var(--ease-ios-out) both;
+  }
+  html[style*='--vt-dir: to-dark']::view-transition-new(root) {
+    animation: vt-root-in-dim 400ms var(--ease-ios-out) both;
+  }
+
+  /* to-light (dark → light): old fades toward bright, new fades in from
+     bright. */
+  html[style*='--vt-dir: to-light']::view-transition-old(root) {
+    animation: vt-root-out-bright 400ms var(--ease-ios-out) both;
+  }
+  html[style*='--vt-dir: to-light']::view-transition-new(root) {
+    animation: vt-root-in-bright 400ms var(--ease-ios-out) both;
+  }
+
+  /* to-paper (read/sepia): warm fade-through — both snapshots pass through
+     a warm sepia tint (AC-3). */
+  html[style*='--vt-dir: to-paper']::view-transition-old(root) {
+    animation: vt-root-out-warm 400ms var(--ease-ios-out) both;
+  }
+  html[style*='--vt-dir: to-paper']::view-transition-new(root) {
+    animation: vt-root-in-warm 400ms var(--ease-ios-out) both;
+  }
+}
+
 /* ─── Alphabet Adventure: Kid-Friendly Menu ───────────────────────────────── */
 @keyframes kid-float {
   0%,

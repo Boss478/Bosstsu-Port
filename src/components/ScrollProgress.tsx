@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 export default function ScrollProgress() {
   const [progress, setProgress] = useState(0);
@@ -18,16 +18,16 @@ export default function ScrollProgress() {
       });
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener('scroll', handleScroll);
       cancelAnimationFrame(rafId);
     };
   }, []);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[60] h-0.5 pointer-events-none">
+    <div className="vt-scroll fixed top-0 left-0 right-0 z-[60] h-0.5 pointer-events-none">
       <div
         className="h-full bg-blue-500 transition-[width] duration-150 ease-out"
         style={{ width: `${progress * 100}%` }}

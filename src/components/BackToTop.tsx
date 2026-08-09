@@ -64,7 +64,7 @@ export default function BackToTop() {
     <button
       onClick={scrollToPageTop}
       tabIndex={isVisible && !sheetOpen ? 0 : -1}
-      className={`fixed bottom-6 right-6 md:bottom-10 md:right-10 z-50 p-3 rounded-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-xs border border-white/60 text-blue-600 dark:text-blue-400 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-all duration-300 ${
+      className={`vt-btt fixed bottom-6 right-6 md:bottom-10 md:right-10 z-50 p-3 rounded-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-xs border border-white/60 text-blue-600 dark:text-blue-400 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-all duration-300 ${
         isVisible && !sheetOpen
           ? 'opacity-100 translate-y-0 pointer-events-auto'
           : 'invisible opacity-0 translate-y-4 pointer-events-none'
