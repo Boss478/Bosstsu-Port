@@ -189,18 +189,21 @@ function mockLocalStorage(): void {
   vi.stubGlobal('localStorage', stub);
 }
 
-function mockMatchMedia(matches: boolean): void {
-  const mql = {
-    matches,
-    media: '',
-    onchange: null,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  } as unknown as MediaQueryList;
-  window.matchMedia = vi.fn().mockReturnValue(mql) as unknown as typeof window.matchMedia;
+function mockMatchMedia(matches: boolean, reducedMotion = false): void {
+  const makeMql = (media: string) =>
+    ({
+      matches: media.includes('prefers-reduced-motion') ? reducedMotion : matches,
+      media,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }) as unknown as MediaQueryList;
+  window.matchMedia = vi.fn((media: string) =>
+    makeMql(String(media)),
+  ) as unknown as typeof window.matchMedia;
 }
 
 class IntersectionObserverStub {
@@ -229,7 +232,10 @@ function stubVisibleOffsetParents(): void {
 
 beforeEach(() => {
   mockLocalStorage();
-  mockMatchMedia(false);
+  // reduced-motion ON: this file pins compact ROUTING semantics (tooltip
+  // close → popover / FULL switch), not the T28 exit animation — closes must
+  // stay synchronous as before T28 (the tooltip suite covers the 120ms exit).
+  mockMatchMedia(false, true);
   vi.stubGlobal('IntersectionObserver', IntersectionObserverStub);
   // jsdom has no scrollIntoView (probe: undefined) — every jump/open path calls it.
   Element.prototype.scrollIntoView = vi.fn();
