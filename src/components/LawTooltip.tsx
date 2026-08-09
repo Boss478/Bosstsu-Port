@@ -848,7 +848,19 @@ export default function LawTooltip({
   // the position must be recomputed (footer-aware side flips included).
   useLayoutEffect(() => {
     const el = rootRef.current;
-    if (el === null || sheet) return;
+    if (el === null || sheet) {
+      // Sheet variant (or no root yet): never positions, so it never sets
+      // the rise vars — clear any vars a PREVIOUS desktop placement left
+      // on this node (desktop→mobile resize keeps the tooltip mounted for
+      // the exit hold) so the sheet's exit keeps the keyframe DEFAULTS
+      // (down drift), never a stale side/above direction. For the normal
+      // tooltip path the vars stay set through the closing phase — the
+      // exit keyframe reads them (lawlib-tooltip-out) — and die with the
+      // element on unmount.
+      el?.style.removeProperty('--lawlib-tooltip-rise-x');
+      el?.style.removeProperty('--lawlib-tooltip-rise-y');
+      return;
+    }
     const rect = el.getBoundingClientRect();
     // T18 — read the footer once at open (footer is in-flow content; the
     // tooltip closes on scrollend so no reposition reactivity is needed).

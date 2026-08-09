@@ -1775,10 +1775,15 @@ describe('T28 — exit + entry direction on the DOM root (LawTooltip)', () => {
 
     // pointerdown-outside → ANIMATED close: the root keeps playing (exit
     // class on, entry override off — the exit animation-name must win the
-    // cascade), then unmounts after the 120ms delay.
+    // cascade), then unmounts after the 120ms delay. The RISE VARS stay
+    // set through the closing phase (they are inline custom props, NOT the
+    // dropped data attribute) — the exit keyframe reads them, so the
+    // closing drift mirrors the entry direction (senior 2026-08-09).
     fireEvent.pointerDown(document.body, { pointerType: 'mouse' });
     expect(tooltipRoot()?.className).toContain('lawlib-tooltip-out');
     expect(tooltipRoot()?.hasAttribute('data-tooltip-rise')).toBe(false);
+    expect(tooltipRoot()?.style.getPropertyValue('--lawlib-tooltip-rise-x')).toBe('0px');
+    expect(tooltipRoot()?.style.getPropertyValue('--lawlib-tooltip-rise-y')).toBe('4px');
 
     act(() => {
       vi.advanceTimersByTime(119);

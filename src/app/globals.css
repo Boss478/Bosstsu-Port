@@ -881,7 +881,13 @@ textarea,
 /* Tooltip EXIT — mirror of lawlib-tooltip-in: scale 0.96 + translateY 4px,
    120ms in-curve (entry is 150ms). Applied by the hook's closing state
    (T28); keyboard closes skip it. Declared after .lawlib-tooltip so the
-   shorthand wins the cascade when both classes are present. */
+   shorthand wins the cascade when both classes are present. The END reads
+   the SAME placement vars as the direction-aware ENTRY (LawTooltip sets
+   them inline at open; they stay set through the closing phase) — so the
+   exit drift mirrors the entry rise on EVERY placement (below → down 4px,
+   above → up 4px, left/right → sideways), not a hard-coded down drift.
+   Unset vars (sheet variant / keyboard-opened) fall back to the below
+   case — identical to the old hard-coded keyframe. */
 @keyframes lawlib-tooltip-out {
   from {
     opacity: 1;
@@ -889,7 +895,8 @@ textarea,
   }
   to {
     opacity: 0;
-    transform: scale(0.96) translateY(4px);
+    transform: scale(0.96) translateX(var(--lawlib-tooltip-rise-x, 0))
+      translateY(var(--lawlib-tooltip-rise-y, 4px));
   }
 }
 .lawlib-tooltip-out {
