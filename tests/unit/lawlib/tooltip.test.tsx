@@ -1023,6 +1023,50 @@ describe('W3-4 — gap clamp: computeTooltipPosition never overlaps the trigger 
     // right edge: 1200 + 50 − 150 = 1100 → clamped to 1280 − 300 − 8 = 972
     expect(computeTooltipPosition(anchor(100, 130, 1200), 300, 100, 1280, 800).left).toBe(972);
   });
+
+  // T18 — footer-aware placement (footer is in-flow content, so "fits the
+  // viewport" ≠ "doesn't cover the footer"). footerTop is the footer's top
+  // edge in viewport coords; undefined = no footer → behavior unchanged.
+  it('footer param omitted → identical behavior (regression guard)', () => {
+    const pos = computeTooltipPosition(anchor(300, 330), 300, 200, 1280, 800);
+    expect(pos.top).toBe(338); // below wins, as before
+    expect(pos.origin).toBe('top');
+  });
+
+  it('footer starts below the tooltip below-position → still below', () => {
+    // below = 338..538, footer top at 600 → no overlap → below unchanged.
+    const pos = computeTooltipPosition(anchor(300, 330), 300, 200, 1280, 800, 8, 600);
+    expect(pos.top).toBe(338);
+    expect(pos.origin).toBe('top');
+  });
+
+  it('footer overlaps below-position + space above → flips ABOVE (origin bottom)', () => {
+    // vh 800, trigger 600–630, tooltip 150 tall. Below = 638..788 fits the
+    // viewport but crosses footerTop 700 → rejected; above = 600−150−8 = 442
+    // fits with the full gap → flip above.
+    const pos = computeTooltipPosition(anchor(600, 630), 300, 150, 1280, 800, 8, 700);
+    expect(pos.top).toBe(442);
+    expect(600 - (pos.top + 150)).toBeGreaterThanOrEqual(8);
+    expect(pos.origin).toBe('bottom');
+  });
+
+  it('footer overlaps below + no space above → fallback (may overlap, documented)', () => {
+    // vh 800, trigger 370–400, tooltip 355 tall. Below = 408..763 fits the
+    // viewport but crosses footerTop 500; above = 370−355−8 = 7 < 8 → no
+    // above space → falls back to the reduced-margin below (overlaps the
+    // footer — the documented unavoidable case).
+    const pos = computeTooltipPosition(anchor(370, 400), 300, 355, 1280, 800, 8, 500);
+    expect(pos.top).toBe(408);
+    expect(pos.origin).toBe('top');
+  });
+
+  it('footer top below the viewport bottom (not visible) → unchanged behavior', () => {
+    // footerTop 900 > vh 800 — the overlap guard can never fire (top + h ≤
+    // vh < footerTop) → identical to the no-footer case.
+    const pos = computeTooltipPosition(anchor(300, 330), 300, 200, 1280, 800, 8, 900);
+    expect(pos.top).toBe(338);
+    expect(pos.origin).toBe('top');
+  });
 });
 
 // ---------------------------------------------------------------------------

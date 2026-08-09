@@ -144,6 +144,13 @@ export function computeTooltipPosition(
   vw: number,
   vh: number,
   gap = GAP,
+  /**
+   * T18 — site footer's top edge in viewport coords (undefined = no footer →
+   * behavior unchanged). The footer is in-flow content inside the viewport,
+   * so "fits the viewport" ≠ "doesn't cover the footer" — the below-position
+   * is rejected when it would cross the footer AND space above exists.
+   */
+  footerTop?: number,
 ): TooltipPosition {
   const left = Math.min(
     Math.max(anchorRect.left + anchorRect.width / 2 - tooltipWidth / 2, gap),
@@ -151,8 +158,10 @@ export function computeTooltipPosition(
   );
   const below = anchorRect.bottom + gap;
   const above = anchorRect.top - tooltipHeight - gap;
+  const overlapsFooter = (top: number) =>
+    footerTop !== undefined && top < footerTop && top + tooltipHeight > footerTop;
   let top: number;
-  if (below + tooltipHeight <= vh - gap) {
+  if (below + tooltipHeight <= vh - gap && !overlapsFooter(below)) {
     top = below;
   } else if (above >= gap) {
     top = above;
@@ -645,12 +654,17 @@ export default function LawTooltip({
     const el = rootRef.current;
     if (el === null || sheet) return;
     const rect = el.getBoundingClientRect();
+    // T18 — read the footer once at open (footer is in-flow content; the
+    // tooltip closes on scrollend so no reposition reactivity is needed).
+    const footerTop = document.getElementById('site-footer')?.getBoundingClientRect().y;
     const { left, top, origin } = computeTooltipPosition(
       anchorRect,
       rect.width,
       rect.height,
       window.innerWidth,
       window.innerHeight,
+      undefined,
+      footerTop,
     );
     el.style.left = `${left}px`;
     el.style.top = `${top}px`;

@@ -712,7 +712,19 @@ function ArticlePopover({
       left = r.left - width - gap;
       if (left < 8) {
         // narrow screens → below the card
-        return { left: Math.max(8, r.left), top: fitTop(r.bottom + 8), width };
+        const belowTop = fitTop(r.bottom + 8);
+        // T18 footer-aware flip: below-the-card would cover the site footer
+        // AND the card has room above → position above the card instead.
+        const footerTop = document.getElementById('site-footer')?.getBoundingClientRect().y;
+        if (
+          footerTop !== undefined &&
+          belowTop < footerTop &&
+          belowTop + maxHeightPx > footerTop &&
+          r.top - maxHeightPx - 12 >= 8
+        ) {
+          return { left: Math.max(8, r.left), top: r.top - maxHeightPx - 12, width };
+        }
+        return { left: Math.max(8, r.left), top: belowTop, width };
       }
     }
     return { left: Math.max(8, left), top, width };
