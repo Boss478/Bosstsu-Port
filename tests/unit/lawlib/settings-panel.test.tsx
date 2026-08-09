@@ -730,3 +730,110 @@ describe('T23 settings panel — 5 reading-surface sections (both mounts, same s
     expect(storedSettings().fontSize).toBe(16);
   });
 });
+
+describe('T29 settings/picker popovers — pop-in, stagger, pop-out (ADR-023 D9/D10)', () => {
+  it('open: lawlib-pop-in 300ms (locked duration override) + vt-picker + origin at the trigger', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    // AC-4: the VT helper class (unique view-transition-name, T27 inventory).
+    expect(picker.classList.contains('vt-picker')).toBe(true);
+    expect(picker.classList.contains('lawlib-picker')).toBe(true);
+    // Entry = pop-in with the D9 300ms override (class default is 200ms —
+    // D10 "animation-duration after the shorthand").
+    expect(picker.classList.contains('lawlib-pop-in')).toBe(true);
+    expect(picker.classList.contains('lawlib-pop-out')).toBe(false);
+    expect(picker.style.animationDuration).toBe('300ms');
+    // D10 origin per trigger: the layout effect sets a px origin from the
+    // anchor rect. jsdom rects are all 0 → the anchor center clamps to the
+    // popover's top-left corner; the assertion pins that the effect ran.
+    expect(picker.style.transformOrigin).toBe('0px 0px');
+  });
+
+  it('open: the surface RISES via its own lawlib-fade-rise (nested wrapper — one animation per element)', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    // D10: the OUTER pops, the INNER (surface) rises — no single element
+    // carries both animations.
+    const surface = picker.firstElementChild as HTMLElement;
+    expect(surface.classList.contains('lawlib-fade-rise')).toBe(true);
+    expect(surface.classList.contains('lawlib-pop-in')).toBe(false);
+    expect(surface.style.animationDuration).toBe('');
+  });
+
+  it('open: the 5 reading-surface sections stagger in 40ms steps (inline animation-delay)', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    const rising = Array.from(picker.querySelectorAll<HTMLElement>('div')).filter((el) =>
+      el.classList.contains('lawlib-fade-rise'),
+    );
+    // The surface wrapper + the 5 sections (document order).
+    expect(rising.length).toBe(6);
+    expect(rising.slice(1).map((el) => el.style.animationDelay)).toEqual([
+      '0ms',
+      '40ms',
+      '80ms',
+      '120ms',
+      '160ms',
+    ]);
+  });
+
+  it('close (outside click): mirrored pop-out 200ms + delay-unmount, then unmounts', async () => {
+    await renderReader();
+    await openSettings();
+    fireEvent.pointerDown(document.body);
+    // The exit window: still mounted, playing the mirrored pop-out.
+    const closingEl = screen.getByRole('group', { name: 'ตั้งค่า' }) as HTMLElement;
+    expect(closingEl.classList.contains('lawlib-pop-out')).toBe(true);
+    expect(closingEl.classList.contains('lawlib-pop-in')).toBe(false);
+    expect(closingEl.style.animationDuration).toBe('200ms');
+    // The 200ms hold elapses → the popover unmounts.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    });
+    expect(screen.queryByRole('group', { name: 'ตั้งค่า' })).toBeNull();
+  });
+
+  it('reduced-motion: outside click closes INSTANTLY — no exit hold (AC-5)', async () => {
+    mockMatchMedia([['(prefers-reduced-motion: reduce)', true]]);
+    await renderReader();
+    await openSettings();
+    fireEvent.pointerDown(document.body);
+    expect(screen.queryByRole('group', { name: 'ตั้งค่า' })).toBeNull();
+  });
+
+  it('Esc closes INSTANTLY — keyboard skip (T28 parity; the dock pre-empts the exit hold)', async () => {
+    await renderReader();
+    await openSettings();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByRole('group', { name: 'ตั้งค่า' })).toBeNull();
+    // No ghost after the exit window would have elapsed.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    });
+    expect(screen.queryByRole('group', { name: 'ตั้งค่า' })).toBeNull();
+  });
+
+  it('re-open during the exit window cancels the pending unmount — the fresh picker stays (ADR-023 D4)', async () => {
+    await renderReader();
+    await openSettings();
+    fireEvent.pointerDown(document.body); // ⚙️ starts its 200ms exit hold
+    expect(
+      (screen.getByRole('group', { name: 'ตั้งค่า' }) as HTMLElement).classList.contains(
+        'lawlib-pop-out',
+      ),
+    ).toBe(true);
+
+    // Open the L1 theme picker within the hold — the dock reuses the same
+    // PickerPopover instance with a NEW anchor; the stale exit timer must
+    // be cancelled or it would unmount the fresh picker.
+    fireEvent.click(screen.getByRole('button', { name: 'ธีม สว่าง' }));
+    const themePicker = screen.getByRole('group', { name: 'ธีม' }) as HTMLElement;
+    expect(themePicker.classList.contains('lawlib-pop-in')).toBe(true);
+    expect(themePicker.style.animationDuration).toBe('300ms');
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    });
+    expect(screen.getByRole('group', { name: 'ธีม' })).toBeTruthy();
+  });
+});
