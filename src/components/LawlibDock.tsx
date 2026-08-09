@@ -402,18 +402,6 @@ export default function LawlibDock(props: LawlibDockProps) {
     }, 0);
   }, []);
 
-  /** Programmatic close (focus mode / resume / bookmark jump): INSTANT, no
-   *  animation, no collapse-state persistence (the user did not collapse).
-   *  T25: also cancels any pending L2 exit hold — an instant close must
-   *  never leave a ghost `moreClosing` behind for the next expand. */
-  const closeAllInstant = useCallback(() => {
-    setPicker(null);
-    setMoreOpen(false);
-    setMoreClosing(false);
-    setExpanded(false);
-    pickerAnchorRef.current = null;
-  }, []);
-
   /** T25 — cancel a pending L2 exit-hold timer (re-open / instant close). */
   const cancelMoreExit = useCallback(() => {
     if (moreExitTimerRef.current !== null) {
@@ -421,6 +409,19 @@ export default function LawlibDock(props: LawlibDockProps) {
       moreExitTimerRef.current = null;
     }
   }, []);
+
+  /** Programmatic close (focus mode / resume / bookmark jump): INSTANT, no
+   *  animation, no collapse-state persistence (the user did not collapse).
+   *  T25: also cancels any pending L2 exit hold — an instant close must
+   *  never leave a ghost `moreClosing` behind for the next expand. */
+  const closeAllInstant = useCallback(() => {
+    cancelMoreExit();
+    setPicker(null);
+    setMoreOpen(false);
+    setMoreClosing(false);
+    setExpanded(false);
+    pickerAnchorRef.current = null;
+  }, [cancelMoreExit]);
 
   /** T25 — close Level 2: gated exit (140ms pop-out + L2_ANIM_MS hold) or
    *  instant unmount. Every USER close routes here (⋯ toggle + Esc). The

@@ -998,6 +998,27 @@ describe('Dock v2.6 — T25 L2 menu pop + L1 morph (ADR-023 D9 locked values)', 
     expect(rePanel.style.transformOrigin).toBe('bottom right');
   });
 
+  it('morph gate OFF (reduced-motion stub ON): no morph class on load or re-expand', async () => {
+    // Test default: RM ON → animateDockNow=false → instant class swap.
+    await renderReader();
+    expect((dockPanel() as HTMLElement).className).not.toContain('lawlib-morph-in');
+    fireEvent.click(closeDockBtn());
+    expect(dockPanel()).toBeNull(); // instant collapse — no closing hold
+    fireEvent.click(dockIcon());
+    expect((dockPanel() as HTMLElement).className).not.toContain('lawlib-morph-in');
+  });
+
+  it('morph gate OFF (animateDock=false): re-expand mounts without the morph', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    localStorage.setItem('lawlib:settings', JSON.stringify({ fontSize: 16, animateDock: false }));
+    await renderReader();
+    expect((dockPanel() as HTMLElement).className).not.toContain('lawlib-morph-in');
+    fireEvent.click(closeDockBtn());
+    expect(dockPanel()).toBeNull(); // instant — no closing hold
+    fireEvent.click(dockIcon());
+    expect((dockPanel() as HTMLElement).className).not.toContain('lawlib-morph-in');
+  });
+
   it('L1 morph origin follows the position: top-center → top center, mid-left → left center', async () => {
     mockMatchMedia({ reducedMotion: false });
     await renderReader();
