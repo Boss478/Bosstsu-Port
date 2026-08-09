@@ -275,9 +275,15 @@ describe('T10b settings panel — auto-scroll + reset', () => {
     fireEvent.change(slider, { target: { value: '2' } });
     expect(storedSettings().autoScrollSpeed).toBe(2);
     expect(screen.getByRole('button', { name: /หยุดชั่วคราว/ })).toBeTruthy();
-    // Stop button turns the feature off again.
+    // Stop button turns the feature off again. T30 (AC-3): with motion
+    // enabled (this suite's default) the chip holds 150ms for the exit
+    // fade — the SPEED is 0 immediately, the chip unmounts after the hold.
     fireEvent.click(screen.getByRole('button', { name: 'ปิดเลื่อนอัตโนมัติ' }));
     expect(storedSettings().autoScrollSpeed).toBe(0);
+    expect(screen.queryByRole('button', { name: /หยุดชั่วคราว/ })).toBeTruthy();
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    });
     expect(screen.queryByRole('button', { name: /หยุดชั่วคราว/ })).toBeNull();
   });
 
