@@ -461,6 +461,23 @@ export default function LawlibDock(props: LawlibDockProps) {
     };
   }, []);
 
+  // T22 — the mobile bottom sheet (≤639px, `isMobile && expanded` — the
+  // SAME condition the sheet panel renders under) covers the bottom-right
+  // corner where BackToTop sits: dispatch a custom event so it stands down
+  // while the sheet is up. The exit-animation hold keeps `expanded` true
+  // while the panel is still on screen → BackToTop stays hidden until the
+  // sheet is really gone. Desktop: isMobile=false → always { open: false }
+  // → the T21 desktop behavior is untouched. The unmount cleanup
+  // re-dispatches { open: false } so a dock close or page leave restores
+  // the button.
+  useEffect(() => {
+    const sheetOpen = expanded && isMobile;
+    window.dispatchEvent(new CustomEvent('lawlib:dock-sheet', { detail: { open: sheetOpen } }));
+    return () => {
+      window.dispatchEvent(new CustomEvent('lawlib:dock-sheet', { detail: { open: false } }));
+    };
+  }, [expanded, isMobile]);
+
   // T15 (v2.3): opening Level 2 moves focus to its FIRST icon button (the
   // old back-button target is gone — the level swap must not drop focus to
   // <body>, a11y fix #1). Deferred: the L2 panel mounts on the re-render.

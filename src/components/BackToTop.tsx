@@ -4,6 +4,10 @@ import { useEffect, useState } from 'react';
 
 export default function BackToTop() {
   const [isVisible, setIsVisible] = useState(false);
+  /** T22 — the mobile lawlib dock sheet (`lawlib:dock-sheet`, dispatched by
+   *  LawlibDock when `expanded && isMobile`) covers this button's corner —
+   *  hide while it's open. Desktop / closed sheet → `open: false`. */
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   useEffect(() => {
     let rafId = 0;
@@ -19,6 +23,18 @@ export default function BackToTop() {
       window.removeEventListener('scroll', handleScroll);
       cancelAnimationFrame(rafId);
     };
+  }, []);
+
+  // T22 — listen for the dock sheet's open state (unmount cleanup: the
+  // listener dies with the component — the dock's own cleanup re-dispatches
+  // { open: false } when IT unmounts, so page leave restores the button).
+  useEffect(() => {
+    const onSheet = (e: Event) => {
+      const open = (e as CustomEvent<{ open: boolean }>).detail?.open === true;
+      setSheetOpen(open);
+    };
+    window.addEventListener('lawlib:dock-sheet', onSheet);
+    return () => window.removeEventListener('lawlib:dock-sheet', onSheet);
   }, []);
 
   const scrollToPageTop = () => {
@@ -47,9 +63,9 @@ export default function BackToTop() {
   return (
     <button
       onClick={scrollToPageTop}
-      tabIndex={isVisible ? 0 : -1}
+      tabIndex={isVisible && !sheetOpen ? 0 : -1}
       className={`fixed bottom-6 right-6 md:bottom-10 md:right-10 z-50 p-3 rounded-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-xs border border-white/60 text-blue-600 dark:text-blue-400 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-all duration-300 ${
-        isVisible
+        isVisible && !sheetOpen
           ? 'opacity-100 translate-y-0 pointer-events-auto'
           : 'invisible opacity-0 translate-y-4 pointer-events-none'
       }`}
