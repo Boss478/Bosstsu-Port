@@ -16,8 +16,8 @@
  * now scales linearly to its max at 100%: dock 3.5 · search 5 · content 8,
  * max 8px < the old static 12px). Dock/search alpha caps at 0.95 (was 1.0
  * solid — no surface ever goes fully opaque). Content surfaces (tooltip +
- * compact popover) follow their own piecewise formula: 0 → 0.5 · 35 → 0.7 ·
- * 100 → 0.95 (never below 0.5 so body text stays readable).
+ * compact popover) follow their own piecewise formula: 0 → 0.55 · 35 → 0.7 ·
+ * 100 → 0.95 (never below 0.55 so body text stays readable).
  *
  * Consumed ONLY by chrome surfaces: `.lawlib-glass` (dock + reader search
  * drawer), `.lawlib-search-field` (list-page SearchInput — do-not-touch,
@@ -45,14 +45,14 @@ function clampOpacity(v: number): number {
 
 /**
  * T17 (ADR-021): content-surface (tooltip + popover) fill alpha — piecewise,
- * anchored at the slider default 35: 0 → 0.5 · 35 → 0.7 · 100 → 0.95.
- * Monotonic; content surfaces never drop below 0.5 (readability) and never
+ * anchored at the slider default 35: 0 → 0.55 · 35 → 0.7 · 100 → 0.95.
+ * Monotonic; content surfaces never drop below 0.55 (readability) and never
  * go fully opaque (max 0.95 — stays glass). Round 3 decimals so float noise
  * (e.g. 0.7000000000000001) never leaks into the rgba strings.
  */
 export function contentGlassAlpha(v: number): number {
   const c = clampOpacity(v);
-  const a = c <= 35 ? 0.5 + (c / 35) * 0.2 : 0.7 + ((c - 35) / 65) * 0.25;
+  const a = c <= 35 ? 0.55 + (c / 35) * 0.15 : 0.7 + ((c - 35) / 65) * 0.25;
   return Number(a.toFixed(3));
 }
 

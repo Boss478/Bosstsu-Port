@@ -2,9 +2,9 @@
 /**
  * T17 (ADR-021) — glass-formula pure functions from LawlibGlassVars.
  *
- * Anchors (user 2026-08-08):
- *  - contentGlassAlpha: 0 → 0.5 · 35 → 0.7 · 100 → 0.95 (piecewise,
- *    monotonic — content surfaces never below 0.5, never fully opaque)
+ * Anchors (user 2026-08-09 — T17 follow-up fix 2):
+ *  - contentGlassAlpha: 0 → 0.55 · 35 → 0.7 · 100 → 0.95 (piecewise,
+ *    monotonic — content surfaces never below 0.55, never fully opaque)
  *  - dockGlassAlpha: unchanged below 95 (35 → 0.35), caps at 0.95
  *    (was 1.0 — no surface ever goes fully opaque)
  *  - dynamic blur, linear 0.02px per slider step, 1 decimal:
@@ -24,8 +24,8 @@ import {
 } from '@/components/LawlibGlassVars';
 
 describe('contentGlassAlpha (T17 content-surface fill)', () => {
-  it('anchors: 0 → 0.5 · 35 → 0.7 · 100 → 0.95', () => {
-    expect(contentGlassAlpha(0)).toBe(0.5);
+  it('anchors: 0 → 0.55 · 35 → 0.7 · 100 → 0.95', () => {
+    expect(contentGlassAlpha(0)).toBe(0.55);
     expect(contentGlassAlpha(35)).toBe(0.7);
     expect(contentGlassAlpha(100)).toBe(0.95);
   });
@@ -38,8 +38,12 @@ describe('contentGlassAlpha (T17 content-surface fill)', () => {
     expect(b).toBeLessThan(c);
   });
 
+  it('sample: 10 → 0.593 (0.55 + (10/35)*0.15, round 3)', () => {
+    expect(contentGlassAlpha(10)).toBe(0.593);
+  });
+
   it('clamps out-of-range input into [0, 100] first', () => {
-    expect(contentGlassAlpha(-10)).toBe(0.5);
+    expect(contentGlassAlpha(-10)).toBe(0.55);
     expect(contentGlassAlpha(200)).toBe(0.95);
   });
 

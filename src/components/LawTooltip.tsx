@@ -442,7 +442,7 @@ function ArticleBody({
         <>
           <div
             aria-live="polite"
-            className="max-h-[60vh] space-y-2 overflow-y-auto pr-1 text-[15px] leading-relaxed text-slate-700 dark:text-slate-200"
+            className="max-h-[60vh] space-y-2 overflow-y-auto pr-1 text-[15px] leading-relaxed text-slate-800 dark:text-slate-200"
           >
             {articlePlainText(target)
               .split(/\n+/)
@@ -539,7 +539,7 @@ function DigestRefBody({
       {content.digest !== '' ? (
         <p
           aria-live="polite"
-          className="max-h-[60vh] overflow-y-auto whitespace-pre-line pr-1 text-sm leading-relaxed text-slate-700 dark:text-slate-200"
+          className="max-h-[60vh] overflow-y-auto whitespace-pre-line pr-1 text-sm leading-relaxed text-slate-800 dark:text-slate-200"
         >
           {content.digest}
         </p>
@@ -686,7 +686,7 @@ export default function LawTooltip({
         </div>
         <p
           aria-live="polite"
-          className="max-h-[60vh] overflow-y-auto pr-1 text-sm leading-relaxed text-slate-700 dark:text-slate-200"
+          className="max-h-[60vh] overflow-y-auto pr-1 text-sm leading-relaxed text-slate-800 dark:text-slate-200"
         >
           {content.definition}
         </p>
