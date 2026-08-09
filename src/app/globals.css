@@ -708,6 +708,148 @@ textarea,
   will-change: opacity, transform;
 }
 
+/* ─── LawLib Motion System (T24 — ADR-023 D1/D2/D8/D9) ────────────────────
+   Apple-style motion foundation for the lawlib wave (T25–T32). All keyframes
+   compositor-only (transform + opacity; the sole exception is the D9-locked
+   box-shadow ring in lawlib-flash-pulse — paint-only, single small line).
+   Exit curves = --ease-ios-in (never overshoots); entrance = spring/out.
+   Durations from the D9 locked table. The global reduced-motion kill above
+   (duration 0.01ms + delay 0ms + iteration 1) covers every class here. No
+   persistent will-change on any new class. */
+
+/* Generic — pop (L2 menus, popovers, tooltips): scale 0.94→1 + fade.
+   Entry 200ms spring (dock L2 locked), exit 140ms in (60–75% rule). */
+@keyframes lawlib-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes lawlib-pop-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+.lawlib-pop-in {
+  animation: lawlib-pop-in 0.2s var(--ease-ios-spring) both;
+}
+.lawlib-pop-out {
+  animation: lawlib-pop-out 0.14s var(--ease-ios-in) both;
+}
+
+/* Generic — fade + rise (page fade-in, drawer content, stagger items). */
+@keyframes lawlib-fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.lawlib-fade-rise {
+  animation: lawlib-fade-rise 0.3s var(--ease-ios-expo) both;
+}
+
+/* Generic — directional slides (drawers, sheets). Name = travel direction
+   during ENTRANCE: slide-up enters from below (translateY(100%)→0), etc.
+   400ms expo (drawer slide, D9). Exits can reuse via animation-direction:
+   reverse — no extra keyframes needed. */
+@keyframes lawlib-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes lawlib-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes lawlib-slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes lawlib-slide-right {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.lawlib-slide-up {
+  animation: lawlib-slide-up 0.4s var(--ease-ios-expo) both;
+}
+.lawlib-slide-down {
+  animation: lawlib-slide-down 0.4s var(--ease-ios-expo) both;
+}
+.lawlib-slide-left {
+  animation: lawlib-slide-left 0.4s var(--ease-ios-expo) both;
+}
+.lawlib-slide-right {
+  animation: lawlib-slide-right 0.4s var(--ease-ios-expo) both;
+}
+
+/* Stagger (ADR-023 D6): nth-child house pattern (see .stagger-fade-left
+   above — globals.css:355 precedent), 60ms steps, cap 8 (long tails feel
+   slow). Mount-only: animation (not transition), so live re-renders don't
+   re-stagger. `both` fill holds children invisible during their delay; the
+   RM kill zeroes duration + delay so nothing sticks hidden. */
+@utility lawlib-stagger {
+  & > * {
+    animation: lawlib-fade-rise 0.3s var(--ease-ios-expo) both;
+  }
+  & > *:nth-child(2) {
+    animation-delay: 60ms;
+  }
+  & > *:nth-child(3) {
+    animation-delay: 120ms;
+  }
+  & > *:nth-child(4) {
+    animation-delay: 180ms;
+  }
+  & > *:nth-child(5) {
+    animation-delay: 240ms;
+  }
+  & > *:nth-child(6) {
+    animation-delay: 300ms;
+  }
+  & > *:nth-child(7) {
+    animation-delay: 360ms;
+  }
+  & > *:nth-child(8) {
+    animation-delay: 420ms;
+  }
+}
+
 /* ─── Alphabet Adventure: Kid-Friendly Menu ───────────────────────────────── */
 @keyframes kid-float {
   0%,
