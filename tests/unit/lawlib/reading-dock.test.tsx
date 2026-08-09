@@ -48,8 +48,9 @@
  *   (lawlib-pop-in, origin per the `more` flip) and exits with a 140ms
  *   pop-out + L2_ANIM_MS delay-unmount (re-open cancels a pending exit);
  *   L1 expand morphs 200ms from the dock icon (lawlib-morph-in replaces
- *   the old dock-in; collapse keeps the 150ms dock-out); `vt-dock` sits on
- *   the ROOT wrapper only
+ *   the old dock-in; USER-INITIATED expand only — the default-open page
+ *   load renders WITHOUT the morph, T25-fix user decision; collapse keeps
+ *   the 150ms dock-out); `vt-dock` sits on the ROOT wrapper only
  * - bookmark: toggle + aria-pressed + count badge
  * - T12c theme dot: baselines on the RESOLVED initial theme (OS-dark
  *   fallback users see no false dot on first visit)
@@ -969,11 +970,13 @@ describe('Dock v2.6 — T25 L2 menu pop + L1 morph (ADR-023 D9 locked values)', 
     expect(morePanel()).toBeNull();
   });
 
-  it('L1 expands with lawlib-morph-in FROM the dock icon — the old dock-in is gone (default bottom-right → bottom right origin)', async () => {
+  it('L1 default-open page load: NO lawlib-morph-in — the morph is user-initiated expand only (T25-fix user decision)', async () => {
     mockMatchMedia({ reducedMotion: false });
     await renderReader();
     const panel = dockPanel() as HTMLElement;
-    expect(panel.className).toContain('lawlib-morph-in');
+    // Page load with the panel open by default: no load animation (the
+    // morph would read as a re-mount glitch on every article visit).
+    expect(panel.className).not.toContain('lawlib-morph-in');
     // Regression pin: the 200ms morph SUPERSEDES the directional dock-in.
     expect(panel.className).not.toContain('lawlib-dock-anim-in');
     expect(panel.style.transformOrigin).toBe('bottom right');
@@ -1026,12 +1029,20 @@ describe('Dock v2.6 — T25 L2 menu pop + L1 morph (ADR-023 D9 locked values)', 
     });
   });
 
-  it('mobile: sheet morphs from bottom center; the in-flow L2 pops from top center', async () => {
+  it('mobile: sheet morphs from bottom center on RE-EXPAND; the in-flow L2 pops from top center', async () => {
     mockMatchMedia({ mobile: true, reducedMotion: false });
     await renderReader();
-    const panel = dockPanel() as HTMLElement;
-    expect(panel.className).toContain('lawlib-morph-in');
-    expect(panel.style.transformOrigin).toBe('bottom center');
+    // Default-open load: no morph (user-initiated only).
+    expect((dockPanel() as HTMLElement).className).not.toContain('lawlib-morph-in');
+    // Collapse → re-expand: the sheet morphs in from its bottom edge.
+    fireEvent.click(closeDockBtn());
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    });
+    fireEvent.click(dockIcon());
+    const rePanel = dockPanel() as HTMLElement;
+    expect(rePanel.className).toContain('lawlib-morph-in');
+    expect(rePanel.style.transformOrigin).toBe('bottom center');
     fireEvent.click(moreBtn());
     const l2 = morePanel() as HTMLElement;
     expect(l2).not.toBeNull();

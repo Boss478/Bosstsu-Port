@@ -50,7 +50,9 @@
  * T25 (ADR-023 D9): the L2 menu POPS from the ⋯ trigger (200ms spring
  * lawlib-pop-in, origin per the `more` flip) and exits with a 140ms
  * lawlib-pop-out + delay-unmount (L2_ANIM_MS); L1 expand MORPHS from the
- * dock icon (200ms lawlib-morph-in — replaces the old dock-in). Both gated
+ * dock icon (200ms lawlib-morph-in — replaces the old dock-in) on
+ * USER-INITIATED expand only — the default-open page load renders without
+ * the morph (T25-fix user decision). Both gated
  * by settings.animateDock + prefers-reduced-motion; the 150ms dock-out
  * collapse (DOCK_ANIM_MS) is unchanged.
  */
@@ -322,6 +324,12 @@ export default function LawlibDock(props: LawlibDockProps) {
   // button / the X button — pointerdown-outside NO LONGER closes the dock
   // panel (reversed D1; the picker POPOVERS keep their own outside-close).
   const [expanded, setExpanded] = useState<boolean>(() => !loadDockCollapsed());
+  /** T25-fix (user decision 2026-08-09): the L1 morph plays only after a
+   *  USER-initiated expand (collapsed→expanded) — the default-open page
+   *  load must not animate. Set in `expandByUser` (the ONLY expand path);
+   *  the panel unmounts on every collapse, so each re-expand is a fresh
+   *  mount and the sticky morph class replays the animation. */
+  const [expandedByUser, setExpandedByUser] = useState(false);
   /** Exit-animation hold: while true the panel stays mounted (animating out)
    *  before the state flips to collapsed. */
   const [closing, setClosing] = useState(false);
@@ -498,6 +506,7 @@ export default function LawlibDock(props: LawlibDockProps) {
   /** User EXPAND — clears the collapse memory (next visit opens). */
   const expandByUser = useCallback(() => {
     safeSetString(DOCK_COLLAPSED_KEY, 'false');
+    setExpandedByUser(true);
     setExpanded(true);
   }, []);
 
@@ -741,11 +750,18 @@ export default function LawlibDock(props: LawlibDockProps) {
   /** T25 — the L1 panel animates in with the 200ms icon→panel MORPH
    *  (lawlib-morph-in, spring overshoot) replacing the old directional
    *  dock-in; the 150ms directional dock-out stays for collapse (the sheet
-   *  path — DOCK_ANIM_MS is untouched). */
+   *  path — DOCK_ANIM_MS is untouched). T25-fix (user decision 2026-08-09):
+   *  the morph plays ONLY on a USER-initiated expand (collapsed→expanded) —
+   *  the default-open page load must not animate. `expandedByUser` is set
+   *  in `expandByUser` (the ONLY expand path); the panel unmounts on every
+   *  collapse, so each re-expand is a fresh mount and the sticky class
+   *  replays the animation. */
   const animClass = animateDockNow
     ? closing
       ? `lawlib-dock-anim-out-${animDir}`
-      : 'lawlib-morph-in'
+      : expandedByUser
+        ? 'lawlib-morph-in'
+        : ''
     : '';
   /** T26 (AC-1) — position-change ENTER class on the INNER wrapper: 100ms
    *  fade + directional slide (lawlib-dock-pos-in-*, same lawlib-dock-in-*
