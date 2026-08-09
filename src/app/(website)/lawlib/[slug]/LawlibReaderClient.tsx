@@ -15,7 +15,15 @@
  * 2026-08-06 (senior review of 28d6bae: dead code, stale ch-scale contract).
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import Link from 'next/link';
 import type { LawDoc } from '@/types/lawlib';
 import type { DigestView, RenderLine } from '@/lib/lawlib/digest-view';
@@ -142,6 +150,18 @@ const PANEL_LABELS = {
 } as const;
 
 type PanelKind = keyof typeof PANEL_LABELS;
+
+/** T30 (ADR-023 D9 row 4): drawer slide + overlay — 400ms. Doubles as the
+ *  exit-hold window (closing state → delay-unmount). */
+const DRAWER_ANIM_MS = 400;
+/** T30 (AC-2): the search-results stagger completes at 420ms (last of the
+ *  cap-8 delays) + 300ms (lawlib-fade-rise) — the session-gate class is
+ *  stripped 800ms after the first results batch so later keystroke
+ *  re-mounts (clear-and-retype) never re-animate (flicker trap). */
+const SEARCH_STAGGER_STRIP_MS = 800;
+/** T30 (ADR-023 D9 row 19): auto-scroll chip fade-rise 150ms — also the
+ *  exit-hold window (closing state → delay-unmount). */
+const CHIP_ANIM_MS = 150;
 
 /**
  * T10a numeric typography (ADR-019 D4): fontSize 8-32px / width 80-120% of
@@ -414,6 +434,27 @@ export default function LawlibReaderClient({
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [flashKey, setFlashKey] = useState<string | null>(null);
   const [openPanel, setOpenPanel] = useState<PanelKind | null>(null);
+  /** T30 (ADR-023 D9) — exit-animation hold (T29 moreClosing pattern): while
+   *  true the drawer stays mounted playing the mirrored slide-out + overlay
+   *  fade (400ms) before unmounting. Esc closes INSTANT (keyboard skip —
+   *  T28/T29 parity); reduced-motion → instant (AC-4, JS gate). */
+  const [panelClosing, setPanelClosing] = useState(false);
+  /** T30 — the exit-hold timer. Tracked in a ref so a re-open can CANCEL a
+   *  pending exit — a stale timer must never unmount a re-opened drawer
+   *  (ADR-023 D4, T29 pattern). */
+  const panelCloseTimerRef = useRef<number | null>(null);
+  /** T30 (AC-3) — auto-scroll chip exit-hold (same pattern as panelClosing:
+   *  stays mounted playing the reversed fade while speed is already 0,
+   *  unmounts after CHIP_ANIM_MS). Reduced-motion → instant (AC-4). */
+  const [chipClosing, setChipClosing] = useState(false);
+  const chipCloseTimerRef = useRef<number | null>(null);
+  /** T30 (AC-3) — chip level-pop trigger: a speed value CHANGE while the
+   *  chip is live re-adds lawlib-chip-pop (cleared onAnimationEnd). */
+  const [chipPop, setChipPop] = useState(false);
+  /** Skip the pop on the chip's FIRST mount (entry = fade-rise only); pop
+   *  fires on subsequent speed changes (ระดับ pop — AC-3). Doubles as the
+   *  "chip was live at least once" gate for the exit-hold. */
+  const chipPoppedOnceRef = useRef(false);
   const flashTimerRef = useRef<number | null>(null);
   const [copiedFlash, setCopiedFlash] = useState<'article' | 'link' | null>(null);
   const copiedTimerRef = useRef<number | null>(null);
@@ -536,6 +577,59 @@ export default function LawlibReaderClient({
   // --- FULL/COMPACT view helpers (rev 5.5) ----------------------------------
   const reducedMotionNow = () =>
     typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // --- T30 drawer open/close helpers (ADR-023 D9 row 4) --------------------
+  // Animated close = mirrored slide-out + overlay fade + delay-unmount
+  // (closing state). Pointer closes animate; Esc closes INSTANT (keyboard
+  // skip — T28/T29 parity) and reduced-motion skips the hold (AC-4).
+  const closePanel = useCallback(
+    (instant = false) => {
+      if (openPanel === null || panelClosing) return;
+      if (instant || reducedMotionNow()) {
+        setOpenPanel(null);
+        return;
+      }
+      setPanelClosing(true);
+      panelCloseTimerRef.current = window.setTimeout(() => {
+        panelCloseTimerRef.current = null;
+        setPanelClosing(false);
+        setOpenPanel(null);
+      }, DRAWER_ANIM_MS);
+    },
+    [openPanel, panelClosing],
+  );
+
+  /** Open a drawer panel. The pending-exit cancel lives in the openPanel
+   *  layout effect below (fires pre-paint) — the close timer ref is NEVER
+   *  read inside a render-time callback (react-hooks/refs: tooltipHub
+   *  passes these through a render-time IIFE). */
+  const openPanelSafe = useCallback((panel: PanelKind) => {
+    setOpenPanel(panel);
+  }, []);
+
+  // Cancel a pending exit the moment a panel (re)opens. LAYOUT (pre-paint):
+  // the flip to `panelClosing=false` must land before the browser paints
+  // the re-opened drawer, or the reversed slide-out would flash for a
+  // frame. Invariant: panelClosing ⟺ a close timer is pending, so the
+  // ref guard alone covers the reset (T29 re-open pattern).
+  useLayoutEffect(() => {
+    if (openPanel === null) return;
+    if (panelCloseTimerRef.current !== null) {
+      window.clearTimeout(panelCloseTimerRef.current);
+      panelCloseTimerRef.current = null;
+      setPanelClosing(false);
+    }
+  }, [openPanel]);
+
+  // Unmount — a pending exit timer must never outlive the reader.
+  useEffect(() => {
+    return () => {
+      if (panelCloseTimerRef.current !== null) {
+        window.clearTimeout(panelCloseTimerRef.current);
+        panelCloseTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const updateViewUrl = (mode: ReaderViewMode) => {
     const url =
@@ -784,7 +878,7 @@ export default function LawlibReaderClient({
    *  center → focus (non-visual cue) → flash (loop-4 #6). */
   const handleDigestLineJump = useCallback(
     (id: string) => {
-      setOpenPanel(null);
+      closePanel();
       const groupId = lineGroupMap.get(id);
       if (groupId !== undefined) {
         setCollapsedGroups((prev) => {
@@ -815,7 +909,7 @@ export default function LawlibReaderClient({
         }
       }, 50);
     },
-    [lineGroupMap],
+    [lineGroupMap, closePanel],
   );
 
   // --- post-hydration: hash deep link (FR2) / last position (FR10) ----------
@@ -978,7 +1072,8 @@ export default function LawlibReaderClient({
       if (e.key !== 'Escape') return;
       // Precedence (loop-4 #4): panel drawer > expanded card.
       if (openPanel !== null) {
-        setOpenPanel(null);
+        // T30 — keyboard closes are INSTANT (T28/T29 parity: no exit hold).
+        closePanel(true);
         return;
       }
       if (expandedKey !== null) {
@@ -991,7 +1086,45 @@ export default function LawlibReaderClient({
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [openPanel, expandedKey, collapseCard, effectiveView, restoreMemberFocus]);
+  }, [openPanel, expandedKey, collapseCard, effectiveView, restoreMemberFocus, closePanel]);
+
+  // --- T30 (AC-2): search-results stagger (60ms cap 8) — session-gated ----
+  // The results <ul> lives inside SearchPanel (out of scope) and
+  // `lawlib-stagger` targets DIRECT children, so a MutationObserver adds
+  // the class to the FIRST results <ul>(s) of each search session (panel
+  // open). It fires ONLY on the first batch: the observer disconnects and
+  // the class is stripped once the stagger has played
+  // (SEARCH_STAGGER_STRIP_MS), so live keystroke filtering — even
+  // clear-and-retype — NEVER re-animates (flicker trap). Per-session by
+  // construction: panel close unmounts the uls and the cleanup clears the
+  // observer; the next open re-arms it. RM: the global kill zeroes
+  // duration+delay — the strip stays harmless.
+  useEffect(() => {
+    if (openPanel !== 'search') return;
+    const root = drawerRef.current;
+    if (root === null) return;
+    let stripTimer: number | null = null;
+    const observer = new MutationObserver(() => {
+      const lists = root.querySelectorAll<HTMLUListElement>('ul');
+      let staged = false;
+      for (const ul of lists) {
+        if (ul.children.length === 0 || ul.classList.contains('lawlib-stagger')) continue;
+        ul.classList.add('lawlib-stagger');
+        staged = true;
+      }
+      if (!staged) return;
+      observer.disconnect();
+      stripTimer = window.setTimeout(() => {
+        stripTimer = null;
+        for (const ul of lists) ul.classList.remove('lawlib-stagger');
+      }, SEARCH_STAGGER_STRIP_MS);
+    });
+    observer.observe(root, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      if (stripTimer !== null) window.clearTimeout(stripTimer);
+    };
+  }, [openPanel]);
 
   // --- persist last-read position (FR10) on article change ------------------
   useEffect(() => {
@@ -1031,10 +1164,10 @@ export default function LawlibReaderClient({
   // --- panel actions ---------------------------------------------------------
   const handlePanelJump = useCallback(
     (key: string) => {
-      setOpenPanel(null);
+      closePanel();
       navigateTo(key);
     },
-    [navigateTo],
+    [closePanel, navigateTo],
   );
 
   /** Tab trap: wrap first↔last focusable inside the dialog (modal). */
@@ -1064,7 +1197,7 @@ export default function LawlibReaderClient({
 
   const handleTermJump = useCallback(
     (term: string) => {
-      setOpenPanel(null);
+      closePanel();
       const def = law.definitions.find((d) => d.term === term);
       if (def === undefined) return;
       const key = firstTermArticleKey(law, term);
@@ -1095,7 +1228,7 @@ export default function LawlibReaderClient({
       window.addEventListener('scrollend', onSettled);
       window.setTimeout(open, 300);
     },
-    [law, navigateTo, openTooltip],
+    [law, navigateTo, openTooltip, closePanel],
   );
 
   /** Tooltip "เปิดมาตรานี้" (plan v6, loop-6 risk 3 + Track E BLOCKER):
@@ -1138,8 +1271,8 @@ export default function LawlibReaderClient({
   /** Tooltip "เปิดโน้ตทั้งแผง": close the tooltip (sanctioned path) then open
    *  the notes drawer. */
   const handleOpenNotesFromTooltip = useCallback(() => {
-    setOpenPanel('notes');
-  }, []);
+    openPanelSafe('notes');
+  }, [openPanelSafe]);
 
   /** Tooltip copy-link — deep link for an ARBITRARY article (the tooltip may
    *  be open on a ref while activeKey points elsewhere). */
@@ -1161,9 +1294,10 @@ export default function LawlibReaderClient({
    *  mounted under the drawer; focus restore falls back to no-op). */
   const handleOpenPanelFromDock = useCallback(
     (panel: PanelKind) => {
-      setOpenPanel(openPanel === panel ? null : panel);
+      if (openPanel === panel) closePanel();
+      else openPanelSafe(panel);
     },
-    [openPanel],
+    [openPanel, closePanel, openPanelSafe],
   );
 
   const handleClearHighlights = useCallback(
@@ -1365,6 +1499,47 @@ export default function LawlibReaderClient({
       window.removeEventListener('keydown', pause);
     };
   }, [settings.autoScrollSpeed, setSettings]);
+
+  // --- T30 (AC-3): chip exit-hold + level-pop ------------------------------
+  // Speed → 0 from ANY writer (dock toggle, chip stop, natural end) holds
+  // the chip mounted for the 150ms reversed fade (closing state); a resume
+  // inside the window cancels the hold. A speed CHANGE while live re-triggers
+  // lawlib-chip-pop (ระดับ pop). RM → no hold (AC-4). The hold is gated on
+  // chipPoppedOnceRef — the chip was live at least once — so the INITIAL
+  // mount with autoscroll off can never flash a ghost chip.
+  useEffect(() => {
+    if (settings.autoScrollSpeed > 0) {
+      if (chipCloseTimerRef.current !== null) {
+        window.clearTimeout(chipCloseTimerRef.current);
+        chipCloseTimerRef.current = null;
+      }
+      startTransition(() => {
+        setChipClosing(false);
+        if (chipPoppedOnceRef.current) setChipPop(true);
+      });
+      chipPoppedOnceRef.current = true;
+      return;
+    }
+    if (chipPoppedOnceRef.current && !reducedMotionNow()) {
+      startTransition(() => setChipClosing(true));
+      chipCloseTimerRef.current = window.setTimeout(() => {
+        chipCloseTimerRef.current = null;
+        setChipClosing(false);
+      }, CHIP_ANIM_MS);
+      return;
+    }
+    startTransition(() => setChipClosing(false));
+  }, [settings.autoScrollSpeed, setSettings]);
+
+  // Unmount — a pending chip exit timer must never outlive the reader.
+  useEffect(() => {
+    return () => {
+      if (chipCloseTimerRef.current !== null) {
+        window.clearTimeout(chipCloseTimerRef.current);
+        chipCloseTimerRef.current = null;
+      }
+    };
+  }, []);
 
   // --- T10b focus-mode reading indicator (D7 — "กำลังอ่าน: มาตรา X"):
   //     IntersectionObserver over the article/card elements; shown ONLY in
@@ -1666,61 +1841,84 @@ export default function LawlibReaderClient({
 
       {/* T10b auto-scroll control chip — visible while auto-scroll runs;
           pause/resume + stop (speed 0). Pauses on ANY user interaction via
-          the reader effect (wheel/touch/pointer/key). */}
-      {settings.autoScrollSpeed > 0 && !reducedMotionNow() && (
-        <div className="lawlib-autoscroll-chip fixed bottom-24 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-slate-200 bg-white/95 py-1 pl-3 pr-1 shadow-lg dark:border-slate-700 dark:bg-slate-900/95">
-          <span className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-            <i
-              aria-hidden="true"
-              className="fi fi-sr-arrow-small-down text-[10px] text-blue-600 dark:text-blue-300"
-            />
-            เลื่อนอัตโนมัติ
-          </span>
-          <button
-            type="button"
-            aria-pressed={!autoScrollPaused}
-            onClick={() => setAutoScrollPaused((p) => !p)}
-            className="flex h-9 cursor-pointer items-center gap-1 rounded-full bg-blue-600 px-3 text-[11px] font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          the reader effect (wheel/touch/pointer/key). T30 (AC-3/AC-5): the
+          outer wrapper owns the position + 150ms fade-rise (reversed while
+          closing) + `vt-chip`; the pill inside owns lawlib-chip-pop (level
+          change) — two animation classes would fight on ONE element. */}
+      {(settings.autoScrollSpeed > 0 || chipClosing) && !reducedMotionNow() && (
+        <div
+          className="lawlib-autoscroll-chip lawlib-fade-rise vt-chip fixed bottom-24 left-1/2 z-40 -translate-x-1/2"
+          style={{
+            animationDuration: '150ms',
+            animationDirection: chipClosing ? 'reverse' : 'normal',
+          }}
+        >
+          <div
+            className={`flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/95 py-1 pl-3 pr-1 shadow-lg dark:border-slate-700 dark:bg-slate-900/95 ${chipPop ? 'lawlib-chip-pop' : ''}`}
+            onAnimationEnd={() => setChipPop(false)}
           >
-            <i
-              aria-hidden="true"
-              className={`fi text-[9px] ${autoScrollPaused ? 'fi-sr-play' : 'fi-sr-pause'}`}
-            />
-            {autoScrollPaused ? 'เล่นต่อ' : 'หยุดชั่วคราว'}
-          </button>
-          <button
-            type="button"
-            onClick={() => setSettings({ ...settings, autoScrollSpeed: 0 })}
-            aria-label="ปิดเลื่อนอัตโนมัติ"
-            title="ปิดเลื่อนอัตโนมัติ"
-            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-slate-500 transition-colors hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-slate-400 dark:hover:text-white"
-          >
-            <i aria-hidden="true" className="fi fi-sr-cross text-[9px]" />
-          </button>
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+              <i
+                aria-hidden="true"
+                className="fi fi-sr-arrow-small-down text-[10px] text-blue-600 dark:text-blue-300"
+              />
+              เลื่อนอัตโนมัติ
+            </span>
+            <button
+              type="button"
+              aria-pressed={!autoScrollPaused}
+              onClick={() => setAutoScrollPaused((p) => !p)}
+              className="flex h-9 cursor-pointer items-center gap-1 rounded-full bg-blue-600 px-3 text-[11px] font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            >
+              <i
+                aria-hidden="true"
+                className={`fi text-[9px] ${autoScrollPaused ? 'fi-sr-play' : 'fi-sr-pause'}`}
+              />
+              {autoScrollPaused ? 'เล่นต่อ' : 'หยุดชั่วคราว'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSettings({ ...settings, autoScrollSpeed: 0 })}
+              aria-label="ปิดเลื่อนอัตโนมัติ"
+              title="ปิดเลื่อนอัตโนมัติ"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-slate-500 transition-colors hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-slate-400 dark:hover:text-white"
+            >
+              <i aria-hidden="true" className="fi fi-sr-cross text-[9px]" />
+            </button>
+          </div>
         </div>
       )}
 
       {/* panels (drawer + dimmed overlay — bg-black/10 only, no blur) */}
       {openPanel !== null && (
-        <div ref={drawerRef} onKeyDown={handleDrawerKeyDown} className="fixed inset-0 z-[60]">
+        <div
+          ref={drawerRef}
+          onKeyDown={handleDrawerKeyDown}
+          className="vt-drawer fixed inset-0 z-[60]"
+        >
+          {/* T30 (ADR-023 D9): overlay fade 400ms; closing reverses the
+              keyframe (opacity 1→0) — `both` fill makes the swap seamless
+              (current state == the reverse from-frame). */}
           <div
-            className="absolute inset-0 bg-black/10"
-            onClick={() => setOpenPanel(null)}
+            className="lawlib-overlay-fade absolute inset-0 bg-black/10"
+            style={{ animationDirection: panelClosing ? 'reverse' : 'normal' }}
+            onClick={() => closePanel()}
             aria-hidden="true"
           />
           <aside
             role="dialog"
             aria-modal="true"
             aria-label={PANEL_LABELS[openPanel]}
-            className="absolute right-0 top-0 flex h-full w-[min(92vw,26rem)] flex-col bg-white shadow-2xl dark:bg-slate-900"
+            className="lawlib-slide-left absolute right-0 top-0 flex h-full w-[min(92vw,26rem)] flex-col bg-white shadow-2xl dark:bg-slate-900"
+            style={{ animationDirection: panelClosing ? 'reverse' : 'normal' }}
           >
-            <header className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+            <header className="lawlib-fade-rise flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
               <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100">
                 {PANEL_LABELS[openPanel]}
               </h2>
               <button
                 type="button"
-                onClick={() => setOpenPanel(null)}
+                onClick={() => closePanel()}
                 aria-label="ปิด"
                 className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors hover:text-slate-800 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white"
               >
@@ -1729,8 +1927,12 @@ export default function LawlibReaderClient({
             </header>
             {/* T9 safe-area: the last drawer row must clear the home
                 indicator (p-4 replaced with explicit sides so the bottom
-                padding rides env(safe-area-inset-bottom)). */}
-            <div className="flex-1 overflow-y-auto px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                padding rides env(safe-area-inset-bottom)). T30: content
+                rows stagger 40ms (header 0ms → content 40ms, T29 pattern). */}
+            <div
+              className="lawlib-fade-rise flex-1 overflow-y-auto px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+              style={{ animationDelay: '40ms' }}
+            >
               {openPanel === 'search' && (
                 <SearchPanel
                   articles={articles}
