@@ -814,6 +814,43 @@ describe('Dock v2.1 — non-default value dots (T12)', () => {
     expect(themeBtn.querySelector('.bg-blue-500')).toBeNull();
   });
 
+  it('T27c: the theme-glyph swap animation fires ONLY on a real theme change — never on mount or remount', async () => {
+    await renderReader();
+    const themeBtn = screen.getByRole('button', { name: /ธีม/ });
+    const themeIcon = () => themeBtn.querySelector('i')!;
+
+    // Page-load mount (default สว่าง): the swap class is SUPPRESSED — the
+    // swap state initializes to the mount-time theme, so a fresh mount must
+    // not replay the animation.
+    expect(themeIcon().className).toContain('fi-sr-sun');
+    expect(themeIcon().className).not.toContain('lawlib-icon-swap');
+
+    // A REAL theme change remounts the keyed glyph WITH the swap class
+    // (300ms rotate-fade + spring pop — T27c AC-4).
+    fireEvent.click(themeBtn);
+    fireEvent.click(screen.getByRole('button', { name: 'ธีมมืด' }));
+    expect(themeIcon().className).toContain('fi-sr-moon');
+    expect(themeIcon().className).toContain('lawlib-icon-swap');
+
+    // The deferred sync lands PAST the 300ms animation (timer = ICON_SWAP_MS
+    // + 50ms) — the swap class drops (the 100% keyframe equals the natural
+    // state, so this is invisible) and the state now matches the theme.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+    });
+    expect(themeIcon().className).not.toContain('lawlib-icon-swap');
+
+    // Esc closes the picker (dock stays open) → user collapse → expand: the
+    // panel AND the glyph remount fresh on the SAME theme — the swap must
+    // NOT replay on the remount (the state synced after the change).
+    fireEvent.keyDown(document, { key: 'Escape' });
+    fireEvent.click(closeDockBtn());
+    fireEvent.click(dockIcon());
+    const remounted = screen.getByRole('button', { name: /ธีม/ }).querySelector('i')!;
+    expect(remounted.className).toContain('fi-sr-moon');
+    expect(remounted.className).not.toContain('lawlib-icon-swap');
+  });
+
   it('T12c: OS-dark first visit (no stored theme) shows NO theme dot — the baseline is the RESOLVED initial theme', async () => {
     mockMatchMedia({ dark: true });
     await renderReader();

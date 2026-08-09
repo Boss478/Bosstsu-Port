@@ -228,6 +228,12 @@ const DOCK_ANIM_MS = 150;
  *  exit (lawlib-pop-out, 140ms) always finishes inside this hold. */
 const L2_ANIM_MS = 200;
 
+/** T27c — theme-icon swap animation duration (must match the CSS `0.3s`
+ *  in .lawlib-icon-swap, globals.css). The swap class is dropped 50ms
+ *  AFTER this (the timer in the swap effect) so the keyframe always
+ *  finishes before the class goes away. */
+const ICON_SWAP_MS = 300;
+
 // ---------------------------------------------------------------------------
 // Tool registry — labels + icons + panel map (single source: LawlibPickers —
 // shared with the ⚙️ เครื่องมือแถวลัด favorites editor).
@@ -910,6 +916,23 @@ export default function LawlibDock(props: LawlibDockProps) {
   // glyph mirrors the theme state: ☀️/🌙/📖/🎨). Actions = icon-only 44px.
   // The T12 non-default dots stay on the pickers.
 
+  // T27c (senior 2026-08-09) — the theme-icon swap animation must fire ONLY
+  // on a real theme change: `swapTheme` initializes to the MOUNT-TIME theme,
+  // so a fresh mount (page load, collapse→expand remount) sees theme ===
+  // swapTheme → no swap class; a real theme change sees them differ → the
+  // class lands on the keyed glyph remount and the 300ms swap plays. The
+  // sync is deferred PAST the animation via a timer (the 100% keyframe
+  // equals the natural state — rotate(0) scale(1) opacity 1 — so dropping
+  // the class after the swap is invisible); a render-time ref read trips
+  // the react-compiler rule and a synchronous effect sync would cut the
+  // animation short (set-state-in-effect).
+  const [swapTheme, setSwapTheme] = useState(theme);
+  useEffect(() => {
+    if (theme === swapTheme) return;
+    const t = window.setTimeout(() => setSwapTheme(theme), ICON_SWAP_MS + 50);
+    return () => window.clearTimeout(t);
+  }, [theme, swapTheme]);
+
   const renderToolButton = (key: DockToolKey) => {
     if (PICKER_KEYS.includes(key) || key === 'settings') {
       const kind = key === 'settings' ? 'settings' : (key as PickerKind);
@@ -939,15 +962,18 @@ export default function LawlibDock(props: LawlibDockProps) {
         >
           {/* T27c (AC-4) — theme icon morph: keyed by the theme value so a
               theme change REMOUNTS the glyph and replays lawlib-icon-swap
-              (300ms rotate-fade + spring pop). ONE animation on this <i>
-              (D10) — the button's own hover transition stays on the
-              button. Non-theme pickers keep the stable icon (no key, no
-              swap class). */}
+              (300ms rotate-fade + spring pop). The swap class applies ONLY
+              when the theme differs from the mount-synced swap state
+              (senior 2026-08-09) — a fresh mount on the SAME theme (page
+              load, collapse→expand remount) must NOT replay the animation.
+              ONE animation on this <i> (D10) — the button's own hover
+              transition stays on the button. Non-theme pickers keep the
+              stable icon (no key, no swap class). */}
           <i
             key={key === 'theme' ? theme : undefined}
             aria-hidden="true"
             className={`fi ${icon} ${
-              key === 'theme' ? 'lawlib-icon-swap' : ''
+              key === 'theme' && theme !== swapTheme ? 'lawlib-icon-swap' : ''
             } text-sm md:text-[15px] leading-none`}
           />
           {key !== 'theme' && key !== 'settings' && (
