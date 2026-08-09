@@ -708,6 +708,31 @@ textarea,
   will-change: opacity, transform;
 }
 
+/* T28 — placement-directional ENTRY (AC-1, plan §4.3): the tooltip rises
+   from the direction it is placed — below → translateY(4px) (the existing
+   lawlib-tooltip-in default), above → −4px, right → translateX(4px), left →
+   −4px. The keyframe reads the axis offsets set inline at open (LawTooltip's
+   position effect); the unset defaults are exactly the below case, so
+   lawlib-tooltip-in stays untouched. The data-attr selector outranks the
+   .lawlib-tooltip shorthand for the animation NAME only (0-2-0 > 0-1-0);
+   duration/easing still come from the class (0.15s ease-out). On close the
+   attr is removed so .lawlib-tooltip-out wins the cascade — the exit must
+   never be overridden by a stale entry-name. */
+@keyframes lawlib-tooltip-in-dir {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateX(var(--lawlib-tooltip-rise-x, 0))
+      translateY(var(--lawlib-tooltip-rise-y, 4px));
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateX(0) translateY(0);
+  }
+}
+.lawlib-tooltip[data-tooltip-rise] {
+  animation-name: lawlib-tooltip-in-dir;
+}
+
 /* ─── LawLib Motion System (T24 — ADR-023 D1/D2/D8/D9) ────────────────────
    Apple-style motion foundation for the lawlib wave (T25–T32). All keyframes
    compositor-only (transform + opacity; the sole exception is the D9-locked

@@ -125,6 +125,15 @@ interface LawTooltipProps {
    * false — pre-wiring callers/tests get the full text, unchanged.
    */
   preview?: boolean;
+  /**
+   * T28 — EXIT state (lives in useLawTooltip — unmount is hook-driven):
+   * true → the root plays `lawlib-tooltip-out` (120ms --ease-ios-in, mirror
+   * of the entry; transform-origin stays at the trigger-side placement
+   * origin set at open) and the entry-direction data attr is dropped so the
+   * exit animation-name wins the cascade. Keyboard/Esc/reduced-motion closes
+   * never enter it (instant unmount — AC-4/AC-5).
+   */
+  closing?: boolean;
 }
 
 const GAP = 8;
@@ -807,6 +816,7 @@ export default function LawTooltip({
   tooltipId,
   hub,
   preview = false,
+  closing = false,
 }: LawTooltipProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
 
@@ -854,9 +864,24 @@ export default function LawTooltip({
     );
     el.style.left = `${left}px`;
     el.style.top = `${top}px`;
+    // T28 (AC-1) — placement-directional ENTRY rise: below → translateY(4px)
+    // (the keyframe default — lawlib-tooltip-in unchanged), above → −4px,
+    // right → translateX(4px), left → −4px. Consumed by
+    // lawlib-tooltip-in-dir (lawlib-tooltip[data-tooltip-rise]); the sheet
+    // variant never reaches this effect and keeps the keyframe defaults.
+    el.style.setProperty(
+      '--lawlib-tooltip-rise-x',
+      origin === 'left' ? '-4px' : origin === 'right' ? '4px' : '0px',
+    );
+    el.style.setProperty(
+      '--lawlib-tooltip-rise-y',
+      origin === 'top' ? '4px' : origin === 'bottom' ? '-4px' : '0px',
+    );
     // Entry animation pivots from the anchor edge (below → top origin, flipped
     // above → bottom origin; T19 side placement → 'left'/'right' edge, the
     // edge AWAY from the trigger); the sheet variant pivots from bottom-center.
+    // The SAME inline origin drives the exit (T28 AC-2): `lawlib-tooltip-out`
+    // scales toward this pivot → the tooltip fades toward the trigger.
     el.style.transformOrigin = origin;
     el.style.visibility = 'visible';
   }, [anchorRect, content, sheet, expanded]);
@@ -956,10 +981,18 @@ export default function LawTooltip({
         fontFamily: 'var(--lawlib-font-family), var(--font-sarabun), "Noto Sans Thai", sans-serif',
         ...(sheet ? undefined : { left: 0, top: 0, visibility: 'hidden' }),
       }}
+      // T28 — entry-direction override + exit state on the SAME root: while
+      // open, `data-tooltip-rise` selects the direction-aware entry keyframe
+      // (lawlib-tooltip-in-dir); while closing it is REMOVED so the
+      // `lawlib-tooltip-out` class's animation-name wins the cascade (the
+      // exit must never be overridden by a stale entry-name). `vt-tooltip`
+      // (T27, ADR-023 D3): the portal root gets a UNIQUE view-transition-name
+      // so a theme change keeps it out of the default crossfade group.
+      data-tooltip-rise={closing ? undefined : ''}
       className={
         sheet
-          ? 'lawlib-tooltip lawlib-glass-content lawlib-glass-sheen fixed inset-x-0 bottom-0 z-[70] max-h-[75vh] origin-bottom overflow-y-auto rounded-t-2xl border-t border-slate-200/80 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/70'
-          : 'lawlib-tooltip lawlib-glass-content lawlib-glass-sheen fixed z-[70] max-h-[calc(100vh-2rem)] w-[min(92vw,28rem)] overflow-y-auto rounded-2xl border border-slate-200/80 p-4 shadow-2xl shadow-slate-900/10 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/70 dark:shadow-black/40'
+          ? `lawlib-tooltip vt-tooltip lawlib-glass-content lawlib-glass-sheen fixed inset-x-0 bottom-0 z-[70] max-h-[75vh] origin-bottom overflow-y-auto rounded-t-2xl border-t border-slate-200/80 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/70${closing ? ' lawlib-tooltip-out' : ''}`
+          : `lawlib-tooltip vt-tooltip lawlib-glass-content lawlib-glass-sheen fixed z-[70] max-h-[calc(100vh-2rem)] w-[min(92vw,28rem)] overflow-y-auto rounded-2xl border border-slate-200/80 p-4 shadow-2xl shadow-slate-900/10 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/70 dark:shadow-black/40${closing ? ' lawlib-tooltip-out' : ''}`
       }
     >
       {sheet && (

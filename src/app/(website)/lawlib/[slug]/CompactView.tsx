@@ -694,11 +694,19 @@ function ArticlePopover({
   // lazy top reserves that WORST CASE — a bare `vh - 120` margin let the
   // bottom edge land 83-318px below the fold at 375px. The mount
   // useLayoutEffect below then corrects for the REAL height before paint.
-  const [pos] = useState<{ left: number; top: number; width: number }>(() => {
+  // T28 (AC-6): `origin` is the CARD-side edge — the 200ms lawlib-pop-in
+  // spring grows the popover out of the card it belongs to.
+  const [pos] = useState<{
+    left: number;
+    top: number;
+    width: number;
+    origin: 'top' | 'bottom' | 'left' | 'right';
+  }>(() => {
     const card = document.querySelector<HTMLElement>(
       `[data-lawlib-card="${CSS.escape(line.key)}"]`,
     );
-    if (card === null) return { left: 16, top: 80, width: Math.min(416, window.innerWidth - 32) };
+    if (card === null)
+      return { left: 16, top: 80, width: Math.min(416, window.innerWidth - 32), origin: 'top' };
     const r = card.getBoundingClientRect();
     const vw = window.innerWidth;
     const vh = window.innerHeight;
@@ -722,12 +730,22 @@ function ArticlePopover({
           belowTop + maxHeightPx > footerTop &&
           r.top - maxHeightPx - 12 >= 8
         ) {
-          return { left: Math.max(8, r.left), top: r.top - maxHeightPx - 12, width };
+          return {
+            left: Math.max(8, r.left),
+            top: r.top - maxHeightPx - 12,
+            width,
+            origin: 'bottom',
+          };
         }
-        return { left: Math.max(8, r.left), top: belowTop, width };
+        return { left: Math.max(8, r.left), top: belowTop, width, origin: 'top' };
       }
+      // LEFT of the card → the card sits on the popover's RIGHT — the spring
+      // pivots on the popover's right edge (the card side).
+      return { left: Math.max(8, left), top, width, origin: 'right' };
     }
-    return { left: Math.max(8, left), top, width };
+    // RIGHT of the card → the card sits on the popover's LEFT — the spring
+    // pivots on the popover's left edge (the card side).
+    return { left: Math.max(8, left), top, width, origin: 'left' };
   });
 
   // T9 (mobile audit — popover clamp): the lazy reservation covers the
@@ -788,8 +806,12 @@ function ArticlePopover({
         width: pos.width,
         maxHeight: 'min(70vh, 42rem)',
         zIndex: 40,
+        // T28 (AC-6): the 200ms lawlib-pop-in spring grows out of the
+        // CARD-side edge (right-of-card → left, left-of-card → right,
+        // below → top, above → bottom).
+        transformOrigin: pos.origin,
       }}
-      className="lawlib-popover lawlib-glass-content lawlib-glass-sheen flex flex-col overflow-hidden rounded-2xl border border-slate-200 shadow-2xl dark:border-slate-700"
+      className="lawlib-pop-in lawlib-popover lawlib-glass-content lawlib-glass-sheen flex flex-col overflow-hidden rounded-2xl border border-slate-200 shadow-2xl dark:border-slate-700"
     >
       <header className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-200 px-4 py-2.5 dark:border-slate-700">
         <span className="text-sm font-bold leading-relaxed text-slate-900 dark:text-white">

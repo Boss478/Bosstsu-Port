@@ -107,6 +107,7 @@ function Harness() {
     closeTooltip,
     registerTooltipEl,
     handleTooltipPointerLeave,
+    closing,
   } = useLawTooltip();
 
   return (
@@ -133,6 +134,7 @@ function Harness() {
           registerTooltipEl={registerTooltipEl}
           onPointerLeave={handleTooltipPointerLeave}
           tooltipId={tooltipId}
+          closing={closing}
         />
       )}
     </div>
@@ -440,6 +442,7 @@ function PinHarness({ triggers }: { triggers: TooltipContent[] }) {
     registerTooltipEl,
     handleTooltipPointerLeave,
     openedByKeyboard,
+    closing,
   } = useLawTooltip();
 
   return (
@@ -468,6 +471,7 @@ function PinHarness({ triggers }: { triggers: TooltipContent[] }) {
           registerTooltipEl={registerTooltipEl}
           onPointerLeave={handleTooltipPointerLeave}
           tooltipId={tooltipId}
+          closing={closing}
         />
       )}
     </div>
@@ -1493,6 +1497,7 @@ function PreviewHarness({ triggers }: { triggers: TooltipContent[] }) {
     handleTooltipPointerLeave,
     pinned,
     openedByKeyboard,
+    closing,
   } = useLawTooltip();
 
   return (
@@ -1522,6 +1527,7 @@ function PreviewHarness({ triggers }: { triggers: TooltipContent[] }) {
           onPointerLeave={handleTooltipPointerLeave}
           tooltipId={tooltipId}
           preview={!pinned && !openedByKeyboard}
+          closing={closing}
         />
       )}
     </div>
@@ -1749,5 +1755,94 @@ describe('T28 — exit skips (keyboard / Esc / reduced-motion)', () => {
     });
     expect(result.current.tooltip).toBeNull();
     expect(result.current.closing).toBe(false);
+  });
+});
+
+describe('T28 — exit + entry direction on the DOM root (LawTooltip)', () => {
+  it('a normal close mounts the exit class and drops the entry-direction attr, then unmounts at 120ms', () => {
+    vi.useFakeTimers();
+    stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
+    render(<Harness />);
+    const trigger = headerTrigger();
+
+    fireEvent.pointerEnter(trigger, { pointerType: 'mouse' });
+    const root = tooltipRoot();
+    expect(root).not.toBeNull();
+    // While open: the direction-aware entry keyframe is selected and the
+    // exit class is NOT present.
+    expect(root?.hasAttribute('data-tooltip-rise')).toBe(true);
+    expect(root?.className).not.toContain('lawlib-tooltip-out');
+
+    // pointerdown-outside → ANIMATED close: the root keeps playing (exit
+    // class on, entry override off — the exit animation-name must win the
+    // cascade), then unmounts after the 120ms delay.
+    fireEvent.pointerDown(document.body, { pointerType: 'mouse' });
+    expect(tooltipRoot()?.className).toContain('lawlib-tooltip-out');
+    expect(tooltipRoot()?.hasAttribute('data-tooltip-rise')).toBe(false);
+
+    act(() => {
+      vi.advanceTimersByTime(119);
+    });
+    expect(tooltipRoot()).not.toBeNull();
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(tooltipRoot()).toBeNull();
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('desktop placement sets the directional rise vars + origin (above → translateY −4px, pivot bottom)', () => {
+    const heightSpy = vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(300);
+    // A 300×100 tooltip on a 100×30 anchor at vh 300: below fails
+    // (238+100=338 > 292), above fits (200−100−8=92 ≥ 8) → origin 'bottom'.
+    stubRects((el) => {
+      if (el.getAttribute('role') === 'tooltip') return { ...TOOLTIP_RECT, height: 100 } as Rect;
+      return ZERO_RECT;
+    });
+    render(
+      <LawTooltip
+        content={headerContent}
+        anchorRect={
+          { left: 100, top: 200, right: 200, bottom: 230, width: 100, height: 30 } as DOMRect
+        }
+        sheet={false}
+        law={law}
+        onClose={() => {}}
+        onOpenArticle={() => {}}
+        registerTooltipEl={() => {}}
+        onPointerLeave={() => {}}
+        tooltipId="lawlib-tooltip-t28-dir"
+      />,
+    );
+
+    const root = tooltipRoot();
+    expect(root).not.toBeNull();
+    expect(root?.style.getPropertyValue('--lawlib-tooltip-rise-x')).toBe('0px');
+    expect(root?.style.getPropertyValue('--lawlib-tooltip-rise-y')).toBe('-4px');
+    // The SAME placement origin drives the exit (AC-2: the exit scales toward
+    // this pivot → the tooltip fades toward the trigger).
+    expect(root?.style.transformOrigin).toBe('bottom');
+    expect(root?.hasAttribute('data-tooltip-rise')).toBe(true);
+    heightSpy.mockRestore();
+  });
+
+  it('both portal variants carry vt-tooltip (T28 — unique VT name for theme changes)', () => {
+    const base = {
+      content: headerContent,
+      anchorRect: { left: 0, top: 0, right: 100, bottom: 24, width: 100, height: 24 } as DOMRect,
+      law,
+      onClose: () => {},
+      onOpenArticle: () => {},
+      registerTooltipEl: () => {},
+      onPointerLeave: () => {},
+    };
+    render(<LawTooltip {...base} sheet={false} tooltipId="vt-desktop" />);
+    render(<LawTooltip {...base} sheet={true} tooltipId="vt-sheet" />);
+
+    const roots = Array.from(document.body.querySelectorAll<HTMLElement>('.lawlib-tooltip'));
+    expect(roots.length).toBe(2);
+    for (const r of roots) {
+      expect(r.className).toContain('vt-tooltip');
+    }
   });
 });

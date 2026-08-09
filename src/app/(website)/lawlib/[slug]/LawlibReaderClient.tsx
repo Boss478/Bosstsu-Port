@@ -434,6 +434,7 @@ export default function LawlibReaderClient({
     openedByKeyboard,
     pinned,
     tooltipId,
+    closing,
   } = useLawTooltip();
 
   const flat = useMemo(() => flattenArticles(law), [law]);
@@ -1790,6 +1791,9 @@ export default function LawlibReaderClient({
           // starts at the copy button, not the expand button). Touch opens
           // are not pins → preview (mobile sheet shows the same preview).
           preview={!pinned && !openedByKeyboard}
+          // T28 — hook-owned EXIT state: renders lawlib-tooltip-out during
+          // the 120ms exit window (keyboard/Esc/reduced-motion never enter).
+          closing={closing}
         />
       )}
     </div>
