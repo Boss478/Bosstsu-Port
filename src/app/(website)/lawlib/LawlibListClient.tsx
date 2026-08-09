@@ -73,6 +73,18 @@ const DEBOUNCE_MS = 180;
 const MAX_RESULTS = 20;
 
 /**
+ * T32 AC-2 (flicker trap): the entrance stagger must fire ONCE — on the
+ * component's first mount. Clearing a search query re-mounts the browse
+ * grid (branch switch below), and without a gate the fade-rise would
+ * re-play. The `.lawlib-stagger` class therefore drops after the longest
+ * possible animation window — 420ms max nth-child delay + 300ms fade-rise
+ * = 720ms, rounded to 800ms. Removal is invisible (`both` fill ends at the
+ * natural state) and harmless under reduced motion (T24 kill already
+ * zeroes delay + duration).
+ */
+const ENTRANCE_SETTLE_MS = 800;
+
+/**
  * SDO part taxonomy (SCRUTINY-L4-1): ภาค ก = กฎหมาย-ข้าราชการที่ดี ·
  * ภาค ข = กฎหมายการศึกษา. The labels ARE the SDO subjects — not the
  * generic กฎหมายทั่วไป/กฎหมายเฉพาะ forms.
@@ -149,6 +161,18 @@ export default function LawlibListClient({ laws }: { laws: LawlibIndexEntry[] })
     results: FullTextLawResult[];
   }>({ q: '', results: [] });
   const [searching, setSearching] = useState(false);
+
+  /**
+   * T32 AC-2: mount-only entrance gate. False on first render → the browse
+   * grids carry `.lawlib-stagger` exactly once; after ENTRANCE_SETTLE_MS the
+   * class is dropped, so a grid re-mount (search → clear) never re-staggers.
+   * Mirrors the debounce effect shape below (timer callback setState).
+   */
+  const [entranceDone, setEntranceDone] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setEntranceDone(true), ENTRANCE_SETTLE_MS);
+    return () => window.clearTimeout(t);
+  }, []);
 
   // The sample fixture is a local preview — never shown in the list.
   const visibleLaws = useMemo(() => laws.filter((law) => law.slug !== 'sample'), [laws]);
@@ -277,7 +301,9 @@ export default function LawlibListClient({ laws }: { laws: LawlibIndexEntry[] })
                   <h3 className="mb-2.5 text-sm font-semibold leading-relaxed text-slate-600 dark:text-slate-400">
                     {subject.subject}
                   </h3>
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div
+                    className={`grid gap-3 sm:grid-cols-2${entranceDone ? '' : ' lawlib-stagger'}`}
+                  >
                     {subject.laws.map((law) => (
                       <Link
                         key={law.slug}
