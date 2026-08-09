@@ -616,8 +616,17 @@ export default function LawlibDock(props: LawlibDockProps) {
    *  position change supersedes a pending restore (rapid chip clicks). */
   const posAnimGenRef = useRef(0);
   useEffect(() => {
-    if (!animateDockNow) return;
     const el = posAnimRef.current;
+    if (!animateDockNow) {
+      // Gate flipped off mid-dance: a previous run may have left the
+      // two-frame inline hold (animation none + opacity 0) in place —
+      // clear it so the wrapper can never be stuck invisible.
+      if (el !== null) {
+        el.style.animation = '';
+        el.style.opacity = '';
+      }
+      return;
+    }
     if (el === null) return;
     // Two-frame re-trigger (root-caused live in Chromium, 2026-08-09): the
     // engine only processes animation-name changes during a FRAME's style
@@ -630,12 +639,20 @@ export default function LawlibDock(props: LawlibDockProps) {
     // into one recalc and is silently skipped.
     const gen = ++posAnimGenRef.current;
     el.style.animation = 'none';
+    // One-frame flash guard (senior review 2026-08-09): with `animation:
+    // none` ALONE, the frame between the cancellation and the rAF2 restore
+    // renders the wrapper at its natural state (opacity 1) — a full-opacity
+    // teleport frame at the NEW spot (cross-family moves; also the page-
+    // load mount). Hold opacity 0 across the two-frame window; rAF2
+    // restores it and the restarted keyframe owns opacity from its 0%.
+    el.style.opacity = '0';
     let raf2 = 0;
     const raf1 = window.requestAnimationFrame(() => {
       raf2 = window.requestAnimationFrame(() => {
         if (posAnimGenRef.current !== gen) return; // superseded
         if (posAnimRef.current !== el) return;
         el.style.animation = '';
+        el.style.opacity = '';
       });
     });
     return () => {

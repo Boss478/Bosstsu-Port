@@ -1126,13 +1126,19 @@ describe('Dock v2.7 — T26 position-change re-trigger + transform raise (ADR-02
     // (the class-driven name is re-applied later, so the keyframe
     // restarts). The SAME node is mutated — nothing was key-remounted
     // (a remount would orphan this element and phase 1 would not land).
+    // The one-frame flash guard (senior 2026-08-09) ALSO inlines opacity 0
+    // — the frame before the restore must never render the wrapper at
+    // natural opacity (a full-opacity teleport frame at the NEW spot).
     expect(wrapper.style.animation).toBe('none');
+    expect(wrapper.style.opacity).toBe('0');
     // Phase 2 (two rAFs later): the inline is cleared → the class-driven
-    // animation is re-created → the enter keyframe restarts.
+    // animation is re-created → the enter keyframe restarts (the keyframe
+    // owns opacity again).
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 50));
     });
     expect(wrapper.style.animation).toBe('');
+    expect(wrapper.style.opacity).toBe('');
   });
 
   it('the settings picker STAYS open + anchored after a position switch (reflow re-trigger — never a key-remount)', async () => {
@@ -1157,11 +1163,14 @@ describe('Dock v2.7 — T26 position-change re-trigger + transform raise (ADR-02
     const wrapper = posWrapper()!;
     expect(wrapper.className).not.toContain('lawlib-dock-pos-in');
     expect(wrapper.style.animation).toBe('');
+    expect(wrapper.style.opacity).toBe('');
 
     clickPositionInSettings('บนซ้าย');
     expect(wrapper.className).not.toContain('lawlib-dock-pos-in');
-    // The re-trigger effect early-returns under the gate — no 'none' phase.
+    // The re-trigger effect early-returns under the gate — no 'none' phase,
+    // no opacity hold (the wrapper can never be stuck invisible).
     expect(wrapper.style.animation).toBe('');
+    expect(wrapper.style.opacity).toBe('');
   });
 
   it('root: transition-[bottom] is GONE → transition-[transform] duration-100; non-bottom positions get no bottom/raise classes', async () => {
