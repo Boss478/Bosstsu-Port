@@ -310,6 +310,36 @@ describe('T30 — search stagger, session-gated (AC-2 flicker trap)', () => {
     expect(ul3).not.toBeNull();
     expect(ul3.className).toContain('lawlib-stagger');
   });
+
+  it('keystroke re-filter WITHIN the 800ms window strips the stagger IMMEDIATELY (new nodes never re-animate)', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderReader();
+
+    fireEvent.click(searchTool());
+    const input = screen.getByRole('searchbox');
+    fireEvent.change(input, { target: { value: 'การศึกษา' } });
+
+    // Debounce (180ms) → first results render → the observer stages them.
+    await wait(300);
+    const ul = drawer()!.querySelector('ul') as HTMLElement;
+    expect(ul).not.toBeNull();
+    expect(ul.className).toContain('lawlib-stagger');
+
+    // Re-filter while the strip timer is still pending (< 800ms): the
+    // debounced results re-render mutates the list → the observer strips
+    // the class in the SAME microtask (before paint), so the newly
+    // inserted nodes never play the stagger.
+    fireEvent.change(input, { target: { value: 'สถานศึกษา' } });
+    await wait(300);
+    expect(ul.className).not.toContain('lawlib-stagger');
+
+    // The session gate is spent: a further re-filter must not re-add.
+    fireEvent.change(input, { target: { value: 'การ' } });
+    await wait(300);
+    const ul2 = drawer()!.querySelector('ul') as HTMLElement;
+    expect(ul2).not.toBeNull();
+    expect(ul2.className).not.toContain('lawlib-stagger');
+  });
 });
 
 describe('T30 — auto-scroll chip (AC-3/AC-4/AC-5)', () => {

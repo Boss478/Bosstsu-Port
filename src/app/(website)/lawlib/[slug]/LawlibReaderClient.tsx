@@ -157,7 +157,10 @@ const DRAWER_ANIM_MS = 400;
 /** T30 (AC-2): the search-results stagger completes at 420ms (last of the
  *  cap-8 delays) + 300ms (lawlib-fade-rise) — the session-gate class is
  *  stripped 800ms after the first results batch so later keystroke
- *  re-mounts (clear-and-retype) never re-animate (flicker trap). */
+ *  re-mounts (clear-and-retype) never re-animate (flicker trap). A
+ *  post-staging re-filter strips the class EARLIER still — immediately,
+ *  in the observer microtask (wave-2 fix) — this timer is the fallback
+ *  when no further mutation follows. */
 const SEARCH_STAGGER_STRIP_MS = 800;
 /** T30 (ADR-023 D9 row 19): auto-scroll chip fade-rise 150ms — also the
  *  exit-hold window (closing state → delay-unmount). */
@@ -1105,13 +1108,17 @@ export default function LawlibReaderClient({
   // The results <ul> lives inside SearchPanel (out of scope) and
   // `lawlib-stagger` targets DIRECT children, so a MutationObserver adds
   // the class to the FIRST results <ul>(s) of each search session (panel
-  // open). It fires ONLY on the first batch: the observer disconnects and
-  // the class is stripped once the stagger has played
-  // (SEARCH_STAGGER_STRIP_MS), so live keystroke filtering — even
-  // clear-and-retype — NEVER re-animates (flicker trap). Per-session by
-  // construction: panel close unmounts the uls and the cleanup clears the
-  // observer; the next open re-arms it. RM: the global kill zeroes
-  // duration+delay — the strip stays harmless.
+  // open). The class is stripped once the stagger has played
+  // (SEARCH_STAGGER_STRIP_MS) — and IMMEDIATELY on the first post-staging
+  // mutation (wave-2 fix: the debounced keystroke re-filter committing new
+  // result nodes within the window must NOT re-animate). The strip lands
+  // in the observer microtask, BEFORE the browser paints, so freshly
+  // inserted nodes never show a stagger. Either way the observer
+  // disconnects — the session gate is spent (even clear-and-retype never
+  // re-adds, flicker trap). Per-session by construction: panel close
+  // unmounts the uls and the cleanup clears the observer; the next open
+  // re-arms it. RM: the global kill zeroes duration+delay — the strip
+  // stays harmless.
   useEffect(() => {
     if (openPanel !== 'search') return;
     const root = drawerRef.current;
@@ -1119,6 +1126,16 @@ export default function LawlibReaderClient({
     let stripTimer: number | null = null;
     const observer = new MutationObserver(() => {
       const lists = root.querySelectorAll<HTMLUListElement>('ul');
+      if (stripTimer !== null) {
+        // Already staged → this mutation is a keystroke re-filter
+        // committing new nodes: strip NOW (same tick, pre-paint) and
+        // end the session gate.
+        window.clearTimeout(stripTimer);
+        stripTimer = null;
+        for (const ul of lists) ul.classList.remove('lawlib-stagger');
+        observer.disconnect();
+        return;
+      }
       let staged = false;
       for (const ul of lists) {
         if (ul.children.length === 0 || ul.classList.contains('lawlib-stagger')) continue;
@@ -1126,10 +1143,10 @@ export default function LawlibReaderClient({
         staged = true;
       }
       if (!staged) return;
-      observer.disconnect();
       stripTimer = window.setTimeout(() => {
         stripTimer = null;
         for (const ul of lists) ul.classList.remove('lawlib-stagger');
+        observer.disconnect();
       }, SEARCH_STAGGER_STRIP_MS);
     });
     observer.observe(root, { childList: true, subtree: true });
