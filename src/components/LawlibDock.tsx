@@ -108,61 +108,61 @@ const POSITION_CONFIG: Record<
   { root: string; panel: string; more: string; panelMaxH: string; layout: DockLayout }
 > = {
   'top-left': {
-    root: 'top-[max(14rem,env(safe-area-inset-top))] left-[max(1rem,env(safe-area-inset-left))] md:top-[max(11rem,env(safe-area-inset-top))]',
-    panel: 'top-full left-0',
-    more: 'left-full top-0',
+    root: 'top-[max(14rem,env(safe-area-inset-top))] left-[max(1.25rem,env(safe-area-inset-left))] md:top-[max(11rem,env(safe-area-inset-top))] md:left-6',
+    panel: 'top-0 left-0',
+    more: 'left-full top-0 ml-3',
     panelMaxH:
       'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_15rem)] md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]',
     layout: 'vertical',
   },
   'top-center': {
     root: 'top-[max(14rem,env(safe-area-inset-top))] left-1/2 -translate-x-1/2 md:top-[max(11rem,env(safe-area-inset-top))]',
-    panel: 'top-full left-1/2 -translate-x-1/2',
-    more: 'top-full left-1/2 -translate-x-1/2',
+    panel: 'top-0 left-1/2 -translate-x-1/2',
+    more: 'top-full mt-3 left-1/2 -translate-x-1/2',
     panelMaxH:
       'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_15rem)] md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]',
     layout: 'horizontal',
   },
   'top-right': {
-    root: 'top-[max(14rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))] md:top-[max(11rem,env(safe-area-inset-top))]',
-    panel: 'top-full right-0',
-    more: 'right-full top-0',
+    root: 'top-[max(14rem,env(safe-area-inset-top))] right-[max(1.25rem,env(safe-area-inset-right))] md:top-[max(11rem,env(safe-area-inset-top))] md:right-6',
+    panel: 'top-0 right-0',
+    more: 'right-full top-0 mr-3',
     panelMaxH:
       'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_15rem)] md:max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_12rem)]',
     layout: 'vertical',
   },
   'mid-left': {
-    root: 'top-1/2 -translate-y-1/2 left-[max(1rem,env(safe-area-inset-left))]',
-    panel: 'left-full top-1/2 -translate-y-1/2',
-    more: 'left-full top-0',
+    root: 'top-1/2 -translate-y-1/2 left-[max(1.25rem,env(safe-area-inset-left))] md:left-6',
+    panel: 'top-1/2 -translate-y-1/2 left-0',
+    more: 'left-full top-0 ml-3',
     panelMaxH: 'max-h-[70vh]',
     layout: 'vertical',
   },
   'mid-right': {
-    root: 'top-1/2 -translate-y-1/2 right-[max(1rem,env(safe-area-inset-right))]',
-    panel: 'right-full top-1/2 -translate-y-1/2',
-    more: 'right-full top-0',
+    root: 'top-1/2 -translate-y-1/2 right-[max(1.25rem,env(safe-area-inset-right))] md:right-6',
+    panel: 'top-1/2 -translate-y-1/2 right-0',
+    more: 'right-full top-0 mr-3',
     panelMaxH: 'max-h-[70vh]',
     layout: 'vertical',
   },
   'bottom-left': {
-    root: 'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1rem))] left-[max(1rem,env(safe-area-inset-left))]',
-    panel: 'bottom-full left-0',
-    more: 'left-full bottom-0',
+    root: 'bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-[max(1.25rem,env(safe-area-inset-left))] md:bottom-6 md:left-6',
+    panel: 'bottom-0 left-0',
+    more: 'left-full bottom-0 ml-3',
     panelMaxH: 'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_4.75rem)]',
     layout: 'vertical',
   },
   'bottom-center': {
-    root: 'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1rem))] left-1/2 -translate-x-1/2',
-    panel: 'bottom-full left-1/2 -translate-x-1/2',
-    more: 'bottom-full left-1/2 -translate-x-1/2',
+    root: 'bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 md:bottom-6',
+    panel: 'bottom-0 left-1/2 -translate-x-1/2',
+    more: 'bottom-full mb-3 left-1/2 -translate-x-1/2',
     panelMaxH: 'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_4.75rem)]',
     layout: 'horizontal',
   },
   'bottom-right': {
-    root: 'bottom-[max(calc(var(--lawlib-dock-size)_+_3.25rem),5.25rem,calc(env(safe-area-inset-bottom)_+_1rem))] right-[max(1rem,env(safe-area-inset-right))]',
-    panel: 'bottom-full right-0',
-    more: 'right-full bottom-0',
+    root: 'bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-[max(1.25rem,env(safe-area-inset-right))] md:bottom-6 md:right-6',
+    panel: 'bottom-0 right-0',
+    more: 'right-full bottom-0 mr-3',
     panelMaxH: 'max-h-[calc(100vh_-_var(--lawlib-dock-size)_-_4.75rem)]',
     layout: 'vertical',
   },
@@ -559,21 +559,27 @@ export default function LawlibDock(props: LawlibDockProps) {
    *  clipped by the scroll container. Mobile bottom sheet: full-width,
    *  safe-area bottom inset, keeps its own scroll. */
   const panelPlacementClass = isMobile
-    ? 'fixed inset-x-0 bottom-0 max-h-[min(65vh,34rem)] overflow-y-auto rounded-t-2xl border-t p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-2xl'
-    : `absolute ${cfg.panel} rounded-2xl border p-1.5 shadow-2xl ${
-        effectiveLayout === 'vertical' ? 'w-16' : 'max-w-[min(92vw,26rem)]'
+    ? 'fixed inset-x-0 bottom-0 max-h-[min(65vh,34rem)] overflow-y-auto rounded-t-2xl border-t border-slate-200/80 dark:border-slate-700/70 p-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-2xl'
+    : `absolute ${cfg.panel} rounded-full border border-slate-200/80 dark:border-slate-700/70 p-2 md:p-2.5 shadow-2xl shadow-slate-900/15 dark:shadow-black/50 ${
+        effectiveLayout === 'vertical'
+          ? 'w-16 py-2 px-1.5 md:py-2.5'
+          : 'max-w-[calc(100vw-2rem)] w-max px-3 py-2 md:px-4 md:py-2.5'
       }`;
   /** Desktop only: the L1 tools column carries the viewport-safe cap + its
    *  own scroll (the panel wrapper itself stays overflow-visible so the L2
    *  sibling anchored to its edge is not clipped). */
-  const toolsPlacementClass = isMobile ? '' : `${cfg.panelMaxH} overflow-y-auto`;
+  const toolsPlacementClass = isMobile
+    ? ''
+    : effectiveLayout === 'vertical'
+      ? `${cfg.panelMaxH} overflow-y-auto`
+      : 'flex-row flex-nowrap';
   /** T15 (v2.3): Level 2 = a SEPARATE 112px glass panel (w-28), anchored to
    *  Level 1 with the per-position flip (`more` — away from the screen
    *  edge). Mobile: an in-flow full-width block inside the sheet (dots ⋯
    *  expands it). */
   const morePanelPlacementClass = isMobile
-    ? 'mt-1 w-full rounded-xl border p-1.5'
-    : `absolute ${cfg.more} max-h-[70vh] w-28 overflow-y-auto rounded-2xl border p-1.5 shadow-2xl`;
+    ? 'mt-2 w-full rounded-2xl border border-slate-200/80 dark:border-slate-700/70 p-2'
+    : `absolute ${cfg.more} max-h-[70vh] w-28 md:w-32 overflow-y-auto rounded-3xl border border-slate-200/80 dark:border-slate-700/70 p-2.5 md:p-3 shadow-2xl shadow-slate-900/15 dark:shadow-black/50`;
 
   const pickerValue: Record<PickerKind, string> = {
     theme: THEME_CHOICES.find((c) => c.value === theme)?.label ?? theme,
@@ -648,11 +654,15 @@ export default function LawlibDock(props: LawlibDockProps) {
           aria-haspopup="true"
           aria-expanded={picker?.kind === kind}
           onClick={(e) => togglePicker(kind, e.currentTarget)}
-          className="relative flex min-h-11 min-w-11 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg border border-slate-200 bg-white px-1 text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:text-blue-300"
+          className={`relative flex h-11 w-11 md:h-12 md:w-12 min-h-11 min-w-11 shrink-0 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-full border shadow-xs backdrop-blur-xs transition-all duration-150 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+            picker?.kind === kind
+              ? 'border-blue-500/80 bg-blue-50/90 text-blue-600 shadow-xs ring-2 ring-blue-500/20 dark:border-blue-400/80 dark:bg-blue-950/70 dark:text-blue-300 dark:ring-blue-400/20'
+              : 'border-slate-200/90 bg-white/90 text-slate-600 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 hover:shadow-sm dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
+          }`}
         >
-          <i aria-hidden="true" className={`fi ${icon} text-sm leading-none`} />
+          <i aria-hidden="true" className={`fi ${icon} text-sm md:text-[15px] leading-none`} />
           {key !== 'theme' && key !== 'settings' && (
-            <span className="text-[10px] font-bold leading-none tabular-nums">
+            <span className="text-[9.5px] md:text-[10px] font-bold leading-none tabular-nums tracking-tight">
               {pickerValue[kind]}
             </span>
           )}
@@ -661,7 +671,7 @@ export default function LawlibDock(props: LawlibDockProps) {
           {key !== 'settings' && pickerIsNonDefault[kind] && (
             <span
               aria-hidden="true"
-              className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-blue-500"
+              className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-blue-500 ring-1.5 ring-white dark:ring-slate-900"
             />
           )}
         </button>
@@ -722,15 +732,17 @@ export default function LawlibDock(props: LawlibDockProps) {
         aria-pressed={isToolToggle(key) ? active : undefined}
         disabled={(key === 'copy' || key === 'copyLink') && !canCopy}
         onClick={() => activateTool(key)}
-        className={`relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 ${
+        className={`relative flex h-11 w-11 md:h-12 md:w-12 min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-full border shadow-xs backdrop-blur-xs transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 ${
+          badge !== undefined && badge > 0 ? 'z-10' : ''
+        } ${
           active
-            ? 'border-blue-400 bg-blue-50 text-blue-700 dark:border-blue-500/60 dark:bg-blue-950/50 dark:text-blue-300'
-            : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:text-blue-300'
+            ? 'border-blue-500/80 bg-blue-50/90 text-blue-600 shadow-xs ring-2 ring-blue-500/20 dark:border-blue-400/80 dark:bg-blue-950/70 dark:text-blue-300 dark:ring-blue-400/20'
+            : 'border-slate-200/90 bg-white/90 text-slate-600 hover:scale-105 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 hover:shadow-sm active:scale-95 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
         }`}
       >
-        <i aria-hidden="true" className={`fi ${icon} text-xs leading-none`} />
+        <i aria-hidden="true" className={`fi ${icon} text-xs md:text-sm leading-none`} />
         {badge !== undefined && badge > 0 && (
-          <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+          <span className="pointer-events-none absolute -right-0.5 -top-0.5 z-20 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white shadow-xs ring-1.5 ring-white dark:ring-slate-900">
             {badge}
           </span>
         )}
@@ -738,37 +750,32 @@ export default function LawlibDock(props: LawlibDockProps) {
     );
   };
 
-  // --- Level 2 icon-only grid button (T14 — ADR-019 D10, T15 v2.3: 32px) ---
-  // PURE icon 32×32 squares: no text rows, no pin toggles. Pickers open their
-  // popover (anchor = the icon); actions act directly; copy/copy-link disable
-  // without a target article. Active states mirror Level 1.
-
+  /** Action icon button — Level 2 (icon-only, matching size). */
   const renderMoreIconButton = (key: DockMoreToolKey) => {
     const isPicker = (key !== 'bookmarksAll' && PICKER_KEYS.includes(key)) || key === 'settings';
     const kind = key === 'settings' ? 'settings' : (key as PickerKind);
     const pickerOpen = isPicker && picker?.kind === kind;
     const active = toolActive(key);
     const icon = toolGlyph(key, active);
+
     return (
       <button
         key={key}
         type="button"
         aria-label={TOOL_LABELS[key]}
         title={TOOL_LABELS[key]}
-        // aria-pressed ONLY on the real toggles — pickers announce via
-        // aria-haspopup/aria-expanded, so no aria-pressed (no fake toggle).
         aria-pressed={isToolToggle(key) ? active : undefined}
         aria-haspopup={isPicker ? 'true' : undefined}
         aria-expanded={isPicker ? pickerOpen : undefined}
         disabled={(key === 'copy' || key === 'copyLink') && !canCopy}
         onClick={(e) => activateTool(key, e.currentTarget)}
-        className={`relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 ${
+        className={`flex h-8.5 w-8.5 md:h-9.5 md:w-9.5 shrink-0 cursor-pointer items-center justify-center rounded-full border shadow-xs backdrop-blur-xs transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 ${
           pickerOpen || active
-            ? 'border-blue-400 bg-blue-50 text-blue-700 dark:border-blue-500/60 dark:bg-blue-950/50 dark:text-blue-300'
-            : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:text-blue-300'
+            ? 'border-blue-500/80 bg-blue-50/90 text-blue-600 shadow-xs ring-2 ring-blue-500/20 dark:border-blue-400/80 dark:bg-blue-950/70 dark:text-blue-300 dark:ring-blue-400/20'
+            : 'border-slate-200/90 bg-white/90 text-slate-600 hover:scale-110 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
         }`}
       >
-        <i aria-hidden="true" className={`fi ${icon} text-xs leading-none`} />
+        <i aria-hidden="true" className={`fi ${icon} text-xs md:text-sm leading-none`} />
       </button>
     );
   };
@@ -799,7 +806,7 @@ export default function LawlibDock(props: LawlibDockProps) {
           aria-haspopup="dialog"
           aria-controls="lawlib-dock-panel"
           title="เครื่องมืออ่าน"
-          className="lawlib-dock lawlib-glass lawlib-glass-xs lawlib-glass-sheen flex h-[var(--lawlib-dock-size)] w-[var(--lawlib-dock-size)] cursor-pointer items-center justify-center rounded-xl border border-slate-200 text-slate-600 shadow-lg transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
+          className="lawlib-dock lawlib-glass lawlib-glass-xs lawlib-glass-sheen flex h-[var(--lawlib-dock-size)] w-[var(--lawlib-dock-size)] cursor-pointer items-center justify-center rounded-full border border-slate-200/90 text-slate-600 shadow-xl shadow-slate-900/10 transition-all duration-150 hover:scale-105 hover:border-blue-400/80 hover:text-blue-700 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:text-slate-300 dark:shadow-black/40 dark:hover:border-blue-400/60 dark:hover:text-white"
         >
           <i aria-hidden="true" className="fi fi-sr-sliders-h text-sm leading-none" />
         </button>
@@ -819,14 +826,14 @@ export default function LawlibDock(props: LawlibDockProps) {
               mobile = horizontal row. ──────────────────────────────────── */}
           <div
             data-lawlib-l1
-            className={`flex gap-1.5 ${effectiveLayout === 'vertical' ? 'flex-col' : 'flex-wrap'}`}
+            className={`flex items-center gap-1.5 md:gap-2 ${effectiveLayout === 'vertical' ? 'flex-col' : 'flex-wrap'}`}
           >
             {/* Tools — desktop side positions scroll internally (the panel
                 wrapper itself stays overflow-visible so the absolutely
                 anchored L2 sibling is never clipped). */}
             <div
               data-lawlib-l1-tools
-              className={`flex gap-1.5 ${effectiveLayout === 'vertical' ? 'flex-col' : 'flex-wrap min-w-max'} ${toolsPlacementClass}`}
+              className={`flex items-center gap-1.5 md:gap-2 ${effectiveLayout === 'vertical' ? 'flex-col' : 'flex-nowrap shrink-0'} ${toolsPlacementClass}`}
             >
               {resumeVisible && (
                 <button
@@ -837,21 +844,37 @@ export default function LawlibDock(props: LawlibDockProps) {
                   }}
                   aria-label={`อ่านต่อ: ${resumeLabel}`}
                   title={`อ่านต่อ: ${resumeLabel}`}
-                  className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-amber-300 bg-amber-50 text-amber-800 transition-colors hover:border-amber-400 hover:bg-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-amber-500/50 dark:bg-amber-950/40 dark:text-amber-200"
+                  className="flex h-11 w-11 md:h-12 md:w-12 min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-amber-300/90 bg-amber-50/90 text-amber-800 shadow-xs backdrop-blur-xs transition-all duration-150 hover:scale-105 hover:border-amber-400 hover:bg-amber-100/90 hover:shadow-sm active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-amber-500/50 dark:bg-amber-950/60 dark:text-amber-200 dark:hover:border-amber-400 dark:hover:bg-amber-900/60"
                 >
-                  <i aria-hidden="true" className="fi fi-sr-time-past text-sm leading-none" />
+                  <i
+                    aria-hidden="true"
+                    className="fi fi-sr-time-past text-sm md:text-[15px] leading-none"
+                  />
                 </button>
               )}
               {settings.favoriteToolKeys.map((key) => renderToolButton(key))}
             </div>
+
+            {/* Divider between tools and control pair */}
+            {effectiveLayout === 'vertical' ? (
+              <div
+                aria-hidden="true"
+                className="my-1 h-px w-6 md:w-7 shrink-0 bg-slate-200/80 dark:bg-slate-700/80"
+              />
+            ) : (
+              <div
+                aria-hidden="true"
+                className="mx-1 my-auto h-7 md:h-8 w-px shrink-0 bg-slate-200/80 dark:bg-slate-700/80"
+              />
+            )}
 
             {/* Control pair (replaces the removed panel header): ⋯ toggles
                 Level 2, × collapses the dock to the icon. Side positions =
                 full-bleed row at the column's bottom; middle/mobile = at
                 the end of the row flow. */}
             <div
-              className={`flex gap-1.5 ${
-                effectiveLayout === 'vertical' ? '-mx-1.5 justify-center' : ''
+              className={`flex items-center gap-1.5 md:gap-2 shrink-0 ${
+                effectiveLayout === 'vertical' ? 'flex-col justify-center' : 'flex-nowrap'
               }`}
             >
               <button
@@ -863,37 +886,43 @@ export default function LawlibDock(props: LawlibDockProps) {
                 aria-controls="lawlib-more-panel"
                 aria-label="เพิ่มเติม"
                 title="เพิ่มเติม"
-                className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:text-blue-300"
+                className={`flex h-7 w-7 md:h-8 md:w-8 cursor-pointer items-center justify-center rounded-full border shadow-xs transition-all duration-150 hover:scale-110 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                  moreOpen
+                    ? 'border-blue-500/80 bg-blue-50/90 text-blue-600 ring-1.5 ring-blue-500/20 dark:border-blue-400/80 dark:bg-blue-950/70 dark:text-blue-300 dark:ring-blue-400/20'
+                    : 'border-slate-200/90 bg-white/90 text-slate-600 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
+                }`}
               >
-                <i aria-hidden="true" className="fi fi-sr-menu-dots text-xs leading-none" />
+                <i
+                  aria-hidden="true"
+                  className="fi fi-sr-menu-dots text-xs md:text-[13px] leading-none"
+                />
               </button>
               <button
                 type="button"
                 onClick={() => userClose(true)}
                 aria-label="ปิดแถบเครื่องมือ"
                 title="ปิดแถบเครื่องมือ"
-                className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:border-blue-300 hover:text-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:text-blue-300"
+                className="flex h-7 w-7 md:h-8 md:w-8 cursor-pointer items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-slate-500 shadow-xs transition-all duration-150 hover:scale-110 hover:border-rose-400/80 hover:bg-white hover:text-rose-600 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-400 dark:hover:border-rose-400/60 dark:hover:text-rose-300"
               >
-                <i aria-hidden="true" className="fi fi-sr-cross text-[10px] leading-none" />
+                <i
+                  aria-hidden="true"
+                  className="fi fi-sr-cross text-[10px] md:text-xs leading-none"
+                />
               </button>
             </div>
           </div>
 
-          {/* ─── Level 2 (T15 v2.3): SIBLING glass panel — a SEPARATE 112px
-              surface beside Level 1, flip-anchored away from the screen
-              edge (desktop) / an in-flow block inside the sheet (mobile).
-              Icon-only 2-col grid: row 1 = the Level-1 favorite set, row 2
-              = the rest (glossary · bookmarks-ALL · copy · copy-link · ⚙️
-              settings). NO back button / section titles / text rows / pin
-              toggles (the favorites editor lives in the ⚙️ settings
-              picker; the position selector too — T12c). ──────────────── */}
+          {/* ─── Level 2 (T15 v2.3): SIBLING glass panel — a SEPARATE 112px glass panel (w-28), anchored to
+              Level 1 with the per-position flip (`more` — away from the screen
+              edge). Mobile: an in-flow full-width block inside the sheet (dots ⋯
+              expands it). ──────────────── */}
           {moreOpen && (
             <div
               id="lawlib-more-panel"
               data-lawlib-l2
               className={`lawlib-glass lawlib-glass-xs lawlib-glass-sheen ${morePanelPlacementClass} border-slate-200 dark:border-slate-700`}
             >
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1.5 md:gap-2">
                 {settings.favoriteToolKeys.length > 0 && (
                   <>
                     <ul className="grid grid-cols-2 justify-items-center gap-0.5">

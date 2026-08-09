@@ -454,6 +454,19 @@ export const DOCK_POSITIONS: readonly DockPosition[] = [
   'bottom-right',
 ];
 
+/** 3×3 grid layout with the center slot spaced/empty for spatial parity with screen edges. */
+export const POSITION_GRID_SLOTS: readonly (DockPosition | null)[] = [
+  'top-left',
+  'top-center',
+  'top-right',
+  'mid-left',
+  null,
+  'mid-right',
+  'bottom-left',
+  'bottom-center',
+  'bottom-right',
+];
+
 export const DEFAULT_DOCK_POSITION: DockPosition = 'bottom-right';
 
 const POSITION_LABELS: Record<DockPosition, string> = {
@@ -780,8 +793,8 @@ export function SettingsPanelContent({
       </p>
 
       {/* ─── Dock position (T12c — moved from Level 2, ADR-019 D9: all
-          settings in one place). 8 spots, 3×3 minus center, per-setting
-          คืนค่า like every other section. */}
+          settings in one place). 8 spots in a 3×3 grid with the center spaced,
+          per-setting คืนค่า like every other section. */}
       <SettingsSectionTitle
         action={
           <ResetButton
@@ -793,24 +806,42 @@ export function SettingsPanelContent({
       >
         ตำแหน่งปุ่มเครื่องมือ
       </SettingsSectionTitle>
-      <div role="group" aria-label="ตำแหน่งปุ่มเครื่องมือ" className="grid grid-cols-3 gap-1">
-        {DOCK_POSITIONS.map((pos) => (
-          <button
-            key={pos}
-            type="button"
-            aria-pressed={dockPosition === pos}
-            aria-label={`ตำแหน่ง${POSITION_LABELS[pos]}`}
-            title={POSITION_LABELS[pos]}
-            onClick={() => onDockPositionChange(pos)}
-            className={`flex h-11 cursor-pointer items-center justify-center rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-              dockPosition === pos
-                ? 'border-blue-400 bg-blue-50 text-blue-600 dark:border-blue-500/60 dark:bg-blue-950/50 dark:text-blue-300'
-                : 'border-slate-200 bg-white text-slate-500 hover:border-blue-300 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:text-blue-300'
-            }`}
-          >
-            <i aria-hidden="true" className="fi fi-sr-circle-small text-[10px]" />
-          </button>
-        ))}
+      <div role="group" aria-label="ตำแหน่งปุ่มเครื่องมือ" className="grid grid-cols-3 gap-1.5">
+        {POSITION_GRID_SLOTS.map((pos) => {
+          if (pos === null) {
+            return (
+              <div
+                key="center-spacer"
+                aria-hidden="true"
+                className="flex h-11 items-center justify-center rounded-xl border border-dashed border-slate-200/80 bg-slate-50/40 dark:border-slate-700/60 dark:bg-slate-800/20"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+              </div>
+            );
+          }
+          return (
+            <button
+              key={pos}
+              type="button"
+              aria-pressed={dockPosition === pos}
+              aria-label={`ตำแหน่ง${POSITION_LABELS[pos]}`}
+              title={POSITION_LABELS[pos]}
+              onClick={() => onDockPositionChange(pos)}
+              className={`flex h-11 cursor-pointer items-center justify-center rounded-xl border transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 active:scale-95 ${
+                dockPosition === pos
+                  ? 'border-blue-500/80 bg-blue-50/90 text-blue-600 shadow-xs ring-2 ring-blue-500/20 dark:border-blue-400/80 dark:bg-blue-950/70 dark:text-blue-300 dark:ring-blue-400/20'
+                  : 'border-slate-200/90 bg-white/90 text-slate-400 shadow-xs hover:scale-105 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:border-blue-400/60 dark:hover:bg-slate-700 dark:hover:text-blue-300'
+              }`}
+            >
+              <i
+                aria-hidden="true"
+                className={`fi fi-sr-circle-small ${
+                  dockPosition === pos ? 'text-xs text-blue-600 dark:text-blue-300' : 'text-[10px]'
+                }`}
+              />
+            </button>
+          );
+        })}
       </div>
 
       {/* ─── Paragraph spacing + weight ────────────────────────────────── */}
