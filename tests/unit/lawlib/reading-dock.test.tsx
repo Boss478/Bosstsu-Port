@@ -44,6 +44,12 @@
  *   settings.animateDock AND prefers-reduced-motion (tests default the
  *   reduced-motion stub ON → instant swaps, so close-path assertions stay
  *   synchronous; dedicated tests flip it OFF)
+ * - T25 animation (ADR-023 D9 locked values): L2 menu pops in 200ms
+ *   (lawlib-pop-in, origin per the `more` flip) and exits with a 140ms
+ *   pop-out + L2_ANIM_MS delay-unmount (re-open cancels a pending exit);
+ *   L1 expand morphs 200ms from the dock icon (lawlib-morph-in replaces
+ *   the old dock-in; collapse keeps the 150ms dock-out); `vt-dock` sits on
+ *   the ROOT wrapper only
  * - bookmark: toggle + aria-pressed + count badge
  * - T12c theme dot: baselines on the RESOLVED initial theme (OS-dark
  *   fallback users see no false dot on first visit)
@@ -860,6 +866,177 @@ describe('Dock v2.3 — animation (T12, gated by animateDock + reduced-motion)',
     await renderReader();
     fireEvent.click(closeDockBtn());
     expect(dockPanel()).toBeNull();
+  });
+});
+
+describe('Dock v2.6 — T25 L2 menu pop + L1 morph (ADR-023 D9 locked values)', () => {
+  it('L2 open with the gate on: lawlib-pop-in + transform-origin at the ⋯ side (bottom-right → right bottom)', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderReader();
+    fireEvent.click(moreBtn());
+    const panel = morePanel() as HTMLElement;
+    expect(panel).not.toBeNull();
+    expect(panel.className).toContain('lawlib-pop-in');
+    expect(panel.className).not.toContain('lawlib-pop-out');
+    // The menu grows FROM the ⋯ trigger — default bottom-right dock = L2 on
+    // the LEFT of L1 (right-full), origin at its right-bottom corner.
+    expect(panel.style.transformOrigin).toBe('right bottom');
+  });
+
+  it('L2 close with the gate on: pop-out hold keeps the panel mounted (140ms exit inside L2_ANIM_MS), then unmounts', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderReader();
+    fireEvent.click(moreBtn());
+    fireEvent.click(moreBtn());
+    const panel = morePanel() as HTMLElement;
+    expect(panel).not.toBeNull(); // held for the exit animation
+    expect(panel.className).toContain('lawlib-pop-out');
+    expect(moreBtn().getAttribute('aria-expanded')).toBe('false');
+    // The exit (140ms) + hold (L2_ANIM_MS = 200ms) complete → unmount.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    });
+    expect(morePanel()).toBeNull();
+  });
+
+  it('L2 re-open during the exit hold cancels it — the menu stays alive', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderReader();
+    fireEvent.click(moreBtn()); // open
+    fireEvent.click(moreBtn()); // close → exit hold starts
+    expect(morePanel()!.className).toContain('lawlib-pop-out');
+    fireEvent.click(moreBtn()); // re-open within the hold
+    const panel = morePanel() as HTMLElement;
+    expect(panel.className).toContain('lawlib-pop-in');
+    expect(moreBtn().getAttribute('aria-expanded')).toBe('true');
+    // The original exit timer must not fire a late unmount.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    });
+    expect(morePanel()).not.toBeNull();
+  });
+
+  it('L2 rapid triple-toggle: a STALE exit timer must not cut the second exit short (ADR-023 D4)', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderReader();
+    fireEvent.click(moreBtn()); // open
+    fireEvent.click(moreBtn()); // close #1 → exit timer A (+200ms)
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+    fireEvent.click(moreBtn()); // re-open (cancels timer A)
+    fireEvent.click(moreBtn()); // close #2 → exit timer B (+200ms)
+    // +220ms after close #1: timer A has already fired — WITHOUT the
+    // cancellation the menu would be unmounted mid-exit #2 (timer B still
+    // holds until +300ms).
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 120));
+    });
+    expect(morePanel()).not.toBeNull();
+    // Timer B fires → unmount.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+    });
+    expect(morePanel()).toBeNull();
+  });
+
+  it('L2 with the gate OFF (animateDock=false): instant mount/unmount, no pop classes', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    localStorage.setItem('lawlib:settings', JSON.stringify({ fontSize: 16, animateDock: false }));
+    await renderReader();
+    fireEvent.click(moreBtn());
+    const panel = morePanel() as HTMLElement;
+    expect(panel).not.toBeNull();
+    expect(panel.className).not.toContain('lawlib-pop-in');
+    fireEvent.click(moreBtn());
+    expect(morePanel()).toBeNull(); // instant — no closing hold
+  });
+
+  it('L2 Esc close with the gate on: pop-out hold + focus → ⋯, then unmounts (Esc parity with the toggle)', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderReader();
+    fireEvent.click(moreBtn());
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(morePanel()).not.toBeNull();
+    expect(morePanel()!.className).toContain('lawlib-pop-out');
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    });
+    expect(moreBtn()).toBe(document.activeElement);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    });
+    expect(morePanel()).toBeNull();
+  });
+
+  it('L1 expands with lawlib-morph-in FROM the dock icon — the old dock-in is gone (default bottom-right → bottom right origin)', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderReader();
+    const panel = dockPanel() as HTMLElement;
+    expect(panel.className).toContain('lawlib-morph-in');
+    // Regression pin: the 200ms morph SUPERSEDES the directional dock-in.
+    expect(panel.className).not.toContain('lawlib-dock-anim-in');
+    expect(panel.style.transformOrigin).toBe('bottom right');
+  });
+
+  it('L1 collapse keeps the directional dock-out; re-expand morphs in again', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderReader();
+    fireEvent.click(closeDockBtn());
+    const panel = dockPanel() as HTMLElement;
+    expect(panel.className).toContain('lawlib-dock-anim-out-up'); // DOCK_ANIM_MS path untouched
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    });
+    expect(dockPanel()).toBeNull();
+    fireEvent.click(dockIcon());
+    const rePanel = dockPanel() as HTMLElement;
+    expect(rePanel.className).toContain('lawlib-morph-in');
+    expect(rePanel.style.transformOrigin).toBe('bottom right');
+  });
+
+  it('L1 morph origin follows the position: top-center → top center, mid-left → left center', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderReader();
+    clickPositionInSettings('บนกลาง');
+    expect((dockPanel() as HTMLElement).style.transformOrigin).toBe('top center');
+    // Reset between picks: Esc closes the settings picker (dock + L2 stay
+    // open); toggle L2 shut, let the exit hold finish, then reopen fresh —
+    // the position spot click does NOT close the picker, so a second direct
+    // helper call would toggle it OFF instead of re-opening.
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    });
+    fireEvent.click(moreBtn()); // L2 close (exit hold)
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    });
+    clickPositionInSettings('กลางซ้าย');
+    expect((dockPanel() as HTMLElement).style.transformOrigin).toBe('left center');
+  });
+
+  it('vt-dock sits on the ROOT wrapper ONLY — never the panels or the collapsed icon (duplicate VT names skip the transition)', async () => {
+    await renderReader();
+    const root = document.querySelector('.lawlib-dock.fixed') as HTMLElement;
+    expect(root).not.toBeNull();
+    expect(root.className).toContain('vt-dock');
+    document.querySelectorAll('.lawlib-dock').forEach((el) => {
+      if (el !== root) expect(el.className).not.toContain('vt-dock');
+    });
+  });
+
+  it('mobile: sheet morphs from bottom center; the in-flow L2 pops from top center', async () => {
+    mockMatchMedia({ mobile: true, reducedMotion: false });
+    await renderReader();
+    const panel = dockPanel() as HTMLElement;
+    expect(panel.className).toContain('lawlib-morph-in');
+    expect(panel.style.transformOrigin).toBe('bottom center');
+    fireEvent.click(moreBtn());
+    const l2 = morePanel() as HTMLElement;
+    expect(l2).not.toBeNull();
+    expect(l2.className).toContain('lawlib-pop-in');
+    expect(l2.style.transformOrigin).toBe('top center');
   });
 });
 

@@ -544,8 +544,14 @@ describe('T14 settings panel — เครื่องมือแถวลั�
 
     // Close the settings picker, then ⋯ toggles Level 2 closed (T15 v2.3 —
     // the ย้อนกลับ back button is gone) → Level 1 no longer has ธีม.
+    // T25: with the animation gate on (this file's matchMedia stub reports
+    // NO reduced-motion preference) the L2 close plays a 140ms pop-out +
+    // 200ms hold — flush it before asserting the settled state.
     fireEvent.keyDown(document, { key: 'Escape' }); // picker
     fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' })); // L2 → L1
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    });
     expect(screen.queryByRole('button', { name: /ธีม/ })).toBeNull();
     // …but Level 2 row 2 still offers it (row 2 = everything not pinned).
     fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' })); // ⋯ reopens L2
@@ -559,6 +565,11 @@ describe('T14 settings panel — เครื่องมือแถวลั�
 
     fireEvent.keyDown(document, { key: 'Escape' });
     fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' })); // ⋯ toggles L2 closed
+    // T25: flush the L2 exit hold (animation gate on — see the unpin test)
+    // so the unscoped query cannot match the closing L2 panel's copy.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    });
     expect(screen.getByRole('button', { name: 'บทนิยาม' })).toBeTruthy();
 
     // Row 2 dedups: บทนิยาม lives in row 1 only — the L2 sibling panel
