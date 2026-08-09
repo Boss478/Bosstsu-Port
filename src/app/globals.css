@@ -2241,6 +2241,12 @@ textarea,
   border-radius: 0.375rem;
   background: #fde68a;
   box-shadow: 0 0 0 2px #b8730a;
+  /* T31 (AC-4 — D9 "bg+box-shadow"): the tints fade in/out over 150ms;
+     the ring pulse rides as a separate 1-iteration animation (compound
+     rule below — one animation per element, D10). */
+  transition:
+    background-color 150ms,
+    box-shadow 150ms;
 }
 .dark .lawlib-dline-flash {
   background: rgba(251, 191, 36, 0.2);
@@ -2251,6 +2257,13 @@ textarea,
     background: transparent;
     box-shadow: none;
   }
+}
+/* T31 (AC-4) — the 150ms ring pulse on flash start. Explicitly fill-mode
+   NONE (NOT .lawlib-flash-pulse's `both`): a held final keyframe (transparent
+   6px ring) would overwrite the amber ring for the whole 2s flash. After the
+   one iteration the static ring takes over again. */
+.lawlib-dline-flash.lawlib-flash-pulse {
+  animation: lawlib-flash-pulse 0.15s ease-out;
 }
 
 /* ─── T10b focus mode (ADR-019 D4/D7): the reader sets body.lawlib-focus

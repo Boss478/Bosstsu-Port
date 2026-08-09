@@ -1251,7 +1251,14 @@ export default function CompactView({
 
   return (
     <div className="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8">
-      <div className="mb-6 lg:mb-0">
+      {/* T31 (AC-3): main sections stagger 60ms on mount (inline
+          animation-delay, fill backwards — no persistent transform; the
+          ArticlePopover below is position:fixed and must keep the viewport
+          as its containing block). */}
+      <div
+        className="lawlib-fade-rise mb-6 lg:mb-0"
+        style={{ animationDelay: '60ms', animationFillMode: 'backwards' }}
+      >
         <DigestToc
           view={view}
           startIndex={2}
@@ -1264,7 +1271,8 @@ export default function CompactView({
       {/* Same main card frame as FULL (lawlib-article-card) — card inside card
           (user decision 2026-08-05); reader typography settings apply. */}
       <div
-        className={`lawlib-article-card mx-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6 ${widthClass}`}
+        className={`lawlib-fade-rise lawlib-article-card mx-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6 ${widthClass}`}
+        style={{ animationDelay: '120ms', animationFillMode: 'backwards' }}
       >
         <div style={{ lineHeight }} className={`min-w-0 ${fontSizeClass} leading-relaxed`}>
           {/* Compact heading (user 2026-08-05): fixed "ฉบับย่อ — {LAW}" format —

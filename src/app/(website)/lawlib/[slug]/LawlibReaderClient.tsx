@@ -905,9 +905,18 @@ export default function LawlibReaderClient({
         el.scrollIntoView({ block: 'center', behavior: reducedMotionNow() ? 'auto' : 'smooth' });
         el.focus({ preventScroll: true });
         if (!reducedMotionNow()) {
+          // T31 (AC-4) — ring pulse alongside the flash: 1 iteration. A
+          // re-jump inside the 2s window restarts it (a class re-add alone
+          // won't re-run a finished animation — T26 reflow pattern).
+          const wasPulsing = el.classList.contains('lawlib-flash-pulse');
           el.classList.add('lawlib-dline-flash');
+          if (wasPulsing) {
+            el.classList.remove('lawlib-flash-pulse');
+            void el.offsetWidth;
+          }
+          el.classList.add('lawlib-flash-pulse');
           flashLineTimerRef.current = window.setTimeout(() => {
-            el.classList.remove('lawlib-dline-flash');
+            el.classList.remove('lawlib-dline-flash', 'lawlib-flash-pulse');
             flashLineTimerRef.current = null;
           }, 2000);
         }
@@ -1683,171 +1692,189 @@ export default function LawlibReaderClient({
       <p role="status" className="sr-only">
         {statusText}
       </p>
-      {/* law header */}
-      <header className="border-b border-slate-100 pb-5 dark:border-slate-800">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <Link
-              href="/lawlib"
-              className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 transition-colors hover:text-blue-700 dark:text-slate-400 dark:hover:text-blue-300"
-            >
-              <span aria-hidden="true">←</span> กลับรายการกฎหมาย
-            </Link>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400">
-              <span className="rounded-full bg-blue-50 px-2 py-0.5 font-semibold text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
-                ภาค {law.part}
-              </span>
-              <span>{law.code}</span>
+      {/* T31 (AC-3) — page entrance wrapper: lawlib-fade-rise 400ms (D10:
+          animation-duration override AFTER the shorthand — inline). Fill
+          BACKWARDS (not the class's `both`): a held translateY would become
+          a containing block for the fixed ArticlePopover / tooltips for the
+          page's lifetime. Fixed chrome (dock / indicator / chip / drawers)
+          stays OUTSIDE this wrapper. */}
+      <div
+        className="lawlib-fade-rise"
+        style={{ animationDuration: '400ms', animationFillMode: 'backwards' }}
+      >
+        {/* law header */}
+        <header className="border-b border-slate-100 pb-5 dark:border-slate-800">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0">
+              <Link
+                href="/lawlib"
+                className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 transition-colors hover:text-blue-700 dark:text-slate-400 dark:hover:text-blue-300"
+              >
+                <span aria-hidden="true">←</span> กลับรายการกฎหมาย
+              </Link>
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400">
+                <span className="rounded-full bg-blue-50 px-2 py-0.5 font-semibold text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+                  ภาค {law.part}
+                </span>
+                <span>{law.code}</span>
+              </div>
+              <h1 className="mt-1.5 text-2xl font-bold leading-relaxed text-slate-900 dark:text-white">
+                {law.titleTh}
+              </h1>
+              <p className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                {law.gazetteRef} — ตรวจสอบล่าสุด {formatVerifiedAt(law.verifiedAt)}
+              </p>
             </div>
-            <h1 className="mt-1.5 text-2xl font-bold leading-relaxed text-slate-900 dark:text-white">
-              {law.titleTh}
-            </h1>
-            <p className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-              {law.gazetteRef} — ตรวจสอบล่าสุด {formatVerifiedAt(law.verifiedAt)}
-            </p>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <div className="mt-4">
-        {/* History: digest pages → the merged per-edition block (md-driven,
+        <div className="mt-4">
+          {/* History: digest pages → the merged per-edition block (md-driven,
             shows in BOTH views — user 2026-08-05); other laws → JSON timeline. */}
-        {digestView !== null && digestView.sections[1] !== undefined ? (
-          <DigestHistoryBlock
-            lines={digestView.sections[1].lines}
-            slug={law.slug}
-            onOpenRef={handleOpenRef}
-            onSeeFull={handleSeeFull}
-            getTriggerProps={getTriggerProps}
-            isTooltipOpen={isTooltipOpen}
-            tooltipId={tooltipId}
-          />
-        ) : (
-          <EditionTimeline editions={law.editions} />
-        )}
-      </div>
+          {digestView !== null && digestView.sections[1] !== undefined ? (
+            <DigestHistoryBlock
+              lines={digestView.sections[1].lines}
+              slug={law.slug}
+              onOpenRef={handleOpenRef}
+              onSeeFull={handleSeeFull}
+              getTriggerProps={getTriggerProps}
+              isTooltipOpen={isTooltipOpen}
+              tooltipId={tooltipId}
+            />
+          ) : (
+            <EditionTimeline editions={law.editions} />
+          )}
+        </div>
 
-      {/* FULL | COMPACT toggle — APG radio group, visible only when a digest
+        {/* FULL | COMPACT toggle — APG radio group, visible only when a digest
           exists (FR1). Contrast per loop-4 #8: selected bg-blue-700/white
           (dark bg-blue-600/white), unselected text-blue-800/blue-300. */}
-      {digestView !== null && (
-        <div
-          role="radiogroup"
-          aria-label="มุมมองการอ่าน"
-          aria-controls="lawlib-reader-content"
-          onKeyDown={(e) => {
-            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-              e.preventDefault();
-              handleSetView(effectiveView === 'compact' ? 'full' : 'compact');
-            }
-          }}
-          className="mt-4 inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900"
-        >
-          <button
-            type="button"
-            role="radio"
-            aria-checked={effectiveView === 'full'}
-            tabIndex={effectiveView === 'full' ? 0 : -1}
-            onClick={() => handleSetView('full')}
-            className={`min-h-11 min-w-11 cursor-pointer rounded-full px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-              effectiveView === 'full'
-                ? 'bg-blue-700 text-white dark:bg-blue-600'
-                : 'text-blue-800 dark:text-blue-300'
-            }`}
+        {digestView !== null && (
+          <div
+            role="radiogroup"
+            aria-label="มุมมองการอ่าน"
+            aria-controls="lawlib-reader-content"
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                handleSetView(effectiveView === 'compact' ? 'full' : 'compact');
+              }
+            }}
+            className="mt-4 inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900"
           >
-            ฉบับเต็ม
-          </button>
-          <button
-            type="button"
-            role="radio"
-            aria-checked={effectiveView === 'compact'}
-            tabIndex={effectiveView === 'compact' ? 0 : -1}
-            onClick={() => handleSetView('compact')}
-            className={`min-h-11 min-w-11 cursor-pointer rounded-full px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-              effectiveView === 'compact'
-                ? 'bg-blue-700 text-white dark:bg-blue-600'
-                : 'text-blue-800 dark:text-blue-300'
-            }`}
-          >
-            เวอร์ชันย่อ
-          </button>
-        </div>
-      )}
-
-      <div id="lawlib-reader-content" ref={focusSurfaceRef} className="mt-6">
-        {effectiveView === 'compact' && digestView !== null ? (
-          <CompactView
-            view={digestView}
-            law={law}
-            fontSizeClass={FONT_SIZE_CLASS}
-            widthClass={WIDTH_CLASS}
-            lineHeight={settings.lineHeight}
-            expandedKey={expandedKey}
-            expandedSource={expandedSource}
-            tooltipId={tooltipId}
-            onToggleCard={handleToggleCard}
-            onCollapseCard={handleCollapseCard}
-            onNavigate={navigateTo}
-            onOpenRef={handleOpenRef}
-            onSeeFull={handleSeeFull}
-            onExpandGroup={(groupId) =>
-              setCollapsedGroups((prev) => {
-                if (!prev.has(groupId)) return prev;
-                const next = new Set(prev);
-                next.delete(groupId);
-                return next;
-              })
-            }
-            activeArticleKey={activeKey}
-            highlights={highlights}
-            noteKeys={noteKeySet}
-            flashKey={flashKey}
-            collapsedGroups={collapsedGroups}
-            onToggleGroup={(id) =>
-              setCollapsedGroups((prev) => {
-                const next = new Set(prev);
-                if (next.has(id)) next.delete(id);
-                else next.add(id);
-                return next;
-              })
-            }
-            getTriggerProps={getTriggerProps}
-            isTooltipOpen={isTooltipOpen}
-          />
-        ) : (
-          <div className="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8">
-            <div className="mb-6 lg:mb-0">
-              <TocSidebar
-                law={law}
-                activeKey={activeKey}
-                onNavigate={navigateTo}
-                onActiveChange={setActiveKey}
-              />
-            </div>
-
-            <div
-              className={`lawlib-article-card mx-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6 ${WIDTH_CLASS}`}
+            <button
+              type="button"
+              role="radio"
+              aria-checked={effectiveView === 'full'}
+              tabIndex={effectiveView === 'full' ? 0 : -1}
+              onClick={() => handleSetView('full')}
+              className={`min-h-11 min-w-11 cursor-pointer rounded-full px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                effectiveView === 'full'
+                  ? 'bg-blue-700 text-white dark:bg-blue-600'
+                  : 'text-blue-800 dark:text-blue-300'
+              }`}
             >
-              <section
-                aria-label="เนื้อหากฎหมาย"
-                onMouseUp={handleArticleMouseUp}
-                style={{ lineHeight: settings.lineHeight }}
-                className={`min-w-0 pb-16 ${mainClass}`}
-              >
-                <ArticleView
-                  law={law}
-                  highlights={highlights}
-                  noteKeys={noteKeySet}
-                  flashKey={flashKey}
-                  getTriggerProps={getTriggerProps}
-                  isTooltipOpen={isTooltipOpen}
-                  tooltipId={tooltipId}
-                />
-              </section>
-            </div>
+              ฉบับเต็ม
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={effectiveView === 'compact'}
+              tabIndex={effectiveView === 'compact' ? 0 : -1}
+              onClick={() => handleSetView('compact')}
+              className={`min-h-11 min-w-11 cursor-pointer rounded-full px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                effectiveView === 'compact'
+                  ? 'bg-blue-700 text-white dark:bg-blue-600'
+                  : 'text-blue-800 dark:text-blue-300'
+              }`}
+            >
+              เวอร์ชันย่อ
+            </button>
           </div>
         )}
+
+        <div id="lawlib-reader-content" ref={focusSurfaceRef} className="mt-6">
+          {effectiveView === 'compact' && digestView !== null ? (
+            <CompactView
+              view={digestView}
+              law={law}
+              fontSizeClass={FONT_SIZE_CLASS}
+              widthClass={WIDTH_CLASS}
+              lineHeight={settings.lineHeight}
+              expandedKey={expandedKey}
+              expandedSource={expandedSource}
+              tooltipId={tooltipId}
+              onToggleCard={handleToggleCard}
+              onCollapseCard={handleCollapseCard}
+              onNavigate={navigateTo}
+              onOpenRef={handleOpenRef}
+              onSeeFull={handleSeeFull}
+              onExpandGroup={(groupId) =>
+                setCollapsedGroups((prev) => {
+                  if (!prev.has(groupId)) return prev;
+                  const next = new Set(prev);
+                  next.delete(groupId);
+                  return next;
+                })
+              }
+              activeArticleKey={activeKey}
+              highlights={highlights}
+              noteKeys={noteKeySet}
+              flashKey={flashKey}
+              collapsedGroups={collapsedGroups}
+              onToggleGroup={(id) =>
+                setCollapsedGroups((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(id)) next.delete(id);
+                  else next.add(id);
+                  return next;
+                })
+              }
+              getTriggerProps={getTriggerProps}
+              isTooltipOpen={isTooltipOpen}
+            />
+          ) : (
+            <div className="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8">
+              {/* T31 (AC-3): main sections stagger 60ms on mount (inline
+                animation-delay, fill backwards — see page wrapper above). */}
+              <div
+                className="lawlib-fade-rise mb-6 lg:mb-0"
+                style={{ animationDelay: '60ms', animationFillMode: 'backwards' }}
+              >
+                <TocSidebar
+                  law={law}
+                  activeKey={activeKey}
+                  onNavigate={navigateTo}
+                  onActiveChange={setActiveKey}
+                />
+              </div>
+
+              <div
+                className={`lawlib-fade-rise lawlib-article-card mx-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6 ${WIDTH_CLASS}`}
+                style={{ animationDelay: '120ms', animationFillMode: 'backwards' }}
+              >
+                <section
+                  aria-label="เนื้อหากฎหมาย"
+                  onMouseUp={handleArticleMouseUp}
+                  style={{ lineHeight: settings.lineHeight }}
+                  className={`min-w-0 pb-16 ${mainClass}`}
+                >
+                  <ArticleView
+                    law={law}
+                    highlights={highlights}
+                    noteKeys={noteKeySet}
+                    flashKey={flashKey}
+                    getTriggerProps={getTriggerProps}
+                    isTooltipOpen={isTooltipOpen}
+                    tooltipId={tooltipId}
+                  />
+                </section>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+      {/* end T31 page-entrance wrapper — fixed chrome below stays outside */}
 
       {/* dock v2 (T10a — ADR-019 D1/D2/D3/D6): 1-icon collapsed → Level 1
           favorites → Level 2 ALL tools; stays open until Esc/outside/re-click */}
