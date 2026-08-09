@@ -7,7 +7,7 @@ import { getError } from '@/lib/error-code';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const sessionId = searchParams.get('sessionId');
-  const studentToken = req.headers.get('student-token') ?? searchParams.get('studentToken');
+  const studentToken = req.headers.get('student-token');
 
   if (!sessionId) {
     return NextResponse.json({ error: 'Missing sessionId' }, { status: 400 });

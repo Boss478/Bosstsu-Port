@@ -79,5 +79,43 @@ describe('/api/tools/step', () => {
       expect(data.currentStep).toBe(-1);
       expect(data.totalSteps).toBe(1);
     });
+
+    it('returns kicked=true for kicked student via student-token header', async () => {
+      const session = await seedSession({
+        sessionCode: 'STEP3',
+        steps: [{ type: 'padlet', title: 'Step 1' }],
+        kickedStudents: ['kicked-student-token'],
+      });
+
+      const req = createGetRequest('/api/tools/step', {
+        searchParams: { sessionId: session._id.toString() },
+        headers: { 'student-token': 'kicked-student-token' },
+      });
+      const res = await GET(req);
+      const data = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(data.kicked).toBe(true);
+    });
+
+    it('ignores legacy studentToken query param (header-only)', async () => {
+      const session = await seedSession({
+        sessionCode: 'STEP4',
+        steps: [{ type: 'padlet', title: 'Step 1' }],
+        kickedStudents: ['kicked-student-token'],
+      });
+
+      const req = createGetRequest('/api/tools/step', {
+        searchParams: {
+          sessionId: session._id.toString(),
+          studentToken: 'kicked-student-token',
+        },
+      });
+      const res = await GET(req);
+      const data = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(data.kicked).toBe(false);
+    });
   });
 });

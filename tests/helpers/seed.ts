@@ -11,6 +11,7 @@ interface SeedSessionOptions {
   steps?: Array<{ type: string; title: string; config?: Record<string, unknown> }>;
   currentStep?: number;
   allowStudentNavigation?: boolean;
+  kickedStudents?: string[];
 }
 
 export async function seedSession(
@@ -25,6 +26,7 @@ export async function seedSession(
     steps: opts.steps || [],
     currentStep: opts.currentStep !== undefined ? opts.currentStep : -1,
     allowStudentNavigation: opts.allowStudentNavigation || false,
+    kickedStudents: opts.kickedStudents || [],
     participantCount: 0,
     responseCount: 0,
   });
