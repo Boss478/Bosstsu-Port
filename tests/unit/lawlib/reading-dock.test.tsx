@@ -1040,6 +1040,110 @@ describe('Dock v2.6 — T25 L2 menu pop + L1 morph (ADR-023 D9 locked values)', 
   });
 });
 
+describe('Dock v2.7 — T26 position-change re-trigger + transform raise (ADR-023 D9 locked values)', () => {
+  /** The position-change ANIMATION wrapper (T26 AC-1) — the inner div the
+   *  enter keyframe + re-trigger live on (never the vt-dock root). */
+  const posWrapper = () => document.querySelector('[data-lawlib-pos]') as HTMLElement | null;
+  const dockRoot = () => document.querySelector('.lawlib-dock.fixed') as HTMLElement;
+
+  /** The settings picker does NOT auto-close after a selection — reset the
+   *  picker + L2 (Esc cascade: picker → L2 → dock) so the ⋯ toggle of
+   *  clickPositionInSettings works for a SECOND position switch. */
+  function switchPosition(label: string): void {
+    fireEvent.keyDown(document, { key: 'Escape' });
+    fireEvent.keyDown(document, { key: 'Escape' });
+    clickPositionInSettings(label);
+  }
+
+  it('gate ON: the INNER wrapper carries the directional enter class (up → down → side) — the vt-dock root is untouched', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderReader();
+    // Default bottom-right → slides UP from the bottom edge.
+    expect(posWrapper()!.className).toContain('lawlib-dock-pos-in-up');
+    // AC-5: the class NEVER lands on the ref'd root; vt-dock stays put.
+    const root = dockRoot();
+    expect(root.className).not.toContain('lawlib-dock-pos-in');
+    expect(root.className).toContain('vt-dock');
+    expect(posWrapper()!.className).not.toContain('vt-dock');
+
+    // First switch: helper on the fresh dock (L2 closed).
+    clickPositionInSettings('บนซ้าย');
+    expect(posWrapper()!.className).toContain('lawlib-dock-pos-in-down');
+    expect(dockRoot().className).not.toContain('lawlib-dock-pos-in');
+
+    // Second switch: Esc ×2 (picker → L2) then the helper — the settings
+    // picker stays open after a pick, so switchPosition resets it first.
+    switchPosition('กลางซ้าย');
+    expect(posWrapper()!.className).toContain('lawlib-dock-pos-in-side');
+    // Mid positions flip the inline slide var on the root — the wrapper
+    // inherits it into the side keyframes.
+    expect(dockRoot().style.getPropertyValue('--lawlib-dock-slide')).toBe('-8px');
+  });
+
+  it('same-direction move (bottom-left → bottom-right, both up): the reflow RE-TRIGGERS even though the class never changes', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderReader();
+    clickPositionInSettings('ล่างซ้าย');
+    const wrapper = posWrapper()!;
+    expect(wrapper.className).toContain('lawlib-dock-pos-in-up');
+    // Pin the mechanism observable: the effect must read offsetWidth (the
+    // reflow) on the SAME node — an instance spy proves the restart idiom
+    // ran and that nothing was key-remounted (a remount would orphan this
+    // element and the spy would never fire).
+    const reflowSpy = vi.spyOn(wrapper, 'offsetWidth', 'get');
+    expect(reflowSpy).not.toHaveBeenCalled();
+
+    switchPosition('ล่างขวา'); // same animDir — class identical
+    expect(wrapper.className).toContain('lawlib-dock-pos-in-up');
+    expect(reflowSpy).toHaveBeenCalled();
+    // Inline `animation: none` was set then cleared (back to the class).
+    expect(wrapper.style.animation).toBe('');
+  });
+
+  it('the settings picker STAYS open + anchored after a position switch (reflow re-trigger — never a key-remount)', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderReader();
+    clickPositionInSettings('บนกลาง');
+    // The position spot click does NOT close the picker (T25 pin).
+    expect(screen.getByRole('group', { name: 'ตั้งค่า' })).toBeTruthy();
+    const l2 = document.getElementById('lawlib-more-panel');
+    expect(l2).not.toBeNull();
+
+    // Second switch via the Esc-reset helper — L2 + picker must survive.
+    switchPosition('กลางซ้าย');
+    expect(screen.getByRole('group', { name: 'ตั้งค่า' })).toBeTruthy();
+    expect(document.getElementById('lawlib-more-panel')).not.toBeNull();
+  });
+
+  it('gate OFF (animateDock=false): instant class swap — no pos class, no reflow read (AC-3)', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    localStorage.setItem('lawlib:settings', JSON.stringify({ fontSize: 16, animateDock: false }));
+    await renderReader();
+    const wrapper = posWrapper()!;
+    expect(wrapper.className).not.toContain('lawlib-dock-pos-in');
+    const reflowSpy = vi.spyOn(wrapper, 'offsetWidth', 'get');
+
+    clickPositionInSettings('บนซ้าย');
+    expect(wrapper.className).not.toContain('lawlib-dock-pos-in');
+    expect(reflowSpy).not.toHaveBeenCalled();
+  });
+
+  it('root: transition-[bottom] is GONE → transition-[transform] duration-100; non-bottom positions get no bottom/raise classes', async () => {
+    await renderReader();
+    const root = dockRoot();
+    expect(root.className).not.toContain('transition-[bottom]');
+    expect(root.className).toContain('transition-[transform]');
+    expect(root.className).toContain('duration-100');
+    // Default bottom-right, at the top (no BackToTop) → flush, not raised.
+    expect(root.className).not.toContain('lawlib-dock-raised');
+
+    clickPositionInSettings('บนซ้าย');
+    const topLeft = dockRoot();
+    expect(topLeft.className).not.toContain('bottom-[');
+    expect(topLeft.className).not.toContain('lawlib-dock-raised');
+  });
+});
+
 describe('Dock v2.3 — mobile-safe panel structure (T12/T15)', () => {
   it('desktop: the L1 TOOLS wrapper has NO max-h/overflow (T20 — no internal scroll); the panel wrapper stays overflow-visible (L2 sibling never clipped)', async () => {
     await renderReader();
