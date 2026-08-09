@@ -1091,3 +1091,93 @@ describe('T13 — inline prose ranges (มาตรา 75–76)', () => {
     fireEvent.pointerLeave(memberBtn('6') as HTMLElement, { pointerType: 'mouse' });
   });
 });
+
+// ---------------------------------------------------------------------------
+// T31 (ADR-023 D9 row 16 — compact group expand motion, AC-1)
+// ---------------------------------------------------------------------------
+
+describe('T31 — compact group expand motion (AC-1)', () => {
+  it('expand: content remounts with lawlib-fade-rise 150ms; collapse: instant hidden; chevron springs', async () => {
+    // Shared fixture: section 4 (มาตราสำคัญ) groups into ch-1 (บททั่วไป) +
+    // the unnumbered บทเฉพาะกาล (ch-x-1). First group expanded, the rest
+    // collapsed — compact is the digest default view.
+    await renderReader();
+
+    const region = document.querySelector<HTMLElement>('[id$="-region"][hidden]');
+    expect(region).not.toBeNull();
+    const regionId = region!.id;
+    // The group header button sits in the h3 BEFORE the region div.
+    const header = region!.previousElementSibling?.querySelector('button') as HTMLButtonElement;
+    expect(header).not.toBeNull();
+    expect(header.getAttribute('aria-expanded')).toBe('false');
+
+    // Chevron baseline: spring timing on the transform transition, pointing
+    // down while collapsed (no rotate-180 yet).
+    const chevron = header.querySelector('i') as HTMLElement;
+    expect(chevron.className).toContain('transition-transform');
+    expect(chevron.className).toContain('duration-200');
+    expect(chevron.className).toContain('ease-ios-spring');
+    expect(chevron.className).not.toContain('rotate-180');
+
+    // Expand → the fade-rise class is re-added on the SAME region node (a
+    // class re-add starts a fresh animation; no keyed remount — callers
+    // hold region references, compact-routing contract).
+    fireEvent.click(header);
+    const region2 = document.getElementById(regionId) as HTMLElement;
+    expect(region2).not.toBeNull();
+    expect(region2.hasAttribute('hidden')).toBe(false);
+    expect(region2.className).toContain('lawlib-fade-rise');
+    expect(region2.style.animationDuration).toBe('150ms');
+    expect(header.getAttribute('aria-expanded')).toBe('true');
+    expect(header.querySelector('i')!.className).toContain('rotate-180');
+
+    // Collapse → instant (hidden attribute), no exit animation.
+    fireEvent.click(header);
+    expect(document.getElementById(regionId)!.hasAttribute('hidden')).toBe(true);
+    expect(header.getAttribute('aria-expanded')).toBe('false');
+    expect(header.querySelector('i')!.className).not.toContain('rotate-180');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T31 (ADR-023 D9 row 14 — digest flash ring pulse, AC-4)
+// ---------------------------------------------------------------------------
+
+describe('T31 — digest flash (AC-4)', () => {
+  it('digest-search jump: the dline gets flash + one-shot pulse classes (motion ON)', async () => {
+    // The shared harness defaults to reduced-motion ON (routing suite) —
+    // this test pins the ANIMATED variant, so flip motion off first.
+    mockMatchMedia(false, false);
+    await renderReader();
+
+    fireEvent.click(screen.getByRole('button', { name: 'ค้นหามาตรา' }));
+    const input = screen.getByRole('searchbox');
+    fireEvent.change(input, { target: { value: 'ผู้ปกครอง' } });
+    await flush(300); // debounce → digest results render
+
+    const result = screen.getAllByRole('button', { name: /ในเวอร์ชันย่อ/ })[0] as HTMLElement;
+    expect(result).not.toBeUndefined();
+    fireEvent.click(result);
+    await flush(100); // the 50ms jump defer
+
+    const flashed = document.querySelector<HTMLElement>('.lawlib-dline-flash');
+    expect(flashed).not.toBeNull();
+    expect(flashed!.classList.contains('lawlib-flash-pulse')).toBe(true);
+  });
+
+  it('reduced-motion: the jump keeps the focus cue but skips the flash classes (JS gate)', async () => {
+    // Harness default: reduced-motion ON.
+    await renderReader();
+
+    fireEvent.click(screen.getByRole('button', { name: 'ค้นหามาตรา' }));
+    const input = screen.getByRole('searchbox');
+    fireEvent.change(input, { target: { value: 'ผู้ปกครอง' } });
+    await flush(300);
+
+    const result = screen.getAllByRole('button', { name: /ในเวอร์ชันย่อ/ })[0] as HTMLElement;
+    fireEvent.click(result);
+    await flush(100);
+
+    expect(document.querySelector('.lawlib-dline-flash')).toBeNull();
+  });
+});

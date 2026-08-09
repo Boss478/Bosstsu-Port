@@ -232,6 +232,11 @@ describe('T10b settings panel — focus mode', () => {
     await renderReader();
     const picker = await openSettings();
     fireEvent.click(within(picker).getByRole('switch', { name: 'เปิดโหมดโฟกัส' }));
+    // T31 (AC-2): the surface fades 300ms BEFORE the chrome hides — the
+    // body class lands after the two-step hold (reduced-motion = instant).
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 320));
+    });
     expect(document.body.classList.contains('lawlib-focus')).toBe(true);
     expect(storedSettings().focusMode).toBe(true);
     // The dock (and its picker portal) is part of what focus mode hides —

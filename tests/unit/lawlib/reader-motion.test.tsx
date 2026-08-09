@@ -382,3 +382,113 @@ describe('T30 — auto-scroll chip (AC-3/AC-4/AC-5)', () => {
     expect(chip()).toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// T31 (ADR-023 D9 rows 14/18 — page entrance + focus two-step, AC-2/AC-3)
+// ---------------------------------------------------------------------------
+
+describe('T31 — page entrance + section stagger (AC-3)', () => {
+  it('page wrapper fades 400ms (backwards fill) + TOC/article columns stagger 60ms', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderReader();
+
+    // The page wrapper is the DIRECT child of the reader root (the root
+    // itself must NOT animate — a persistent transform there would hijack
+    // the fixed chrome's containing block).
+    const root = document.querySelector<HTMLElement>('.mx-auto');
+    const wrapper = root?.querySelector<HTMLElement>(':scope > .lawlib-fade-rise');
+    expect(wrapper).not.toBeNull();
+    expect(root!.className).not.toContain('lawlib-fade-rise');
+    expect(wrapper!.style.animationDuration).toBe('400ms');
+    expect(wrapper!.style.animationFillMode).toBe('backwards');
+
+    // Main sections: first (TOC column) 60ms, second (article column) 120ms
+    // (the columns live inside #lawlib-reader-content, under the wrapper).
+    const content = document.getElementById('lawlib-reader-content') as HTMLElement;
+    const columns = content.querySelectorAll<HTMLElement>('.lawlib-fade-rise');
+    expect(columns.length).toBe(2);
+    expect(columns[0].style.animationDelay).toBe('60ms');
+    expect(columns[0].style.animationFillMode).toBe('backwards');
+    expect(columns[1].style.animationDelay).toBe('120ms');
+    expect(columns[1].className).toContain('lawlib-article-card');
+  });
+});
+
+describe('T31 — focus mode two-step (AC-2)', () => {
+  const settingsTool = () => screen.getByRole('button', { name: /^ตั้งค่า/ });
+  const focusSwitch = () => screen.getByRole('switch', { name: 'เปิดโหมดโฟกัส' });
+  const surface = () => document.getElementById('lawlib-reader-content') as HTMLElement;
+
+  it('enter: surface fades 300ms (forward, no reverse) THEN body.lawlib-focus; indicator springs in', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderReader();
+
+    fireEvent.click(moreBtn()); // ⚙️ settings sits on the dock Level-2 row
+    fireEvent.click(settingsTool());
+    fireEvent.click(focusSwitch());
+
+    // Step 1 — the fade starts immediately: forward direction (NOT
+    // reverse), chrome still NOT hidden.
+    expect(surface().style.animation).toContain('lawlib-focus-fade');
+    expect(surface().style.animation).not.toContain('reverse');
+    expect(document.body.classList.contains('lawlib-focus')).toBe(false);
+
+    // The indicator mounts at toggle time (spring-in is the CSS class).
+    const indicator = document.querySelector('.lawlib-reading-indicator') as HTMLElement;
+    expect(indicator).not.toBeNull();
+    expect(indicator.className).toContain('lawlib-reading-indicator');
+
+    // Step 2 — after the 300ms fade the chrome hides.
+    await wait(320);
+    expect(document.body.classList.contains('lawlib-focus')).toBe(true);
+  });
+
+  it('exit: body.lawlib-focus removed INSTANT, then the surface fades in (reverse), animation cleared', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderReader();
+
+    fireEvent.click(moreBtn());
+    fireEvent.click(settingsTool());
+    fireEvent.click(focusSwitch());
+    await wait(320); // enter completes
+
+    fireEvent.click(screen.getByRole('button', { name: 'ออกจากโหมดโฟกัส' }));
+
+    // Toggle first (instant chrome restore), THEN the fade-in.
+    expect(document.body.classList.contains('lawlib-focus')).toBe(false);
+    expect(surface().style.animation).toContain('lawlib-focus-fade');
+    expect(surface().style.animation).toContain('reverse');
+
+    // After the 300ms fade-in the inline animation is cleared — no
+    // persistent scale on the surface (fixed popover containing block).
+    await wait(320);
+    expect(surface().style.animation).toBe('');
+  });
+
+  it('reduced-motion: instant toggle, no surface fade (JS gate)', async () => {
+    // Test default: reducedMotion stub ON.
+    await renderReader();
+
+    fireEvent.click(moreBtn());
+    fireEvent.click(settingsTool());
+    fireEvent.click(focusSwitch());
+
+    expect(document.body.classList.contains('lawlib-focus')).toBe(true);
+    expect(surface().style.animation).toBe('');
+  });
+
+  it('Esc exits focus mode through the same two-step path', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderReader();
+
+    fireEvent.click(moreBtn());
+    fireEvent.click(settingsTool());
+    fireEvent.click(focusSwitch());
+    await wait(320);
+    expect(document.body.classList.contains('lawlib-focus')).toBe(true);
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(document.body.classList.contains('lawlib-focus')).toBe(false);
+    expect(surface().style.animation).toContain('reverse');
+  });
+});

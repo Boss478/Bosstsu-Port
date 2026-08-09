@@ -1027,15 +1027,17 @@ function ChapterGroupView({
           />
         </button>
       </h3>
-      {/* T31 (AC-1): expand = content lawlib-fade-rise 150ms (keyed remount
-          re-triggers the animation per expand — plan §5 key-remount pattern);
-          collapse stays instant (hidden). NO height animation (layout — D2). */}
+      {/* T31 (AC-1): expand = content lawlib-fade-rise 150ms. The class is
+          present ONLY while expanded — collapse removes it (instant hidden),
+          re-expand re-adds it → the animation restarts on the SAME node
+          (a class re-add starts a fresh animation; no keyed remount — the
+          region node must keep its identity for callers holding references,
+          compact-routing contract). NO height animation (layout — D2). */}
       <div
-        key={collapsed ? 'collapsed' : 'expanded'}
         id={`${group.id}-region`}
         hidden={collapsed}
-        className="lawlib-fade-rise mt-2 space-y-3"
-        style={{ animationDuration: '150ms' }}
+        className={`${collapsed ? '' : 'lawlib-fade-rise'} mt-2 space-y-3`}
+        style={collapsed ? undefined : { animationDuration: '150ms' }}
       >
         {group.lines.map((line) =>
           line.kind === 'article' ? (
