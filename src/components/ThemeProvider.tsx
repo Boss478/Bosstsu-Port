@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { paperToneVars, parsePaperTone } from '@/lib/lawlib/paper-tone';
 
 /**
@@ -94,6 +95,21 @@ function applyPaperToneVars(tone: PaperTone): void {
   html.style.setProperty('--read-card', card);
 }
 
+/**
+ * T27 gate (adr-023 D3) — startViewTransition ONLY for discrete theme
+ * commits on lawlib routes: SSR-safe feature-detect, JS reduced-motion
+ * check (the CSS kill does NOT cover ::view-transition-* pseudo-elements),
+ * and the lawlib pathname gate (games/admin/elsewhere keep the instant
+ * swap + body-fade fallback). The `next !== current` equality guard lives
+ * at the call sites (part of the same gate, per AC-1).
+ */
+function canUseViewTransition(): boolean {
+  if (typeof document === 'undefined') return false;
+  if (typeof document.startViewTransition !== 'function') return false;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+  return window.location.pathname.startsWith('/lawlib');
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light');
   const [paperTone, setPaperToneState] = useState<PaperTone>(DEFAULT_PAPER_TONE);
@@ -127,9 +143,30 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setTheme = (next: Theme) => {
-    setThemeState(next);
-    localStorage.setItem('theme', next);
-    applyThemeClass(next);
+    // T27 (adr-023 D3): discrete commits on lawlib routes get a 400ms View
+    // Transition (flushSync so React paints inside the callback — the
+    // documented pattern); every other path keeps the exact same synchronous
+    // swap. Fire-and-forget (no await); try/catch → fallback synchronous swap
+    // so a thrown startViewTransition never breaks the app.
+    const commit = () => {
+      setThemeState(next);
+      localStorage.setItem('theme', next);
+      applyThemeClass(next);
+    };
+
+    if (canUseViewTransition() && next !== theme) {
+      try {
+        document.startViewTransition(() => {
+          flushSync(() => setThemeState(next));
+          applyThemeClass(next);
+          localStorage.setItem('theme', next);
+        });
+      } catch {
+        commit();
+      }
+      return;
+    }
+    commit();
   };
 
   const toggleTheme = () => {
@@ -141,11 +178,33 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme(next);
   };
 
-  const setPaperTone = (tone: PaperTone) => {
+  /**
+   * `opts.animated` (T27): discrete tone chips pass `{ animated: true }` to
+   * get the 400ms warm View Transition; the slider stays VT-free (snapshot-
+   * per-tick storm — never passes the flag), and the default keeps the
+   * current instant var swap.
+   */
+  const setPaperTone = (tone: PaperTone, opts?: { animated?: boolean }) => {
     const clamped = Math.min(100, Math.max(0, tone));
-    setPaperToneState(clamped);
-    localStorage.setItem('lawlib:paperTone', String(clamped));
-    applyPaperToneVars(clamped);
+    const commit = () => {
+      setPaperToneState(clamped);
+      localStorage.setItem('lawlib:paperTone', String(clamped));
+      applyPaperToneVars(clamped);
+    };
+
+    if (opts?.animated && canUseViewTransition() && clamped !== paperTone) {
+      try {
+        document.startViewTransition(() => {
+          flushSync(() => setPaperToneState(clamped));
+          applyPaperToneVars(clamped);
+          localStorage.setItem('lawlib:paperTone', String(clamped));
+        });
+      } catch {
+        commit();
+      }
+      return;
+    }
+    commit();
   };
 
   return (
