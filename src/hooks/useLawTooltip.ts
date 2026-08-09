@@ -462,6 +462,14 @@ export function useLawTooltip() {
     handleTooltipPointerLeave,
     /** Keyboard-opened → LawTooltip takes focus on mount (Tab cycles its actions). */
     openedByKeyboard,
+    /**
+     * True when the open came from a mouse pointer-click (pin). T19: the
+     * reader wires `preview={!pinned && !openedByKeyboard}` into LawTooltip —
+     * hover-open → 5-row preview + ดูเพิ่มเติม, click-pin → full text directly
+     * (user decision 2026-08-09). Touch opens are not pins → preview (the
+     * mobile sheet shows the same preview behavior).
+     */
+    pinned,
     /** Stable id for the tooltip root (aria-describedby target — plan commit 3). */
     tooltipId,
   };

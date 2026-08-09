@@ -432,6 +432,7 @@ export default function LawlibReaderClient({
     registerTooltipEl,
     handleTooltipPointerLeave,
     openedByKeyboard,
+    pinned,
     tooltipId,
   } = useLawTooltip();
 
@@ -1783,6 +1784,12 @@ export default function LawlibReaderClient({
           focusOnOpen={openedByKeyboard}
           tooltipId={tooltipId}
           hub={tooltipHub}
+          // T19 — hover preview (user decision): hover-open → 5-row clamp +
+          // ดูเพิ่มเติม; click-pin AND keyboard open → full text directly
+          // (both are "intent to read"; the keyboard Tab-cycle contract
+          // starts at the copy button, not the expand button). Touch opens
+          // are not pins → preview (mobile sheet shows the same preview).
+          preview={!pinned && !openedByKeyboard}
         />
       )}
     </div>

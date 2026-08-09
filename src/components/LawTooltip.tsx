@@ -28,7 +28,15 @@
  * solid surfaces (contrast AA).
  */
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { createPortal } from 'react-dom';
 import type { LawDoc } from '@/types/lawlib';
 import {
@@ -110,6 +118,13 @@ interface LawTooltipProps {
    * section is not rendered.
    */
   hub?: LawTooltipHub;
+  /**
+   * T19 — hover PREVIEW mode (user decision 2026-08-09): true → the body
+   * opens clamped to ~5 rows + a one-way ดูเพิ่มเติม expand button; false →
+   * full text directly (click-pin = intent to read; keyboard too). Default
+   * false — pre-wiring callers/tests get the full text, unchanged.
+   */
+  preview?: boolean;
 }
 
 const GAP = 8;
@@ -118,8 +133,11 @@ export interface TooltipPosition {
   left: number;
   top: number;
   /** Entry-animation pivot: 'top' when placed BELOW the anchor (grows
-   *  downward), 'bottom' when placed above (grows upward). */
-  origin: 'top' | 'bottom';
+   *  downward), 'bottom' when placed above (grows upward), and — T19 —
+   *  'right'/'left' when placed BESIDE the anchor. transformOrigin maps 1:1
+   *  (origin='right' → transformOrigin='right', anchored on the RIGHT edge
+   *  of the tooltip, i.e. the edge AWAY from the trigger). */
+  origin: 'top' | 'bottom' | 'left' | 'right';
 }
 
 /**
@@ -128,19 +146,37 @@ export interface TooltipPosition {
  *  1. below the anchor with the full gap on BOTH sides (trigger gap + 8px
  *     viewport bottom margin)
  *  2. above the anchor with the full gap on BOTH sides
- *  3. below with a REDUCED viewport bottom margin — the trigger gap is the
- *     hard requirement: the tooltip must never overlap the trigger when the
- *     viewport can physically fit it anywhere (the old single clamp could
- *     push a tall tooltip OVER its trigger even when the space below fit it
- *     within the viewport — that overlap is what strands a parked mouse
- *     under the tooltip and turns Esc into an instant reopen loop). T18-fix:
- *     also rejected when it would cross the site footer (same guard as 1)
- *  4. nothing fits → prefer ending just above the footer when that leaves
- *     ≥ gap of headroom (footerClear), else clamp into the viewport (may
+ *  3. RIGHT of the anchor (T19): `left = anchor.right + gap`, vertically
+ *     centered on the anchor (clamped into the viewport) — fits when the
+ *     tooltip fits beside it (never horizontally overlaps the trigger —
+ *     kills the "covers the มาตรา being hovered" complaint for tall
+ *     tooltips)
+ *  4. LEFT of the anchor (T19): `left = anchor.left − w − gap`, same
+ *     vertical clamp — fits when it clears the left edge
+ *  5. below with a REDUCED viewport bottom margin — the W3-4 trigger-gap
+ *     keeper, restored (T19-fix) as the pre-footerClear safety net: when
+ *     BOTH side branches fail (vw too narrow) but the viewport can still
+ *     fit the tooltip below WITHOUT the bottom margin, it goes below with
+ *     the trigger gap — never overlapping the trigger; rejected when it
+ *     would cross the site footer (same guard as 1)
+ *  6. footerClear (T18-fix): nothing fits cleanly → prefer ending just
+ *     above the site footer when that leaves ≥ gap of headroom (may still
  *     overlap the trigger — the documented unavoidable case)
+ *  7. fallback: clamp into the viewport (may overlap the trigger)
+ *
+ * The trigger gap is the hard requirement: when the viewport can fit the
+ * tooltip anywhere (below/above/side), it never overlaps the trigger. The
+ * T19 side branches run AHEAD of the reduced-margin below (user preference)
+ * — the reduced-margin below stays as the pre-footerClear safety net (the
+ * W3-4 invariant holds even when the sides can't fit).
+ *
+ * T19 FOOTER GUARD (senior MAJOR): after the side branches' top clamp, a
+ * side tooltip that would cross the site footer shifts UP to end just above
+ * it when that leaves ≥ gap of headroom (horizontal separation keeps the
+ * never-overlap-trigger invariant either way).
  */
 export function computeTooltipPosition(
-  anchorRect: Pick<DOMRect, 'left' | 'top' | 'bottom' | 'width'>,
+  anchorRect: Pick<DOMRect, 'left' | 'top' | 'right' | 'bottom' | 'width'>,
   tooltipWidth: number,
   tooltipHeight: number,
   vw: number,
@@ -154,7 +190,7 @@ export function computeTooltipPosition(
    */
   footerTop?: number,
 ): TooltipPosition {
-  const left = Math.min(
+  const centeredLeft = Math.min(
     Math.max(anchorRect.left + anchorRect.width / 2 - tooltipWidth / 2, gap),
     Math.max(vw - tooltipWidth - gap, gap),
   );
@@ -162,22 +198,70 @@ export function computeTooltipPosition(
   const above = anchorRect.top - tooltipHeight - gap;
   const overlapsFooter = (top: number) =>
     footerTop !== undefined && top < footerTop && top + tooltipHeight > footerTop;
+  // T19 — side placement: vertically centered on the anchor (centerY =
+  // (top+bottom)/2), clamped into the viewport with the full gap.
+  const sideTop = () =>
+    Math.max(
+      gap,
+      Math.min(
+        (anchorRect.top + anchorRect.bottom) / 2 - tooltipHeight / 2,
+        vh - tooltipHeight - gap,
+      ),
+    );
+  // T19 — footer guard on the side branches: a side tooltip at a low anchor
+  // can still cross the site footer; shift it up to end just above the
+  // footer when that leaves ≥ gap of headroom, else keep the clamped top.
+  const footerGuard = (top: number) =>
+    footerTop !== undefined &&
+    top + tooltipHeight > footerTop &&
+    footerTop - tooltipHeight - gap >= gap
+      ? footerTop - tooltipHeight - gap
+      : top;
+  let left = centeredLeft;
   let top: number;
+  let origin: TooltipPosition['origin'];
   if (below + tooltipHeight <= vh - gap && !overlapsFooter(below)) {
     top = below;
+    origin = 'top';
   } else if (above >= gap) {
     top = above;
-  } else if (below + tooltipHeight <= vh && !overlapsFooter(below)) {
-    top = below;
+    origin = 'bottom';
   } else {
-    // T18-fix: nothing fits cleanly — prefer ending just above the footer
-    // when that leaves ≥ gap of headroom (minimizes harm; may still overlap
-    // the trigger — unavoidable when the tooltip is taller than the space)
-    const footerClear =
-      footerTop !== undefined ? footerTop - tooltipHeight - gap : Number.NEGATIVE_INFINITY;
-    top = footerClear >= gap ? footerClear : Math.max(above, gap);
+    // T19 — side branches (right first, then left); each needs the tooltip
+    // to fit the viewport HEIGHT with full gaps (h ≤ vh − 2·gap — otherwise
+    // the vertical clamp would itself be degenerate).
+    const rightLeft = anchorRect.right + gap;
+    if (rightLeft + tooltipWidth <= vw - gap && tooltipHeight <= vh - 2 * gap) {
+      left = rightLeft;
+      top = footerGuard(sideTop());
+      origin = 'right';
+    } else {
+      const leftLeft = anchorRect.left - tooltipWidth - gap;
+      if (leftLeft >= gap && tooltipHeight <= vh - 2 * gap) {
+        left = leftLeft;
+        top = footerGuard(sideTop());
+        origin = 'left';
+      } else if (below + tooltipHeight <= vh && !overlapsFooter(below)) {
+        // T19-fix (senior MAJOR): restored branch-3 — the reduced-margin
+        // below as the pre-footerClear safety net. Both side branches fail
+        // (vw too narrow) but the viewport still fits the tooltip below
+        // WITHOUT the bottom margin (below + h ≤ vh) and it doesn't cross
+        // the footer → place it at the trigger gap, never covering the
+        // trigger (the W3-4 invariant preserved when sides can't help).
+        top = below;
+        origin = 'top';
+      } else {
+        // T18-fix: nothing fits cleanly — prefer ending just above the footer
+        // when that leaves ≥ gap of headroom (minimizes harm; may still overlap
+        // the trigger — unavoidable when the tooltip is taller than the space)
+        const footerClear =
+          footerTop !== undefined ? footerTop - tooltipHeight - gap : Number.NEGATIVE_INFINITY;
+        top = footerClear >= gap ? footerClear : Math.max(above, gap);
+        origin = 'bottom';
+      }
+    }
   }
-  return { left, top, origin: top === below ? 'top' : 'bottom' };
+  return { left, top, origin };
 }
 
 /** Debounced autosave note box (ADR-019 D7 — โน้ตเขียนด่วน). Saves 500ms
@@ -393,6 +477,58 @@ function ArticleHub({ hub, onClose }: { hub: LawTooltipHub; onClose: () => void 
   );
 }
 
+/**
+ * T19 — 5-row hover preview + ดูเพิ่มเติม (user decision 2026-08-09): hover
+ * tooltips open clamped to ~5 rows with a ONE-WAY expand button; click-pin
+ * opens full text directly (click = intent to read — the reader passes
+ * preview={false} then). Shared by ALL THREE tooltip bodies (full article,
+ * digest-ref, glossary definition).
+ *
+ * Structure rules (senior MAJOR):
+ *  - the button is a SIBLING OUTSIDE the clamped element — line-clamp would
+ *    clip an inner button
+ *  - the collapsed branch carries NO max-h/overflow on the clamped element
+ *    (that combo silently disables -webkit-line-clamp); the caller's own
+ *    scroll container stays OUTSIDE this component
+ *  - expanded → full text, button hidden (one-way expand — no ดูน้อยลง)
+ */
+function PreviewClamp({
+  expanded,
+  onExpand,
+  children,
+}: {
+  expanded: boolean;
+  onExpand: () => void;
+  children: ReactNode;
+}) {
+  // T19-fix (senior NIT): the clamped region carries a stable id and the
+  // ดูเพิ่มเติม button points at it via aria-controls. useId — the id must
+  // survive the expand flip (same component instance, conditional return).
+  const clampId = useId();
+  if (expanded) return <>{children}</>;
+  return (
+    <>
+      <div id={clampId} className="line-clamp-5">
+        {children}
+      </div>
+      <button
+        type="button"
+        onClick={onExpand}
+        aria-controls={clampId}
+        // Renders ONLY while collapsed — the controlled region is collapsed
+        // by definition whenever this button exists.
+        aria-expanded={false}
+        // T19-fix (senior NIT): no mt-2 — the parent scroll container owns
+        // the vertical gap (space-y-2 on all three bodies).
+        className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-full border border-slate-200/90 bg-white/90 px-3 text-xs font-medium text-slate-600 shadow-xs backdrop-blur-xs transition-all duration-150 hover:scale-[1.02] hover:border-blue-400/80 hover:bg-white hover:text-blue-600 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300"
+      >
+        ดูเพิ่มเติม
+        <i aria-hidden="true" className="fi fi-sr-arrow-down text-[10px] leading-none" />
+      </button>
+    </>
+  );
+}
+
 /** มาตรา N [suffix] — display label for citations. */
 function ArticleBody({
   law,
@@ -402,6 +538,8 @@ function ArticleBody({
   onClose,
   crossHref,
   hub,
+  previewExpanded,
+  onExpandPreview,
 }: {
   law: LawDoc;
   article: { no: number; suffix?: string };
@@ -412,6 +550,9 @@ function ArticleBody({
   crossHref?: string;
   /** T10a article-actions hub — same-law refs only (see LawTooltipProps). */
   hub?: LawTooltipHub;
+  /** T19 preview state lifted to the LawTooltip root (expand re-positions). */
+  previewExpanded: boolean;
+  onExpandPreview: () => void;
 }) {
   const [copied, setCopied] = useState(false);
   const key = articleKeyOf(article);
@@ -460,12 +601,14 @@ function ArticleBody({
             aria-live="polite"
             className="max-h-[60vh] space-y-2 overflow-y-auto pr-1 text-[15px] leading-relaxed text-slate-800 dark:text-slate-200"
           >
-            {articlePlainText(target)
-              .split(/\n+/)
-              .filter((p) => p.trim() !== '')
-              .map((p, i) => (
-                <p key={i}>{p}</p>
-              ))}
+            <PreviewClamp expanded={previewExpanded} onExpand={onExpandPreview}>
+              {articlePlainText(target)
+                .split(/\n+/)
+                .filter((p) => p.trim() !== '')
+                .map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+            </PreviewClamp>
           </div>
 
           {target.amendedBy !== undefined && target.amendedBy.length > 0 && (
@@ -531,12 +674,17 @@ function DigestRefBody({
   onOpenArticle,
   onClose,
   hub,
+  previewExpanded,
+  onExpandPreview,
 }: {
   content: DigestRefContent;
   code: string;
   onOpenArticle: (articleKey: string) => void;
   onClose: () => void;
   hub?: LawTooltipHub;
+  /** T19 preview state lifted to the LawTooltip root (expand re-positions). */
+  previewExpanded: boolean;
+  onExpandPreview: () => void;
 }) {
   const label = articleLabel(content.articleNo, content.articleSuffix);
   const key = articleKeyOf({ no: content.articleNo, suffix: content.articleSuffix });
@@ -553,12 +701,14 @@ function DigestRefBody({
         )}
       </div>
       {content.digest !== '' ? (
-        <p
+        <div
           aria-live="polite"
-          className="max-h-[60vh] overflow-y-auto whitespace-pre-line pr-1 text-sm leading-relaxed text-slate-800 dark:text-slate-200"
+          className="max-h-[60vh] space-y-2 overflow-y-auto whitespace-pre-line pr-1 text-sm leading-relaxed text-slate-800 dark:text-slate-200"
         >
-          {content.digest}
-        </p>
+          <PreviewClamp expanded={previewExpanded} onExpand={onExpandPreview}>
+            {content.digest}
+          </PreviewClamp>
+        </div>
       ) : (
         <p className="text-sm text-slate-500 dark:text-slate-400">ไม่พบข้อมูลฉบับย่อของมาตรานี้</p>
       )}
@@ -587,12 +737,17 @@ function CrossLawArticle({
   articleSuffix,
   onOpenArticle,
   onClose,
+  previewExpanded,
+  onExpandPreview,
 }: {
   lawCode: string;
   articleNo: number;
   articleSuffix?: string;
   onOpenArticle: (articleKey: string) => void;
   onClose: () => void;
+  /** T19 preview state lifted to the LawTooltip root (expand re-positions). */
+  previewExpanded: boolean;
+  onExpandPreview: () => void;
 }) {
   const [doc, setDoc] = useState<LawDoc | null | 'loading'>('loading');
 
@@ -633,6 +788,8 @@ function CrossLawArticle({
       onOpenArticle={onOpenArticle}
       onClose={onClose}
       crossHref={`/lawlib/${doc.slug}#มาตรา-${articleKeyOf({ no: articleNo, suffix: articleSuffix })}`}
+      previewExpanded={previewExpanded}
+      onExpandPreview={onExpandPreview}
     />
   );
 }
@@ -649,14 +806,36 @@ export default function LawTooltip({
   focusOnOpen = false,
   tooltipId,
   hub,
+  preview = false,
 }: LawTooltipProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
+
+  // T19 — hover preview: clamp + ดูเพิ่มเติม when `preview` (hover-open),
+  // full text from the start when not (click-pin / keyboard / pre-wiring).
+  const [expanded, setExpanded] = useState(!preview);
+  const handleExpandPreview = useCallback(() => setExpanded(true), []);
+  // T19 (senior MINOR) — expanded-reset on content swap: hover A → expand →
+  // hover B within the 150ms grace would otherwise open B pre-expanded (the
+  // tooltip stays MOUNTED — the hook swaps content in place). Render-time
+  // derived reset (React-sanctioned "storing information from previous
+  // renders" — NOT an effect, which would trip set-state-in-effect). The
+  // `preview` term also catches the hover→pin re-open on the SAME content:
+  // click flips preview to false → reset to expanded (click = intent to read).
+  const [prevContent, setPrevContent] = useState(content);
+  const [prevPreview, setPrevPreview] = useState(preview);
+  if (prevContent !== content || prevPreview !== preview) {
+    setPrevContent(content);
+    setPrevPreview(preview);
+    setExpanded(!preview);
+  }
 
   // Position once measured — direct style writes (no setState), so the
   // compiler set-state-in-effect rule stays untouched. Visibility flips after
   // the first measurement → no flash at the origin corner. W3-4: the
   // placement lives in computeTooltipPosition (gap-aware flip/clamp — never
   // overlaps the trigger when the viewport can fit the tooltip anywhere).
+  // T19: `expanded` in the deps — clicking ดูเพิ่มเติม grows the tooltip, so
+  // the position must be recomputed (footer-aware side flips included).
   useLayoutEffect(() => {
     const el = rootRef.current;
     if (el === null || sheet) return;
@@ -676,10 +855,11 @@ export default function LawTooltip({
     el.style.left = `${left}px`;
     el.style.top = `${top}px`;
     // Entry animation pivots from the anchor edge (below → top origin, flipped
-    // above → bottom origin); the sheet variant pivots from bottom-center.
+    // above → bottom origin; T19 side placement → 'left'/'right' edge, the
+    // edge AWAY from the trigger); the sheet variant pivots from bottom-center.
     el.style.transformOrigin = origin;
     el.style.visibility = 'visible';
-  }, [anchorRect, content, sheet]);
+  }, [anchorRect, content, sheet, expanded]);
 
   // Keyboard-opened → move focus INTO the tooltip so Tab cycles its actions
   // (คัดลอก → เปิดมาตรานี้). Mouse/touch opens leave focus on the trigger.
@@ -705,12 +885,14 @@ export default function LawTooltip({
             {content.term}
           </span>
         </div>
-        <p
+        <div
           aria-live="polite"
-          className="max-h-[60vh] overflow-y-auto pr-1 text-sm leading-relaxed text-slate-800 dark:text-slate-200"
+          className="max-h-[60vh] space-y-2 overflow-y-auto pr-1 text-sm leading-relaxed text-slate-800 dark:text-slate-200"
         >
-          {content.definition}
-        </p>
+          <PreviewClamp expanded={expanded} onExpand={handleExpandPreview}>
+            {content.definition}
+          </PreviewClamp>
+        </div>
       </div>
     ) : isDigestRefContent(content) ? (
       // T11 compact digest ref — ฉบับย่อ snippet + ดูฉบับเต็ม (opened via the
@@ -721,6 +903,8 @@ export default function LawTooltip({
         onOpenArticle={onOpenArticle}
         onClose={onClose}
         hub={hub}
+        previewExpanded={expanded}
+        onExpandPreview={handleExpandPreview}
       />
     ) : content.lawSlug !== undefined ? (
       <CrossLawArticle
@@ -730,6 +914,8 @@ export default function LawTooltip({
         articleSuffix={content.articleSuffix}
         onOpenArticle={onOpenArticle}
         onClose={onClose}
+        previewExpanded={expanded}
+        onExpandPreview={handleExpandPreview}
       />
     ) : (
       <ArticleBody
@@ -739,6 +925,8 @@ export default function LawTooltip({
         onOpenArticle={onOpenArticle}
         onClose={onClose}
         hub={hub}
+        previewExpanded={expanded}
+        onExpandPreview={handleExpandPreview}
       />
     );
 

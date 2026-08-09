@@ -39,7 +39,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, renderHook, fireEvent, screen, act } from '@testing-library/react';
 import { useLawTooltip, type TooltipContent } from '@/hooks/useLawTooltip';
 import ArticleView from '@/components/ArticleView';
-import LawTooltip, { computeTooltipPosition } from '@/components/LawTooltip';
+import LawTooltip, { computeTooltipPosition, type DigestRefContent } from '@/components/LawTooltip';
 import type { LawDoc } from '@/types/lawlib';
 
 /** jsdom has no matchMedia — stub it; `matches` = <640px (bottom-sheet). */
@@ -985,16 +985,33 @@ describe('W3-4 — gap clamp: computeTooltipPosition never overlaps the trigger 
     expect(pos.origin).toBe('bottom');
   });
 
-  it('keeps the trigger gap below even when the bottom margin is reduced (fits in the viewport)', () => {
-    // The OLD single clamp demanded the full 8px bottom margin (798 > 792 →
-    // no) and then fell to max(100−660−8, 8) = 8 → tooltip [8,668] OVERLAPPED
-    // the trigger [100,130] although 798 ≤ 800 fits. Now: below at 138 keeps
-    // the 8px trigger gap and stays inside the viewport.
+  it('tall tooltip that cannot fit below/above with gaps → placed RIGHT beside the trigger (side branches stay ahead of the reduced-margin branch)', () => {
+    // The full-gap below needs 798 ≤ 792 (no) and above has no room. The
+    // reduced-margin below at 138 WOULD fit (798 ≤ 800 — the restored
+    // branch-3 safety net), but the T19 side branches stay AHEAD (user
+    // preference), so the tooltip goes RIGHT of the anchor:
+    // left = anchor.right(200) + 8 = 208 (never covering the trigger).
     const pos = computeTooltipPosition(anchor(100, 130), 300, 660, 1280, 800);
-    expect(pos.top).toBe(138);
-    expect(pos.top - 130).toBeGreaterThanOrEqual(8);
-    expect(pos.top + 660).toBeLessThanOrEqual(800);
+    expect(pos.left).toBe(208);
+    expect(pos.origin).toBe('right');
+    // horizontally separated from the trigger: tooltip [208,508] vs [100,200]
+    expect(pos.left).toBeGreaterThanOrEqual(200 + 8);
+    // vertically clamped into the viewport with the full gap
+    expect(pos.top).toBe(8);
+    expect(pos.top + 660).toBeLessThanOrEqual(800 - 8);
+  });
+
+  it('W3-4 reduced-margin below restored as the pre-footerClear safety net (T19-fix): both sides fail at a narrow vw, below fits without the bottom margin', () => {
+    // vw 400: RIGHT 208+300 = 508 > 392 AND LEFT 100−300−8 < 8 → no side
+    // space. The full-gap below needs 798 ≤ 792 (no) and above has no room
+    // → the restored branch-3 safety net: below + h = 798 ≤ vh 800 and no
+    // footer → placed BELOW at the trigger gap (138) — never covering the
+    // trigger (the W3-4 invariant preserved when the viewport can fit the
+    // tooltip below even without the bottom margin).
+    const pos = computeTooltipPosition(anchor(100, 130), 300, 660, 400, 800);
+    expect(pos.top).toBe(138); // anchor.bottom 130 + gap 8
     expect(pos.origin).toBe('top');
+    expect(pos.top + 660).toBeLessThanOrEqual(800); // fits the viewport
   });
 
   it('prefers below when both sides fit with full gaps', () => {
@@ -1003,12 +1020,24 @@ describe('W3-4 — gap clamp: computeTooltipPosition never overlaps the trigger 
     expect(pos.origin).toBe('top');
   });
 
-  it('overlaps the trigger ONLY when the viewport cannot fit the tooltip anywhere with a gap', () => {
+  it('fits beside the trigger when below/above fail — RIGHT placement, never overlapping (T19)', () => {
     // vh 800, trigger 300–330, tooltip 500: below 338+500=838 > 792 AND
-    // above 300−500−8 < 8 AND below doesn't fit the viewport (838 > 800) →
-    // nothing fits → clamp top to GAP (still in-viewport; overlap is the
-    // documented unavoidable case).
+    // above 300−500−8 < 8 → T19 places it RIGHT of the trigger instead of
+    // clamping over it: left = anchor.right(200) + 8 = 208, vertically
+    // centered on the anchor.
     const pos = computeTooltipPosition(anchor(300, 330), 300, 500, 1280, 800);
+    expect(pos.left).toBe(208);
+    expect(pos.top).toBe(65); // (300+330)/2 − 500/2
+    expect(pos.origin).toBe('right');
+    // horizontal separation: tooltip [208,508] vs trigger [100,200]
+    expect(pos.left).toBeGreaterThanOrEqual(200 + 8);
+  });
+
+  it('overlaps the trigger ONLY when the viewport cannot fit the tooltip anywhere (T19 fallback)', () => {
+    // vw 400: RIGHT needs 208+300=508 ≤ 392 (no) AND LEFT needs
+    // 100−300−8 ≥ 8 (no) → nothing fits beside → the fallback clamp applies
+    // (overlap is the documented unavoidable case).
+    const pos = computeTooltipPosition(anchor(300, 330), 300, 500, 400, 800);
     expect(pos.top).toBe(8);
     expect(pos.top).toBeGreaterThanOrEqual(0);
     expect(pos.top + 500).toBeGreaterThan(330); // unavoidable overlap
@@ -1050,43 +1079,41 @@ describe('W3-4 — gap clamp: computeTooltipPosition never overlaps the trigger 
     expect(pos.origin).toBe('bottom');
   });
 
-  it('footer overlaps below + no space above → ends just above the footer (T18-fix)', () => {
-    // vh 800, trigger 370–400, tooltip 355 tall. Below = 408..763 fits the
+  it('T19 side + footer: low trigger + tall tooltip → shifted UP above the footer (footer guard, senior MAJOR)', () => {
+    // vh 800, trigger 370–400, tooltip 355. Below = 408..763 fits the
     // viewport but crosses footerTop 500; above = 370−355−8 = 7 < 8 → no
-    // above space. T18-fix: nothing fits cleanly → end just above the footer:
-    // footerClear = 500−355−8 = 137 (may still overlap the trigger —
-    // unavoidable when the tooltip is taller than the space).
+    // above space. T19: RIGHT placement — left = anchor.right(200) + 8 =
+    // 208, centered top = 207.5 — but 207.5+355 = 562.5 would cross the
+    // footer → the side-branch footer guard shifts up: top = 500−355−8 =
+    // 137 (ends 8px above the footer, still beside the trigger).
     const pos = computeTooltipPosition(anchor(370, 400), 300, 355, 1280, 800, 8, 500);
+    expect(pos.left).toBe(208);
     expect(pos.top).toBe(137);
     expect(pos.top + 355).toBeLessThanOrEqual(500); // clears the footer
-    expect(pos.origin).toBe('bottom');
+    expect(pos.left).toBeGreaterThanOrEqual(200 + 8); // still beside the trigger
+    expect(pos.origin).toBe('right');
   });
 
-  it('branch 3 footer overlap → footerClear ends the tooltip above the footer (T18-fix)', () => {
-    // vh 800, trigger 200–240, tooltip 250 tall. Below = 248..498 fits the
-    // viewport (≤ 800) but crosses footerTop 490; above = 200−250−8 < 8 →
-    // no above space. T18-fix: branch 3 rejects the footer-crossing below →
-    // footerClear = 490−250−8 = 232 (tooltip ends 8px above the footer).
-    const pos = computeTooltipPosition(anchor(200, 240), 300, 250, 1280, 800, 8, 490);
-    expect(pos.top).toBe(232);
-    expect(pos.top + 250).toBeLessThanOrEqual(490); // clears the footer
-    expect(pos.origin).toBe('bottom');
-  });
-
-  it('footerClear below the gap → falls back to max(above, gap) (tall tooltip)', () => {
-    // vh 800, trigger 100–130, tooltip 500 tall. Below = 138..638 crosses
-    // footerTop 490; footerClear = 490−500−8 = −18 < 8 → cannot end above
-    // the footer → unchanged fallback: clamp to max(above, gap) = 8.
+  it('T19 side + footer: footer too high (no headroom) → the clamped top is kept', () => {
+    // vh 800, trigger 100–130, tooltip 500, footerTop 490. RIGHT fits
+    // (208+300 ≤ 1272); clamped center top = 8. 8+500 = 508 crosses the
+    // footer, but footerTop−h−gap = 490−500−8 = −18 < 8 → the guard cannot
+    // shift → the side branch keeps its viewport clamp (top = gap).
     const pos = computeTooltipPosition(anchor(100, 130), 300, 500, 1280, 800, 8, 490);
+    expect(pos.left).toBe(208);
     expect(pos.top).toBe(8);
-    expect(pos.origin).toBe('bottom');
+    expect(pos.origin).toBe('right');
   });
 
-  it('no footer param → branch 3/4 results unchanged (regression guard)', () => {
-    // branch 3 (relaxed below fits the viewport, no footer): below wins.
-    expect(computeTooltipPosition(anchor(100, 130), 300, 660, 1280, 800).top).toBe(138);
-    // branch 4 (nothing fits, no footer): clamp to max(above, gap).
-    expect(computeTooltipPosition(anchor(300, 330), 300, 500, 1280, 800).top).toBe(8);
+  it('T19 side placement replaces the branch-3 reduced-margin footer case — right, clear of the footer', () => {
+    // vh 800, trigger 200–240, tooltip 250, footerTop 490. Below = 248..498
+    // crosses the footer; above = 200−250−8 < 8 → RIGHT: centered top = 95;
+    // 95+250 = 345 < 490 → the footer guard does not need to fire.
+    const pos = computeTooltipPosition(anchor(200, 240), 300, 250, 1280, 800, 8, 490);
+    expect(pos.left).toBe(208);
+    expect(pos.top).toBe(95);
+    expect(pos.top + 250).toBeLessThanOrEqual(490); // clear of the footer
+    expect(pos.origin).toBe('right');
   });
 
   it('footer top below the viewport bottom (not visible) → unchanged behavior', () => {
@@ -1202,5 +1229,359 @@ describe('T16 — Quick Note is a collapsed icon control by default', () => {
 
     fireEvent.click(icon);
     expect((noteTextbox() as HTMLTextAreaElement).value).toBe('บันทึกเดิม');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T19 — side placement (t19-tooltip-side-preview.md): RIGHT/LEFT branches of
+// computeTooltipPosition + the 5-row hover preview with ดูเพิ่มเติม.
+// Placement priority: below → above → RIGHT → LEFT → footerClear → fallback.
+// Hover = PREVIEW (user decision); click-pin / keyboard = full text directly.
+// ---------------------------------------------------------------------------
+
+describe('T19a — computeTooltipPosition side placement (right first, then left)', () => {
+  const anchor = (top: number, bottom: number, left = 100, width = 100) =>
+    ({ left, top, right: left + width, bottom, width, height: bottom - top }) as DOMRect;
+
+  it('below/above fail → placed RIGHT of the trigger, vertically centered (never covering it)', () => {
+    // mid-viewport trigger (left 600, right 700), tooltip 500 tall: below
+    // 338+500 > 792 AND above 300−508 < 8 → RIGHT: left = 700 + 8 = 708,
+    // top = (300+330)/2 − 250 = 65.
+    const pos = computeTooltipPosition(anchor(300, 330, 600), 300, 500, 1280, 800);
+    expect(pos.left).toBe(708);
+    expect(pos.top).toBe(65);
+    expect(pos.origin).toBe('right');
+    // horizontal separation: tooltip [708,1008] vs trigger [600,700]
+    expect(pos.left).toBeGreaterThanOrEqual(700 + 8);
+  });
+
+  it('RIGHT fails the width → LEFT of the trigger', () => {
+    // trigger near the right edge (left 1100, right 1200): right placement
+    // 1208+300 = 1508 > 1272−8 → LEFT: left = 1100 − 300 − 8 = 792.
+    const pos = computeTooltipPosition(anchor(300, 330, 1100), 300, 500, 1280, 800);
+    expect(pos.left).toBe(792);
+    expect(pos.top).toBe(65);
+    expect(pos.origin).toBe('left');
+    // horizontal separation: tooltip [792,1092] vs trigger [1100,1200]
+    expect(pos.left + 300).toBeLessThanOrEqual(1100 - 8);
+  });
+
+  it('both sides fail → existing footerClear / fallback unchanged', () => {
+    // vw 400: RIGHT 508 > 392 AND LEFT −208 < 8 → nothing fits beside.
+    const noFooter = computeTooltipPosition(anchor(300, 330), 300, 500, 400, 800);
+    expect(noFooter.top).toBe(8); // fallback clamp
+    expect(noFooter.origin).toBe('bottom');
+    // with a footer that has headroom → the footerClear branch still wins.
+    const footerClear = computeTooltipPosition(anchor(100, 130), 300, 500, 400, 800, 8, 600);
+    expect(footerClear.top).toBe(92); // 600 − 500 − 8
+    expect(footerClear.origin).toBe('bottom');
+    // footer too high → clamp kept (footerClear −18 < gap).
+    const clamped = computeTooltipPosition(anchor(100, 130), 300, 500, 400, 800, 8, 490);
+    expect(clamped.top).toBe(8);
+    expect(clamped.origin).toBe('bottom');
+  });
+
+  it('side placement clamps vertically at the viewport edges', () => {
+    // anchor near the TOP: centerY = 25 → 25 − 380 < gap → top = gap.
+    const nearTop = computeTooltipPosition(anchor(10, 40), 300, 760, 1280, 800);
+    expect(nearTop.top).toBe(8);
+    expect(nearTop.origin).toBe('right');
+    // anchor near the BOTTOM: centerY = 775 → clamped to vh − h − gap = 32.
+    const nearBottom = computeTooltipPosition(anchor(760, 790), 300, 760, 1280, 800);
+    expect(nearBottom.top).toBe(32);
+    expect(nearBottom.origin).toBe('right');
+  });
+
+  it('side + footer: the LEFT branch also shifts above the footer (footer guard)', () => {
+    // trigger near the right edge + low (370–400, left 1100) + tooltip 355 +
+    // footerTop 500: below crosses the footer, above has no room, RIGHT fails
+    // the width → LEFT at 792; centered top 207.5 would cross the footer →
+    // guard shifts up to 137 (footerTop − h − gap).
+    const pos = computeTooltipPosition(anchor(370, 400, 1100), 300, 355, 1280, 800, 8, 500);
+    expect(pos.left).toBe(792);
+    expect(pos.top).toBe(137);
+    expect(pos.top + 355).toBeLessThanOrEqual(500); // clears the footer
+    expect(pos.origin).toBe('left');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T19b — 5-row preview + ดูเพิ่มเติม (LawTooltip `preview` prop).
+// ---------------------------------------------------------------------------
+
+/** Long glossary definition — long enough that clamping is meaningful. */
+const longGlossary: TooltipContent = {
+  kind: 'glossary',
+  term: 'การศึกษา',
+  definition:
+    'กระบวนการเรียนรู้เพื่อความเจริญงอกงามของบุคคลและสังคมโดยการถ่ายทอดความรู้ การฝึก การอบรม การสืบสานทางวัฒนธรรม การสร้างสรรค์จรรโลงความก้าวหน้าทางวิชาการ การสร้างองค์ความรู้อันเกิดจากการจัดสภาพบรรยากาศ สภาพแวดล้อม สังคมแห่งการเรียนรู้ เพื่อให้บุคคลได้เรียนรู้อย่างต่อเนื่องตลอดชีวิต',
+};
+
+/** Second glossary content for the content-swap reset test. */
+const longGlossaryB: TooltipContent = {
+  kind: 'glossary',
+  term: 'สถานศึกษา',
+  definition:
+    'สถานพัฒนาเด็กปฐมวัย โรงเรียน ศูนย์การเรียน สถานศึกษา วิทยาลัย สถาบัน มหาวิทยาลัย หน่วยงานทางการศึกษา หรือหน่วยงานอื่นของรัฐหรือของเอกชนที่มีอำนาจหน้าที่หรือมีวัตถุประสงค์ในการจัดการศึกษา',
+};
+
+/**
+ * T19-fix digest-ref fixture — a same-law ref carrying the COMPACT digest
+ * snippet (T11 fields; duck-typed by LawTooltip via `'digest' in content` →
+ * DigestRefBody branch).
+ */
+const digestContent: DigestRefContent = {
+  kind: 'ref',
+  articleNo: 1,
+  display: 'มาตรา 1',
+  digest: 'ฉบับย่อของมาตรา 1: ข้อความทดสอบ — บทบัญญัติโดยสรุปของมาตรานี้',
+  repealed: false,
+};
+
+/** Direct render helper for preview tests (no hook) — jsdom-safe via sheet. */
+function renderPreviewTooltip(
+  content: TooltipContent,
+  props: { preview?: boolean; sheet?: boolean } = {},
+) {
+  return render(
+    <LawTooltip
+      content={content}
+      anchorRect={{ left: 0, top: 0, right: 100, bottom: 24, width: 100, height: 24 } as DOMRect}
+      sheet={props.sheet ?? true}
+      law={law}
+      onClose={() => {}}
+      onOpenArticle={() => {}}
+      registerTooltipEl={() => {}}
+      onPointerLeave={() => {}}
+      tooltipId="lawlib-tooltip-t19"
+      preview={props.preview ?? false}
+    />,
+  );
+}
+
+const clampEl = () => document.body.querySelector<HTMLElement>('.line-clamp-5');
+const expandButton = () => screen.getByRole('button', { name: 'ดูเพิ่มเติม' });
+
+describe('T19b — hover preview: 5-row clamp + ดูเพิ่มเติม expand', () => {
+  it('glossary body is clamped too (senior MAJOR): line-clamp-5 + button as a SIBLING outside it', () => {
+    renderPreviewTooltip(longGlossary, { preview: true });
+    const root = tooltipRoot(); // glossary content → role="tooltip"
+    expect(root).not.toBeNull();
+
+    const clamp = clampEl();
+    expect(clamp).not.toBeNull();
+    // The clamped element carries line-clamp-5 (and NO max-h/overflow).
+    expect(clamp?.className).toContain('line-clamp-5');
+    expect(clamp?.className).not.toMatch(/max-h|overflow/);
+    expect(clamp?.textContent).toContain('กระบวนการเรียนรู้');
+
+    // ดูเพิ่มเติม: a sibling OUTSIDE the clamped element (line-clamp would
+    // clip an inner button), aria-expanded=false while collapsed, min-h-11,
+    // with the arrow-down icon.
+    const button = expandButton();
+    expect(button.getAttribute('aria-expanded')).toBe('false');
+    expect(button.className).toContain('min-h-11');
+    expect(button.querySelector('.fi-sr-arrow-down')).not.toBeNull();
+    expect(clamp?.contains(button)).toBe(false);
+    expect(root?.contains(button)).toBe(true);
+
+    // T19-fix (senior NIT): the clamped region carries a stable id and the
+    // button points at it via aria-controls (valid — the button renders only
+    // while the clamped region exists). The button's gap comes from the
+    // parent space-y-2 — no stray mt-2 (double-gap fix).
+    const clampId = clamp?.getAttribute('id');
+    expect(clampId).not.toBeNull();
+    expect(button.getAttribute('aria-controls')).toBe(clampId);
+    expect(button.className).not.toContain('mt-2');
+    expect(clamp?.parentElement?.className).toContain('space-y-2');
+  });
+
+  it('clicking ดูเพิ่มเติม expands in place — clamp and button gone (one-way)', () => {
+    renderPreviewTooltip(longGlossary, { preview: true });
+    const root = tooltipRoot();
+    // line-clamp only CLIPS visually — the full text stays in the DOM while
+    // collapsed (the e2e digest assertion toContainText contract holds; the
+    // clamp signal is the class presence, not text absence).
+    expect(clampEl()?.textContent).toContain('ตลอดชีวิต');
+
+    fireEvent.click(expandButton());
+    expect(clampEl()).toBeNull();
+    expect(screen.queryByRole('button', { name: 'ดูเพิ่มเติม' })).toBeNull();
+    expect(root?.textContent).toContain('ตลอดชีวิต'); // the tail is reachable
+  });
+
+  it('ArticleBody full text is clamped too (preview ref content)', () => {
+    renderPreviewTooltip(headerContent, { preview: true });
+    expect(clampEl()).not.toBeNull();
+    expect(clampEl()?.textContent).toContain('ข้อความทดสอบ');
+    expect(expandButton()).not.toBeNull();
+  });
+
+  it('digest-ref body clamps too (T19-fix): clamp + ดูเพิ่มเติม present → expand clears both, the digest CTA stays', () => {
+    renderPreviewTooltip(digestContent, { preview: true });
+    const root = tooltipRoot();
+    expect(root).not.toBeNull();
+    expect(clampEl()).not.toBeNull();
+    expect(clampEl()?.textContent).toContain('ฉบับย่อของมาตรา 1');
+    expect(expandButton()).not.toBeNull();
+
+    fireEvent.click(expandButton());
+    expect(clampEl()).toBeNull();
+    expect(screen.queryByRole('button', { name: 'ดูเพิ่มเติม' })).toBeNull();
+    // the full digest stays reachable + the digest body's own ดูฉบับเต็ม CTA
+    // is untouched by the expand
+    expect(root?.textContent).toContain('ฉบับย่อของมาตรา 1');
+    expect(root?.textContent).toContain('ดูฉบับเต็ม');
+  });
+
+  it('no preview prop (click-pin / pre-wiring callers) → full text directly, no clamp, no button', () => {
+    renderPreviewTooltip(longGlossary); // preview defaults to false
+    expect(clampEl()).toBeNull();
+    expect(screen.queryByRole('button', { name: 'ดูเพิ่มเติม' })).toBeNull();
+    expect(tooltipRoot()?.textContent).toContain('ตลอดชีวิต');
+  });
+
+  it('sheet variant shows the same preview behavior (clamp + button + expand)', () => {
+    renderPreviewTooltip(headerContent, { preview: true, sheet: true });
+    expect(clampEl()).not.toBeNull();
+    fireEvent.click(expandButton());
+    expect(clampEl()).toBeNull();
+    expect(screen.queryByRole('button', { name: 'ดูเพิ่มเติม' })).toBeNull();
+  });
+});
+
+/**
+ * T19 reader-wiring harness — mirrors LawlibReaderClient EXACTLY:
+ * `preview={!pinned && !openedByKeyboard}` on LawTooltip. Separate from the
+ * shared Harness/PinHarness (which must keep their shape — additive only).
+ */
+function PreviewHarness({ triggers }: { triggers: TooltipContent[] }) {
+  const {
+    tooltip,
+    getTriggerProps,
+    isTooltipOpen,
+    tooltipId,
+    closeTooltip,
+    registerTooltipEl,
+    handleTooltipPointerLeave,
+    pinned,
+    openedByKeyboard,
+  } = useLawTooltip();
+
+  return (
+    <div>
+      <span data-testid="preview-pinned">{pinned ? 'pinned' : 'hover'}</span>
+      {triggers.map((content, i) => (
+        <button
+          key={i}
+          type="button"
+          data-testid={`preview-trigger-${i}`}
+          data-lawlib-trigger
+          aria-expanded={isTooltipOpen(content)}
+          {...getTriggerProps(content)}
+        >
+          {content.kind === 'ref' ? content.display : content.term}
+        </button>
+      ))}
+      {tooltip !== null && (
+        <LawTooltip
+          content={tooltip.content}
+          anchorRect={tooltip.anchorRect}
+          sheet={tooltip.sheet}
+          law={law}
+          onClose={closeTooltip}
+          onOpenArticle={() => {}}
+          registerTooltipEl={registerTooltipEl}
+          onPointerLeave={handleTooltipPointerLeave}
+          tooltipId={tooltipId}
+          preview={!pinned && !openedByKeyboard}
+        />
+      )}
+    </div>
+  );
+}
+
+describe('T19b — user decision: hover → preview, click-pin → full text directly', () => {
+  it('hover-open shows the 5-row preview; click-pin on the SAME trigger opens full text (no clamp, no button)', () => {
+    stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
+    render(<PreviewHarness triggers={[longGlossary]} />);
+    const trigger = screen.getByTestId('preview-trigger-0');
+
+    // hover = PREVIEW (clamp + button)
+    fireEvent.pointerEnter(trigger, { pointerType: 'mouse' });
+    expect(tooltipRoot()).not.toBeNull();
+    expect(clampEl()).not.toBeNull();
+    expect(expandButton()).not.toBeNull();
+    expect(screen.getByTestId('preview-pinned').textContent).toBe('hover');
+
+    // close via pointerdown-outside (no Esc → no suppression, no grace timer)
+    fireEvent.pointerDown(document.body, { pointerType: 'mouse' });
+    expect(tooltipRoot()).toBeNull();
+
+    // click = PIN → full text directly
+    mouseClick(trigger, 150, 115);
+    expect(tooltipRoot()).not.toBeNull();
+    expect(screen.getByTestId('preview-pinned').textContent).toBe('pinned');
+    expect(clampEl()).toBeNull();
+    expect(screen.queryByRole('button', { name: 'ดูเพิ่มเติม' })).toBeNull();
+    expect(tooltipRoot()?.textContent).toContain('ตลอดชีวิต');
+  });
+
+  it('same-mount hover → pin flip: clicking the SAME trigger while hover-open clears the clamp WITHOUT closing (prevPreview render-reset)', () => {
+    stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
+    render(<PreviewHarness triggers={[longGlossary]} />);
+    const trigger = screen.getByTestId('preview-trigger-0');
+
+    // hover-open = PREVIEW (clamp + ดูเพิ่มเติม)
+    fireEvent.pointerEnter(trigger, { pointerType: 'mouse' });
+    expect(tooltipRoot()).not.toBeNull();
+    expect(clampEl()).not.toBeNull();
+    expect(expandButton()).not.toBeNull();
+
+    // Click on the SAME trigger pins WITHOUT closing — the tooltip stays
+    // MOUNTED while `preview` flips false in place (pinned → preview={false}
+    // on the same content) → the render-time prevPreview guard must reset
+    // `expanded`: clamp + button gone, full text visible. Without the guard
+    // the tooltip would stay clamped with a dead ดูเพิ่มเติม button.
+    mouseClick(trigger, 150, 115);
+    expect(tooltipRoot()).not.toBeNull(); // still open — pinned
+    expect(screen.getByTestId('preview-pinned').textContent).toBe('pinned');
+    expect(clampEl()).toBeNull();
+    expect(screen.queryByRole('button', { name: 'ดูเพิ่มเติม' })).toBeNull();
+    expect(tooltipRoot()?.textContent).toContain('ตลอดชีวิต');
+  });
+
+  it('keyboard-open → full text directly (the Tab cycle starts at the actions, not ดูเพิ่มเติม)', () => {
+    stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
+    render(<PreviewHarness triggers={[longGlossary]} />);
+    const trigger = screen.getByTestId('preview-trigger-0');
+
+    fireEvent.keyDown(trigger, { key: 'Enter' });
+    expect(tooltipRoot()).not.toBeNull();
+    expect(clampEl()).toBeNull();
+    expect(screen.queryByRole('button', { name: 'ดูเพิ่มเติม' })).toBeNull();
+    expect(tooltipRoot()?.textContent).toContain('ตลอดชีวิต');
+  });
+
+  it('expanded resets on content swap — hover A → expand → hover B → B opens collapsed (senior MINOR)', () => {
+    stubHarnessRects(TRIGGER_RECT, TOOLTIP_RECT);
+    render(<PreviewHarness triggers={[longGlossary, longGlossaryB]} />);
+    const triggerA = screen.getByTestId('preview-trigger-0');
+    const triggerB = screen.getByTestId('preview-trigger-1');
+
+    // hover A → preview → expand it
+    fireEvent.pointerEnter(triggerA, { pointerType: 'mouse' });
+    expect(tooltipRoot()?.textContent).toContain('กระบวนการเรียนรู้');
+    expect(clampEl()).not.toBeNull();
+    fireEvent.click(expandButton());
+    expect(clampEl()).toBeNull(); // A expanded
+
+    // hover B (within the grace, content swaps in place — tooltip stays
+    // mounted) → the render-time reset collapses B again.
+    fireEvent.pointerEnter(triggerB, { pointerType: 'mouse' });
+    expect(tooltipRoot()?.textContent).toContain('สถานพัฒนาเด็กปฐมวัย');
+    expect(clampEl()).not.toBeNull();
+    expect(expandButton()).not.toBeNull();
+    expect(clampEl()?.textContent).toContain('สถานพัฒนาเด็กปฐมวัย');
   });
 });
