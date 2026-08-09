@@ -133,9 +133,11 @@ export interface TooltipPosition {
  *     viewport can physically fit it anywhere (the old single clamp could
  *     push a tall tooltip OVER its trigger even when the space below fit it
  *     within the viewport — that overlap is what strands a parked mouse
- *     under the tooltip and turns Esc into an instant reopen loop)
- *  4. nothing fits → clamp into the viewport (may overlap the trigger — the
- *     documented unavoidable case)
+ *     under the tooltip and turns Esc into an instant reopen loop). T18-fix:
+ *     also rejected when it would cross the site footer (same guard as 1)
+ *  4. nothing fits → prefer ending just above the footer when that leaves
+ *     ≥ gap of headroom (footerClear), else clamp into the viewport (may
+ *     overlap the trigger — the documented unavoidable case)
  */
 export function computeTooltipPosition(
   anchorRect: Pick<DOMRect, 'left' | 'top' | 'bottom' | 'width'>,
@@ -165,10 +167,15 @@ export function computeTooltipPosition(
     top = below;
   } else if (above >= gap) {
     top = above;
-  } else if (below + tooltipHeight <= vh) {
+  } else if (below + tooltipHeight <= vh && !overlapsFooter(below)) {
     top = below;
   } else {
-    top = Math.max(above, gap);
+    // T18-fix: nothing fits cleanly — prefer ending just above the footer
+    // when that leaves ≥ gap of headroom (minimizes harm; may still overlap
+    // the trigger — unavoidable when the tooltip is taller than the space)
+    const footerClear =
+      footerTop !== undefined ? footerTop - tooltipHeight - gap : Number.NEGATIVE_INFINITY;
+    top = footerClear >= gap ? footerClear : Math.max(above, gap);
   }
   return { left, top, origin: top === below ? 'top' : 'bottom' };
 }

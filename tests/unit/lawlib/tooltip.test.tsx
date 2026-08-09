@@ -1050,14 +1050,43 @@ describe('W3-4 — gap clamp: computeTooltipPosition never overlaps the trigger 
     expect(pos.origin).toBe('bottom');
   });
 
-  it('footer overlaps below + no space above → fallback (may overlap, documented)', () => {
+  it('footer overlaps below + no space above → ends just above the footer (T18-fix)', () => {
     // vh 800, trigger 370–400, tooltip 355 tall. Below = 408..763 fits the
     // viewport but crosses footerTop 500; above = 370−355−8 = 7 < 8 → no
-    // above space → falls back to the reduced-margin below (overlaps the
-    // footer — the documented unavoidable case).
+    // above space. T18-fix: nothing fits cleanly → end just above the footer:
+    // footerClear = 500−355−8 = 137 (may still overlap the trigger —
+    // unavoidable when the tooltip is taller than the space).
     const pos = computeTooltipPosition(anchor(370, 400), 300, 355, 1280, 800, 8, 500);
-    expect(pos.top).toBe(408);
-    expect(pos.origin).toBe('top');
+    expect(pos.top).toBe(137);
+    expect(pos.top + 355).toBeLessThanOrEqual(500); // clears the footer
+    expect(pos.origin).toBe('bottom');
+  });
+
+  it('branch 3 footer overlap → footerClear ends the tooltip above the footer (T18-fix)', () => {
+    // vh 800, trigger 200–240, tooltip 250 tall. Below = 248..498 fits the
+    // viewport (≤ 800) but crosses footerTop 490; above = 200−250−8 < 8 →
+    // no above space. T18-fix: branch 3 rejects the footer-crossing below →
+    // footerClear = 490−250−8 = 232 (tooltip ends 8px above the footer).
+    const pos = computeTooltipPosition(anchor(200, 240), 300, 250, 1280, 800, 8, 490);
+    expect(pos.top).toBe(232);
+    expect(pos.top + 250).toBeLessThanOrEqual(490); // clears the footer
+    expect(pos.origin).toBe('bottom');
+  });
+
+  it('footerClear below the gap → falls back to max(above, gap) (tall tooltip)', () => {
+    // vh 800, trigger 100–130, tooltip 500 tall. Below = 138..638 crosses
+    // footerTop 490; footerClear = 490−500−8 = −18 < 8 → cannot end above
+    // the footer → unchanged fallback: clamp to max(above, gap) = 8.
+    const pos = computeTooltipPosition(anchor(100, 130), 300, 500, 1280, 800, 8, 490);
+    expect(pos.top).toBe(8);
+    expect(pos.origin).toBe('bottom');
+  });
+
+  it('no footer param → branch 3/4 results unchanged (regression guard)', () => {
+    // branch 3 (relaxed below fits the viewport, no footer): below wins.
+    expect(computeTooltipPosition(anchor(100, 130), 300, 660, 1280, 800).top).toBe(138);
+    // branch 4 (nothing fits, no footer): clamp to max(above, gap).
+    expect(computeTooltipPosition(anchor(300, 330), 300, 500, 1280, 800).top).toBe(8);
   });
 
   it('footer top below the viewport bottom (not visible) → unchanged behavior', () => {

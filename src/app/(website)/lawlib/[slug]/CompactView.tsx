@@ -743,7 +743,12 @@ function ArticlePopover({
     const current = parseFloat(el.style.top);
     if (!Number.isFinite(current)) return;
     const height = el.getBoundingClientRect().height;
-    const clamped = Math.min(current, vh - height - 12);
+    const footerEl = document.getElementById('site-footer');
+    const footerTop = footerEl?.getBoundingClientRect().y;
+    let clamped = Math.min(current, vh - height - 12);
+    if (footerTop !== undefined && current + height > footerTop) {
+      clamped = Math.min(clamped, footerTop - height - 12);
+    }
     if (clamped < current) el.style.top = `${Math.max(8, clamped)}px`;
   }, []);
 
