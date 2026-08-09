@@ -232,8 +232,10 @@ describe('T10b settings panel — focus mode', () => {
     await renderReader();
     const picker = await openSettings();
     fireEvent.click(within(picker).getByRole('switch', { name: 'เปิดโหมดโฟกัส' }));
-    // T31 (AC-2): the surface fades 300ms BEFORE the chrome hides — the
-    // body class lands after the two-step hold (reduced-motion = instant).
+    // T31 (AC-2): the chrome hides at t=0 — the body class lands
+    // INSTANTLY and the reading surface fades in over 300ms (the wait
+    // below just lets the fade-in finish; reduced-motion = instant).
+    expect(document.body.classList.contains('lawlib-focus')).toBe(true);
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 320));
     });
@@ -249,8 +251,13 @@ describe('T10b settings panel — focus mode', () => {
     const picker = await openSettings();
     fireEvent.click(within(picker).getByRole('switch', { name: 'เปิดโหมดโฟกัส' }));
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(document.body.classList.contains('lawlib-focus')).toBe(false);
+    // The setting flips synchronously; the chrome returns after the
+    // 300ms surface fade-out (T31 two-step — the class lands last).
     expect(storedSettings().focusMode).toBe(false);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 320));
+    });
+    expect(document.body.classList.contains('lawlib-focus')).toBe(false);
   });
 
   it('T12: Esc during focus mode NEVER persists a user collapse (dock hidden — its Esc handler stands down)', async () => {
@@ -262,8 +269,12 @@ describe('T10b settings panel — focus mode', () => {
 
     // Esc exits focus mode through the READER handler; the dock's own Esc
     // handler is stood down (it is display:none) — the hidden dock must not
-    // be collapsed AND remembered as a user collapse.
+    // be collapsed AND remembered as a user collapse. The chrome returns
+    // after the 300ms surface fade-out (T31 two-step).
     fireEvent.keyDown(document, { key: 'Escape' });
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 320));
+    });
     expect(document.body.classList.contains('lawlib-focus')).toBe(false);
     expect(localStorage.getItem('lawlib:dockCollapsed')).toBeNull();
   });

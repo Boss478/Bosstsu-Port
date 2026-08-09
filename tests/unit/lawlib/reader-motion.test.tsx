@@ -16,8 +16,14 @@
  * - AC-4 reduced-motion: the hold is skipped (JS gate) — instant unmount
  * - AC-2 search stagger (flicker trap): the FIRST results `ul` of a search
  *   session gets `lawlib-stagger`; it is STRIPPED after
- *   SEARCH_STAGGER_STRIP_MS; live keystroke re-filters NEVER re-add it; a
+ *   SEARCH_STAGGER_STRIP_MS — and IMMEDIATELY on a post-staging re-filter
+ *   (observer microtask, pre-paint: new nodes never re-animate even
+ *   within the window); live keystroke re-filters NEVER re-add it; a
  *   fresh panel session re-arms (per-session by construction)
+ * - T31 focus mode (AC-2): ENTER hides the chrome at t=0 and the reading
+ *   surface fades IN (keyframe REVERSED), animation cleared at 300ms;
+ *   EXIT fades the surface OUT (forward), THEN the chrome returns;
+ *   reduced-motion = instant toggle both ways
  * - AC-3/AC-5 chip: mounts with `lawlib-fade-rise` 150ms + `vt-chip` (NO pop
  *   on first mount — entry is fade only); speed CHANGE re-triggers
  *   `lawlib-chip-pop` (timer-cleared — onAnimationEnd is unreliable in
@@ -419,7 +425,7 @@ describe('T31 — focus mode two-step (AC-2)', () => {
   const focusSwitch = () => screen.getByRole('switch', { name: 'เปิดโหมดโฟกัส' });
   const surface = () => document.getElementById('lawlib-reader-content') as HTMLElement;
 
-  it('enter: surface fades 300ms (forward, no reverse) THEN body.lawlib-focus; indicator springs in', async () => {
+  it('enter: body.lawlib-focus set INSTANT, surface fades IN (reverse), animation cleared after 300ms', async () => {
     mockMatchMedia({ reducedMotion: false });
     await renderReader();
 
@@ -427,23 +433,26 @@ describe('T31 — focus mode two-step (AC-2)', () => {
     fireEvent.click(settingsTool());
     fireEvent.click(focusSwitch());
 
-    // Step 1 — the fade starts immediately: forward direction (NOT
-    // reverse), chrome still NOT hidden.
+    // The chrome hides at t=0 — the reading surface MUST stay (globals.css
+    // contract + ADR-019 D7) and fades IN over 300ms: the keyframe runs
+    // REVERSED (0→1, scale 0.995→1).
+    expect(document.body.classList.contains('lawlib-focus')).toBe(true);
     expect(surface().style.animation).toContain('lawlib-focus-fade');
-    expect(surface().style.animation).not.toContain('reverse');
-    expect(document.body.classList.contains('lawlib-focus')).toBe(false);
+    expect(surface().style.animation).toContain('reverse');
 
     // The indicator mounts at toggle time (spring-in is the CSS class).
     const indicator = document.querySelector('.lawlib-reading-indicator') as HTMLElement;
     expect(indicator).not.toBeNull();
     expect(indicator.className).toContain('lawlib-reading-indicator');
 
-    // Step 2 — after the 300ms fade the chrome hides.
+    // After the 300ms fade-in the inline animation is cleared — no
+    // persistent scale on the surface (fixed popover containing block).
     await wait(320);
+    expect(surface().style.animation).toBe('');
     expect(document.body.classList.contains('lawlib-focus')).toBe(true);
   });
 
-  it('exit: body.lawlib-focus removed INSTANT, then the surface fades in (reverse), animation cleared', async () => {
+  it('exit: surface fades OUT (forward) THEN body.lawlib-focus removed + animation cleared', async () => {
     mockMatchMedia({ reducedMotion: false });
     await renderReader();
 
@@ -454,18 +463,20 @@ describe('T31 — focus mode two-step (AC-2)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'ออกจากโหมดโฟกัส' }));
 
-    // Toggle first (instant chrome restore), THEN the fade-in.
-    expect(document.body.classList.contains('lawlib-focus')).toBe(false);
+    // The surface fades OUT first (forward 1→0) — chrome still hidden
+    // while the surface is readable.
     expect(surface().style.animation).toContain('lawlib-focus-fade');
-    expect(surface().style.animation).toContain('reverse');
+    expect(surface().style.animation).not.toContain('reverse');
+    expect(document.body.classList.contains('lawlib-focus')).toBe(true);
 
-    // After the 300ms fade-in the inline animation is cleared — no
-    // persistent scale on the surface (fixed popover containing block).
+    // After the 300ms fade-out the chrome returns + the inline animation
+    // is cleared — no persistent scale on the surface.
     await wait(320);
+    expect(document.body.classList.contains('lawlib-focus')).toBe(false);
     expect(surface().style.animation).toBe('');
   });
 
-  it('reduced-motion: instant toggle, no surface fade (JS gate)', async () => {
+  it('reduced-motion: instant toggle BOTH ways, no surface fade (JS gate)', async () => {
     // Test default: reducedMotion stub ON.
     await renderReader();
 
@@ -474,6 +485,11 @@ describe('T31 — focus mode two-step (AC-2)', () => {
     fireEvent.click(focusSwitch());
 
     expect(document.body.classList.contains('lawlib-focus')).toBe(true);
+    expect(surface().style.animation).toBe('');
+
+    // Exit is equally instant.
+    fireEvent.click(screen.getByRole('button', { name: 'ออกจากโหมดโฟกัส' }));
+    expect(document.body.classList.contains('lawlib-focus')).toBe(false);
     expect(surface().style.animation).toBe('');
   });
 
@@ -488,7 +504,14 @@ describe('T31 — focus mode two-step (AC-2)', () => {
     expect(document.body.classList.contains('lawlib-focus')).toBe(true);
 
     fireEvent.keyDown(document, { key: 'Escape' });
+
+    // Fade OUT first (forward) — chrome still hidden mid-fade.
+    expect(surface().style.animation).toContain('lawlib-focus-fade');
+    expect(surface().style.animation).not.toContain('reverse');
+    expect(document.body.classList.contains('lawlib-focus')).toBe(true);
+
+    await wait(320);
     expect(document.body.classList.contains('lawlib-focus')).toBe(false);
-    expect(surface().style.animation).toContain('reverse');
+    expect(surface().style.animation).toBe('');
   });
 });
