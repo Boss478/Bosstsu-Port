@@ -850,6 +850,131 @@ textarea,
   }
 }
 
+/* Per-surface keyframes (ADR-023 D9 — user-locked values 2026-08-09).
+   Each carries its locked duration in the companion class. */
+
+/* Tooltip EXIT — mirror of lawlib-tooltip-in: scale 0.96 + translateY 4px,
+   120ms in-curve (entry is 150ms). Applied by the hook's closing state
+   (T28); keyboard closes skip it. Declared after .lawlib-tooltip so the
+   shorthand wins the cascade when both classes are present. */
+@keyframes lawlib-tooltip-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+}
+.lawlib-tooltip-out {
+  animation: lawlib-tooltip-out 0.12s var(--ease-ios-in) both;
+}
+
+/* Dock L1 icon→panel MORPH (200ms spring overshoot) — scale 0.6→1 + fade. */
+@keyframes lawlib-morph-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.lawlib-morph-in {
+  animation: lawlib-morph-in 0.2s var(--ease-ios-spring) both;
+}
+
+/* Auto-scroll chip level pop when the value changes — scale 1.1→1, 100ms. */
+@keyframes lawlib-chip-pop {
+  from {
+    transform: scale(1.1);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+.lawlib-chip-pop {
+  animation: lawlib-chip-pop 0.1s var(--ease-ios-spring) both;
+}
+
+/* Digest-line flash ring — one expanding box-shadow ring, 150ms, 1
+   iteration. Paint-only (D2 tint allowance) on a single small line; the
+   only non-compositor keyframe, locked by the D9 "bg+box-shadow + ring
+   pulse" decision. */
+@keyframes lawlib-flash-pulse {
+  from {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  to {
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+  }
+}
+.lawlib-flash-pulse {
+  animation: lawlib-flash-pulse 0.15s ease-out both;
+}
+
+/* Focus mode — reader content fades to 0 + scale 0.995 over 300ms before
+   display:none. Exit curve (dismissal never overshoots). */
+@keyframes lawlib-focus-fade {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.995);
+  }
+}
+.lawlib-focus-fade {
+  animation: lawlib-focus-fade 0.3s var(--ease-ios-in) both;
+}
+
+/* Drawer overlay — plain fade, 400ms (drawer panels themselves use
+   lawlib-slide-*; exits reuse this keyframe via animation-direction:
+   reverse). */
+@keyframes lawlib-overlay-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.lawlib-overlay-fade {
+  animation: lawlib-overlay-fade 0.4s var(--ease-ios-out) both;
+}
+
+/* VT helper classes (ADR-023 D3): UNIQUE view-transition-names for fixed
+   elements during theme-change View Transitions (T27). `none` is the
+   default (it does NOT exclude), and duplicate names make the browser skip
+   the whole transition — one name per element, never duplicated. */
+.vt-dock {
+  view-transition-name: dock-chrome;
+}
+.vt-header {
+  view-transition-name: site-header;
+}
+.vt-scroll {
+  view-transition-name: scroll-progress;
+}
+.vt-btt {
+  view-transition-name: back-to-top;
+}
+.vt-tooltip {
+  view-transition-name: lawlib-tooltip;
+}
+.vt-picker {
+  view-transition-name: lawlib-picker-popover;
+}
+.vt-drawer {
+  view-transition-name: lawlib-drawer;
+}
+.vt-chip {
+  view-transition-name: autoscroll-chip;
+}
+
 /* ─── Alphabet Adventure: Kid-Friendly Menu ───────────────────────────────── */
 @keyframes kid-float {
   0%,
