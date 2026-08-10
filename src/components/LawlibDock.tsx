@@ -56,7 +56,7 @@
  * by settings.animateDock + prefers-reduced-motion; the 150ms dock-out
  * collapse (DOCK_ANIM_MS) is unchanged.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { safeGetString, safeSetString } from '@/lib/storage';
 import { DEFAULT_READING_SETTINGS, DOCK_TOOL_KEYS } from '@/hooks/useReaderStorage';
@@ -377,6 +377,15 @@ export default function LawlibDock(props: LawlibDockProps) {
   const [backToTopVisible, setBackToTopVisible] = useState(false);
 
   const rootRef = useRef<HTMLDivElement | null>(null);
+  /** T45 — the L1 panel div: the in-tree POSITIONED ANCESTOR of the L2
+   *  surface. The desktop portal wrapper mirrors ITS rect (the L2's
+   *  `absolute` `more` placement classes resolve against the panel's
+   *  padding box — NOT the root, which is a 0×0 anchor when expanded). */
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  /** T45 — the desktop L2 PORTAL wrapper (body-level, fixed, mirrors the
+   *  panel's padding-box rect). Null while L2 is closed or on mobile (the
+   *  in-flow branch renders no wrapper). */
+  const l2PortalRef = useRef<HTMLDivElement | null>(null);
   /** T26 (AC-1) — the position-change ANIMATION target: an INNER wrapper
    *  inside the root (never the ref'd root — focus management stays
    *  untouched). The re-trigger effect restarts its enter keyframe on
@@ -838,6 +847,15 @@ export default function LawlibDock(props: LawlibDockProps) {
   const morePanelPlacementClass = isMobile
     ? 'mt-2 w-full rounded-2xl border border-slate-200/80 dark:border-slate-700/70 p-2'
     : `absolute ${cfg.more} w-28 md:w-32 rounded-3xl border border-slate-200/80 dark:border-slate-700/70 p-2.5 md:p-3 shadow-2xl shadow-slate-900/15 dark:shadow-black/50`;
+  /** T45 — L2 surface (user-locked 2026-08-10): FIXED glass, same as the L1
+   *  round buttons — `bg-white/60` / `dark:bg-slate-800/70` (60% alpha) +
+   *  `backdrop-blur-sm` (8px). The old `lawlib-glass lawlib-glass-xs`
+   *  (slider-driven vars) is GONE from L2: the portaled panel's blur must
+   *  sample the REAL page behind it, and the slider no longer drives L2.
+   *  `lawlib-glass-sheen` kept — it is border-top-color ONLY, no
+   *  backdrop-filter (verified in globals.css:2065). */
+  const morePanelSurfaceClass =
+    'bg-white/60 dark:bg-slate-800/70 backdrop-blur-sm lawlib-glass-sheen';
 
   /** T21 matrix (user decision 2026-08-09) — position-aware bottom offset,
    *  T26 (AC-2/AC-4) — FLUSH-ONLY now: this class list is the FIXED
@@ -864,6 +882,64 @@ export default function LawlibDock(props: LawlibDockProps) {
    *  (transition-[transform] duration-150 ease-ios-spring). Only bottom-right ever raises
    *  (the T21 matrix). */
   const dockRaised = position === 'bottom-right' && backToTopVisible;
+
+  /** T45 — desktop L2 portal sync (LawTooltip/PickerPopover pattern): the
+   *  wrapper mirrors the PANEL's PADDING-box rect — the box the L2's
+   *  `absolute` `more` placement classes resolve against in-tree — so the
+   *  portaled L2 lands at IDENTICAL viewport geometry, but with NO
+   *  backdrop-filter ancestor (the Chromium nested-bf quirk: a bf
+   *  descendant outside the bf ancestor's border box samples nothing →
+   *  computed blur, no visual blur). The root is NOT the reference: when
+   *  expanded it is a 0×0 fixed anchor (the panel is absolutely
+   *  positioned), so mirroring it would shift L2 by the panel's whole
+   *  size. Padding-box math (border-box rect − computed borders/paddings)
+   *  keeps the alignment exact across every layout variant (w-16 column /
+   *  w-max row). Direct style writes (no setState) → the compiler
+   *  set-state-in-effect rule stays untouched; visibility flips after the
+   *  first sync → no flash at the origin corner. Re-syncs on open
+   *  (`moreOpen`), window resize, and every geometry change of the dock
+   *  root (position / BackToTop raise / toolbar size). The wrapper itself
+   *  carries NO transform/filter/backdrop-filter — a transform would make
+   *  it a containing block and a bf would re-create the very bug. */
+  useLayoutEffect(() => {
+    const panel = panelRef.current;
+    const wrapper = l2PortalRef.current;
+    if (panel === null || wrapper === null) return;
+    const sync = () => {
+      const p = panelRef.current;
+      const w = l2PortalRef.current;
+      if (p === null || w === null) return;
+      const r = p.getBoundingClientRect();
+      const cs = window.getComputedStyle(p);
+      const padL = parseFloat(cs.paddingLeft) || 0;
+      const padR = parseFloat(cs.paddingRight) || 0;
+      const padT = parseFloat(cs.paddingTop) || 0;
+      const padB = parseFloat(cs.paddingBottom) || 0;
+      const bL = parseFloat(cs.borderLeftWidth) || 0;
+      const bR = parseFloat(cs.borderRightWidth) || 0;
+      const bT = parseFloat(cs.borderTopWidth) || 0;
+      const bB = parseFloat(cs.borderBottomWidth) || 0;
+      w.style.left = `${r.left + bL + padL}px`;
+      w.style.top = `${r.top + bT + padT}px`;
+      w.style.width = `${r.width - bL - bR - padL - padR}px`;
+      w.style.height = `${r.height - bT - bB - padT - padB}px`;
+      w.style.visibility = 'visible';
+    };
+    sync();
+    // T45-fix (live 2026-08-10): the first sync runs in the layout phase —
+    // BEFORE the dock's own motion (the 100ms position-change slide, the
+    // expand morph, the BackToTop raise transition) starts at paint, so it
+    // captures the panel's PRE-motion rect. A trailing re-sync after the
+    // longest dock motion (250ms) pins the wrapper to the SETTLED rect —
+    // without it the wrapper stays offset by the animation's travel
+    // (±8px slide, −96px raise) until the next open/resize/position change.
+    const settleTimer = window.setTimeout(sync, 250);
+    window.addEventListener('resize', sync);
+    return () => {
+      window.clearTimeout(settleTimer);
+      window.removeEventListener('resize', sync);
+    };
+  }, [position, dockRaised, effectiveToolbarSize, moreOpen]);
 
   const pickerValue: Record<PickerKind, string> = {
     theme: THEME_CHOICES.find((c) => c.value === theme)?.label ?? theme,
@@ -1106,6 +1182,31 @@ export default function LawlibDock(props: LawlibDockProps) {
     );
   };
 
+  /** T45 — the L2 inner content (favorites grid + divider + rest grid),
+   *  shared by BOTH surfaces: the mobile in-flow panel and the desktop
+   *  body-portaled panel. Defined after renderMoreIconButton (closure). */
+  const morePanelContent = (
+    <div className="flex flex-col gap-1.5 md:gap-2">
+      {settings.favoriteToolKeys.length > 0 && (
+        <>
+          <ul className="grid grid-cols-2 justify-items-center gap-0.5">
+            {settings.favoriteToolKeys.map((key) => (
+              <li key={key}>{renderMoreIconButton(key)}</li>
+            ))}
+          </ul>
+          <div aria-hidden="true" className="h-px w-full shrink-0 bg-slate-200 dark:bg-slate-700" />
+        </>
+      )}
+      <ul className="grid grid-cols-2 justify-items-center gap-0.5">
+        {MORE_REST_KEYS.filter((key) => !settings.favoriteToolKeys.some((k) => k === key)).map(
+          (key) => (
+            <li key={key}>{renderMoreIconButton(key)}</li>
+          ),
+        )}
+      </ul>
+    </div>
+  );
+
   // T44 — portal to document.body: the reader shell wraps this tree in
   // next/dynamic(ssr:false) (LawlibReaderShell), so the server NEVER renders
   // the dock and this guard is belt-and-braces, not the hydration fix (same
@@ -1160,6 +1261,7 @@ export default function LawlibDock(props: LawlibDockProps) {
         ) : (
           <div
             id="lawlib-dock-panel"
+            ref={panelRef}
             role="dialog"
             aria-modal="false"
             aria-label="เครื่องมืออ่าน"
@@ -1267,40 +1369,57 @@ export default function LawlibDock(props: LawlibDockProps) {
               expands it). T25: mounts while OPEN or mid-exit (`moreClosing`) —
               pop-in 200ms spring from the ⋯ side (transform-origin per
               position) on open; pop-out 140ms + delay-unmount on close; gate
-              off (animateDock off / reduced motion) → instant, no class. ──── */}
-            {(moreOpen || moreClosing) && (
-              <div
-                id="lawlib-more-panel"
-                data-lawlib-l2
-                style={{ transformOrigin: morePopOrigin }}
-                className={`lawlib-glass lawlib-glass-xs lawlib-glass-sheen ${morePanelPlacementClass} border-slate-200 dark:border-slate-700 ${
-                  moreClosing ? 'lawlib-pop-out' : animateDockNow ? 'lawlib-pop-in' : ''
-                }`}
-              >
-                <div className="flex flex-col gap-1.5 md:gap-2">
-                  {settings.favoriteToolKeys.length > 0 && (
-                    <>
-                      <ul className="grid grid-cols-2 justify-items-center gap-0.5">
-                        {settings.favoriteToolKeys.map((key) => (
-                          <li key={key}>{renderMoreIconButton(key)}</li>
-                        ))}
-                      </ul>
-                      <div
-                        aria-hidden="true"
-                        className="h-px w-full shrink-0 bg-slate-200 dark:bg-slate-700"
-                      />
-                    </>
-                  )}
-                  <ul className="grid grid-cols-2 justify-items-center gap-0.5">
-                    {MORE_REST_KEYS.filter(
-                      (key) => !settings.favoriteToolKeys.some((k) => k === key),
-                    ).map((key) => (
-                      <li key={key}>{renderMoreIconButton(key)}</li>
-                    ))}
-                  </ul>
+              off (animateDock off / reduced motion) → instant, no class.
+              T45: the SURFACE is fixed (user-locked — bg-white/60 +
+              backdrop-blur-sm, same as the L1 round buttons; the slider no
+              longer drives L2), and DESKTOP L2 portals to document.body —
+              the in-tree spot sits under the L1 panel's backdrop-filter,
+              and Chromium's nested-bf quirk makes a bf descendant outside
+              the bf ancestor's border box sample nothing (computed blur,
+              no visual blur). The body-level wrapper mirrors the panel's
+              padding-box rect (sync effect above) → identical geometry,
+              no bf ancestor. Mobile stays in-flow inside the sheet (its
+              blur works — inside the box). ──── */}
+            {(moreOpen || moreClosing) &&
+              (isMobile ? (
+                <div
+                  id="lawlib-more-panel"
+                  data-lawlib-l2
+                  style={{ transformOrigin: morePopOrigin }}
+                  className={`${morePanelSurfaceClass} ${morePanelPlacementClass} border-slate-200 dark:border-slate-700 ${
+                    moreClosing ? 'lawlib-pop-out' : animateDockNow ? 'lawlib-pop-in' : ''
+                  }`}
+                >
+                  {morePanelContent}
                 </div>
-              </div>
-            )}
+              ) : (
+                createPortal(
+                  <div
+                    ref={l2PortalRef}
+                    data-lawlib-l2-portal
+                    // No transform/filter/backdrop-filter on the wrapper
+                    // itself (a transform would make it a containing block;
+                    // a bf would re-create the nested quirk). pointer-events-
+                    // none so the overlay never intercepts the dock's own
+                    // clicks — the L2 panel opts back in (pointer-events-
+                    // auto, its box is fully interactive).
+                    style={{ left: 0, top: 0, visibility: 'hidden' }}
+                    className="pointer-events-none fixed z-50"
+                  >
+                    <div
+                      id="lawlib-more-panel"
+                      data-lawlib-l2
+                      style={{ transformOrigin: morePopOrigin }}
+                      className={`pointer-events-auto ${morePanelSurfaceClass} ${morePanelPlacementClass} border-slate-200 dark:border-slate-700 ${
+                        moreClosing ? 'lawlib-pop-out' : animateDockNow ? 'lawlib-pop-in' : ''
+                      }`}
+                    >
+                      {morePanelContent}
+                    </div>
+                  </div>,
+                  document.body,
+                )
+              ))}
           </div>
         )}
       </div>

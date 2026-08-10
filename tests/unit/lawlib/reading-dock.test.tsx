@@ -330,9 +330,11 @@ describe('Dock v2.1 — Level 1 (expanded favorites)', () => {
     const widthBtn = screen.getByRole('button', { name: /กว้าง/ });
     fireEvent.click(widthBtn);
     const widthSlider = screen.getByRole('slider', { name: 'ความกว้างเนื้อหา' });
-    // Width slider runs 80-120% (step 1) — pick 110% and see it on the button.
+    // Width slider runs 80-160% (step 1 — T39/ADR-025 S4; the slider
+    // MIN/MAX sync with useReaderStorage's clamp since T42) — pick 110%
+    // and see it on the button.
     expect(widthSlider.getAttribute('min')).toBe('80');
-    expect(widthSlider.getAttribute('max')).toBe('120');
+    expect(widthSlider.getAttribute('max')).toBe('160');
     fireEvent.change(widthSlider, { target: { value: '110' } });
     expect(widthBtn.textContent).toContain('110%');
   });
@@ -494,12 +496,31 @@ describe('Dock v2.3 — Level 2 (⋯ dots — T15 sibling glass panel)', () => {
 
     const panel = morePanel();
     expect(panel).not.toBeNull();
-    // T15 v2.3: L2 = a SEPARATE 112px glass panel with the SAME uniform
-    // glass as L1 — a SIBLING of the Level-1 content (NOT inside it, NOT a
-    // swap: Level 1 stays mounted).
-    expect(panel!.className).toContain('lawlib-glass lawlib-glass-xs lawlib-glass-sheen');
+    // T15 v2.3: L2 = a SEPARATE 112px glass panel — a SIBLING of the
+    // Level-1 content (NOT inside it, NOT a swap: Level 1 stays mounted).
+    // T45: the surface is FIXED (user-locked — 60% alpha + 8px blur, same
+    // as the L1 round buttons; the old slider-driven
+    // `lawlib-glass lawlib-glass-xs` is gone) and the desktop panel
+    // PORTALS to document.body — the in-tree spot sits under the L1
+    // panel's backdrop-filter, where the Chromium nested-bf quirk makes
+    // the descendant sample nothing (computed blur, no visual blur).
+    expect(panel!.className).toContain('backdrop-blur-sm');
+    expect(panel!.className).toContain('bg-white/60');
+    expect(panel!.className).toContain('lawlib-glass-sheen');
+    expect(panel!.className).not.toContain('lawlib-glass-xs');
     expect(panel!.className).toContain('w-28');
     expect(l1Container()!.contains(panel as HTMLElement)).toBe(false);
+    // Portal: the panel lives in a body-level FIXED wrapper mirroring the
+    // panel's rect (identical geometry, no bf ancestor) — NOT inside the
+    // dock root; the wrapper itself carries no blur/transform.
+    const portalWrapper = panel!.parentElement as HTMLElement;
+    expect(portalWrapper.getAttribute('data-lawlib-l2-portal')).not.toBeNull();
+    expect(portalWrapper.className).toContain('fixed');
+    expect(portalWrapper.className).toContain('z-50');
+    expect(portalWrapper.className).toContain('pointer-events-none');
+    expect(portalWrapper.className).not.toContain('backdrop-blur');
+    const dockRoot = document.querySelector('.lawlib-dock.fixed') as HTMLElement;
+    expect(dockRoot.contains(panel)).toBe(false);
     expect(screen.getByRole('button', { name: 'เพิ่มเติม' })).toBeTruthy();
 
     // Row 1 = the Level-1 favorite set (default curated row), row 2 = the
@@ -684,7 +705,6 @@ describe('Dock v2.3 — Level 2 (⋯ dots — T15 sibling glass panel)', () => {
 describe('Dock v2.3 — direction-aware layout (T12/T15)', () => {
   it('side position (default bottom-right): Level-1 VERTICAL column + Level-2 2-col grid', async () => {
     await renderReader();
-    const panel = dockPanel() as HTMLElement;
 
     // Level 1 favorites flow top-to-bottom (the wrapper around the pickers).
     const themeBtn = screen.getByRole('button', { name: /ธีม/ });
@@ -694,9 +714,11 @@ describe('Dock v2.3 — direction-aware layout (T12/T15)', () => {
     expect(favoritesRow.className).not.toContain('flex-wrap');
 
     // Level 2 tools = uniform 2-col grid (32px icons, gap-0.5) — no
-    // horizontal 3-col step in any layout (T15 v2.3).
+    // horizontal 3-col step in any layout (T15 v2.3). T45: the desktop L2
+    // portals to document.body — query the panel directly, not through
+    // the L1 panel (no longer a DOM child).
     fireEvent.click(moreBtn());
-    const ul = panel.querySelector('#lawlib-more-panel ul') as HTMLElement;
+    const ul = (morePanel() as HTMLElement).querySelector('ul') as HTMLElement;
     expect(ul.className).toContain('grid grid-cols-2');
     expect(ul.className).toContain('gap-0.5');
     expect(ul.className).not.toContain('sm:grid-cols-3');
@@ -721,9 +743,9 @@ describe('Dock v2.3 — direction-aware layout (T12/T15)', () => {
 
     fireEvent.click(moreBtn());
 
-    const panel = dockPanel() as HTMLElement;
     // Level 2 tools = the same uniform 2-col grid (no 3-col step anywhere).
-    const ul = panel.querySelector('#lawlib-more-panel ul') as HTMLElement;
+    // T45: desktop L2 portals to document.body — query via morePanel().
+    const ul = (morePanel() as HTMLElement).querySelector('ul') as HTMLElement;
     expect(ul.className).toContain('grid grid-cols-2');
     expect(ul.className).not.toContain('sm:grid-cols-3');
   });
@@ -761,9 +783,18 @@ describe('Dock v2.3 — mobile bottom sheet (T12/T15)', () => {
     fireEvent.click(moreBtn());
     const l2 = morePanel() as HTMLElement;
     expect(l2).not.toBeNull();
-    expect(l2.className).toContain('lawlib-glass lawlib-glass-xs lawlib-glass-sheen');
+    // T45: the mobile L2 keeps the same FIXED surface (60% alpha + 8px
+    // blur — the old `lawlib-glass lawlib-glass-xs` is gone) but stays
+    // IN-FLOW inside the sheet — NO portal wrapper (the blur works there,
+    // inside the panel's backdrop-filter box).
+    expect(l2.className).toContain('backdrop-blur-sm');
+    expect(l2.className).toContain('bg-white/60');
+    expect(l2.className).not.toContain('lawlib-glass-xs');
+    expect(l2.className).toContain('lawlib-glass-sheen');
     expect(l2.className).toContain('w-full');
     expect(l2.className).not.toContain('absolute');
+    expect(l2.parentElement!.getAttribute('data-lawlib-l2-portal')).toBeNull();
+    expect(dockPanel()!.contains(l2)).toBe(true);
     // Level 1 stays in the sheet beside/above it — BOTH ธีม buttons exist
     // (the L1 picker with its value label + the L2 grid icon).
     expect(screen.getAllByRole('button', { name: /ธีม/ })).toHaveLength(2);
