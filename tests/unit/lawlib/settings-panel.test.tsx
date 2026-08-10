@@ -151,6 +151,19 @@ describe('T10b settings panel — ⚙️ wiring', () => {
     expect(picker.getAttribute('role')).toBe('group');
   });
 
+  it('T47 quick section: the glass slider renders ABOVE the typography sections (DOM order)', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    // AC-3 — the quick group (กระจก → การเคลื่อนไหว → เลื่อนอัตโนมัติ) sits
+    // at the TOP of the panel: the glass slider must precede the first
+    // typography section (ขนาดตัวอักษร) in document order.
+    const glass = within(picker).getByLabelText('กระจก (ความทึบ + ความเบลอ)');
+    const typography = within(picker).getByRole('heading', { name: 'ขนาดตัวอักษร' });
+    expect(
+      (glass.compareDocumentPosition(typography) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
+    ).toBe(true);
+  });
+
   it('glass slider persists through the shared validator', async () => {
     await renderReader();
     const picker = await openSettings();

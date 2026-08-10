@@ -863,6 +863,126 @@ export function SettingsPanelContent({
 
   return (
     <div className="space-y-3">
+      {/* ─── T47: QUICK section (user decision 2026-08-10 — quick path to
+          the important settings = TOP of the ⚙️ panel, no new dock buttons,
+          no long-press). The 3 most-used settings in one glance, in this
+          order: กระจก (ทึบ/เบลอ) → การเคลื่อนไหว (ปิด/เร็ว/ปกติ) →
+          เลื่อนอัตโนมัติ speed. Blocks moved here INTACT from their old
+          spots (single source of truth — NO duplication); the T29 stagger
+          below starts AFTER this group. ──────────────────────────────── */}
+      <div className="space-y-3">
+        <SettingsSectionTitle>สำคัญ</SettingsSectionTitle>
+
+        {/* ─── Glass (T47 quick section) ────────────────────────────────── */}
+        <SettingsSectionTitle
+          action={
+            <ResetButton
+              label="ความทึบ"
+              disabled={settings.glassOpacity === d.glassOpacity}
+              onClick={() => onChange((prev) => ({ ...prev, glassOpacity: d.glassOpacity }))}
+            />
+          }
+        >
+          ความโปร่งใสของแถบเครื่องมือ
+        </SettingsSectionTitle>
+        <SliderRow
+          id="lawlib-glass-opacity"
+          label="กระจก (ความทึบ + ความเบลอ)"
+          min={0}
+          max={100}
+          step={1}
+          value={settings.glassOpacity}
+          display={`${settings.glassOpacity}%`}
+          onChange={(glassOpacity) => onChange((prev) => ({ ...prev, glassOpacity }))}
+        />
+
+        {/* ─── Motion preference (T42 — ADR-025 D2): ปิด / เร็ว / ปกติ.
+            Selected = the EFFECTIVE tier: under OS reduced-motion a stored
+            'quality' shows as เร็ว (the D2c user-locked downgrade) and the
+            ปกติ option is DISABLED (visible + greyed — the user must pick
+            เร็ว or ปิด; the hint explains why). The stored value stays
+            'quality' until the user acts. */}
+        <SettingsSectionTitle
+          action={
+            <ResetButton
+              label="การเคลื่อนไหว"
+              disabled={settings.motionPreference === d.motionPreference}
+              onClick={() =>
+                onChange((prev) => ({ ...prev, motionPreference: d.motionPreference }))
+              }
+            />
+          }
+        >
+          การเคลื่อนไหว
+        </SettingsSectionTitle>
+        <div className="grid grid-cols-3 gap-1.5">
+          <OptionButton
+            pressed={motionEffective === 'disable'}
+            onClick={() => onChange((prev) => ({ ...prev, motionPreference: 'disable' }))}
+            label="การเคลื่อนไหวปิด"
+          >
+            ปิด
+          </OptionButton>
+          <OptionButton
+            pressed={motionEffective === 'fast'}
+            onClick={() => onChange((prev) => ({ ...prev, motionPreference: 'fast' }))}
+            label="การเคลื่อนไหวเร็ว"
+          >
+            เร็ว
+          </OptionButton>
+          <OptionButton
+            pressed={motionEffective === 'quality'}
+            onClick={() => onChange((prev) => ({ ...prev, motionPreference: 'quality' }))}
+            label="การเคลื่อนไหวปกติ"
+            disabled={reducedMotion}
+          >
+            ปกติ
+          </OptionButton>
+        </div>
+        {reducedMotion && (
+          <p className="text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
+            ระบบลดการเคลื่อนไหวเปิดอยู่ — เลือกได้ เร็ว หรือ ปิด
+          </p>
+        )}
+
+        {/* ─── Auto-scroll (T47 quick section) ──────────────────────────── */}
+        <SettingsSectionTitle
+          action={
+            <ResetButton
+              label="ความเร็วเลื่อนอัตโนมัติ"
+              disabled={settings.autoScrollSpeed === d.autoScrollSpeed}
+              onClick={() => onChange((prev) => ({ ...prev, autoScrollSpeed: d.autoScrollSpeed }))}
+            />
+          }
+        >
+          เลื่อนอัตโนมัติ
+        </SettingsSectionTitle>
+        <SliderRow
+          id="lawlib-auto-scroll"
+          label="ความเร็ว"
+          min={AUTO_SCROLL_MIN}
+          max={AUTO_SCROLL_MAX}
+          step={1}
+          value={reducedMotion ? 0 : settings.autoScrollSpeed}
+          // T23 — level + seconds per line (48 px/s per level; null when OFF).
+          // 'ปิด' when speed 0 OR reduced-motion (matches the forced value).
+          display={
+            settings.autoScrollSpeed === 0 || reducedMotion
+              ? 'ปิด'
+              : `ระดับ ${settings.autoScrollSpeed} · ${secondsPerLine(
+                  settings.autoScrollSpeed,
+                  settings.fontSize,
+                  settings.lineHeight,
+                )} วิ/บรรทัด`
+          }
+          onChange={(autoScrollSpeed) => onChange((prev) => ({ ...prev, autoScrollSpeed }))}
+        />
+        <p className="text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
+          หยุดเมื่อคุณเลื่อนหรือแตะหน้าจอ
+          {reducedMotion && ' — ปิดชั่วคราวเพราะตั้งค่าลดการเคลื่อนไหวของระบบ'}
+        </p>
+      </div>
+
       {/* ─── T23: reading-surface controls (user decision 2026-08-09 — the
           L1 pickers' components, second mount point; L1 pickers stay).
           T29: the 5 sections stagger in 40ms steps on open (ADR-023 D9 —
@@ -1006,29 +1126,8 @@ export function SettingsPanelContent({
         ))}
       </div>
 
-      {/* ─── Glass + toolbar size ──────────────────────────────────────── */}
-      <SettingsSectionTitle
-        action={
-          <ResetButton
-            label="ความทึบ"
-            disabled={settings.glassOpacity === d.glassOpacity}
-            onClick={() => onChange((prev) => ({ ...prev, glassOpacity: d.glassOpacity }))}
-          />
-        }
-      >
-        ความโปร่งใสของแถบเครื่องมือ
-      </SettingsSectionTitle>
-      <SliderRow
-        id="lawlib-glass-opacity"
-        label="กระจก (ความทึบ + ความเบลอ)"
-        min={0}
-        max={100}
-        step={1}
-        value={settings.glassOpacity}
-        display={`${settings.glassOpacity}%`}
-        onChange={(glassOpacity) => onChange((prev) => ({ ...prev, glassOpacity }))}
-      />
-
+      {/* ─── Toolbar size (T47: the glass slider moved up to the quick
+          section at the top of the panel — single source of truth). ── */}
       <SettingsSectionTitle
         action={
           <ResetButton
@@ -1269,90 +1368,6 @@ export function SettingsPanelContent({
         resetLabel="แอนิเมชันแถบเครื่องมือ"
         resetDisabled={settings.animateDock}
       />
-
-      {/* ─── Motion preference (T42 — ADR-025 D2): ปิด / เร็ว / ปกติ.
-          Selected = the EFFECTIVE tier: under OS reduced-motion a stored
-          'quality' shows as เร็ว (the D2c user-locked downgrade) and the
-          ปกติ option is DISABLED (visible + greyed — the user must pick
-          เร็ว or ปิด; the hint explains why). The stored value stays
-          'quality' until the user acts. */}
-      <SettingsSectionTitle
-        action={
-          <ResetButton
-            label="การเคลื่อนไหว"
-            disabled={settings.motionPreference === d.motionPreference}
-            onClick={() => onChange((prev) => ({ ...prev, motionPreference: d.motionPreference }))}
-          />
-        }
-      >
-        การเคลื่อนไหว
-      </SettingsSectionTitle>
-      <div className="grid grid-cols-3 gap-1.5">
-        <OptionButton
-          pressed={motionEffective === 'disable'}
-          onClick={() => onChange((prev) => ({ ...prev, motionPreference: 'disable' }))}
-          label="การเคลื่อนไหวปิด"
-        >
-          ปิด
-        </OptionButton>
-        <OptionButton
-          pressed={motionEffective === 'fast'}
-          onClick={() => onChange((prev) => ({ ...prev, motionPreference: 'fast' }))}
-          label="การเคลื่อนไหวเร็ว"
-        >
-          เร็ว
-        </OptionButton>
-        <OptionButton
-          pressed={motionEffective === 'quality'}
-          onClick={() => onChange((prev) => ({ ...prev, motionPreference: 'quality' }))}
-          label="การเคลื่อนไหวปกติ"
-          disabled={reducedMotion}
-        >
-          ปกติ
-        </OptionButton>
-      </div>
-      {reducedMotion && (
-        <p className="text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
-          ระบบลดการเคลื่อนไหวเปิดอยู่ — เลือกได้ เร็ว หรือ ปิด
-        </p>
-      )}
-
-      {/* ─── Auto-scroll ───────────────────────────────────────────────── */}
-      <SettingsSectionTitle
-        action={
-          <ResetButton
-            label="ความเร็วเลื่อนอัตโนมัติ"
-            disabled={settings.autoScrollSpeed === d.autoScrollSpeed}
-            onClick={() => onChange((prev) => ({ ...prev, autoScrollSpeed: d.autoScrollSpeed }))}
-          />
-        }
-      >
-        เลื่อนอัตโนมัติ
-      </SettingsSectionTitle>
-      <SliderRow
-        id="lawlib-auto-scroll"
-        label="ความเร็ว"
-        min={AUTO_SCROLL_MIN}
-        max={AUTO_SCROLL_MAX}
-        step={1}
-        value={reducedMotion ? 0 : settings.autoScrollSpeed}
-        // T23 — level + seconds per line (48 px/s per level; null when OFF).
-        // 'ปิด' when speed 0 OR reduced-motion (matches the forced value).
-        display={
-          settings.autoScrollSpeed === 0 || reducedMotion
-            ? 'ปิด'
-            : `ระดับ ${settings.autoScrollSpeed} · ${secondsPerLine(
-                settings.autoScrollSpeed,
-                settings.fontSize,
-                settings.lineHeight,
-              )} วิ/บรรทัด`
-        }
-        onChange={(autoScrollSpeed) => onChange((prev) => ({ ...prev, autoScrollSpeed }))}
-      />
-      <p className="text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
-        หยุดเมื่อคุณเลื่อนหรือแตะหน้าจอ
-        {reducedMotion && ' — ปิดชั่วคราวเพราะตั้งค่าลดการเคลื่อนไหวของระบบ'}
-      </p>
 
       {/* ─── Reset (inline confirm — no nested dialog in the popover) ──── */}
       <SettingsSectionTitle>รีเซ็ต</SettingsSectionTitle>
