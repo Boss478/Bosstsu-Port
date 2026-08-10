@@ -176,7 +176,7 @@ export default function DigestToc({
         สารบัญ
         <i
           aria-hidden="true"
-          className={`fi fi-sr-angle-small-down text-xs transition-transform ${
+          className={`fi fi-sr-angle-small-down text-xs transition-transform duration-200 ease-ios-spring ${
             collapsed ? '' : 'rotate-180'
           }`}
         />

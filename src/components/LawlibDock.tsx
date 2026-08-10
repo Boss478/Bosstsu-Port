@@ -859,9 +859,9 @@ export default function LawlibDock(props: LawlibDockProps) {
    *  value above; the raised state lifts the whole dock with
    *  translateY(calc(-1 * (var(--lawlib-dock-size) + 3.25rem))) = −96px at
    *  the default 44px toolbar size (the historical size + 3.25rem
-   *  clearance calc); mobile = −(size + 0.75rem) = −56px. The 100ms
+   *  clearance calc); mobile = −(size + 0.75rem) = −56px. The 150ms spring
    *  transform transition lives on the root class list
-   *  (transition-[transform] duration-100). Only bottom-right ever raises
+   *  (transition-[transform] duration-150 ease-ios-spring). Only bottom-right ever raises
    *  (the T21 matrix). */
   const dockRaised = position === 'bottom-right' && backToTopVisible;
 
@@ -1135,7 +1135,7 @@ export default function LawlibDock(props: LawlibDockProps) {
       }
       className={`lawlib-dock fixed z-50 ${cfg.root} ${
         isBottomPosition ? bottomOffsetClass : ''
-      } ${dockRaised ? 'lawlib-dock-raised' : ''} transition-[transform] duration-100`}
+      } ${dockRaised ? 'lawlib-dock-raised' : ''} transition-[transform] duration-150 ease-ios-spring`}
     >
       {/* T26 (AC-1) — the position-change ANIMATION wrapper: keyed target of
           the re-trigger effect (animation:none + reflow), carries the

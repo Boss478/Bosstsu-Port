@@ -21,7 +21,7 @@
  *   within the window); live keystroke re-filters NEVER re-add it; a
  *   fresh panel session re-arms (per-session by construction)
  * - T31 focus mode (AC-2): ENTER hides the chrome at t=0 and the reading
- *   surface fades IN (keyframe REVERSED), animation cleared at 300ms;
+ *   surface fades IN (keyframe REVERSED), animation cleared at 500ms;
  *   EXIT fades the surface OUT (forward), THEN the chrome returns;
  *   reduced-motion = instant toggle both ways
  * - AC-3/AC-5 chip: mounts with `lawlib-fade-rise` 150ms + `vt-chip` (NO pop
@@ -427,7 +427,7 @@ describe('T30 — auto-scroll chip (AC-3/AC-4/AC-5)', () => {
 // ---------------------------------------------------------------------------
 
 describe('T31 — page entrance + section stagger (AC-3)', () => {
-  it('page wrapper fades 400ms (backwards fill) + TOC/article columns stagger 60ms', async () => {
+  it('page wrapper fades 500ms (backwards fill) + TOC/article columns stagger 60ms', async () => {
     mockMatchMedia({ reducedMotion: false });
     await renderReader();
 
@@ -438,7 +438,7 @@ describe('T31 — page entrance + section stagger (AC-3)', () => {
     const wrapper = root?.querySelector<HTMLElement>(':scope > .lawlib-fade-rise');
     expect(wrapper).not.toBeNull();
     expect(root!.className).not.toContain('lawlib-fade-rise');
-    expect(wrapper!.style.animationDuration).toBe('400ms');
+    expect(wrapper!.style.animationDuration).toBe('500ms');
     expect(wrapper!.style.animationFillMode).toBe('backwards');
 
     // Main sections: first (TOC column) 60ms, second (article column) 120ms
@@ -458,7 +458,7 @@ describe('T31 — focus mode two-step (AC-2)', () => {
   const focusSwitch = () => screen.getByRole('switch', { name: 'เปิดโหมดโฟกัส' });
   const surface = () => document.getElementById('lawlib-reader-content') as HTMLElement;
 
-  it('enter: body.lawlib-focus set INSTANT, surface fades IN (reverse), animation cleared after 300ms', async () => {
+  it('enter: body.lawlib-focus set INSTANT, surface fades IN (reverse), animation cleared after 500ms', async () => {
     mockMatchMedia({ reducedMotion: false });
     await renderReader();
 
@@ -467,7 +467,7 @@ describe('T31 — focus mode two-step (AC-2)', () => {
     fireEvent.click(focusSwitch());
 
     // The chrome hides at t=0 — the reading surface MUST stay (globals.css
-    // contract + ADR-019 D7) and fades IN over 300ms: the keyframe runs
+    // contract + ADR-019 D7) and fades IN over 500ms: the keyframe runs
     // REVERSED (0→1, scale 0.995→1).
     expect(document.body.classList.contains('lawlib-focus')).toBe(true);
     expect(surface().style.animation).toContain('lawlib-focus-fade');
@@ -478,9 +478,9 @@ describe('T31 — focus mode two-step (AC-2)', () => {
     expect(indicator).not.toBeNull();
     expect(indicator.className).toContain('lawlib-reading-indicator');
 
-    // After the 300ms fade-in the inline animation is cleared — no
+    // After the 500ms fade-in the inline animation is cleared — no
     // persistent scale on the surface (fixed popover containing block).
-    await wait(320);
+    await wait(520);
     expect(surface().style.animation).toBe('');
     expect(document.body.classList.contains('lawlib-focus')).toBe(true);
   });
@@ -492,7 +492,7 @@ describe('T31 — focus mode two-step (AC-2)', () => {
     fireEvent.click(moreBtn());
     fireEvent.click(settingsTool());
     fireEvent.click(focusSwitch());
-    await wait(320); // enter completes
+    await wait(520); // enter completes
 
     fireEvent.click(screen.getByRole('button', { name: 'ออกจากโหมดโฟกัส' }));
 
@@ -502,9 +502,9 @@ describe('T31 — focus mode two-step (AC-2)', () => {
     expect(surface().style.animation).not.toContain('reverse');
     expect(document.body.classList.contains('lawlib-focus')).toBe(true);
 
-    // After the 300ms fade-out the chrome returns + the inline animation
+    // After the 500ms fade-out the chrome returns + the inline animation
     // is cleared — no persistent scale on the surface.
-    await wait(320);
+    await wait(520);
     expect(document.body.classList.contains('lawlib-focus')).toBe(false);
     expect(surface().style.animation).toBe('');
   });
@@ -533,7 +533,7 @@ describe('T31 — focus mode two-step (AC-2)', () => {
     fireEvent.click(moreBtn());
     fireEvent.click(settingsTool());
     fireEvent.click(focusSwitch());
-    await wait(320);
+    await wait(520);
     expect(document.body.classList.contains('lawlib-focus')).toBe(true);
 
     fireEvent.keyDown(document, { key: 'Escape' });
@@ -543,7 +543,7 @@ describe('T31 — focus mode two-step (AC-2)', () => {
     expect(surface().style.animation).not.toContain('reverse');
     expect(document.body.classList.contains('lawlib-focus')).toBe(true);
 
-    await wait(320);
+    await wait(520);
     expect(document.body.classList.contains('lawlib-focus')).toBe(false);
     expect(surface().style.animation).toBe('');
   });
@@ -687,7 +687,7 @@ describe('T36 — digest history height animation (AC-1/AC-2/AC-3)', () => {
     // fade is NOT running.
     expect(historyWrapper()!.style.gridTemplateRows).toBe('0fr');
     expect(historyWrapper()!.style.transition).toContain('grid-template-rows');
-    expect(historyWrapper()!.style.transition).toContain('300ms');
+    expect(historyWrapper()!.style.transition).toContain('400ms');
     // jsdom keeps the raw var reference — assert the TOKEN (the value is
     // --ease-ios-out: cubic-bezier(0.22, 1, 0.36, 1) per globals.css).
     expect(historyWrapper()!.style.transition).toContain('var(--ease-ios-out)');
@@ -866,9 +866,9 @@ describe('T37 — FULL|COMPACT segmented pill', () => {
     expect(k!.className).toContain('bg-blue-700');
     expect(k!.className).toContain('dark:bg-blue-600');
     expect(k!.className).toContain('translate-x-full'); // compact selected
-    // D10: knob animates TRANSFORM only — 200ms ease-ios-out (user lock).
+    // D10: knob animates TRANSFORM only — 300ms ease-ios-out (user lock).
     expect(k!.className).toContain('transition-transform');
-    expect(k!.className).toContain('duration-200');
+    expect(k!.className).toContain('duration-300');
     expect(k!.className).toContain('ease-ios-out');
     expect(k!.className).not.toContain('transition-colors');
     // RM: the global reduced-motion kill (globals.css) zeroes

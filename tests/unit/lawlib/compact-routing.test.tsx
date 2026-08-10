@@ -271,7 +271,7 @@ const compactCard = (key: string) =>
 
 // T35 (ADR-024 D3): a group region is an always-rendered grid WRAPPER
 // (`${group.id}-region` — identity must persist, TOC scroll targets) whose
-// rows interpolate 0fr ↔ 1fr 300ms --ease-ios-out; the inner
+// rows interpolate 0fr ↔ 1fr 400ms --ease-ios-out; the inner
 // overflow-hidden div owns `inert` (collapsed) + lawlib-fade-rise 150ms
 // (expanded only).
 const regionInner = (region: HTMLElement) => region.firstElementChild as HTMLElement;
@@ -285,7 +285,7 @@ function expectRegionExpanded(region: HTMLElement | null): void {
   expect(region).not.toBeNull();
   expect(region!.style.gridTemplateRows).toBe('1fr');
   expect(region!.style.transition).toContain('grid-template-rows');
-  expect(region!.style.transition).toContain('300ms');
+  expect(region!.style.transition).toContain('400ms');
   expect(regionInner(region!).hasAttribute('inert')).toBe(false);
   expect(regionInner(region!).className).toContain('lawlib-fade-rise');
   expect(regionInner(region!).style.animationDuration).toBe('150ms');
@@ -1122,7 +1122,7 @@ describe('T13 — inline prose ranges (มาตรา 75–76)', () => {
 // ---------------------------------------------------------------------------
 
 describe('T31 + T35 — compact group expand/collapse motion (T31 AC-1, T35 D3)', () => {
-  it('expand: rows 0fr→1fr 300ms + fade-rise 150ms; collapse: rows 1fr→0fr + inert (both directions animate); chevron springs', async () => {
+  it('expand: rows 0fr→1fr 400ms + fade-rise 150ms; collapse: rows 1fr→0fr + inert (both directions animate); chevron springs', async () => {
     // Shared fixture: section 4 (มาตราสำคัญ) groups into ch-1 (บททั่วไป) +
     // the unnumbered บทเฉพาะกาล (ch-x-1). First group expanded, the rest
     // collapsed — compact is the digest default view.
@@ -1149,7 +1149,7 @@ describe('T31 + T35 — compact group expand/collapse motion (T31 AC-1, T35 D3)'
     expect(chevron.className).toContain('ease-ios-spring');
     expect(chevron.className).not.toContain('rotate-180');
 
-    // Expand → the SAME region node goes 0fr→1fr (300ms ease-ios-out
+    // Expand → the SAME region node goes 0fr→1fr (400ms ease-ios-out
     // declared on the wrapper — the reverse path animates too) and the inner
     // re-gains fade-rise 150ms (a class re-add restarts the animation; no
     // keyed remount — callers hold region references, compact-routing
@@ -1166,7 +1166,7 @@ describe('T31 + T35 — compact group expand/collapse motion (T31 AC-1, T35 D3)'
     // removal) + no fade-rise.
     fireEvent.click(header);
     expect(document.getElementById(regionId)!.style.gridTemplateRows).toBe('0fr');
-    expect(document.getElementById(regionId)!.style.transition).toContain('300ms');
+    expect(document.getElementById(regionId)!.style.transition).toContain('400ms');
     expectRegionCollapsed(document.getElementById(regionId));
     expect(header.getAttribute('aria-expanded')).toBe('false');
     expect(header.querySelector('i')!.className).not.toContain('rotate-180');

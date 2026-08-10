@@ -704,7 +704,7 @@ textarea,
 }
 
 .lawlib-tooltip {
-  animation: lawlib-tooltip-in 0.15s ease-out;
+  animation: lawlib-tooltip-in 0.2s var(--ease-ios-expo);
   will-change: opacity, transform;
 }
 
@@ -715,7 +715,7 @@ textarea,
    position effect); the unset defaults are exactly the below case, so
    lawlib-tooltip-in stays untouched. The data-attr selector outranks the
    .lawlib-tooltip shorthand for the animation NAME only (0-2-0 > 0-1-0);
-   duration/easing still come from the class (0.15s ease-out). On close the
+   duration/easing still come from the class (0.2s expo). On close the
    attr is removed so .lawlib-tooltip-out wins the cascade — the exit must
    never be overridden by a stale entry-name. */
 @keyframes lawlib-tooltip-in-dir {
@@ -743,7 +743,7 @@ textarea,
    persistent will-change on any new class. */
 
 /* Generic — pop (L2 menus, popovers, tooltips): scale 0.94→1 + fade.
-   Entry 200ms spring (dock L2 locked), exit 140ms in (60–75% rule). */
+   Entry 250ms spring (dock L2 locked), exit 140ms in (60–75% rule). */
 @keyframes lawlib-pop-in {
   from {
     opacity: 0;
@@ -765,7 +765,7 @@ textarea,
   }
 }
 .lawlib-pop-in {
-  animation: lawlib-pop-in 0.2s var(--ease-ios-spring) both;
+  animation: lawlib-pop-in 0.25s var(--ease-ios-spring) both;
 }
 .lawlib-pop-out {
   animation: lawlib-pop-out 0.14s var(--ease-ios-in) both;
@@ -900,7 +900,7 @@ textarea,
   }
 }
 .lawlib-tooltip-out {
-  animation: lawlib-tooltip-out 0.12s var(--ease-ios-in) both;
+  animation: lawlib-tooltip-out 0.15s var(--ease-ios-in) both;
 }
 
 /* Dock L1 icon→panel MORPH (200ms spring overshoot) — scale 0.6→1 + fade. */
@@ -980,7 +980,7 @@ textarea,
   }
 }
 .lawlib-focus-fade {
-  animation: lawlib-focus-fade 0.3s var(--ease-ios-in) both;
+  animation: lawlib-focus-fade 0.5s var(--ease-ios-in) both;
 }
 
 /* Drawer overlay — plain fade, 400ms (drawer panels themselves use
@@ -1033,7 +1033,7 @@ textarea,
 }
 
 /* Directional keyframes — root snapshot only; named groups keep the plain
-   400ms crossfade. transform/opacity/filter only; filter does the tint work
+   500ms crossfade. transform/opacity/filter only; filter does the tint work
    (sepia warm-through for read/sepia, brightness dim/bright for dark/light). */
 @keyframes vt-root-fade-out {
   from {
@@ -1124,47 +1124,47 @@ textarea,
    blocks startViewTransition under reduced-motion — belt and braces: the
    global kill at 679 does NOT cover ::view-transition-* pseudo-elements). */
 @media (prefers-reduced-motion: no-preference) {
-  /* Named groups MUST share the root's 400ms + curve (default ~200-250ms
-     on named groups vs 400ms root = disjointed crossfade — senior finding,
+  /* Named groups MUST share the root's 500ms + curve (default ~200-250ms
+     on named groups vs 500ms root = disjointed crossfade — senior finding,
      AC-3). Group gets longhands ONLY (a shorthand would wipe the UA
      animation-name); old/new get an explicit crossfade so named elements
      don't hard-cut while the root fades. */
   ::view-transition-group(*) {
-    animation-duration: 400ms;
+    animation-duration: 500ms;
     animation-timing-function: var(--ease-ios-out);
   }
   ::view-transition-old(*) {
-    animation: vt-root-fade-out 400ms var(--ease-ios-out) both;
+    animation: vt-root-fade-out 500ms var(--ease-ios-out) both;
   }
   ::view-transition-new(*) {
-    animation: vt-root-fade-in 400ms var(--ease-ios-out) both;
+    animation: vt-root-fade-in 500ms var(--ease-ios-out) both;
   }
 
   /* to-dark (light → dark): old fades toward dim (slight 0.995 scale),
      new fades in from dim. */
   html[style*='--vt-dir: to-dark']::view-transition-old(root) {
-    animation: vt-root-out-dim 400ms var(--ease-ios-out) both;
+    animation: vt-root-out-dim 500ms var(--ease-ios-out) both;
   }
   html[style*='--vt-dir: to-dark']::view-transition-new(root) {
-    animation: vt-root-in-dim 400ms var(--ease-ios-out) both;
+    animation: vt-root-in-dim 500ms var(--ease-ios-out) both;
   }
 
   /* to-light (dark → light): old fades toward bright, new fades in from
      bright. */
   html[style*='--vt-dir: to-light']::view-transition-old(root) {
-    animation: vt-root-out-bright 400ms var(--ease-ios-out) both;
+    animation: vt-root-out-bright 500ms var(--ease-ios-out) both;
   }
   html[style*='--vt-dir: to-light']::view-transition-new(root) {
-    animation: vt-root-in-bright 400ms var(--ease-ios-out) both;
+    animation: vt-root-in-bright 500ms var(--ease-ios-out) both;
   }
 
   /* to-paper (read/sepia): warm fade-through — both snapshots pass through
      a warm sepia tint (AC-3). */
   html[style*='--vt-dir: to-paper']::view-transition-old(root) {
-    animation: vt-root-out-warm 400ms var(--ease-ios-out) both;
+    animation: vt-root-out-warm 500ms var(--ease-ios-out) both;
   }
   html[style*='--vt-dir: to-paper']::view-transition-new(root) {
-    animation: vt-root-in-warm 400ms var(--ease-ios-out) both;
+    animation: vt-root-in-warm 500ms var(--ease-ios-out) both;
   }
 }
 
@@ -2130,19 +2130,19 @@ textarea,
   }
 }
 .lawlib-dock-anim-in-down {
-  animation: lawlib-dock-in-down 150ms ease-out both;
+  animation: lawlib-dock-in-down 200ms var(--ease-ios-expo) both;
 }
 .lawlib-dock-anim-out-down {
   animation: lawlib-dock-out-down 150ms ease-in both;
 }
 .lawlib-dock-anim-in-up {
-  animation: lawlib-dock-in-up 150ms ease-out both;
+  animation: lawlib-dock-in-up 200ms var(--ease-ios-expo) both;
 }
 .lawlib-dock-anim-out-up {
   animation: lawlib-dock-out-up 150ms ease-in both;
 }
 .lawlib-dock-anim-in-side {
-  animation: lawlib-dock-in-side 150ms ease-out both;
+  animation: lawlib-dock-in-side 200ms var(--ease-ios-expo) both;
 }
 .lawlib-dock-anim-out-side {
   animation: lawlib-dock-out-side 150ms ease-in both;
@@ -2169,8 +2169,9 @@ textarea,
    transition-[bottom] animated a layout property. Desktop:
    −(size + 3.25rem) = −96px at the default 44px toolbar size (the
    historical BackToTop clearance calc); mobile: −(size + 0.75rem) =
-   −56px. The 100ms transition ships in the root class list
-   (transition-[transform] duration-100); the global reduced-motion kill
+   −56px. The 150ms spring transition ships in the root class list
+   (transition-[transform] duration-150 ease-ios-spring); the global
+   reduced-motion kill
    above zeroes transition-duration → instant class swap. */
 .lawlib-dock-raised {
   transform: translateY(calc(-1 * (var(--lawlib-dock-size) + 3.25rem)));

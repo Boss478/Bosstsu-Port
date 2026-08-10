@@ -694,7 +694,7 @@ function ArticlePopover({
   // lazy top reserves that WORST CASE — a bare `vh - 120` margin let the
   // bottom edge land 83-318px below the fold at 375px. The mount
   // useLayoutEffect below then corrects for the REAL height before paint.
-  // T28 (AC-6): `origin` is the CARD-side edge — the 200ms lawlib-pop-in
+  // T28 (AC-6): `origin` is the CARD-side edge — the 250ms lawlib-pop-in
   // spring grows the popover out of the card it belongs to.
   const [pos] = useState<{
     left: number;
@@ -806,7 +806,7 @@ function ArticlePopover({
         width: pos.width,
         maxHeight: 'min(70vh, 42rem)',
         zIndex: 40,
-        // T28 (AC-6): the 200ms lawlib-pop-in spring grows out of the
+        // T28 (AC-6): the 250ms lawlib-pop-in spring grows out of the
         // CARD-side edge (right-of-card → left, left-of-card → right,
         // below → top, above → bottom).
         transformOrigin: pos.origin,
@@ -1029,7 +1029,7 @@ function ChapterGroupView({
       </h3>
       {/* T35 (ADR-024 D3 — user-approved D2 exception): expand/collapse
           animates height BOTH directions via grid-template-rows 0fr ↔ 1fr
-          300ms --ease-ios-out on the ALWAYS-RENDERED wrapper. The
+          400ms --ease-ios-out on the ALWAYS-RENDERED wrapper. The
           `${group.id}-region` id stays on the WRAPPER — node identity must
           persist (TOC scroll targets + callers hold refs; no keyed remount).
           The overflow-hidden min-h-0 div owns the a11y/animation state:
@@ -1048,7 +1048,7 @@ function ChapterGroupView({
         className="grid"
         style={{
           gridTemplateRows: collapsed ? '0fr' : '1fr',
-          transition: 'grid-template-rows 300ms var(--ease-ios-out)',
+          transition: 'grid-template-rows 400ms var(--ease-ios-out)',
         }}
       >
         <div

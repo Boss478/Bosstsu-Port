@@ -108,12 +108,12 @@ function DigestHistoryBlock({
         ประวัติการแก้ไข ({editionCount} ฉบับ)
         <i
           aria-hidden="true"
-          className={`fi fi-sr-angle-small-down text-xs transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`fi fi-sr-angle-small-down text-xs transition-transform duration-200 ease-ios-spring ${open ? 'rotate-180' : ''}`}
         />
       </button>
       {/* T36 (ADR-024 D3 — user-approved D2 exception): expand/collapse
           animates height BOTH directions via grid-template-rows 0fr ↔ 1fr
-          300ms --ease-ios-out on the ALWAYS-RENDERED wrapper (mirrors the
+          400ms --ease-ios-out on the ALWAYS-RENDERED wrapper (mirrors the
           T35 group pattern in CompactView). `aria-controls` now points at an
           always-present node (a11y improvement — no dead reference while
           collapsed). The inner overflow-hidden min-h-0 div owns the
@@ -127,7 +127,7 @@ function DigestHistoryBlock({
         className="grid"
         style={{
           gridTemplateRows: open ? '1fr' : '0fr',
-          transition: 'grid-template-rows 300ms var(--ease-ios-out)',
+          transition: 'grid-template-rows 400ms var(--ease-ios-out)',
         }}
       >
         <div id="lawlib-digest-history-list" inert={!open} className="min-h-0 overflow-hidden">
@@ -1458,10 +1458,10 @@ export default function LawlibReaderClient({
   // --- T31 (AC-2) focus mode two-step (wave-2 fix — the reading surface
   //     MUST stay: globals.css:2430-2435 + ADR-019 D7): ENTER hides the
   //     chrome INSTANTLY (body.lawlib-focus = display:none — out of the
-  //     a11y tree, Esc exits) and the surface fades IN over 300ms
+  //     a11y tree, Esc exits) and the surface fades IN over 500ms
   //     (lawlib-focus-fade played REVERSED — 0→1, scale 0.995→1); EXIT
   //     mirrors: the surface fades OUT (forward 1→0), THEN the chrome
-  //     returns. The inline animation is cleared at 300ms in BOTH
+  //     returns. The inline animation is cleared at 500ms in BOTH
   //     directions — the `both` fill must not persist a scale on the
   //     surface (fixed popover containing block). Reduced-motion = instant
   //     toggle (JS gate — reducedMotionNow() pattern; the CSS RM kill can't
@@ -1481,28 +1481,28 @@ export default function LawlibReaderClient({
     }
     if (settings.focusMode) {
       // ENTER: chrome hidden at t=0 (class set NOW), surface fades IN
-      // (reverse — from 0 to 1) over 300ms, then the animation is cleared.
+      // (reverse — from 0 to 1) over 500ms, then the animation is cleared.
       setFocusClass(true);
       if (el === null) return;
-      el.style.animation = 'lawlib-focus-fade 0.3s var(--ease-ios-in) reverse both';
+      el.style.animation = 'lawlib-focus-fade 0.5s var(--ease-ios-in) reverse both';
       const t = window.setTimeout(() => {
         el.style.animation = '';
-      }, 300);
+      }, 500);
       return () => window.clearTimeout(t);
     }
     // Mount with focus off — nothing to fade.
     if (!wasOn) return;
-    // EXIT: surface fades OUT (forward 1→0) over 300ms, THEN the chrome
+    // EXIT: surface fades OUT (forward 1→0) over 500ms, THEN the chrome
     // returns (class removed) + the inline animation is cleared.
     if (el === null) {
       setFocusClass(false);
       return;
     }
-    el.style.animation = 'lawlib-focus-fade 0.3s var(--ease-ios-in) both';
+    el.style.animation = 'lawlib-focus-fade 0.5s var(--ease-ios-in) both';
     const t = window.setTimeout(() => {
       setFocusClass(false);
       el.style.animation = '';
-    }, 300);
+    }, 500);
     return () => window.clearTimeout(t);
   }, [settings.focusMode]);
 
@@ -1752,7 +1752,7 @@ export default function LawlibReaderClient({
           stays OUTSIDE this wrapper. */}
       <div
         className="lawlib-fade-rise"
-        style={{ animationDuration: '400ms', animationFillMode: 'backwards' }}
+        style={{ animationDuration: '500ms', animationFillMode: 'backwards' }}
       >
         {/* law header */}
         <header className="border-b border-slate-100 pb-5 dark:border-slate-800">
@@ -1825,7 +1825,7 @@ export default function LawlibReaderClient({
           >
             <div
               aria-hidden="true"
-              className={`absolute inset-y-1 left-1 w-[calc(50%_-_4px)] rounded-full bg-blue-700 transition-transform duration-200 ease-ios-out dark:bg-blue-600 ${
+              className={`absolute inset-y-1 left-1 w-[calc(50%_-_4px)] rounded-full bg-blue-700 transition-transform duration-300 ease-ios-out dark:bg-blue-600 ${
                 effectiveView === 'compact' ? 'translate-x-full' : 'translate-x-0'
               }`}
             />

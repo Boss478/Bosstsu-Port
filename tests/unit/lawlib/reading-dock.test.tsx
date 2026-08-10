@@ -1215,12 +1215,13 @@ describe('Dock v2.7 — T26 position-change re-trigger + transform raise (ADR-02
     expect(wrapper.style.opacity).toBe('');
   });
 
-  it('root: transition-[bottom] is GONE → transition-[transform] duration-100; non-bottom positions get no bottom/raise classes', async () => {
+  it('root: transition-[bottom] is GONE → transition-[transform] duration-150 ease-ios-spring; non-bottom positions get no bottom/raise classes', async () => {
     await renderReader();
     const root = dockRoot();
     expect(root.className).not.toContain('transition-[bottom]');
     expect(root.className).toContain('transition-[transform]');
-    expect(root.className).toContain('duration-100');
+    expect(root.className).toContain('duration-150');
+    expect(root.className).toContain('ease-ios-spring');
     // Default bottom-right, at the top (no BackToTop) → flush, not raised.
     expect(root.className).not.toContain('lawlib-dock-raised');
 
