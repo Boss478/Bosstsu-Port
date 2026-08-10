@@ -7,8 +7,9 @@
  *    monotonic — content surfaces never below 0.55, never fully opaque)
  *  - dockGlassAlpha: unchanged below 95 (35 → 0.35), caps at 0.95
  *    (was 1.0 — no surface ever goes fully opaque)
- *  - dynamic blur, linear 0.02px per slider step, 1 decimal:
- *    dockBlur [1.5, 3.5] · searchBlur [3, 5] · contentBlur [6, 8]
+ *  - dynamic blur, 1 decimal:
+ *    dockBlur [4, 8] (T33 piecewise: 0 → 4 · 35 → 6 · 100 → 8)
+ *    · searchBlur [3, 5] · contentBlur [6, 8]
  *    (the 100% → 'none' GPU-kill rule is REMOVED)
  *
  * Clamp input into [0, 100] FIRST, then round (3 decimals alpha,
@@ -67,10 +68,15 @@ describe('dockGlassAlpha (T17 dock/search chrome fill)', () => {
 });
 
 describe('dynamic blur radii (T17 — never none)', () => {
-  it('dockBlur: 0 → 1.5 · 50 → 2.5 · 100 → 3.5', () => {
-    expect(dockBlur(0)).toBe(1.5);
-    expect(dockBlur(50)).toBe(2.5);
-    expect(dockBlur(100)).toBe(3.5);
+  it('dockBlur: 0 → 4 · 35 → 6.0 · 100 → 8 (T33 piecewise, default 35 → 6)', () => {
+    expect(dockBlur(0)).toBe(4);
+    expect(dockBlur(35)).toBe(6);
+    expect(dockBlur(100)).toBe(8);
+  });
+
+  it('dockBlur sample: 10 → 4.6 (4 + (2/35)·10, round 1) · 50 → 6.5 (6 + (2/65)·15)', () => {
+    expect(dockBlur(10)).toBe(4.6);
+    expect(dockBlur(50)).toBe(6.5);
   });
 
   it('searchBlur: 0 → 3 · 50 → 4 · 100 → 5', () => {
@@ -86,7 +92,7 @@ describe('dynamic blur radii (T17 — never none)', () => {
   });
 
   it('clamps input (blur never exceeds its max)', () => {
-    expect(dockBlur(150)).toBe(3.5);
+    expect(dockBlur(150)).toBe(8);
     expect(searchBlur(-5)).toBe(3);
     expect(contentBlur(500)).toBe(8);
   });

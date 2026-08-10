@@ -13,8 +13,9 @@
  *
  * T17 (ADR-021): opacity AND blur are DYNAMIC per-surface (was: static
  * blur(12px)/blur(4px); the 100% → 'none' GPU-kill rule is REMOVED — blur
- * now scales linearly to its max at 100%: dock 3.5 · search 5 · content 8,
- * max 8px < the old static 12px). Dock/search alpha caps at 0.95 (was 1.0
+ * scales to its max at 100%: dock 8 (T33: piecewise 4–8) · search 5 ·
+ * content 8, max 8px < the old static 12px). Dock/search alpha caps at
+ * 0.95 (was 1.0
  * solid — no surface ever goes fully opaque). Content surfaces (tooltip +
  * compact popover) follow their own piecewise formula: 0 → 0.55 · 35 → 0.7 ·
  * 100 → 0.95 (never below 0.55 so body text stays readable).
@@ -64,9 +65,16 @@ export function dockGlassAlpha(v: number): number {
   return Number(Math.min(clampOpacity(v) / 100, 0.95).toFixed(3));
 }
 
-/** T17: dynamic blur radii (px, 1 decimal) — linear 0.02px per slider step. */
+/**
+ * T33 (ADR-024 D1): dock blur radii (px, 1 decimal) — piecewise, anchored at
+ * the slider default 35 (GLASS_OPACITY_DEFAULT): 0 → 4 · 35 → 6 · 100 → 8.
+ *   v ≤ 35: 4 + (2/35)·v · v > 35: 6 + (2/65)·(v−35)
+ * (was linear 1.5 + 0.02·v — imperceptible; user-locked 4/6/8 2026-08-10.)
+ */
 export function dockBlur(v: number): number {
-  return Number((1.5 + 0.02 * clampOpacity(v)).toFixed(1));
+  const c = clampOpacity(v);
+  const b = c <= 35 ? 4 + (2 / 35) * c : 6 + (2 / 65) * (c - 35);
+  return Number(b.toFixed(1));
 }
 export function searchBlur(v: number): number {
   return Number((3 + 0.02 * clampOpacity(v)).toFixed(1));
