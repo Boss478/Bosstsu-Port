@@ -28,7 +28,6 @@ import {
   SETTINGS_CHANGED_EVENT,
   validateReadingSettings,
 } from '@/hooks/useReaderStorage';
-import type { MotionPreference } from '@/app/(website)/lawlib/lib/reader-props';
 
 const SETTINGS_KEY = 'lawlib:settings';
 
