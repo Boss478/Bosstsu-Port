@@ -1048,6 +1048,11 @@ function ChapterGroupView({
         className="grid"
         style={{
           gridTemplateRows: collapsed ? '0fr' : '1fr',
+          // T43: layout containment bounds the 400ms grid-rows reflow to this
+          // region (no fixed/absolute descendants inside — tooltip portals to
+          // body, ArticlePopover renders at CompactView root, so no containing-
+          // block side effects).
+          contain: 'layout',
           // T42 (ADR-025 D2): every inline duration rides --motion-factor
           // (fast = halved 200ms; disable/pre-hydration RM = the kill).
           transition:

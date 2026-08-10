@@ -365,8 +365,8 @@ function QuickNoteBox({
       title={expanded ? 'ปิดโน้ตด่วน' : hasNote ? 'โน้ตด่วน (มีโน้ต)' : 'โน้ตด่วน'}
       className={
         expanded
-          ? 'flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-slate-500 shadow-xs transition-all duration-150 hover:scale-110 hover:border-rose-400/80 hover:bg-white hover:text-rose-600 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-400 dark:hover:border-rose-400/60 dark:hover:text-rose-300'
-          : 'relative inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-slate-600 shadow-xs backdrop-blur-xs transition-all duration-150 hover:scale-105 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
+          ? 'flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-slate-500 shadow-xs transition-[transform,background-color,border-color] duration-150 hover:scale-110 hover:border-rose-400/80 hover:bg-white hover:text-rose-600 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-400 dark:hover:border-rose-400/60 dark:hover:text-rose-300'
+          : 'relative inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-slate-600 shadow-xs backdrop-blur-xs transition-[transform,background-color,border-color] duration-150 hover:scale-105 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
       }
     >
       <i
@@ -445,7 +445,7 @@ function ArticleHub({ hub, onClose }: { hub: LawTooltipHub; onClose: () => void 
           onClick={hub.onToggleBookmark}
           aria-pressed={hub.isBookmarked}
           aria-label={hub.isBookmarked ? 'นำออกจากที่คั่นหน้า' : 'เพิ่มที่คั่นหน้า'}
-          className={`inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-xs font-medium shadow-xs transition-all duration-150 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+          className={`inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-xs font-medium shadow-xs transition-[transform,background-color,border-color] duration-150 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
             hub.isBookmarked
               ? 'border-blue-500/80 bg-blue-50/90 text-blue-600 shadow-xs ring-2 ring-blue-500/20 dark:border-blue-400/80 dark:bg-blue-950/70 dark:text-blue-300 dark:ring-blue-400/20'
               : 'border-slate-200/90 bg-white/90 text-slate-600 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
@@ -461,7 +461,7 @@ function ArticleHub({ hub, onClose }: { hub: LawTooltipHub; onClose: () => void 
           type="button"
           onClick={handleCopyLink}
           aria-label="คัดลอกลิงก์มาตรานี้"
-          className={`inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-xs font-medium shadow-xs transition-all duration-150 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+          className={`inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-xs font-medium shadow-xs transition-[transform,background-color,border-color] duration-150 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
             linkCopied
               ? 'border-emerald-400/80 bg-emerald-50/90 text-emerald-700 dark:border-emerald-500/60 dark:bg-emerald-950/50 dark:text-emerald-300'
               : 'border-slate-200/90 bg-white/90 text-slate-600 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
@@ -529,7 +529,7 @@ function PreviewClamp({
         aria-expanded={false}
         // T19-fix (senior NIT): no mt-2 — the parent scroll container owns
         // the vertical gap (space-y-2 on all three bodies).
-        className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-full border border-slate-200/90 bg-white/90 px-3 text-xs font-medium text-slate-600 shadow-xs backdrop-blur-xs transition-all duration-150 hover:scale-[1.02] hover:border-blue-400/80 hover:bg-white hover:text-blue-600 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300"
+        className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-full border border-slate-200/90 bg-white/90 px-3 text-xs font-medium text-slate-600 shadow-xs backdrop-blur-xs transition-[transform,background-color,border-color] duration-150 hover:scale-[1.02] hover:border-blue-400/80 hover:bg-white hover:text-blue-600 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300"
       >
         ดูเพิ่มเติม
         <i aria-hidden="true" className="fi fi-sr-arrow-down text-[10px] leading-none" />
@@ -594,7 +594,7 @@ function ArticleBody({
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-slate-200/90 bg-white/90 px-3 text-xs text-slate-600 shadow-xs backdrop-blur-xs transition-all duration-150 hover:scale-105 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 active:scale-95 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300"
+          className="inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-slate-200/90 bg-white/90 px-3 text-xs text-slate-600 shadow-xs backdrop-blur-xs transition-[transform,background-color,border-color] duration-150 hover:scale-105 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 active:scale-95 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300"
         >
           <i
             aria-hidden="true"
@@ -726,7 +726,7 @@ function DigestRefBody({
         <button
           type="button"
           onClick={() => onOpenArticle(key)}
-          className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition-all duration-150 hover:scale-105 hover:bg-blue-700 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition-[transform,background-color,border-color] duration-150 hover:scale-105 hover:bg-blue-700 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           ดูฉบับเต็ม
           <i aria-hidden="true" className="fi fi-sr-arrow-small-right text-[10px] leading-none" />
@@ -1020,7 +1020,7 @@ export default function LawTooltip({
               type="button"
               onClick={onClose}
               aria-label="ปิด"
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-slate-500 shadow-xs transition-all duration-150 hover:scale-105 hover:text-slate-800 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-400 dark:hover:text-white"
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-slate-500 shadow-xs transition-[transform,background-color,border-color] duration-150 hover:scale-105 hover:text-slate-800 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-400 dark:hover:text-white"
             >
               <i aria-hidden="true" className="fi fi-sr-cross text-[10px]" />
             </button>
