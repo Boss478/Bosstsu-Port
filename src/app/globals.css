@@ -26,6 +26,17 @@ html {
   --dur-std: 200ms;
   --dur-med: 300ms;
   --dur-large: 400ms;
+  /* T42 (ADR-025 D2) — 3-tier motion factor. EVERY animation/transition
+     duration site-wide is calc(X * var(--motion-factor, 1)): quality = 1
+     (unchanged), fast = 0.5 (halved), disable = the blanket kill below
+     (data-motion attr set pre-paint by layout.tsx + re-applied by
+     LawlibGlassVars). No attr = quality. */
+  --motion-factor: 1;
+}
+
+/* T42 (ADR-025 D2) — fast tier: halve every calc-wrapped duration. */
+[data-motion='fast'] {
+  --motion-factor: 0.5;
 }
 
 .dark {
@@ -52,8 +63,22 @@ html {
   --duration-large: 400ms;
   /* D1 (ADR-025): press token. NOTE — Tailwind v4's duration-* utility
      resolves theme keys under --transition-duration-* (NOT --duration-*);
-     a --duration-press key would silently generate nothing. */
-  --transition-duration-press: 100ms;
+     a --duration-press key would silently generate nothing. T42 wraps it
+     in --motion-factor below (same namespace). */
+  /* T42 (ADR-025 D2): override the whole Tailwind v4 default duration
+     namespace so EVERY `duration-*` class rides --motion-factor (fast =
+     halved; disable = the blanket kill below). T24's
+     --duration-micro/std/med/large above are DEAD tokens (pre-existing —
+     the utilities never resolved them; left in place, untouched). */
+  --transition-duration-75: calc(75ms * var(--motion-factor, 1));
+  --transition-duration-100: calc(100ms * var(--motion-factor, 1));
+  --transition-duration-150: calc(150ms * var(--motion-factor, 1));
+  --transition-duration-200: calc(200ms * var(--motion-factor, 1));
+  --transition-duration-300: calc(300ms * var(--motion-factor, 1));
+  --transition-duration-500: calc(500ms * var(--motion-factor, 1));
+  --transition-duration-700: calc(700ms * var(--motion-factor, 1));
+  --transition-duration-1000: calc(1000ms * var(--motion-factor, 1));
+  --transition-duration-press: calc(100ms * var(--motion-factor, 1));
 }
 
 @keyframes slideDown {
@@ -68,7 +93,7 @@ html {
 }
 
 @utility animate-slide-down {
-  animation: slideDown 0.8s ease-out forwards;
+  animation: slideDown calc(0.8s * var(--motion-factor, 1)) ease-out forwards;
 }
 
 @keyframes slideUp {
@@ -83,7 +108,7 @@ html {
 }
 
 @utility animate-slide-up {
-  animation: slideUp 0.8s ease-out forwards;
+  animation: slideUp calc(0.8s * var(--motion-factor, 1)) ease-out forwards;
 }
 
 @keyframes enterBottom {
@@ -98,7 +123,7 @@ html {
 }
 
 @utility animate-enter-bottom {
-  animation: enterBottom 0.8s ease-out forwards;
+  animation: enterBottom calc(0.8s * var(--motion-factor, 1)) ease-out forwards;
 }
 
 @keyframes exitBottom {
@@ -113,7 +138,7 @@ html {
 }
 
 @utility animate-exit-bottom {
-  animation: exitBottom 0.8s ease-out forwards;
+  animation: exitBottom calc(0.8s * var(--motion-factor, 1)) ease-out forwards;
 }
 
 @keyframes gentle-bounce {
@@ -153,11 +178,11 @@ html {
 }
 
 @utility animate-gentle-bounce {
-  animation: gentle-bounce 3s ease-in-out infinite;
+  animation: gentle-bounce calc(3s * var(--motion-factor, 1)) ease-in-out infinite;
 }
 
 @utility animate-fade-slide-up {
-  animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeSlideUp calc(0.6s * var(--motion-factor, 1)) cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 :root {
@@ -229,15 +254,15 @@ body {
 @layer base {
   body {
     transition:
-      background-color 500ms ease,
-      color 500ms ease;
+      background-color calc(500ms * var(--motion-factor, 1)) ease,
+      color calc(500ms * var(--motion-factor, 1)) ease;
   }
 }
 
 .card-hover {
   transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+    transform calc(0.3s * var(--motion-factor, 1)) ease,
+    box-shadow calc(0.3s * var(--motion-factor, 1)) ease;
 }
 
 .card-hover:hover {
@@ -290,16 +315,16 @@ body {
   }
 }
 @utility animate-crt-scanline {
-  animation: crt-scanline 4s linear infinite;
+  animation: crt-scanline calc(4s * var(--motion-factor, 1)) linear infinite;
 }
 @utility animate-terminal-blink {
-  animation: terminal-blink 1s step-end infinite;
+  animation: terminal-blink calc(1s * var(--motion-factor, 1)) step-end infinite;
 }
 @utility animate-spin-blade {
-  animation: spin-blade 2s linear infinite;
+  animation: spin-blade calc(2s * var(--motion-factor, 1)) linear infinite;
 }
 @utility animate-popup-enter {
-  animation: popup-enter 0.25s ease-out forwards;
+  animation: popup-enter calc(0.25s * var(--motion-factor, 1)) ease-out forwards;
 }
 
 @keyframes skeleton-shimmer {
@@ -321,7 +346,7 @@ body {
   inset: 0;
   background: linear-gradient(180deg, transparent 20%, var(--sk-shine) 50%, transparent 80%);
   transform: translateY(-200%);
-  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  animation: skeleton-shimmer calc(1.5s * var(--motion-factor, 1)) ease-in-out infinite;
 }
 
 /* ─── Homepage ──────────────────────────────────────────────────────────── */
@@ -342,7 +367,7 @@ body {
   }
 }
 @utility animate-float-up {
-  animation: float-up 25s linear infinite;
+  animation: float-up calc(25s * var(--motion-factor, 1)) linear infinite;
 }
 @keyframes float-slow {
   0%,
@@ -360,7 +385,7 @@ body {
   }
 }
 @utility animate-float-slow {
-  animation: float-slow 20s ease-in-out infinite;
+  animation: float-slow calc(20s * var(--motion-factor, 1)) ease-in-out infinite;
 }
 /* ─── Homepage Scrolling Animations ─── */
 
@@ -375,35 +400,35 @@ body {
   }
 }
 @utility animate-scale-up {
-  animation: scaleUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: scaleUp calc(0.5s * var(--motion-factor, 1)) cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Stagger: nth-child delay on direct children, combine with animation class */
 @utility stagger-fade-left {
   & > * {
-    animation: fadeLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: fadeLeft calc(0.5s * var(--motion-factor, 1)) cubic-bezier(0.16, 1, 0.3, 1) forwards;
     opacity: 0;
   }
   & > *:nth-child(2) {
-    animation-delay: 80ms;
+    animation-delay: calc(80ms * var(--motion-factor, 1));
   }
   & > *:nth-child(3) {
-    animation-delay: 160ms;
+    animation-delay: calc(160ms * var(--motion-factor, 1));
   }
 }
 @utility stagger-scale-up {
   & > * {
-    animation: scaleUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: scaleUp calc(0.5s * var(--motion-factor, 1)) cubic-bezier(0.16, 1, 0.3, 1) forwards;
     opacity: 0;
   }
   & > *:nth-child(2) {
-    animation-delay: 80ms;
+    animation-delay: calc(80ms * var(--motion-factor, 1));
   }
   & > *:nth-child(3) {
-    animation-delay: 160ms;
+    animation-delay: calc(160ms * var(--motion-factor, 1));
   }
   & > *:nth-child(4) {
-    animation-delay: 240ms;
+    animation-delay: calc(240ms * var(--motion-factor, 1));
   }
 }
 
@@ -490,7 +515,7 @@ body {
 .article-content a {
   color: #2563eb;
   text-decoration: underline;
-  transition: color 0.2s;
+  transition: color calc(0.2s * var(--motion-factor, 1));
 }
 .article-content a:hover {
   color: #1d4ed8;
@@ -619,7 +644,7 @@ body:has(.phonics-game) #main-content {
   }
 }
 @utility animate-correct-bounce {
-  animation: correct-bounce 0.5s ease-out;
+  animation: correct-bounce calc(0.5s * var(--motion-factor, 1)) ease-out;
 }
 
 @keyframes slide-up-modal {
@@ -633,7 +658,8 @@ body:has(.phonics-game) #main-content {
   }
 }
 @utility animate-slide-up-modal {
-  animation: slide-up-modal 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slide-up-modal calc(0.35s * var(--motion-factor, 1)) cubic-bezier(0.16, 1, 0.3, 1)
+    forwards;
 }
 
 @keyframes hint-slide-up {
@@ -647,7 +673,7 @@ body:has(.phonics-game) #main-content {
   }
 }
 @utility animate-hint-slide-up {
-  animation: hint-slide-up 0.3s ease-out forwards;
+  animation: hint-slide-up calc(0.3s * var(--motion-factor, 1)) ease-out forwards;
 }
 
 /* ─── Text Selection ──────────────────────────────────────────────────────── */
@@ -679,16 +705,35 @@ textarea,
   user-select: text;
 }
 
-/* ─── Reduced Motion (LawLib + site-wide) ────────────────────────────────── */
+/* ─── Motion tiers (T42 — ADR-025 D2) ──────────────────────────────────────
+   `disable` = blanket kill (0.01ms !important + delay 0 + iteration 1 +
+   scroll-behavior auto — ported verbatim from the pre-T42 RM block). The
+   RM media query below kills ONLY while <html> has NO data-motion (pre-
+   hydration / no-JS safety); once the pre-paint script or GlassVars set
+   the attr, the TIER owns the behavior: disable = this kill, fast =
+   --motion-factor 0.5, quality = 1. The root element itself is included
+   (html's scroll-behavior: smooth must die under disable/RM too — the
+   old blanket `*` matched it, the descendants-only selectors would not). */
+[data-motion='disable'],
+[data-motion='disable'] *,
+[data-motion='disable'] *::before,
+[data-motion='disable'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  /* T24 (ADR-023 D8): the kill previously zeroed duration only — staggered
+     children (animation-delay up to 420ms + fill-mode) sat invisible that
+     long under reduced motion. Delay must be zeroed too. */
+  animation-delay: 0ms !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  html:not([data-motion]),
+  html:not([data-motion]) *,
+  html:not([data-motion]) *::before,
+  html:not([data-motion]) *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    /* T24 (ADR-023 D8): the kill previously zeroed duration only — staggered
-       children (animation-delay up to 420ms + fill-mode) sat invisible that
-       long under reduced motion. Delay must be zeroed too. */
     animation-delay: 0ms !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
@@ -708,7 +753,7 @@ textarea,
 }
 
 .lawlib-tooltip {
-  animation: lawlib-tooltip-in 0.2s var(--ease-ios-expo);
+  animation: lawlib-tooltip-in calc(0.2s * var(--motion-factor, 1)) var(--ease-ios-expo);
   will-change: opacity, transform;
 }
 
@@ -769,10 +814,10 @@ textarea,
   }
 }
 .lawlib-pop-in {
-  animation: lawlib-pop-in 0.25s var(--ease-ios-spring) both;
+  animation: lawlib-pop-in calc(0.25s * var(--motion-factor, 1)) var(--ease-ios-spring) both;
 }
 .lawlib-pop-out {
-  animation: lawlib-pop-out 0.14s var(--ease-ios-in) both;
+  animation: lawlib-pop-out calc(0.14s * var(--motion-factor, 1)) var(--ease-ios-in) both;
 }
 
 /* Generic — fade + rise (page fade-in, drawer content, stagger items). */
@@ -787,7 +832,7 @@ textarea,
   }
 }
 .lawlib-fade-rise {
-  animation: lawlib-fade-rise 0.3s var(--ease-ios-expo) both;
+  animation: lawlib-fade-rise calc(0.3s * var(--motion-factor, 1)) var(--ease-ios-expo) both;
 }
 
 /* Generic — directional slides (drawers, sheets). Name = travel direction
@@ -835,16 +880,16 @@ textarea,
   }
 }
 .lawlib-slide-up {
-  animation: lawlib-slide-up 0.4s var(--ease-ios-expo) both;
+  animation: lawlib-slide-up calc(0.4s * var(--motion-factor, 1)) var(--ease-ios-expo) both;
 }
 .lawlib-slide-down {
-  animation: lawlib-slide-down 0.4s var(--ease-ios-expo) both;
+  animation: lawlib-slide-down calc(0.4s * var(--motion-factor, 1)) var(--ease-ios-expo) both;
 }
 .lawlib-slide-left {
-  animation: lawlib-slide-left 0.4s var(--ease-ios-expo) both;
+  animation: lawlib-slide-left calc(0.4s * var(--motion-factor, 1)) var(--ease-ios-expo) both;
 }
 .lawlib-slide-right {
-  animation: lawlib-slide-right 0.4s var(--ease-ios-expo) both;
+  animation: lawlib-slide-right calc(0.4s * var(--motion-factor, 1)) var(--ease-ios-expo) both;
 }
 
 /* Stagger (ADR-023 D6): nth-child house pattern (see .stagger-fade-left
@@ -854,28 +899,28 @@ textarea,
    RM kill zeroes duration + delay so nothing sticks hidden. */
 @utility lawlib-stagger {
   & > * {
-    animation: lawlib-fade-rise 0.3s var(--ease-ios-expo) both;
+    animation: lawlib-fade-rise calc(0.3s * var(--motion-factor, 1)) var(--ease-ios-expo) both;
   }
   & > *:nth-child(2) {
-    animation-delay: 60ms;
+    animation-delay: calc(60ms * var(--motion-factor, 1));
   }
   & > *:nth-child(3) {
-    animation-delay: 120ms;
+    animation-delay: calc(120ms * var(--motion-factor, 1));
   }
   & > *:nth-child(4) {
-    animation-delay: 180ms;
+    animation-delay: calc(180ms * var(--motion-factor, 1));
   }
   & > *:nth-child(5) {
-    animation-delay: 240ms;
+    animation-delay: calc(240ms * var(--motion-factor, 1));
   }
   & > *:nth-child(6) {
-    animation-delay: 300ms;
+    animation-delay: calc(300ms * var(--motion-factor, 1));
   }
   & > *:nth-child(7) {
-    animation-delay: 360ms;
+    animation-delay: calc(360ms * var(--motion-factor, 1));
   }
   & > *:nth-child(8) {
-    animation-delay: 420ms;
+    animation-delay: calc(420ms * var(--motion-factor, 1));
   }
 }
 
@@ -904,7 +949,7 @@ textarea,
   }
 }
 .lawlib-tooltip-out {
-  animation: lawlib-tooltip-out 0.15s var(--ease-ios-in) both;
+  animation: lawlib-tooltip-out calc(0.15s * var(--motion-factor, 1)) var(--ease-ios-in) both;
 }
 
 /* Dock L1 icon→panel MORPH (200ms spring overshoot) — scale 0.6→1 + fade. */
@@ -924,7 +969,7 @@ textarea,
    transform would linger on the panel (containing-block + transition
    blocker — the T31 page-entrance precedent, globals.css .lawlib-fade-rise). */
 .lawlib-morph-in {
-  animation: lawlib-morph-in 0.2s var(--ease-ios-spring) backwards;
+  animation: lawlib-morph-in calc(0.2s * var(--motion-factor, 1)) var(--ease-ios-spring) backwards;
 }
 
 /* T27c icon morph (AC-4): rotate -30deg + scale 0.8 + fade in, 300ms spring. */
@@ -939,7 +984,7 @@ textarea,
   }
 }
 .lawlib-icon-swap {
-  animation: lawlib-icon-swap 0.3s var(--ease-ios-spring) both;
+  animation: lawlib-icon-swap calc(0.3s * var(--motion-factor, 1)) var(--ease-ios-spring) both;
 }
 
 /* Auto-scroll chip level pop when the value changes — scale 1.1→1, 100ms. */
@@ -952,7 +997,7 @@ textarea,
   }
 }
 .lawlib-chip-pop {
-  animation: lawlib-chip-pop 0.1s var(--ease-ios-spring) both;
+  animation: lawlib-chip-pop calc(0.1s * var(--motion-factor, 1)) var(--ease-ios-spring) both;
 }
 
 /* Digest-line flash ring — one expanding box-shadow ring, 150ms, 1
@@ -968,7 +1013,7 @@ textarea,
   }
 }
 .lawlib-flash-pulse {
-  animation: lawlib-flash-pulse 0.15s ease-out both;
+  animation: lawlib-flash-pulse calc(0.15s * var(--motion-factor, 1)) ease-out both;
 }
 
 /* Focus mode — reader content fades to 0 + scale 0.995 over 300ms before
@@ -984,7 +1029,7 @@ textarea,
   }
 }
 .lawlib-focus-fade {
-  animation: lawlib-focus-fade 0.5s var(--ease-ios-in) both;
+  animation: lawlib-focus-fade calc(0.5s * var(--motion-factor, 1)) var(--ease-ios-in) both;
 }
 
 /* Drawer overlay — plain fade, 400ms (drawer panels themselves use
@@ -999,7 +1044,7 @@ textarea,
   }
 }
 .lawlib-overlay-fade {
-  animation: lawlib-overlay-fade 0.4s var(--ease-ios-out) both;
+  animation: lawlib-overlay-fade calc(0.4s * var(--motion-factor, 1)) var(--ease-ios-out) both;
 }
 
 /* VT helper classes (ADR-023 D3 + ADR-024 D2): UNIQUE view-transition-names
@@ -1134,41 +1179,41 @@ textarea,
      animation-name); old/new get an explicit crossfade so named elements
      don't hard-cut while the root fades. */
   ::view-transition-group(*) {
-    animation-duration: 500ms;
+    animation-duration: calc(500ms * var(--motion-factor, 1));
     animation-timing-function: var(--ease-ios-out);
   }
   ::view-transition-old(*) {
-    animation: vt-root-fade-out 500ms var(--ease-ios-out) both;
+    animation: vt-root-fade-out calc(500ms * var(--motion-factor, 1)) var(--ease-ios-out) both;
   }
   ::view-transition-new(*) {
-    animation: vt-root-fade-in 500ms var(--ease-ios-out) both;
+    animation: vt-root-fade-in calc(500ms * var(--motion-factor, 1)) var(--ease-ios-out) both;
   }
 
   /* to-dark (light → dark): old fades toward dim (slight 0.995 scale),
      new fades in from dim. */
   html[style*='--vt-dir: to-dark']::view-transition-old(root) {
-    animation: vt-root-out-dim 500ms var(--ease-ios-out) both;
+    animation: vt-root-out-dim calc(500ms * var(--motion-factor, 1)) var(--ease-ios-out) both;
   }
   html[style*='--vt-dir: to-dark']::view-transition-new(root) {
-    animation: vt-root-in-dim 500ms var(--ease-ios-out) both;
+    animation: vt-root-in-dim calc(500ms * var(--motion-factor, 1)) var(--ease-ios-out) both;
   }
 
   /* to-light (dark → light): old fades toward bright, new fades in from
      bright. */
   html[style*='--vt-dir: to-light']::view-transition-old(root) {
-    animation: vt-root-out-bright 500ms var(--ease-ios-out) both;
+    animation: vt-root-out-bright calc(500ms * var(--motion-factor, 1)) var(--ease-ios-out) both;
   }
   html[style*='--vt-dir: to-light']::view-transition-new(root) {
-    animation: vt-root-in-bright 500ms var(--ease-ios-out) both;
+    animation: vt-root-in-bright calc(500ms * var(--motion-factor, 1)) var(--ease-ios-out) both;
   }
 
   /* to-paper (read/sepia): warm fade-through — both snapshots pass through
      a warm sepia tint (AC-3). */
   html[style*='--vt-dir: to-paper']::view-transition-old(root) {
-    animation: vt-root-out-warm 500ms var(--ease-ios-out) both;
+    animation: vt-root-out-warm calc(500ms * var(--motion-factor, 1)) var(--ease-ios-out) both;
   }
   html[style*='--vt-dir: to-paper']::view-transition-new(root) {
-    animation: vt-root-in-warm 500ms var(--ease-ios-out) both;
+    animation: vt-root-in-warm calc(500ms * var(--motion-factor, 1)) var(--ease-ios-out) both;
   }
 }
 
@@ -1183,7 +1228,7 @@ textarea,
   }
 }
 @utility animate-kid-float {
-  animation: kid-float 3s ease-in-out infinite;
+  animation: kid-float calc(3s * var(--motion-factor, 1)) ease-in-out infinite;
 }
 
 @keyframes sparkle-twinkle {
@@ -1198,7 +1243,7 @@ textarea,
   }
 }
 @utility animate-sparkle {
-  animation: sparkle-twinkle 2s ease-in-out infinite;
+  animation: sparkle-twinkle calc(2s * var(--motion-factor, 1)) ease-in-out infinite;
 }
 
 @keyframes kid-bounce-cta {
@@ -1211,7 +1256,7 @@ textarea,
   }
 }
 @utility animate-kid-bounce-cta {
-  animation: kid-bounce-cta 1.5s ease-in-out infinite;
+  animation: kid-bounce-cta calc(1.5s * var(--motion-factor, 1)) ease-in-out infinite;
 }
 
 @keyframes kid-wiggle {
@@ -1227,7 +1272,7 @@ textarea,
   }
 }
 @utility animate-kid-wiggle {
-  animation: kid-wiggle 2s ease-in-out infinite;
+  animation: kid-wiggle calc(2s * var(--motion-factor, 1)) ease-in-out infinite;
 }
 
 @keyframes rainbow-bg {
@@ -1285,7 +1330,7 @@ textarea,
   }
 }
 @utility animate-breathe {
-  animation: breathe var(--breathe-speed, 2.5s) ease-in-out infinite;
+  animation: breathe calc(var(--breathe-speed, 2.5s) * var(--motion-factor, 1)) ease-in-out infinite;
 }
 
 @keyframes think {
@@ -1307,7 +1352,7 @@ textarea,
   }
 }
 @utility animate-think {
-  animation: think 1.8s ease-in-out infinite;
+  animation: think calc(1.8s * var(--motion-factor, 1)) ease-in-out infinite;
 }
 
 @keyframes celebrate {
@@ -1331,7 +1376,7 @@ textarea,
   }
 }
 @utility animate-celebrate {
-  animation: celebrate 0.6s ease-out;
+  animation: celebrate calc(0.6s * var(--motion-factor, 1)) ease-out;
 }
 
 @keyframes shake {
@@ -1359,7 +1404,7 @@ textarea,
   }
 }
 @utility animate-shake {
-  animation: shake 0.5s ease-in-out;
+  animation: shake calc(0.5s * var(--motion-factor, 1)) ease-in-out;
 }
 
 /* ─── Phonics Game Redesign Utilities ───────────────────────────────────── */
@@ -1424,9 +1469,9 @@ textarea,
   position: relative;
   border-bottom: 4px solid var(--border-color, rgba(0, 0, 0, 0.2));
   transition:
-    transform 0.08s ease,
-    border-bottom-width 0.08s ease,
-    box-shadow 0.08s ease;
+    transform calc(0.08s * var(--motion-factor, 1)) ease,
+    border-bottom-width calc(0.08s * var(--motion-factor, 1)) ease,
+    box-shadow calc(0.08s * var(--motion-factor, 1)) ease;
 }
 .btn-3d:hover {
   transform: translateY(-2px);
@@ -1465,7 +1510,8 @@ textarea,
   }
 }
 @utility animate-audio-ripple {
-  animation: audio-ripple 1.8s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+  animation: audio-ripple calc(1.8s * var(--motion-factor, 1)) cubic-bezier(0.1, 0.8, 0.3, 1)
+    infinite;
 }
 
 @keyframes slide-up-drawer {
@@ -1477,7 +1523,8 @@ textarea,
   }
 }
 @utility animate-slide-up-drawer {
-  animation: slide-up-drawer 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slide-up-drawer calc(0.35s * var(--motion-factor, 1)) cubic-bezier(0.16, 1, 0.3, 1)
+    forwards;
 }
 
 @keyframes star-pop {
@@ -1494,7 +1541,8 @@ textarea,
   }
 }
 @utility animate-star-pop {
-  animation: star-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: star-pop calc(0.5s * var(--motion-factor, 1)) cubic-bezier(0.34, 1.56, 0.64, 1)
+    forwards;
 }
 
 @utility image-rendering-pixelated {
@@ -1514,7 +1562,8 @@ textarea,
   }
 }
 @utility animate-screen-enter {
-  animation: screen-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: screen-enter calc(0.35s * var(--motion-factor, 1)) cubic-bezier(0.16, 1, 0.3, 1)
+    forwards;
 }
 
 @keyframes fade-in {
@@ -1529,7 +1578,7 @@ textarea,
    state — no usage pins an opacity-0 base, so nothing snaps back after the
    fade (the old `forwards` fill also held nothing the cascade needed). */
 @utility animate-fade-in {
-  animation: fade-in 0.25s ease-out;
+  animation: fade-in calc(0.25s * var(--motion-factor, 1)) ease-out;
 }
 @utility ease-spring {
   transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -1550,7 +1599,7 @@ textarea,
   }
 }
 @utility animate-glide-down {
-  animation: glide-down 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: glide-down calc(0.6s * var(--motion-factor, 1)) cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes scale-bounce {
@@ -1570,7 +1619,8 @@ textarea,
   }
 }
 @utility animate-scale-bounce {
-  animation: scale-bounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: scale-bounce calc(0.5s * var(--motion-factor, 1)) cubic-bezier(0.34, 1.56, 0.64, 1)
+    forwards;
 }
 
 @keyframes scanline {
@@ -1584,7 +1634,7 @@ textarea,
   }
 }
 @utility animate-scanline {
-  animation: scanline 0.5s ease-out forwards;
+  animation: scanline calc(0.5s * var(--motion-factor, 1)) ease-out forwards;
 }
 
 @keyframes slide-left {
@@ -1598,7 +1648,7 @@ textarea,
   }
 }
 @utility animate-slide-left {
-  animation: slide-left 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slide-left calc(0.45s * var(--motion-factor, 1)) cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes pounce {
@@ -1618,7 +1668,7 @@ textarea,
   }
 }
 @utility animate-pounce {
-  animation: pounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: pounce calc(0.5s * var(--motion-factor, 1)) cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 @keyframes companion-fade-in {
@@ -1632,7 +1682,7 @@ textarea,
   }
 }
 @utility animate-companion-fade-in {
-  animation: companion-fade-in 0.6s ease-out forwards;
+  animation: companion-fade-in calc(0.6s * var(--motion-factor, 1)) ease-out forwards;
 }
 
 @keyframes bounce-in {
@@ -1658,7 +1708,8 @@ textarea,
   }
 }
 @utility animate-bounce-in {
-  animation: bounce-in 0.6s cubic-bezier(0.28, 0.84, 0.42, 1) forwards;
+  animation: bounce-in calc(0.6s * var(--motion-factor, 1)) cubic-bezier(0.28, 0.84, 0.42, 1)
+    forwards;
 }
 
 @keyframes companion-slide-up {
@@ -1672,7 +1723,8 @@ textarea,
   }
 }
 @utility animate-companion-slide-up {
-  animation: companion-slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: companion-slide-up calc(0.45s * var(--motion-factor, 1)) cubic-bezier(0.16, 1, 0.3, 1)
+    forwards;
 }
 
 @keyframes warp-in {
@@ -1693,7 +1745,7 @@ textarea,
   }
 }
 @utility animate-warp-in {
-  animation: warp-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: warp-in calc(0.5s * var(--motion-factor, 1)) cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes spin-in {
@@ -1710,7 +1762,7 @@ textarea,
   }
 }
 @utility animate-spin-in {
-  animation: spin-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: spin-in calc(0.5s * var(--motion-factor, 1)) cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 /* ─── Companion Per-Character Idle Animations ──────────────────────────── */
@@ -1727,7 +1779,7 @@ textarea,
   }
 }
 @utility animate-gentle-turn {
-  animation: gentle-turn 4s ease-in-out infinite;
+  animation: gentle-turn calc(4s * var(--motion-factor, 1)) ease-in-out infinite;
 }
 
 @keyframes bouncy-hover {
@@ -1743,7 +1795,7 @@ textarea,
   }
 }
 @utility animate-bouncy-hover {
-  animation: bouncy-hover 2s ease-in-out infinite;
+  animation: bouncy-hover calc(2s * var(--motion-factor, 1)) ease-in-out infinite;
 }
 
 @keyframes robotic-twitch {
@@ -1763,7 +1815,7 @@ textarea,
   }
 }
 @utility animate-robotic-twitch {
-  animation: robotic-twitch 3s steps(1) infinite;
+  animation: robotic-twitch calc(3s * var(--motion-factor, 1)) steps(1) infinite;
 }
 
 @keyframes tail-swish {
@@ -1785,7 +1837,7 @@ textarea,
   }
 }
 @utility animate-tail-swish {
-  animation: tail-swish 3s ease-in-out infinite;
+  animation: tail-swish calc(3s * var(--motion-factor, 1)) ease-in-out infinite;
 }
 
 @keyframes paw-stretch {
@@ -1801,7 +1853,7 @@ textarea,
   }
 }
 @utility animate-paw-stretch {
-  animation: paw-stretch 3.5s ease-in-out infinite;
+  animation: paw-stretch calc(3.5s * var(--motion-factor, 1)) ease-in-out infinite;
 }
 
 @keyframes slow-rock {
@@ -1817,7 +1869,7 @@ textarea,
   }
 }
 @utility animate-slow-rock {
-  animation: slow-rock 4s ease-in-out infinite;
+  animation: slow-rock calc(4s * var(--motion-factor, 1)) ease-in-out infinite;
 }
 
 @keyframes ear-wiggle {
@@ -1839,7 +1891,7 @@ textarea,
   }
 }
 @utility animate-ear-wiggle {
-  animation: ear-wiggle 0.8s ease-in-out infinite;
+  animation: ear-wiggle calc(0.8s * var(--motion-factor, 1)) ease-in-out infinite;
 }
 
 @keyframes wobble {
@@ -1861,7 +1913,7 @@ textarea,
   }
 }
 @utility animate-wobble {
-  animation: wobble 2.5s ease-in-out infinite;
+  animation: wobble calc(2.5s * var(--motion-factor, 1)) ease-in-out infinite;
 }
 
 @keyframes float-wobble {
@@ -1880,7 +1932,7 @@ textarea,
   }
 }
 @utility animate-float-wobble {
-  animation: float-wobble 3s ease-in-out infinite;
+  animation: float-wobble calc(3s * var(--motion-factor, 1)) ease-in-out infinite;
 }
 
 /* ─── Companion Text Reveal Animations ─────────────────────────────────── */
@@ -2134,22 +2186,22 @@ textarea,
   }
 }
 .lawlib-dock-anim-in-down {
-  animation: lawlib-dock-in-down 200ms var(--ease-ios-expo) both;
+  animation: lawlib-dock-in-down calc(200ms * var(--motion-factor, 1)) var(--ease-ios-expo) both;
 }
 .lawlib-dock-anim-out-down {
-  animation: lawlib-dock-out-down 150ms ease-in both;
+  animation: lawlib-dock-out-down calc(150ms * var(--motion-factor, 1)) ease-in both;
 }
 .lawlib-dock-anim-in-up {
-  animation: lawlib-dock-in-up 200ms var(--ease-ios-expo) both;
+  animation: lawlib-dock-in-up calc(200ms * var(--motion-factor, 1)) var(--ease-ios-expo) both;
 }
 .lawlib-dock-anim-out-up {
-  animation: lawlib-dock-out-up 150ms ease-in both;
+  animation: lawlib-dock-out-up calc(150ms * var(--motion-factor, 1)) ease-in both;
 }
 .lawlib-dock-anim-in-side {
-  animation: lawlib-dock-in-side 200ms var(--ease-ios-expo) both;
+  animation: lawlib-dock-in-side calc(200ms * var(--motion-factor, 1)) var(--ease-ios-expo) both;
 }
 .lawlib-dock-anim-out-side {
-  animation: lawlib-dock-out-side 150ms ease-in both;
+  animation: lawlib-dock-out-side calc(150ms * var(--motion-factor, 1)) ease-in both;
 }
 @media (prefers-reduced-motion: reduce) {
   .lawlib-dock-anim-in-down,
@@ -2174,9 +2226,9 @@ textarea,
    −(size + 3.25rem) = −96px at the default 44px toolbar size (the
    historical BackToTop clearance calc); mobile: −(size + 0.75rem) =
    −56px. The 150ms spring transition ships in the root class list
-   (transition-[transform] duration-150 ease-ios-spring); the global
-   reduced-motion kill
-   above zeroes transition-duration → instant class swap. */
+   (transition-[transform] duration-150 ease-ios-spring); the T42 motion
+   tiers (disable kill / pre-hydration RM kill)
+   above zero transition-duration → instant class swap. */
 .lawlib-dock-raised {
   transform: translateY(calc(-1 * (var(--lawlib-dock-size) + 3.25rem)));
 }
@@ -2201,13 +2253,15 @@ textarea,
    (position: fixed inside this wrapper) into the wrapper's box instead of
    the viewport (T31 precedent, LawlibReaderClient:1748). */
 .lawlib-dock-pos-in-down {
-  animation: lawlib-dock-in-down 100ms var(--ease-ios-expo) backwards;
+  animation: lawlib-dock-in-down calc(100ms * var(--motion-factor, 1)) var(--ease-ios-expo)
+    backwards;
 }
 .lawlib-dock-pos-in-up {
-  animation: lawlib-dock-in-up 100ms var(--ease-ios-expo) backwards;
+  animation: lawlib-dock-in-up calc(100ms * var(--motion-factor, 1)) var(--ease-ios-expo) backwards;
 }
 .lawlib-dock-pos-in-side {
-  animation: lawlib-dock-in-side 100ms var(--ease-ios-expo) backwards;
+  animation: lawlib-dock-in-side calc(100ms * var(--motion-factor, 1)) var(--ease-ios-expo)
+    backwards;
 }
 /* List-page search input (SearchInput.tsx — T2 tokens stay; the fill/blur
    ride the same slider vars so the dock+search surfaces stay in sync). */
@@ -2427,8 +2481,8 @@ textarea,
      the ring pulse rides as a separate 1-iteration animation (compound
      rule below — one animation per element, D10). */
   transition:
-    background-color 150ms,
-    box-shadow 150ms;
+    background-color calc(150ms * var(--motion-factor, 1)),
+    box-shadow calc(150ms * var(--motion-factor, 1));
 }
 .dark .lawlib-dline-flash {
   background: rgba(251, 191, 36, 0.2);
@@ -2445,7 +2499,7 @@ textarea,
    6px ring) would overwrite the amber ring for the whole 2s flash. After the
    one iteration the static ring takes over again. */
 .lawlib-dline-flash.lawlib-flash-pulse {
-  animation: lawlib-flash-pulse 0.15s ease-out;
+  animation: lawlib-flash-pulse calc(0.15s * var(--motion-factor, 1)) ease-out;
 }
 
 /* ─── T10b focus mode (ADR-019 D4/D7): the reader sets body.lawlib-focus
@@ -2457,10 +2511,10 @@ textarea,
 
 /* T31 (AC-2) — the focus-mode indicator springs in on mount: 200ms pop
    spring (scale 0.94→1 + fade). It mounts exactly when focusMode flips
-   true, so a plain class animation runs once per entry; the global
-   reduced-motion kill zeroes it. */
+   true, so a plain class animation runs once per entry; the T42 motion
+   tiers zero it (disable / pre-hydration RM kill). */
 .lawlib-reading-indicator {
-  animation: lawlib-pop-in 0.2s var(--ease-ios-spring) both;
+  animation: lawlib-pop-in calc(0.2s * var(--motion-factor, 1)) var(--ease-ios-spring) both;
 }
 
 body.lawlib-focus #site-header,
