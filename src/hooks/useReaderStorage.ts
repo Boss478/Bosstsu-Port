@@ -71,9 +71,10 @@ export interface Highlight {
  * T10b (ADR-019 D4): fontFamily sarabun · toolbarSize 44 ·
  * paragraphSpacing 0 · fontWeight normal · hideRepealed/
  * hideAmendmentNotes/focusMode off · autoScrollSpeed 0 (off).
- * T12 (ADR-019 D9 — dock v2.1): glassOpacity default 75→35 (real glass —
- * 30-40% see-through; the L1 panel + collapsed icon blur-xs via
- * --lawlib-glass-blur-xs) · + animateDock true (expand/collapse animation,
+ * T12 (ADR-019 D9 — dock v2.1) + T48 (ADR-025 S1 FINAL lock 2026-08-10):
+ * glassOpacity default 75→50 (T12 first moved the v1.11.1 shipped 75 to
+ * 35; T48 re-locks the default at 50 — 42.5% fill + 4.25px blur, user:
+ * "default dot to 50%") · + animateDock true (expand/collapse animation,
  * respects prefers-reduced-motion).
  * T42 (ADR-025 D2): + motionPreference 'quality' (3-tier: quality/fast/
  * disable — the D2 mechanism; OS reduced-motion downgrades quality → fast
@@ -85,7 +86,7 @@ export const DEFAULT_READING_SETTINGS: ReadingSettingsValue = {
   width: 120,
   favoriteToolKeys: ['theme', 'fontSize', 'lineHeight', 'width', 'bookmark', 'search', 'notes'],
   fontFamily: 'sarabun',
-  glassOpacity: 35,
+  glassOpacity: 50,
   toolbarSize: 44,
   paragraphSpacing: 0,
   fontWeight: 'normal',
@@ -231,12 +232,14 @@ export function validateReadingSettings(input: unknown): ReadingSettingsValue {
     typeof o.glassOpacity === 'number' && Number.isFinite(o.glassOpacity)
       ? clamp(o.glassOpacity, GLASS_OPACITY_MIN, GLASS_OPACITY_MAX)
       : DEFAULT_READING_SETTINGS.glassOpacity;
-  // T12c (ADR-019 D9): 75 was the v1.11.1 SHIPPED DEFAULT — a stored 75 means
-  // the user never touched the slider (or reset it), so it MIGRATES to the
-  // new default 35 ("settings-sacred EXCEPT the old default"). Every other
-  // stored value — including the deliberate extremes 0 and 100 — passes
-  // through untouched. Behaviorally idempotent: 75 is treated as 35 on every
-  // load, and the next settings write persists 35.
+  // T12c (ADR-019 D9) + T48 (ADR-025 S1): 75 was the v1.11.1 SHIPPED
+  // DEFAULT — a stored 75 means the user never touched the slider (or
+  // reset it), so it MIGRATES to the CURRENT default 50 (the T12c target
+  // was 35; T48 re-locked the default at 50, so the old-default → new-
+  // default rule follows). "Settings-sacred EXCEPT the old default": every
+  // other stored value — including the deliberate extremes 0 and 100 —
+  // passes through untouched. Behaviorally idempotent: 75 is treated as 50
+  // on every load, and the next settings write persists 50.
   if (glassOpacity === 75) glassOpacity = DEFAULT_READING_SETTINGS.glassOpacity;
   const toolbarSize =
     typeof o.toolbarSize === 'number' && Number.isFinite(o.toolbarSize)

@@ -2,18 +2,21 @@
 /**
  * T17 (ADR-021) — glass-formula pure functions from LawlibGlassVars.
  *
- * Anchors (user-locked 2026-08-10 — ADR-025 S1 FINAL, replaces T38):
+ * Anchors (user-locked 2026-08-10 — ADR-025 S1 FINAL, T48 6th pass):
  *  - contentGlassAlpha: 0 → 0.55 · 35 → 0.7 · 100 → 0.95 (piecewise,
- *    monotonic — content surfaces never below 0.55, never fully opaque)
- *  - dockGlassAlpha: piecewise 5–90% (0 → 0.05 · 35 → 0.35 · 100 → 0.90,
- *    anchored at 35; was T38's linear 28–48% — near-solid alpha hid the blur)
- *  - dynamic blur, 1 decimal:
- *    dockBlur [1, 12] (ADR-025 S1 piecewise: 0 → 1 · 35 → 6 · 100 → 12; the
- *    T33 4–8px band was too subtle) · searchBlur [3, 5] · contentBlur [6, 8]
- *    (the 100% → 'none' GPU-kill rule is REMOVED)
+ *    monotonic — content surfaces never below 0.55, never fully opaque;
+ *    UNCHANGED by T48 — at the new 50 default it lands at 0.758 naturally)
+ *  - dockGlassAlpha: PURE LINEAR 5–80% (0 → 0.05 · 50 → 0.425 · 100 →
+ *    0.80, round 3; replaces the T39 piecewise 5–90% anchored at 35)
+ *  - dynamic blur:
+ *    dockBlur [0.5, 8] PURE LINEAR, round 2 (0 → 0.5 · 50 → 4.25 · 100 →
+ *    8 — toFixed(2) keeps the user's exact 4.25 at the default) ·
+ *    searchBlur [3, 5] · contentBlur [6, 8] (search/content UNCHANGED)
+ *  - the 100% → 'none' GPU-kill rule is REMOVED
  *
- * Clamp input into [0, 100] FIRST, then round (3 decimals alpha,
- * 1 decimal blur) — float noise must never leak into rgba()/blur() strings.
+ * Clamp input into [0, 100] FIRST, then round (alpha 3 decimals,
+ * dock blur 2 decimals, search/content blur 1 decimal) — float noise
+ * must never leak into rgba()/blur() strings.
  */
 import { describe, expect, it } from 'vitest';
 import {
@@ -54,40 +57,34 @@ describe('contentGlassAlpha (T17 content-surface fill)', () => {
   });
 });
 
-describe('dockGlassAlpha (ADR-025 S1 dock/search chrome fill)', () => {
-  it('anchors: 0 → 0.05 · 35 → 0.35 · 100 → 0.90 (piecewise at 35)', () => {
+describe('dockGlassAlpha (ADR-025 S1 — dock/search chrome fill, linear)', () => {
+  it('anchors: 0 → 0.05 · 50 → 0.425 · 100 → 0.80 (linear 5–80%, default 50)', () => {
     expect(dockGlassAlpha(0)).toBe(0.05);
-    expect(dockGlassAlpha(35)).toBe(0.35);
-    expect(dockGlassAlpha(100)).toBe(0.9);
+    expect(dockGlassAlpha(50)).toBe(0.425);
+    expect(dockGlassAlpha(100)).toBe(0.8);
   });
 
-  it('piecewise samples: 10 → 0.136 (0.05 + (0.30/35)·10) · 50 → 0.477 (0.35 + (0.55/65)·15)', () => {
-    expect(dockGlassAlpha(10)).toBe(0.136);
-    expect(dockGlassAlpha(50)).toBe(0.477);
+  it('samples: 10 → 0.125 · 75 → 0.613 (0.05 + 0.0075·v, round 3)', () => {
+    expect(dockGlassAlpha(10)).toBe(0.125);
+    expect(dockGlassAlpha(75)).toBe(0.613);
   });
 
-  it('clamps out-of-range input into [0, 100] first (0.95 cap removed)', () => {
+  it('clamps out-of-range input into [0, 100] first', () => {
     expect(dockGlassAlpha(-10)).toBe(0.05);
-    expect(dockGlassAlpha(200)).toBe(0.9);
+    expect(dockGlassAlpha(150)).toBe(0.8);
   });
 });
 
 describe('dynamic blur radii (T17 — never none)', () => {
-  it('dockBlur: 0 → 1 · 35 → 6.0 · 100 → 12 (ADR-025 S1 piecewise, default 35 → 6)', () => {
-    expect(dockBlur(0)).toBe(1);
-    expect(dockBlur(35)).toBe(6);
-    expect(dockBlur(100)).toBe(12);
+  it('dockBlur: 0 → 0.5 · 50 → 4.25 · 100 → 8 (linear 0.5–8px, round 2)', () => {
+    expect(dockBlur(0)).toBe(0.5);
+    expect(dockBlur(50)).toBe(4.25);
+    expect(dockBlur(100)).toBe(8);
   });
 
-  it('dockBlur sample: 10 → 2.4 (1 + (5/35)·10, round 1) · 50 → 7.4 (6 + (6/65)·15)', () => {
-    expect(dockBlur(10)).toBe(2.4);
-    expect(dockBlur(50)).toBe(7.4);
-  });
-
-  it('dockBlur is continuous at the seam: 34 → 5.9 · 35 → 6 · 36 → 6.1', () => {
-    expect(dockBlur(34)).toBe(5.9);
-    expect(dockBlur(35)).toBe(6);
-    expect(dockBlur(36)).toBe(6.1);
+  it('dockBlur samples: 10 → 1.25 · 75 → 6.13 (0.5 + 0.075·v, round 2)', () => {
+    expect(dockBlur(10)).toBe(1.25);
+    expect(dockBlur(75)).toBe(6.13);
   });
 
   it('searchBlur: 0 → 3 · 50 → 4 · 100 → 5', () => {
@@ -103,7 +100,7 @@ describe('dynamic blur radii (T17 — never none)', () => {
   });
 
   it('clamps input (blur never exceeds its max)', () => {
-    expect(dockBlur(150)).toBe(12);
+    expect(dockBlur(150)).toBe(8);
     expect(searchBlur(-5)).toBe(3);
     expect(contentBlur(500)).toBe(8);
   });

@@ -303,27 +303,29 @@ describe('validateReadingSettings (P3 — T10a numeric contract + T10b fields)',
   it('T10b: clamps glassOpacity into [0,100] and toolbarSize into [24,56]', () => {
     expect(api.validateReadingSettings({ glassOpacity: -5 }).glassOpacity).toBe(0);
     expect(api.validateReadingSettings({ glassOpacity: 150 }).glassOpacity).toBe(100);
-    expect(api.validateReadingSettings({ glassOpacity: 'x' }).glassOpacity).toBe(35);
+    expect(api.validateReadingSettings({ glassOpacity: 'x' }).glassOpacity).toBe(50);
     expect(api.validateReadingSettings({ toolbarSize: 10 }).toolbarSize).toBe(24);
     expect(api.validateReadingSettings({ toolbarSize: 80 }).toolbarSize).toBe(56);
     expect(api.validateReadingSettings({ toolbarSize: 44.7 }).toolbarSize).toBe(45);
     expect(api.validateReadingSettings({ toolbarSize: 'big' }).toolbarSize).toBe(44);
   });
 
-  it('T12c: stored glassOpacity 75 (the v1.11.1 SHIPPED DEFAULT) migrates to 35 — other values are settings-sacred', () => {
+  it('T48: stored glassOpacity 75 (the v1.11.1 SHIPPED DEFAULT) migrates to the current default 50 — other values are settings-sacred', () => {
     // 75 was the old shipped default: an untouched user (or a reset) stored
-    // it without ever choosing — it becomes the new default 35.
-    expect(api.validateReadingSettings({ glassOpacity: 75 }).glassOpacity).toBe(35);
+    // it without ever choosing — it becomes the CURRENT default 50 (the
+    // T12c old-default → new-default rule; the target moved 35 → 50 with
+    // the T48 default re-lock).
+    expect(api.validateReadingSettings({ glassOpacity: 75 }).glassOpacity).toBe(50);
     // Settings-sacred otherwise: deliberate choices pass through, incl. the
     // extremes 0/100 and any hand-tuned value.
     expect(api.validateReadingSettings({ glassOpacity: 0 }).glassOpacity).toBe(0);
     expect(api.validateReadingSettings({ glassOpacity: 100 }).glassOpacity).toBe(100);
     expect(api.validateReadingSettings({ glassOpacity: 33 }).glassOpacity).toBe(33);
     expect(api.validateReadingSettings({ glassOpacity: 76 }).glassOpacity).toBe(76);
-    // Idempotent: a second pass over the migrated value stays 35.
+    // Idempotent: a second pass over the migrated value stays 50.
     expect(
       api.validateReadingSettings(api.validateReadingSettings({ glassOpacity: 75 })).glassOpacity,
-    ).toBe(35);
+    ).toBe(50);
   });
 
   it('T12: animateDock only accepts booleans (default true)', () => {

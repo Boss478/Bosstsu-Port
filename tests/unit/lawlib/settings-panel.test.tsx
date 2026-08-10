@@ -170,8 +170,8 @@ describe('T10b settings panel — ⚙️ wiring', () => {
     const picker = await openSettings();
     // Label is the ADR-025 §3 user-locked name (T40 changed it in-tree).
     const slider = within(picker).getByLabelText('กระจก (ความทึบ + ความเบลอ)');
-    // T12: default 35 (real glass) — was 75.
-    expect((slider as HTMLInputElement).value).toBe('35');
+    // T48 (ADR-025 S1): default 50 — was 35 (T12), 75 (v1.11.1 shipped).
+    expect((slider as HTMLInputElement).value).toBe('50');
     fireEvent.change(slider, { target: { value: '100' } });
     expect(storedSettings().glassOpacity).toBe(100);
     fireEvent.change(slider, { target: { value: '0' } });
@@ -367,7 +367,7 @@ describe('T10b settings panel — auto-scroll + reset', () => {
       width: 120,
       favoriteToolKeys: ['theme', 'fontSize', 'lineHeight', 'width', 'bookmark', 'search', 'notes'],
       fontFamily: 'sarabun',
-      glassOpacity: 35,
+      glassOpacity: 50,
       toolbarSize: 44,
       paragraphSpacing: 0,
       fontWeight: 'normal',
@@ -418,7 +418,7 @@ describe('T12 settings panel — per-setting คืนค่า resets (ADR-019 
     ).toBe(true);
   });
 
-  it('glass slider: คืนค่า resets ONLY glassOpacity (35) — other settings untouched', async () => {
+  it('glass slider: คืนค่า resets ONLY glassOpacity (50) — other settings untouched', async () => {
     await renderReader();
     const picker = await openSettings();
     const slider = within(picker).getByLabelText('กระจก (ความทึบ + ความเบลอ)');
@@ -426,7 +426,7 @@ describe('T12 settings panel — per-setting คืนค่า resets (ADR-019 
     expect(storedSettings().glassOpacity).toBe(100);
 
     fireEvent.click(within(picker).getByRole('button', { name: 'คืนค่าความทึบ' }));
-    expect(storedSettings().glassOpacity).toBe(35);
+    expect(storedSettings().glassOpacity).toBe(50);
     // ONLY the glass slider moved — the sibling toolbar size stays default.
     expect(storedSettings().toolbarSize).toBe(44);
   });

@@ -649,7 +649,7 @@ export const FONT_FAMILY_OPTIONS: ReadonlyArray<{ value: ReaderFontFamily; label
   { value: 'itim', label: 'Itim' },
 ];
 
-export const GLASS_OPACITY_DEFAULT = 35;
+export const GLASS_OPACITY_DEFAULT = 50;
 export const TOOLBAR_SIZE_MIN = 24;
 export const TOOLBAR_SIZE_MAX = 56;
 /** Touch devices floor the toolbar at 44px (WCAG 2.5.8). */
