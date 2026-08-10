@@ -111,25 +111,48 @@ function DigestHistoryBlock({
           className={`fi fi-sr-angle-small-down text-xs transition-transform ${open ? 'rotate-180' : ''}`}
         />
       </button>
-      {open && (
-        <div id="lawlib-digest-history-list" className="mt-3 space-y-2">
-          {lines.map((line) =>
-            line.kind !== 'article' ? (
-              <BodyLineView
-                key={line.id}
-                line={line}
-                slug={slug}
-                onOpenRef={onOpenRef}
-                onSeeFull={onSeeFull}
-                getTriggerProps={getTriggerProps}
-                isTooltipOpen={isTooltipOpen}
-                tooltipId={tooltipId}
-                interactive={false}
-              />
-            ) : null,
-          )}
+      {/* T36 (ADR-024 D3 — user-approved D2 exception): expand/collapse
+          animates height BOTH directions via grid-template-rows 0fr ↔ 1fr
+          300ms --ease-ios-out on the ALWAYS-RENDERED wrapper (mirrors the
+          T35 group pattern in CompactView). `aria-controls` now points at an
+          always-present node (a11y improvement — no dead reference while
+          collapsed). The inner overflow-hidden min-h-0 div owns the
+          content: lawlib-fade-rise 150ms (class present ONLY while open —
+          a class re-add restarts the animation on the SAME node) and
+          `inert` while collapsed (a11y/focus removal — inert does not
+          block the grid animation, hidden would). Collapse animates too
+          (1fr→0fr, no instant hidden). RM: the reduced-motion kill zeroes
+          transition-duration → instant. */}
+      <div
+        className="grid"
+        style={{
+          gridTemplateRows: open ? '1fr' : '0fr',
+          transition: 'grid-template-rows 300ms var(--ease-ios-out)',
+        }}
+      >
+        <div id="lawlib-digest-history-list" inert={!open} className="min-h-0 overflow-hidden">
+          <div
+            className={`mt-3 space-y-2 ${open ? 'lawlib-fade-rise' : ''}`}
+            style={open ? { animationDuration: '150ms' } : undefined}
+          >
+            {lines.map((line) =>
+              line.kind !== 'article' ? (
+                <BodyLineView
+                  key={line.id}
+                  line={line}
+                  slug={slug}
+                  onOpenRef={onOpenRef}
+                  onSeeFull={onSeeFull}
+                  getTriggerProps={getTriggerProps}
+                  isTooltipOpen={isTooltipOpen}
+                  tooltipId={tooltipId}
+                  interactive={false}
+                />
+              ) : null,
+            )}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -824,9 +847,14 @@ export default function LawlibReaderClient({
 
   /** Esc / X focus restore (plan v6): return focus to the last-interacted
    *  member button (data-lawlib-member) inside the just-closed card. Hidden
-   *  guard: a collapsed group makes offsetParent null → fall back to the
-   *  card's FIRST member button (focus() on a hidden element is a no-op —
-   *  acceptable). Compact-only; FULL never restores here. */
+   *  guard (T36, senior MAJOR-2): a collapsed group is `inert` + grid 0fr —
+   *  its members KEEP a non-null offsetParent (the grid retains layout
+   *  boxes), so the old `offsetParent !== null` test could not see the
+   *  collapse and would focus an inert member (no-op). Test focus-tree
+   *  membership instead: a member inside an `[inert]` subtree is skipped →
+   *  fall back to the card's FIRST member button (focus() on an inert
+   *  element is a no-op — acceptable). Compact-only; FULL never restores
+   *  here. */
   const restoreMemberFocus = useCallback((cardKey: string) => {
     window.setTimeout(() => {
       const card = document.querySelector<HTMLElement>(
@@ -839,7 +867,7 @@ export default function LawlibReaderClient({
         const el = card.querySelector<HTMLElement>(
           `[data-lawlib-member="${CSS.escape(memberKey)}"]`,
         );
-        if (el !== null && el.offsetParent !== null) target = el;
+        if (el !== null && el.closest('[inert]') === null) target = el;
       }
       if (target === null) target = card.querySelector<HTMLElement>('[data-lawlib-member]');
       target?.focus();

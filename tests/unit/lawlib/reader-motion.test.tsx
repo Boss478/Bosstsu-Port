@@ -44,6 +44,9 @@ import LawlibReaderClient from '@/app/(website)/lawlib/[slug]/LawlibReaderClient
 import { ThemeProvider } from '@/components/ThemeProvider';
 import sampleLawRaw from '@/data/lawlib/laws/sample.json';
 import type { LawDoc } from '@/types/lawlib';
+import { parseDigestMd } from '@/lib/lawlib/parser';
+import { buildView, type DigestView } from '@/lib/lawlib/digest-view';
+import { glossaryIndex } from '@/lib/lawlib-reader';
 
 vi.mock('next/link', () => ({
   default: (props: { href: string; children?: ReactNode }) => (
@@ -543,5 +546,292 @@ describe('T31 — focus mode two-step (AC-2)', () => {
     await wait(320);
     expect(document.body.classList.contains('lawlib-focus')).toBe(false);
     expect(surface().style.animation).toBe('');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T36 (ADR-024 D3 — digest history expand/collapse height animation, both
+// directions, + the restoreMemberFocus guard change, senior MAJOR-2)
+// ---------------------------------------------------------------------------
+// Digest fixture mirrors compact-routing.test.tsx's known-good law + md
+// pairing (Track C's own copy — that file belongs to Track B, so the
+// history/motion/focus pins live HERE).
+// ---------------------------------------------------------------------------
+
+const t36Law: LawDoc = {
+  slug: 'reader-motion-digest-test',
+  code: 'พ.ร.บ. ทดสอบ พ.ศ. 2545',
+  titleTh: 'พระราชบัญญัติทดสอบ พ.ศ. 2545',
+  subject: 'ทดสอบ',
+  part: 'ก',
+  tags: [],
+  verifiedAt: '2026-08-05',
+  gazetteRef: '—',
+  editions: [{ no: 2, gazetteDate: '2545-01-01', effectiveDate: '2545-01-02', note: 'แก้ไข' }],
+  definitions: [{ term: 'สถานศึกษา', definition: 'สถานศึกษาที่จัดการศึกษาภาคบังคับ' }],
+  chapters: [
+    {
+      no: 1,
+      title: 'บททั่วไป',
+      articles: [
+        { no: 5, text: [{ kind: 'text', t: 'ให้ผู้ปกครองส่งเด็กเข้าเรียนในสถานศึกษา' }] },
+        { no: 6, text: [{ kind: 'text', t: 'ให้สถานศึกษาจัดการศึกษา' }] },
+        { no: 7, text: [{ kind: 'text', t: 'ผู้ปกครองที่ไม่ปฏิบัติตามมาตรา 5 มีความผิด' }] },
+        { no: 11, text: [{ kind: 'text', t: 'ให้จัดการศึกษาขั้นพื้นฐานแก่ผู้เรียน' }] },
+        { no: 12, text: [{ kind: 'text', t: 'จัดการศึกษาเป็นพิเศษสำหรับเด็กที่มีความบกพร่อง' }] },
+        { no: 13, text: [{ kind: 'text', t: 'ผู้ใดไม่อำนวยความสะดวก มีความผิด' }] },
+        { no: 99, text: [{ kind: 'text', t: 'บทเฉพาะกาลของฉบับเต็ม' }] },
+      ],
+    },
+    {
+      no: null,
+      title: 'บทเฉพาะกาล',
+      articles: [
+        { no: 70, text: [{ kind: 'text', t: 'บทเฉพาะกาลฉบับหนึ่ง' }] },
+        { no: 71, text: [{ kind: 'text', t: 'บทเฉพาะกาลฉบับสอง' }] },
+      ],
+    },
+  ],
+};
+
+const T36_DIGEST_MD = `# พจนานุกรมกฎหมาย — ทดสอบ
+
+## 1. ข้อมูลกฎหมาย
+
+- **ชื่อ:** พระราชบัญญัติทดสอบ พ.ศ. 2545
+- **ประกาศ:** ราชกิจจานุเบกษา
+
+## 2. ประวัติการแก้ไข
+
+**ฉบับที่ 1 (2545):** ประกาศใช้ครั้งแรก
+**ฉบับที่ 2 (2545):** แก้ไข [[มาตรา 99]]
+
+## 3. คำนิยามสำคัญ
+
+**มาตรา 4** : คำนิยามความหมาย
+
+## 4. มาตราสำคัญ
+
+**มาตรา 5** : ให้ผู้ปกครองส่งเด็กเข้าเรียนในสถานศึกษา ตาม[[มาตรา 6]]
+**มาตรา 6** : ให้สถานศึกษาจัดการศึกษา
+**มาตรา 7** : ผู้ปกครองที่ไม่ปฏิบัติตาม[[มาตรา 5]] มีความผิด
+**มาตรา 11 - มาตรา 12** : เนื้อความรวมมาตรา 11 และ 12
+**มาตรา 13** : ผู้ใดไม่อำนวยความสะดวกตาม[[มาตรา 12]] และ[[มาตรา 71]] หรือ[[มาตรา 99]] มีความผิด
+### บทเฉพาะกาล
+**มาตรา 70** : บทเฉพาะกาลฉบับหนึ่ง
+**มาตรา 71** : บทเฉพาะกาลฉบับสอง
+`;
+
+/** Mirrors page.tsx buildDigestView (in-memory, same as compact-routing). */
+function buildT36DigestView(): DigestView {
+  const doc = parseDigestMd(T36_DIGEST_MD);
+  return buildView(
+    doc,
+    new Map(),
+    t36Law.chapters.map((ch) => ({
+      no: ch.no,
+      title: ch.title,
+      articleKeys: ch.articles.map((a) => `${a.no}${a.suffix ?? ''}`),
+    })),
+    glossaryIndex(t36Law),
+    { slug: t36Law.slug, href: `/lawlib/${t36Law.slug}` },
+  );
+}
+
+const t36DigestView = buildT36DigestView();
+
+/**
+ * jsdom gaps for the digest suites (compact-routing precedents): no
+ * scrollIntoView (every jump/open path calls it) and no CSS.escape (the
+ * reader's data-attr selectors need it; digits-only fixture → identity).
+ */
+function stubDigestJsdomGaps(): void {
+  Element.prototype.scrollIntoView = vi.fn();
+  window.CSS = { escape: (s: string) => s } as unknown as typeof CSS;
+}
+
+async function renderDigestReader() {
+  const utils = render(
+    <ThemeProvider>
+      <LawlibReaderClient law={t36Law} digestView={t36DigestView} />
+    </ThemeProvider>,
+  );
+  // Mount effect defers its first-article activation into setTimeout(0).
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  });
+  return utils;
+}
+
+describe('T36 — digest history height animation (AC-1/AC-2/AC-3)', () => {
+  beforeEach(() => {
+    stubDigestJsdomGaps();
+  });
+
+  const historyToggle = () => screen.getByRole('button', { name: /ประวัติการแก้ไข/ });
+  const historyList = () => document.getElementById('lawlib-digest-history-list');
+  const historyWrapper = () => historyList()?.parentElement as HTMLElement | null;
+
+  it('collapsed: list ALWAYS present — wrapper 0fr + list inert + no content fade', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderDigestReader();
+
+    // Always-rendered (no conditional mount): aria-controls points at a live
+    // node even while collapsed (a11y improvement — documented in the code).
+    const list = historyList();
+    expect(list).not.toBeNull();
+    expect(historyToggle().getAttribute('aria-controls')).toBe('lawlib-digest-history-list');
+
+    // Collapsed contract: 0fr (grid-template-rows stays animatable), the
+    // id node is inert (a11y/focus-tree removal — NOT hidden), the content
+    // fade is NOT running.
+    expect(historyWrapper()!.style.gridTemplateRows).toBe('0fr');
+    expect(historyWrapper()!.style.transition).toContain('grid-template-rows');
+    expect(historyWrapper()!.style.transition).toContain('300ms');
+    // jsdom keeps the raw var reference — assert the TOKEN (the value is
+    // --ease-ios-out: cubic-bezier(0.22, 1, 0.36, 1) per globals.css).
+    expect(historyWrapper()!.style.transition).toContain('var(--ease-ios-out)');
+    expect(list!.hasAttribute('inert')).toBe(true);
+    expect(list!.className).toContain('min-h-0');
+    expect(list!.className).toContain('overflow-hidden');
+    expect(list!.querySelector('.lawlib-fade-rise')).toBeNull();
+  });
+
+  it('open: wrapper 1fr + list focusable + content fade-rise 150ms + chevron flips', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderDigestReader();
+
+    fireEvent.click(historyToggle());
+    const list = historyList()!;
+    expect(historyToggle().getAttribute('aria-expanded')).toBe('true');
+    // The chevron is the SECOND <i> (first = the clock icon).
+    const chevron = historyToggle().querySelectorAll('i')[1];
+    expect(chevron.className).toContain('rotate-180');
+    expect(historyWrapper()!.style.gridTemplateRows).toBe('1fr');
+    expect(list.hasAttribute('inert')).toBe(false);
+
+    // Content fade: the class re-adds on the SAME node (no keyed remount);
+    // the light 150ms variant matches the T35 group pattern.
+    const content = list.firstElementChild as HTMLElement;
+    expect(content.className).toContain('lawlib-fade-rise');
+    expect(content.style.animationDuration).toBe('150ms');
+
+    // The merged history body renders in both ฉบับ entries.
+    expect(list.textContent).toContain('ฉบับที่ 1');
+    expect(list.textContent).toContain('ฉบับที่ 2');
+  });
+
+  it('collapse animates BACK: 0fr + inert again on the SAME list node', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderDigestReader();
+
+    fireEvent.click(historyToggle());
+    const list = historyList()!;
+    fireEvent.click(historyToggle());
+
+    expect(historyToggle().getAttribute('aria-expanded')).toBe('false');
+    expect(historyWrapper()!.style.gridTemplateRows).toBe('0fr');
+    expect(historyList()).toBe(list); // node identity preserved
+    expect(list.hasAttribute('inert')).toBe(true);
+    expect(list.querySelector('.lawlib-fade-rise')).toBeNull();
+  });
+
+  it('AC-3: the SAME merged block animates in BOTH views (FULL too)', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    await renderDigestReader();
+
+    // Switch to FULL via the radiogroup (AC-3: header block shows in both).
+    // NOTE: handleSetView persists the choice to the URL (?view=full) —
+    // restore the URL so later tests' readers don't inherit FULL.
+    try {
+      fireEvent.click(screen.getByRole('radio', { name: 'ฉบับเต็ม' }));
+      expect(historyList()).not.toBeNull();
+
+      fireEvent.click(historyToggle());
+      expect(historyWrapper()!.style.gridTemplateRows).toBe('1fr');
+      expect(historyList()!.hasAttribute('inert')).toBe(false);
+
+      fireEvent.click(historyToggle());
+      expect(historyWrapper()!.style.gridTemplateRows).toBe('0fr');
+      expect(historyList()!.hasAttribute('inert')).toBe(true);
+    } finally {
+      window.history.replaceState(null, '', '/');
+    }
+  });
+});
+
+describe('T36 — restoreMemberFocus inert guard (AC-0, senior MAJOR-2)', () => {
+  beforeEach(() => {
+    stubDigestJsdomGaps();
+    // jsdom keeps ONE window (and URL) for the whole file — any earlier
+    // ?view= handling would poison later readers' mount initializer
+    // (viewMode reads window.location.search). Fresh-load isolation.
+    window.history.replaceState(null, '', '/');
+  });
+
+  const memberBtn = (key: string) =>
+    document.querySelector<HTMLButtonElement>(`[data-lawlib-member="${key}"]`);
+  const popover = () => document.querySelector<HTMLElement>('[data-lawlib-popover]');
+
+  /** Advance the reader's 50ms open window + setTimeout(0) focus restore. */
+  async function settle(ms = 80) {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, ms));
+    });
+  }
+
+  it('happy path: Esc restores focus to the last-clicked member (guard keeps the visible case working)', async () => {
+    // Routing semantics — reduced-motion ON (file default).
+    await renderDigestReader();
+
+    fireEvent.click(memberBtn('5')!);
+    await settle();
+    expect(popover()).not.toBeNull();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await settle(10);
+
+    expect(popover()).toBeNull();
+    expect(document.activeElement).toBe(memberBtn('5'));
+  });
+
+  it('inert guard: a member inside a collapsed (inert) group is skipped → first-member fallback', async () => {
+    await renderDigestReader();
+
+    // Open the MERGED card (มาตรา 11 - มาตรา 12) via member 12 — the
+    // last-interacted member becomes 12.
+    fireEvent.click(memberBtn('12')!);
+    await settle();
+    expect(popover()).not.toBeNull();
+
+    // Post-T35 reality: a collapsed group is `inert` + grid 0fr — its
+    // members KEEP a non-null offsetParent (the grid retains layout boxes).
+    // Emulate that browser contract for EVERY member: under the OLD
+    // offsetParent guard member 12 would look "visible" and get the restore
+    // (an inert no-op in a real browser); the inert guard must skip it.
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>('[data-lawlib-member]'))) {
+      Object.defineProperty(el, 'offsetParent', { configurable: true, value: document.body });
+    }
+
+    // Collapse the ch-1 group (บททั่วไป — expanded by default) while the
+    // popover stays pinned → the region collapses to 0fr and its inner
+    // content wrapper becomes inert (T35 markup: the id stays on the grid
+    // wrapper; inert rides on the overflow-hidden inner div).
+    const section = document.querySelector('section[aria-label="มาตราสำคัญ"]');
+    const disclosure = Array.from(section?.querySelectorAll('h3 button') ?? []).find((b) =>
+      b.textContent?.includes('บททั่วไป'),
+    ) as HTMLButtonElement;
+    fireEvent.click(disclosure);
+    const region = document.getElementById('ch-1-region') as HTMLElement;
+    expect(region.style.gridTemplateRows).toBe('0fr');
+    expect(region.firstElementChild?.hasAttribute('inert')).toBe(true);
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await settle(10);
+
+    expect(popover()).toBeNull();
+    // Member 12 sits in an inert subtree → skipped → the card's FIRST
+    // member (11) receives the restore attempt.
+    expect(document.activeElement).toBe(memberBtn('11'));
   });
 });
