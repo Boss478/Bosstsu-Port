@@ -42,12 +42,7 @@ export default function ResourcesClient({
     allLabel: 'All',
   });
 
-  const {
-    localQuery,
-    setLocalQuery,
-    filteredItems,
-    handlePageChange,
-  } = useListFilter({
+  const { localQuery, setLocalQuery, filteredItems, handlePageChange } = useListFilter({
     items,
     activeQuery,
     activeFilter: activeType,
@@ -83,7 +78,7 @@ export default function ResourcesClient({
             activeItem={activeType}
             sort={sort}
             onFilter={filterBy}
-            labelTransform={(item) => item === 'All' ? 'ทั้งหมด' : item}
+            labelTransform={(item) => (item === 'All' ? 'ทั้งหมด' : item)}
           />
 
           <SortSelect
@@ -112,7 +107,7 @@ export default function ResourcesClient({
                   key={item.id}
                   href={item.link.startsWith('/') ? item.link : `/resources/${item.id}`}
                   style={{ animationDelay: `${index * 50}ms` }}
-                  className="group flex flex-col bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/60 dark:border-slate-700/50 shadow-xs dark:shadow-black/20 hover:shadow-xl hover:shadow-blue-100/50 dark:hover:shadow-black/40 hover:-translate-y-1 transition-[color,background-color,transform,box-shadow] duration-500 ease-spring animate-scale-up active:scale-[0.98] active:shadow-lg active:duration-150"
+                  className="group flex flex-col bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/60 dark:border-slate-700/50 shadow-xs dark:shadow-black/20 hover:shadow-xl hover:shadow-blue-100/50 dark:hover:shadow-black/40 hover:-translate-y-1 transition-[color,background-color,transform,box-shadow] duration-500 ease-spring animate-scale-up active:scale-[0.98] active:shadow-lg active:duration-press"
                 >
                   <div className="relative aspect-video overflow-hidden bg-zinc-100 dark:bg-slate-800">
                     {item.cover ? (

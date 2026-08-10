@@ -40,12 +40,7 @@ export default function PortfolioClient({
     filterKey: 'tag',
   });
 
-  const {
-    localQuery,
-    setLocalQuery,
-    filteredItems,
-    handlePageChange,
-  } = useListFilter({
+  const { localQuery, setLocalQuery, filteredItems, handlePageChange } = useListFilter({
     items,
     activeQuery,
     activeFilter: activeTag,
@@ -76,12 +71,7 @@ export default function PortfolioClient({
         <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-3">
           <SearchInput value={localQuery} onChange={setLocalQuery} />
 
-          <FilterBar
-            allItems={allTags}
-            activeItem={activeTag}
-            sort={sort}
-            onFilter={filterBy}
-          />
+          <FilterBar allItems={allTags} activeItem={activeTag} sort={sort} onFilter={filterBy} />
 
           <SortSelect
             value={sort}
@@ -109,7 +99,7 @@ export default function PortfolioClient({
                   key={item.id}
                   href={`/portfolio/${item.id}`}
                   style={{ animationDelay: `${index * 50}ms` }}
-                  className="group flex flex-col bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/10 overflow-hidden shadow-xl shadow-blue-900/5 dark:shadow-black/20 transition-[color,background-color,transform,box-shadow] duration-500 ease-spring hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-blue-900/10 dark:hover:shadow-black/40 hover:bg-white/60 dark:hover:bg-slate-800/60 animate-scale-up active:scale-[0.98] active:shadow-lg active:duration-150"
+                  className="group flex flex-col bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/10 overflow-hidden shadow-xl shadow-blue-900/5 dark:shadow-black/20 transition-[color,background-color,transform,box-shadow] duration-500 ease-spring hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-blue-900/10 dark:hover:shadow-black/40 hover:bg-white/60 dark:hover:bg-slate-800/60 animate-scale-up active:scale-[0.98] active:shadow-lg active:duration-press"
                   suppressHydrationWarning
                 >
                   <div

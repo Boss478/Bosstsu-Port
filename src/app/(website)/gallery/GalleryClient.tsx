@@ -40,12 +40,7 @@ export default function GalleryClient({
     filterKey: 'tag',
   });
 
-  const {
-    localQuery,
-    setLocalQuery,
-    filteredItems,
-    handlePageChange,
-  } = useListFilter({
+  const { localQuery, setLocalQuery, filteredItems, handlePageChange } = useListFilter({
     items,
     activeQuery,
     activeFilter: activeTag,
@@ -76,12 +71,7 @@ export default function GalleryClient({
         <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-3">
           <SearchInput value={localQuery} onChange={setLocalQuery} />
 
-          <FilterBar
-            allItems={allTags}
-            activeItem={activeTag}
-            sort={sort}
-            onFilter={filterBy}
-          />
+          <FilterBar allItems={allTags} activeItem={activeTag} sort={sort} onFilter={filterBy} />
 
           <SortSelect
             value={sort}
@@ -109,7 +99,7 @@ export default function GalleryClient({
                   key={album.id}
                   href={`/gallery/${album.id}`}
                   style={{ animationDelay: `${index * 50}ms`, aspectRatio: '16/10' }}
-                  className="group block relative rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-md shadow-blue-100/40 dark:shadow-black/20 hover:shadow-lg hover:shadow-blue-200/50 dark:hover:shadow-black/40 hover:-translate-y-1.5 transition-[color,background-color,transform,box-shadow] duration-500 ease-spring overflow-hidden min-h-[200px] animate-scale-up active:scale-[0.98] active:shadow-lg active:duration-150"
+                  className="group block relative rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 shadow-md shadow-blue-100/40 dark:shadow-black/20 hover:shadow-lg hover:shadow-blue-200/50 dark:hover:shadow-black/40 hover:-translate-y-1.5 transition-[color,background-color,transform,box-shadow] duration-500 ease-spring overflow-hidden min-h-[200px] animate-scale-up active:scale-[0.98] active:shadow-lg active:duration-press"
                 >
                   <Image
                     src={album.cover}
