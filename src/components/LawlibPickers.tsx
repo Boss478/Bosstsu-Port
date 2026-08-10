@@ -13,6 +13,7 @@ import { DEFAULT_READING_SETTINGS, DOCK_TOOL_KEYS } from '@/hooks/useReaderStora
 import { DEFAULT_PAPER_TONE, type Theme } from '@/components/ThemeProvider';
 import type {
   DockToolKey,
+  MotionPreference,
   ParagraphSpacing,
   ReaderFontFamily,
   ReaderFontWeight,
@@ -268,16 +269,20 @@ export function PickerPopover({
   );
 }
 
-/** A single option button in a picker (aria-pressed toggle row). */
+/** A single option button in a picker (aria-pressed toggle row). T42:
+ *  `disabled` greys the option (visible, not selectable — the motion
+ *  picker's quality tier under OS reduced-motion). */
 function OptionButton({
   pressed,
   onClick,
   label,
+  disabled,
   children,
 }: {
   pressed: boolean;
   onClick: () => void;
   label: string;
+  disabled?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -286,7 +291,8 @@ function OptionButton({
       aria-pressed={pressed}
       aria-label={label}
       onClick={onClick}
-      className={`flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-lg border px-2 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+      disabled={disabled}
+      className={`flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-lg border px-2 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 ${
         pressed
           ? 'border-blue-400 bg-blue-50 text-blue-700 dark:border-blue-500/60 dark:bg-blue-950/50 dark:text-blue-300'
           : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:text-blue-300'
@@ -488,8 +494,10 @@ export function FontSizePickerContent({
 // Line height + width sliders
 // ---------------------------------------------------------------------------
 
-export const LINE_HEIGHT_MIN = 1.0;
-export const LINE_HEIGHT_MAX = 2.0;
+// T39 flag (ADR-025 S3): 1.2–2.4 — MUST match useReaderStorage's clamps
+// (the UI must not offer values the storage validator rejects).
+export const LINE_HEIGHT_MIN = 1.2;
+export const LINE_HEIGHT_MAX = 2.4;
 
 export function LineHeightPickerContent({
   value,
@@ -513,9 +521,10 @@ export function LineHeightPickerContent({
 }
 
 /** Width as a PERCENTAGE of the 80ch baseline (user decision 2026-08-06):
- *  80-120%, step 1, default 100% → max-width calc(80ch * pct/100). */
+ *  80-160%, step 1, default 120% → max-width calc(80ch * pct/100).
+ *  T39 flag (ADR-025 S4): 160 — MUST match useReaderStorage's clamp. */
 export const WIDTH_MIN = 80;
-export const WIDTH_MAX = 120;
+export const WIDTH_MAX = 160;
 
 export function WidthPickerContent({
   value,
@@ -841,6 +850,11 @@ export function SettingsPanelContent({
   // T12 (ADR-019 D9): per-setting คืนค่า — resets ONLY that one setting.
   // The reset button renders for every control and disables at its default.
   const d = DEFAULT_READING_SETTINGS;
+  /** T42 (ADR-025 D2) — the picker's SELECTED tier = the EFFECTIVE one:
+   *  OS reduced-motion downgrades a stored 'quality' to 'fast' (D2c), so
+   *  the ปกติ option shows unpressed and the ปกติ button is disabled. */
+  const motionEffective: MotionPreference =
+    reducedMotion && settings.motionPreference === 'quality' ? 'fast' : settings.motionPreference;
   /** T14 (ADR-019 D10): the เครื่องมือแถวลัด per-setting reset is disabled
    *  when the favorite keys equal the curated default (order matters). */
   const favoritesEqualDefault =
@@ -1255,6 +1269,53 @@ export function SettingsPanelContent({
         resetLabel="แอนิเมชันแถบเครื่องมือ"
         resetDisabled={settings.animateDock}
       />
+
+      {/* ─── Motion preference (T42 — ADR-025 D2): ปิด / เร็ว / ปกติ.
+          Selected = the EFFECTIVE tier: under OS reduced-motion a stored
+          'quality' shows as เร็ว (the D2c user-locked downgrade) and the
+          ปกติ option is DISABLED (visible + greyed — the user must pick
+          เร็ว or ปิด; the hint explains why). The stored value stays
+          'quality' until the user acts. */}
+      <SettingsSectionTitle
+        action={
+          <ResetButton
+            label="การเคลื่อนไหว"
+            disabled={settings.motionPreference === d.motionPreference}
+            onClick={() => onChange((prev) => ({ ...prev, motionPreference: d.motionPreference }))}
+          />
+        }
+      >
+        การเคลื่อนไหว
+      </SettingsSectionTitle>
+      <div className="grid grid-cols-3 gap-1.5">
+        <OptionButton
+          pressed={motionEffective === 'disable'}
+          onClick={() => onChange((prev) => ({ ...prev, motionPreference: 'disable' }))}
+          label="การเคลื่อนไหวปิด"
+        >
+          ปิด
+        </OptionButton>
+        <OptionButton
+          pressed={motionEffective === 'fast'}
+          onClick={() => onChange((prev) => ({ ...prev, motionPreference: 'fast' }))}
+          label="การเคลื่อนไหวเร็ว"
+        >
+          เร็ว
+        </OptionButton>
+        <OptionButton
+          pressed={motionEffective === 'quality'}
+          onClick={() => onChange((prev) => ({ ...prev, motionPreference: 'quality' }))}
+          label="การเคลื่อนไหวปกติ"
+          disabled={reducedMotion}
+        >
+          ปกติ
+        </OptionButton>
+      </div>
+      {reducedMotion && (
+        <p className="text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
+          ระบบลดการเคลื่อนไหวเปิดอยู่ — เลือกได้ เร็ว หรือ ปิด
+        </p>
+      )}
 
       {/* ─── Auto-scroll ───────────────────────────────────────────────── */}
       <SettingsSectionTitle
