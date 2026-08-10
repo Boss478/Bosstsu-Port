@@ -426,9 +426,53 @@ function QuickNoteBox({
   );
 }
 
+/**
+ * T46 — article-text copy button, extracted from ArticleBody's header row so
+ * the compact ArticlePopover can reuse it (byte-identical markup + handler:
+ * copies `${plainText}\n\n— ${code} ${label}`, the tooltip citation line).
+ */
+export function ArticleCopyButton({
+  law,
+  article,
+  code,
+  label,
+}: {
+  law: LawDoc;
+  article: { no: number; suffix?: string };
+  code: string;
+  label: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const target = findArticle(law, article.no, article.suffix);
+
+  const handleCopy = async () => {
+    if (!target) return;
+    const ok = await copyText(`${articlePlainText(target)}\n\n— ${code} ${label}`);
+    if (ok) {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-slate-200/90 bg-white/90 px-3 text-xs text-slate-600 shadow-xs backdrop-blur-xs transition-[transform,background-color,border-color] duration-150 hover:scale-105 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300"
+    >
+      <i
+        aria-hidden="true"
+        className={`fi ${copied ? 'fi-sr-check-circle text-emerald-600' : 'fi-sr-copy'} mr-1 text-[10px]`}
+      />
+      {copied ? 'คัดลอกแล้ว' : 'คัดลอก'}
+    </button>
+  );
+}
+
 /** Article-actions hub row: bookmark ± · copy-link (copy lives in the header
- *  row above). ALL controls live inside the registered tooltip root. */
-function ArticleHub({ hub, onClose }: { hub: LawTooltipHub; onClose: () => void }) {
+ *  row above — ArticleCopyButton). ALL controls live inside the registered
+ *  tooltip root; exported for the compact ArticlePopover (T46 — same hub). */
+export function ArticleHub({ hub, onClose }: { hub: LawTooltipHub; onClose: () => void }) {
   const [linkCopied, setLinkCopied] = useState(false);
 
   const handleCopyLink = async () => {
@@ -563,19 +607,9 @@ function ArticleBody({
   previewExpanded: boolean;
   onExpandPreview: () => void;
 }) {
-  const [copied, setCopied] = useState(false);
   const key = articleKeyOf(article);
   const label = articleLabel(article.no, article.suffix);
   const target = findArticle(law, article.no, article.suffix);
-
-  const handleCopy = async () => {
-    if (!target) return;
-    const ok = await copyText(`${articlePlainText(target)}\n\n— ${code} ${label}`);
-    if (ok) {
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    }
-  };
 
   return (
     <div className="space-y-3">
@@ -591,17 +625,8 @@ function ArticleBody({
               </span>
             )}
         </span>
-        <button
-          type="button"
-          onClick={handleCopy}
-          className="inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-slate-200/90 bg-white/90 px-3 text-xs text-slate-600 shadow-xs backdrop-blur-xs transition-[transform,background-color,border-color] duration-150 hover:scale-105 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 active:scale-95 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300"
-        >
-          <i
-            aria-hidden="true"
-            className={`fi ${copied ? 'fi-sr-check-circle text-emerald-600' : 'fi-sr-copy'} mr-1 text-[10px]`}
-          />
-          {copied ? 'คัดลอกแล้ว' : 'คัดลอก'}
-        </button>
+        {/* T46 — shared ArticleCopyButton (extracted; byte-identical). */}
+        <ArticleCopyButton law={law} article={article} code={code} label={label} />
       </div>
 
       {target ? (

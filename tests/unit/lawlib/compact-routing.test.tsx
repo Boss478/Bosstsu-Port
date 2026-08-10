@@ -44,7 +44,7 @@
  * `next/link` renders a plain <a> (no router in jsdom — reading-dock pattern).
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, fireEvent, screen, act } from '@testing-library/react';
+import { render, fireEvent, screen, act, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import LawlibReaderClient from '@/app/(website)/lawlib/[slug]/LawlibReaderClient';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -1217,5 +1217,192 @@ describe('T31 — digest flash (AC-4)', () => {
     await flush(100);
 
     expect(document.querySelector('.lawlib-dline-flash')).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T46 — ArticlePopover quick actions (user 2026-08-10: "Tooltip has quick
+// action, but popover doesn't"). The popover reuses the tooltip's
+// ArticleHub (bookmark ± · copy-link · note quick-write/read + เปิดโน้ตทั้งแผง)
+// between the content and the ดูฉบับเต็ม link + the shared ArticleCopyButton
+// in the header row — SAME sources (bookmark store / notes / copy-link
+// handler) the tooltip hub uses, keyed to the popover's card key.
+// ---------------------------------------------------------------------------
+
+describe('T46 — popover article-actions hub', () => {
+  /** Open the popover for card 5 (single member) and return it. */
+  async function openPopover(): Promise<HTMLElement> {
+    fireEvent.click(memberBtn('5') as HTMLElement);
+    await flush();
+    const dialog = popover();
+    expect(dialog, 'popover must be open').not.toBeNull();
+    return dialog as HTMLElement;
+  }
+
+  it('hub renders in the popover — bookmark, note, copy, copy-link (4 actions) + X + ดูฉบับเต็ม intact', async () => {
+    await renderReader();
+    const dialog = await openPopover();
+
+    // ArticleHub row: bookmark toggle + copy-link.
+    expect(within(dialog).getByRole('button', { name: 'เพิ่มที่คั่นหน้า' })).not.toBeNull();
+    expect(within(dialog).getByRole('button', { name: 'คัดลอกลิงก์มาตรานี้' })).not.toBeNull();
+    // QuickNoteBox: collapsed icon control.
+    expect(within(dialog).getByRole('button', { name: /^โน้ตด่วน$/ })).not.toBeNull();
+    // Header copy button (ArticleCopyButton — tooltip header parity).
+    expect(within(dialog).getByRole('button', { name: /^คัดลอก$/ })).not.toBeNull();
+
+    // Popover chrome unchanged: X close + ดูฉบับเต็ม + Esc hint.
+    expect(within(dialog).getByRole('button', { name: 'ปิด' })).not.toBeNull();
+    expect(within(dialog).getByRole('button', { name: /ดูฉบับเต็มที่/ })).not.toBeNull();
+    expect(dialog.textContent).toContain('Esc ปิด');
+  });
+
+  it('hub sits BETWEEN the article content and the ดูฉบับเต็ม footer', async () => {
+    await renderReader();
+    const dialog = await openPopover();
+
+    const footer = dialog.querySelector('footer');
+    expect(footer).not.toBeNull();
+    const hubSection = Array.from(dialog.querySelectorAll('div')).find(
+      (el) => el.querySelector('button[aria-label="เพิ่มที่คั่นหน้า"]') !== null,
+    );
+    expect(hubSection).not.toBeUndefined();
+    // The hub's closest footer-ward sibling chain leads to the footer: the
+    // hub section must precede the footer in DOM order.
+    expect(
+      hubSection!.compareDocumentPosition(footer as Node) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).not.toBe(0);
+    // And it comes AFTER the article body (the ArticleView trigger header).
+    const trigger = dialog.querySelector('[data-lawlib-trigger]');
+    expect(trigger).not.toBeNull();
+    expect(
+      trigger!.compareDocumentPosition(hubSection as Node) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).not.toBe(0);
+  });
+
+  it('bookmark toggles from the popover hub and PERSISTS across close/reopen (same store as the tooltip)', async () => {
+    await renderReader();
+    const dialog = await openPopover();
+
+    const bookmark = within(dialog).getByRole('button', { name: 'เพิ่มที่คั่นหน้า' });
+    expect(bookmark.getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(bookmark);
+    await flush();
+
+    expect(within(dialog).getByRole('button', { name: 'นำออกจากที่คั่นหน้า' })).not.toBeNull();
+    expect(
+      within(dialog)
+        .getByRole('button', { name: 'นำออกจากที่คั่นหน้า' })
+        .getAttribute('aria-pressed'),
+    ).toBe('true');
+    // Same localStorage key the tooltip's bookmark writes (lawlib:<slug>:bookmarks).
+    const stored = JSON.parse(
+      (localStorage.getItem('lawlib:compact-routing-test:bookmarks') ?? '[]') as string,
+    ) as string[];
+    expect(stored).toContain('5');
+
+    // Close (X) → reopen → still bookmarked.
+    fireEvent.click(within(dialog).getByRole('button', { name: 'ปิด' }));
+    await flush();
+    const dialog2 = await openPopover();
+    expect(within(dialog2).getByRole('button', { name: 'นำออกจากที่คั่นหน้า' })).not.toBeNull();
+
+    // Toggle back off → unbookmarked again.
+    fireEvent.click(within(dialog2).getByRole('button', { name: 'นำออกจากที่คั่นหน้า' }));
+    await flush();
+    expect(within(dialog2).getByRole('button', { name: 'เพิ่มที่คั่นหน้า' })).not.toBeNull();
+  });
+
+  it('copy-link copies the article deep link (view param + hash), with the copied feedback', async () => {
+    await renderReader();
+    // copyText prefers navigator.clipboard when present (jsdom has none).
+    const writeText = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    });
+    try {
+      const dialog = await openPopover();
+      fireEvent.click(within(dialog).getByRole('button', { name: 'คัดลอกลิงก์มาตรานี้' }));
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(writeText).toHaveBeenCalledTimes(1);
+      const url = writeText.mock.calls[0][0] as string;
+      expect(url).toContain('view=compact');
+      expect(url).toContain('#มาตรา-5');
+      // Feedback flips to the copied state (tooltip parity) — the accessible
+      // name stays the aria-label; the flip is the VISIBLE text.
+      expect(
+        within(dialog).getByRole('button', { name: 'คัดลอกลิงก์มาตรานี้' }).textContent,
+      ).toContain('คัดลอกลิงก์แล้ว');
+    } finally {
+      delete (navigator as { clipboard?: unknown }).clipboard;
+    }
+  });
+
+  it('note quick-write saves via the 500ms autosave + unmount flush; persists across reopen', async () => {
+    await renderReader();
+    const dialog = await openPopover();
+
+    vi.useFakeTimers();
+    try {
+      // Expand the quick-note box (mirrors tooltip.test.tsx T16 patterns).
+      fireEvent.click(within(dialog).getByRole('button', { name: /^โน้ตด่วน$/ }));
+      const textbox = within(dialog).getByRole('textbox', {
+        name: 'โน้ตด่วนสำหรับมาตราที่เปิด',
+      });
+      fireEvent.change(textbox, { target: { value: 'จดบันทึกจากป็อปโอเวอร์' } });
+
+      // 500ms debounce → autosave fires (the reader's handleQuickNoteSave
+      // upserts into the SAME notes store the tooltip writes).
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      // Saved → the note exists in the reader store (localStorage).
+      const stored = JSON.parse(
+        (localStorage.getItem('lawlib:compact-routing-test:notes') ?? '[]') as string,
+      ) as Array<{ articleKey: string; text: string }>;
+      expect(stored.some((n) => n.articleKey === '5')).toBe(true);
+      expect(stored.find((n) => n.articleKey === '5')?.text).toBe('จดบันทึกจากป็อปโอเวอร์');
+      // The reader's noteKeys prop updates → the ArticleView heading shows
+      // the มีบันทึก icon (noteKeys live-update — same store as the tooltip).
+      expect(within(dialog).getByLabelText('มีบันทึก')).not.toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+
+    // Close (unmount flush — no keystrokes dropped) → reopen → the note is
+    // still there (has-note label + textarea prefilled).
+    fireEvent.click(within(dialog).getByRole('button', { name: 'ปิด' }));
+    await flush();
+    const dialog2 = await openPopover();
+    expect(within(dialog2).getByRole('button', { name: 'โน้ตด่วน (มีโน้ต)' })).not.toBeNull();
+    fireEvent.click(within(dialog2).getByRole('button', { name: 'โน้ตด่วน (มีโน้ต)' }));
+    const textbox = within(dialog2).getByRole('textbox', {
+      name: 'โน้ตด่วนสำหรับมาตราที่เปิด',
+    }) as HTMLTextAreaElement;
+    expect(textbox.value).toBe('จดบันทึกจากป็อปโอเวอร์');
+  });
+
+  it('merged card popover carries the hub keyed to the CARD primary key (same-law in-page → full hub)', async () => {
+    await renderReader();
+    // Member 12 of "มาตรา 11 - มาตรา 12" → popover keyed to card key '11'.
+    fireEvent.click(memberBtn('12') as HTMLElement);
+    await flush();
+    const dialog = popover();
+    expect(dialog).not.toBeNull();
+
+    expect(within(dialog!).getByRole('button', { name: 'เพิ่มที่คั่นหน้า' })).not.toBeNull();
+    expect(within(dialog!).getByRole('button', { name: 'คัดลอกลิงก์มาตรานี้' })).not.toBeNull();
+
+    // Bookmarking from the merged popover stores the CARD's primary key.
+    fireEvent.click(within(dialog!).getByRole('button', { name: 'เพิ่มที่คั่นหน้า' }));
+    await flush();
+    const stored = JSON.parse(
+      (localStorage.getItem('lawlib:compact-routing-test:bookmarks') ?? '[]') as string,
+    ) as string[];
+    expect(stored).toContain('11');
   });
 });

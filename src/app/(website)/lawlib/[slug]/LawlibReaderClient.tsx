@@ -47,7 +47,7 @@ import {
 import type { Note } from '@/hooks/useReaderStorage';
 import ArticleView from '@/components/ArticleView';
 import TocSidebar from '@/components/TocSidebar';
-import LawTooltip from '@/components/LawTooltip';
+import LawTooltip, { type LawTooltipHub } from '@/components/LawTooltip';
 import { SearchPanel } from '@/components/SearchPanel';
 import { GlossaryPanel } from '@/components/GlossaryPanel';
 import { EditionTimeline } from '@/components/EditionTimeline';
@@ -1742,6 +1742,29 @@ export default function LawlibReaderClient({
         })()
       : undefined;
 
+  /** ArticlePopover article-actions hub (T46) — SAME sources as the tooltip
+   *  hub, keyed to the POPOVER's card key (expandedKey = the card's primary
+   *  key). The popover is always same-law in-page content → the full hub
+   *  applies (bookmark ± · note quick-write + open full notes · copy ·
+   *  copy-link). Null when no popover is open. */
+  const popoverHub: LawTooltipHub | null =
+    expandedKey !== null
+      ? (() => {
+          const key = expandedKey;
+          const articleNotes = notes.filter((n) => n.articleKey === key);
+          return {
+            isBookmarked: bookmarkKeySet.has(key),
+            onToggleBookmark: () => toggleBookmark(key),
+            noteText: articleNotes[articleNotes.length - 1]?.text ?? '',
+            onNoteSave: (text: string) => handleQuickNoteSave(key, text),
+            onOpenNotes: handleOpenNotesFromTooltip,
+            onCopyLink: () => {
+              void handleCopyLinkFor(key);
+            },
+          };
+        })()
+      : null;
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-6" style={readerSurfaceStyle}>
       {/* sr-only view-switch announcement — set ONLY in the toggle handler (loop-4 #2) */}
@@ -1903,6 +1926,7 @@ export default function LawlibReaderClient({
               }
               getTriggerProps={getTriggerProps}
               isTooltipOpen={isTooltipOpen}
+              hub={popoverHub}
             />
           ) : (
             <div className="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8">

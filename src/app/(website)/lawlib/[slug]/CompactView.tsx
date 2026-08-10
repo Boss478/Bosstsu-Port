@@ -43,6 +43,7 @@ import {
   flattenArticles,
 } from '@/lib/lawlib-reader';
 import type { DigestRefContent } from '@/components/LawTooltip';
+import { ArticleCopyButton, ArticleHub, type LawTooltipHub } from '@/components/LawTooltip';
 import type { TooltipContent, TooltipTriggerHandlers } from '@/hooks/useLawTooltip';
 import DigestToc from './DigestToc';
 
@@ -86,6 +87,10 @@ interface CompactViewProps {
   onToggleGroup: (groupId: string) => void;
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
+  /** T46 — article-actions hub for the ArticlePopover (null = closed). Built
+   *  in the reader from the SAME sources as the tooltip hub, keyed to the
+   *  popover's card key (expandedKey). */
+  hub: LawTooltipHub | null;
 }
 
 /** Extract the article key from a deep-link href (`#มาตรา-<key>` → key). */
@@ -669,6 +674,7 @@ function ArticlePopover({
   flashKey,
   getTriggerProps,
   isTooltipOpen,
+  hub,
 }: {
   line: Extract<RenderLine, { kind: 'article' }>;
   law: LawDoc;
@@ -681,12 +687,20 @@ function ArticlePopover({
   flashKey: string | null;
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
   isTooltipOpen: (content: TooltipContent) => boolean;
+  /** T46 — article-actions hub (bookmark ± · note · copy-link; copy lives in
+   *  the header row via ArticleCopyButton — same split as the tooltip). */
+  hub: LawTooltipHub | null;
 }) {
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   // T13 — same data-driven range expansion as the card header: the popover
   // stacks the REAL article of every law-present member in the range.
   const memberKeys = useMemo(() => expandCardMemberKeys(line, law), [line, law]);
+
+  // T46 — the popover's copy target = its card primary article (line.key,
+  // same identity the hub actions key on). Null for a malformed key → the
+  // copy button is not rendered (cards always carry valid keys).
+  const copyTarget = useMemo(() => keyParts(line.key), [line.key]);
 
   // Position beside the card once, at open (transient popover — no re-layout
   // tracking; like the term tooltip's captured anchor). T9 (mobile audit):
@@ -774,6 +788,8 @@ function ArticlePopover({
   // every mounted popover is interaction-opened — move focus to the
   // ArticleView header trigger. Fallback (loop-3 MINOR): no trigger rendered
   // (findArticleByKey miss) → the X close button, then the popover root.
+  // The X is queried by label (T46: the header now ALSO carries the
+  // ArticleCopyButton — a bare `button` scan would land on copy, not close).
   useEffect(() => {
     const root = rootRef.current;
     if (root === null) return;
@@ -782,7 +798,7 @@ function ArticlePopover({
       t.focus();
       return;
     }
-    const closeBtn = root.querySelector<HTMLButtonElement>('button');
+    const closeBtn = root.querySelector<HTMLButtonElement>('[aria-label="ปิด"]');
     if (closeBtn !== null && closeBtn !== document.activeElement) {
       closeBtn.focus();
       return;
@@ -814,17 +830,29 @@ function ArticlePopover({
       className="lawlib-pop-in lawlib-popover lawlib-glass-content lawlib-glass-sheen flex flex-col overflow-hidden rounded-2xl border border-slate-200 shadow-2xl dark:border-slate-700"
     >
       <header className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-200 px-4 py-2.5 dark:border-slate-700">
-        <span className="text-sm font-bold leading-relaxed text-slate-900 dark:text-white">
+        <span className="min-w-0 text-sm font-bold leading-relaxed text-slate-900 dark:text-white">
           {line.label}
         </span>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="ปิด"
-          className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white"
-        >
-          <i aria-hidden="true" className="fi fi-sr-cross text-[10px]" />
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          {/* T46 — article-text copy (parity with the tooltip's header row:
+              ArticleCopyButton lives above the hub there too). */}
+          {copyTarget !== null && (
+            <ArticleCopyButton
+              law={law}
+              article={copyTarget}
+              code={law.code}
+              label={articleLabel(copyTarget.no, copyTarget.suffix)}
+            />
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="ปิด"
+            className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white"
+          >
+            <i aria-hidden="true" className="fi fi-sr-cross text-[10px]" />
+          </button>
+        </div>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
         {/* Merged card (T13-expanded members, user 2026-08-05): stack the
@@ -869,6 +897,16 @@ function ArticlePopover({
           />
         )}
       </div>
+      {/* T46 — article-actions hub (bookmark ± · copy-link · note quick-write
+          + เปิดโน้ตทั้งแผง) — SAME component the tooltip renders, between the
+          article content and the ดูฉบับเต็ม link (plan §11). Keyed remount:
+          the popover can switch cards without unmounting — the key resets
+          the note draft per article (mirror of the tooltip's keyed hub). */}
+      {hub !== null && (
+        <div className="shrink-0 px-4 pb-2.5">
+          <ArticleHub key={line.key} hub={hub} onClose={onClose} />
+        </div>
+      )}
       <footer className="flex shrink-0 flex-wrap items-center gap-2 border-t border-slate-200 px-4 py-2.5 dark:border-slate-700">
         <button
           type="button"
@@ -1258,6 +1296,7 @@ export default function CompactView({
   onToggleGroup,
   getTriggerProps,
   isTooltipOpen,
+  hub,
 }: CompactViewProps) {
   // Popover root id — stable across open/close; member buttons reference it
   // via aria-controls (plan v6 #7: multiple triggers, one dialog = APG-accepted).
@@ -1360,6 +1399,7 @@ export default function CompactView({
           flashKey={flashKey}
           getTriggerProps={getTriggerProps}
           isTooltipOpen={isTooltipOpen}
+          hub={hub}
         />
       )}
     </div>
