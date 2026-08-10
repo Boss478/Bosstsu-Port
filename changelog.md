@@ -1,3 +1,8 @@
+## v1.12.3 (2026-08-10)
++ **LawLib motion wave**: glass blur now visibly tracks the slider (VT fix) · L2 gets its own real backdrop blur · group/history/pill entrance animations · dock portal (renders above every surface)
++ **Settings review**: glass alpha linear 5–80% · blur 0.5–8px (default 50) · size presets 8/12/16/24/32 · line-height 1.2–2.4 · content width 80–160% (default 120%)
++ **Motion preference ปกติ/เร็ว/ปิด**: reduced-motion downgrades to essentials (RM downgrade) · press feedback 100ms · 60fps transition scoping — only animatable properties transition
++ **Popover quick actions**: one-tap actions in the compact popover
 ## v1.12.2 (2026-08-09)
 + **Tooltip side placement + preview (T19)**: placed left/right of the trigger when below/above don't fit (never covers the hovered Section — W3-4 invariant kept) · hover = **5-row preview + "See more" button** (line-clamp-5 + aria-controls) · click-pin/keyboard = full article text immediately · applies to glossary/digest/full-article bodies
 + **Dock — no internal scrolling (T20)**: L1/L2 always show every button (height caps + overflow removed — mobile sheet keeps the safety scroll)
