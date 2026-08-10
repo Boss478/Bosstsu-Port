@@ -6,12 +6,13 @@
  * Contract pinned here (numeric fontSize/width + legacy migration):
  * - fontSize: number 8-32 (clamped); legacy 's'/'m'/'l'/'xl' → 14/16/18/24;
  *   non-number/unknown string → default 16
- * - width: PERCENT of the 80ch baseline, number 80-120 (clamped); legacy
- *   'narrow'/'normal'/'wide' → 80/100/120 (was 40/60/80ch); legacy NUMERIC
- *   ch values [40,80) rescale +40 (60→100 — the old default keeps its
+ * - width: PERCENT of the 80ch baseline, number 80-160 (clamped, ADR-025 S4);
+ *   legacy 'narrow'/'normal'/'wide' → 80/100/120 (was 40/60/80ch); legacy
+ *   NUMERIC ch values [40,80) rescale +40 (60→100 — the old default keeps its
  *   position); 80 is the overlap value and passes through untouched
- *   (idempotent on every load); non-number/unknown string → default 100
- * - lineHeight: clamped into [1.0, 2.0] (was [1.5, 2.2]); non-finite → 1.8
+ *   (idempotent on every load); non-number/unknown string → default 120
+ * - lineHeight: clamped into [1.2, 2.4] (ADR-025 S3 — was [1.0, 2.0],
+ *   T10a widened from [1.5, 2.2]); stored <1.2 silently clamps; non-finite → 1.8
  * - favoriteToolKeys: filtered to known dock tools + deduped; missing /
  *   non-array / empty-after-filter → default curated row
  * - non-object input → DEFAULT_READING_SETTINGS
@@ -80,11 +81,11 @@ describe('validateReadingSettings (P3 — T10a numeric contract + T10b fields)',
     expect(
       api.validateReadingSettings({
         fontSize: 16,
-        lineHeight: 1.0,
+        lineHeight: 1.2,
         width: 100,
         favoriteToolKeys: [],
       }),
-    ).toEqual(withDefaults({ fontSize: 16, lineHeight: 1.0, width: 100, favoriteToolKeys: [] }));
+    ).toEqual(withDefaults({ fontSize: 16, lineHeight: 1.2, width: 100, favoriteToolKeys: [] }));
     expect(
       api.validateReadingSettings({
         fontSize: 16,
@@ -162,7 +163,7 @@ describe('validateReadingSettings (P3 — T10a numeric contract + T10b fields)',
     ).toBe(16);
   });
 
-  it('clamps numeric fontSize into [8, 32] and width into [80, 120]', () => {
+  it('clamps numeric fontSize into [8, 32] and width into [80, 160]', () => {
     expect(api.validateReadingSettings({ fontSize: 4, lineHeight: 1.8, width: 100 }).fontSize).toBe(
       8,
     );
@@ -174,7 +175,7 @@ describe('validateReadingSettings (P3 — T10a numeric contract + T10b fields)',
       80,
     );
     expect(api.validateReadingSettings({ fontSize: 16, lineHeight: 1.8, width: 200 }).width).toBe(
-      120,
+      160,
     );
   });
 
@@ -191,13 +192,13 @@ describe('validateReadingSettings (P3 — T10a numeric contract + T10b fields)',
     expect(api.validateReadingSettings(42)).toEqual(DEFAULT_READING_SETTINGS);
   });
 
-  it('clamps lineHeight into [1.0, 2.0]', () => {
+  it('clamps lineHeight into [1.2, 2.4]', () => {
     expect(
       api.validateReadingSettings({ fontSize: 16, lineHeight: 0.5, width: 60 }).lineHeight,
-    ).toBe(1.0);
+    ).toBe(1.2);
     expect(
       api.validateReadingSettings({ fontSize: 16, lineHeight: 5.0, width: 60 }).lineHeight,
-    ).toBe(2.0);
+    ).toBe(2.4);
     expect(
       api.validateReadingSettings({ fontSize: 16, lineHeight: 1.2, width: 60 }).lineHeight,
     ).toBe(1.2);
@@ -206,7 +207,7 @@ describe('validateReadingSettings (P3 — T10a numeric contract + T10b fields)',
     ).toBe(1.5);
     expect(
       api.validateReadingSettings({ fontSize: 16, lineHeight: 2.2, width: 60 }).lineHeight,
-    ).toBe(2.0);
+    ).toBe(2.2);
     expect(
       api.validateReadingSettings({ fontSize: 16, lineHeight: 1.8, width: 60 }).lineHeight,
     ).toBe(1.8);
@@ -389,7 +390,7 @@ describe('loadGlobalSettings (P3 — shared validator path)', () => {
       JSON.stringify({ fontSize: 'xs', lineHeight: 9, width: 'huge' }),
     );
     expect(api.loadGlobalSettings()).toEqual(
-      withDefaults({ fontSize: 16, lineHeight: 2.0, width: 100 }),
+      withDefaults({ fontSize: 16, lineHeight: 2.4, width: 120 }),
     );
   });
 
@@ -399,7 +400,7 @@ describe('loadGlobalSettings (P3 — shared validator path)', () => {
       JSON.stringify({ fontSize: 'l', lineHeight: 2.1, width: 'wide' }),
     );
     expect(api.loadGlobalSettings()).toEqual(
-      withDefaults({ fontSize: 18, lineHeight: 2.0, width: 120 }),
+      withDefaults({ fontSize: 18, lineHeight: 2.1, width: 120 }),
     );
   });
 
@@ -436,7 +437,7 @@ describe('saveGlobalSettings (P3 — new export)', () => {
       withDefaults({ fontSize: 24, lineHeight: 2.2, width: 80, favoriteToolKeys: [] }),
     );
     expect(api.loadGlobalSettings()).toEqual(
-      withDefaults({ fontSize: 24, lineHeight: 2.0, width: 80, favoriteToolKeys: [] }),
+      withDefaults({ fontSize: 24, lineHeight: 2.2, width: 80, favoriteToolKeys: [] }),
     );
   });
 });

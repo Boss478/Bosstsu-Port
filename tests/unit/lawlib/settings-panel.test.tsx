@@ -154,7 +154,8 @@ describe('T10b settings panel — ⚙️ wiring', () => {
   it('glass slider persists through the shared validator', async () => {
     await renderReader();
     const picker = await openSettings();
-    const slider = within(picker).getByLabelText('ความทึบ (เฉพาะ dock + ค้นหา)');
+    // Label is the ADR-025 §3 user-locked name (T40 changed it in-tree).
+    const slider = within(picker).getByLabelText('กระจก (ความทึบ + ความเบลอ)');
     // T12: default 35 (real glass) — was 75.
     expect((slider as HTMLInputElement).value).toBe('35');
     fireEvent.change(slider, { target: { value: '100' } });
@@ -233,8 +234,8 @@ describe('T10b settings panel — focus mode', () => {
     const picker = await openSettings();
     fireEvent.click(within(picker).getByRole('switch', { name: 'เปิดโหมดโฟกัส' }));
     // T31 (AC-2): the chrome hides at t=0 — the body class lands
-    // INSTANTLY and the reading surface fades in over 300ms (the wait
-    // below just lets the fade-in finish; reduced-motion = instant).
+    // INSTANTLY and the reading surface fades in over 500ms (M9, ADR-025 —
+    // the wait below just lets the fade-in finish; reduced-motion = instant).
     expect(document.body.classList.contains('lawlib-focus')).toBe(true);
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 320));
@@ -252,10 +253,10 @@ describe('T10b settings panel — focus mode', () => {
     fireEvent.click(within(picker).getByRole('switch', { name: 'เปิดโหมดโฟกัส' }));
     fireEvent.keyDown(document, { key: 'Escape' });
     // The setting flips synchronously; the chrome returns after the
-    // 300ms surface fade-out (T31 two-step — the class lands last).
+    // 500ms surface fade-out (M9 — the class lands last).
     expect(storedSettings().focusMode).toBe(false);
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 320));
+      await new Promise((resolve) => setTimeout(resolve, 520));
     });
     expect(document.body.classList.contains('lawlib-focus')).toBe(false);
   });
@@ -270,10 +271,10 @@ describe('T10b settings panel — focus mode', () => {
     // Esc exits focus mode through the READER handler; the dock's own Esc
     // handler is stood down (it is display:none) — the hidden dock must not
     // be collapsed AND remembered as a user collapse. The chrome returns
-    // after the 300ms surface fade-out (T31 two-step).
+    // after the 500ms surface fade-out (M9, ADR-025 — T31 two-step).
     fireEvent.keyDown(document, { key: 'Escape' });
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 320));
+      await new Promise((resolve) => setTimeout(resolve, 520));
     });
     expect(document.body.classList.contains('lawlib-focus')).toBe(false);
     expect(localStorage.getItem('lawlib:dockCollapsed')).toBeNull();
@@ -349,7 +350,7 @@ describe('T10b settings panel — auto-scroll + reset', () => {
     expect(JSON.parse(localStorage.getItem('lawlib:settings') ?? 'null')).toEqual({
       fontSize: 16,
       lineHeight: 1.8,
-      width: 100,
+      width: 120,
       favoriteToolKeys: ['theme', 'fontSize', 'lineHeight', 'width', 'bookmark', 'search', 'notes'],
       fontFamily: 'sarabun',
       glassOpacity: 35,
@@ -404,7 +405,7 @@ describe('T12 settings panel — per-setting คืนค่า resets (ADR-019 
   it('glass slider: คืนค่า resets ONLY glassOpacity (35) — other settings untouched', async () => {
     await renderReader();
     const picker = await openSettings();
-    const slider = within(picker).getByLabelText('ความทึบ (เฉพาะ dock + ค้นหา)');
+    const slider = within(picker).getByLabelText('กระจก (ความทึบ + ความเบลอ)');
     fireEvent.change(slider, { target: { value: '100' } });
     expect(storedSettings().glassOpacity).toBe(100);
 

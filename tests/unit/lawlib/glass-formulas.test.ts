@@ -2,14 +2,14 @@
 /**
  * T17 (ADR-021) — glass-formula pure functions from LawlibGlassVars.
  *
- * Anchors (user-locked 2026-08-10 — T38: blur VISIBLE on the single slider):
+ * Anchors (user-locked 2026-08-10 — ADR-025 S1 FINAL, replaces T38):
  *  - contentGlassAlpha: 0 → 0.55 · 35 → 0.7 · 100 → 0.95 (piecewise,
  *    monotonic — content surfaces never below 0.55, never fully opaque)
- *  - dockGlassAlpha: linear 28–48% (0 → 0.28 · 35 → 0.35 · 100 → 0.48;
- *    was 8–95% capped at 0.95 — near-solid alpha hid the blur; cap removed)
+ *  - dockGlassAlpha: piecewise 5–90% (0 → 0.05 · 35 → 0.35 · 100 → 0.90,
+ *    anchored at 35; was T38's linear 28–48% — near-solid alpha hid the blur)
  *  - dynamic blur, 1 decimal:
- *    dockBlur [2, 12] (T38 piecewise: 0 → 2 · 35 → 6 · 100 → 12; the T33
- *    4–8px band was too subtle) · searchBlur [3, 5] · contentBlur [6, 8]
+ *    dockBlur [1, 12] (ADR-025 S1 piecewise: 0 → 1 · 35 → 6 · 100 → 12; the
+ *    T33 4–8px band was too subtle) · searchBlur [3, 5] · contentBlur [6, 8]
  *    (the 100% → 'none' GPU-kill rule is REMOVED)
  *
  * Clamp input into [0, 100] FIRST, then round (3 decimals alpha,
@@ -54,33 +54,33 @@ describe('contentGlassAlpha (T17 content-surface fill)', () => {
   });
 });
 
-describe('dockGlassAlpha (T38 dock/search chrome fill)', () => {
-  it('anchors: 0 → 0.28 · 35 → 0.35 · 100 → 0.48', () => {
-    expect(dockGlassAlpha(0)).toBe(0.28);
+describe('dockGlassAlpha (ADR-025 S1 dock/search chrome fill)', () => {
+  it('anchors: 0 → 0.05 · 35 → 0.35 · 100 → 0.90 (piecewise at 35)', () => {
+    expect(dockGlassAlpha(0)).toBe(0.05);
     expect(dockGlassAlpha(35)).toBe(0.35);
-    expect(dockGlassAlpha(100)).toBe(0.48);
+    expect(dockGlassAlpha(100)).toBe(0.9);
   });
 
-  it('linear band sample: 95 → 0.47 (0.28 + 0.002·95, round 3)', () => {
-    expect(dockGlassAlpha(95)).toBe(0.47);
+  it('piecewise samples: 10 → 0.136 (0.05 + (0.30/35)·10) · 50 → 0.477 (0.35 + (0.55/65)·15)', () => {
+    expect(dockGlassAlpha(10)).toBe(0.136);
+    expect(dockGlassAlpha(50)).toBe(0.477);
   });
 
   it('clamps out-of-range input into [0, 100] first (0.95 cap removed)', () => {
-    expect(dockGlassAlpha(-10)).toBe(0.28);
-    expect(dockGlassAlpha(150)).toBe(0.48);
-    expect(dockGlassAlpha(200)).toBe(0.48);
+    expect(dockGlassAlpha(-10)).toBe(0.05);
+    expect(dockGlassAlpha(200)).toBe(0.9);
   });
 });
 
 describe('dynamic blur radii (T17 — never none)', () => {
-  it('dockBlur: 0 → 2 · 35 → 6.0 · 100 → 12 (T38 piecewise, default 35 → 6)', () => {
-    expect(dockBlur(0)).toBe(2);
+  it('dockBlur: 0 → 1 · 35 → 6.0 · 100 → 12 (ADR-025 S1 piecewise, default 35 → 6)', () => {
+    expect(dockBlur(0)).toBe(1);
     expect(dockBlur(35)).toBe(6);
     expect(dockBlur(100)).toBe(12);
   });
 
-  it('dockBlur sample: 10 → 3.1 (2 + (4/35)·10, round 1) · 50 → 7.4 (6 + (6/65)·15)', () => {
-    expect(dockBlur(10)).toBe(3.1);
+  it('dockBlur sample: 10 → 2.4 (1 + (5/35)·10, round 1) · 50 → 7.4 (6 + (6/65)·15)', () => {
+    expect(dockBlur(10)).toBe(2.4);
     expect(dockBlur(50)).toBe(7.4);
   });
 

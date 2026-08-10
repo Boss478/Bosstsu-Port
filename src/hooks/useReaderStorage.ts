@@ -64,6 +64,9 @@ export interface Highlight {
  * T10a contract change (ADR-019 D4/D5): fontSize 16px (was 'm'), width 100%
  * of the 80ch baseline (was 60ch/'normal'; user decision 2026-08-06 widens
  * the slider to 80-120%), lineHeight 1.8 stays (clamp floor 1.0).
+ * ADR-025 S3/S4 (2026-08-10, user one-by-one review): lineHeight range
+ * [1.2, 2.4] (was [1.0, 2.0]) · width range [80, 160] with default **120%**
+ * (was 100% — wider reading column; 120% of the 80ch baseline ≈ 96ch).
  * T10b (ADR-019 D4): fontFamily sarabun · toolbarSize 44 ·
  * paragraphSpacing 0 · fontWeight normal · hideRepealed/
  * hideAmendmentNotes/focusMode off · autoScrollSpeed 0 (off).
@@ -75,7 +78,7 @@ export interface Highlight {
 export const DEFAULT_READING_SETTINGS: ReadingSettingsValue = {
   fontSize: 16,
   lineHeight: 1.8,
-  width: 100,
+  width: 120,
   favoriteToolKeys: ['theme', 'fontSize', 'lineHeight', 'width', 'bookmark', 'search', 'notes'],
   fontFamily: 'sarabun',
   glassOpacity: 35,
@@ -110,13 +113,14 @@ export const DOCK_TOOL_KEYS: readonly DockToolKey[] = [
 /** Font size clamp (px). */
 const FONT_SIZE_MIN = 8;
 const FONT_SIZE_MAX = 32;
-/** Content width clamp — PERCENT of the 80ch baseline (80-120%, user
- *  decision 2026-08-06; was 40-80ch). */
+/** Content width clamp — PERCENT of the 80ch baseline (80-160%, ADR-025 S4
+ *  2026-08-10; was 80-120% — T10a 2026-08-06; original 40-80ch). */
 const WIDTH_MIN = 80;
-const WIDTH_MAX = 120;
-/** Line height clamp (was [1.5, 2.2] — T10a widens to [1.0, 2.0]). */
-const LINE_HEIGHT_MIN = 1.0;
-const LINE_HEIGHT_MAX = 2.0;
+const WIDTH_MAX = 160;
+/** Line height clamp — ADR-025 S3 (2026-08-10): [1.2, 2.4] (was [1.0, 2.0] —
+ *  T10a widened from [1.5, 2.2]). Stored values below 1.2 silently clamp. */
+const LINE_HEIGHT_MIN = 1.2;
+const LINE_HEIGHT_MAX = 2.4;
 /** T10b clamps (ADR-019 D4): glass 0-100% · toolbar 24-56px · auto-scroll
  *  0-5 (int). The toolbar floor stays 24 HERE — the 44px touch floor is a
  *  DOCK policy (WCAG 2.5.8), not a storage rule (a 24px desktop choice must
@@ -170,7 +174,7 @@ function notifySettingsChanged(): void {
 /**
  * Shared FR11 validator (P3) — sanitizes ANY parsed value into a valid
  * `ReadingSettingsValue` (T10a contract: numeric fontSize/width with legacy
- * enum migration, lineHeight clamped [1.0, 2.0], favoriteToolKeys filtered
+ * enum migration, lineHeight clamped [1.2, 2.4] (ADR-025 S3), favoriteToolKeys filtered
  * to known dock tools). Non-object input (null, string, number, …) returns
  * the defaults. Single source of truth — used by the hook's read path AND by
  * SettingsMenu via loadGlobalSettings, so stored values are always
@@ -197,7 +201,7 @@ export function validateReadingSettings(input: unknown): ReadingSettingsValue {
     // The overlap value 80 is left as-is — it is ALSO the new 80% minimum,
     // and remapping it would corrupt a fresh 80% choice on the next reload
     // (the validator runs on every load; it must be idempotent). Anything
-    // outside the legacy range clamps into [80,120].
+    // outside the legacy range clamps into [80,160].
     width = rawWidth >= 40 && rawWidth < 80 ? rawWidth + 40 : clamp(rawWidth, WIDTH_MIN, WIDTH_MAX);
   } else if (typeof rawWidth === 'string') {
     const legacy = LEGACY_WIDTH[rawWidth];
