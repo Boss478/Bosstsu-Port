@@ -76,10 +76,16 @@ export default function RootLayout({
             is embedded at BUILD time from lib/lawlib/paper-tone.ts — keep the
             lerp here in sync with paperToneVars there. Guarded: no
             localStorage access on error. Keep suppressHydrationWarning on
-            <html> (ThemeProvider re-applies classes on mount). */}
+            <html> (ThemeProvider re-applies classes on mount).
+            T42 (ADR-025 D2): ALSO sets data-motion on <html> BEFORE first
+            paint — reads lawlib:settings.motionPreference (whitelist, invalid
+            → 'quality') and downgrades quality → 'fast' under OS
+            prefers-reduced-motion (user-locked D2c; mirrors
+            effectiveMotionPreference in useReaderStorage — keep in sync).
+            No attr = quality (the CSS :root factor defaults to 1). */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');var c='light';if(t==='night'){c='dark';}else if(t==='light'||t==='dark'||t==='read'||t==='sepia'){c=t;}else{c=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}var h=document.documentElement;h.classList.remove('light','dark','read','sepia','night');h.classList.add(c);var p=localStorage.getItem('lawlib:paperTone');var x=50;if(p==='soft'){x=30;}else if(p==='classic'){x=50;}else if(p==='warm'){x=80;}else{var n=parseFloat(p);if(!isNaN(n)&&n>=0&&n<=100){x=n;}}var S=${JSON.stringify(PAPER_TONE_STOPS)};if(x<0){x=0;}if(x>100){x=100;}var i=0;while(i<S.length-2&&x>S[i+1][0]){i++;}var a=S[i],b=S[i+1],f=(b[0]-a[0]===0)?0:(x-a[0])/(b[0]-a[0]);var L=function(u,v){return Math.round(u+(v-u)*f);};h.style.setProperty('--read-bg','rgb('+L(a[1],b[1])+','+L(a[2],b[2])+','+L(a[3],b[3])+')');h.style.setProperty('--read-card','rgb('+L(a[4],b[4])+','+L(a[5],b[5])+','+L(a[6],b[6])+')');}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('theme');var c='light';if(t==='night'){c='dark';}else if(t==='light'||t==='dark'||t==='read'||t==='sepia'){c=t;}else{c=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}var h=document.documentElement;h.classList.remove('light','dark','read','sepia','night');h.classList.add(c);var p=localStorage.getItem('lawlib:paperTone');var x=50;if(p==='soft'){x=30;}else if(p==='classic'){x=50;}else if(p==='warm'){x=80;}else{var n=parseFloat(p);if(!isNaN(n)&&n>=0&&n<=100){x=n;}}var S=${JSON.stringify(PAPER_TONE_STOPS)};if(x<0){x=0;}if(x>100){x=100;}var i=0;while(i<S.length-2&&x>S[i+1][0]){i++;}var a=S[i],b=S[i+1],f=(b[0]-a[0]===0)?0:(x-a[0])/(b[0]-a[0]);var L=function(u,v){return Math.round(u+(v-u)*f);};h.style.setProperty('--read-bg','rgb('+L(a[1],b[1])+','+L(a[2],b[2])+','+L(a[3],b[3])+')');h.style.setProperty('--read-card','rgb('+L(a[4],b[4])+','+L(a[5],b[5])+','+L(a[6],b[6])+')');var m='quality';var s=localStorage.getItem('lawlib:settings');if(s){var o=JSON.parse(s);if(o&&(o.motionPreference==='quality'||o.motionPreference==='fast'||o.motionPreference==='disable')){m=o.motionPreference;}}if(m==='quality'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches){m='fast';}h.setAttribute('data-motion',m);}catch(e){}})();`,
           }}
         />
       </head>

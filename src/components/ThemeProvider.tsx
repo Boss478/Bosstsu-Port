@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { paperToneVars, parsePaperTone } from '@/lib/lawlib/paper-tone';
+import { loadGlobalSettings } from '@/hooks/useReaderStorage';
 
 /**
  * Site theme (T10a: 4 modes — สว่าง/มืด/กระดาษ/ซีเปีย; the 5th, night,
@@ -112,16 +113,23 @@ const VT_DIR_BY_THEME: Record<Theme, string> = {
 
 /**
  * T27 gate (adr-023 D3) — startViewTransition ONLY for discrete theme
- * commits on lawlib routes: SSR-safe feature-detect, JS reduced-motion
- * check (the CSS kill does NOT cover ::view-transition-* pseudo-elements),
- * and the lawlib pathname gate (games/admin/elsewhere keep the instant
- * swap + body-fade fallback). The `next !== current` equality guard lives
- * at the call sites (part of the same gate, per AC-1).
+ * commits on lawlib routes: SSR-safe feature-detect, the T42 motion
+ * PREFERENCE check (ADR-025 D2 — replaces the old OS reduced-motion query:
+ * without this, a 'fast' user under OS RM would get the same instant swap
+ * as 'disable', i.e. Fast == Disable for theme changes — scrutinize
+ * finding #1), and the lawlib pathname gate (games/admin/elsewhere keep
+ * the instant swap + body-fade fallback). The `next !== current` equality
+ * guard lives at the call sites (part of the same gate, per AC-1).
+ * Tier mapping: disable → false (instant); fast/quality → true — the
+ * DURATION scales via the VT CSS calc(500ms * var(--motion-factor)) (fast =
+ * 250ms; the OS-RM downgrade quality→fast lives in the data-motion attr,
+ * not here).
  */
 function canUseViewTransition(): boolean {
   if (typeof document === 'undefined') return false;
   if (typeof document.startViewTransition !== 'function') return false;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+  // Shared validator path: missing/corrupt storage → null → not disable.
+  if (loadGlobalSettings()?.motionPreference === 'disable') return false;
   return window.location.pathname.startsWith('/lawlib');
 }
 

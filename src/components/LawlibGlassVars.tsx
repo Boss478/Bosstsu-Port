@@ -39,7 +39,11 @@
  * were removed from globals.css (paper stays only on cards/TOC/panels).
  */
 import { useEffect } from 'react';
-import { loadGlobalSettings, SETTINGS_CHANGED_EVENT } from '@/hooks/useReaderStorage';
+import {
+  effectiveMotionPreference,
+  loadGlobalSettings,
+  SETTINGS_CHANGED_EVENT,
+} from '@/hooks/useReaderStorage';
 
 export const GLASS_OPACITY_DEFAULT = 35;
 
@@ -120,11 +124,37 @@ function applyGlassVars(): void {
   html.style.setProperty('--lawlib-glass-blur-content', `blur(${contentBlur(opacity)}px)`);
 }
 
+/**
+ * T42 (ADR-025 D2) — 3-tier motion: re-set `data-motion` on <html> from the
+ * stored preference + OS prefers-reduced-motion (quality downgrades to
+ * 'fast' — user-locked D2c, same rule as the layout pre-paint script).
+ * Runs on mount, on settings-changed, and on mid-session OS RM toggles —
+ * the CSS tiers (--motion-factor 0.5 / the disable kill) react to the attr
+ * with no JS re-read.
+ */
+function applyMotion(): void {
+  const stored = loadGlobalSettings()?.motionPreference ?? 'quality';
+  const effective = effectiveMotionPreference(
+    stored,
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  );
+  document.documentElement.setAttribute('data-motion', effective);
+}
+
 export function LawlibGlassVars() {
   useEffect(() => {
-    applyGlassVars();
-    window.addEventListener(SETTINGS_CHANGED_EVENT, applyGlassVars);
-    return () => window.removeEventListener(SETTINGS_CHANGED_EVENT, applyGlassVars);
+    const applyAll = () => {
+      applyGlassVars();
+      applyMotion();
+    };
+    applyAll();
+    window.addEventListener(SETTINGS_CHANGED_EVENT, applyAll);
+    const rmQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    rmQuery.addEventListener('change', applyAll);
+    return () => {
+      window.removeEventListener(SETTINGS_CHANGED_EVENT, applyAll);
+      rmQuery.removeEventListener('change', applyAll);
+    };
   }, []);
   return null;
 }
