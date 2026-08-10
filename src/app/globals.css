@@ -993,24 +993,19 @@ textarea,
   animation: lawlib-overlay-fade 0.4s var(--ease-ios-out) both;
 }
 
-/* VT helper classes (ADR-023 D3): UNIQUE view-transition-names for fixed
-   elements during theme-change View Transitions (T27). `none` is the
-   default (it does NOT exclude), and duplicate names make the browser skip
-   the whole transition — one name per element, never duplicated. */
-.vt-dock {
-  view-transition-name: dock-chrome;
-}
-.vt-header {
-  view-transition-name: site-header;
-}
+/* VT helper classes (ADR-023 D3 + ADR-024 D2): UNIQUE view-transition-names
+   for fixed elements during theme-change View Transitions (T27). `none` is
+   the default (it does NOT exclude), and duplicate names make the browser
+   skip the whole transition — one name per element, never duplicated.
+   T34 rule (D2): a name may live ONLY on a surface whose whole subtree is
+   blur-free — Chrome captures a BLANK snapshot for backdrop-filter +
+   view-transition-name (dock/BTT/header/tooltip vanished mid-VT; their
+   names were removed — they crossfade with the root, and they never move
+   on theme change, so there is no jump). Remaining inventory: scroll-progress
+   (vt-scroll), lawlib-picker-popover (vt-picker), lawlib-drawer (vt-drawer),
+   autoscroll-chip (vt-chip) — all solid, no backdrop-filter. */
 .vt-scroll {
   view-transition-name: scroll-progress;
-}
-.vt-btt {
-  view-transition-name: back-to-top;
-}
-.vt-tooltip {
-  view-transition-name: lawlib-tooltip;
 }
 .vt-picker {
   view-transition-name: lawlib-picker-popover;
@@ -2180,7 +2175,7 @@ textarea,
 /* T26 (ADR-023 D9) — dock POSITION-CHANGE enter (AC-1): the 8-spot moves
    re-trigger the directional lawlib-dock-in-* keyframes at 100ms on the
    locked var(--ease-ios-expo) curve (Fast timing — no overshoot). Applied
-   to the INNER wrapper (data-lawlib-pos — never the vt-dock root); the JS
+   to the INNER wrapper (data-lawlib-pos — never the dock root); the JS
    re-trigger (animation:none + void el.offsetWidth reflow) restarts them
    on every position change — even when the direction class is unchanged
    (bottom-left → bottom-right are both 'up'). The side keyframes read

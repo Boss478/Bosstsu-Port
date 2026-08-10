@@ -1831,7 +1831,7 @@ describe('T28 — exit + entry direction on the DOM root (LawTooltip)', () => {
     heightSpy.mockRestore();
   });
 
-  it('both portal variants carry vt-tooltip (T28 — unique VT name for theme changes)', () => {
+  it('T34: both portal variants carry NO vt-tooltip — .lawlib-glass-content has backdrop-filter, and Chrome blank-snapshots backdrop-filter + view-transition-name (tooltip vanishes mid-VT; it crossfades with the root)', () => {
     const base = {
       content: headerContent,
       anchorRect: { left: 0, top: 0, right: 100, bottom: 24, width: 100, height: 24 } as DOMRect,
@@ -1847,7 +1847,7 @@ describe('T28 — exit + entry direction on the DOM root (LawTooltip)', () => {
     const roots = Array.from(document.body.querySelectorAll<HTMLElement>('.lawlib-tooltip'));
     expect(roots.length).toBe(2);
     for (const r of roots) {
-      expect(r.className).toContain('vt-tooltip');
+      expect(r.className).not.toContain('vt-tooltip');
     }
   });
 });

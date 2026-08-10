@@ -377,8 +377,8 @@ export default function LawlibDock(props: LawlibDockProps) {
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   /** T26 (AC-1) — the position-change ANIMATION target: an INNER wrapper
-   *  inside the root (never the ref'd root — vt-dock + focus management
-   *  stay untouched). The re-trigger effect restarts its enter keyframe on
+   *  inside the root (never the ref'd root — focus management stays
+   *  untouched). The re-trigger effect restarts its enter keyframe on
    *  every position change via `animation: none` + reflow. */
   const posAnimRef = useRef<HTMLDivElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
@@ -616,7 +616,7 @@ export default function LawlibDock(props: LawlibDockProps) {
   // T26 (AC-1) — position-change RE-TRIGGER: the dock no longer teleports
   // between the 8 spots. Restart the 100ms enter keyframe
   // (lawlib-dock-pos-in-*) on the inner wrapper. Target is the INNER
-  // wrapper ref, NEVER the vt-dock root (AC-5). Gated by animateDockNow —
+  // wrapper ref, NEVER the dock root. Gated by animateDockNow —
   // reduced-motion / animateDock off = instant class swap (AC-3).
   /** T26 — generation counter for the two-frame re-trigger: a newer
    *  position change supersedes a pending restore (rapid chip clicks). */
@@ -792,7 +792,7 @@ export default function LawlibDock(props: LawlibDockProps) {
    *  keyframes as the T12 family, on the locked var(--ease-ios-expo)
    *  curve). The re-trigger effect above restarts it on every position
    *  change. Gated by animateDockNow → reduced-motion/off = instant class
-   *  swap (AC-3). The class sits on the wrapper only — the vt-dock root
+   *  swap (AC-3). The class sits on the wrapper only — the dock root
    *  (AC-5) and the panel's own T25 morph/dock-out classes are untouched. */
   const posAnimClass = animateDockNow ? `lawlib-dock-pos-in-${animDir}` : '';
   /** T25 — L1 morph origin at the dock icon (mobile = the bottom sheet,
@@ -1106,10 +1106,11 @@ export default function LawlibDock(props: LawlibDockProps) {
   };
 
   return (
-    // T25 (AC-4): `vt-dock` (view-transition-name: dock-chrome) lives on the
-    // ROOT wrapper ONLY — the collapsed icon + L1 panel + L2 menu all share
-    // the `.lawlib-dock` base class but must NOT carry the VT name: duplicate
-    // view-transition-names make the browser skip the whole transition.
+    // T34 (ADR-024 D2): NO view-transition-name on the dock — the root's
+    // subtree carries backdrop-filter (`.lawlib-glass-xs` blur), and Chrome
+    // captures a BLANK snapshot for backdrop-filter + view-transition-name
+    // (dock vanished mid-VT). The dock crossfades with the root snapshot
+    // instead — it never moves on theme change, so there is no jump.
     <div
       ref={rootRef}
       style={
@@ -1123,7 +1124,7 @@ export default function LawlibDock(props: LawlibDockProps) {
             : {}),
         } as React.CSSProperties
       }
-      className={`lawlib-dock vt-dock fixed z-50 ${cfg.root} ${
+      className={`lawlib-dock fixed z-50 ${cfg.root} ${
         isBottomPosition ? bottomOffsetClass : ''
       } ${dockRaised ? 'lawlib-dock-raised' : ''} transition-[transform] duration-100`}
     >
@@ -1131,7 +1132,7 @@ export default function LawlibDock(props: LawlibDockProps) {
           the re-trigger effect (animation:none + reflow), carries the
           directional enter class. Deliberately NOT positioned (no relative)
           — the panel/L2 absolute anchors keep resolving to the fixed ROOT.
-          The vt-dock root (AC-5) and the portaled pickers stay outside. */}
+          The root and the portaled pickers stay outside. */}
       <div ref={posAnimRef} data-lawlib-pos className={posAnimClass}>
         {!expanded && !closing ? (
           <button

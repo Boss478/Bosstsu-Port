@@ -997,14 +997,15 @@ export default function LawTooltip({
       // open, `data-tooltip-rise` selects the direction-aware entry keyframe
       // (lawlib-tooltip-in-dir); while closing it is REMOVED so the
       // `lawlib-tooltip-out` class's animation-name wins the cascade (the
-      // exit must never be overridden by a stale entry-name). `vt-tooltip`
-      // (T27, ADR-023 D3): the portal root gets a UNIQUE view-transition-name
-      // so a theme change keeps it out of the default crossfade group.
+      // exit must never be overridden by a stale entry-name). T34 (ADR-024
+      // D2): NO view-transition-name on the tooltip — `.lawlib-glass-content`
+      // carries backdrop-filter, and Chrome captures a BLANK snapshot for
+      // backdrop-filter + view-transition-name (vanish during theme VT).
       data-tooltip-rise={closing ? undefined : ''}
       className={
         sheet
-          ? `lawlib-tooltip vt-tooltip lawlib-glass-content lawlib-glass-sheen fixed inset-x-0 bottom-0 z-[70] max-h-[75vh] origin-bottom overflow-y-auto rounded-t-2xl border-t border-slate-200/80 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/70${closing ? ' lawlib-tooltip-out' : ''}`
-          : `lawlib-tooltip vt-tooltip lawlib-glass-content lawlib-glass-sheen fixed z-[70] max-h-[calc(100vh-2rem)] w-[min(92vw,28rem)] overflow-y-auto rounded-2xl border border-slate-200/80 p-4 shadow-2xl shadow-slate-900/10 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/70 dark:shadow-black/40${closing ? ' lawlib-tooltip-out' : ''}`
+          ? `lawlib-tooltip lawlib-glass-content lawlib-glass-sheen fixed inset-x-0 bottom-0 z-[70] max-h-[75vh] origin-bottom overflow-y-auto rounded-t-2xl border-t border-slate-200/80 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/70${closing ? ' lawlib-tooltip-out' : ''}`
+          : `lawlib-tooltip lawlib-glass-content lawlib-glass-sheen fixed z-[70] max-h-[calc(100vh-2rem)] w-[min(92vw,28rem)] overflow-y-auto rounded-2xl border border-slate-200/80 p-4 shadow-2xl shadow-slate-900/10 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/70 dark:shadow-black/40${closing ? ' lawlib-tooltip-out' : ''}`
       }
     >
       {sheet && (

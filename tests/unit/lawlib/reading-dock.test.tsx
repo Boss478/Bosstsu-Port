@@ -50,7 +50,9 @@
  *   L1 expand morphs 200ms from the dock icon (lawlib-morph-in replaces
  *   the old dock-in; USER-INITIATED expand only — the default-open page
  *   load renders WITHOUT the morph, T25-fix user decision; collapse keeps
- *   the 150ms dock-out); `vt-dock` sits on the ROOT wrapper only
+ *   the 150ms dock-out); T34: NO vt class on the root — backdrop-filter
+ *   + view-transition-name blank-snapshots in Chrome (dock crossfades
+ *   with the root snapshot during theme VT)
  * - bookmark: toggle + aria-pressed + count badge
  * - T12c theme dot: baselines on the RESOLVED initial theme (OS-dark
  *   fallback users see no false dot on first visit)
@@ -1077,13 +1079,13 @@ describe('Dock v2.6 — T25 L2 menu pop + L1 morph (ADR-023 D9 locked values)', 
     expect((dockPanel() as HTMLElement).style.transformOrigin).toBe('left center');
   });
 
-  it('vt-dock sits on the ROOT wrapper ONLY — never the panels or the collapsed icon (duplicate VT names skip the transition)', async () => {
+  it('T34: the dock root carries NO view-transition-name — its subtree has backdrop-filter, and Chrome blank-snapshots backdrop-filter + view-transition-name (dock vanished mid-VT; it crossfades with the root instead)', async () => {
     await renderReader();
     const root = document.querySelector('.lawlib-dock.fixed') as HTMLElement;
     expect(root).not.toBeNull();
-    expect(root.className).toContain('vt-dock');
+    expect(root.className).not.toContain('vt-dock');
     document.querySelectorAll('.lawlib-dock').forEach((el) => {
-      if (el !== root) expect(el.className).not.toContain('vt-dock');
+      expect(el.className).not.toContain('vt-dock');
     });
   });
 
@@ -1111,7 +1113,7 @@ describe('Dock v2.6 — T25 L2 menu pop + L1 morph (ADR-023 D9 locked values)', 
 
 describe('Dock v2.7 — T26 position-change re-trigger + transform raise (ADR-023 D9 locked values)', () => {
   /** The position-change ANIMATION wrapper (T26 AC-1) — the inner div the
-   *  enter keyframe + re-trigger live on (never the vt-dock root). */
+   *  enter keyframe + re-trigger live on (never the dock root). */
   const posWrapper = () => document.querySelector('[data-lawlib-pos]') as HTMLElement | null;
   const dockRoot = () => document.querySelector('.lawlib-dock.fixed') as HTMLElement;
 
@@ -1124,15 +1126,16 @@ describe('Dock v2.7 — T26 position-change re-trigger + transform raise (ADR-02
     clickPositionInSettings(label);
   }
 
-  it('gate ON: the INNER wrapper carries the directional enter class (up → down → side) — the vt-dock root is untouched', async () => {
+  it('gate ON: the INNER wrapper carries the directional enter class (up → down → side) — the dock root is untouched', async () => {
     mockMatchMedia({ reducedMotion: false });
     await renderReader();
     // Default bottom-right → slides UP from the bottom edge.
     expect(posWrapper()!.className).toContain('lawlib-dock-pos-in-up');
-    // AC-5: the class NEVER lands on the ref'd root; vt-dock stays put.
+    // AC-5: the class NEVER lands on the ref'd root (T34: it also carries
+    // no VT name — the blur surface must stay out of the VT name pool).
     const root = dockRoot();
     expect(root.className).not.toContain('lawlib-dock-pos-in');
-    expect(root.className).toContain('vt-dock');
+    expect(root.className).not.toContain('vt-dock');
     expect(posWrapper()!.className).not.toContain('vt-dock');
 
     // First switch: helper on the fresh dock (L2 closed).
