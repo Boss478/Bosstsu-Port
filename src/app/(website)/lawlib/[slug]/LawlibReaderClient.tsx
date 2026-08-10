@@ -1799,8 +1799,17 @@ export default function LawlibReaderClient({
         </div>
 
         {/* FULL | COMPACT toggle — APG radio group, visible only when a digest
-          exists (FR1). Contrast per loop-4 #8: selected bg-blue-700/white
-          (dark bg-blue-600/white), unselected text-blue-800/blue-300. */}
+          exists (FR1). T37 (ADR-024 D4, user-locked 2026-08-10): the selected
+          SURFACE moved to the sliding knob — transform-only (D10),
+          `translate-x-0 ↔ translate-x-full` 200ms --ease-ios-out; buttons
+          keep the text colors (selected white / unselected blue-800 or dark
+          blue-300) and transition color only. flex-1 on BOTH buttons (senior
+          MINOR-5 — the labels differ in width; the knob math 50%−4px + full
+          translation lands flush only on equal halves). NO gap on the
+          container (scrutinize F2: a gap would offset the knob landing by
+          the gap width). Knob sits behind the buttons (z-10) so the
+          focus-visible ring stays visible; aria/arrow keys unchanged. RM:
+          the reduced-motion kill zeroes transition-duration → instant. */}
         {digestView !== null && (
           <div
             role="radiogroup"
@@ -1812,18 +1821,22 @@ export default function LawlibReaderClient({
                 handleSetView(effectiveView === 'compact' ? 'full' : 'compact');
               }
             }}
-            className="mt-4 inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900"
+            className="relative mt-4 inline-flex items-center rounded-full border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900"
           >
+            <div
+              aria-hidden="true"
+              className={`absolute inset-y-1 left-1 w-[calc(50%_-_4px)] rounded-full bg-blue-700 transition-transform duration-200 ease-ios-out dark:bg-blue-600 ${
+                effectiveView === 'compact' ? 'translate-x-full' : 'translate-x-0'
+              }`}
+            />
             <button
               type="button"
               role="radio"
               aria-checked={effectiveView === 'full'}
               tabIndex={effectiveView === 'full' ? 0 : -1}
               onClick={() => handleSetView('full')}
-              className={`min-h-11 min-w-11 cursor-pointer rounded-full px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                effectiveView === 'full'
-                  ? 'bg-blue-700 text-white dark:bg-blue-600'
-                  : 'text-blue-800 dark:text-blue-300'
+              className={`relative z-10 min-h-11 min-w-11 flex-1 cursor-pointer rounded-full px-4 text-sm font-semibold transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                effectiveView === 'full' ? 'text-white' : 'text-blue-800 dark:text-blue-300'
               }`}
             >
               ฉบับเต็ม
@@ -1834,10 +1847,8 @@ export default function LawlibReaderClient({
               aria-checked={effectiveView === 'compact'}
               tabIndex={effectiveView === 'compact' ? 0 : -1}
               onClick={() => handleSetView('compact')}
-              className={`min-h-11 min-w-11 cursor-pointer rounded-full px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                effectiveView === 'compact'
-                  ? 'bg-blue-700 text-white dark:bg-blue-600'
-                  : 'text-blue-800 dark:text-blue-300'
+              className={`relative z-10 min-h-11 min-w-11 flex-1 cursor-pointer rounded-full px-4 text-sm font-semibold transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                effectiveView === 'compact' ? 'text-white' : 'text-blue-800 dark:text-blue-300'
               }`}
             >
               เวอร์ชันย่อ

@@ -835,3 +835,97 @@ describe('T36 — restoreMemberFocus inert guard (AC-0, senior MAJOR-2)', () => 
     expect(document.activeElement).toBe(memberBtn('11'));
   });
 });
+
+// ---------------------------------------------------------------------------
+// T37 (ADR-024 D4 — FULL|COMPACT segmented pill, user-locked 2026-08-10)
+// ---------------------------------------------------------------------------
+
+describe('T37 — FULL|COMPACT segmented pill', () => {
+  beforeEach(() => {
+    stubDigestJsdomGaps();
+    // handleSetView persists ?view= to the URL — fresh-load isolation.
+    window.history.replaceState(null, '', '/');
+  });
+
+  const radiogroup = () => screen.getByRole('radiogroup', { name: 'มุมมองการอ่าน' });
+  const fullRadio = () => screen.getByRole('radio', { name: 'ฉบับเต็ม' });
+  const compactRadio = () => screen.getByRole('radio', { name: 'เวอร์ชันย่อ' });
+  const knob = () => radiogroup().querySelector<HTMLElement>('[aria-hidden="true"]');
+
+  it('knob: absolute 50%−4px pill, transform-only 200ms ease-ios-out; translate per state', async () => {
+    await renderDigestReader();
+
+    // Compact is the digest default → the knob sits over the SECOND half.
+    const k = knob();
+    expect(k).not.toBeNull();
+    expect(k!.className).toContain('absolute');
+    expect(k!.className).toContain('inset-y-1');
+    expect(k!.className).toContain('left-1');
+    expect(k!.className).toContain('w-[calc(50%_-_4px)]');
+    expect(k!.className).toContain('rounded-full');
+    expect(k!.className).toContain('bg-blue-700');
+    expect(k!.className).toContain('dark:bg-blue-600');
+    expect(k!.className).toContain('translate-x-full'); // compact selected
+    // D10: knob animates TRANSFORM only — 200ms ease-ios-out (user lock).
+    expect(k!.className).toContain('transition-transform');
+    expect(k!.className).toContain('duration-200');
+    expect(k!.className).toContain('ease-ios-out');
+    expect(k!.className).not.toContain('transition-colors');
+    // RM: the global reduced-motion kill (globals.css) zeroes
+    // transition-duration — instant, no JS gate (verified live).
+
+    // FULL selected → knob slides to the FIRST half.
+    fireEvent.click(fullRadio());
+    expect(k!.className).toContain('translate-x-0');
+    expect(k!.className).not.toContain('translate-x-full');
+
+    // Back to compact → slides across again.
+    fireEvent.click(compactRadio());
+    expect(k!.className).toContain('translate-x-full');
+    expect(k!.className).not.toContain('translate-x-0');
+  });
+
+  it('container: relative pill, NO gap (F2); buttons flex-1 (MINOR-5) z-10, transparent bg, color-only', async () => {
+    await renderDigestReader();
+    const rg = radiogroup();
+    expect(rg.className).toContain('relative');
+    expect(rg.className).toContain('rounded-full');
+    expect(rg.className).toContain('p-1');
+    // The knob math (50%−4px + translate-x-full) lands flush ONLY on
+    // touching halves — a gap would leave the knob 4px short of flush.
+    expect(rg.className).not.toMatch(/\bgap-/);
+
+    for (const b of [fullRadio(), compactRadio()]) {
+      expect(b.className).toContain('flex-1'); // labels differ in width
+      expect(b.className).toContain('relative');
+      expect(b.className).toContain('z-10'); // ring stays ABOVE the knob
+      expect(b.className).toContain('transition-colors');
+      expect(b.className).toContain('duration-200');
+      // The selected SURFACE lives on the knob now — buttons are transparent.
+      expect(b.className).not.toContain('bg-blue-700');
+      expect(b.className).not.toContain('dark:bg-blue-600');
+    }
+    // Text colors unchanged: selected white, unselected blue-800/dark-300.
+    expect(fullRadio().className).toContain('text-blue-800');
+    expect(fullRadio().className).toContain('dark:text-blue-300');
+    expect(compactRadio().className).toContain('text-white');
+  });
+
+  it('keyboard arrows still switch views; aria-checked + roving tabIndex track the state', async () => {
+    await renderDigestReader();
+    expect(compactRadio().getAttribute('aria-checked')).toBe('true');
+    expect(compactRadio().tabIndex).toBe(0);
+    expect(fullRadio().getAttribute('aria-checked')).toBe('false');
+    expect(fullRadio().tabIndex).toBe(-1);
+
+    fireEvent.keyDown(radiogroup(), { key: 'ArrowLeft' });
+    expect(fullRadio().getAttribute('aria-checked')).toBe('true');
+    expect(fullRadio().tabIndex).toBe(0);
+    expect(compactRadio().getAttribute('aria-checked')).toBe('false');
+    expect(compactRadio().tabIndex).toBe(-1);
+
+    fireEvent.keyDown(radiogroup(), { key: 'ArrowRight' });
+    expect(compactRadio().getAttribute('aria-checked')).toBe('true');
+    expect(compactRadio().tabIndex).toBe(0);
+  });
+});
