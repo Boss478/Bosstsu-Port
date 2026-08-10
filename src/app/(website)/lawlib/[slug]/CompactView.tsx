@@ -1027,49 +1027,63 @@ function ChapterGroupView({
           />
         </button>
       </h3>
-      {/* T31 (AC-1): expand = content lawlib-fade-rise 150ms. The class is
-          present ONLY while expanded — collapse removes it (instant hidden),
-          re-expand re-adds it → the animation restarts on the SAME node
-          (a class re-add starts a fresh animation; no keyed remount — the
-          region node must keep its identity for callers holding references,
-          compact-routing contract). NO height animation (layout — D2). */}
+      {/* T35 (ADR-024 D3 — user-approved D2 exception): expand/collapse
+          animates height BOTH directions via grid-template-rows 0fr ↔ 1fr
+          300ms --ease-ios-out on the ALWAYS-RENDERED wrapper. The
+          `${group.id}-region` id stays on the WRAPPER — node identity must
+          persist (TOC scroll targets + callers hold refs; no keyed remount).
+          The inner overflow-hidden min-h-0 div owns the content:
+          lawlib-fade-rise 150ms (class present ONLY while expanded — a class
+          re-add restarts the animation on the SAME node) and `inert` while
+          collapsed (a11y/focus removal — inert does not block the grid
+          animation, hidden would). Collapse animates too (1fr→0fr, no
+          instant hidden). RM: the reduced-motion kill zeroes
+          transition-duration → instant. */}
       <div
         id={`${group.id}-region`}
-        hidden={collapsed}
-        className={`${collapsed ? '' : 'lawlib-fade-rise'} mt-2 space-y-3`}
-        style={collapsed ? undefined : { animationDuration: '150ms' }}
+        className="mt-2 grid"
+        style={{
+          gridTemplateRows: collapsed ? '0fr' : '1fr',
+          transition: 'grid-template-rows 300ms var(--ease-ios-out)',
+        }}
       >
-        {group.lines.map((line) =>
-          line.kind === 'article' ? (
-            <ArticleCard
-              key={line.key}
-              line={line}
-              law={law}
-              isOpen={expandedKey === line.key}
-              popoverId={popoverId}
-              tooltipId={tooltipId}
-              onToggleCard={onToggleCard}
-              onOpenRef={onOpenRef}
-              onSeeFull={onSeeFull}
-              flashKey={flashKey}
-              getTriggerProps={getTriggerProps}
-              isTooltipOpen={isTooltipOpen}
-              digestInfoByKey={digestInfoByKey}
-            />
-          ) : (
-            <BodyLineView
-              key={line.id}
-              line={line}
-              slug={law.slug}
-              onOpenRef={onOpenRef}
-              onSeeFull={onSeeFull}
-              getTriggerProps={getTriggerProps}
-              isTooltipOpen={isTooltipOpen}
-              tooltipId={tooltipId}
-              digestInfoByKey={digestInfoByKey}
-            />
-          ),
-        )}
+        <div
+          inert={collapsed}
+          className={`overflow-hidden min-h-0 space-y-3 ${collapsed ? '' : 'lawlib-fade-rise'}`}
+          style={collapsed ? undefined : { animationDuration: '150ms' }}
+        >
+          {group.lines.map((line) =>
+            line.kind === 'article' ? (
+              <ArticleCard
+                key={line.key}
+                line={line}
+                law={law}
+                isOpen={expandedKey === line.key}
+                popoverId={popoverId}
+                tooltipId={tooltipId}
+                onToggleCard={onToggleCard}
+                onOpenRef={onOpenRef}
+                onSeeFull={onSeeFull}
+                flashKey={flashKey}
+                getTriggerProps={getTriggerProps}
+                isTooltipOpen={isTooltipOpen}
+                digestInfoByKey={digestInfoByKey}
+              />
+            ) : (
+              <BodyLineView
+                key={line.id}
+                line={line}
+                slug={law.slug}
+                onOpenRef={onOpenRef}
+                onSeeFull={onSeeFull}
+                getTriggerProps={getTriggerProps}
+                isTooltipOpen={isTooltipOpen}
+                tooltipId={tooltipId}
+                digestInfoByKey={digestInfoByKey}
+              />
+            ),
+          )}
+        </div>
       </div>
     </div>
   );

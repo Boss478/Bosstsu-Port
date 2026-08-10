@@ -37,9 +37,9 @@
  *  - offsetParent: jsdom has no layout (ALWAYS null, even for visible
  *    elements — probe). restoreMemberFocus's hidden-guard
  *    (`el.offsetParent !== null`) needs the browser contract, so visible
- *    member buttons get a non-null offsetParent; hidden ones (collapsed
- *    groups) keep jsdom's null → the first-member fallback path is exercised
- *    for real.
+ *    member buttons get a non-null offsetParent; members in collapsed groups
+ *    (T35: grid rows 0fr + `inert`; formerly the `hidden` attribute) keep
+ *    jsdom's null → the first-member fallback path is exercised for real.
  *
  * `next/link` renders a plain <a> (no router in jsdom — reading-dock pattern).
  */
@@ -219,13 +219,14 @@ class IntersectionObserverStub {
 /**
  * jsdom has NO layout: Element.offsetParent is ALWAYS null (probe, jsdom 29).
  * restoreMemberFocus's hidden-guard reads it, so emulate the browser contract
- * for VISIBLE member buttons (non-null). Hidden members (collapsed group via
- * the `hidden` attribute — jsdom's UA sheet maps it to display:none) keep
- * jsdom's null → the first-member fallback path is genuinely exercised.
+ * for VISIBLE member buttons (non-null). Members inside a collapsed group
+ * (grid rows 0fr + the `inert` attribute — T35, ADR-024 D3; previously the
+ * `hidden` attribute) keep jsdom's null → the first-member fallback path is
+ * genuinely exercised.
  */
 function stubVisibleOffsetParents(): void {
   for (const el of Array.from(document.querySelectorAll<HTMLElement>('[data-lawlib-member]'))) {
-    if (el.closest('[hidden]') !== null) continue;
+    if (el.closest('[inert]') !== null) continue;
     Object.defineProperty(el, 'offsetParent', { configurable: true, value: document.body });
   }
 }
@@ -267,6 +268,28 @@ const popover = () => document.querySelector<HTMLElement>('[data-lawlib-popover]
 const tooltipRoot = () => document.body.querySelector<HTMLElement>('.lawlib-tooltip');
 const compactCard = (key: string) =>
   document.querySelector<HTMLElement>(`[data-lawlib-card="${key}"]`);
+
+// T35 (ADR-024 D3): a group region is an always-rendered grid WRAPPER
+// (`${group.id}-region` — identity must persist, TOC scroll targets) whose
+// rows interpolate 0fr ↔ 1fr 300ms --ease-ios-out; the inner
+// overflow-hidden div owns `inert` (collapsed) + lawlib-fade-rise 150ms
+// (expanded only).
+const regionInner = (region: HTMLElement) => region.firstElementChild as HTMLElement;
+function expectRegionCollapsed(region: HTMLElement | null): void {
+  expect(region).not.toBeNull();
+  expect(region!.style.gridTemplateRows).toBe('0fr');
+  expect(regionInner(region!).hasAttribute('inert')).toBe(true);
+  expect(regionInner(region!).className).not.toContain('lawlib-fade-rise');
+}
+function expectRegionExpanded(region: HTMLElement | null): void {
+  expect(region).not.toBeNull();
+  expect(region!.style.gridTemplateRows).toBe('1fr');
+  expect(region!.style.transition).toContain('grid-template-rows');
+  expect(region!.style.transition).toContain('300ms');
+  expect(regionInner(region!).hasAttribute('inert')).toBe(false);
+  expect(regionInner(region!).className).toContain('lawlib-fade-rise');
+  expect(regionInner(region!).style.animationDuration).toBe('150ms');
+}
 
 /** The same-law ref TRIGGER inside a card's body (scoped — TOC chips and
  *  member buttons share the 'มาตรา N' accessible names; member buttons are
@@ -536,7 +559,7 @@ describe('keyboard', () => {
     expect(popover()).not.toBeNull();
     // group auto-expanded by the router
     const region = document.getElementById('ch-x-1-region');
-    expect(region?.hasAttribute('hidden')).toBe(false);
+    expectRegionExpanded(region);
 
     // re-collapse the group while the popover stays pinned (click-pinned).
     // ch-1 (หมวดที่ 1) has NO h3 (auto-group from the chapter table) — the
@@ -546,14 +569,15 @@ describe('keyboard', () => {
       b.textContent?.includes('บทเฉพาะกาล'),
     ) as HTMLButtonElement;
     fireEvent.click(disclosure);
-    expect(region?.hasAttribute('hidden')).toBe(true);
+    expectRegionCollapsed(region);
 
     fireEvent.keyDown(document, { key: 'Escape' });
     await flush();
 
     expect(popover()).toBeNull();
-    // hidden member → offsetParent null → first-member fallback (jsdom
-    // focuses hidden elements, so the fallback target is observable)
+    // member in the collapsed group → offsetParent null (emulated) →
+    // first-member fallback (jsdom focuses hidden elements, so the fallback
+    // target is observable)
     expect(document.activeElement).toBe(memberBtn('71'));
   });
 });
@@ -669,7 +693,7 @@ describe('openCardPopover mechanics', () => {
     await renderReader();
     const scrollIntoView = Element.prototype.scrollIntoView as ReturnType<typeof vi.fn>;
     const region = document.getElementById('ch-x-1-region');
-    expect(region?.hasAttribute('hidden')).toBe(true); // collapsed at mount
+    expectRegionCollapsed(region); // collapsed at mount
 
     // pin the มาตรา 71 digest tooltip, then ดูฉบับเต็ม routes to the popover
     fireEvent.click(bodyRefTrigger('13', 'มาตรา 71'));
@@ -679,7 +703,7 @@ describe('openCardPopover mechanics', () => {
     fireEvent.click(screen.getByRole('button', { name: 'ดูฉบับเต็ม' }));
 
     // group expansion is SYNCHRONOUS (before the 50ms scroll/open window)
-    expect(region?.hasAttribute('hidden')).toBe(false);
+    expectRegionExpanded(region);
 
     // popover NOT open yet (50ms pending)
     expect(popover()).toBeNull();
@@ -1093,21 +1117,27 @@ describe('T13 — inline prose ranges (มาตรา 75–76)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// T31 (ADR-023 D9 row 16 — compact group expand motion, AC-1)
+// T31 (ADR-023 D9 row 16 — compact group expand motion, AC-1) + T35
+// (ADR-024 D3 — grid-rows height animation both directions)
 // ---------------------------------------------------------------------------
 
-describe('T31 — compact group expand motion (AC-1)', () => {
-  it('expand: content remounts with lawlib-fade-rise 150ms; collapse: instant hidden; chevron springs', async () => {
+describe('T31 + T35 — compact group expand/collapse motion (T31 AC-1, T35 D3)', () => {
+  it('expand: rows 0fr→1fr 300ms + fade-rise 150ms; collapse: rows 1fr→0fr + inert (both directions animate); chevron springs', async () => {
     // Shared fixture: section 4 (มาตราสำคัญ) groups into ch-1 (บททั่วไป) +
     // the unnumbered บทเฉพาะกาล (ch-x-1). First group expanded, the rest
     // collapsed — compact is the digest default view.
     await renderReader();
 
-    const region = document.querySelector<HTMLElement>('[id$="-region"][hidden]');
-    expect(region).not.toBeNull();
-    const regionId = region!.id;
+    // A collapsed region: the grid wrapper sits at rows 0fr (always
+    // rendered — no [hidden] attr, no display:none).
+    const collapsedRegion = Array.from(
+      document.querySelectorAll<HTMLElement>('[id$="-region"]'),
+    ).find((r) => r.style.gridTemplateRows === '0fr');
+    expect(collapsedRegion).not.toBeUndefined();
+    const region = collapsedRegion!;
+    const regionId = region.id;
     // The group header button sits in the h3 BEFORE the region div.
-    const header = region!.previousElementSibling?.querySelector('button') as HTMLButtonElement;
+    const header = region.previousElementSibling?.querySelector('button') as HTMLButtonElement;
     expect(header).not.toBeNull();
     expect(header.getAttribute('aria-expanded')).toBe('false');
 
@@ -1119,21 +1149,25 @@ describe('T31 — compact group expand motion (AC-1)', () => {
     expect(chevron.className).toContain('ease-ios-spring');
     expect(chevron.className).not.toContain('rotate-180');
 
-    // Expand → the fade-rise class is re-added on the SAME region node (a
-    // class re-add starts a fresh animation; no keyed remount — callers
-    // hold region references, compact-routing contract).
+    // Expand → the SAME region node goes 0fr→1fr (300ms ease-ios-out
+    // declared on the wrapper — the reverse path animates too) and the inner
+    // re-gains fade-rise 150ms (a class re-add restarts the animation; no
+    // keyed remount — callers hold region references, compact-routing
+    // contract).
     fireEvent.click(header);
     const region2 = document.getElementById(regionId) as HTMLElement;
     expect(region2).not.toBeNull();
-    expect(region2.hasAttribute('hidden')).toBe(false);
-    expect(region2.className).toContain('lawlib-fade-rise');
-    expect(region2.style.animationDuration).toBe('150ms');
+    expectRegionExpanded(region2);
     expect(header.getAttribute('aria-expanded')).toBe('true');
     expect(header.querySelector('i')!.className).toContain('rotate-180');
 
-    // Collapse → instant (hidden attribute), no exit animation.
+    // Collapse → rows 1fr→0fr (no instant hidden — the transition stays
+    // declared so the height animates both ways) + inner inert (a11y/focus
+    // removal) + no fade-rise.
     fireEvent.click(header);
-    expect(document.getElementById(regionId)!.hasAttribute('hidden')).toBe(true);
+    expect(document.getElementById(regionId)!.style.gridTemplateRows).toBe('0fr');
+    expect(document.getElementById(regionId)!.style.transition).toContain('300ms');
+    expectRegionCollapsed(document.getElementById(regionId));
     expect(header.getAttribute('aria-expanded')).toBe('false');
     expect(header.querySelector('i')!.className).not.toContain('rotate-180');
   });
