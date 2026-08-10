@@ -19,7 +19,7 @@
  *   sibling glass panel (w-28) with the SAME uniform glass (no more
  *   lawlib-glass-strong distinction); the panel HEADER is GONE
  * - T14 picker buttons: ICON + current value label UNDER the icon
- *   (16px / 1.8 / 100%); ธีม = icon ONLY — the glyph mirrors the theme
+ *   (16px / 1.8 / 120%); ธีม = icon ONLY — the glyph mirrors the theme
  *   (☀️/🌙/📖/🎨) and the accessible name carries the current value
  * - panel STAYS OPEN after actions (picker open, option picked) — no
  *   auto-collapse (D1)
@@ -231,7 +231,8 @@ describe('Dock v2.3 — Level 1 OPEN BY DEFAULT + GLASS PANEL KEPT (T12/T15)', (
     expect(themeBtn.getAttribute('aria-label')).toBe('ธีม สว่าง');
     expect(screen.getByRole('button', { name: /ตัวอักษร/ }).textContent).toContain('16px');
     expect(screen.getByRole('button', { name: /บรรทัด/ }).textContent).toContain('1.8');
-    expect(screen.getByRole('button', { name: /กว้าง/ }).textContent).toContain('100%');
+    // T39: the width default moved 100% → 120% (80–160% slider range).
+    expect(screen.getByRole('button', { name: /กว้าง/ }).textContent).toContain('120%');
     expect(screen.getByRole('button', { name: 'ที่คั่นหน้า' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'ค้นหามาตรา' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'บันทึกของฉัน' })).toBeTruthy();
@@ -306,13 +307,14 @@ describe('Dock v2.1 — Level 1 (expanded favorites)', () => {
     fireEvent.click(fontSizeBtn);
     expect(fontSizeBtn.getAttribute('aria-expanded')).toBe('true');
 
-    // Preset chip (legacy 'l' → 18px).
-    fireEvent.click(screen.getByRole('button', { name: 'ขนาดตัวอักษร 18px' }));
-    expect(fontSizeBtn.textContent).toContain('18px');
+    // Preset chip — pick a NON-default preset (presets are 8/12/16/24/32
+    // since T40; the old 18px chip is gone).
+    fireEvent.click(screen.getByRole('button', { name: 'ขนาดตัวอักษร 24px' }));
+    expect(fontSizeBtn.textContent).toContain('24px');
 
     // Stepper +.
     fireEvent.click(screen.getByRole('button', { name: 'ตัวอักษรใหญ่ขึ้น' }));
-    expect(fontSizeBtn.textContent).toContain('19px');
+    expect(fontSizeBtn.textContent).toContain('25px');
   });
 
   it('line-height + width pickers: sliders apply directly and show the value', async () => {
@@ -797,7 +799,8 @@ describe('Dock v2.1 — non-default value dots (T12)', () => {
 
     // Change the font size → ONLY that button gets the dot.
     fireEvent.click(fontSizeBtn);
-    fireEvent.click(screen.getByRole('button', { name: 'ขนาดตัวอักษร 18px' }));
+    // T40: presets are 8/12/16/24/32 — 24px is a non-default pick.
+    fireEvent.click(screen.getByRole('button', { name: 'ขนาดตัวอักษร 24px' }));
     expect(fontSizeBtn.querySelector('.bg-blue-500')).not.toBeNull();
     expect(themeBtn.querySelector('.bg-blue-500')).toBeNull();
     expect(lineHeightBtn.querySelector('.bg-blue-500')).toBeNull();
