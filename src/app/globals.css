@@ -928,13 +928,13 @@ textarea,
    Each carries its locked duration in the companion class. */
 
 /* Tooltip EXIT — mirror of lawlib-tooltip-in: scale 0.96 + translateY 4px,
-   120ms in-curve (entry is 150ms). Applied by the hook's closing state
-   (T28); keyboard closes skip it. Declared after .lawlib-tooltip so the
-   shorthand wins the cascade when both classes are present. The END reads
-   the SAME placement vars as the direction-aware ENTRY (LawTooltip sets
-   them inline at open; they stay set through the closing phase) — so the
-   exit drift mirrors the entry rise on EVERY placement (below → down 4px,
-   above → up 4px, left/right → sideways), not a hard-coded down drift.
+   150ms in-curve (M12 — entry is 200ms, M11). Applied by the hook's closing
+   state (T28); keyboard closes skip it. Declared after .lawlib-tooltip so
+   the shorthand wins the cascade when both classes are present. The END
+   reads the SAME placement vars as the direction-aware ENTRY (LawTooltip
+   sets them inline at open; they stay set through the closing phase) — so
+   the exit drift mirrors the entry rise on EVERY placement (below → down
+   4px, above → up 4px, left/right → sideways), not a hard-coded down drift.
    Unset vars (sheet variant / keyboard-opened) fall back to the below
    case — identical to the old hard-coded keyframe. */
 @keyframes lawlib-tooltip-out {
