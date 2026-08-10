@@ -65,8 +65,10 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent, screen, act, within } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
 import type { ReactNode } from 'react';
 import LawlibReaderClient from '@/app/(website)/lawlib/[slug]/LawlibReaderClient';
+import LawlibDock, { type LawlibDockProps } from '@/components/LawlibDock';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { DEFAULT_READING_SETTINGS, DOCK_TOOL_KEYS } from '@/hooks/useReaderStorage';
 import sampleLawRaw from '@/data/lawlib/laws/sample.json';
@@ -1486,3 +1488,72 @@ describe('Dock v2.5 — T23 focus mode + auto scroll as dock tools', () => {
     expect(within(row2).getByRole('button', { name: 'โฟกัส' })).toBeTruthy();
   });
 });
+
+describe('T44 — dock PORTAL to document.body', () => {
+  it('renders the dock root into document.body (portal) — document/screen queries still resolve it', async () => {
+    await renderReader();
+
+    // The dock root (and its whole subtree — panel, L1, pickers) now lives
+    // as a DIRECT child of body, not inside the reader root.
+    const root = document.querySelector('.lawlib-dock.fixed') as HTMLElement;
+    expect(root).not.toBeNull();
+    expect(root.parentElement).toBe(document.body);
+    expect(document.body.contains(dockPanel())).toBe(true);
+    expect(dockPanel()!.closest('.lawlib-dock.fixed')).toBe(root);
+    // Screen queries search document.body — the portaled chrome stays found.
+    expect(screen.getByRole('button', { name: 'ปิดแถบเครื่องมือ' })).toBeTruthy();
+  });
+
+  it('unmount removes the portaled DOM — no dock leak into document.body', async () => {
+    const { unmount } = await renderReader();
+    expect(document.querySelector('.lawlib-dock.fixed')).not.toBeNull();
+
+    act(() => {
+      unmount();
+    });
+    expect(document.querySelector('.lawlib-dock')).toBeNull();
+    expect(document.getElementById('lawlib-dock-panel')).toBeNull();
+  });
+
+  it('SSR guard path: renders NOTHING when document is undefined (belt-and-braces for non-ssr:false trees)', () => {
+    // The reader shell (LawlibReaderShell) wraps the dock in
+    // next/dynamic(ssr:false) — the server never renders it. The guard is
+    // still pinned: if the dock is ever SSR'd, it must return null instead
+    // of calling createPortal. Effects never run under renderToString, so
+    // the stubbed matchMedia/localStorage are all it touches.
+    const doc = globalThis.document;
+    vi.stubGlobal('document', undefined);
+    try {
+      const html = renderToString(<LawlibDock {...dockProps} />);
+      expect(html).toBe('');
+    } finally {
+      vi.stubGlobal('document', doc);
+    }
+  });
+});
+
+/** Minimal direct-props fixture for the SSR-guard renderToString pin above. */
+const dockProps: LawlibDockProps = {
+  law: sampleLaw,
+  theme: 'light',
+  setTheme: vi.fn(),
+  paperTone: 0,
+  setPaperTone: vi.fn(),
+  settings: DEFAULT_READING_SETTINGS,
+  setSettings: vi.fn(),
+  isBookmarked: false,
+  onToggleBookmark: vi.fn(),
+  onToggleAutoScroll: vi.fn(),
+  activePanel: null,
+  onOpenPanel: vi.fn(),
+  notesCount: 0,
+  copiedFlash: null,
+  onCopyArticle: vi.fn(),
+  onCopyLink: vi.fn(),
+  canCopy: false,
+  resumeKey: null,
+  activeKey: null,
+  onResume: vi.fn(),
+  bookmarks: [],
+  escBlocked: false,
+};

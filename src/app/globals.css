@@ -914,6 +914,11 @@ textarea,
     transform: scale(1);
   }
 }
+/* T44 — fill BACKWARDS (not `both`): every keyframe's `to` equals the
+   element's natural resting state (opacity 1, scale 1 — no transform), so
+   the fill never needs to hold the end frame. A held forwards-fill
+   transform would linger on the panel (containing-block + transition
+   blocker — the T31 page-entrance precedent, globals.css .lawlib-fade-rise). */
 .lawlib-morph-in {
   animation: lawlib-morph-in 0.2s var(--ease-ios-spring) backwards;
 }
@@ -1516,6 +1521,9 @@ textarea,
     opacity: 1;
   }
 }
+/* T44 — fill BACKWARDS: the `to` frame (opacity 1) is the natural resting
+   state — no usage pins an opacity-0 base, so nothing snaps back after the
+   fade (the old `forwards` fill also held nothing the cascade needed). */
 @utility animate-fade-in {
   animation: fade-in 0.25s ease-out;
 }
@@ -2180,7 +2188,13 @@ textarea,
    on every position change — even when the direction class is unchanged
    (bottom-left → bottom-right are both 'up'). The side keyframes read
    --lawlib-dock-slide (±8px inline on the root for mid positions; the
-   wrapper inherits it). */
+   wrapper inherits it). T44 — fill BACKWARDS: the `to` frame is the
+   natural resting state (opacity 1, translate 0 — the wrapper has no base
+   transform), so nothing snaps back. `both` would hold
+   `transform: translateY(0)` on the wrapper FOREVER after a position
+   change — a containing block that traps the mobile bottom-sheet panel
+   (position: fixed inside this wrapper) into the wrapper's box instead of
+   the viewport (T31 precedent, LawlibReaderClient:1748). */
 .lawlib-dock-pos-in-down {
   animation: lawlib-dock-in-down 100ms var(--ease-ios-expo) backwards;
 }

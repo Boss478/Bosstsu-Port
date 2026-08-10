@@ -1106,6 +1106,12 @@ export default function LawlibDock(props: LawlibDockProps) {
     );
   };
 
+  // T44 — portal to document.body: the reader shell wraps this tree in
+  // next/dynamic(ssr:false) (LawlibReaderShell), so the server NEVER renders
+  // the dock and this guard is belt-and-braces, not the hydration fix (same
+  // pattern as LawlibPickers:224). It returns null instead of calling
+  // createPortal when document is missing — if the dock is ever imported
+  // into an SSR'd tree, the mounted-gate (null until useEffect) is required.
   if (typeof document === 'undefined') return null;
 
   return createPortal(
