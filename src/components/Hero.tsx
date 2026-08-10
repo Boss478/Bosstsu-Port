@@ -116,19 +116,19 @@ export default function HeroSection() {
         >
           <Link
             href="/portfolio"
-            className="px-8 py-4 rounded-2xl bg-blue-500 dark:bg-blue-600 text-white font-semibold text-lg hover:bg-blue-600 dark:hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-500/30 transition-[background-color,box-shadow,transform] duration-300 hover:-translate-y-1 active:scale-95 active:shadow-lg active:duration-150"
+            className="px-8 py-4 rounded-2xl bg-blue-500 dark:bg-blue-600 text-white font-semibold text-lg hover:bg-blue-600 dark:hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-500/30 transition-[background-color,box-shadow,transform] duration-300 hover:-translate-y-1 active:scale-95 active:shadow-lg active:duration-press"
           >
             ผลงาน
           </Link>
           <Link
             href="/resources"
-            className="px-8 py-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xs text-zinc-900 dark:text-zinc-100 font-semibold text-lg border border-blue-200 dark:border-slate-700/50 hover:shadow-xl transition-[box-shadow,transform] duration-300 hover:-translate-y-1 active:scale-95 active:shadow-lg active:duration-150"
+            className="px-8 py-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xs text-zinc-900 dark:text-zinc-100 font-semibold text-lg border border-blue-200 dark:border-slate-700/50 hover:shadow-xl transition-[box-shadow,transform] duration-300 hover:-translate-y-1 active:scale-95 active:shadow-lg active:duration-press"
           >
             สื่อการเรียนรู้
           </Link>
           <Link
             href="/games"
-            className="px-8 py-4 rounded-2xl bg-emerald-500 dark:bg-emerald-600 text-white font-semibold text-lg hover:bg-emerald-600 dark:hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-500/30 transition-[background-color,box-shadow,transform] duration-300 hover:-translate-y-1 active:scale-95 active:shadow-lg active:duration-150"
+            className="px-8 py-4 rounded-2xl bg-emerald-500 dark:bg-emerald-600 text-white font-semibold text-lg hover:bg-emerald-600 dark:hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-500/30 transition-[background-color,box-shadow,transform] duration-300 hover:-translate-y-1 active:scale-95 active:shadow-lg active:duration-press"
           >
             เกม
           </Link>

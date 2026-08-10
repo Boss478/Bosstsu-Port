@@ -136,7 +136,7 @@ export default function Header() {
                                   desktopExpanded === link.label ? null : link.label,
                                 );
                               }}
-                              className="px-4 py-2 rounded-full text-sm text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-300/70 dark:hover:bg-slate-400/80 transition-transform duration-75 active:scale-95 font-medium flex items-center gap-2 cursor-pointer"
+                              className="px-4 py-2 rounded-full text-sm text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-300/70 dark:hover:bg-slate-400/80 transition-transform duration-press active:scale-95 font-medium flex items-center gap-2 cursor-pointer"
                             >
                               <i className={link.icon}></i>
                               {link.label}
@@ -189,7 +189,7 @@ export default function Header() {
               {pathname.startsWith('/boss478') && (
                 <button
                   onClick={() => setNavMode(navMode === 'public' ? 'private' : 'public')}
-                  className={`min-h-11 min-w-11 px-2.5 py-2 rounded-full transition-transform duration-75 active:scale-95 flex items-center justify-center ${
+                  className={`min-h-11 min-w-11 px-2.5 py-2 rounded-full transition-transform duration-press active:scale-95 flex items-center justify-center ${
                     navMode === 'private'
                       ? 'bg-blue-600 text-white shadow-sm'
                       : 'hover:bg-gray-300/70 dark:hover:bg-slate-400/80 text-zinc-500 dark:text-zinc-400'
@@ -203,7 +203,7 @@ export default function Header() {
 
               <button
                 onClick={theme === 'read' ? () => setTheme('light') : toggleTheme}
-                className="min-h-11 min-w-11 px-3 py-2 rounded-full hover:bg-amber-100/50 dark:hover:bg-slate-700/50 transition-transform duration-75 active:scale-95 flex items-center justify-center"
+                className="min-h-11 min-w-11 px-3 py-2 rounded-full hover:bg-amber-100/50 dark:hover:bg-slate-700/50 transition-transform duration-press active:scale-95 flex items-center justify-center"
                 aria-label={themeAria}
               >
                 <i
@@ -235,7 +235,7 @@ export default function Header() {
           <div className="flex md:hidden items-center gap-2">
             <button
               onClick={theme === 'read' ? () => setTheme('light') : toggleTheme}
-              className="min-h-11 min-w-11 p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-transform duration-75 active:scale-95"
+              className="min-h-11 min-w-11 p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-transform duration-press active:scale-95"
               aria-label={themeAria}
             >
               <div className="relative w-5 h-5 flex items-center justify-center">
@@ -268,7 +268,7 @@ export default function Header() {
             {pathname.startsWith('/boss478') && (
               <button
                 onClick={() => setNavMode(navMode === 'public' ? 'private' : 'public')}
-                className={`min-h-11 min-w-11 p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-transform duration-75 active:scale-95 ${
+                className={`min-h-11 min-w-11 p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-transform duration-press active:scale-95 ${
                   navMode === 'private' ? 'bg-white/85 dark:bg-slate-800/85' : ''
                 }`}
                 aria-label="Switch nav mode"
@@ -282,7 +282,7 @@ export default function Header() {
 
             <button
               onClick={toggleMobileMenu}
-              className="min-h-11 min-w-11 p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-transform duration-75 active:scale-95"
+              className="min-h-11 min-w-11 p-2 rounded-full bg-white/60 dark:bg-slate-900/60 border border-white/60 dark:border-slate-700/50 shadow-lg shadow-blue-100/40 dark:shadow-black/20 hover:bg-white/85 dark:hover:bg-slate-800/85 backdrop-blur-xs transition-transform duration-press active:scale-95"
               aria-label="Toggle menu"
             >
               {isOpen ? (
@@ -318,7 +318,7 @@ export default function Header() {
                           <div className="flex flex-col">
                             <button
                               onClick={() => toggleMobileSubmenu(link.label)}
-                              className={`px-4 py-3 rounded-2xl text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-slate-700/50 transition-transform duration-75 active:scale-95 font-medium flex items-center justify-between gap-3 w-full ${mobileExpanded === link.label ? 'bg-gray-100/50 dark:bg-slate-700/30' : ''}`}
+                              className={`px-4 py-3 rounded-2xl text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-slate-700/50 transition-transform duration-press active:scale-95 font-medium flex items-center justify-between gap-3 w-full ${mobileExpanded === link.label ? 'bg-gray-100/50 dark:bg-slate-700/30' : ''}`}
                             >
                               <span className="flex items-center gap-3">
                                 <i className={link.icon}></i>

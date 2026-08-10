@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from 'next/link';
 
 interface BreadcrumbItem {
   label: string;
@@ -17,19 +17,22 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
         <li className="flex items-center">
           <Link
             href="/"
-            className="flex items-center text-zinc-500 hover:text-blue-600 dark:text-zinc-400 dark:hover:text-blue-400 transition-[color,transform] active:scale-95 active:duration-150"
+            className="flex items-center text-zinc-500 hover:text-blue-600 dark:text-zinc-400 dark:hover:text-blue-400 transition-[color,transform] active:scale-95 active:duration-press"
           >
             <i aria-hidden="true" className="fi fi-sr-home text-xs" />
           </Link>
         </li>
-        
+
         {items.map((item, index) => (
           <li key={index} className="flex items-center gap-1.5">
-            <i aria-hidden="true" className="fi fi-sr-angle-small-right text-[10px] text-zinc-400 dark:text-zinc-500" />
+            <i
+              aria-hidden="true"
+              className="fi fi-sr-angle-small-right text-[10px] text-zinc-400 dark:text-zinc-500"
+            />
             {item.href ? (
               <Link
                 href={item.href}
-                className="flex items-center gap-1.5 text-sm font-medium text-zinc-600 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400 transition-[color,transform] active:scale-95 active:duration-150"
+                className="flex items-center gap-1.5 text-sm font-medium text-zinc-600 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400 transition-[color,transform] active:scale-95 active:duration-press"
               >
                 {item.icon && <i className={`${item.icon} text-xs`} />}
                 {item.label}

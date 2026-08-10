@@ -50,6 +50,7 @@ html {
   --duration-std: 200ms;
   --duration-med: 300ms;
   --duration-large: 400ms;
+  --duration-press: 100ms;
 }
 
 @keyframes slideDown {

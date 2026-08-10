@@ -22,7 +22,7 @@ export default function Card({
   return (
     <Link
       href={href}
-      className="group relative p-8 rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/60 dark:border-white/10 shadow-xl shadow-blue-900/5 dark:shadow-black/20 overflow-hidden transition-[background-color,border-color,transform,box-shadow] duration-500 ease-spring hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-blue-900/10 dark:hover:shadow-black/40 hover:bg-white/60 dark:hover:bg-slate-800/60 active:scale-[0.98] active:shadow-lg active:duration-150"
+      className="group relative p-8 rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/60 dark:border-white/10 shadow-xl shadow-blue-900/5 dark:shadow-black/20 overflow-hidden transition-[background-color,border-color,transform,box-shadow] duration-500 ease-spring hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-blue-900/10 dark:hover:shadow-black/40 hover:bg-white/60 dark:hover:bg-slate-800/60 active:scale-[0.98] active:shadow-lg active:duration-press"
     >
       <div
         className={`absolute inset-0 ${color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
