@@ -286,9 +286,13 @@ function expectRegionExpanded(region: HTMLElement | null): void {
   expect(region!.style.gridTemplateRows).toBe('1fr');
   expect(region!.style.transition).toContain('grid-template-rows');
   expect(region!.style.transition).toContain('400ms');
+  // T42 (ADR-025 D2): the inline transition rides --motion-factor.
+  expect(region!.style.transition).toContain('var(--motion-factor');
   expect(regionInner(region!).hasAttribute('inert')).toBe(false);
   expect(regionInner(region!).className).toContain('lawlib-fade-rise');
-  expect(regionInner(region!).style.animationDuration).toBe('150ms');
+  expect(regionInner(region!).style.animationDuration).toBe(
+    'calc(150ms * var(--motion-factor, 1))',
+  );
 }
 
 /** The same-law ref TRIGGER inside a card's body (scoped — TOC chips and

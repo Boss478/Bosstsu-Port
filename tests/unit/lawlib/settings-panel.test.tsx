@@ -362,6 +362,8 @@ describe('T10b settings panel — auto-scroll + reset', () => {
       focusMode: false,
       autoScrollSpeed: 0,
       animateDock: true,
+      // T42 (ADR-025 D2) — the 3-tier motion preference resets with it.
+      motionPreference: 'quality',
     });
     expect(localStorage.getItem('lawlib:dockPosition')).toBe('bottom-right');
     expect(localStorage.getItem('lawlib:paperTone')).toBe('50');
@@ -622,8 +624,8 @@ describe('T23 settings panel — auto-scroll speed display (ระดับ N ·
     const picker = await openSettings();
     const slider = within(picker).getByLabelText('ความเร็ว') as HTMLInputElement;
 
-    // Off → ปิด (aria-valuetext mirrors the visible label).
-    expect(within(picker).getByText('ปิด')).toBeTruthy();
+    // Off → ปิด (aria-valuetext mirrors the visible label; scoped to the
+    // slider — the T42 motion picker adds its own ปิด option button).
     expect(slider.getAttribute('aria-valuetext')).toBe('ปิด');
 
     // Speed 1 @ 16×1.8 → 28.8/48 = 0.6 s/line.
@@ -649,7 +651,7 @@ describe('T23 settings panel — auto-scroll speed display (ระดับ N ·
     // The stored 3 survives (validator) but the slider + label render OFF.
     expect(storedSettings().autoScrollSpeed).toBe(3);
     expect(slider.value).toBe('0');
-    expect(within(picker).getByText('ปิด')).toBeTruthy();
+    expect(slider.getAttribute('aria-valuetext')).toBe('ปิด');
   });
 });
 
@@ -765,7 +767,9 @@ describe('T29 settings/picker popovers — pop-in, stagger, pop-out (ADR-023 D9/
     // D10 "animation-duration after the shorthand").
     expect(picker.classList.contains('lawlib-pop-in')).toBe(true);
     expect(picker.classList.contains('lawlib-pop-out')).toBe(false);
-    expect(picker.style.animationDuration).toBe('300ms');
+    // T42 (ADR-025 D2): the inline duration rides --motion-factor
+    // (quality 300ms; fast 150ms; disable/RM kill → instant).
+    expect(picker.style.animationDuration).toBe('calc(300ms * var(--motion-factor, 1))');
     // D10 origin per trigger: the layout effect sets a px origin from the
     // anchor rect. jsdom rects are all 0 → the anchor center clamps to the
     // popover's top-left corner; the assertion pins that the effect ran.
@@ -793,10 +797,10 @@ describe('T29 settings/picker popovers — pop-in, stagger, pop-out (ADR-023 D9/
     expect(rising.length).toBe(6);
     expect(rising.slice(1).map((el) => el.style.animationDelay)).toEqual([
       '0ms',
-      '40ms',
-      '80ms',
-      '120ms',
-      '160ms',
+      'calc(40ms * var(--motion-factor, 1))',
+      'calc(80ms * var(--motion-factor, 1))',
+      'calc(120ms * var(--motion-factor, 1))',
+      'calc(160ms * var(--motion-factor, 1))',
     ]);
   });
 
@@ -808,7 +812,7 @@ describe('T29 settings/picker popovers — pop-in, stagger, pop-out (ADR-023 D9/
     const closingEl = screen.getByRole('group', { name: 'ตั้งค่า' }) as HTMLElement;
     expect(closingEl.classList.contains('lawlib-pop-out')).toBe(true);
     expect(closingEl.classList.contains('lawlib-pop-in')).toBe(false);
-    expect(closingEl.style.animationDuration).toBe('200ms');
+    expect(closingEl.style.animationDuration).toBe('calc(200ms * var(--motion-factor, 1))');
     // The 200ms hold elapses → the popover unmounts.
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 250));
@@ -852,11 +856,103 @@ describe('T29 settings/picker popovers — pop-in, stagger, pop-out (ADR-023 D9/
     fireEvent.click(screen.getByRole('button', { name: 'ธีม สว่าง' }));
     const themePicker = screen.getByRole('group', { name: 'ธีม' }) as HTMLElement;
     expect(themePicker.classList.contains('lawlib-pop-in')).toBe(true);
-    expect(themePicker.style.animationDuration).toBe('300ms');
+    expect(themePicker.style.animationDuration).toBe('calc(300ms * var(--motion-factor, 1))');
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 250));
     });
     expect(screen.getByRole('group', { name: 'ธีม' })).toBeTruthy();
+  });
+});
+
+describe('T42 settings panel — motion preference picker (ADR-025 D2)', () => {
+  it('renders การเคลื่อนไหว: ปิด / เร็ว / ปกติ in order; ปกติ pressed at the default', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    expect(within(picker).getByRole('heading', { name: 'การเคลื่อนไหว' })).toBeTruthy();
+    const options = within(picker).getAllByRole('button', { name: /^การเคลื่อนไหว/ });
+    expect(options.map((b) => b.textContent)).toEqual(['ปิด', 'เร็ว', 'ปกติ']);
+    expect(options[2].getAttribute('aria-pressed')).toBe('true');
+    // The per-setting คืนค่า is disabled at the default ('quality').
+    expect(
+      (within(picker).getByRole('button', { name: 'คืนค่าการเคลื่อนไหว' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+  });
+
+  it('selecting เร็ว / ปิด persists through the shared validator', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    fireEvent.click(within(picker).getByRole('button', { name: 'การเคลื่อนไหวเร็ว' }));
+    expect(storedSettings().motionPreference).toBe('fast');
+    expect(
+      within(picker)
+        .getByRole('button', { name: 'การเคลื่อนไหวเร็ว' })
+        .getAttribute('aria-pressed'),
+    ).toBe('true');
+
+    fireEvent.click(within(picker).getByRole('button', { name: 'การเคลื่อนไหวปิด' }));
+    expect(storedSettings().motionPreference).toBe('disable');
+    expect(
+      within(picker).getByRole('button', { name: 'การเคลื่อนไหวปิด' }).getAttribute('aria-pressed'),
+    ).toBe('true');
+
+    // Per-setting คืนค่า → back to the default 'quality'.
+    fireEvent.click(within(picker).getByRole('button', { name: 'คืนค่าการเคลื่อนไหว' }));
+    expect(storedSettings().motionPreference).toBe('quality');
+    expect(
+      within(picker)
+        .getByRole('button', { name: 'การเคลื่อนไหวปกติ' })
+        .getAttribute('aria-pressed'),
+    ).toBe('true');
+  });
+
+  it('under OS reduced-motion: ปกติ DISABLED (greyed) + hint; stored quality shows as เร็ว (effective)', async () => {
+    mockMatchMedia([['(prefers-reduced-motion: reduce)', true]]);
+    localStorage.setItem('lawlib:settings', JSON.stringify({ motionPreference: 'quality' }));
+    await renderReader();
+    const picker = await openSettings();
+
+    // Quality is visible but NOT selectable (user-locked Q1).
+    const qualityBtn = within(picker).getByRole('button', {
+      name: 'การเคลื่อนไหวปกติ',
+    }) as HTMLButtonElement;
+    expect(qualityBtn.disabled).toBe(true);
+    // Selected = the EFFECTIVE tier: quality downgrades to fast under RM.
+    expect(
+      within(picker)
+        .getByRole('button', { name: 'การเคลื่อนไหวเร็ว' })
+        .getAttribute('aria-pressed'),
+    ).toBe('true');
+    // The hint explains the lockdown.
+    expect(
+      within(picker).getByText('ระบบลดการเคลื่อนไหวเปิดอยู่ — เลือกได้ เร็ว หรือ ปิด'),
+    ).toBeTruthy();
+  });
+
+  it('under OS reduced-motion: stored fast stays fast (no downgrade)', async () => {
+    mockMatchMedia([['(prefers-reduced-motion: reduce)', true]]);
+    localStorage.setItem('lawlib:settings', JSON.stringify({ motionPreference: 'fast' }));
+    await renderReader();
+    const picker = await openSettings();
+    expect(
+      within(picker)
+        .getByRole('button', { name: 'การเคลื่อนไหวเร็ว' })
+        .getAttribute('aria-pressed'),
+    ).toBe('true');
+  });
+
+  it('under OS reduced-motion: stored disable stays disable (no downgrade)', async () => {
+    mockMatchMedia([['(prefers-reduced-motion: reduce)', true]]);
+    localStorage.setItem('lawlib:settings', JSON.stringify({ motionPreference: 'disable' }));
+    await renderReader();
+    const picker = await openSettings();
+    expect(
+      within(picker).getByRole('button', { name: 'การเคลื่อนไหวปิด' }).getAttribute('aria-pressed'),
+    ).toBe('true');
+    expect(
+      (within(picker).getByRole('button', { name: 'การเคลื่อนไหวปกติ' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
   });
 });

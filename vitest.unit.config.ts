@@ -3,7 +3,7 @@ import baseConfig from './vitest.config';
 
 /**
  * UNIT suite — parallel (fileParallelism: true is vitest's default).
- * Explicit include list (50 files) = every test file that does NOT touch
+ * Explicit include list (51 files) = every test file that does NOT touch
  * MongoDB. Verified 2026-08-04: none of these import tests/helpers/db
  * (connectTestDb / clearAllCollections / clearCollection) or helpers/seed.
  * Cross-file parallelism is safe: they are pure unit tests (no shared state).
@@ -38,6 +38,7 @@ const unitInclude = [
   'tests/unit/lawlib/compact-routing.test.tsx',
   'tests/unit/lawlib/font-presets.test.tsx',
   'tests/unit/lawlib/glass-formulas.test.ts',
+  'tests/unit/lawlib/motion-preference.test.tsx',
   'tests/unit/lawlib/quick-note.test.tsx',
   'tests/unit/lawlib/reader-motion.test.tsx',
   'tests/unit/lawlib/reader-settings.test.ts',

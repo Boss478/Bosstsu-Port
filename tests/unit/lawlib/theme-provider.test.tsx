@@ -372,15 +372,46 @@ describe('T27c — VT direction contract (AC-3/AC-5)', () => {
     restoreViewTransitionStub();
   });
 
-  it('reduced-motion falls back to the instant swap — no VT, no dir change (AC-1)', () => {
+  it('T42: stored motionPreference disable → instant swap, no VT (pref gate, not OS RM)', () => {
     window.history.pushState({}, '', '/lawlib/test');
+    localStorage.setItem('lawlib:settings', JSON.stringify({ motionPreference: 'disable' }));
+    const { vt } = stubViewTransition();
+    renderProvider();
+
+    fireEvent.click(screen.getByText('set-light'));
+    expect(vt).not.toHaveBeenCalled();
+    expect(themeClasses()).toEqual(['light']);
+
+    restoreViewTransitionStub();
+  });
+
+  it('T42: stored fast + OS reduced-motion → VT STILL runs (the RM downgrade is attr-side, not the JS gate)', () => {
+    window.history.pushState({}, '', '/lawlib/test');
+    localStorage.setItem('lawlib:settings', JSON.stringify({ motionPreference: 'fast' }));
+    mockMatchMedia(true); // OS dark + prefers-reduced-motion: reduce
+    const { vt, dirAtCall } = stubViewTransition();
+    renderProvider();
+
+    fireEvent.click(screen.getByText('set-light'));
+    // Fast ≠ Disable for theme changes: the VT fires (its CSS duration is
+    // calc(500ms * factor) = 250ms via data-motion="fast").
+    expect(vt).toHaveBeenCalledTimes(1);
+    expect(dirAtCall()).toBe('to-light');
+    expect(themeClasses()).toEqual(['light']);
+
+    restoreViewTransitionStub();
+  });
+
+  it('T42: default pref (quality) + OS reduced-motion → VT runs (halved via the attr downgrade)', () => {
+    window.history.pushState({}, '', '/lawlib/test');
+    // No stored settings → the shared validator default 'quality'.
     mockMatchMedia(true); // OS dark + prefers-reduced-motion: reduce
     const { vt } = stubViewTransition();
     renderProvider();
     expect(screen.getByTestId('theme').textContent).toBe('dark');
 
     fireEvent.click(screen.getByText('set-light'));
-    expect(vt).not.toHaveBeenCalled();
+    expect(vt).toHaveBeenCalledTimes(1);
     expect(themeClasses()).toEqual(['light']);
 
     restoreViewTransitionStub();

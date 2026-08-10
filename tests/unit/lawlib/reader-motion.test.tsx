@@ -194,7 +194,8 @@ describe('T30 — drawer motion (AC-1/AC-4/AC-5)', () => {
     const content = header.nextElementSibling as HTMLElement;
     expect(header.className).toContain('lawlib-fade-rise');
     expect(content.className).toContain('lawlib-fade-rise');
-    expect(content.style.animationDelay).toBe('40ms');
+    // T42 (ADR-025 D2): the inline delay rides --motion-factor (40ms × 1).
+    expect(content.style.animationDelay).toBe('calc(40ms * var(--motion-factor, 1))');
   });
 
   it('Esc closes INSTANT — no exit hold, even with motion enabled', async () => {
@@ -438,7 +439,8 @@ describe('T31 — page entrance + section stagger (AC-3)', () => {
     const wrapper = root?.querySelector<HTMLElement>(':scope > .lawlib-fade-rise');
     expect(wrapper).not.toBeNull();
     expect(root!.className).not.toContain('lawlib-fade-rise');
-    expect(wrapper!.style.animationDuration).toBe('500ms');
+    // T42 (ADR-025 D2): 500ms quality → 250ms fast via --motion-factor.
+    expect(wrapper!.style.animationDuration).toBe('calc(500ms * var(--motion-factor, 1))');
     expect(wrapper!.style.animationFillMode).toBe('backwards');
 
     // Main sections: first (TOC column) 60ms, second (article column) 120ms
@@ -446,9 +448,9 @@ describe('T31 — page entrance + section stagger (AC-3)', () => {
     const content = document.getElementById('lawlib-reader-content') as HTMLElement;
     const columns = content.querySelectorAll<HTMLElement>('.lawlib-fade-rise');
     expect(columns.length).toBe(2);
-    expect(columns[0].style.animationDelay).toBe('60ms');
+    expect(columns[0].style.animationDelay).toBe('calc(60ms * var(--motion-factor, 1))');
     expect(columns[0].style.animationFillMode).toBe('backwards');
-    expect(columns[1].style.animationDelay).toBe('120ms');
+    expect(columns[1].style.animationDelay).toBe('calc(120ms * var(--motion-factor, 1))');
     expect(columns[1].className).toContain('lawlib-article-card');
   });
 });
@@ -690,7 +692,9 @@ describe('T36 — digest history height animation (AC-1/AC-2/AC-3)', () => {
     expect(historyWrapper()!.style.transition).toContain('400ms');
     // jsdom keeps the raw var reference — assert the TOKEN (the value is
     // --ease-ios-out: cubic-bezier(0.22, 1, 0.36, 1) per globals.css).
+    // T42: the duration token rides --motion-factor too (CSS contract pin).
     expect(historyWrapper()!.style.transition).toContain('var(--ease-ios-out)');
+    expect(historyWrapper()!.style.transition).toContain('var(--motion-factor');
     expect(list!.hasAttribute('inert')).toBe(true);
     expect(list!.className).toContain('min-h-0');
     expect(list!.className).toContain('overflow-hidden');
@@ -712,9 +716,10 @@ describe('T36 — digest history height animation (AC-1/AC-2/AC-3)', () => {
 
     // Content fade: the class re-adds on the SAME node (no keyed remount);
     // the light 150ms variant matches the T35 group pattern.
+    // T42 (ADR-025 D2): inline durations ride --motion-factor.
     const content = list.firstElementChild as HTMLElement;
     expect(content.className).toContain('lawlib-fade-rise');
-    expect(content.style.animationDuration).toBe('150ms');
+    expect(content.style.animationDuration).toBe('calc(150ms * var(--motion-factor, 1))');
 
     // The merged history body renders in both ฉบับ entries.
     expect(list.textContent).toContain('ฉบับที่ 1');
