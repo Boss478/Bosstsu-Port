@@ -57,6 +57,7 @@
  * collapse (DOCK_ANIM_MS) is unchanged.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { safeGetString, safeSetString } from '@/lib/storage';
 import { DEFAULT_READING_SETTINGS, DOCK_TOOL_KEYS } from '@/hooks/useReaderStorage';
 import type { DockToolKey, ReadingSettingsValue } from '@/app/(website)/lawlib/lib/reader-props';
@@ -1105,7 +1106,9 @@ export default function LawlibDock(props: LawlibDockProps) {
     );
   };
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     // T34 (ADR-024 D2): NO view-transition-name on the dock — the root's
     // subtree carries backdrop-filter (`.lawlib-glass-xs` blur), and Chrome
     // captures a BLANK snapshot for backdrop-filter + view-transition-name
@@ -1361,6 +1364,7 @@ export default function LawlibDock(props: LawlibDockProps) {
           )}
         </PickerPopover>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -915,7 +915,7 @@ textarea,
   }
 }
 .lawlib-morph-in {
-  animation: lawlib-morph-in 0.2s var(--ease-ios-spring) both;
+  animation: lawlib-morph-in 0.2s var(--ease-ios-spring) backwards;
 }
 
 /* T27c icon morph (AC-4): rotate -30deg + scale 0.8 + fade in, 300ms spring. */
@@ -1517,7 +1517,7 @@ textarea,
   }
 }
 @utility animate-fade-in {
-  animation: fade-in 0.25s ease-out forwards;
+  animation: fade-in 0.25s ease-out;
 }
 @utility ease-spring {
   transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -2182,13 +2182,13 @@ textarea,
    --lawlib-dock-slide (±8px inline on the root for mid positions; the
    wrapper inherits it). */
 .lawlib-dock-pos-in-down {
-  animation: lawlib-dock-in-down 100ms var(--ease-ios-expo) both;
+  animation: lawlib-dock-in-down 100ms var(--ease-ios-expo) backwards;
 }
 .lawlib-dock-pos-in-up {
-  animation: lawlib-dock-in-up 100ms var(--ease-ios-expo) both;
+  animation: lawlib-dock-in-up 100ms var(--ease-ios-expo) backwards;
 }
 .lawlib-dock-pos-in-side {
-  animation: lawlib-dock-in-side 100ms var(--ease-ios-expo) both;
+  animation: lawlib-dock-in-side 100ms var(--ease-ios-expo) backwards;
 }
 /* List-page search input (SearchInput.tsx — T2 tokens stay; the fill/blur
    ride the same slider vars so the dock+search surfaces stay in sync). */
