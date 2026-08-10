@@ -50,7 +50,10 @@ html {
   --duration-std: 200ms;
   --duration-med: 300ms;
   --duration-large: 400ms;
-  --duration-press: 100ms;
+  /* D1 (ADR-025): press token. NOTE — Tailwind v4's duration-* utility
+     resolves theme keys under --transition-duration-* (NOT --duration-*);
+     a --duration-press key would silently generate nothing. */
+  --transition-duration-press: 100ms;
 }
 
 @keyframes slideDown {
