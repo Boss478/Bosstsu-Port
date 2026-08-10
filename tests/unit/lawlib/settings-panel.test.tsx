@@ -92,6 +92,7 @@ beforeEach(() => {
   vi.stubGlobal('IntersectionObserver', IntersectionObserverStub);
   document.documentElement.className = '';
   document.documentElement.removeAttribute('style');
+  document.documentElement.removeAttribute('data-motion');
   document.body.className = '';
 });
 
@@ -838,6 +839,32 @@ describe('T29 settings/picker popovers — pop-in, stagger, pop-out (ADR-023 D9/
     await renderReader();
     await openSettings();
     fireEvent.pointerDown(document.body);
+    expect(screen.queryByRole('group', { name: 'ตั้งค่า' })).toBeNull();
+  });
+
+  it('T42 disable tier: outside click closes INSTANTLY — no exit hold (tier kill)', async () => {
+    document.documentElement.dataset.motion = 'disable';
+    await renderReader();
+    await openSettings();
+    fireEvent.pointerDown(document.body);
+    // The tier kill zeroes the exit animation — a JS hold would only linger
+    // on an invisible popover, so onClose must fire immediately.
+    expect(screen.queryByRole('group', { name: 'ตั้งค่า' })).toBeNull();
+  });
+
+  it('T42 fast tier: outside click hold HALVED (100ms) — unmounts inside the 200ms window', async () => {
+    document.documentElement.dataset.motion = 'fast';
+    await renderReader();
+    await openSettings();
+    fireEvent.pointerDown(document.body);
+    // Still held — the mirrored pop-out plays (fast tier animates at 0.5×).
+    const closingEl = screen.getByRole('group', { name: 'ตั้งค่า' }) as HTMLElement;
+    expect(closingEl.classList.contains('lawlib-pop-out')).toBe(true);
+    expect(closingEl.classList.contains('lawlib-pop-in')).toBe(false);
+    // 100ms halved hold → unmounts well before the 200ms full window.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+    });
     expect(screen.queryByRole('group', { name: 'ตั้งค่า' })).toBeNull();
   });
 

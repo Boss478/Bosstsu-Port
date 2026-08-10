@@ -61,6 +61,7 @@ import type { ReaderViewMode } from '@/hooks/useReaderStorage';
 import type { ReaderFontFamily } from '@/app/(website)/lawlib/lib/reader-props';
 import { useTheme } from '@/components/ThemeProvider';
 import LawlibDock from '@/components/LawlibDock';
+import { motionExitHoldMs } from '@/components/LawlibPickers';
 import type { DigestSearchLine } from '@/app/(website)/lawlib/lib/reader-props';
 import CompactView, { BodyLineView } from './CompactView';
 
@@ -616,10 +617,13 @@ export default function LawlibReaderClient({
   // Animated close = mirrored slide-out + overlay fade + delay-unmount
   // (closing state). Pointer closes animate; Esc closes INSTANT (keyboard
   // skip — T28/T29 parity) and reduced-motion skips the hold (AC-4).
+  // T42 — the hold also scales with the motion tier (disable instant / fast
+  // halved — motionExitHoldMs, shared with the picker + chip).
   const closePanel = useCallback(
     (instant = false) => {
       if (openPanel === null || panelClosing) return;
-      if (instant || reducedMotionNow()) {
+      const holdMs = motionExitHoldMs(DRAWER_ANIM_MS);
+      if (instant || reducedMotionNow() || holdMs <= 0) {
         setOpenPanel(null);
         return;
       }
@@ -628,7 +632,7 @@ export default function LawlibReaderClient({
         panelCloseTimerRef.current = null;
         setPanelClosing(false);
         setOpenPanel(null);
-      }, DRAWER_ANIM_MS);
+      }, holdMs);
     },
     [openPanel, panelClosing],
   );
@@ -1619,9 +1623,11 @@ export default function LawlibReaderClient({
   // Speed → 0 from ANY writer (dock toggle, chip stop, natural end) holds
   // the chip mounted for the 150ms reversed fade (closing state); a resume
   // inside the window cancels the hold. A speed CHANGE while live re-triggers
-  // lawlib-chip-pop (ระดับ pop). RM → no hold (AC-4). The hold is gated on
-  // chipPoppedOnceRef — the chip was live at least once — so the INITIAL
-  // mount with autoscroll off can never flash a ghost chip.
+  // lawlib-chip-pop (ระดับ pop). RM → no hold (AC-4). T42 — the hold scales
+  // with the motion tier (motionExitHoldMs: disable → instant, fast → 75ms).
+  // The hold is gated on chipPoppedOnceRef — the chip was live at least
+  // once — so the INITIAL mount with autoscroll off can never flash a ghost
+  // chip.
   useEffect(() => {
     if (settings.autoScrollSpeed > 0) {
       if (chipCloseTimerRef.current !== null) {
@@ -1642,12 +1648,13 @@ export default function LawlibReaderClient({
       }, CHIP_ANIM_MS);
       return;
     }
-    if (chipPoppedOnceRef.current && !reducedMotionNow()) {
+    const holdMs = motionExitHoldMs(CHIP_ANIM_MS);
+    if (chipPoppedOnceRef.current && !reducedMotionNow() && holdMs > 0) {
       startTransition(() => setChipClosing(true));
       chipCloseTimerRef.current = window.setTimeout(() => {
         chipCloseTimerRef.current = null;
         setChipClosing(false);
-      }, CHIP_ANIM_MS);
+      }, holdMs);
       return;
     }
     startTransition(() => setChipClosing(false));

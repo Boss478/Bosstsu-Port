@@ -89,6 +89,22 @@ const POPOVER_GAP = 6;
  *  popover mounted exactly this long while lawlib-pop-out plays. */
 const PICKER_EXIT_MS = 200;
 
+/** T42 (ADR-025 D2) — exit-hold duration for the CURRENT motion tier, read
+ *  at CLOSE time (the dataset is live: the tier can change while a surface
+ *  is open — this helper re-reads on every close). `disable` → 0 (the CSS
+ *  kill already zeroes the exit animation — a JS hold would only linger on
+ *  an invisible surface) · `fast` → half (the CSS exit plays at
+ *  --motion-factor 0.5) · else/absent → the full duration (current
+ *  behavior). Shared by the picker popover, the drawer and the auto-scroll
+ *  chip so every delay-unmount stays in sync with the CSS exit. */
+export function motionExitHoldMs(fullMs: number): number {
+  const tier =
+    typeof document !== 'undefined' ? document.documentElement.dataset.motion : undefined;
+  if (tier === 'disable') return 0;
+  if (tier === 'fast') return Math.round(fullMs / 2);
+  return fullMs;
+}
+
 export function PickerPopover({
   anchorEl,
   widthClass,
@@ -125,10 +141,17 @@ export function PickerPopover({
   );
 
   /** T29 — animated close (outside-click): pop-out 200ms + delay-unmount;
-   *  reduced-motion → instant (AC-5). */
+   *  reduced-motion → instant (AC-5). T42 — the exit hold also scales with
+   *  the motion tier: disable → instant (the CSS kill zeroed the exit, a
+   *  JS hold would only linger), fast → halved (the CSS exit is at 0.5×). */
   const requestClose = useCallback(() => {
     if (closing) return;
     if (reducedMotion) {
+      onClose();
+      return;
+    }
+    const holdMs = motionExitHoldMs(PICKER_EXIT_MS);
+    if (holdMs <= 0) {
       onClose();
       return;
     }
@@ -136,7 +159,7 @@ export function PickerPopover({
     exitTimerRef.current = window.setTimeout(() => {
       exitTimerRef.current = null;
       onClose();
-    }, PICKER_EXIT_MS);
+    }, holdMs);
   }, [closing, reducedMotion, onClose]);
 
   // Position once, at open (captured anchor rect — transient popover, like

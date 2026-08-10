@@ -140,6 +140,7 @@ beforeEach(() => {
   vi.stubGlobal('IntersectionObserver', IntersectionObserverStub);
   document.documentElement.className = '';
   document.documentElement.removeAttribute('style');
+  document.documentElement.removeAttribute('data-motion');
   document.body.classList.remove('lawlib-immersive');
 });
 
@@ -247,6 +248,37 @@ describe('T30 — drawer motion (AC-1/AC-4/AC-5)', () => {
     fireEvent.click(searchTool());
     fireEvent.click(drawerClose());
 
+    expect(drawer()).toBeNull();
+  });
+
+  it('T42 disable tier: X closes INSTANTLY — no 400ms hold (tier kill)', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    document.documentElement.dataset.motion = 'disable';
+    await renderReader();
+
+    fireEvent.click(searchTool());
+    fireEvent.click(drawerClose());
+
+    // The tier kill zeroes the exit animation — the JS hold would only
+    // linger on an invisible drawer, so it must be skipped entirely.
+    expect(drawer()).toBeNull();
+  });
+
+  it('T42 fast tier: X close hold HALVED (200ms) — unmounts inside the 400ms window', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    document.documentElement.dataset.motion = 'fast';
+    await renderReader();
+
+    fireEvent.click(searchTool());
+    fireEvent.click(drawerClose());
+
+    // Still held — the mirrored slide-out + overlay fade play (0.5×).
+    expect(drawer()).not.toBeNull();
+    expect(drawerAside()!.style.animationDirection).toBe('reverse');
+    expect(drawerOverlay()!.style.animationDirection).toBe('reverse');
+
+    // 200ms halved hold → unmounts well before the 400ms full window.
+    await wait(250);
     expect(drawer()).toBeNull();
   });
 
@@ -419,6 +451,43 @@ describe('T30 — auto-scroll chip (AC-3/AC-4/AC-5)', () => {
     fireEvent.click(moreBtn());
     fireEvent.click(autoScrollTool());
 
+    expect(chip()).toBeNull();
+  });
+
+  it('T42 disable tier: stop (speed → 0) closes INSTANTLY — no 150ms hold', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    document.documentElement.dataset.motion = 'disable';
+    await renderReader();
+
+    fireEvent.click(moreBtn());
+    fireEvent.click(autoScrollTool());
+    expect(chip()).not.toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'ปิดเลื่อนอัตโนมัติ' }));
+    await wait(20); // let the transition flush
+
+    // The tier kill zeroes the exit fade — no closing-state hold.
+    expect(chip()).toBeNull();
+  });
+
+  it('T42 fast tier: stop hold HALVED (75ms) — unmounts inside the 150ms window', async () => {
+    mockMatchMedia({ reducedMotion: false });
+    document.documentElement.dataset.motion = 'fast';
+    await renderReader();
+
+    fireEvent.click(moreBtn());
+    fireEvent.click(autoScrollTool());
+    expect(chip()).not.toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'ปิดเลื่อนอัตโนมัติ' }));
+    await wait(20); // the closing state flips inside a transition
+
+    // Still held — the reversed fade plays (0.5×).
+    expect(chip()).not.toBeNull();
+    expect(chip()!.style.animationDirection).toBe('reverse');
+
+    // 75ms halved hold → gone — well before the 150ms full window.
+    await wait(100);
     expect(chip()).toBeNull();
   });
 });
