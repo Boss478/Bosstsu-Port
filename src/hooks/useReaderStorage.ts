@@ -25,6 +25,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { safeGetJSON, safeGetString, safeSetJSON, safeSetString } from '@/lib/storage';
 import type {
   DockToolKey,
+  MotionPreference,
   ParagraphSpacing,
   ReaderFontFamily,
   ReaderFontWeight,
@@ -74,6 +75,9 @@ export interface Highlight {
  * 30-40% see-through; the L1 panel + collapsed icon blur-xs via
  * --lawlib-glass-blur-xs) · + animateDock true (expand/collapse animation,
  * respects prefers-reduced-motion).
+ * T42 (ADR-025 D2): + motionPreference 'quality' (3-tier: quality/fast/
+ * disable — the D2 mechanism; OS reduced-motion downgrades quality → fast
+ * at APPLY time, the stored default stays 'quality').
  */
 export const DEFAULT_READING_SETTINGS: ReadingSettingsValue = {
   fontSize: 16,
@@ -90,6 +94,7 @@ export const DEFAULT_READING_SETTINGS: ReadingSettingsValue = {
   focusMode: false,
   autoScrollSpeed: 0,
   animateDock: true,
+  motionPreference: 'quality',
 };
 
 /** All dock tools (runtime list for validation + the dock's Level-2 rows).
@@ -141,6 +146,9 @@ const FONT_FAMILIES: readonly ReaderFontFamily[] = [
 ];
 const FONT_WEIGHTS: readonly ReaderFontWeight[] = ['normal', 'bold'];
 const PARAGRAPH_SPACINGS: readonly number[] = [0, 0.5, 1];
+/** T42 (ADR-025 D2) — motion preference whitelist (invalid → default
+ *  'quality'). Stored values are settings-sacred otherwise. */
+export const MOTION_PREFERENCES: readonly MotionPreference[] = ['quality', 'fast', 'disable'];
 /** Legacy enum → number migrations (ADR-019 D4/D5 — MUST NOT drop stored
  *  values: a user on 'l' must keep 18px, not silently reset to 16). Width
  *  map moved to the PERCENT scale 2026-08-06 (was 40/60/80ch). */
@@ -252,6 +260,9 @@ export function validateReadingSettings(input: unknown): ReadingSettingsValue {
       : DEFAULT_READING_SETTINGS.autoScrollSpeed;
   const animateDock =
     typeof o.animateDock === 'boolean' ? o.animateDock : DEFAULT_READING_SETTINGS.animateDock;
+  const motionPreference = MOTION_PREFERENCES.includes(o.motionPreference as MotionPreference)
+    ? (o.motionPreference as MotionPreference)
+    : DEFAULT_READING_SETTINGS.motionPreference;
 
   let favoriteToolKeys = DEFAULT_READING_SETTINGS.favoriteToolKeys;
   if (Array.isArray(o.favoriteToolKeys)) {
@@ -284,7 +295,23 @@ export function validateReadingSettings(input: unknown): ReadingSettingsValue {
     focusMode,
     autoScrollSpeed,
     animateDock,
+    motionPreference,
   };
+}
+
+/**
+ * T42 (ADR-025 D2) — the EFFECTIVE tier for a stored preference + OS state:
+ * OS prefers-reduced-motion DOWNGRADES quality → fast (user-locked D2c: an
+ * RM user with the default/quality pref gets HALVED motion, never zero —
+ * zero requires an explicit 'disable'). disable/fast pass through unchanged.
+ * Used by LawlibGlassVars (apply-time) — the layout pre-paint script embeds
+ * the same 3-line logic inline (it cannot import).
+ */
+export function effectiveMotionPreference(
+  stored: MotionPreference,
+  reducedMotion: boolean,
+): MotionPreference {
+  return reducedMotion && stored === 'quality' ? 'fast' : stored;
 }
 
 /**

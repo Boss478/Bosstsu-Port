@@ -96,6 +96,12 @@ export type ReaderFontWeight = 'normal' | 'bold';
 /** T10b: inter-paragraph spacing in rem — 0/0.5/1. */
 export type ParagraphSpacing = 0 | 0.5 | 1;
 
+/** T42 (ADR-025 D2) — 3-tier motion preference: quality (full durations),
+ *  fast (halved via --motion-factor 0.5), disable (blanket kill). The
+ *  EFFECTIVE tier also folds in OS prefers-reduced-motion (quality
+ *  downgrades to fast — user-locked D2c; see effectiveMotionPreference). */
+export type MotionPreference = 'quality' | 'fast' | 'disable';
+
 export type ReadingSettingsValue = {
   /** Font size in px, 8-32 (default 16). */
   fontSize: number;
@@ -132,6 +138,11 @@ export type ReadingSettingsValue = {
   /** T12 (ADR-019 D9): dock expand/collapse slide+fade animation (~150ms).
    *  Default ON; always skipped under prefers-reduced-motion. */
   animateDock: boolean;
+  /** T42 (ADR-025 D2): 3-tier motion preference — quality / fast / disable
+   *  (default 'quality'). Applied as `data-motion` on <html> by the
+   *  pre-paint script + LawlibGlassVars; OS reduced-motion downgrades
+   *  quality → fast (never disable unless chosen). */
+  motionPreference: MotionPreference;
 };
 
 export interface ReadingSettingsProps {
