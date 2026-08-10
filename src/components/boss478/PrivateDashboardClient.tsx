@@ -104,7 +104,7 @@ function DashboardInner() {
           <button
             onClick={manualRefresh}
             disabled={isLoading}
-            className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-transform duration-75 active:scale-95"
+            className="p-2 rounded-lg bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-transform duration-press active:scale-95"
           >
             <i
               className={`fi fi-sr-rotate-left text-sm text-zinc-600 dark:text-zinc-400 ${isLoading ? 'animate-spin' : ''}`}
@@ -137,7 +137,7 @@ function DashboardInner() {
             key={tab.id}
             data-tab-id={tab.id}
             onClick={() => handleTabClick(tab.id)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-transform duration-75 active:scale-95 flex items-center gap-2 cursor-pointer relative z-10 ${
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-transform duration-press active:scale-95 flex items-center gap-2 cursor-pointer relative z-10 ${
               activeTab === tab.id
                 ? 'text-white'
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
@@ -158,7 +158,7 @@ function DashboardInner() {
             <button
               key={p.value}
               onClick={() => setPeriod(p.value)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-transform duration-75 active:scale-95 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-transform duration-press active:scale-95 cursor-pointer ${
                 period === p.value
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200'

@@ -32,12 +32,12 @@ export default function BottomNavBar({ tabs }: { tabs: TabDef[] }) {
           className="absolute top-0 h-0.5 bg-blue-500 rounded-full pointer-events-none transition-transform duration-300 ease-out"
           style={{ width: indicatorW, transform: `translateX(${indicatorX}px)` }}
         />
-        {tabs.map(tab => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             data-tab-id={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors duration-150 transition-transform duration-75 active:scale-95 cursor-pointer min-w-0 ${
+            className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors duration-150 transition-transform duration-press active:scale-95 cursor-pointer min-w-0 ${
               activeTab === tab.id
                 ? 'text-blue-500'
                 : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300'

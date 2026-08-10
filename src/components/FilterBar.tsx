@@ -21,7 +21,7 @@ export default function FilterBar({
         <button
           key={item}
           onClick={() => onFilter(item, sort)}
-          className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-transform duration-75 active:scale-95 border ${
+          className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-transform duration-press active:scale-95 border ${
             activeItem === item
               ? 'bg-blue-500/85 text-white shadow-md shadow-blue-500/25 backdrop-blur-xs border-white/60'
               : 'bg-white/40 dark:bg-slate-800/40 backdrop-blur-xs border border-white/60 dark:border-slate-700/50 text-zinc-600 dark:text-zinc-300 hover:bg-blue-100 dark:hover:bg-slate-700'
