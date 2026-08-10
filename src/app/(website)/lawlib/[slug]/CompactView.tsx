@@ -1032,16 +1032,20 @@ function ChapterGroupView({
           300ms --ease-ios-out on the ALWAYS-RENDERED wrapper. The
           `${group.id}-region` id stays on the WRAPPER — node identity must
           persist (TOC scroll targets + callers hold refs; no keyed remount).
-          The inner overflow-hidden min-h-0 div owns the content:
+          The overflow-hidden min-h-0 div owns the a11y/animation state:
           lawlib-fade-rise 150ms (class present ONLY while expanded — a class
           re-add restarts the animation on the SAME node) and `inert` while
           collapsed (a11y/focus removal — inert does not block the grid
-          animation, hidden would). Collapse animates too (1fr→0fr, no
-          instant hidden). RM: the reduced-motion kill zeroes
-          transition-duration → instant. */}
+          animation, hidden would). The mt-2 group gap lives on a CONTENT
+          div NESTED inside the overflow-hidden box (T36 DigestHistoryBlock
+          mirror) — margins directly on the grid item feed the collapsed
+          track's auto minimum and leave an 8px residual box at 0fr; inside
+          the overflow box they're clipped away (collapsed group = truly
+          0px). Collapse animates too (1fr→0fr, no instant hidden). RM: the
+          reduced-motion kill zeroes transition-duration → instant. */}
       <div
         id={`${group.id}-region`}
-        className="mt-2 grid"
+        className="grid"
         style={{
           gridTemplateRows: collapsed ? '0fr' : '1fr',
           transition: 'grid-template-rows 300ms var(--ease-ios-out)',
@@ -1049,40 +1053,42 @@ function ChapterGroupView({
       >
         <div
           inert={collapsed}
-          className={`overflow-hidden min-h-0 space-y-3 ${collapsed ? '' : 'lawlib-fade-rise'}`}
+          className={`overflow-hidden min-h-0 ${collapsed ? '' : 'lawlib-fade-rise'}`}
           style={collapsed ? undefined : { animationDuration: '150ms' }}
         >
-          {group.lines.map((line) =>
-            line.kind === 'article' ? (
-              <ArticleCard
-                key={line.key}
-                line={line}
-                law={law}
-                isOpen={expandedKey === line.key}
-                popoverId={popoverId}
-                tooltipId={tooltipId}
-                onToggleCard={onToggleCard}
-                onOpenRef={onOpenRef}
-                onSeeFull={onSeeFull}
-                flashKey={flashKey}
-                getTriggerProps={getTriggerProps}
-                isTooltipOpen={isTooltipOpen}
-                digestInfoByKey={digestInfoByKey}
-              />
-            ) : (
-              <BodyLineView
-                key={line.id}
-                line={line}
-                slug={law.slug}
-                onOpenRef={onOpenRef}
-                onSeeFull={onSeeFull}
-                getTriggerProps={getTriggerProps}
-                isTooltipOpen={isTooltipOpen}
-                tooltipId={tooltipId}
-                digestInfoByKey={digestInfoByKey}
-              />
-            ),
-          )}
+          <div className="mt-2 space-y-3">
+            {group.lines.map((line) =>
+              line.kind === 'article' ? (
+                <ArticleCard
+                  key={line.key}
+                  line={line}
+                  law={law}
+                  isOpen={expandedKey === line.key}
+                  popoverId={popoverId}
+                  tooltipId={tooltipId}
+                  onToggleCard={onToggleCard}
+                  onOpenRef={onOpenRef}
+                  onSeeFull={onSeeFull}
+                  flashKey={flashKey}
+                  getTriggerProps={getTriggerProps}
+                  isTooltipOpen={isTooltipOpen}
+                  digestInfoByKey={digestInfoByKey}
+                />
+              ) : (
+                <BodyLineView
+                  key={line.id}
+                  line={line}
+                  slug={law.slug}
+                  onOpenRef={onOpenRef}
+                  onSeeFull={onSeeFull}
+                  getTriggerProps={getTriggerProps}
+                  isTooltipOpen={isTooltipOpen}
+                  tooltipId={tooltipId}
+                  digestInfoByKey={digestInfoByKey}
+                />
+              ),
+            )}
+          </div>
         </div>
       </div>
     </div>
