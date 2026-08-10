@@ -13,19 +13,21 @@
  *
  * T17 (ADR-021): opacity AND blur are DYNAMIC per-surface (was: static
  * blur(12px)/blur(4px); the 100% → 'none' GPU-kill rule is REMOVED — blur
- * scales to its max at 100%: dock 8 (T33: piecewise 4–8) · search 5 ·
- * content 8, max 8px < the old static 12px). Dock/search alpha caps at
- * 0.95 (was 1.0
- * solid — no surface ever goes fully opaque). Content surfaces (tooltip +
- * compact popover) follow their own piecewise formula: 0 → 0.55 · 35 → 0.7 ·
- * 100 → 0.95 (never below 0.55 so body text stays readable).
+ * scales to its max at 100%: dock 12 (T38: piecewise 2–12, user-locked
+ * 2026-08-10 — the T33 4–8px band was too subtle) · search 5 · content 8.
+ * Dock/search alpha: T38 linear 28–48% (was T17's 8–95% capped at 0.95 —
+ * near-solid alpha hid the blur entirely; user-locked 2026-08-10, max 0.48
+ * keeps the glass visible). Content surfaces (tooltip + compact popover)
+ * follow their own piecewise formula: 0 → 0.55 · 35 → 0.7 · 100 → 0.95
+ * (never below 0.55 so body text stays readable).
  *
  * Consumed ONLY by chrome surfaces: `.lawlib-glass` (dock + reader search
  * drawer), `.lawlib-search-field` (list-page SearchInput — do-not-touch,
  * the fill rides the same vars), and `.lawlib-glass-content` (T17:
  * LawTooltip panel + compact ArticlePopover — their content keeps its own
- * solid surfaces for interactive contrast). 0% → transparent, the border +
- * focus ring carry the boundary (D8).
+ * solid surfaces for interactive contrast). 0% → the chrome keeps a
+ * minimum fill (dock 0.28 / content 0.55), the border + focus ring carry
+ * the boundary (D8).
  *
  * Mounted in the lawlib LAYOUT so both the list page and the reader pages
  * apply the vars; re-applies on the `lawlib:settings-changed` event
@@ -58,22 +60,28 @@ export function contentGlassAlpha(v: number): number {
 }
 
 /**
- * T17: dock/search chrome alpha — unchanged below 95 (35 → 0.35 default),
- * caps at 0.95 (was 1.0 solid). Never fully opaque.
+ * T38 (user-locked 2026-08-10): dock/search chrome alpha — linear 28–48%
+ * over the slider range: 0 → 0.28 · 35 → 0.35 (default) · 100 → 0.48.
+ * Was T17's `min(v/100, 0.95)` — the near-solid 0.95 cap (8–95% band) made
+ * the panel opaque and hid the blur, so the band was narrowed and the cap
+ * removed (0.48 max is unreachable by any old input path). Round 3 decimals
+ * so float noise never leaks into the rgba strings.
  */
 export function dockGlassAlpha(v: number): number {
-  return Number(Math.min(clampOpacity(v) / 100, 0.95).toFixed(3));
+  return Number((0.28 + 0.002 * clampOpacity(v)).toFixed(3));
 }
 
 /**
- * T33 (ADR-024 D1): dock blur radii (px, 1 decimal) — piecewise, anchored at
- * the slider default 35 (GLASS_OPACITY_DEFAULT): 0 → 4 · 35 → 6 · 100 → 8.
- *   v ≤ 35: 4 + (2/35)·v · v > 35: 6 + (2/65)·(v−35)
- * (was linear 1.5 + 0.02·v — imperceptible; user-locked 4/6/8 2026-08-10.)
+ * T38 (user-locked 2026-08-10): dock blur radii (px, 1 decimal) — piecewise,
+ * anchored at the slider default 35 (GLASS_OPACITY_DEFAULT): 0 → 2 · 35 → 6
+ * · 100 → 12, continuous at the seam (both branches → 6 at v=35).
+ *   v ≤ 35: 2 + (4/35)·v · v > 35: 6 + (6/65)·(v−35)
+ * (T33 was 4/6/8 — too subtle to see, and the near-solid alpha hid it; the
+ * 2–12px band keeps the blur VISIBLE across the whole single-slider range.)
  */
 export function dockBlur(v: number): number {
   const c = clampOpacity(v);
-  const b = c <= 35 ? 4 + (2 / 35) * c : 6 + (2 / 65) * (c - 35);
+  const b = c <= 35 ? 2 + (4 / 35) * c : 6 + (6 / 65) * (c - 35);
   return Number(b.toFixed(1));
 }
 export function searchBlur(v: number): number {

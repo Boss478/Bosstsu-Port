@@ -2,14 +2,14 @@
 /**
  * T17 (ADR-021) — glass-formula pure functions from LawlibGlassVars.
  *
- * Anchors (user 2026-08-09 — T17 follow-up fix 2):
+ * Anchors (user-locked 2026-08-10 — T38: blur VISIBLE on the single slider):
  *  - contentGlassAlpha: 0 → 0.55 · 35 → 0.7 · 100 → 0.95 (piecewise,
  *    monotonic — content surfaces never below 0.55, never fully opaque)
- *  - dockGlassAlpha: unchanged below 95 (35 → 0.35), caps at 0.95
- *    (was 1.0 — no surface ever goes fully opaque)
+ *  - dockGlassAlpha: linear 28–48% (0 → 0.28 · 35 → 0.35 · 100 → 0.48;
+ *    was 8–95% capped at 0.95 — near-solid alpha hid the blur; cap removed)
  *  - dynamic blur, 1 decimal:
- *    dockBlur [4, 8] (T33 piecewise: 0 → 4 · 35 → 6 · 100 → 8)
- *    · searchBlur [3, 5] · contentBlur [6, 8]
+ *    dockBlur [2, 12] (T38 piecewise: 0 → 2 · 35 → 6 · 100 → 12; the T33
+ *    4–8px band was too subtle) · searchBlur [3, 5] · contentBlur [6, 8]
  *    (the 100% → 'none' GPU-kill rule is REMOVED)
  *
  * Clamp input into [0, 100] FIRST, then round (3 decimals alpha,
@@ -54,29 +54,40 @@ describe('contentGlassAlpha (T17 content-surface fill)', () => {
   });
 });
 
-describe('dockGlassAlpha (T17 dock/search chrome fill)', () => {
-  it('anchors: 0 → 0 · 35 → 0.35 · 95 → 0.95', () => {
-    expect(dockGlassAlpha(0)).toBe(0);
+describe('dockGlassAlpha (T38 dock/search chrome fill)', () => {
+  it('anchors: 0 → 0.28 · 35 → 0.35 · 100 → 0.48', () => {
+    expect(dockGlassAlpha(0)).toBe(0.28);
     expect(dockGlassAlpha(35)).toBe(0.35);
-    expect(dockGlassAlpha(95)).toBe(0.95);
+    expect(dockGlassAlpha(100)).toBe(0.48);
   });
 
-  it('caps at 0.95 (was 1.0 solid at 100)', () => {
-    expect(dockGlassAlpha(100)).toBe(0.95);
-    expect(dockGlassAlpha(200)).toBe(0.95);
+  it('linear band sample: 95 → 0.47 (0.28 + 0.002·95, round 3)', () => {
+    expect(dockGlassAlpha(95)).toBe(0.47);
+  });
+
+  it('clamps out-of-range input into [0, 100] first (0.95 cap removed)', () => {
+    expect(dockGlassAlpha(-10)).toBe(0.28);
+    expect(dockGlassAlpha(150)).toBe(0.48);
+    expect(dockGlassAlpha(200)).toBe(0.48);
   });
 });
 
 describe('dynamic blur radii (T17 — never none)', () => {
-  it('dockBlur: 0 → 4 · 35 → 6.0 · 100 → 8 (T33 piecewise, default 35 → 6)', () => {
-    expect(dockBlur(0)).toBe(4);
+  it('dockBlur: 0 → 2 · 35 → 6.0 · 100 → 12 (T38 piecewise, default 35 → 6)', () => {
+    expect(dockBlur(0)).toBe(2);
     expect(dockBlur(35)).toBe(6);
-    expect(dockBlur(100)).toBe(8);
+    expect(dockBlur(100)).toBe(12);
   });
 
-  it('dockBlur sample: 10 → 4.6 (4 + (2/35)·10, round 1) · 50 → 6.5 (6 + (2/65)·15)', () => {
-    expect(dockBlur(10)).toBe(4.6);
-    expect(dockBlur(50)).toBe(6.5);
+  it('dockBlur sample: 10 → 3.1 (2 + (4/35)·10, round 1) · 50 → 7.4 (6 + (6/65)·15)', () => {
+    expect(dockBlur(10)).toBe(3.1);
+    expect(dockBlur(50)).toBe(7.4);
+  });
+
+  it('dockBlur is continuous at the seam: 34 → 5.9 · 35 → 6 · 36 → 6.1', () => {
+    expect(dockBlur(34)).toBe(5.9);
+    expect(dockBlur(35)).toBe(6);
+    expect(dockBlur(36)).toBe(6.1);
   });
 
   it('searchBlur: 0 → 3 · 50 → 4 · 100 → 5', () => {
@@ -92,7 +103,7 @@ describe('dynamic blur radii (T17 — never none)', () => {
   });
 
   it('clamps input (blur never exceeds its max)', () => {
-    expect(dockBlur(150)).toBe(8);
+    expect(dockBlur(150)).toBe(12);
     expect(searchBlur(-5)).toBe(3);
     expect(contentBlur(500)).toBe(8);
   });
