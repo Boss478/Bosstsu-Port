@@ -1048,13 +1048,18 @@ function ChapterGroupView({
         className="grid"
         style={{
           gridTemplateRows: collapsed ? '0fr' : '1fr',
-          transition: 'grid-template-rows 400ms var(--ease-ios-out)',
+          // T42 (ADR-025 D2): every inline duration rides --motion-factor
+          // (fast = halved 200ms; disable/pre-hydration RM = the kill).
+          transition:
+            'grid-template-rows calc(400ms * var(--motion-factor, 1)) var(--ease-ios-out)',
         }}
       >
         <div
           inert={collapsed}
           className={`overflow-hidden min-h-0 ${collapsed ? '' : 'lawlib-fade-rise'}`}
-          style={collapsed ? undefined : { animationDuration: '150ms' }}
+          style={
+            collapsed ? undefined : { animationDuration: 'calc(150ms * var(--motion-factor, 1))' }
+          }
         >
           <div className="mt-2 space-y-3">
             {group.lines.map((line) =>
@@ -1274,12 +1279,14 @@ export default function CompactView({
   return (
     <div className="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8">
       {/* T31 (AC-3): main sections stagger 60ms on mount (inline
-          animation-delay, fill backwards — no persistent transform; the
-          ArticlePopover below is position:fixed and must keep the viewport
-          as its containing block). */}
+            animation-delay, fill backwards — see page wrapper above).
+            T42: delays ride --motion-factor like the globals staggers. */}
       <div
         className="lawlib-fade-rise mb-6 lg:mb-0"
-        style={{ animationDelay: '60ms', animationFillMode: 'backwards' }}
+        style={{
+          animationDelay: 'calc(60ms * var(--motion-factor, 1))',
+          animationFillMode: 'backwards',
+        }}
       >
         <DigestToc
           view={view}
@@ -1294,7 +1301,10 @@ export default function CompactView({
           (user decision 2026-08-05); reader typography settings apply. */}
       <div
         className={`lawlib-fade-rise lawlib-article-card mx-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6 ${widthClass}`}
-        style={{ animationDelay: '120ms', animationFillMode: 'backwards' }}
+        style={{
+          animationDelay: 'calc(120ms * var(--motion-factor, 1))',
+          animationFillMode: 'backwards',
+        }}
       >
         <div style={{ lineHeight }} className={`min-w-0 ${fontSizeClass} leading-relaxed`}>
           {/* Compact heading (user 2026-08-05): fixed "ฉบับย่อ — {LAW}" format —

@@ -127,13 +127,17 @@ function DigestHistoryBlock({
         className="grid"
         style={{
           gridTemplateRows: open ? '1fr' : '0fr',
-          transition: 'grid-template-rows 400ms var(--ease-ios-out)',
+          // T42 (ADR-025 D2): inline durations ride --motion-factor.
+          transition:
+            'grid-template-rows calc(400ms * var(--motion-factor, 1)) var(--ease-ios-out)',
         }}
       >
         <div id="lawlib-digest-history-list" inert={!open} className="min-h-0 overflow-hidden">
           <div
             className={`mt-3 space-y-2 ${open ? 'lawlib-fade-rise' : ''}`}
-            style={open ? { animationDuration: '150ms' } : undefined}
+            style={
+              open ? { animationDuration: 'calc(150ms * var(--motion-factor, 1))' } : undefined
+            }
           >
             {lines.map((line) =>
               line.kind !== 'article' ? (
@@ -1752,7 +1756,11 @@ export default function LawlibReaderClient({
           stays OUTSIDE this wrapper. */}
       <div
         className="lawlib-fade-rise"
-        style={{ animationDuration: '500ms', animationFillMode: 'backwards' }}
+        style={{
+          // T42 (ADR-025 D2): 500ms quality → 250ms fast via the factor.
+          animationDuration: 'calc(500ms * var(--motion-factor, 1))',
+          animationFillMode: 'backwards',
+        }}
       >
         {/* law header */}
         <header className="border-b border-slate-100 pb-5 dark:border-slate-800">
@@ -1902,7 +1910,10 @@ export default function LawlibReaderClient({
                 animation-delay, fill backwards — see page wrapper above). */}
               <div
                 className="lawlib-fade-rise mb-6 lg:mb-0"
-                style={{ animationDelay: '60ms', animationFillMode: 'backwards' }}
+                style={{
+                  animationDelay: 'calc(60ms * var(--motion-factor, 1))',
+                  animationFillMode: 'backwards',
+                }}
               >
                 <TocSidebar
                   law={law}
@@ -1914,7 +1925,10 @@ export default function LawlibReaderClient({
 
               <div
                 className={`lawlib-fade-rise lawlib-article-card mx-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6 ${WIDTH_CLASS}`}
-                style={{ animationDelay: '120ms', animationFillMode: 'backwards' }}
+                style={{
+                  animationDelay: 'calc(120ms * var(--motion-factor, 1))',
+                  animationFillMode: 'backwards',
+                }}
               >
                 <section
                   aria-label="เนื้อหากฎหมาย"
@@ -2001,7 +2015,8 @@ export default function LawlibReaderClient({
         <div
           className="lawlib-autoscroll-chip lawlib-fade-rise vt-chip fixed bottom-24 left-1/2 z-40 -translate-x-1/2"
           style={{
-            animationDuration: '150ms',
+            // T42 (ADR-025 D2): 150ms quality → 75ms fast.
+            animationDuration: 'calc(150ms * var(--motion-factor, 1))',
             animationDirection: chipClosing ? 'reverse' : 'normal',
           }}
         >
@@ -2082,7 +2097,7 @@ export default function LawlibReaderClient({
                 rows stagger 40ms (header 0ms → content 40ms, T29 pattern). */}
             <div
               className="lawlib-fade-rise flex-1 overflow-y-auto px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
-              style={{ animationDelay: '40ms' }}
+              style={{ animationDelay: 'calc(40ms * var(--motion-factor, 1))' }}
             >
               {openPanel === 'search' && (
                 <SearchPanel

@@ -240,8 +240,11 @@ export function PickerPopover({
         // T29 (ADR-023 D9): pop-in 300ms spring / pop-out 200ms in-curve —
         // the class defaults are 200/140ms; the inline duration is the
         // locked override (D10 "animation-duration after the shorthand").
-        // The RM kill zeroes it → instant.
-        animationDuration: closing ? '200ms' : '300ms',
+        // T42 (ADR-025 D2): both ride --motion-factor (fast = 150/100ms;
+        // the disable/RM kill zeroes it → instant).
+        animationDuration: closing
+          ? 'calc(200ms * var(--motion-factor, 1))'
+          : 'calc(300ms * var(--motion-factor, 1))',
       }}
       // T29 — AC-4: `vt-picker` = the UNIQUE view-transition-name for this
       // fixed surface (theme-change inventory, globals.css). The SURFACE
@@ -660,7 +663,7 @@ function ResetButton({
       className={`flex min-h-11 shrink-0 cursor-pointer items-center gap-0.5 rounded-md px-1.5 text-[10px] font-semibold text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent disabled:hover:text-slate-300 dark:text-blue-300 dark:hover:bg-blue-950/40 dark:hover:text-blue-200 dark:disabled:text-slate-600 ${
         pop ? 'lawlib-chip-pop' : ''
       }`}
-      style={pop ? { animationDuration: '200ms' } : undefined}
+      style={pop ? { animationDuration: 'calc(200ms * var(--motion-factor, 1))' } : undefined}
     >
       <i aria-hidden="true" className="fi fi-sr-rotate-left text-[8px]" />
       คืนค่า
@@ -870,7 +873,10 @@ export function SettingsPanelContent({
         </div>
       </div>
 
-      <div className="lawlib-fade-rise space-y-3" style={{ animationDelay: '40ms' }}>
+      <div
+        className="lawlib-fade-rise space-y-3"
+        style={{ animationDelay: 'calc(40ms * var(--motion-factor, 1))' }}
+      >
         <SettingsSectionTitle
           action={
             <ResetButton
@@ -895,7 +901,10 @@ export function SettingsPanelContent({
         />
       </div>
 
-      <div className="lawlib-fade-rise space-y-3" style={{ animationDelay: '80ms' }}>
+      <div
+        className="lawlib-fade-rise space-y-3"
+        style={{ animationDelay: 'calc(80ms * var(--motion-factor, 1))' }}
+      >
         <SettingsSectionTitle
           action={
             <ResetButton
@@ -913,7 +922,10 @@ export function SettingsPanelContent({
         />
       </div>
 
-      <div className="lawlib-fade-rise space-y-3" style={{ animationDelay: '120ms' }}>
+      <div
+        className="lawlib-fade-rise space-y-3"
+        style={{ animationDelay: 'calc(120ms * var(--motion-factor, 1))' }}
+      >
         <SettingsSectionTitle
           action={
             <ResetButton
@@ -931,7 +943,10 @@ export function SettingsPanelContent({
         />
       </div>
 
-      <div className="lawlib-fade-rise space-y-3" style={{ animationDelay: '160ms' }}>
+      <div
+        className="lawlib-fade-rise space-y-3"
+        style={{ animationDelay: 'calc(160ms * var(--motion-factor, 1))' }}
+      >
         <SettingsSectionTitle
           action={
             <ResetButton
