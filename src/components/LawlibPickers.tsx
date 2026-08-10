@@ -424,8 +424,8 @@ export function ThemePickerContent({
 
 export const FONT_SIZE_MIN = 8;
 export const FONT_SIZE_MAX = 32;
-/** Preset chips = the legacy s/m/l/xl sizes (migration continuity). */
-export const FONT_SIZE_PRESETS: readonly number[] = [14, 16, 18, 24];
+/** Preset chips (T40 S2 — ADR-025): quick sizes 8/12/16/24/32. */
+export const FONT_SIZE_PRESETS: readonly number[] = [8, 12, 16, 24, 32];
 
 export function FontSizePickerContent({
   value,
@@ -991,7 +991,7 @@ export function SettingsPanelContent({
       </SettingsSectionTitle>
       <SliderRow
         id="lawlib-glass-opacity"
-        label="ความทึบ (เฉพาะ dock + ค้นหา)"
+        label="กระจก (ความทึบ + ความเบลอ)"
         min={0}
         max={100}
         step={1}
@@ -999,9 +999,6 @@ export function SettingsPanelContent({
         display={`${settings.glassOpacity}%`}
         onChange={(glassOpacity) => onChange((prev) => ({ ...prev, glassOpacity }))}
       />
-      <p className="text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
-        100% = ทึบและไม่เบลอ (ประหยัดพลังงาน) — กระดาษ/ซีเปียไม่กระทบ
-      </p>
 
       <SettingsSectionTitle
         action={
