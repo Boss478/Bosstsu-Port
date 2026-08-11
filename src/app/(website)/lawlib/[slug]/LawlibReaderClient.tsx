@@ -1438,6 +1438,11 @@ export default function LawlibReaderClient({
     ...typographyVars,
     fontFamily: 'var(--lawlib-font-family)',
     fontWeight: 'var(--lawlib-font-weight)',
+    // W1 (ADR-026): the wrapper's max-w-6xl (72rem) caps the article
+    // column at ~832px, so width >~120% had no visible effect. Grow the
+    // wrapper WITH the measure: 20.5rem = TOC 16rem + grid gap 2rem +
+    // px-4 2rem + 0.5rem slack. max() keeps 80–~120% looking identical.
+    maxWidth: 'max(72rem, calc(var(--lawlib-width) + 20.5rem))',
   };
 
   // --- T10b body classes: hide repealed + hide amendment notes (CSS in
