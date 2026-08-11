@@ -1034,7 +1034,7 @@ export default function LawlibDock(props: LawlibDockProps) {
           className={`relative flex h-11 w-11 md:h-12 md:w-12 min-h-11 min-w-11 shrink-0 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-full border shadow-xs backdrop-blur-sm transition-[transform,background-color,border-color] duration-150 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
             picker?.kind === kind
               ? 'border-blue-500/80 bg-blue-50/90 text-blue-600 shadow-xs ring-2 ring-blue-500/20 dark:border-blue-400/80 dark:bg-blue-950/70 dark:text-blue-300 dark:ring-blue-400/20'
-              : 'border-slate-200/90 bg-white/60 text-slate-600 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 hover:shadow-sm dark:border-slate-700/80 dark:bg-slate-800/70 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
+              : 'border-slate-200/90 bg-white/50 text-slate-600 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 hover:shadow-sm dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
           }`}
         >
           {/* T27c (AC-4) — theme icon morph: keyed by the theme value so a
@@ -1139,7 +1139,7 @@ export default function LawlibDock(props: LawlibDockProps) {
         } ${
           active
             ? 'border-blue-500/80 bg-blue-50/90 text-blue-600 shadow-xs ring-2 ring-blue-500/20 dark:border-blue-400/80 dark:bg-blue-950/70 dark:text-blue-300 dark:ring-blue-400/20'
-            : 'border-slate-200/90 bg-white/60 text-slate-600 hover:scale-105 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 hover:shadow-sm active:scale-95 dark:border-slate-700/80 dark:bg-slate-800/70 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
+            : 'border-slate-200/90 bg-white/50 text-slate-600 hover:scale-105 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 hover:shadow-sm active:scale-95 dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
         }`}
       >
         <i aria-hidden="true" className={`fi ${icon} text-xs md:text-sm leading-none`} />
@@ -1174,7 +1174,7 @@ export default function LawlibDock(props: LawlibDockProps) {
         className={`flex h-8.5 w-8.5 md:h-9.5 md:w-9.5 shrink-0 cursor-pointer items-center justify-center rounded-full border shadow-xs backdrop-blur-sm transition-[transform,background-color,border-color] duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 ${
           pickerOpen || active
             ? 'border-blue-500/80 bg-blue-50/90 text-blue-600 shadow-xs ring-2 ring-blue-500/20 dark:border-blue-400/80 dark:bg-blue-950/70 dark:text-blue-300 dark:ring-blue-400/20'
-            : 'border-slate-200/90 bg-white/60 text-slate-600 hover:scale-110 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 dark:border-slate-700/80 dark:bg-slate-800/70 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
+            : 'border-slate-200/90 bg-white/50 text-slate-600 hover:scale-110 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
         }`}
       >
         <i aria-hidden="true" className={`fi ${icon} text-xs md:text-sm leading-none`} />
