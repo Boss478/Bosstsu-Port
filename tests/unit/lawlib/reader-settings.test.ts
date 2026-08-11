@@ -24,6 +24,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DEFAULT_READING_SETTINGS } from '@/hooks/useReaderStorage';
+import { paraSpacingFromLineHeight } from '@/components/LawlibPickers';
 import type { ReadingSettingsValue } from '@/app/(website)/lawlib/lib/reader-props';
 
 type StorageApi = typeof import('@/hooks/useReaderStorage');
@@ -273,8 +274,8 @@ describe('validateReadingSettings (P3 — T10a numeric contract + T10b fields)',
   });
 
   // ─── T10b fields (ADR-019 D4 — fontFamily, glassOpacity, toolbarSize,
-  //     paragraphSpacing, fontWeight, hideRepealed, hideAmendmentNotes,
-  //     focusMode, autoScrollSpeed) ──────────────────────────────────────
+  //     fontWeight, hideRepealed, hideAmendmentNotes, focusMode,
+  //     autoScrollSpeed) ────────────────────────────────────────────────
 
   it('T10b: passes every valid new field through unchanged (idempotent)', () => {
     const input: ReadingSettingsValue = {
@@ -282,7 +283,6 @@ describe('validateReadingSettings (P3 — T10a numeric contract + T10b fields)',
       fontFamily: 'itim',
       glassOpacity: 33,
       toolbarSize: 32,
-      paragraphSpacing: 0.5,
       fontWeight: 'bold',
       hideRepealed: true,
       hideAmendmentNotes: true,
@@ -336,13 +336,42 @@ describe('validateReadingSettings (P3 — T10a numeric contract + T10b fields)',
     expect(api.validateReadingSettings({ animateDock: 'no' }).animateDock).toBe(true);
   });
 
-  it('T10b: paragraphSpacing snaps to the {0, 0.5, 1} steps', () => {
-    expect(api.validateReadingSettings({ paragraphSpacing: 0 }).paragraphSpacing).toBe(0);
-    expect(api.validateReadingSettings({ paragraphSpacing: 0.5 }).paragraphSpacing).toBe(0.5);
-    expect(api.validateReadingSettings({ paragraphSpacing: 1 }).paragraphSpacing).toBe(1);
-    expect(api.validateReadingSettings({ paragraphSpacing: 0.4 }).paragraphSpacing).toBe(0.5);
-    expect(api.validateReadingSettings({ paragraphSpacing: 0.8 }).paragraphSpacing).toBe(1);
-    expect(api.validateReadingSettings({ paragraphSpacing: 'wide' }).paragraphSpacing).toBe(0);
+  it('T50: a stored legacy paragraphSpacing is INERT — dropped from the sanitized shape', () => {
+    // ADR-026 W2 (user decision 2026-08-11): the field is deleted from the
+    // contract; legacy localStorage values simply never read. The validator
+    // must not crash on them, must not surface them, and the returned
+    // settings must carry NO paragraphSpacing key (no ghost control).
+    const out = api.validateReadingSettings({ paragraphSpacing: 0.5, fontSize: 18 });
+    expect('paragraphSpacing' in out).toBe(false);
+    expect((out as Record<string, unknown>).paragraphSpacing).toBeUndefined();
+    expect(out.fontSize).toBe(18);
+    // The shared load path sanitizes the same way.
+    localStorage.setItem(
+      SETTINGS_KEY,
+      JSON.stringify({ lineHeight: 2.4, paragraphSpacing: 1, width: 90 }),
+    );
+    const loaded = api.loadGlobalSettings();
+    expect(loaded).not.toBeNull();
+    expect('paragraphSpacing' in (loaded as Record<string, unknown>)).toBe(false);
+    expect(loaded?.lineHeight).toBe(2.4);
+  });
+
+  it('T50: paraSpacingFromLineHeight anchors — 1.2 → 0 · 1.8 → 0.5 · 2.4 → 1.0', () => {
+    expect(paraSpacingFromLineHeight(1.2)).toBe(0);
+    expect(paraSpacingFromLineHeight(1.8)).toBe(0.5);
+    expect(paraSpacingFromLineHeight(2.4)).toBe(1);
+  });
+
+  it('T50: paraSpacingFromLineHeight sample — 2.1 → 0.75 (continuous, 3 decimals)', () => {
+    expect(paraSpacingFromLineHeight(2.1)).toBe(0.75);
+    expect(paraSpacingFromLineHeight(1.5)).toBe(0.25);
+    expect(paraSpacingFromLineHeight(1.95)).toBe(0.625);
+  });
+
+  it('T50: paraSpacingFromLineHeight clamps out-of-range input to [0, 1]', () => {
+    expect(paraSpacingFromLineHeight(0.5)).toBe(0);
+    expect(paraSpacingFromLineHeight(-3)).toBe(0);
+    expect(paraSpacingFromLineHeight(5)).toBe(1);
   });
 
   it('T10b: boolean toggles only accept booleans', () => {

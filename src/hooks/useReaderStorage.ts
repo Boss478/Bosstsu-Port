@@ -26,7 +26,6 @@ import { safeGetJSON, safeGetString, safeSetJSON, safeSetString } from '@/lib/st
 import type {
   DockToolKey,
   MotionPreference,
-  ParagraphSpacing,
   ReaderFontFamily,
   ReaderFontWeight,
   ReadingSettingsValue,
@@ -69,7 +68,7 @@ export interface Highlight {
  * [1.2, 2.4] (was [1.0, 2.0]) · width range [80, 160] with default **120%**
  * (was 100% — wider reading column; 120% of the 80ch baseline ≈ 96ch).
  * T10b (ADR-019 D4): fontFamily sarabun · toolbarSize 44 ·
- * paragraphSpacing 0 · fontWeight normal · hideRepealed/
+ * fontWeight normal · hideRepealed/
  * hideAmendmentNotes/focusMode off · autoScrollSpeed 0 (off).
  * T12 (ADR-019 D9 — dock v2.1) + T48 (ADR-025 S1 FINAL lock 2026-08-10):
  * glassOpacity default 75→50 (T12 first moved the v1.11.1 shipped 75 to
@@ -88,7 +87,6 @@ export const DEFAULT_READING_SETTINGS: ReadingSettingsValue = {
   fontFamily: 'sarabun',
   glassOpacity: 50,
   toolbarSize: 44,
-  paragraphSpacing: 0,
   fontWeight: 'normal',
   hideRepealed: false,
   hideAmendmentNotes: false,
@@ -146,7 +144,6 @@ const FONT_FAMILIES: readonly ReaderFontFamily[] = [
   'itim',
 ];
 const FONT_WEIGHTS: readonly ReaderFontWeight[] = ['normal', 'bold'];
-const PARAGRAPH_SPACINGS: readonly number[] = [0, 0.5, 1];
 /** T42 (ADR-025 D2) — motion preference whitelist (invalid → default
  *  'quality'). Stored values are settings-sacred otherwise. */
 export const MOTION_PREFERENCES: readonly MotionPreference[] = ['quality', 'fast', 'disable'];
@@ -158,16 +155,6 @@ const LEGACY_WIDTH: Record<string, number> = { narrow: 80, normal: 100, wide: 12
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
-}
-
-/** T10b: round a stored paragraphSpacing to the nearest allowed step {0,.5,1}
- *  (idempotent on valid values). */
-function sanitizeParagraphSpacing(value: unknown): ParagraphSpacing {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
-  const snapped = PARAGRAPH_SPACINGS.reduce((best, s) =>
-    Math.abs(s - value) < Math.abs(best - value) ? s : best,
-  );
-  return snapped as ParagraphSpacing;
 }
 
 /** T10b: settings change notification — LawlibGlassVars (lawlib layout)
@@ -245,7 +232,6 @@ export function validateReadingSettings(input: unknown): ReadingSettingsValue {
     typeof o.toolbarSize === 'number' && Number.isFinite(o.toolbarSize)
       ? clamp(Math.round(o.toolbarSize), TOOLBAR_SIZE_MIN, TOOLBAR_SIZE_MAX)
       : DEFAULT_READING_SETTINGS.toolbarSize;
-  const paragraphSpacing = sanitizeParagraphSpacing(o.paragraphSpacing);
   const fontWeight = FONT_WEIGHTS.includes(o.fontWeight as ReaderFontWeight)
     ? (o.fontWeight as ReaderFontWeight)
     : DEFAULT_READING_SETTINGS.fontWeight;
@@ -291,7 +277,6 @@ export function validateReadingSettings(input: unknown): ReadingSettingsValue {
     fontFamily,
     glassOpacity,
     toolbarSize,
-    paragraphSpacing,
     fontWeight,
     hideRepealed,
     hideAmendmentNotes,

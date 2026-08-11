@@ -61,7 +61,7 @@ import type { ReaderViewMode } from '@/hooks/useReaderStorage';
 import type { ReaderFontFamily } from '@/app/(website)/lawlib/lib/reader-props';
 import { useTheme } from '@/components/ThemeProvider';
 import LawlibDock from '@/components/LawlibDock';
-import { motionExitHoldMs } from '@/components/LawlibPickers';
+import { motionExitHoldMs, paraSpacingFromLineHeight } from '@/components/LawlibPickers';
 import type { DigestSearchLine } from '@/app/(website)/lawlib/lib/reader-props';
 import CompactView, { BodyLineView } from './CompactView';
 
@@ -135,7 +135,12 @@ function DigestHistoryBlock({
       >
         <div id="lawlib-digest-history-list" inert={!open} className="min-h-0 overflow-hidden">
           <div
-            className={`mt-3 space-y-2 ${open ? 'lawlib-fade-rise' : ''}`}
+            // T50 (ADR-026 W2): BodyLineView's own leading-relaxed was
+            // STRIPPED so digest-body p's inherit the compact wrapper's
+            // inline lineHeight. This header block is OUTSIDE that wrapper
+            // — the wrapper class carries the old 1.625 so the history
+            // look is byte-identical (p's inherit it, as before).
+            className={`mt-3 space-y-2 leading-relaxed ${open ? 'lawlib-fade-rise' : ''}`}
             style={
               open ? { animationDuration: 'calc(150ms * var(--motion-factor, 1))' } : undefined
             }
@@ -1418,13 +1423,15 @@ export default function LawlibReaderClient({
    *  T10b (ADR-019 D4): fontFamily (single application point — the root's
    *  inline font-family consumes the var; Sarabun/Mali resolve through the
    *  existing next/font vars, the 3 new families through the raw @font-face
-   *  declarations), fontWeight (ปกติ/หนา), paragraphSpacing (0/0.5/1 rem). */
+   *  declarations), fontWeight (ปกติ/หนา). T50 (ADR-026 W2): paragraph
+   *  spacing is DERIVED from lineHeight (paraSpacingFromLineHeight —
+   *  1.2 → 0 · 1.8 → 0.5 · 2.4 → 1.0 rem). */
   const typographyVars = {
     '--lawlib-font-size': `${settings.fontSize}px`,
     '--lawlib-width': `calc(80ch * ${settings.width} / 100)`,
     '--lawlib-font-family': FONT_FAMILY_CSS[settings.fontFamily],
     '--lawlib-font-weight': settings.fontWeight === 'bold' ? '700' : '400',
-    '--lawlib-para-spacing': `${settings.paragraphSpacing}rem`,
+    '--lawlib-para-spacing': `${paraSpacingFromLineHeight(settings.lineHeight)}rem`,
   } as React.CSSProperties;
 
   /** Reading-root font/weight — the chosen family applies to the whole

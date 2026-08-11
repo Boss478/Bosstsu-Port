@@ -48,6 +48,7 @@ import { render, fireEvent, screen, act, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import LawlibReaderClient from '@/app/(website)/lawlib/[slug]/LawlibReaderClient';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { DEFAULT_READING_SETTINGS } from '@/hooks/useReaderStorage';
 import { parseDigestMd } from '@/lib/lawlib/parser';
 import { buildView, type DigestView } from '@/lib/lawlib/digest-view';
 import { glossaryIndex } from '@/lib/lawlib-reader';
@@ -1404,5 +1405,45 @@ describe('T46 — popover article-actions hub', () => {
       (localStorage.getItem('lawlib:compact-routing-test:bookmarks') ?? '[]') as string,
     ) as string[];
     expect(stored).toContain('11');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T50 (ADR-026 W2) — compact digest text inherits the wrapper lineHeight
+// ---------------------------------------------------------------------------
+
+describe('T50 compact line-height wiring', () => {
+  it('digest text carries no own leading-* and inherits the wrapper inline lineHeight', async () => {
+    // A non-default lineHeight (2.4) so the pin cannot pass by accident.
+    localStorage.setItem(
+      'lawlib:settings',
+      JSON.stringify({ ...DEFAULT_READING_SETTINGS, lineHeight: 2.4 }),
+    );
+    await renderReader();
+
+    const wrapper = document.querySelector(
+      '.lawlib-article-card [style*="line-height"]',
+    ) as HTMLElement | null;
+    expect(wrapper, 'compact lineHeight wrapper (:1353)').not.toBeNull();
+    expect(wrapper!.style.lineHeight).toBe('2.4');
+
+    // EVERY digest-body paragraph (card body + BodyLineView kinds) inherits
+    // the wrapper's line-height — none may carry its own FIXED leading
+    // (leading-[inherit] is the re-inherit marker, not a fixed value).
+    const paras = Array.from(wrapper!.querySelectorAll('p'));
+    expect(paras.length).toBeGreaterThan(0);
+    for (const p of paras) {
+      expect(p.className).not.toContain('leading-relaxed');
+      expect(p.className).not.toContain('leading-tight');
+      expect(p.className).not.toContain('leading-none');
+      expect(getComputedStyle(p).lineHeight).toBe(getComputedStyle(wrapper!).lineHeight);
+    }
+
+    // Headings keep their own fixed leading (by design — matches FULL view).
+    const headings = Array.from(wrapper!.querySelectorAll('h2, h3'));
+    expect(headings.length).toBeGreaterThan(0);
+    for (const h of headings) {
+      expect(h.className).toContain('leading-relaxed');
+    }
   });
 });

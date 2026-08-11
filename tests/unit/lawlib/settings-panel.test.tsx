@@ -224,13 +224,24 @@ describe('T10b settings panel — ⚙️ wiring', () => {
     expect(document.body.classList.contains('lawlib-hide-repealed')).toBe(false);
   });
 
-  it('paragraph spacing + font weight options persist', async () => {
+  it('font weight options persist', async () => {
     await renderReader();
     const picker = await openSettings();
-    fireEvent.click(within(picker).getByRole('button', { name: 'ระยะห่างย่อหน้า 0.5' }));
-    expect(storedSettings().paragraphSpacing).toBe(0.5);
     fireEvent.click(within(picker).getByRole('button', { name: 'ความหนาตัวอักษรหนา' }));
     expect(storedSettings().fontWeight).toBe('bold');
+  });
+
+  it('T50: ONE line-spacing control — ระยะห่างย่อหน้า row gone, merged hint shows', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    // The merged control (ADR-026 W2 — user decision 2026-08-11): the old
+    // paragraph-spacing row must NOT render anywhere in the panel…
+    expect(within(picker).queryByRole('button', { name: /ระยะห่างย่อหน้า/ })).toBeNull();
+    expect(within(picker).queryByText('เฉพาะเวอร์ชันย่อ')).toBeNull();
+    // …and the line-height section carries the "รวมระยะห่างย่อหน้า" hint.
+    expect(within(picker).getByText('รวมระยะห่างย่อหน้า')).toBeTruthy();
+    // The line-height slider is still there (it now drives both).
+    expect(within(picker).getByRole('slider', { name: 'ความสูงบรรทัด' })).toBeTruthy();
   });
 });
 
@@ -369,7 +380,6 @@ describe('T10b settings panel — auto-scroll + reset', () => {
       fontFamily: 'sarabun',
       glassOpacity: 50,
       toolbarSize: 44,
-      paragraphSpacing: 0,
       fontWeight: 'normal',
       hideRepealed: false,
       hideAmendmentNotes: false,
@@ -453,15 +463,10 @@ describe('T12 settings panel — per-setting คืนค่า resets (ADR-019 
     expect(storedSettings().fontFamily).toBe('sarabun');
   });
 
-  it('paragraph spacing + font weight: each คืนค่า resets only itself', async () => {
+  it('font weight: คืนค่า resets only itself', async () => {
     await renderReader();
     const picker = await openSettings();
-    fireEvent.click(within(picker).getByRole('button', { name: 'ระยะห่างย่อหน้า 0.5' }));
     fireEvent.click(within(picker).getByRole('button', { name: 'ความหนาตัวอักษรหนา' }));
-
-    fireEvent.click(within(picker).getByRole('button', { name: 'คืนค่าระยะห่างย่อหน้า' }));
-    expect(storedSettings().paragraphSpacing).toBe(0);
-    // Font weight untouched by the spacing reset.
     expect(storedSettings().fontWeight).toBe('bold');
 
     fireEvent.click(within(picker).getByRole('button', { name: 'คืนค่าความหนาตัวอักษร' }));

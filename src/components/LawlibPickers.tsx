@@ -14,7 +14,6 @@ import { DEFAULT_PAPER_TONE, type Theme } from '@/components/ThemeProvider';
 import type {
   DockToolKey,
   MotionPreference,
-  ParagraphSpacing,
   ReaderFontFamily,
   ReaderFontWeight,
   ReadingSettingsValue,
@@ -522,6 +521,16 @@ export function FontSizePickerContent({
 export const LINE_HEIGHT_MIN = 1.2;
 export const LINE_HEIGHT_MAX = 2.4;
 
+/** T50 (ADR-026 W2 — user decision 2026-08-11: ONE control): paragraph
+ *  spacing is DERIVED from line height — linear rem over the [1.2, 2.4]
+ *  range: clamp((lh − 1.2) / 1.2, 0, 1) → 1.2 → 0 · 1.8 → 0.5 · 2.4 → 1.0
+ *  (continuous; toFixed(3) keeps float noise out of CSS strings).
+ *  typographyVars (LawlibReaderClient) consumes it as --lawlib-para-spacing. */
+export function paraSpacingFromLineHeight(lineHeight: number): number {
+  const raw = (lineHeight - LINE_HEIGHT_MIN) / (LINE_HEIGHT_MAX - LINE_HEIGHT_MIN);
+  return Number(Math.min(1, Math.max(0, raw)).toFixed(3));
+}
+
 export function LineHeightPickerContent({
   value,
   onChange,
@@ -656,7 +665,6 @@ export const TOOLBAR_SIZE_MAX = 56;
 export const TOOLBAR_SIZE_TOUCH_MIN = 44;
 export const AUTO_SCROLL_MIN = 0;
 export const AUTO_SCROLL_MAX = 5;
-export const PARAGRAPH_SPACING_OPTIONS: readonly number[] = [0, 0.5, 1];
 export const FONT_WEIGHT_OPTIONS: ReadonlyArray<{ value: ReaderFontWeight; label: string }> = [
   { value: 'normal', label: 'ปกติ' },
   { value: 'bold', label: 'หนา' },
@@ -1094,6 +1102,11 @@ export function SettingsPanelContent({
         >
           ความสูงบรรทัด
         </SettingsSectionTitle>
+        {/* T50 (ADR-026 W2 — user decision 2026-08-11): ONE control — line
+            height drives BOTH line spacing and paragraph spacing. */}
+        <p className="text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
+          รวมระยะห่างย่อหน้า
+        </p>
         <LineHeightPickerContent
           value={settings.lineHeight}
           onChange={(lineHeight) => onChange((prev) => ({ ...prev, lineHeight }))}
@@ -1270,37 +1283,9 @@ export function SettingsPanelContent({
         })}
       </div>
 
-      {/* ─── Paragraph spacing + weight ────────────────────────────────── */}
-      <SettingsSectionTitle>ย่อหน้าและตัวอักษร</SettingsSectionTitle>
-      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
-        <div className="flex min-w-0 items-center gap-1">
-          <span className="shrink-0 text-xs font-semibold text-slate-600 dark:text-slate-300">
-            ระยะห่างย่อหน้า
-          </span>
-          <ResetButton
-            label="ระยะห่างย่อหน้า"
-            disabled={settings.paragraphSpacing === d.paragraphSpacing}
-            onClick={() => onChange((prev) => ({ ...prev, paragraphSpacing: d.paragraphSpacing }))}
-          />
-        </div>
-        <div className="flex gap-1.5">
-          {PARAGRAPH_SPACING_OPTIONS.map((v) => (
-            <OptionButton
-              key={v}
-              pressed={settings.paragraphSpacing === v}
-              onClick={() =>
-                onChange((prev) => ({ ...prev, paragraphSpacing: v as ParagraphSpacing }))
-              }
-              label={`ระยะห่างย่อหน้า ${v}`}
-            >
-              {v === 0 ? 'ปกติ' : v === 0.5 ? 'ปานกลาง' : 'กว้าง'}
-            </OptionButton>
-          ))}
-        </div>
-      </div>
-      <p className="text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
-        เฉพาะเวอร์ชันย่อ
-      </p>
+      {/* ─── Font weight (T50: the paragraph-spacing row is GONE — line
+          height now drives para spacing; ADR-026 W2) ─────────────────── */}
+      <SettingsSectionTitle>ความหนาตัวอักษร</SettingsSectionTitle>
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
         <div className="flex min-w-0 items-center gap-1">
           <span className="shrink-0 text-xs font-semibold text-slate-600 dark:text-slate-300">

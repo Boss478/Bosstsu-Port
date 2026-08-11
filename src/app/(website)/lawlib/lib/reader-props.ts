@@ -93,9 +93,6 @@ export type ReaderFontFamily = 'sarabun' | 'noto-sans-thai' | 'mali' | 'bai-jamj
 /** T10b: body font weight — ปกติ (400) / หนา (700). */
 export type ReaderFontWeight = 'normal' | 'bold';
 
-/** T10b: inter-paragraph spacing in rem — 0/0.5/1. */
-export type ParagraphSpacing = 0 | 0.5 | 1;
-
 /** T42 (ADR-025 D2) — 3-tier motion preference: quality (full durations),
  *  fast (halved via --motion-factor 0.5), disable (blanket kill). The
  *  EFFECTIVE tier also folds in OS prefers-reduced-motion (quality
@@ -122,8 +119,6 @@ export type ReadingSettingsValue = {
   /** T10b: toolbar size in px 24-56 (default 44). Touch devices floor at 44
    *  (WCAG 2.5.8 — enforced by the dock, not the validator). */
   toolbarSize: number;
-  /** T10b: inter-paragraph spacing in rem (default 0). */
-  paragraphSpacing: ParagraphSpacing;
   /** T10b: body font weight (default 'normal'). */
   fontWeight: ReaderFontWeight;
   /** T10b: hide repealed-paragraph blocks (`.lawlib-repealed`, FULL+COMPACT). */

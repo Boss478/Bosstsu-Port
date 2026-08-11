@@ -630,7 +630,11 @@ function ArticleCard({
           className="fi fi-sr-search text-xs text-slate-400 dark:text-slate-500"
         />
       </div>
-      <div className="space-y-2 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+      {/* T50 (ADR-026 W2): no own leading-* — the p's inherit the wrapper's
+          inline lineHeight (the slider drives digest body text). text-sm
+          carries its OWN line-height in Tailwind v4, so the body div also
+          re-inherits explicitly. */}
+      <div className="space-y-2 text-sm leading-[inherit] text-slate-700 dark:text-slate-300">
         {line.parts.map((part, i) => (
           <p
             key={i}
@@ -972,10 +976,13 @@ export function BodyLineView({
   }
   if (line.kind === 'quote') {
     return (
+      // T50 (ADR-026 W2): own leading-relaxed STRIPPED — digest-body p's
+      // inherit the wrapper inline lineHeight; the reader-header history
+      // block re-carries it on ITS wrapper (LawlibReaderClient).
       <p
         id={line.id}
         tabIndex={-1}
-        className={`mt-3 border-l-4 border-amber-300 bg-amber-50 px-4 py-2 text-sm leading-relaxed text-slate-600 dark:border-amber-500/40 dark:bg-amber-950/30 dark:text-slate-300`}
+        className={`mt-3 border-l-4 border-amber-300 bg-amber-50 px-4 py-2 text-sm leading-[inherit] text-slate-600 dark:border-amber-500/40 dark:bg-amber-950/30 dark:text-slate-300`}
       >
         {tokens}
       </p>
@@ -986,7 +993,7 @@ export function BodyLineView({
       <p
         id={line.id}
         tabIndex={-1}
-        className={`mt-2 flex gap-2 leading-relaxed text-slate-700 dark:text-slate-300`}
+        className={`mt-2 flex gap-2 text-slate-700 dark:text-slate-300`}
       >
         <span aria-hidden="true" className="shrink-0 select-none text-blue-500">
           •
@@ -999,7 +1006,7 @@ export function BodyLineView({
     <p
       id={line.id}
       tabIndex={-1}
-      className={`mt-3 leading-relaxed text-slate-700 dark:text-slate-300 ${
+      className={`mt-3 text-slate-700 dark:text-slate-300 ${
         line.kind === 'numbered' ? 'pl-5' : ''
       }`}
     >
