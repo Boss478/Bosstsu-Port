@@ -56,6 +56,14 @@
  * - bookmark: toggle + aria-pressed + count badge
  * - T12c theme dot: baselines on the RESOLVED initial theme (OS-dark
  *   fallback users see no false dot on first visit)
+ * - W5 (ADR-026): the picker popover REPOSITIONS on content height change
+ *   (theme light/dark → read/sepia mounts the paper slider) via a
+ *   ResizeObserver on the root — loop-guarded (prev-height ref) and
+ *   closing-guarded (no reposition mid-exit-hold)
+ * - W5 (ADR-026): the picker popover REPOSITIONS on content height change
+ *   (theme light/dark → read/sepia mounts the paper slider) via a
+ *   ResizeObserver on the root — loop-guarded (prev-height ref) and
+ *   closing-guarded (no reposition mid-exit-hold)
  * - mobile-safe panel: max-h + overflow-y-auto (T20 — desktop: NONE, the
  *   panel grows with its content; mobile: on the sheet only)
  *
@@ -1592,3 +1600,216 @@ const dockProps: LawlibDockProps = {
   bookmarks: [],
   escBlocked: false,
 };
+
+// ---------------------------------------------------------------------------
+// W5 (ADR-026) — PickerPopover repositions when its CONTENT grows/shrinks
+// after open (theme light/dark → read/sepia mounts the paper slider ~55px).
+// jsdom has no layout engine, so the tests drive the geometry explicitly:
+// - window.innerWidth/innerHeight are spied (viewport)
+// - the theme button's rect is mocked (the anchor)
+// - the popover root's LAYOUT size (offsetHeight/offsetWidth — what
+//   placePicker reads, immune to the pop-in scale transform) is mocked and
+//   the ResizeObserver callback is fired manually with the grown/shrunk
+//   size (a real browser fires the RO after layout, so the layout size
+//   already reflects the new content)
+// ---------------------------------------------------------------------------
+
+/** W5 — controllable ResizeObserver stub: records instances + observed
+ *  elements so a test can fire the callback and drive the recompute. */
+class ResizeObserverStub {
+  static instances: ResizeObserverStub[] = [];
+  readonly observed: Element[] = [];
+  readonly callback: ResizeObserverCallback;
+  observe = vi.fn((el: Element) => {
+    this.observed.push(el);
+  });
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+
+  constructor(callback: ResizeObserverCallback) {
+    this.callback = callback;
+    ResizeObserverStub.instances.push(this);
+  }
+
+  /** Fire a resize notification (the callback ignores the entry — it
+   *  re-reads the layout size, which the test has mocked to the NEW size,
+   *  matching real-browser RO-after-layout timing). */
+  fire(): void {
+    this.callback(
+      [{ contentRect: { height: 0 } } as unknown as ResizeObserverEntry],
+      this as unknown as ResizeObserver,
+    );
+  }
+}
+
+/** The dock's L1 theme button rect — BOT-MID scenario: anchor at the
+ *  bottom of an 800×790 viewport (flips above at ~155px, fits below at
+ *  ~120px: below = 644+6 = 650 → 650+155 = 805 > 784 vs 650+120 = 770 ≤ 784).
+ *  Returns the spy (placePicker reads the anchor once per recompute — the
+ *  tests count those reads to prove the loop/closing guards). */
+function mockAnchorRect(btn: HTMLElement) {
+  return vi.spyOn(btn, 'getBoundingClientRect').mockReturnValue({
+    top: 600,
+    bottom: 644,
+    left: 400,
+    right: 500,
+    width: 100,
+    height: 44,
+    x: 400,
+    y: 600,
+    toJSON: () => ({}),
+  } as DOMRect);
+}
+
+/** Set the popover's LAYOUT size (jsdom has no layout — offsetHeight/
+ *  offsetWidth are 0 by default). `placePicker` uses the layout box so the
+ *  pop-in scale transform can't leak into the placement. */
+function mockPopoverSize(el: HTMLElement, height: number, width = 256): void {
+  Object.defineProperty(el, 'offsetHeight', { configurable: true, value: height });
+  Object.defineProperty(el, 'offsetWidth', { configurable: true, value: width });
+}
+
+describe('W5 — picker popover repositions on height change (ADR-026 W5)', () => {
+  let innerHeightSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    ResizeObserverStub.instances.length = 0;
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(800);
+    innerHeightSpy = vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(790);
+    vi.stubGlobal('ResizeObserver', ResizeObserverStub);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('grow (light→read): recomputes so the popover bottom stays ≤ anchor.top − GAP; shrink re-anchors below', async () => {
+    await renderReader();
+    const themeBtn = screen.getByRole('button', { name: /ธีม/ });
+    mockAnchorRect(themeBtn);
+
+    fireEvent.click(themeBtn);
+    const popover = screen.getByRole('group', { name: 'ธีม' }) as HTMLElement;
+    // The popover root IS observed by the stub's RO.
+    const ro = ResizeObserverStub.instances.find((i) => i.observed[0] === popover);
+    expect(ro).toBeTruthy();
+
+    // Open at light: the RO fires once (open-time jsdom size 0 → recompute).
+    // At 120px it fits BELOW → top = 644 + 6 = 650.
+    mockPopoverSize(popover, 120);
+    act(() => ro!.fire());
+    expect(popover.style.top).toBe('650px');
+    expect(popover.style.transformOrigin).toBe('50px 0px');
+
+    // Switch to กระดาษ: the tone slider mounts → the popover grows (+~55px).
+    // The RO fires AFTER layout → the layout size already reports 155.
+    mockPopoverSize(popover, 155);
+    act(() => ro!.fire());
+    // Flip ABOVE: bottom = 439 + 155 = 594 = anchor.top − GAP → no overlap.
+    expect(popover.style.top).toBe('439px');
+    expect(popover.style.transformOrigin).toBe('50px 155px');
+    expect(439 + 155).toBeLessThanOrEqual(600 - 6);
+
+    // Switch back to สว่าง: the slider unmounts → shrink re-anchors BELOW.
+    mockPopoverSize(popover, 120);
+    act(() => ro!.fire());
+    expect(popover.style.top).toBe('650px');
+    expect(popover.style.transformOrigin).toBe('50px 0px');
+  });
+
+  it('loop guard: a fire with the SAME height does not recompute (prev-height ref)', async () => {
+    await renderReader();
+    const themeBtn = screen.getByRole('button', { name: /ธีม/ });
+    const anchorSpy = mockAnchorRect(themeBtn);
+
+    fireEvent.click(themeBtn);
+    const popover = screen.getByRole('group', { name: 'ธีม' }) as HTMLElement;
+    const ro = ResizeObserverStub.instances.find((i) => i.observed[0] === popover);
+    expect(ro).toBeTruthy();
+
+    mockPopoverSize(popover, 155);
+    act(() => ro!.fire()); // 155 ≠ prev (open-time 0) → recompute (anchor read)
+    const callsBefore = anchorSpy.mock.calls.length;
+    act(() => ro!.fire()); // 155 === prev → SKIP — the anchor is NOT re-read
+    expect(anchorSpy.mock.calls.length).toBe(callsBefore);
+  });
+
+  it('closing guard (F5): no reposition while the exit hold plays', async () => {
+    mockMatchMedia({ reducedMotion: false }); // hold path: closing stays true
+    await renderReader();
+    const themeBtn = screen.getByRole('button', { name: /ธีม/ });
+    mockAnchorRect(themeBtn);
+
+    fireEvent.click(themeBtn);
+    const popover = screen.getByRole('group', { name: 'ธีม' }) as HTMLElement;
+    const ro = ResizeObserverStub.instances.find((i) => i.observed[0] === popover);
+    expect(ro).toBeTruthy();
+    mockPopoverSize(popover, 120);
+    act(() => ro!.fire());
+    expect(popover.style.top).toBe('650px');
+
+    // Outside click → exit hold (closing=true, pop-out playing).
+    fireEvent.pointerDown(document.body);
+    expect(popover.classList.contains('lawlib-pop-out')).toBe(true);
+    // A size change mid-exit must NOT move the surface (no origin jump) —
+    // the closing check short-circuits before the size is even read.
+    mockPopoverSize(popover, 155);
+    act(() => ro!.fire());
+    expect(popover.style.top).toBe('650px');
+    expect(popover.style.transformOrigin).toBe('50px 0px');
+
+    // Let the exit hold finish cleanly.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    });
+    expect(screen.queryByRole('group', { name: 'ธีม' })).toBeNull();
+  });
+
+  it('unmount: the ResizeObserver disconnects when the popover closes', async () => {
+    await renderReader(); // reduced-motion default (top-level stub) → instant close
+    const themeBtn = screen.getByRole('button', { name: /ธีม/ });
+    mockAnchorRect(themeBtn);
+
+    fireEvent.click(themeBtn);
+    const popover = screen.getByRole('group', { name: 'ธีม' }) as HTMLElement;
+    const ro = ResizeObserverStub.instances.find((i) => i.observed[0] === popover);
+    expect(ro).toBeTruthy();
+    expect(ro!.disconnect).not.toHaveBeenCalled();
+
+    // Outside click closes INSTANT (reduced motion) → the popover unmounts
+    // → the placement-effect cleanup must disconnect the observer (a
+    // leaked RO would keep firing callbacks against a detached node).
+    fireEvent.pointerDown(document.body);
+    expect(screen.queryByRole('group', { name: 'ธีม' })).toBeNull();
+    expect(ro!.disconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('edge (AC-5): viewport too short for the below-flip → top clamps at GAP', async () => {
+    innerHeightSpy.mockReturnValue(150);
+    await renderReader();
+    const themeBtn = screen.getByRole('button', { name: /ธีม/ });
+    // Anchor near the TOP of the 150px viewport: an above-flip would
+    // overshoot the top edge → the GAP clamp must win (existing behavior).
+    vi.spyOn(themeBtn, 'getBoundingClientRect').mockReturnValue({
+      top: 100,
+      bottom: 144,
+      left: 400,
+      right: 500,
+      width: 100,
+      height: 44,
+      x: 400,
+      y: 100,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    fireEvent.click(themeBtn);
+    const popover = screen.getByRole('group', { name: 'ธีม' }) as HTMLElement;
+    const ro = ResizeObserverStub.instances.find((i) => i.observed[0] === popover);
+    expect(ro).toBeTruthy();
+    // 200px tall at a 150px viewport: below (150) impossible, above-flip
+    // (100 − 200 − 6 = −106) overshoots the top → clamp top = GAP = 6.
+    mockPopoverSize(popover, 200);
+    act(() => ro!.fire());
+    expect(popover.style.top).toBe('6px');
+  });
+});

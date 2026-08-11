@@ -83,6 +83,40 @@ export function secondsPerLine(speed: number, fontSize: number, lineHeight: numb
 
 const POPOVER_GAP = 6;
 
+/** W5 (ADR-026 W5) — place the popover against the LIVE anchor rect:
+ *  below-first, flipped above when the viewport is too short (top clamped
+ *  ≥ GAP — edge case preserved), horizontally clamped; transform-origin at
+ *  the trigger (T29 D10 per-placement origin). Extracted from the open
+ *  effect so the ResizeObserver can re-run it when the content grows
+ *  (theme picker mounts the paper slider) or shrinks. Pure placement —
+ *  never touches visibility/closing. The popover's OWN size comes from
+ *  offsetWidth/offsetHeight (LAYOUT box): the pop-in/pop-out scale
+ *  transform would otherwise leak into getBoundingClientRect (the
+ *  scale(0.94) from-frame → a ~6% stale top + a wrong transformOrigin;
+ *  also corrupts a recompute that lands inside the 250ms entry). */
+function placePicker(el: HTMLElement, anchorEl: HTMLElement): void {
+  const width = el.offsetWidth;
+  const height = el.offsetHeight;
+  const anchor = anchorEl.getBoundingClientRect();
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const below = anchor.bottom + POPOVER_GAP;
+  const top =
+    below + height <= vh - POPOVER_GAP
+      ? below
+      : Math.max(anchor.top - height - POPOVER_GAP, POPOVER_GAP);
+  const left = Math.min(
+    Math.max(anchor.left, POPOVER_GAP),
+    Math.max(vw - width - POPOVER_GAP, POPOVER_GAP),
+  );
+  el.style.left = `${left}px`;
+  el.style.top = `${top}px`;
+  const anchorCx = anchor.left + anchor.width / 2;
+  const originX = Math.min(Math.max(anchorCx - left, 0), width);
+  const originY = top === below ? 0 : height;
+  el.style.transformOrigin = `${originX}px ${originY}px`;
+}
+
 /** T29 — picker popover exit hold (ADR-023 D9: pop-out 200ms in-curve —
  *  the 60–75% rule mirror of the 300ms entry). The delay-unmount keeps the
  *  popover mounted exactly this long while lawlib-pop-out plays. */
@@ -131,6 +165,14 @@ export function PickerPopover({
    *  change) can CANCEL a pending exit — a stale timer must never unmount
    *  a re-opened popover (ADR-023 D4). */
   const exitTimerRef = useRef<number | null>(null);
+  /** W5 — `closing` mirror for the ResizeObserver callback: the RO lives
+   *  in the [anchorEl] effect, so its callback would close over a STALE
+   *  `closing` from the open render. The ref stays live — skip reposition
+   *  while the exit hold plays (no transformOrigin jump mid-pop-out, F5). */
+  const closingRef = useRef(false);
+  /** W5 — last placed height. The RO only recomputes on an ACTUAL size
+   *  change (loop guard — ADR-026 W5 risk note). */
+  const prevHeightRef = useRef(0);
   /** T29 (ADR-023 D8): prefers-reduced-motion → close is INSTANT, no exit
    *  hold (the CSS kill already zeroes the entry/stagger animations). */
   const [reducedMotion] = useState(
@@ -155,19 +197,23 @@ export function PickerPopover({
       return;
     }
     setClosing(true);
+    closingRef.current = true;
     exitTimerRef.current = window.setTimeout(() => {
       exitTimerRef.current = null;
       onClose();
     }, holdMs);
   }, [closing, reducedMotion, onClose]);
 
-  // Position once, at open (captured anchor rect — transient popover, like
+  // Position at open (captured anchor rect — transient popover, like
   // LawTooltip/ArticlePopover). Below the button, flipped above when the
   // viewport is too short; horizontal clamped to the viewport. T29: also
   // sets the pop's transform-origin AT THE TRIGGER (ADR-023 D10 — origin
   // per placement): horizontal = the anchor's center clamped into the
   // popover; vertical = the edge the popover grew from (top when opening
   // below, bottom when flipped above).
+  // W5 (ADR-026 W5): extracted into `placePicker` so the ResizeObserver
+  // below can RE-RUN the same placement when the content grows or shrinks
+  // after open (theme light/dark → read/sepia mounts the paper slider).
   useLayoutEffect(() => {
     const el = rootRef.current;
     if (el === null || anchorEl === null) return;
@@ -179,26 +225,28 @@ export function PickerPopover({
       exitTimerRef.current = null;
     }
     setClosing(false);
-    const rect = el.getBoundingClientRect();
-    const anchor = anchorEl.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const below = anchor.bottom + POPOVER_GAP;
-    const top =
-      below + rect.height <= vh - POPOVER_GAP
-        ? below
-        : Math.max(anchor.top - rect.height - POPOVER_GAP, POPOVER_GAP);
-    const left = Math.min(
-      Math.max(anchor.left, POPOVER_GAP),
-      Math.max(vw - rect.width - POPOVER_GAP, POPOVER_GAP),
-    );
-    el.style.left = `${left}px`;
-    el.style.top = `${top}px`;
-    const anchorCx = anchor.left + anchor.width / 2;
-    const originX = Math.min(Math.max(anchorCx - left, 0), rect.width);
-    const originY = top === below ? 0 : rect.height;
-    el.style.transformOrigin = `${originX}px ${originY}px`;
+    closingRef.current = false;
+    placePicker(el, anchorEl);
+    prevHeightRef.current = el.offsetHeight;
     el.style.visibility = 'visible';
+    // W5 — the popover can GROW after open (the paper slider mounts ~55px
+    // on read/sepia): with `top` pinned, the bottom edge slides down over
+    // the anchor button + the dock (visible at bottom-center, where the
+    // popover opens ABOVE the dock). A ResizeObserver on the root re-runs
+    // the same placement on ANY actual size change (grow AND shrink).
+    // Loop guard: recompute only when the height really changed (ADR-026
+    // W5 risk note). Closing guard (F5): skip while the exit hold plays —
+    // no transformOrigin jump mid-pop-out. jsdom/SSR: RO is effect-only.
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => {
+      if (closingRef.current) return;
+      const height = el.offsetHeight;
+      if (height === prevHeightRef.current) return;
+      prevHeightRef.current = height;
+      placePicker(el, anchorEl);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
   }, [anchorEl]);
 
   // Esc + outside-close (the anchor button is excluded — its click toggles).
