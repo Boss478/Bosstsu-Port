@@ -759,21 +759,39 @@ function ResetButton({
   );
 }
 
-/** h2 section heading — the a11y pattern from fix2 (settings sections).
+/** Section heading — the a11y pattern from fix2 (settings sections).
  *  T12: single-setting sections may pass `action` (the per-setting reset) —
- *  rendered right-aligned in the heading row. */
+ *  rendered right-aligned in the heading row.
+ *  T54 (ADR-026 W6): `level` — group headers are h2 (default), section
+ *  titles inside groups are h3. Divider spec (scrutinize F-A): h2 rows sit
+ *  at the PANEL ROOT, so the first group (กราฟิก) is the root's first child
+ *  → `first:border-t-0`; later groups carry their border-t divider. h3 rows
+ *  live INSIDE the group wrapper, so only each group's first section is
+ *  border-t-0 (`first-of-type` per wrapper — the root-level h2 rows are
+ *  never siblings of the h3 rows, so they cannot break the selector).
+ *  Result: every section has a divider (today's staggered sections have
+ *  none — the intended consistency fix). */
 function SettingsSectionTitle({
   children,
   action,
+  level = 'h2',
 }: {
   children: React.ReactNode;
   action?: React.ReactNode;
+  /** T54 — group header (h2, default) or section title (h3). */
+  level?: 'h2' | 'h3';
 }) {
   return (
-    <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-3 first:border-t-0 first:pt-0 dark:border-slate-800">
-      <h2 className="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-        {children}
-      </h2>
+    <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-3 first-of-type:border-t-0 first-of-type:pt-0 dark:border-slate-800">
+      {level === 'h3' ? (
+        <h3 className="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          {children}
+        </h3>
+      ) : (
+        <h2 className="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          {children}
+        </h2>
+      )}
       {action !== undefined && <div className="flex shrink-0 items-center">{action}</div>}
     </div>
   );
@@ -942,18 +960,70 @@ export function SettingsPanelContent({
 
   return (
     <div className="space-y-3">
-      {/* ─── T47: QUICK section (user decision 2026-08-10 — quick path to
-          the important settings = TOP of the ⚙️ panel, no new dock buttons,
-          no long-press). The 3 most-used settings in one glance, in this
-          order: กระจก (ทึบ/เบลอ) → การเคลื่อนไหว (ปิด/เร็ว/ปกติ) →
-          เลื่อนอัตโนมัติ speed. Blocks moved here INTACT from their old
-          spots (single source of truth — NO duplication); the T29 stagger
-          below starts AFTER this group. ──────────────────────────────── */}
-      <div className="space-y-3">
-        <SettingsSectionTitle>สำคัญ</SettingsSectionTitle>
+      {/* ─── T54 (ADR-026 W6 — user decision 2026-08-11, approved after
+          scrutinize ×2): the T47 quick section ("สำคัญ") is REMOVED — ALL
+          settings regrouped into 3 labeled groups (กราฟิก / ตัวอักษร /
+          เครื่องมือ). Group headers = h2 (SettingsSectionTitle default);
+          every section title inside = h3 (the new `level` prop). The 3
+          quick-section blocks (กระจก / การเคลื่อนไหว / เลื่อนอัตโนมัติ)
+          moved INTACT into their groups — single source of truth, no
+          duplication. Divider spec (scrutinize F-A): h2 rows sit at the
+          panel ROOT — the first group (กราฟิก) is the root's first child
+          (border-t-0), the later groups carry their border-t divider; h3
+          rows live INSIDE the group wrappers, so only each group's first
+          section is border-t-0 (`first-of-type` per wrapper — the root-level
+          h2 is never a sibling of the h3 rows, so it cannot break the
+          selector). Result: EVERY section has a divider (today's staggered
+          sections have none — intended consistency fix). Stagger (F3): one
+          wrapper per group, lawlib-fade-rise + inline delay 0/40/80ms — the
+          old per-section stagger wrappers are gone (D10: one animation per
+          element; the RM kill zeroes delay+duration). ────────────────── */}
+      <SettingsSectionTitle>กราฟิก</SettingsSectionTitle>
 
-        {/* ─── Glass (T47 quick section) ────────────────────────────────── */}
+      <div className="lawlib-fade-rise space-y-3" style={{ animationDelay: '0ms' }}>
+        <SettingsSectionTitle level="h3">ธีม</SettingsSectionTitle>
+        <div className="grid grid-cols-2 gap-1.5">
+          {THEME_CHOICES.map((choice) => (
+            <OptionButton
+              key={choice.value}
+              pressed={theme === choice.value}
+              onClick={() => setTheme(choice.value)}
+              label={`ธีม${choice.label}`}
+            >
+              <i aria-hidden="true" className={`fi ${choice.icon} text-[10px]`} />
+              {choice.label}
+            </OptionButton>
+          ))}
+        </div>
+
         <SettingsSectionTitle
+          level="h3"
+          action={
+            <ResetButton
+              label="ความเหลืองของกระดาษ"
+              disabled={paperTone === DEFAULT_PAPER_TONE}
+              onClick={handleToneReset}
+              pop={tonePop}
+            />
+          }
+        >
+          ความเหลืองของกระดาษ
+        </SettingsSectionTitle>
+        <SliderRow
+          id="lawlib-paper-tone-settings"
+          label="ความเหลืองของกระดาษ"
+          min={0}
+          max={100}
+          step={1}
+          value={paperTone}
+          display={`${paperTone}`}
+          onChange={setPaperTone}
+        />
+
+        {/* ─── Glass (T54: กราฟิก group — moved from the T47 quick section
+            INTACT; single source of truth) ────────────────────────────── */}
+        <SettingsSectionTitle
+          level="h3"
           action={
             <ResetButton
               label="ความทึบ"
@@ -982,6 +1052,7 @@ export function SettingsPanelContent({
             เร็ว or ปิด; the hint explains why). The stored value stays
             'quality' until the user acts. */}
         <SettingsSectionTitle
+          level="h3"
           action={
             <ResetButton
               label="การเคลื่อนไหว"
@@ -1023,9 +1094,161 @@ export function SettingsPanelContent({
             ระบบลดการเคลื่อนไหวเปิดอยู่ — เลือกได้ เร็ว หรือ ปิด
           </p>
         )}
+      </div>
 
-        {/* ─── Auto-scroll (T47 quick section) ──────────────────────────── */}
+      <SettingsSectionTitle>ตัวอักษร</SettingsSectionTitle>
+
+      <div
+        className="lawlib-fade-rise space-y-3"
+        style={{ animationDelay: 'calc(40ms * var(--motion-factor, 1))' }}
+      >
         <SettingsSectionTitle
+          level="h3"
+          action={
+            <ResetButton
+              label="ขนาดตัวอักษร"
+              disabled={settings.fontSize === d.fontSize}
+              onClick={() => onChange((prev) => ({ ...prev, fontSize: d.fontSize }))}
+            />
+          }
+        >
+          ขนาดตัวอักษร
+        </SettingsSectionTitle>
+        <FontSizePickerContent
+          value={settings.fontSize}
+          onChange={(fontSize) => onChange((prev) => ({ ...prev, fontSize }))}
+        />
+
+        <SettingsSectionTitle
+          level="h3"
+          action={
+            <ResetButton
+              label="ความสูงบรรทัด"
+              disabled={settings.lineHeight === d.lineHeight}
+              onClick={() => onChange((prev) => ({ ...prev, lineHeight: d.lineHeight }))}
+            />
+          }
+        >
+          ความสูงบรรทัด
+        </SettingsSectionTitle>
+        {/* T50 (ADR-026 W2 — user decision 2026-08-11): ONE control — line
+            height drives BOTH line spacing and paragraph spacing. */}
+        <p className="text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
+          รวมระยะห่างย่อหน้า
+        </p>
+        <LineHeightPickerContent
+          value={settings.lineHeight}
+          onChange={(lineHeight) => onChange((prev) => ({ ...prev, lineHeight }))}
+        />
+
+        <SettingsSectionTitle
+          level="h3"
+          action={
+            <ResetButton
+              label="ความกว้างเนื้อหา"
+              disabled={settings.width === d.width}
+              onClick={() => onChange((prev) => ({ ...prev, width: d.width }))}
+            />
+          }
+        >
+          ความกว้างเนื้อหา
+        </SettingsSectionTitle>
+        <WidthPickerContent
+          value={settings.width}
+          onChange={(width) => onChange((prev) => ({ ...prev, width }))}
+        />
+
+        {/* ─── Font family ───────────────────────────────────────────────── */}
+        <SettingsSectionTitle
+          level="h3"
+          action={
+            <ResetButton
+              label="ฟอนต์ตัวบท"
+              disabled={settings.fontFamily === d.fontFamily}
+              onClick={() => onChange((prev) => ({ ...prev, fontFamily: d.fontFamily }))}
+            />
+          }
+        >
+          ฟอนต์ตัวบท
+        </SettingsSectionTitle>
+        <div className="grid grid-cols-2 gap-1.5">
+          {FONT_FAMILY_OPTIONS.map((family) => (
+            <OptionButton
+              key={family.value}
+              pressed={settings.fontFamily === family.value}
+              onClick={() => onChange((prev) => ({ ...prev, fontFamily: family.value }))}
+              label={`ฟอนต์ ${family.label}`}
+            >
+              {/* Preview MUST NOT force-load the family — names render in the
+                  default font; the face applies only on selection (senior
+                  MAJOR #4). */}
+              {family.label}
+            </OptionButton>
+          ))}
+        </div>
+
+        {/* ─── Font weight (T50: the paragraph-spacing row is GONE — line
+            height now drives para spacing; ADR-026 W2) ─────────────────── */}
+        <SettingsSectionTitle level="h3">ความหนาตัวอักษร</SettingsSectionTitle>
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
+          <div className="flex min-w-0 items-center gap-1">
+            <span className="shrink-0 text-xs font-semibold text-slate-600 dark:text-slate-300">
+              ความหนาตัวอักษร
+            </span>
+            <ResetButton
+              label="ความหนาตัวอักษร"
+              disabled={settings.fontWeight === d.fontWeight}
+              onClick={() => onChange((prev) => ({ ...prev, fontWeight: d.fontWeight }))}
+            />
+          </div>
+          <div className="flex gap-1.5">
+            {FONT_WEIGHT_OPTIONS.map((w) => (
+              <OptionButton
+                key={w.value}
+                pressed={settings.fontWeight === w.value}
+                onClick={() => onChange((prev) => ({ ...prev, fontWeight: w.value }))}
+                label={`ความหนาตัวอักษร${w.label}`}
+              >
+                {w.label}
+              </OptionButton>
+            ))}
+          </div>
+        </div>
+
+        {/* ─── Content toggles ───────────────────────────────────────────── */}
+        <SettingsSectionTitle level="h3">เนื้อหา</SettingsSectionTitle>
+        <ToggleRow
+          id="lawlib-hide-repealed"
+          label="ซ่อนมาตรา/วรรคที่ถูกยกเลิก"
+          hint="ใช้ได้ทั้งฉบับเต็มและเวอร์ชันย่อ"
+          checked={settings.hideRepealed}
+          onChange={(hideRepealed) => onChange((prev) => ({ ...prev, hideRepealed }))}
+          onReset={() => onChange((prev) => ({ ...prev, hideRepealed: d.hideRepealed }))}
+          resetLabel="ซ่อนมาตรา"
+        />
+        <ToggleRow
+          id="lawlib-hide-amendment-notes"
+          label="ซ่อนโน้ตการแก้ไข"
+          hint="ซ่อน 'แก้ไขโดยฉบับที่ N' ในป๊อปอัปมาตรา"
+          checked={settings.hideAmendmentNotes}
+          onChange={(hideAmendmentNotes) => onChange((prev) => ({ ...prev, hideAmendmentNotes }))}
+          onReset={() =>
+            onChange((prev) => ({ ...prev, hideAmendmentNotes: d.hideAmendmentNotes }))
+          }
+          resetLabel="ซ่อนโน้ต"
+        />
+      </div>
+
+      <SettingsSectionTitle>เครื่องมือ</SettingsSectionTitle>
+
+      <div
+        className="lawlib-fade-rise space-y-3"
+        style={{ animationDelay: 'calc(80ms * var(--motion-factor, 1))' }}
+      >
+        {/* ─── Auto-scroll (T54: เครื่องมือ group — moved from the T47 quick
+            section INTACT; reading aids first) ────────────────────────── */}
+        <SettingsSectionTitle
+          level="h3"
           action={
             <ResetButton
               label="ความเร็วเลื่อนอัตโนมัติ"
@@ -1060,370 +1283,185 @@ export function SettingsPanelContent({
           หยุดเมื่อคุณเลื่อนหรือแตะหน้าจอ
           {reducedMotion && ' — ปิดชั่วคราวเพราะตั้งค่าลดการเคลื่อนไหวของระบบ'}
         </p>
-      </div>
 
-      {/* ─── T23: reading-surface controls (user decision 2026-08-09 — the
-          L1 pickers' components, second mount point; L1 pickers stay).
-          T29: the 5 sections stagger in 40ms steps on open (ADR-023 D9 —
-          เนื้อหา stagger 40ms; T24 .lawlib-stagger is 60ms, its contract
-          untouched). Each wrapper owns ONE animation (D10): lawlib-fade-rise
-          with the locked step as inline animation-delay — mount-only, live
-          re-renders don't re-stagger; the RM kill zeroes delay+duration. ── */}
-      <div className="lawlib-fade-rise space-y-3" style={{ animationDelay: '0ms' }}>
-        <SettingsSectionTitle>ธีม</SettingsSectionTitle>
-        <div className="grid grid-cols-2 gap-1.5">
-          {THEME_CHOICES.map((choice) => (
-            <OptionButton
-              key={choice.value}
-              pressed={theme === choice.value}
-              onClick={() => setTheme(choice.value)}
-              label={`ธีม${choice.label}`}
-            >
-              <i aria-hidden="true" className={`fi ${choice.icon} text-[10px]`} />
-              {choice.label}
-            </OptionButton>
-          ))}
-        </div>
-      </div>
-
-      <div
-        className="lawlib-fade-rise space-y-3"
-        style={{ animationDelay: 'calc(40ms * var(--motion-factor, 1))' }}
-      >
+        {/* ─── Focus mode (disclosure BEFORE activating) ─────────────────── */}
         <SettingsSectionTitle
+          level="h3"
           action={
             <ResetButton
-              label="ความเหลืองของกระดาษ"
-              disabled={paperTone === DEFAULT_PAPER_TONE}
-              onClick={handleToneReset}
-              pop={tonePop}
+              label="โหมดโฟกัส"
+              disabled={settings.focusMode === d.focusMode}
+              onClick={() => onChange((prev) => ({ ...prev, focusMode: d.focusMode }))}
             />
           }
         >
-          ความเหลืองของกระดาษ
+          โหมดโฟกัส
+        </SettingsSectionTitle>
+        <div className="rounded-lg border border-amber-300/70 bg-amber-50 px-3 py-2 text-[10px] leading-relaxed text-amber-900 dark:border-amber-500/40 dark:bg-amber-950/40 dark:text-amber-200">
+          จะซ่อน: เมนูนำทาง, สารบัญ, แถบเครื่องมือ, footer — เหลือเฉพาะเนื้อหาและ ตัวบอกมาตรา (กด
+          Esc เพื่อออก)
+        </div>
+        <ToggleRow
+          id="lawlib-focus-mode"
+          label="เปิดโหมดโฟกัส"
+          checked={settings.focusMode}
+          onChange={onFocusModeChange}
+        />
+
+        {/* ─── เครื่องมือแถวลัด (T14 — ADR-019 D10: pin management MOVED here
+            from Level 2; the L2 icons carry no pin toggles anymore). One
+            switch per tool — checked = shown on Level 1, order = array order
+            (unpin → re-pin appends at the end). */}
+        <SettingsSectionTitle
+          level="h3"
+          action={
+            <ResetButton
+              label="เครื่องมือแถวลัด"
+              disabled={favoritesEqualDefault}
+              onClick={() =>
+                onChange((prev) => ({ ...prev, favoriteToolKeys: d.favoriteToolKeys }))
+              }
+            />
+          }
+        >
+          เครื่องมือแถวลัด
+        </SettingsSectionTitle>
+        <div className="space-y-1.5">
+          {DOCK_TOOL_KEYS.map((key) => (
+            <ToggleRow
+              key={key}
+              id={`lawlib-fav-${key}`}
+              label={
+                <span className="flex items-center gap-1.5">
+                  <i aria-hidden="true" className={`fi ${TOOL_ICONS[key]} text-[10px]`} />
+                  {TOOL_LABELS[key]}
+                </span>
+              }
+              checked={settings.favoriteToolKeys.includes(key)}
+              onChange={(on) =>
+                onChange((prev) => ({
+                  ...prev,
+                  favoriteToolKeys: on
+                    ? [...prev.favoriteToolKeys, key]
+                    : prev.favoriteToolKeys.filter((k) => k !== key),
+                }))
+              }
+            />
+          ))}
+        </div>
+        <p className="text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
+          เลือกเครื่องมือที่แสดงในแถวหลักของแถบเครื่องมือ
+        </p>
+
+        {/* ─── Dock position (T12c — moved from Level 2, ADR-019 D9: all
+            settings in one place). 8 spots in a 3×3 grid with the center spaced,
+            per-setting คืนค่า like every other section. */}
+        <SettingsSectionTitle
+          level="h3"
+          action={
+            <ResetButton
+              label="ตำแหน่งปุ่มเครื่องมือ"
+              disabled={dockPosition === DEFAULT_DOCK_POSITION}
+              onClick={() => onDockPositionChange(DEFAULT_DOCK_POSITION)}
+            />
+          }
+        >
+          ตำแหน่งปุ่มเครื่องมือ
+        </SettingsSectionTitle>
+        <div role="group" aria-label="ตำแหน่งปุ่มเครื่องมือ" className="grid grid-cols-3 gap-1.5">
+          {POSITION_GRID_SLOTS.map((pos) => {
+            if (pos === null) {
+              return (
+                <div
+                  key="center-spacer"
+                  aria-hidden="true"
+                  className="flex h-11 items-center justify-center rounded-xl border border-dashed border-slate-200/80 bg-slate-50/40 dark:border-slate-700/60 dark:bg-slate-800/20"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+                </div>
+              );
+            }
+            return (
+              <button
+                key={pos}
+                type="button"
+                aria-pressed={dockPosition === pos}
+                aria-label={`ตำแหน่ง${POSITION_LABELS[pos]}`}
+                title={POSITION_LABELS[pos]}
+                onClick={() => onDockPositionChange(pos)}
+                className={`flex h-11 cursor-pointer items-center justify-center rounded-xl border transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 active:scale-95 ${
+                  dockPosition === pos
+                    ? 'border-blue-500/80 bg-blue-50/90 text-blue-600 shadow-xs ring-2 ring-blue-500/20 dark:border-blue-400/80 dark:bg-blue-950/70 dark:text-blue-300 dark:ring-blue-400/20'
+                    : 'border-slate-200/90 bg-white/90 text-slate-400 shadow-xs hover:scale-105 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:border-blue-400/60 dark:hover:bg-slate-700 dark:hover:text-blue-300'
+                }`}
+              >
+                <i
+                  aria-hidden="true"
+                  className={`fi fi-sr-circle-small ${
+                    dockPosition === pos
+                      ? 'text-xs text-blue-600 dark:text-blue-300'
+                      : 'text-[10px]'
+                  }`}
+                />
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ─── Toolbar size (T54: เครื่องมือ group — the glass slider lives
+            in the กราฟิก group now; single source of truth). ─────────── */}
+        <SettingsSectionTitle
+          level="h3"
+          action={
+            <ResetButton
+              label="ขนาดปุ่ม"
+              disabled={settings.toolbarSize === d.toolbarSize}
+              onClick={() => onChange((prev) => ({ ...prev, toolbarSize: d.toolbarSize }))}
+            />
+          }
+        >
+          ขนาดแถบเครื่องมือ
         </SettingsSectionTitle>
         <SliderRow
-          id="lawlib-paper-tone-settings"
-          label="ความเหลืองของกระดาษ"
-          min={0}
-          max={100}
+          id="lawlib-toolbar-size"
+          label="ขนาดปุ่มเครื่องมือ"
+          min={coarsePointer ? TOOLBAR_SIZE_TOUCH_MIN : TOOLBAR_SIZE_MIN}
+          max={TOOLBAR_SIZE_MAX}
           step={1}
-          value={paperTone}
-          display={`${paperTone}`}
-          onChange={setPaperTone}
+          value={Math.max(
+            settings.toolbarSize,
+            coarsePointer ? TOOLBAR_SIZE_TOUCH_MIN : TOOLBAR_SIZE_MIN,
+          )}
+          display={`${Math.max(settings.toolbarSize, coarsePointer ? TOOLBAR_SIZE_TOUCH_MIN : 0)}px`}
+          onChange={(toolbarSize) => onChange((prev) => ({ ...prev, toolbarSize }))}
         />
-      </div>
 
-      <div
-        className="lawlib-fade-rise space-y-3"
-        style={{ animationDelay: 'calc(80ms * var(--motion-factor, 1))' }}
-      >
+        {/* ─── Dock animation (T12 — ADR-019 D9). T54: stays grouped under
+            เครื่องมือ (toolbar behavior) — not in the user's 15-item group
+            order, but the settings-panel test pins its heading and the
+            decision was "regroup ALL settings" — kept, last in the group. */}
         <SettingsSectionTitle
+          level="h3"
           action={
             <ResetButton
-              label="ขนาดตัวอักษร"
-              disabled={settings.fontSize === d.fontSize}
-              onClick={() => onChange((prev) => ({ ...prev, fontSize: d.fontSize }))}
+              label="แอนิเมชัน"
+              disabled={settings.animateDock === d.animateDock}
+              onClick={() => onChange((prev) => ({ ...prev, animateDock: d.animateDock }))}
             />
           }
         >
-          ขนาดตัวอักษร
+          แอนิเมชัน
         </SettingsSectionTitle>
-        <FontSizePickerContent
-          value={settings.fontSize}
-          onChange={(fontSize) => onChange((prev) => ({ ...prev, fontSize }))}
+        <ToggleRow
+          id="lawlib-animate-dock"
+          label="แอนิเมชันแถบเครื่องมือ"
+          hint="ขยาย/ย่อแบบเลื่อน+จาง — ปิดอัตโนมัติเมื่อระบบตั้งค่าลดการเคลื่อนไหว"
+          checked={settings.animateDock}
+          onChange={(animateDock) => onChange((prev) => ({ ...prev, animateDock }))}
+          resetLabel="แอนิเมชันแถบเครื่องมือ"
+          resetDisabled={settings.animateDock}
         />
       </div>
-
-      <div
-        className="lawlib-fade-rise space-y-3"
-        style={{ animationDelay: 'calc(120ms * var(--motion-factor, 1))' }}
-      >
-        <SettingsSectionTitle
-          action={
-            <ResetButton
-              label="ความสูงบรรทัด"
-              disabled={settings.lineHeight === d.lineHeight}
-              onClick={() => onChange((prev) => ({ ...prev, lineHeight: d.lineHeight }))}
-            />
-          }
-        >
-          ความสูงบรรทัด
-        </SettingsSectionTitle>
-        {/* T50 (ADR-026 W2 — user decision 2026-08-11): ONE control — line
-            height drives BOTH line spacing and paragraph spacing. */}
-        <p className="text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
-          รวมระยะห่างย่อหน้า
-        </p>
-        <LineHeightPickerContent
-          value={settings.lineHeight}
-          onChange={(lineHeight) => onChange((prev) => ({ ...prev, lineHeight }))}
-        />
-      </div>
-
-      <div
-        className="lawlib-fade-rise space-y-3"
-        style={{ animationDelay: 'calc(160ms * var(--motion-factor, 1))' }}
-      >
-        <SettingsSectionTitle
-          action={
-            <ResetButton
-              label="ความกว้างเนื้อหา"
-              disabled={settings.width === d.width}
-              onClick={() => onChange((prev) => ({ ...prev, width: d.width }))}
-            />
-          }
-        >
-          ความกว้างเนื้อหา
-        </SettingsSectionTitle>
-        <WidthPickerContent
-          value={settings.width}
-          onChange={(width) => onChange((prev) => ({ ...prev, width }))}
-        />
-      </div>
-
-      {/* ─── Font family ───────────────────────────────────────────────── */}
-      <SettingsSectionTitle
-        action={
-          <ResetButton
-            label="ฟอนต์ตัวบท"
-            disabled={settings.fontFamily === d.fontFamily}
-            onClick={() => onChange((prev) => ({ ...prev, fontFamily: d.fontFamily }))}
-          />
-        }
-      >
-        ฟอนต์ตัวบท
-      </SettingsSectionTitle>
-      <div className="grid grid-cols-2 gap-1.5">
-        {FONT_FAMILY_OPTIONS.map((family) => (
-          <OptionButton
-            key={family.value}
-            pressed={settings.fontFamily === family.value}
-            onClick={() => onChange((prev) => ({ ...prev, fontFamily: family.value }))}
-            label={`ฟอนต์ ${family.label}`}
-          >
-            {/* Preview MUST NOT force-load the family — names render in the
-                default font; the face applies only on selection (senior
-                MAJOR #4). */}
-            {family.label}
-          </OptionButton>
-        ))}
-      </div>
-
-      {/* ─── Toolbar size (T47: the glass slider moved up to the quick
-          section at the top of the panel — single source of truth). ── */}
-      <SettingsSectionTitle
-        action={
-          <ResetButton
-            label="ขนาดปุ่ม"
-            disabled={settings.toolbarSize === d.toolbarSize}
-            onClick={() => onChange((prev) => ({ ...prev, toolbarSize: d.toolbarSize }))}
-          />
-        }
-      >
-        ขนาดแถบเครื่องมือ
-      </SettingsSectionTitle>
-      <SliderRow
-        id="lawlib-toolbar-size"
-        label="ขนาดปุ่มเครื่องมือ"
-        min={coarsePointer ? TOOLBAR_SIZE_TOUCH_MIN : TOOLBAR_SIZE_MIN}
-        max={TOOLBAR_SIZE_MAX}
-        step={1}
-        value={Math.max(
-          settings.toolbarSize,
-          coarsePointer ? TOOLBAR_SIZE_TOUCH_MIN : TOOLBAR_SIZE_MIN,
-        )}
-        display={`${Math.max(settings.toolbarSize, coarsePointer ? TOOLBAR_SIZE_TOUCH_MIN : 0)}px`}
-        onChange={(toolbarSize) => onChange((prev) => ({ ...prev, toolbarSize }))}
-      />
-
-      {/* ─── เครื่องมือแถวลัด (T14 — ADR-019 D10: pin management MOVED here
-          from Level 2; the L2 icons carry no pin toggles anymore). One
-          switch per tool — checked = shown on Level 1, order = array order
-          (unpin → re-pin appends at the end). */}
-      <SettingsSectionTitle
-        action={
-          <ResetButton
-            label="เครื่องมือแถวลัด"
-            disabled={favoritesEqualDefault}
-            onClick={() => onChange((prev) => ({ ...prev, favoriteToolKeys: d.favoriteToolKeys }))}
-          />
-        }
-      >
-        เครื่องมือแถวลัด
-      </SettingsSectionTitle>
-      <div className="space-y-1.5">
-        {DOCK_TOOL_KEYS.map((key) => (
-          <ToggleRow
-            key={key}
-            id={`lawlib-fav-${key}`}
-            label={
-              <span className="flex items-center gap-1.5">
-                <i aria-hidden="true" className={`fi ${TOOL_ICONS[key]} text-[10px]`} />
-                {TOOL_LABELS[key]}
-              </span>
-            }
-            checked={settings.favoriteToolKeys.includes(key)}
-            onChange={(on) =>
-              onChange((prev) => ({
-                ...prev,
-                favoriteToolKeys: on
-                  ? [...prev.favoriteToolKeys, key]
-                  : prev.favoriteToolKeys.filter((k) => k !== key),
-              }))
-            }
-          />
-        ))}
-      </div>
-      <p className="text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
-        เลือกเครื่องมือที่แสดงในแถวหลักของแถบเครื่องมือ
-      </p>
-
-      {/* ─── Dock position (T12c — moved from Level 2, ADR-019 D9: all
-          settings in one place). 8 spots in a 3×3 grid with the center spaced,
-          per-setting คืนค่า like every other section. */}
-      <SettingsSectionTitle
-        action={
-          <ResetButton
-            label="ตำแหน่งปุ่มเครื่องมือ"
-            disabled={dockPosition === DEFAULT_DOCK_POSITION}
-            onClick={() => onDockPositionChange(DEFAULT_DOCK_POSITION)}
-          />
-        }
-      >
-        ตำแหน่งปุ่มเครื่องมือ
-      </SettingsSectionTitle>
-      <div role="group" aria-label="ตำแหน่งปุ่มเครื่องมือ" className="grid grid-cols-3 gap-1.5">
-        {POSITION_GRID_SLOTS.map((pos) => {
-          if (pos === null) {
-            return (
-              <div
-                key="center-spacer"
-                aria-hidden="true"
-                className="flex h-11 items-center justify-center rounded-xl border border-dashed border-slate-200/80 bg-slate-50/40 dark:border-slate-700/60 dark:bg-slate-800/20"
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
-              </div>
-            );
-          }
-          return (
-            <button
-              key={pos}
-              type="button"
-              aria-pressed={dockPosition === pos}
-              aria-label={`ตำแหน่ง${POSITION_LABELS[pos]}`}
-              title={POSITION_LABELS[pos]}
-              onClick={() => onDockPositionChange(pos)}
-              className={`flex h-11 cursor-pointer items-center justify-center rounded-xl border transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 active:scale-95 ${
-                dockPosition === pos
-                  ? 'border-blue-500/80 bg-blue-50/90 text-blue-600 shadow-xs ring-2 ring-blue-500/20 dark:border-blue-400/80 dark:bg-blue-950/70 dark:text-blue-300 dark:ring-blue-400/20'
-                  : 'border-slate-200/90 bg-white/90 text-slate-400 shadow-xs hover:scale-105 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:border-blue-400/60 dark:hover:bg-slate-700 dark:hover:text-blue-300'
-              }`}
-            >
-              <i
-                aria-hidden="true"
-                className={`fi fi-sr-circle-small ${
-                  dockPosition === pos ? 'text-xs text-blue-600 dark:text-blue-300' : 'text-[10px]'
-                }`}
-              />
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ─── Font weight (T50: the paragraph-spacing row is GONE — line
-          height now drives para spacing; ADR-026 W2) ─────────────────── */}
-      <SettingsSectionTitle>ความหนาตัวอักษร</SettingsSectionTitle>
-      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
-        <div className="flex min-w-0 items-center gap-1">
-          <span className="shrink-0 text-xs font-semibold text-slate-600 dark:text-slate-300">
-            ความหนาตัวอักษร
-          </span>
-          <ResetButton
-            label="ความหนาตัวอักษร"
-            disabled={settings.fontWeight === d.fontWeight}
-            onClick={() => onChange((prev) => ({ ...prev, fontWeight: d.fontWeight }))}
-          />
-        </div>
-        <div className="flex gap-1.5">
-          {FONT_WEIGHT_OPTIONS.map((w) => (
-            <OptionButton
-              key={w.value}
-              pressed={settings.fontWeight === w.value}
-              onClick={() => onChange((prev) => ({ ...prev, fontWeight: w.value }))}
-              label={`ความหนาตัวอักษร${w.label}`}
-            >
-              {w.label}
-            </OptionButton>
-          ))}
-        </div>
-      </div>
-
-      {/* ─── Content toggles ───────────────────────────────────────────── */}
-      <SettingsSectionTitle>เนื้อหา</SettingsSectionTitle>
-      <ToggleRow
-        id="lawlib-hide-repealed"
-        label="ซ่อนมาตรา/วรรคที่ถูกยกเลิก"
-        hint="ใช้ได้ทั้งฉบับเต็มและเวอร์ชันย่อ"
-        checked={settings.hideRepealed}
-        onChange={(hideRepealed) => onChange((prev) => ({ ...prev, hideRepealed }))}
-        onReset={() => onChange((prev) => ({ ...prev, hideRepealed: d.hideRepealed }))}
-        resetLabel="ซ่อนมาตรา"
-      />
-      <ToggleRow
-        id="lawlib-hide-amendment-notes"
-        label="ซ่อนโน้ตการแก้ไข"
-        hint="ซ่อน 'แก้ไขโดยฉบับที่ N' ในป๊อปอัปมาตรา"
-        checked={settings.hideAmendmentNotes}
-        onChange={(hideAmendmentNotes) => onChange((prev) => ({ ...prev, hideAmendmentNotes }))}
-        onReset={() => onChange((prev) => ({ ...prev, hideAmendmentNotes: d.hideAmendmentNotes }))}
-        resetLabel="ซ่อนโน้ต"
-      />
-
-      {/* ─── Focus mode (disclosure BEFORE activating) ─────────────────── */}
-      <SettingsSectionTitle
-        action={
-          <ResetButton
-            label="โหมดโฟกัส"
-            disabled={settings.focusMode === d.focusMode}
-            onClick={() => onChange((prev) => ({ ...prev, focusMode: d.focusMode }))}
-          />
-        }
-      >
-        โหมดโฟกัส
-      </SettingsSectionTitle>
-      <div className="rounded-lg border border-amber-300/70 bg-amber-50 px-3 py-2 text-[10px] leading-relaxed text-amber-900 dark:border-amber-500/40 dark:bg-amber-950/40 dark:text-amber-200">
-        จะซ่อน: เมนูนำทาง, สารบัญ, แถบเครื่องมือ, footer — เหลือเฉพาะเนื้อหาและ ตัวบอกมาตรา (กด Esc
-        เพื่อออก)
-      </div>
-      <ToggleRow
-        id="lawlib-focus-mode"
-        label="เปิดโหมดโฟกัส"
-        checked={settings.focusMode}
-        onChange={onFocusModeChange}
-      />
-
-      {/* ─── Dock animation (T12 — ADR-019 D9) ─────────────────────────── */}
-      <SettingsSectionTitle
-        action={
-          <ResetButton
-            label="แอนิเมชัน"
-            disabled={settings.animateDock === d.animateDock}
-            onClick={() => onChange((prev) => ({ ...prev, animateDock: d.animateDock }))}
-          />
-        }
-      >
-        แอนิเมชัน
-      </SettingsSectionTitle>
-      <ToggleRow
-        id="lawlib-animate-dock"
-        label="แอนิเมชันแถบเครื่องมือ"
-        hint="ขยาย/ย่อแบบเลื่อน+จาง — ปิดอัตโนมัติเมื่อระบบตั้งค่าลดการเคลื่อนไหว"
-        checked={settings.animateDock}
-        onChange={(animateDock) => onChange((prev) => ({ ...prev, animateDock }))}
-        resetLabel="แอนิเมชันแถบเครื่องมือ"
-        resetDisabled={settings.animateDock}
-      />
 
       {/* ─── Reset (inline confirm — no nested dialog in the popover) ──── */}
       <SettingsSectionTitle>รีเซ็ต</SettingsSectionTitle>

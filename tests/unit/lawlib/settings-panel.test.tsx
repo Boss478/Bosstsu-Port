@@ -152,12 +152,26 @@ describe('T10b settings panel — ⚙️ wiring', () => {
     expect(picker.getAttribute('role')).toBe('group');
   });
 
-  it('T47 quick section: the glass slider renders ABOVE the typography sections (DOM order)', async () => {
+  it('T54: 3 group headers in order — กราฟิก → ตัวอักษร → เครื่องมือ (quick section gone)', async () => {
     await renderReader();
     const picker = await openSettings();
-    // AC-3 — the quick group (กระจก → การเคลื่อนไหว → เลื่อนอัตโนมัติ) sits
-    // at the TOP of the panel: the glass slider must precede the first
-    // typography section (ขนาดตัวอักษร) in document order.
+    // Group headers are h2 and appear in the locked order; section titles
+    // inside groups are h3 (ADR-026 W6 / T54).
+    const h2 = within(picker).getAllByRole('heading', { level: 2 });
+    expect(h2.map((el) => el.textContent)).toEqual(['กราฟิก', 'ตัวอักษร', 'เครื่องมือ', 'รีเซ็ต']);
+    // The T47 quick section header must be GONE (T54 — user decision).
+    expect(within(picker).queryByRole('heading', { name: 'สำคัญ' })).toBeNull();
+    // Sections render as h3 inside their groups (the level prop).
+    expect(within(picker).getByRole('heading', { level: 3, name: 'ธีม' })).toBeTruthy();
+    expect(within(picker).getByRole('heading', { level: 3, name: 'เลื่อนอัตโนมัติ' })).toBeTruthy();
+  });
+
+  it('T54: the glass slider (กราฟิก group) renders ABOVE the typography sections (ตัวอักษร group, DOM order)', async () => {
+    await renderReader();
+    const picker = await openSettings();
+    // T54 (ADR-026 W6) — group order: กราฟิก (กระจก) comes before ตัวอักษร
+    // (ขนาดตัวอักษร), so the glass slider must precede the first typography
+    // section in document order.
     const glass = within(picker).getByLabelText('กระจก (ความทึบ + ความเบลอ)');
     const typography = within(picker).getByRole('heading', { name: 'ขนาดตัวอักษร' });
     expect(
@@ -806,20 +820,20 @@ describe('T29 settings/picker popovers — pop-in, stagger, pop-out (ADR-023 D9/
     expect(surface.style.animationDuration).toBe('');
   });
 
-  it('open: the 5 reading-surface sections stagger in 40ms steps (inline animation-delay)', async () => {
+  it('T54: the 3 group wrappers stagger in 40ms steps (inline animation-delay)', async () => {
     await renderReader();
     const picker = await openSettings();
     const rising = Array.from(picker.querySelectorAll<HTMLElement>('div')).filter((el) =>
       el.classList.contains('lawlib-fade-rise'),
     );
-    // The surface wrapper + the 5 sections (document order).
-    expect(rising.length).toBe(6);
+    // The surface wrapper + the 3 group wrappers (document order) — the old
+    // per-section stagger wrappers are GONE (ADR-026 W6 / T54 AC-4: folded
+    // into the group wrappers; D10 one animation per element).
+    expect(rising.length).toBe(4);
     expect(rising.slice(1).map((el) => el.style.animationDelay)).toEqual([
       '0ms',
       'calc(40ms * var(--motion-factor, 1))',
       'calc(80ms * var(--motion-factor, 1))',
-      'calc(120ms * var(--motion-factor, 1))',
-      'calc(160ms * var(--motion-factor, 1))',
     ]);
   });
 
