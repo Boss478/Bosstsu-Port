@@ -163,7 +163,10 @@ export default function DigestToc({
     'text-slate-600 hover:bg-slate-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-blue-300';
 
   return (
-    <nav aria-label="สารบัญเวอร์ชันย่อ" className="lawlib-toc sticky top-20">
+    <nav
+      aria-label="สารบัญเวอร์ชันย่อ"
+      className="lawlib-toc sticky top-20 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900"
+    >
       {/* T9 mobile collapse toggle (below lg only — desktop keeps the sticky
           sidebar column). 44px touch floor; aria-expanded drives the
           disclosure semantics. */}
