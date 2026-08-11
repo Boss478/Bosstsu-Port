@@ -60,10 +60,6 @@
  *   (theme light/dark → read/sepia mounts the paper slider) via a
  *   ResizeObserver on the root — loop-guarded (prev-height ref) and
  *   closing-guarded (no reposition mid-exit-hold)
- * - W5 (ADR-026): the picker popover REPOSITIONS on content height change
- *   (theme light/dark → read/sepia mounts the paper slider) via a
- *   ResizeObserver on the root — loop-guarded (prev-height ref) and
- *   closing-guarded (no reposition mid-exit-hold)
  * - mobile-safe panel: max-h + overflow-y-auto (T20 — desktop: NONE, the
  *   panel grows with its content; mobile: on the sheet only)
  *
