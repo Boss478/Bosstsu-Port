@@ -2350,6 +2350,28 @@ textarea,
   color: var(--read-ink);
 }
 
+/* T57 (user 2026-08-11): TOC items go warm on paper — idle ink, hover
+   amber tint, active stronger tint. ul-scoped: jump/toggle controls keep
+   their own surfaces. Light/dark unchanged. The .text-slate-600 arm
+   mirrors the slate paper override below ((0,3,0) outranks the plain
+   (0,2,2) selector — idle must be full read-ink, not #6b5b3c). */
+.read .lawlib-toc ul button,
+.read .lawlib-toc ul button.text-slate-600,
+.sepia .lawlib-toc ul button,
+.sepia .lawlib-toc ul button.text-slate-600 {
+  color: var(--read-ink);
+}
+.read .lawlib-toc ul button:hover,
+.sepia .lawlib-toc ul button:hover {
+  background: rgba(146, 108, 52, 0.14);
+  color: #7c4a03; /* amber-800 */
+}
+.read .lawlib-toc ul button[aria-current='true'],
+.sepia .lawlib-toc ul button[aria-current='true'] {
+  background: rgba(146, 108, 52, 0.18);
+  color: var(--read-ink);
+}
+
 /* T12c (ADR-019 D9 — user 2026-08-06): chrome glass in read/sepia, NO
    exceptions. T51 (ADR-026 W3 — user 2026-08-11): the reader search drawer
    is reclassified CHROME — glass in ALL themes (fixed bg-white/75 +

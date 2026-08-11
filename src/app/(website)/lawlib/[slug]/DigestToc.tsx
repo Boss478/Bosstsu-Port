@@ -195,6 +195,7 @@ export default function DigestToc({
                   <button
                     type="button"
                     onClick={() => scrollToId(entry.id)}
+                    aria-current={activeId === entry.id ? 'true' : undefined}
                     className={`${baseBtn} ${activeId === entry.id ? activeBtn : idleBtn}`}
                   >
                     {entry.label}
@@ -208,6 +209,7 @@ export default function DigestToc({
                   <button
                     type="button"
                     onClick={() => jumpGroup(entry)}
+                    aria-current={activeId === entry.id ? 'true' : undefined}
                     className={`${baseBtn} font-semibold ${activeId === entry.id ? activeBtn : idleBtn}`}
                   >
                     {entry.label}
