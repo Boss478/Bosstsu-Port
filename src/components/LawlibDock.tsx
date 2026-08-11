@@ -96,8 +96,12 @@ import { DEFAULT_PAPER_TONE, getInitialTheme, type Theme } from '@/components/Th
  * the bottom — bottom-center/bottom-left always; bottom-right raises to the
  * BackToTop clearance (right corner — it never overlaps the others) ONLY
  * while BackToTop is visible (scrollY > 200, rAF-throttled listener). Top
- * rows clear the law header (24-231px, a11y fix #17): 14rem on mobile, 11rem
- * from md up. Safe areas: bottom/left/right insets via env().
+ * rows clear the back-link below xl (3.5rem base — a11y fix #17 preserved)
+ * and are FLUSH from xl up (`xl:top-6` mirrors `md:bottom-6`; T58, user
+ * decision 2026-08-11, breakpoint 1280 measured). Accepted tradeoff: at
+ * <xl scroll-top the collapsed icon overlaps the H1's left corner
+ * (y82-104) through glass — measured, user-approved. Safe areas:
+ * bottom/left/right insets via env().
  *
  * T10b toolbar-size parametrization (ADR-019 D4 — the slider is 24-56,
  * default 44): the ICON footprint (--lawlib-dock-size, set inline on the
@@ -115,19 +119,19 @@ const POSITION_CONFIG: Record<
   { root: string; panel: string; more: string; layout: DockLayout }
 > = {
   'top-left': {
-    root: 'top-[max(14rem,env(safe-area-inset-top))] left-[max(1.25rem,env(safe-area-inset-left))] md:top-[max(11rem,env(safe-area-inset-top))] md:left-6',
+    root: 'top-[max(3.5rem,env(safe-area-inset-top))] left-[max(1.25rem,env(safe-area-inset-left))] xl:top-6',
     panel: 'top-0 left-0',
     more: 'left-full top-0 ml-3',
     layout: 'vertical',
   },
   'top-center': {
-    root: 'top-[max(14rem,env(safe-area-inset-top))] left-1/2 -translate-x-1/2 md:top-[max(11rem,env(safe-area-inset-top))]',
+    root: 'top-[max(3.5rem,env(safe-area-inset-top))] left-1/2 -translate-x-1/2 xl:top-6',
     panel: 'top-0 left-1/2 -translate-x-1/2',
     more: 'top-full mt-3 left-1/2 -translate-x-1/2',
     layout: 'horizontal',
   },
   'top-right': {
-    root: 'top-[max(14rem,env(safe-area-inset-top))] right-[max(1.25rem,env(safe-area-inset-right))] md:top-[max(11rem,env(safe-area-inset-top))] md:right-6',
+    root: 'top-[max(3.5rem,env(safe-area-inset-top))] right-[max(1.25rem,env(safe-area-inset-right))] xl:top-6',
     panel: 'top-0 right-0',
     more: 'right-full top-0 mr-3',
     layout: 'vertical',

@@ -668,13 +668,13 @@ describe('Dock v2.3 — Level 2 (⋯ dots — T15 sibling glass panel)', () => {
     expect(panel.className).not.toContain('w-[min(');
   });
 
-  it('top-row positions clear the page H1: 14rem mobile / 11rem md (fix #17)', async () => {
+  it('top-row positions: 3.5rem back-link clearance below xl, flush from xl (T58)', async () => {
     await renderReader();
     clickPositionInSettings('บนซ้าย');
 
     const root = document.querySelector('.lawlib-dock.fixed') as HTMLElement;
-    expect(root.className).toContain('top-[max(14rem,env(safe-area-inset-top))]');
-    expect(root.className).toContain('md:top-[max(11rem,env(safe-area-inset-top))]');
+    expect(root.className).toContain('top-[max(3.5rem,env(safe-area-inset-top))]');
+    expect(root.className).toContain('xl:top-6');
     // T20 (user decision 2026-08-09): the tools column NEVER scrolls — the
     // viewport caps are gone, the panel grows with its content.
     const tools = l1Tools() as HTMLElement;
