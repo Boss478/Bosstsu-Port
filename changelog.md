@@ -1,3 +1,7 @@
+## v1.12.5 (2026-08-11)
++ **Auto-scroll speed — fixed seconds per line (T55)**: 1 = 1.0s · 2 = 0.8s · 3 = 0.5s · 4 = 0.25s · 5 = 0.1s — independent of font size (scroll rate adapts to the line height) · levels 1–4 slower, 5 faster than before
++ **Compact-view TOC as rounded card (T56)**: rounded-xl consistent with the digest cards — border + surface in all themes
++ **TOC warm on paper themes (T57)**: read/sepia — ink-colored idle text, amber hover/active · light/dark unchanged
 ## v1.12.4 (2026-08-11)
 + **Reader content width 121–160% fixed (T49)**: wrapper now expands with the measure — no dead zone past 120% · full 160% needs ≥1455px viewport at 16px
 + **Line spacing merged with paragraph spacing (T50)**: one control — line height drives both (para spacing derives from line height) · default look slightly airier
