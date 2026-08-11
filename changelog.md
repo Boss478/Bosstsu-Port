@@ -1,3 +1,10 @@
+## v1.12.4 (2026-08-11)
++ **Reader content width 121–160% fixed (T49)**: wrapper now expands with the measure — no dead zone past 120% · full 160% needs ≥1455px viewport at 16px
++ **Line spacing merged with paragraph spacing (T50)**: one control — line height drives both (para spacing derives from line height) · default look slightly airier
++ **Search drawer glass in ALL themes (T51)**: 75% + blur everywhere — read/sepia paper override removed for the drawer
++ **Dock icon buttons lighter glass (T52)**: 50% / 8px blur · dark 60%
++ **Theme-picker popover no longer overlaps the dock (T53)**: repositions on height change (paper/sepia switch)
++ **Settings panel regrouped (T54)**: กราฟิก / ตัวอักษร / เครื่องมือ — quick section removed
 ## v1.12.3 (2026-08-10)
 + **LawLib motion wave**: glass blur now visibly tracks the slider (VT fix) · L2 gets its own real backdrop blur · group/history/pill entrance animations · dock portal (renders above every surface)
 + **Settings review**: glass alpha linear 5–80% · blur 0.5–8px (default 50) · size presets 8/12/16/24/32 · line-height 1.2–2.4 · content width 80–160% (default 120%)
