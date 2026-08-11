@@ -1993,8 +1993,11 @@ textarea,
    Chrome vs paper (T12c, user 2026-08-06): the THREE chrome surfaces —
    dock (L1 + collapsed icon), tooltip, list search field — are glass in
    EVERY theme INCLUDING read/sepia (paper overrides + dead-blur kill
-   removed below). Paper stays ONLY on reading surfaces: article/digest
-   cards, `.lawlib-toc`, `.lawlib-panel` (incl. the reader search drawer).
+   removed below). T51 (ADR-026 W3): the reader search drawer is
+   reclassified chrome too — glass in ALL themes. Paper stays ONLY on
+   reading surfaces: article/digest cards, `.lawlib-toc`, `.lawlib-panel`
+   (search/glossary/notes/bookmarks panels sit ON the glass drawer aside —
+   their .lawlib-panel is transparent, no paper fill in read/sepia).
    No ambient background (user decision) — glass reads via translucency +
    borders + shadow; subtle by design.
    NOTE: do NOT reintroduce `.glass-tier` or --backdrop-blur-{2xs,4xs,5xs,6xs,0}
@@ -2273,23 +2276,6 @@ textarea,
 .dark .lawlib-search-field {
   background-color: var(--lawlib-glass-bg-dark, rgba(30, 41, 59, 0.6));
 }
-/* Reader search-drawer input on paper (SearchPanel is a .lawlib-panel
-   surface) — translucent paper fill like the list-page field, so the
-   drawer input matches the T2 read treatment. T12c: the DOCK/TOOLTIP/SEARCH
-   chrome became glass in read/sepia, but the drawer STAYS paper with the
-   rest of .lawlib-panel — this override survives. Only the reader SearchPanel
-   input matches this selector; the dock is not a .lawlib-panel. */
-.read .lawlib-panel .lawlib-glass,
-.sepia .lawlib-panel .lawlib-glass {
-  background-color: rgba(255, 255, 255, 0.55);
-  /* The 0.55-alpha fill sits on OPAQUE paper (the panel's --read-card) — the
-     var-driven blur beneath is visually dead, so drop it via the
-     --lawlib-dock-blur trick (undefined var → property computes to its
-     initial value `none`). This stays valid for the drawer even though the
-     chrome dead-blur kills were removed (T12c). */
-  -webkit-backdrop-filter: var(--lawlib-dock-blur);
-  backdrop-filter: var(--lawlib-dock-blur);
-}
 /* ─── T9/T10 in-text term/ref chip hit area (best-effort only).
    CSS 2.1 §8.3.1: vertical margins do NOT apply to non-replaced inline
    boxes, so -my-1.5 was a dead no-op while py-1.5 dragged the dashed
@@ -2346,19 +2332,17 @@ textarea,
   background: var(--background);
 }
 
-/* Paper card surfaces (per tone via --read-card, D10). T12c (ADR-019 D9):
-   the CHROME surfaces — dock, tooltip, search field — are glass in read/
-   sepia too and NO LONGER listed here; paper stays for the READING
-   surfaces: article/digest cards, TOC, panels (incl. the reader search
-   drawer). */
+/* Paper card surfaces (per tone via --read-card, D10). T12c (ADR-019 D9)
+   + T51 (ADR-026 W3, user decision): the CHROME surfaces — dock, tooltip,
+   search field, and the reader search drawer — are glass in EVERY theme
+   and NO LONGER listed here; paper stays for the READING surfaces only:
+   article/digest cards, TOC, list cards. */
 .read .lawlib-article-card,
 .read .lawlib-toc,
-.read .lawlib-panel,
 .read .lawlib-list-card,
 .read .lawlib-digest-card,
 .sepia .lawlib-article-card,
 .sepia .lawlib-toc,
-.sepia .lawlib-panel,
 .sepia .lawlib-list-card,
 .sepia .lawlib-digest-card {
   background: var(--read-card);
@@ -2367,11 +2351,11 @@ textarea,
 }
 
 /* T12c (ADR-019 D9 — user 2026-08-06): chrome glass in read/sepia, NO
-   exceptions. The old paper-dock dead-blur kill (--lawlib-dock-blur trick)
-   is REMOVED — the dock is glass per the slider in read/sepia like every
-   other theme (GPU returns to read; user accepted). The `.read
-   .lawlib-panel .lawlib-glass` dead-blur above stays — the drawer is a
-   PAPER surface, not chrome. */
+   exceptions. T51 (ADR-026 W3 — user 2026-08-11): the reader search drawer
+   is reclassified CHROME — glass in ALL themes (fixed bg-white/75 +
+   backdrop-blur-xl on the aside, bg-white/60 + backdrop-blur-md on the
+   input), overriding T12c's paper classification for the drawer only. The
+   old dead-blur tricks (--lawlib-dock-blur kills) are obsolete and removed. */
 
 /* R1 (Wave 3 — 2026-08-07): collapsed dock icon border restored on paper.
    The button's slate-200 border (~1.08:1 on cream) nearly vanished once

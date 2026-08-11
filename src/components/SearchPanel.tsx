@@ -127,7 +127,7 @@ export function SearchPanel({ articles, onJump, digestLines, onDigestLineJump }:
               }
             }}
             placeholder="ค้นหาข้อความในมาตรา เช่น เงินกู้ หรือ มาตรา 10"
-            className="lawlib-glass w-full min-h-11 rounded-full border border-slate-200 bg-white py-2 pl-9 pr-4 text-sm text-zinc-700 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-zinc-200 dark:placeholder:text-zinc-500"
+            className="w-full min-h-11 rounded-full border border-slate-200 bg-white/60 py-2 pl-9 pr-4 text-sm text-zinc-700 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 backdrop-blur-md dark:border-slate-700 dark:bg-slate-800/60 dark:text-zinc-200 dark:placeholder:text-zinc-500"
           />
         </div>
         {/* Quick-jump row (ADR-019 D7) — a pure มาตรา number jumps directly. */}

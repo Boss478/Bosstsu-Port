@@ -2118,7 +2118,7 @@ export default function LawlibReaderClient({
             role="dialog"
             aria-modal="true"
             aria-label={PANEL_LABELS[openPanel]}
-            className="lawlib-slide-left absolute right-0 top-0 flex h-full w-[min(92vw,26rem)] flex-col bg-white shadow-2xl dark:bg-slate-900"
+            className="lawlib-slide-left absolute right-0 top-0 flex h-full w-[min(92vw,26rem)] flex-col bg-white/75 shadow-2xl backdrop-blur-xl dark:bg-slate-900/75"
             style={{ animationDirection: panelClosing ? 'reverse' : 'normal' }}
           >
             <header className="lawlib-fade-rise flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
