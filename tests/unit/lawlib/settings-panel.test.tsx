@@ -651,8 +651,8 @@ describe('T14 settings panel — เครื่องมือแถวลั�
   });
 });
 
-describe('T23 settings panel — auto-scroll speed display (ระดับ N · X.X วิ/บรรทัด)', () => {
-  it('slider label shows ระดับ {n} · {x.x} วิ/บรรทัด at speed > 0 (default 16px × 1.8)', async () => {
+describe('T55 settings panel — auto-scroll speed display (ระดับ N · S วิ/บรรทัด)', () => {
+  it('slider label shows ระดับ {n} · {s} วิ/บรรทัด at speed > 0 (fixed s/l map)', async () => {
     await renderReader();
     const picker = await openSettings();
     const slider = within(picker).getByLabelText('ความเร็ว') as HTMLInputElement;
@@ -661,16 +661,17 @@ describe('T23 settings panel — auto-scroll speed display (ระดับ N ·
     // slider — the T42 motion picker adds its own ปิด option button).
     expect(slider.getAttribute('aria-valuetext')).toBe('ปิด');
 
-    // Speed 1 @ 16×1.8 → 28.8/48 = 0.6 s/line.
+    // Speed 1 → fixed 1.0 s/line (T55/ADR-027 — typography-independent).
     fireEvent.change(slider, { target: { value: '1' } });
-    expect(within(picker).getByText('ระดับ 1 · 0.6 วิ/บรรทัด')).toBeTruthy();
-    expect(slider.getAttribute('aria-valuetext')).toBe('ระดับ 1 · 0.6 วิ/บรรทัด');
+    expect(within(picker).getByText('ระดับ 1 · 1 วิ/บรรทัด')).toBeTruthy();
+    expect(slider.getAttribute('aria-valuetext')).toBe('ระดับ 1 · 1 วิ/บรรทัด');
 
-    // Speed 3 → 28.8/144 = 0.2.
+    // Speed 3 → fixed 0.5 s/line.
     fireEvent.change(slider, { target: { value: '3' } });
-    expect(within(picker).getByText('ระดับ 3 · 0.2 วิ/บรรทัด')).toBeTruthy();
+    expect(within(picker).getByText('ระดับ 3 · 0.5 วิ/บรรทัด')).toBeTruthy();
 
-    // Speed 5 → 28.8/240 = 0.12 → 0.1 (1 decimal).
+    // Speed 5 → fixed 0.1 s/line (value-coincidentally the same as the old
+    // typography-derived figure at 16×1.8).
     fireEvent.change(slider, { target: { value: '5' } });
     expect(within(picker).getByText('ระดับ 5 · 0.1 วิ/บรรทัด')).toBeTruthy();
   });

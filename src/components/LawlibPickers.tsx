@@ -67,14 +67,23 @@ export const TOOL_ICONS: Record<DockMoreToolKey, string> = {
 };
 
 /**
- * T23 — seconds per line for the auto-scroll speed display (⚙️ slider):
- * the scroll rate is 48 px/s per level (= 0.8 px/frame × 60 — dt-normalized,
- * 120Hz-safe), so one line of `fontSize × lineHeight` px takes
- * (fontSize × lineHeight) / (speed × 48) seconds. `null` when OFF.
+ * T55 (ADR-027) — seconds per line for the auto-scroll speed display (⚙️
+ * slider): a FIXED user contract, independent of typography — 1 = 1.0 s/l ·
+ * 2 = 0.8 · 3 = 0.5 · 4 = 0.25 · 5 = 0.1. The engine INVERTS
+ * (px/s = fontSize × lineHeight ÷ secondsPerLine) so one rendered line
+ * takes exactly the mapped seconds at ANY typography. `null` when OFF.
  */
-export function secondsPerLine(speed: number, fontSize: number, lineHeight: number): number | null {
+const SECONDS_PER_LINE: Readonly<Record<number, number>> = {
+  1: 1,
+  2: 0.8,
+  3: 0.5,
+  4: 0.25,
+  5: 0.1,
+};
+
+export function secondsPerLine(speed: number): number | null {
   if (speed <= 0) return null;
-  return Number(((fontSize * lineHeight) / (speed * 48)).toFixed(1));
+  return SECONDS_PER_LINE[speed] ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -1266,16 +1275,15 @@ export function SettingsPanelContent({
           max={AUTO_SCROLL_MAX}
           step={1}
           value={reducedMotion ? 0 : settings.autoScrollSpeed}
-          // T23 — level + seconds per line (48 px/s per level; null when OFF).
-          // 'ปิด' when speed 0 OR reduced-motion (matches the forced value).
+          // T55 (ADR-027) — FIXED seconds per line (1/0.8/0.5/0.25/0.1),
+          // typography-independent. 'ปิด' when speed 0 OR reduced-motion
+          // (matches the forced value). The template slot stringifies the
+          // raw number — '1' / '0.8' / '0.5' / '0.25' / '0.1' exactly
+          // (no toFixed rounding).
           display={
             settings.autoScrollSpeed === 0 || reducedMotion
               ? 'ปิด'
-              : `ระดับ ${settings.autoScrollSpeed} · ${secondsPerLine(
-                  settings.autoScrollSpeed,
-                  settings.fontSize,
-                  settings.lineHeight,
-                )} วิ/บรรทัด`
+              : `ระดับ ${settings.autoScrollSpeed} · ${secondsPerLine(settings.autoScrollSpeed)} วิ/บรรทัด`
           }
           onChange={(autoScrollSpeed) => onChange((prev) => ({ ...prev, autoScrollSpeed }))}
         />

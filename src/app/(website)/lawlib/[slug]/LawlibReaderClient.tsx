@@ -61,7 +61,11 @@ import type { ReaderViewMode } from '@/hooks/useReaderStorage';
 import type { ReaderFontFamily } from '@/app/(website)/lawlib/lib/reader-props';
 import { useTheme } from '@/components/ThemeProvider';
 import LawlibDock from '@/components/LawlibDock';
-import { motionExitHoldMs, paraSpacingFromLineHeight } from '@/components/LawlibPickers';
+import {
+  motionExitHoldMs,
+  paraSpacingFromLineHeight,
+  secondsPerLine,
+} from '@/components/LawlibPickers';
 import type { DigestSearchLine } from '@/app/(website)/lawlib/lib/reader-props';
 import CompactView, { BodyLineView } from './CompactView';
 
@@ -1587,13 +1591,23 @@ export default function LawlibReaderClient({
     if (speed <= 0 || reducedMotionNow()) {
       return;
     }
+    // T55 (ADR-027) — the engine INVERTS the fixed seconds-per-line map:
+    // scroll rate px/s = (fontSize × lineHeight) ÷ SECONDS_PER_LINE[speed],
+    // so ONE rendered line (fontSize × lineHeight px) takes exactly the
+    // mapped seconds at ANY typography. The reader uses the SETTINGS values
+    // (the same source as the display → honest contract; the compact-view
+    // actual line is smaller — documented, accepted). Font-size/line-height
+    // changes re-run the effect mid-scroll (desired — the rate follows).
+    const seconds = secondsPerLine(speed);
+    if (seconds === null) return; // unreachable via the 0-5 slider — guard
+    const linePx = settings.fontSize * settings.lineHeight;
     let raf = 0;
     let last = performance.now();
     const step = (now: number) => {
       const dt = Math.min(now - last, 100);
       last = now;
       if (!autoScrollPausedRef.current) {
-        const px = speed * 0.8 * (dt / 16.667);
+        const px = (linePx / seconds) * (dt / 1000);
         const maxY = document.documentElement.scrollHeight - window.innerHeight;
         const nextY = window.scrollY + px;
         if (maxY <= 0 || nextY >= maxY - 2) {
@@ -1629,7 +1643,7 @@ export default function LawlibReaderClient({
       window.removeEventListener('pointerdown', pause);
       window.removeEventListener('keydown', pause);
     };
-  }, [settings.autoScrollSpeed, setSettings]);
+  }, [settings.autoScrollSpeed, settings.fontSize, settings.lineHeight, setSettings]);
 
   // --- T30 (AC-3): chip exit-hold + level-pop ------------------------------
   // Speed → 0 from ANY writer (dock toggle, chip stop, natural end) holds

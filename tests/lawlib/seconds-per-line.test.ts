@@ -1,50 +1,45 @@
 // @vitest-environment node
 /**
- * T23 — `secondsPerLine` (LawlibPickers): the auto-scroll speed display
- * turns the speed level into a human "seconds per line" figure.
- *
- * Formula (ADR-019 D14): the scroll rate is 48 px/s per level
- * (= 0.8 px/frame × 60, dt-normalized 120Hz-safe), so one line of
- * `fontSize × lineHeight` px takes (fontSize × lineHeight) / (speed × 48)
- * seconds, rounded to 1 decimal. Speed 0 (or negative) → null ("ปิด").
+ * T55 (ADR-027) — `secondsPerLine` (LawlibPickers): the auto-scroll speed
+ * display turns the speed level into a FIXED seconds-per-line figure,
+ * INDEPENDENT of typography — 1 = 1.0 s/l · 2 = 0.8 · 3 = 0.5 · 4 = 0.25 ·
+ * 5 = 0.1. The engine inverts (px/s = fontSize × lineHeight ÷ s) so one
+ * rendered line takes exactly the mapped seconds at ANY typography.
+ * Speed 0 (or negative) → null ("ปิด").
  */
 import { describe, it, expect } from 'vitest';
 import { secondsPerLine } from '@/components/LawlibPickers';
 
-describe('secondsPerLine (T23 — speed → seconds per line)', () => {
+describe('secondsPerLine (T55 — fixed seconds-per-line map, ADR-027)', () => {
   it('returns null when the speed is 0 (off) or negative', () => {
-    expect(secondsPerLine(0, 16, 1.8)).toBeNull();
-    expect(secondsPerLine(-1, 16, 1.8)).toBeNull();
-    expect(secondsPerLine(-5, 32, 2)).toBeNull();
+    expect(secondsPerLine(0)).toBeNull();
+    expect(secondsPerLine(-1)).toBeNull();
+    expect(secondsPerLine(-5)).toBeNull();
   });
 
-  it('spec vectors: 1@16×1.8→0.6, 3@16×1.8→0.2, 5@32×2→0.3', () => {
-    expect(secondsPerLine(1, 16, 1.8)).toBe(0.6);
-    expect(secondsPerLine(3, 16, 1.8)).toBe(0.2);
-    expect(secondsPerLine(5, 32, 2)).toBe(0.3);
+  it('spec vectors: 1→1, 2→0.8, 3→0.5, 4→0.25, 5→0.1', () => {
+    expect(secondsPerLine(1)).toBe(1);
+    expect(secondsPerLine(2)).toBe(0.8);
+    expect(secondsPerLine(3)).toBe(0.5);
+    expect(secondsPerLine(4)).toBe(0.25);
+    expect(secondsPerLine(5)).toBe(0.1);
   });
 
-  it('scales linearly with the level (same typography)', () => {
-    // 28.8 px/line ÷ (1×48) = 0.6; ÷ (2×48) = 0.3; ÷ (4×48) = 0.15 → 0.1.
-    expect(secondsPerLine(1, 16, 1.8)).toBe(0.6);
-    expect(secondsPerLine(2, 16, 1.8)).toBe(0.3);
-    expect(secondsPerLine(4, 16, 1.8)).toBe(0.1);
-    expect(secondsPerLine(5, 16, 1.8)).toBe(0.1);
+  it('is typography-independent — the signature takes only the speed', () => {
+    // ADR-027: the map is fixed; the ENGINE inverts against the current
+    // typography (fontSize × lineHeight ÷ s) instead of the display
+    // deriving s/l from typography. Arity 1 pins the dropped args.
+    expect(secondsPerLine.length).toBe(1);
   });
 
-  it('scales linearly with fontSize × lineHeight (same level)', () => {
-    // Level 2: 28.8/96 = 0.3 · 64/96 = 0.7 (64×2 → 64px line) · 16×1.0 → 16px.
-    expect(secondsPerLine(2, 16, 1.8)).toBe(0.3);
-    expect(secondsPerLine(2, 32, 2)).toBe(0.7);
-    expect(secondsPerLine(2, 16, 1.0)).toBe(0.2);
-  });
-
-  it('returns a NUMBER rounded to 1 decimal (never a raw float)', () => {
-    const v = secondsPerLine(5, 32, 2);
-    expect(v).toBe(0.3); // 0.2666… → 0.3
-    expect(Number.isInteger(v)).toBe(false);
-    // The template slot renders "0.3" — the display format is
-    // `ระดับ {n} · {x.x} วิ/บรรทัด`.
-    expect(`${v}`).toBe('0.3');
+  it('String(v) formatting pins — the display renders the exact decimals', () => {
+    // The template slot is `ระดับ {n} · {s} วิ/บรรทัด` with `{s}` = the raw
+    // number stringified: '1' (integer), '0.8' (one decimal), '0.5',
+    // '0.25' (two decimals), '0.1' — NO toFixed rounding.
+    expect(String(secondsPerLine(1))).toBe('1');
+    expect(String(secondsPerLine(2))).toBe('0.8');
+    expect(String(secondsPerLine(3))).toBe('0.5');
+    expect(String(secondsPerLine(4))).toBe('0.25');
+    expect(String(secondsPerLine(5))).toBe('0.1');
   });
 });
