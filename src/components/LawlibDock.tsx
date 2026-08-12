@@ -839,9 +839,13 @@ export default function LawlibDock(props: LawlibDockProps) {
    *  no caps/overflow — the panel grows with its content ("I don't need
    *  inside the dock to be scrollable"). The HEIGHT-AWARE landscape cap
    *  (T9/H2 — 844×390 overflowed the viewport) lives on the L1 COLUMN
-   *  container instead (max-h-[calc(100dvh_-_4.5rem)] + overflow-y-auto,
-   *  vertical desktop only — horizontal/mobile and tall viewports render
-   *  exactly as before). The panel wrapper stays overflow-visible so the L2
+   *  container instead (max-h-[calc(100dvh_-_4.5rem_-_0.375rem)] +
+   *  overflow-y-auto — the extra 0.375rem = the panel chrome beyond the
+   *  top-anchored root offset (root top 3.5rem + py-2.5/border 1.375rem =
+   *  4.875rem total), so an active cap lands the panel bottom EXACTLY on
+   *  the viewport bottom (ui-ux: 396 > 390 at 844×390); vertical desktop
+   *  only — horizontal/mobile and tall viewports render exactly as
+   *  before). The panel wrapper stays overflow-visible so the L2
    *  sibling is never clipped. */
   const toolsPlacementClass =
     isMobile || effectiveLayout === 'vertical' ? '' : 'flex-row flex-nowrap';
@@ -1286,7 +1290,7 @@ export default function LawlibDock(props: LawlibDockProps) {
               data-lawlib-l1
               className={`flex items-center gap-1.5 md:gap-2 ${
                 effectiveLayout === 'vertical'
-                  ? 'flex-col max-h-[calc(100dvh_-_4.5rem)] overflow-y-auto [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1'
+                  ? 'flex-col max-h-[calc(100dvh_-_4.5rem_-_0.375rem)] overflow-y-auto [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1'
                   : 'flex-wrap'
               }`}
             >

@@ -1290,11 +1290,11 @@ describe('Dock v2.3 — mobile-safe panel structure (T12/T15)', () => {
     expect(panel.className).not.toContain('overflow-hidden');
   });
 
-  it('T9: desktop vertical L1 COLUMN carries the height-aware landscape cap (max-h-[calc(100dvh_-_4.5rem)] + overflow-y-auto); the horizontal row has none', async () => {
+  it('T9: desktop vertical L1 COLUMN carries the height-aware landscape cap (max-h-[calc(100dvh_-_4.5rem_-_0.375rem)] + overflow-y-auto); the horizontal row has none', async () => {
     await renderReader(); // default bottom-right = vertical side position
     const l1 = l1Container() as HTMLElement;
     expect(l1.className).toContain('flex-col');
-    expect(l1.className).toContain('max-h-[calc(100dvh_-_4.5rem)]');
+    expect(l1.className).toContain('max-h-[calc(100dvh_-_4.5rem_-_0.375rem)]');
     expect(l1.className).toContain('overflow-y-auto');
     // T20 contract survives: the TOOLS wrapper itself stays cap-free — the
     // T9 cap lives on the column container, not here.
