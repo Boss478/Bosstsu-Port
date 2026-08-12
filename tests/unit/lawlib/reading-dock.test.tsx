@@ -774,7 +774,7 @@ describe('Dock v2.3 — mobile bottom sheet (T12/T15)', () => {
     expect(panel.className).toContain('fixed inset-x-0 bottom-0');
     expect(panel.className).toContain('rounded-t-2xl');
     expect(panel.className).not.toContain('bottom-full');
-    expect(panel.className).toContain('max-h-[min(65vh,34rem)]');
+    expect(panel.className).toContain('max-h-[min(50vh,34rem)]');
 
     // The sheet's Level 1 flows horizontally (wrap).
     const themeBtn = screen.getByRole('button', { name: /ธีม/ });
@@ -1315,7 +1315,7 @@ describe('Dock v2.3 — mobile-safe panel structure (T12/T15)', () => {
     await renderReader();
     const panel = dockPanel() as HTMLElement;
     expect(panel.className).toContain('overflow-y-auto');
-    expect(panel.className).toContain('max-h-[min(65vh,34rem)]');
+    expect(panel.className).toContain('max-h-[min(50vh,34rem)]');
   });
 });
 

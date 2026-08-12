@@ -829,7 +829,7 @@ export default function LawlibDock(props: LawlibDockProps) {
    *  clipped by the scroll container. Mobile bottom sheet: full-width,
    *  safe-area bottom inset, keeps its own scroll. */
   const panelPlacementClass = isMobile
-    ? 'fixed inset-x-0 bottom-0 max-h-[min(65vh,34rem)] overflow-y-auto rounded-t-2xl border-t border-slate-200/80 dark:border-slate-700/70 p-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-2xl'
+    ? 'fixed inset-x-0 bottom-0 max-h-[min(50vh,34rem)] overflow-y-auto rounded-t-2xl border-t border-slate-200/80 dark:border-slate-700/70 p-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-2xl'
     : `absolute ${cfg.panel} rounded-full border border-slate-200/80 dark:border-slate-700/70 p-2 md:p-2.5 shadow-2xl shadow-slate-900/15 dark:shadow-black/50 ${
         effectiveLayout === 'vertical'
           ? 'w-16 py-2 px-1.5 md:py-2.5'
