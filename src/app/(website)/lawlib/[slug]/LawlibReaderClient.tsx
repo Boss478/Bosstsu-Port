@@ -2055,7 +2055,7 @@ export default function LawlibReaderClient({
             onClick={() => setSettings({ ...settings, focusMode: false })}
             aria-label="ออกจากโหมดโฟกัส"
             title="ออกจากโหมดโฟกัส (Esc)"
-            className="flex h-9 shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-blue-300 bg-blue-50 px-2 text-[11px] font-semibold text-blue-700 transition-colors hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-blue-500/50 dark:bg-blue-950/50 dark:text-blue-300"
+            className="flex min-h-11 shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-blue-300 bg-blue-50 px-2 text-[11px] font-semibold text-blue-700 transition-colors hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-blue-500/50 dark:bg-blue-950/50 dark:text-blue-300"
           >
             ออก
             <i aria-hidden="true" className="fi fi-sr-cross text-[8px]" />
@@ -2092,7 +2092,7 @@ export default function LawlibReaderClient({
               type="button"
               aria-pressed={!autoScrollPaused}
               onClick={() => setAutoScrollPaused((p) => !p)}
-              className="flex h-9 cursor-pointer items-center gap-1 rounded-full bg-blue-600 px-3 text-[11px] font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              className="flex min-h-11 cursor-pointer items-center gap-1 rounded-full bg-blue-600 px-3 text-[11px] font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
               <i
                 aria-hidden="true"
@@ -2105,7 +2105,7 @@ export default function LawlibReaderClient({
               onClick={() => setSettings({ ...settings, autoScrollSpeed: 0 })}
               aria-label="ปิดเลื่อนอัตโนมัติ"
               title="ปิดเลื่อนอัตโนมัติ"
-              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-slate-500 transition-colors hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-slate-400 dark:hover:text-white"
+              className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-full text-slate-500 transition-colors hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-slate-400 dark:hover:text-white"
             >
               <i aria-hidden="true" className="fi fi-sr-cross text-[9px]" />
             </button>
