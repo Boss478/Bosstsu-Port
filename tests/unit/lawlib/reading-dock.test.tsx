@@ -1666,11 +1666,12 @@ function mockPopoverSize(el: HTMLElement, height: number, width = 256): void {
 }
 
 describe('W5 — picker popover repositions on height change (ADR-026 W5)', () => {
+  let innerWidthSpy: ReturnType<typeof vi.spyOn>;
   let innerHeightSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     ResizeObserverStub.instances.length = 0;
-    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(800);
+    innerWidthSpy = vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(800);
     innerHeightSpy = vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(790);
     vi.stubGlobal('ResizeObserver', ResizeObserverStub);
   });
@@ -1807,5 +1808,47 @@ describe('W5 — picker popover repositions on height change (ADR-026 W5)', () =
     mockPopoverSize(popover, 200);
     act(() => ro!.fire());
     expect(popover.style.top).toBe('6px');
+  });
+
+  it('T9: content taller than the viewport clamps to vh − 2×GAP (top ≥ GAP, bottom ≤ vh − GAP)', async () => {
+    // 375×667 phone (H1): the ⚙️ settings content is ~850px tall — taller
+    // than the viewport. In a real layout the surface's CSS max-h
+    // (calc(100dvh-1rem)) caps the box; here (jsdom drives offsetHeight
+    // directly) the JS clamp does the same work — the placement invariants
+    // hold either way: top ≥ GAP AND bottom ≤ vh − GAP.
+    innerWidthSpy.mockReturnValue(375);
+    innerHeightSpy.mockReturnValue(667);
+    await renderReader();
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่มเติม' }));
+    const settingsBtn = screen.getByRole('button', { name: /^ตั้งค่า/ });
+    // Dock bottom-center on the phone: the ⚙️ trigger near the bottom edge.
+    vi.spyOn(settingsBtn, 'getBoundingClientRect').mockReturnValue({
+      top: 596,
+      bottom: 640,
+      left: 30,
+      right: 130,
+      width: 100,
+      height: 44,
+      x: 30,
+      y: 596,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    fireEvent.click(settingsBtn);
+    const popover = screen.getByRole('group', { name: 'ตั้งค่า' }) as HTMLElement;
+    const ro = ResizeObserverStub.instances.find((i) => i.observed[0] === popover);
+    expect(ro).toBeTruthy();
+    // 850px of content at a 667px viewport → effective height 667 − 12 = 655.
+    mockPopoverSize(popover, 850);
+    act(() => ro!.fire());
+    // Below (646 + 655 = 1301 > 661) impossible; the above-flip would
+    // overshoot the top (596 − 655 − 6 < 6) → top clamps at GAP = 6 and
+    // bottom lands exactly at vh − GAP = 661 — every row is reachable by
+    // scrolling INSIDE the surface.
+    expect(popover.style.top).toBe('6px');
+    expect(parseInt(popover.style.top, 10) + 655).toBe(667 - 6);
+    expect(popover.style.transformOrigin).toBe('50px 655px');
+    // Horizontal clamp unchanged: anchor.left 30 < vw − width − GAP (113).
+    expect(popover.style.left).toBe('30px');
   });
 });

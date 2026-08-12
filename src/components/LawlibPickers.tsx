@@ -105,10 +105,14 @@ const POPOVER_GAP = 6;
  *  also corrupts a recompute that lands inside the 250ms entry). */
 function placePicker(el: HTMLElement, anchorEl: HTMLElement): void {
   const width = el.offsetWidth;
-  const height = el.offsetHeight;
-  const anchor = anchorEl.getBoundingClientRect();
   const vw = window.innerWidth;
   const vh = window.innerHeight;
+  // T9: the surface's CSS max-h (calc(100dvh-1rem)) already caps the box in
+  // real layouts — the clamp below keeps the flip math coherent (top ≥ GAP,
+  // bottom ≤ vh − GAP) even when the CSS cap has not applied yet (jsdom
+  // tests drive offsetHeight directly).
+  const height = Math.min(el.offsetHeight, vh - 2 * POPOVER_GAP);
+  const anchor = anchorEl.getBoundingClientRect();
   const below = anchor.bottom + POPOVER_GAP;
   const top =
     below + height <= vh - POPOVER_GAP
@@ -339,7 +343,7 @@ export function PickerPopover({
       }`}
     >
       <div
-        className={`rounded-xl border border-slate-200 bg-white p-3 shadow-xl lawlib-fade-rise dark:border-slate-700 dark:bg-slate-900 ${widthClass}`}
+        className={`max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-xl border border-slate-200 bg-white p-3 shadow-xl lawlib-fade-rise dark:border-slate-700 dark:bg-slate-900 ${widthClass}`}
       >
         {children}
       </div>
