@@ -1286,7 +1286,7 @@ export default function LawlibDock(props: LawlibDockProps) {
               data-lawlib-l1
               className={`flex items-center gap-1.5 md:gap-2 ${
                 effectiveLayout === 'vertical'
-                  ? 'flex-col max-h-[calc(100dvh_-_4.5rem)] overflow-y-auto'
+                  ? 'flex-col max-h-[calc(100dvh_-_4.5rem)] overflow-y-auto [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1'
                   : 'flex-wrap'
               }`}
             >
