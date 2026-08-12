@@ -780,6 +780,11 @@ describe('Dock v2.3 — mobile bottom sheet (T12/T15)', () => {
     const themeBtn = screen.getByRole('button', { name: /ธีม/ });
     const favoritesRow = themeBtn.closest('[class*="flex-wrap"]') as HTMLElement;
     expect(favoritesRow).not.toBeNull();
+    // T9: the sheet's horizontal L1 row carries no height cap (the desktop
+    // vertical cap only — the sheet keeps its own panel-level max-h).
+    const sheetL1 = l1Container() as HTMLElement;
+    expect(sheetL1.className).not.toContain('max-h-');
+    expect(sheetL1.className).not.toContain('overflow-y-auto');
 
     // T15 v2.3: Level 2 is COLLAPSED in the sheet by default — ⋯ expands it
     // as an in-flow block (full-width, own glass surface).
@@ -1283,6 +1288,26 @@ describe('Dock v2.3 — mobile-safe panel structure (T12/T15)', () => {
     const panel = dockPanel() as HTMLElement;
     expect(panel.className).not.toContain('overflow-y-auto');
     expect(panel.className).not.toContain('overflow-hidden');
+  });
+
+  it('T9: desktop vertical L1 COLUMN carries the height-aware landscape cap (max-h-[calc(100dvh_-_4.5rem)] + overflow-y-auto); the horizontal row has none', async () => {
+    await renderReader(); // default bottom-right = vertical side position
+    const l1 = l1Container() as HTMLElement;
+    expect(l1.className).toContain('flex-col');
+    expect(l1.className).toContain('max-h-[calc(100dvh_-_4.5rem)]');
+    expect(l1.className).toContain('overflow-y-auto');
+    // T20 contract survives: the TOOLS wrapper itself stays cap-free — the
+    // T9 cap lives on the column container, not here.
+    const tools = l1Tools() as HTMLElement;
+    expect(tools.className).not.toContain('max-h-');
+    expect(tools.className).not.toContain('overflow-y-auto');
+
+    // Horizontal (top-center): the L1 row keeps NO cap/scroll.
+    clickPositionInSettings('บนกลาง');
+    const horizontalL1 = l1Container() as HTMLElement;
+    expect(horizontalL1.className).toContain('flex-wrap');
+    expect(horizontalL1.className).not.toContain('max-h-');
+    expect(horizontalL1.className).not.toContain('overflow-y-auto');
   });
 
   it('mobile: the SHEET carries max-h + overflow-y-auto (in-flow L2 block scrolls with it)', async () => {

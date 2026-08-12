@@ -835,19 +835,23 @@ export default function LawlibDock(props: LawlibDockProps) {
           ? 'w-16 py-2 px-1.5 md:py-2.5'
           : 'max-w-[calc(100vw-2rem)] w-max px-3 py-2 md:px-4 md:py-2.5'
       }`;
-  /** T20 (user decision 2026-08-09): the desktop L1 tools column NO LONGER
-   *  scrolls — the viewport caps + overflow-y-auto are gone, the panel grows
-   *  with its content ("I don't need inside the dock to be scrollable"). The
-   *  panel wrapper stays overflow-visible so the L2 sibling is never
-   *  clipped. */
+  /** T20 (user decision 2026-08-09) + T9: the desktop L1 TOOLS WRAPPER keeps
+   *  no caps/overflow — the panel grows with its content ("I don't need
+   *  inside the dock to be scrollable"). The HEIGHT-AWARE landscape cap
+   *  (T9/H2 — 844×390 overflowed the viewport) lives on the L1 COLUMN
+   *  container instead (max-h-[calc(100dvh_-_4.5rem)] + overflow-y-auto,
+   *  vertical desktop only — horizontal/mobile and tall viewports render
+   *  exactly as before). The panel wrapper stays overflow-visible so the L2
+   *  sibling is never clipped. */
   const toolsPlacementClass =
     isMobile || effectiveLayout === 'vertical' ? '' : 'flex-row flex-nowrap';
   /** T15 (v2.3): Level 2 = a SEPARATE 112px glass panel (w-28), anchored to
    *  Level 1 with the per-position flip (`more` — away from the screen
    *  edge). Mobile: an in-flow full-width block inside the sheet (dots ⋯
-   *  expands it). T20: the desktop 70vh cap + scroll are gone too — the
-   *  panel grows with its content (only the mobile SHEET keeps its own
-   *  max-h + scroll — safety, L2 collapsed by default there). */
+   *  expands it). T20 + T9: the desktop L2 panel itself grows with its
+   *  content (no cap); the T9 height-aware cap lives on the L1 COLUMN
+   *  container, and the mobile SHEET keeps its own max-h + scroll —
+   *  safety, L2 collapsed by default there. */
   const morePanelPlacementClass = isMobile
     ? 'mt-2 w-full rounded-2xl border border-slate-200/80 dark:border-slate-700/70 p-2'
     : `absolute ${cfg.more} w-28 md:w-32 rounded-3xl border border-slate-200/80 dark:border-slate-700/70 p-2.5 md:p-3 shadow-2xl shadow-slate-900/15 dark:shadow-black/50`;
@@ -1280,10 +1284,15 @@ export default function LawlibDock(props: LawlibDockProps) {
               mobile = horizontal row. ──────────────────────────────────── */}
             <div
               data-lawlib-l1
-              className={`flex items-center gap-1.5 md:gap-2 ${effectiveLayout === 'vertical' ? 'flex-col' : 'flex-wrap'}`}
+              className={`flex items-center gap-1.5 md:gap-2 ${
+                effectiveLayout === 'vertical'
+                  ? 'flex-col max-h-[calc(100dvh_-_4.5rem)] overflow-y-auto'
+                  : 'flex-wrap'
+              }`}
             >
-              {/* Tools — desktop side positions (T20: NO internal scroll — the
-                panel grows with its content; the wrapper stays
+              {/* Tools — desktop side positions (T20: this WRAPPER keeps no
+                internal scroll — the T9 landscape cap lives on the L1
+                column container above it; the wrapper stays
                 overflow-visible so the absolutely anchored L2 sibling is
                 never clipped). */}
               <div
