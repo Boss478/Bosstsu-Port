@@ -1824,7 +1824,7 @@ export default function LawlibReaderClient({
             <div className="min-w-0">
               <Link
                 href="/lawlib"
-                className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 transition-colors hover:text-blue-700 dark:text-slate-400 dark:hover:text-blue-300"
+                className="inline-flex min-h-6 items-center gap-1 text-sm font-medium text-slate-600 transition-colors hover:text-blue-700 dark:text-slate-400 dark:hover:text-blue-300"
               >
                 <span aria-hidden="true">←</span> กลับรายการกฎหมาย
               </Link>

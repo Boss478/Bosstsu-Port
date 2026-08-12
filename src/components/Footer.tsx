@@ -36,7 +36,7 @@ export default function Footer() {
             <div className="flex flex-col gap-2">
               <a
                 href="mailto:BossNT45@gmail.com"
-                className="text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-[color,transform] duration-150 text-sm active:scale-95 active:duration-press inline-block"
+                className="text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-[color,transform] duration-150 text-sm min-h-6 active:scale-95 active:duration-press inline-block"
               >
                 <i aria-hidden="true" className="fi fi-sr-envelope mr-2"></i>Email:
                 BossNT45@gmail.com
@@ -45,7 +45,7 @@ export default function Footer() {
                 href="https://github.com/Boss478"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-[color,transform] duration-150 text-sm active:scale-95 active:duration-press"
+                className="text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-[color,transform] duration-150 text-sm min-h-6 active:scale-95 active:duration-press"
               >
                 <svg
                   className="inline-block w-4 h-4 mr-2 fill-current"
@@ -84,14 +84,14 @@ export default function Footer() {
             <span>·</span>
             <Link
               href="/cookie-policy"
-              className="text-zinc-600 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-[color,transform] duration-150 text-xs active:scale-95 active:duration-press"
+              className="text-zinc-600 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-[color,transform] duration-150 text-xs min-h-6 active:scale-95 active:duration-press"
             >
               Cookie Policy
             </Link>
             <span>·</span>
             <Link
               href="/admin"
-              className="text-zinc-600 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-[color,transform] duration-150 active:scale-95 active:duration-press"
+              className="text-zinc-600 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-[color,transform] duration-150 min-h-6 min-w-6 active:scale-95 active:duration-press"
               aria-label="Admin"
             >
               <i aria-hidden="true" className="fi fi-sr-settings text-xs mt-1" />
