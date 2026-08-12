@@ -47,11 +47,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent, screen, act, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import LawlibReaderClient from '@/app/(website)/lawlib/[slug]/LawlibReaderClient';
-import { compactDigestFontSize } from '@/app/(website)/lawlib/[slug]/CompactView';
+import { BodyLineView, compactDigestFontSize } from '@/app/(website)/lawlib/[slug]/CompactView';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { DEFAULT_READING_SETTINGS } from '@/hooks/useReaderStorage';
 import { parseDigestMd } from '@/lib/lawlib/parser';
-import { buildView, type DigestView } from '@/lib/lawlib/digest-view';
+import { buildView, type DigestView, type RenderLine } from '@/lib/lawlib/digest-view';
 import { glossaryIndex } from '@/lib/lawlib-reader';
 import type { LawDoc } from '@/types/lawlib';
 
@@ -1486,5 +1486,57 @@ describe('T9 compact digest font ratio (slider × 0.875, no clamp)', () => {
     ) as HTMLElement | null;
     expect(body).not.toBeNull();
     expect(body!.style.fontSize).toBe('18px');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T9 — BodyLineView QUOTE path (CompactView.tsx:1002-1018): the quote is
+// BODY text, so the compact call sites scale it at 0.875× inline; the
+// reader-header history block passes NO fontSize → the quote keeps its
+// text-sm 14px, byte-identical. The shared fixture has no quote lines, so
+// BodyLineView is rendered standalone (plain text token, no refs/terms →
+// the tooltip stubs are never called).
+// ---------------------------------------------------------------------------
+
+describe('T9 — BodyLineView quote path follows the compact digest font ratio', () => {
+  const quoteLine: Exclude<RenderLine, { kind: 'article' }> = {
+    kind: 'quote',
+    id: 'lawlib-dline-quote-path',
+    tokens: [{ kind: 'text', t: 'เนื้อความย่อที่อ้างอิง' }],
+  };
+
+  function renderQuote(fontSize?: number) {
+    render(
+      <BodyLineView
+        line={quoteLine}
+        slug={law.slug}
+        fontSize={fontSize}
+        onOpenRef={() => {}}
+        onSeeFull={() => {}}
+        getTriggerProps={() => ({})}
+        isTooltipOpen={() => false}
+        tooltipId="t9-quote-tt"
+      />,
+    );
+  }
+
+  it('with fontSize → the quote carries the inline 0.875× size (16 → 14px)', () => {
+    renderQuote(16);
+
+    const quote = document.querySelector<HTMLElement>('#lawlib-dline-quote-path');
+    expect(quote).not.toBeNull();
+    expect(quote!.style.fontSize).toBe(`${compactDigestFontSize(16)}px`);
+    expect(quote!.style.fontSize).toBe('14px');
+  });
+
+  it('without fontSize → NO inline font-size (history block stays text-sm 14px)', () => {
+    renderQuote();
+
+    const quote = document.querySelector<HTMLElement>('#lawlib-dline-quote-path');
+    expect(quote).not.toBeNull();
+    // Byte-identical history claim: no style attribute at all…
+    expect(quote!.getAttribute('style')).toBeNull();
+    // …and the fixed 14px comes from text-sm, not from an inline override.
+    expect(quote!.className).toContain('text-sm');
   });
 });
