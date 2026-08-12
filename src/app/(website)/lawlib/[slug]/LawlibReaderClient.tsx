@@ -2071,7 +2071,7 @@ export default function LawlibReaderClient({
           change) — two animation classes would fight on ONE element. */}
       {(settings.autoScrollSpeed > 0 || chipClosing) && !reducedMotionNow() && (
         <div
-          className="lawlib-autoscroll-chip lawlib-fade-rise vt-chip fixed bottom-24 left-1/2 z-40 -translate-x-1/2"
+          className="lawlib-autoscroll-chip lawlib-fade-rise vt-chip fixed bottom-24 left-1/2 z-[60] -translate-x-1/2"
           style={{
             // T42 (ADR-025 D2): 150ms quality → 75ms fast.
             animationDuration: 'calc(150ms * var(--motion-factor, 1))',
