@@ -434,14 +434,14 @@ describe('T30 — auto-scroll chip (AC-3/AC-4/AC-5)', () => {
     const picker = screen.getByRole('group', { name: 'ตั้งค่า' });
     const slider = within(picker).getByRole('slider', { name: 'ความเร็ว' });
     fireEvent.change(slider, { target: { value: '5' } });
-    await wait(20); // the pop flag flips inside a transition
-
-    expect(chipPill()!.className).toContain('lawlib-chip-pop');
+    // Poll until the pop flag flips inside the transition (vi.waitFor —
+    // a raw wait(20) can race the timer flip under full-suite load).
+    await vi.waitFor(() => expect(chipPill()!.className).toContain('lawlib-chip-pop'));
 
     // One-shot: the clear timer (CHIP_ANIM_MS) removes the class so the
-    // NEXT change can replay the pop.
-    await wait(200);
-    expect(chipPill()!.className).not.toContain('lawlib-chip-pop');
+    // NEXT change can replay the pop — poll until the timer clears it
+    // (the waitFor above already proved presence, so absence = cleared).
+    await vi.waitFor(() => expect(chipPill()!.className).not.toContain('lawlib-chip-pop'));
   });
 
   it('AC-4: reduced-motion → the chip never renders (speed value preserved)', async () => {
