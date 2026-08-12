@@ -1,3 +1,6 @@
+## v1.12.7 (2026-08-12)
++ **Mobile/tablet fixes (T8/T9)**: settings picker now scrolls within the screen on small phones (ทุกแถวเข้าถึงได้) · dock tools scroll inside the column in landscape, and the mobile sheet is capped at half the screen · tap targets ≥44px — dock ⋯/× and tools, header settings, back link, footer links (WCAG 2.5.8) · compact digest body follows the font-size slider at 87.5% (default 14px kept — ตัวอักษรย่อตามสัดส่วน) · auto-scroll chip stays reachable while the dock sheet is open
+
 ## v1.12.6 (2026-08-12)
 + **Dock top positions flush (T58)**: บน-ซ้าย/กลาง/ขวา now sit flush at the top edge on wide screens (24px from the top, ≥1280px) and just below the back-link on smaller screens (56px — the link stays clear) — consistent with the bottom positions
 ## v1.12.5 (2026-08-11)
