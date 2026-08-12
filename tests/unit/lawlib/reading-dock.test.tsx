@@ -220,7 +220,7 @@ describe('Dock v2.3 — Level 1 OPEN BY DEFAULT + GLASS PANEL KEPT (T12/T15)', (
     // to the END of Level 1, next to the ⋯ dots toggle.
     expect(screen.queryByRole('button', { name: 'ย่อแถบเครื่องมือ' })).toBeNull();
     const closeBtn = closeDockBtn();
-    expect(closeBtn.className).toContain('h-7 w-7');
+    expect(closeBtn.className).toContain('h-11 w-11');
     const dots = moreBtn();
     expect(dots.getAttribute('aria-expanded')).toBe('false');
     expect(closeBtn.parentElement).toBe(dots.parentElement);
@@ -1875,5 +1875,24 @@ describe('W5 — picker popover repositions on height change (ADR-026 W5)', () =
     expect(popover.style.transformOrigin).toBe('50px 655px');
     // Horizontal clamp unchanged: anchor.left 30 < vw − width − GAP (113).
     expect(popover.style.left).toBe('30px');
+  });
+});
+
+describe('Dock v2.9 — T9 tap targets (WCAG 2.5.8 ≥44px)', () => {
+  it('⋯/× controls are h-11 w-11 and every L2 tool carries min-h-11 min-w-11', async () => {
+    await renderReader();
+    expect(moreBtn().className).toContain('h-11 w-11');
+    expect(closeDockBtn().className).toContain('h-11 w-11');
+
+    fireEvent.click(moreBtn());
+    const panel = morePanel() as HTMLElement;
+    // L2 icon buttons: 44px min at mobile + md (the 2-col grid still fits
+    // the 112px panel — 45px/col at p-2.5; 51px/col at md w-32/p-3).
+    const l2Buttons = panel.querySelectorAll('button');
+    expect(l2Buttons.length).toBeGreaterThan(0);
+    l2Buttons.forEach((btn) => {
+      expect(btn.className).toContain('min-h-11');
+      expect(btn.className).toContain('min-w-11');
+    });
   });
 });

@@ -1179,7 +1179,7 @@ export default function LawlibDock(props: LawlibDockProps) {
         aria-expanded={isPicker ? pickerOpen : undefined}
         disabled={(key === 'copy' || key === 'copyLink') && !canCopy}
         onClick={(e) => activateTool(key, e.currentTarget)}
-        className={`flex h-8.5 w-8.5 md:h-9.5 md:w-9.5 shrink-0 cursor-pointer items-center justify-center rounded-full border shadow-xs backdrop-blur-sm transition-[transform,background-color,border-color] duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 ${
+        className={`flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-full border shadow-xs backdrop-blur-sm transition-[transform,background-color,border-color] duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 ${
           pickerOpen || active
             ? 'border-blue-500/80 bg-blue-50/90 text-blue-600 shadow-xs ring-2 ring-blue-500/20 dark:border-blue-400/80 dark:bg-blue-950/70 dark:text-blue-300 dark:ring-blue-400/20'
             : 'border-slate-200/90 bg-white/50 text-slate-600 hover:scale-110 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
@@ -1350,7 +1350,7 @@ export default function LawlibDock(props: LawlibDockProps) {
                   aria-controls="lawlib-more-panel"
                   aria-label="เพิ่มเติม"
                   title="เพิ่มเติม"
-                  className={`flex h-7 w-7 md:h-8 md:w-8 cursor-pointer items-center justify-center rounded-full border shadow-xs transition-[transform,background-color,border-color] duration-150 hover:scale-110 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                  className={`flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border shadow-xs transition-[transform,background-color,border-color] duration-150 hover:scale-110 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                     moreOpen
                       ? 'border-blue-500/80 bg-blue-50/90 text-blue-600 ring-1.5 ring-blue-500/20 dark:border-blue-400/80 dark:bg-blue-950/70 dark:text-blue-300 dark:ring-blue-400/20'
                       : 'border-slate-200/90 bg-white/60 text-slate-600 hover:border-blue-400/80 hover:bg-white hover:text-blue-600 dark:border-slate-700/80 dark:bg-slate-800/70 dark:text-slate-300 dark:hover:border-blue-400/60 dark:hover:bg-slate-700/90 dark:hover:text-blue-300'
@@ -1366,7 +1366,7 @@ export default function LawlibDock(props: LawlibDockProps) {
                   onClick={() => userClose(true)}
                   aria-label="ปิดแถบเครื่องมือ"
                   title="ปิดแถบเครื่องมือ"
-                  className="flex h-7 w-7 md:h-8 md:w-8 cursor-pointer items-center justify-center rounded-full border border-slate-200/90 bg-white/60 text-slate-500 shadow-xs transition-[transform,background-color,border-color] duration-150 hover:scale-110 hover:border-rose-400/80 hover:bg-white hover:text-rose-600 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:border-rose-400/60 dark:hover:text-rose-300"
+                  className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-slate-200/90 bg-white/60 text-slate-500 shadow-xs transition-[transform,background-color,border-color] duration-150 hover:scale-110 hover:border-rose-400/80 hover:bg-white hover:text-rose-600 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700/80 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:border-rose-400/60 dark:hover:text-rose-300"
                 >
                   <i
                     aria-hidden="true"
