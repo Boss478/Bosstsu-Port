@@ -1928,6 +1928,7 @@ export default function LawlibReaderClient({
               fontSizeClass={FONT_SIZE_CLASS}
               widthClass={WIDTH_CLASS}
               lineHeight={settings.lineHeight}
+              fontSize={settings.fontSize}
               expandedKey={expandedKey}
               expandedSource={expandedSource}
               tooltipId={tooltipId}

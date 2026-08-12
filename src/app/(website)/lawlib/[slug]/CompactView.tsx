@@ -47,6 +47,17 @@ import { ArticleCopyButton, ArticleHub, type LawTooltipHub } from '@/components/
 import type { TooltipContent, TooltipTriggerHandlers } from '@/hooks/useLawTooltip';
 import DigestToc from './DigestToc';
 
+/** T9 (user decision 2026-08-12): COMPACT digest BODY text = the reader
+ *  font-size slider × 0.875, ROUNDED — 16 → 14px (the shipped default look
+ *  stays) · 20 → 18 · 32 → 28 · 8 → 7. No clamp: the digest follows the
+ *  slider fully. Applies where body text pins its own size (the digest
+ *  body wrapper + BodyLineView quotes — both text-sm today, so the slider
+ *  never touched them); labels/headers keep their fixed sizes. */
+const DIGEST_FONT_RATIO = 0.875;
+export function compactDigestFontSize(sliderFontSize: number): number {
+  return Math.round(sliderFontSize * DIGEST_FONT_RATIO);
+}
+
 interface CompactViewProps {
   view: DigestView;
   law: LawDoc;
@@ -54,6 +65,8 @@ interface CompactViewProps {
   fontSizeClass: string;
   widthClass: string;
   lineHeight: number;
+  /** Slider font-size (px) — the digest body renders at 0.875× of it. */
+  fontSize: number;
   /** Popover article key (null = closed). */
   expandedKey: string | null;
   /** How the popover opened — interaction-only since the hover path was
@@ -524,6 +537,7 @@ export function TokenList({
 function ArticleCard({
   line,
   law,
+  fontSize,
   isOpen,
   popoverId,
   tooltipId,
@@ -537,6 +551,8 @@ function ArticleCard({
 }: {
   line: Extract<RenderLine, { kind: 'article' }>;
   law: LawDoc;
+  /** Slider font-size (px) — the digest body wrapper scales at 0.875×. */
+  fontSize: number;
   /** Popover open for this card (aria-expanded on every member button). */
   isOpen: boolean;
   /** Popover root id (aria-controls on the member buttons — APG two-relation
@@ -633,8 +649,13 @@ function ArticleCard({
       {/* T50 (ADR-026 W2): no own leading-* — the p's inherit the wrapper's
           inline lineHeight (the slider drives digest body text). text-sm
           carries its OWN line-height in Tailwind v4, so the body div also
-          re-inherits explicitly. */}
-      <div className="space-y-2 text-sm leading-[inherit] text-slate-700 dark:text-slate-300">
+          re-inherits explicitly. T9: the SIZE now follows the slider at
+          0.875× — the inline fontSize beats text-sm (16 → 14px = the
+          shipped default, unchanged; no clamp); leading stays inherited. */}
+      <div
+        style={{ fontSize: compactDigestFontSize(fontSize) }}
+        className="space-y-2 text-sm leading-[inherit] text-slate-700 dark:text-slate-300"
+      >
         {line.parts.map((part, i) => (
           <p
             key={i}
@@ -932,6 +953,7 @@ function ArticlePopover({
 export function BodyLineView({
   line,
   slug,
+  fontSize,
   onOpenRef,
   onSeeFull,
   getTriggerProps,
@@ -942,6 +964,9 @@ export function BodyLineView({
 }: {
   line: Exclude<RenderLine, { kind: 'article' }>;
   slug: string;
+  /** Slider font-size (px) — quotes (body text) scale at 0.875×. Omitted by
+   *  the reader-header history block (fixed typography — stays 14px). */
+  fontSize?: number;
   onOpenRef: (key: string) => void;
   onSeeFull: (key: string) => void;
   getTriggerProps: (content: TooltipContent) => TooltipTriggerHandlers;
@@ -978,10 +1003,14 @@ export function BodyLineView({
     return (
       // T50 (ADR-026 W2): own leading-relaxed STRIPPED — digest-body p's
       // inherit the wrapper inline lineHeight; the reader-header history
-      // block re-carries it on ITS wrapper (LawlibReaderClient).
+      // block re-carries it on ITS wrapper (LawlibReaderClient). T9: the
+      // quote is BODY text — the compact call sites scale it at 0.875×
+      // inline (same ratio as the digest body wrapper; the history block
+      // passes no fontSize → its quote stays 14px, byte-identical).
       <p
         id={line.id}
         tabIndex={-1}
+        style={fontSize !== undefined ? { fontSize: compactDigestFontSize(fontSize) } : undefined}
         className={`mt-3 border-l-4 border-amber-300 bg-amber-50 px-4 py-2 text-sm leading-[inherit] text-slate-600 dark:border-amber-500/40 dark:bg-amber-950/30 dark:text-slate-300`}
       >
         {tokens}
@@ -1021,6 +1050,7 @@ function ChapterGroupView({
   collapsed,
   onToggleGroup,
   law,
+  fontSize,
   expandedKey,
   popoverId,
   tooltipId,
@@ -1036,6 +1066,8 @@ function ChapterGroupView({
   collapsed: boolean;
   onToggleGroup: (id: string) => void;
   law: LawDoc;
+  /** Slider font-size (px) — forwarded to card digest bodies + quotes. */
+  fontSize: number;
   expandedKey: string | null;
   popoverId: string;
   tooltipId: string;
@@ -1118,6 +1150,7 @@ function ChapterGroupView({
                   key={line.key}
                   line={line}
                   law={law}
+                  fontSize={fontSize}
                   isOpen={expandedKey === line.key}
                   popoverId={popoverId}
                   tooltipId={tooltipId}
@@ -1134,6 +1167,7 @@ function ChapterGroupView({
                   key={line.id}
                   line={line}
                   slug={law.slug}
+                  fontSize={fontSize}
                   onOpenRef={onOpenRef}
                   onSeeFull={onSeeFull}
                   getTriggerProps={getTriggerProps}
@@ -1158,6 +1192,7 @@ function SectionView({
   section,
   sectionIndex,
   law,
+  fontSize,
   expandedKey,
   popoverId,
   tooltipId,
@@ -1175,6 +1210,8 @@ function SectionView({
   section: RenderSection;
   sectionIndex: number;
   law: LawDoc;
+  /** Slider font-size (px) — forwarded to card digest bodies + quotes. */
+  fontSize: number;
   expandedKey: string | null;
   popoverId: string;
   tooltipId: string;
@@ -1197,6 +1234,7 @@ function SectionView({
         key={line.key}
         line={line}
         law={law}
+        fontSize={fontSize}
         isOpen={expandedKey === line.key}
         popoverId={popoverId}
         tooltipId={tooltipId}
@@ -1213,6 +1251,7 @@ function SectionView({
         key={line.id}
         line={line}
         slug={law.slug}
+        fontSize={fontSize}
         onOpenRef={onOpenRef}
         onSeeFull={onSeeFull}
         getTriggerProps={getTriggerProps}
@@ -1259,6 +1298,7 @@ function SectionView({
                 collapsed={collapsedGroups.has(group.id)}
                 onToggleGroup={onToggleGroup}
                 law={law}
+                fontSize={fontSize}
                 expandedKey={expandedKey}
                 popoverId={popoverId}
                 tooltipId={tooltipId}
@@ -1286,6 +1326,7 @@ export default function CompactView({
   fontSizeClass,
   widthClass,
   lineHeight,
+  fontSize,
   expandedKey,
   expandedSource,
   tooltipId,
@@ -1373,6 +1414,7 @@ export default function CompactView({
               section={section}
               sectionIndex={i + 2}
               law={law}
+              fontSize={fontSize}
               expandedKey={expandedKey}
               popoverId={popoverId}
               tooltipId={tooltipId}

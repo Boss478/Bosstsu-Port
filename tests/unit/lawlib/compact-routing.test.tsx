@@ -47,6 +47,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent, screen, act, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import LawlibReaderClient from '@/app/(website)/lawlib/[slug]/LawlibReaderClient';
+import { compactDigestFontSize } from '@/app/(website)/lawlib/[slug]/CompactView';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { DEFAULT_READING_SETTINGS } from '@/hooks/useReaderStorage';
 import { parseDigestMd } from '@/lib/lawlib/parser';
@@ -1445,5 +1446,45 @@ describe('T50 compact line-height wiring', () => {
     for (const h of headings) {
       expect(h.className).toContain('leading-relaxed');
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T9 — compact digest BODY follows the font-size slider at 0.875× (rounded);
+// the default look stays 14px (16 → 14). Line-height inheritance untouched.
+// ---------------------------------------------------------------------------
+
+describe('T9 compact digest font ratio (slider × 0.875, no clamp)', () => {
+  it('maps slider px → digest px per the user-approved ratio', () => {
+    expect(compactDigestFontSize(16)).toBe(14);
+    expect(compactDigestFontSize(20)).toBe(18);
+    expect(compactDigestFontSize(32)).toBe(28);
+    expect(compactDigestFontSize(8)).toBe(7);
+  });
+
+  it('digest body wrapper: default 16px slider → 14px inline (shipped look)', async () => {
+    await renderReader();
+
+    const body = document.querySelector(
+      '.lawlib-article-card [style*="font-size"]',
+    ) as HTMLElement | null;
+    expect(body, 'digest body wrapper (:637)').not.toBeNull();
+    expect(body!.style.fontSize).toBe('14px');
+    // The T50 contract holds: leading still inherited via leading-[inherit].
+    expect(body!.className).toContain('leading-[inherit]');
+  });
+
+  it('digest body wrapper: 20px slider → 18px inline (scales with the slider)', async () => {
+    localStorage.setItem(
+      'lawlib:settings',
+      JSON.stringify({ ...DEFAULT_READING_SETTINGS, fontSize: 20 }),
+    );
+    await renderReader();
+
+    const body = document.querySelector(
+      '.lawlib-article-card [style*="font-size"]',
+    ) as HTMLElement | null;
+    expect(body).not.toBeNull();
+    expect(body!.style.fontSize).toBe('18px');
   });
 });
