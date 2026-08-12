@@ -1,3 +1,5 @@
+## v1.12.6 (2026-08-12)
++ **Dock top positions flush (T58)**: บน-ซ้าย/กลาง/ขวา now sit flush at the top edge on wide screens (24px from the top, ≥1280px) and just below the back-link on smaller screens (56px — the link stays clear) — consistent with the bottom positions
 ## v1.12.5 (2026-08-11)
 + **Auto-scroll speed — fixed seconds per line (T55)**: 1 = 1.0s · 2 = 0.8s · 3 = 0.5s · 4 = 0.25s · 5 = 0.1s — independent of font size (scroll rate adapts to the line height) · levels 1–4 slower, 5 faster than before
 + **Compact-view TOC as rounded card (T56)**: rounded-xl consistent with the digest cards — border + surface in all themes
