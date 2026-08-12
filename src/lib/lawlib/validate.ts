@@ -19,10 +19,14 @@
  * 10. No stray `>` body lines (marker-grammar drift): every '\n'-line of a
  *     text token that starts with '>' must match AMENDED_BY_RE/REPEALED_RE
  * 11. Definitions are VERBATIM substrings of the law's definitions-source
- *     article (opts.definitionsSourceArticleNo, default 4 — the statutory
- *     บทนิยาม); comparison is whitespace-insensitive (ALL whitespace
- *     stripped on both sides). Laws WITHOUT that article are skipped — there
- *     is no statutory text to verify against.
+ *     article (auto-detected: the article whose text contains the most
+ *     definitions verbatim — the statutory บทนิยาม is NOT always มาตรา 4,
+ *     e.g. คนพิการ 2551 / ปฐมวัย 2562 use มาตรา 3); the explicit opt
+ *     (opts.definitionsSourceArticleNo) overrides detection, and the
+ *     default มาตรา 4 stands only when nothing matches. Comparison is
+ *     whitespace-insensitive (ALL whitespace stripped on both sides). Laws
+ *     WITHOUT any matching source article are skipped — there is no
+ *     statutory text to verify against.
  * 12. No implicit empty-title chapters: a chapter with no === null AND
  *     title === '' means articles were authored BEFORE the first `##`
  *     heading (the parser's permissive implicit chapter) — a silent
@@ -152,8 +156,12 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 export interface ValidateLawDocOpts {
   /**
    * Article no whose statutory text is the verbatim source of the
-   * definitions (default 4 — the บทนิยาม of a Thai act). An amended
-   * บทนิยาม is fine: the law file's article text IS the current text.
+   * definitions. Default: AUTO-DETECTED — the article whose text contains
+   * the most definitions verbatim (the statutory บทนิยาม is มาตรา 4 in most
+   * Thai acts but NOT all: คนพิการ 2551 / ปฐมวัย 2562 use มาตรา 3); when
+   * nothing matches (or the top count ties) the default มาตรา 4 is used.
+   * An amended บทนิยาม is fine: the law file's article text IS the current
+   * text. Set this opt to force a specific source article.
    */
   definitionsSourceArticleNo?: number;
 }
@@ -166,6 +174,39 @@ export interface ValidateLawDocOpts {
  */
 function verbatimKey(s: string): string {
   return normalizeNfc(s).replace(/\s+/g, '');
+}
+
+/**
+ * Rule 11 source-article detection (BLOCKER fix 2026-08-12): the statutory
+ * บทนิยาม is มาตรา 4 in most Thai acts but NOT all (คนพิการ 2551 and
+ * ปฐมวัย 2562 put it in มาตรา 3). The parser keeps the `## ความหมาย` section
+ * in definitions[] without recording its enclosing article, so the source is
+ * derived by content: the article whose text contains the most definitions
+ * verbatim. Returns undefined when nothing matches (caller falls back to
+ * มาตรา 4) or when the top count ties (ambiguous — caller keeps the default).
+ */
+function detectDefinitionsSourceArticle(
+  articles: Article[],
+  definitions: LawDoc['definitions'],
+): number | undefined {
+  if (definitions.length === 0) return undefined;
+  const defKeys = definitions.map((d) => verbatimKey(d.definition));
+  let bestNo: number | undefined;
+  let bestCount = 0;
+  let ambiguous = false;
+  for (const a of articles) {
+    const sourceKey = verbatimKey(a.text.map((tok) => (tok.kind === 'text' ? tok.t : '')).join(''));
+    const count = defKeys.reduce((n, k) => (sourceKey.includes(k) ? n + 1 : n), 0);
+    if (count === 0) continue;
+    if (count > bestCount) {
+      bestNo = a.no;
+      bestCount = count;
+      ambiguous = false;
+    } else if (count === bestCount) {
+      ambiguous = true;
+    }
+  }
+  return ambiguous ? undefined : bestNo;
 }
 
 export function validateLawDoc(
@@ -326,14 +367,21 @@ export function validateLawDoc(
   }
 
   // --- rule 11: definitions ⊆ definitions-source article (verbatim) --------
-  // Definitions are sourced VERBATIM from the statutory บทนิยาม (default
-  // มาตรา 4) — post-edit drift must be machine-detectable. Both sides are
-  // NFC'd with ALL whitespace stripped: verbatim content can differ only in
-  // whitespace (space runs / วรรค line breaks). An amended บทนิยาม is fine —
-  // the law file's article text IS the current text. A law WITHOUT the
-  // source article is SKIPPED (documented): there is no statutory text to
-  // verify against (e.g. the eval fixture — definitions but no มาตรา 4).
-  const sourceNo = opts.definitionsSourceArticleNo ?? 4;
+  // Definitions are sourced VERBATIM from the statutory บทนิยาม — post-edit
+  // drift must be machine-detectable. Both sides are NFC'd with ALL
+  // whitespace stripped: verbatim content can differ only in whitespace
+  // (space runs / วรรค line breaks). An amended บทนิยาม is fine — the law
+  // file's article text IS the current text. The source article is
+  // AUTO-DETECTED (the article containing the most definitions verbatim —
+  // the บทนิยาม is not always มาตรา 4, e.g. คนพิการ 2551 / ปฐมวัย 2562 use
+  // มาตรา 3); the explicit opt overrides; มาตรา 4 remains the fallback when
+  // nothing matches. A law WITHOUT any matching source article is SKIPPED
+  // (documented): there is no statutory text to verify against (e.g. the
+  // eval fixture — definitions but no source article).
+  const sourceNo =
+    opts.definitionsSourceArticleNo ??
+    detectDefinitionsSourceArticle(articles, doc.definitions) ??
+    4;
   const sourceArticle = articles.find((a) => a.no === sourceNo);
   if (sourceArticle !== undefined) {
     const sourceKey = verbatimKey(

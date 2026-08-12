@@ -365,12 +365,15 @@ describe('validateLawDoc', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Rule 11 (L5-3): definitions ⊆ the statutory definitions-source article
-// (opts.definitionsSourceArticleNo, default มาตรา 4 — บทนิยาม). Comparison is
+// Rule 11 (L5-3): definitions ⊆ the statutory definitions-source article.
+// The source article is AUTO-DETECTED — the article whose text contains the
+// most definitions verbatim (the บทนิยาม is มาตรา 4 in most Thai acts but NOT
+// all: คนพิการ 2551 / ปฐมวัย 2562 use มาตรา 3); opts.definitionsSourceArticleNo
+// overrides; มาตรา 4 is the fallback when nothing matches. Comparison is
 // NFC + ALL-whitespace-stripped substring: verbatim statutory content can
 // differ only in whitespace (space runs vs วรรค line breaks), so equal keys
-// ⇔ verbatim-identical content. A law WITHOUT the source article is SKIPPED
-// (documented in validate.ts) — there is no statutory text to verify against.
+// ⇔ verbatim-identical content. A law WITHOUT a matching source article is
+// SKIPPED (documented in validate.ts) — no statutory text to verify against.
 // ---------------------------------------------------------------------------
 
 const sourceArt4 = (t: string): Article => art(4, undefined, { text: [{ kind: 'text', t }] });
@@ -431,13 +434,110 @@ describe('validateLawDoc — rule 11 (definitions ⊆ มาตรา 4)', () =>
     expect(validateLawDoc(doc)).toEqual([]);
   });
 
-  it('opts.definitionsSourceArticleNo overrides the default มาตรา 4 source', () => {
+  it('auto-detects มาตรา 3 as the definitions source (definitions verbatim there)', () => {
+    // คนพิการ 2551 / ปฐมวัย 2562 shape: บทนิยาม lives in มาตรา 3, NOT มาตรา 4 —
+    // the old hard-coded default flagged every definition (13 false errors
+    // per law). Detection must find มาตรา 3 even though มาตรา 4 exists.
+    const doc = makeDoc({
+      definitions: [
+        { term: 'คนพิการ', definition: 'บุคคลซึ่งมีข้อจำกัดในการปฏิบัติกิจกรรมในชีวิตประจำวัน' },
+        {
+          term: 'ผู้ดูแลคนพิการ',
+          definition:
+            'บิดา มารดา ผู้ปกครอง บุตร สามี ภรรยา ญาติ พี่น้องหรือบุคคลอื่นใดที่รับดูแลหรือรับอุปการะคนพิการ',
+        },
+      ],
+      chapters: [
+        chapter([
+          art(1),
+          {
+            no: 3,
+            text: [
+              {
+                kind: 'text',
+                t: 'ในพระราชบัญญัตินี้ "คนพิการ" หมายความว่า บุคคลซึ่งมีข้อจำกัดในการปฏิบัติกิจกรรมในชีวิตประจำวัน และ "ผู้ดูแลคนพิการ" หมายความว่า บิดา มารดา ผู้ปกครอง บุตร สามี ภรรยา ญาติ พี่น้องหรือบุคคลอื่นใดที่รับดูแลหรือรับอุปการะคนพิการ',
+              },
+            ],
+          },
+          sourceArt4('"รัฐมนตรี" หมายความว่า รัฐมนตรีผู้รักษาการตามพระราชบัญญัตินี้'),
+        ]),
+        BASE_DOC.chapters[1],
+      ],
+    });
+    expect(validateLawDoc(doc)).toEqual([]);
+  });
+
+  it('flags a paraphrase even when the source article is มาตรา 3 (detection keeps the check)', () => {
+    const doc = makeDoc({
+      definitions: [
+        { term: 'คนพิการ', definition: 'บุคคลซึ่งมีข้อจำกัดในการปฏิบัติกิจกรรมในชีวิตประจำวัน' },
+        { term: 'ผู้ดูแลคนพิการ', definition: 'บุคคลซึ่งมีหน้าที่ดูแลคนพิการโดยตรง' },
+      ],
+      chapters: [
+        chapter([
+          art(1),
+          {
+            no: 3,
+            text: [
+              {
+                kind: 'text',
+                t: 'ในพระราชบัญญัตินี้ "คนพิการ" หมายความว่า บุคคลซึ่งมีข้อจำกัดในการปฏิบัติกิจกรรมในชีวิตประจำวัน และ "ผู้ดูแลคนพิการ" หมายความว่า บิดา มารดา ผู้ปกครอง บุตร สามี ภรรยา ญาติ พี่น้องหรือบุคคลอื่นใดที่รับดูแลหรือรับอุปการะคนพิการ',
+              },
+            ],
+          },
+          sourceArt4('"รัฐมนตรี" หมายความว่า รัฐมนตรีผู้รักษาการตามพระราชบัญญัตินี้'),
+        ]),
+        BASE_DOC.chapters[1],
+      ],
+    });
+    const errors = validateLawDoc(doc);
+    expect(errors).not.toEqual([]);
+    expect(errors.join('\n')).toContain('ผู้ดูแลคนพิการ');
+  });
+
+  it('opts.definitionsSourceArticleNo overrides auto-detection (explicit opt wins)', () => {
     const doc = makeDoc({
       definitions: [{ term: 'ตำแหน่ง', definition: 'หน้าที่ความรับผิดชอบ' }],
       chapters: [
         chapter([
           art(1),
-          sourceArt4('"ข้าราชการพลเรือน" หมายความว่า บุคคลซึ่งได้รับการบรรจุและแต่งตั้ง'),
+          sourceArt4('"ตำแหน่ง" หมายความว่า หน้าที่ความรับผิดชอบ'),
+          {
+            no: 5,
+            text: [
+              {
+                kind: 'text',
+                t: '"ข้าราชการพลเรือน" หมายความว่า บุคคลซึ่งได้รับการบรรจุและแต่งตั้ง',
+              },
+            ],
+          },
+        ]),
+        BASE_DOC.chapters[1],
+      ],
+    });
+    // auto-detection finds the definitions in มาตรา 4 → valid
+    expect(validateLawDoc(doc)).toEqual([]);
+    // the explicit opt forces มาตรา 5, where the definition is absent → error
+    const errors = validateLawDoc(doc, [], { definitionsSourceArticleNo: 5 });
+    expect(errors).not.toEqual([]);
+    expect(errors.join('\n')).toContain('ตำแหน่ง');
+  });
+
+  it('explicit opt rescues when auto-detection ties (fallback มาตรา 4 is non-matching)', () => {
+    // มาตรา 3 AND มาตรา 5 both contain the definition verbatim → the top
+    // count ties → detection is ambiguous → fallback มาตรา 4; มาตรา 4 exists
+    // but is non-matching → rule 11 flags the definition. The explicit opt
+    // resolves the ambiguity and rescues the doc → [].
+    const doc = makeDoc({
+      definitions: [{ term: 'ตำแหน่ง', definition: 'หน้าที่ความรับผิดชอบ' }],
+      chapters: [
+        chapter([
+          art(1),
+          {
+            no: 3,
+            text: [{ kind: 'text', t: '"ตำแหน่ง" หมายความว่า หน้าที่ความรับผิดชอบ' }],
+          },
+          sourceArt4('"รัฐมนตรี" หมายความว่า รัฐมนตรีผู้รักษาการตามพระราชบัญญัตินี้'),
           {
             no: 5,
             text: [{ kind: 'text', t: '"ตำแหน่ง" หมายความว่า หน้าที่ความรับผิดชอบ' }],
@@ -446,15 +546,19 @@ describe('validateLawDoc — rule 11 (definitions ⊆ มาตรา 4)', () =>
         BASE_DOC.chapters[1],
       ],
     });
+    // tie → fallback มาตรา 4 (exists, non-matching) → rule-11 error
     const errors = validateLawDoc(doc);
     expect(errors).not.toEqual([]);
     expect(errors.join('\n')).toContain('ตำแหน่ง');
-    expect(validateLawDoc(doc, [], { definitionsSourceArticleNo: 5 })).toEqual([]);
+    // the explicit opt points at the article that actually contains the
+    // definition → the doc validates clean
+    expect(validateLawDoc(doc, [], { definitionsSourceArticleNo: 3 })).toEqual([]);
   });
 
-  it('skips rule 11 when the law has no มาตรา 4 (no statutory source to verify)', () => {
-    // BASE_DOC has no article 4 — the definitions are never compared against
-    // a missing source; the doc must still validate clean (documented skip).
+  it('skips rule 11 when no article matches and the fallback มาตรา 4 is absent (no statutory source to verify)', () => {
+    // BASE_DOC has no article 4 — nothing matches and the fallback is absent,
+    // so the definitions are never compared against a source; the doc must
+    // still validate clean (documented skip).
     const doc = makeDoc({
       definitions: [{ term: 'ข้าราชการพลเรือน', definition: 'ข้อความที่ไม่ใช่คำนิยามตามกฎหมาย' }],
     });
