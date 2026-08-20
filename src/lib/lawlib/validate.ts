@@ -40,11 +40,12 @@
 import { z } from 'zod';
 import type { Article, LawDoc } from '../../types/lawlib';
 import { normalizeNfc } from './normalize';
-import { AMENDED_BY_RE, REPEALED_RE } from './parser';
+import { AMENDED_BY_RE, REPEALED_RE, parseLawMarkdown } from './parser';
 import { SHORT_TERM_ALLOWLIST } from './terms';
 // Re-export kept for the documented validate surface — but CLIENT code must
 // import from './terms' (this module pulls in zod; terms.ts is zod-free).
 export { SHORT_TERM_ALLOWLIST };
+export { AMENDED_BY_RE };
 
 // ---------------------------------------------------------------------------
 // Zod schemas (zod v4: strictObject + discriminatedUnion)
@@ -404,6 +405,109 @@ export function validateLawDoc(
   for (const ch of doc.chapters) {
     if (ch.no === null && ch.title === '') {
       errors.push(`บทโดยนัยที่ไม่มีชื่อ (เนื้อหาก่อน "##" แรก) — ต้องมี "##" หัวข้อกำกับ (${who})`);
+    }
+  }
+
+  return errors;
+}
+
+// ---------------------------------------------------------------------------
+// Marker guard (Task 1) — count raw markers vs parsed amendedBy
+// ---------------------------------------------------------------------------
+
+/** Find the line index AFTER the closing frontmatter `---` (or 0 if none). */
+function frontmatterEndOffset(lines: string[]): number {
+  let i = 0;
+  while (i < lines.length && lines[i].trim() === '') i++;
+  if (i < lines.length && lines[i].trim() === '---') {
+    for (let j = i + 1; j < lines.length; j++) {
+      if (lines[j].trim() === '---') return j + 1;
+    }
+  }
+  return 0;
+}
+
+/**
+ * Count lines matching `AMENDED_BY_RE` after frontmatter `--- ... ---`
+ * (exclude frontmatter). TrimStart before test. Handles `\r\n` via
+ * `\r?\n` split.
+ */
+export function countRawAmendedMarkers(md: string): number {
+  const lines = md.split(/\r?\n/);
+  const start = frontmatterEndOffset(lines);
+  let count = 0;
+  for (let k = start; k < lines.length; k++) {
+    const t = lines[k].trimStart();
+    if (AMENDED_BY_RE.test(t)) count++;
+  }
+  return count;
+}
+
+/**
+ * Validate raw markdown with fail-fast marker guards (Task 1).
+ * 1) parses via `parseLawMarkdown` — parse error → single `parse error: ...`
+ * 2) delegates to `validateLawDoc` for base 12 rules
+ * 3) Guard A — raw vs parsed count mismatch
+ * 4) Guard B — marker outside article (silent drop)
+ *
+ * Tail-before-header (marker at tail of article before next **มาตรา**)
+ * is CORRECT per digest-apply-rules.md §C — not flagged. Count+outside
+ * (A+B) already catch both failure modes (silently dropped vs mis-attached).
+ */
+export function validateLawMarkdown(
+  md: string,
+  knownCodes: string[] = [],
+  opts: ValidateLawDocOpts = {},
+): string[] {
+  let doc: LawDoc;
+  try {
+    doc = parseLawMarkdown(md);
+  } catch (e) {
+    return [`parse error: ${e instanceof Error ? e.message : String(e)}`];
+  }
+  const errors: string[] = [...validateLawDoc(doc, knownCodes, opts)];
+  const who = doc.slug;
+  const lines = md.split(/\r?\n/);
+  const start = frontmatterEndOffset(lines);
+
+  // Guard A — count mismatch
+  const raw = countRawAmendedMarkers(md);
+  const parsed = doc.chapters
+    .flatMap((c) => [...c.articles, ...(c.sections?.flatMap((s) => s.articles) ?? [])])
+    .flatMap((a) => a.amendedBy ?? []).length;
+  if (raw !== parsed) {
+    errors.push(
+      `จำนวนเครื่องหมายแก้ไขเพิ่มเติม (${raw}) ไม่ตรงกับ amendedBy ที่ parse ได้ (${parsed}) — มีเครื่องหมายหลุด/ติดผิดมาตรา (${who})`,
+    );
+  }
+
+  // Guard B — marker outside article (collects ALL outside errors, no break)
+  // Generic #{2,} matches parser's SECTION_HEADING_RE (### ส่วนที่), DEFINITIONS_HEADING_RE
+  // (## ความหมาย), and GENERIC_HEADING_RE (## ...); parser parity: GENERIC_HEADING_RE
+  // /^#{2,}\s*(.+)$/ allows zero-space ##หมวด — keep \s* here. Any heading closes
+  // article scope (parser: startChapter(null,'') for permissive implicit chapter).
+  {
+    let insideArticle = false;
+    for (let k = start; k < lines.length; k++) {
+      const rawLine = lines[k];
+      const trimmedStart = rawLine.trimStart();
+      const isArticleHeader = trimmedStart.startsWith('**มาตรา');
+      const isHeading = /^#{2,}\s*/.test(trimmedStart);
+      if (isArticleHeader) {
+        insideArticle = true;
+        continue;
+      }
+      if (isHeading) {
+        insideArticle = false;
+        continue;
+      }
+      if (trimmedStart.trim() === '') continue;
+      if (AMENDED_BY_RE.test(trimmedStart)) {
+        if (!insideArticle) {
+          const snippet = trimmedStart.slice(0, 40);
+          errors.push(`เครื่องหมายแก้ไขอยู่นอกมาตรา (บรรทัด ${k + 1}: "${snippet}") (${who})`);
+        }
+      }
     }
   }
 

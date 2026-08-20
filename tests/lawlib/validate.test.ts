@@ -9,8 +9,17 @@
 // ===========================================================================
 
 import { describe, it, expect } from 'vitest';
-import { validateLawDoc, LawDocSchema, ArticleTokenSchema } from '@/lib/lawlib/validate';
+import fs from 'node:fs';
+import path from 'node:path';
+import {
+  validateLawDoc,
+  validateLawMarkdown,
+  countRawAmendedMarkers,
+  LawDocSchema,
+  ArticleTokenSchema,
+} from '@/lib/lawlib/validate';
 import { LAW_CODE_ALIASES } from '@/lib/lawlib/terms';
+import { parseLawMarkdown } from '@/lib/lawlib/parser';
 import type { LawDoc, Article } from '@/types/lawlib';
 
 // ---------------------------------------------------------------------------
@@ -780,4 +789,173 @@ describe('validateLawDoc — planned-laws.json integration (case 10)', () => {
       'teachers-educational-personnel-civil-service-act-2547',
     );
   });
+});
+
+// ---------------------------------------------------------------------------
+// Task 1 — validateLawMarkdown marker guard (count raw vs parsed)
+// ---------------------------------------------------------------------------
+
+const MD_FM = `---
+slug: test-marker-guard
+code: พ.ร.บ.ทดสอบ 2569
+titleTh: พระราชบัญญัติทดสอบ พ.ศ. 2569
+subject: ทดสอบ
+part: ก
+tags:
+  - ทดสอบ
+verifiedAt: 2026-01-15
+gazetteRef: ราชกิจจานุเบกษา ทดสอบ
+editions:
+  - no: 1
+    gazetteDate: 2569-01-01
+    effectiveDate: 2569-01-01
+    note: ฉบับแรก
+  - no: 2
+    gazetteDate: 2569-06-01
+    effectiveDate: 2569-06-01
+    note: แก้ไขเพิ่มเติม
+---`;
+
+describe('validateLawMarkdown — marker guard (Task 1)', () => {
+  it('valid doc with 1 marker inside article → returns []', () => {
+    const md = `${MD_FM}
+
+## หมวดที่ 1 ทดสอบ
+
+**มาตรา 1** วรรคแรกของมาตรา 1
+
+> แก้ไขเพิ่มเติมโดยฉบับที่ 2
+
+วรรคสองของมาตรา 1
+
+**มาตรา 2** เนื้อหามาตรา 2
+`;
+    expect(validateLawMarkdown(md)).toEqual([]);
+  });
+
+  it('marker AFTER ## หมวด but BEFORE **มาตรา 1** → raw 1 parsed 0, count mismatch + outside-article error', () => {
+    const md = `${MD_FM}
+
+## หมวดที่ 1 ทดสอบ
+
+> แก้ไขเพิ่มเติมโดยฉบับที่ 2
+
+**มาตรา 1** เนื้อหามาตรา 1
+`;
+    const errors = validateLawMarkdown(md);
+    expect(errors.length).toBeGreaterThan(0);
+    const joined = errors.join('\n');
+    // Guard A mismatch OR Guard B outside
+    expect(joined).toMatch(/ไม่ตรง|นอกมาตรา/);
+  });
+
+  it('marker BEFORE **มาตรา 2** header (inside previous article tail) → CORRECT per digest-apply-rules.md §C, returns []', () => {
+    // Tail-before-header is the CORRECT placement (marker = last line inside
+    // target article block, blank line before next header). Guard C was removed
+    // per senior review — count+outside (A+B) already catch both failure modes.
+    const md = `${MD_FM}
+
+## หมวดที่ 1 ทดสอบ
+
+**มาตรา 1** เนื้อหามาตรา 1
+
+> แก้ไขเพิ่มเติมโดยฉบับที่ 2
+
+**มาตรา 2** เนื้อหามาตรา 2
+`;
+    expect(validateLawMarkdown(md)).toEqual([]);
+  });
+
+  it('marker between วรรค blocks of same article → [] (stays inside, parser joins with \\n)', () => {
+    const md = `${MD_FM}
+
+## หมวดที่ 1 ทดสอบ
+
+**มาตรา 1** วรรคแรกของมาตรา 1
+
+> แก้ไขเพิ่มเติมโดยฉบับที่ 2
+
+วรรคสองของมาตรา 1
+
+**มาตรา 2** เนื้อหามาตรา 2
+`;
+    expect(validateLawMarkdown(md)).toEqual([]);
+  });
+
+  it('countRawAmendedMarkers excludes frontmatter — marker inside frontmatter note should NOT count', () => {
+    const mdFMMarker = `---
+slug: test-marker-guard
+code: พ.ร.บ.ทดสอบ 2569
+titleTh: พระราชบัญญัติทดสอบ พ.ศ. 2569
+subject: ทดสอบ
+part: ก
+tags:
+  - ทดสอบ
+verifiedAt: 2026-01-15
+gazetteRef: ราชกิจจานุเบกษา ทดสอบ
+editions:
+  - no: 1
+    gazetteDate: 2569-01-01
+    effectiveDate: 2569-01-01
+    note: "> แก้ไขเพิ่มเติมโดยฉบับที่ 2"
+---
+
+## หมวดที่ 1 ทดสอบ
+
+**มาตรา 1** เนื้อหามาตรา 1
+`;
+    expect(countRawAmendedMarkers(mdFMMarker)).toBe(0);
+    // validate should be clean (no amendedBy, no raw)
+    expect(validateLawMarkdown(mdFMMarker)).toEqual([]);
+  });
+
+  it('countRawAmendedMarkers handles \\r\\n line endings', () => {
+    const mdCRLF =
+      MD_FM.replaceAll('\n', '\r\n') +
+      '\r\n\r\n## หมวดที่ 1 ทดสอบ\r\n\r\n**มาตรา 1** เนื้อหา\r\n\r\n> แก้ไขเพิ่มเติมโดยฉบับที่ 2\r\n\r\nวรรคสอง\r\n';
+    expect(countRawAmendedMarkers(mdCRLF)).toBe(1);
+  });
+
+  it('validateLawMarkdown returns parse error on invalid frontmatter', () => {
+    const bad = `---
+slug: missing-code
+titleTh: ไม่มี code
+---`;
+    const errors = validateLawMarkdown(bad);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toMatch(/parse error/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Regression pin — real laws: Guard C removed, tail-before-header is correct.
+// For every law where raw==parsed, validateLawMarkdown must emit ZERO
+// "ก่อนหัวข้อ" errors. Loops content/lawlib/laws/*.md (pinned by senior review).
+// ---------------------------------------------------------------------------
+
+describe('validateLawMarkdown — real laws regression (no ก่อนหัวข้อ when raw==parsed)', () => {
+  const lawsDir = path.join(process.cwd(), 'content/lawlib/laws');
+  const files = fs
+    .readdirSync(lawsDir)
+    .filter((f) => f.endsWith('.md') && !f.startsWith('_') && !f.startsWith('.'))
+    .sort();
+  for (const file of files) {
+    it(`${file} has zero ก่อนหัวข้อ errors when raw==parsed`, () => {
+      const md = fs.readFileSync(path.join(lawsDir, file), 'utf8');
+      const raw = countRawAmendedMarkers(md);
+      let parsed: number;
+      try {
+        const doc = parseLawMarkdown(md);
+        parsed = doc.chapters
+          .flatMap((c) => [...c.articles, ...(c.sections?.flatMap((s) => s.articles) ?? [])])
+          .flatMap((a) => a.amendedBy ?? []).length;
+      } catch {
+        // parse error will be reported via validateLawMarkdown; no ก่อนหัวข้อ pin needed
+        return;
+      }
+      if (raw !== parsed) return; // only pin laws where raw==parsed (national-2542 etc.)
+      const errors = validateLawMarkdown(md);
+      expect(errors.join('\n')).not.toContain('ก่อนหัวข้อ');
+    });
+  }
 });
