@@ -4,6 +4,7 @@ Retention policy: `.agents/report/` keeps the newest **12 session reports** + th
 
 ## Batch log
 
+- 2026-08-20 — B3 Wave 3 eval thrift (12+1): **88 md** (78 eval + 9 session/report + 1 caveman) + **7 non-md files** (caveman-plugin-v2-final.ts, t35.png, t57-×4) + **6 dirs** (browser-test×15, lane-c-evidence×5, lh-krulaw-×3×2 each, t51-glass-screens×3) → `archive/`; total 124 files staged, `report/` 101→13 md (12 report + 1 eval), archive 233→357, recursive 370==370
 - 2026-08-09 — T4 initial retention pass (keep 12 session + 1 eval): **186 files** moved from `.agents/report/`
 - 2026-06 — pre-existing archive contents (45 files, moved before this index existed)
 
