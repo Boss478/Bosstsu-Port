@@ -59,6 +59,7 @@ token-usage-output.txt
 # Project specific
 AGENTS.md
 opencode.json
+!opencode.json
 CLAUDE.md
 requirements.md
 Tasks/
@@ -88,3 +89,8 @@ report/
 !.agents/report/
 .agents/report/*
 !.agents/report/archive/
+!.agents/specs/
+!.agents/specs/*.md
+!.agents/plans/
+!.agents/plans/adr-*.md
+!scripts/harness-audit.js

@@ -1,0 +1,113 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "servers": {
+      "obsidian": {
+        "type": "local",
+        "command": ["uvx", "--with", "fastmcp==2.13.3", "obsidian-mcp"],
+        "environment": {
+          "OBSIDIAN_VAULT_PATH": "/Users/boss123/obsidian-vault"
+        }
+      },
+      "context7": {
+        "type": "remote",
+        "url": "https://mcp.context7.com/mcp"
+      },
+      "gh_grep": {
+        "type": "remote",
+        "url": "https://mcp.grep.app"
+      },
+      "chrome-devtools": {
+        "type": "local",
+        "command": ["npx", "-y", "chrome-devtools-mcp@latest"]
+      },
+      "playwright": {
+        "type": "local",
+        "command": ["npx", "-y", "@playwright/mcp@latest"]
+      },
+      "sequential-thinking": {
+        "type": "local",
+        "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"]
+      }
+    }
+  },
+  "permissions": [
+    {
+      "action": "external_directory",
+      "resource": "./*",
+      "effect": "allow"
+    },
+    {
+      "action": "external_directory",
+      "resource": "/tmp/*",
+      "effect": "allow"
+    },
+    {
+      "action": "external_directory",
+      "resource": "~/obsidian-vault/*",
+      "effect": "allow"
+    },
+    {
+      "action": "external_directory",
+      "resource": "../*",
+      "effect": "ask"
+    },
+    {
+      "action": "external_directory",
+      "resource": "~/*",
+      "effect": "ask"
+    },
+    {
+      "action": "edit",
+      "resource": ".env.local",
+      "effect": "allow"
+    },
+    {
+      "action": "edit",
+      "resource": ".env.development",
+      "effect": "allow"
+    },
+    {
+      "action": "edit",
+      "resource": ".env.example",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "git commit *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "chmod *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "docker *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "rm -rf *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "rm -r *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "sudo *",
+      "effect": "ask"
+    }
+  ],
+  "commands": {
+    "goal": {
+      "description": "Set a session-scoped goal and auto-continue until complete.",
+      "template": "$ARGUMENTS",
+      "agent": "build"
+    }
+  }
+}
