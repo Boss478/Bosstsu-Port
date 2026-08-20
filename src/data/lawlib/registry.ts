@@ -17,6 +17,10 @@ export const registry: Record<string, () => Promise<LawDoc>> = {
     import('./laws/national-education-act-2542.json') as Promise<LawDoc>,
   'salary-and-allowances-act-2547': () =>
     import('./laws/salary-and-allowances-act-2547.json') as Promise<LawDoc>,
+  'teachers-council-educational-personnel-act-2546': () =>
+    import('./laws/teachers-council-educational-personnel-act-2546.json') as Promise<LawDoc>,
+  'teachers-educational-personnel-civil-service-act-2547': () =>
+    import('./laws/teachers-educational-personnel-civil-service-act-2547.json') as Promise<LawDoc>,
 };
 
 /** Authored ref code (planned-laws.json `code` + LAW_CODE_ALIASES) → registry slug. */
