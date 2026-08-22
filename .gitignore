@@ -93,6 +93,7 @@ report/
 !.agents/specs/*.md
 !.agents/plans/
 !.agents/plans/adr-*.md
+.agents/plans/archive/
 !.agents/rules/
 !.agents/rules/*.md
 !.agents/plans/commit-convention.md
