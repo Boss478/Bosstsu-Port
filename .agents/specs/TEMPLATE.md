@@ -1,6 +1,7 @@
 # Spec: [Feature Name]
 > Status: DRAFT | APPROVED | IMPLEMENTING | DONE
 > Gated: SPECIFY → PLAN → TASKS → IMPLEMENT
+<!-- For ambiguous/>30min features, interview human via AskUserQuestion (tech/UI/UX/edges/tradeoffs) until ASSUMPTIONS concrete — block PLAN until corrected. Explore via subagents (explore/researcher/docs-lookup) to keep main context clean. -->
 
 ## ASSUMPTIONS I'M MAKING:
 1. [Scope — e.g., all categories at once vs incremental]
@@ -44,8 +45,10 @@ export const example = { id: "demo", enabled: true };
 - **Never:** [secrets, deleteMany without approval, shell heredoc]
 
 ## 8. Success Criteria
+<!-- verifiable: must be test/build/eval/screenshot + expected signal, e.g. `npm run eval -- <feature> green`, `LCP <2.5s` — not vague faster/better -->
 - [ ] [Testable criterion 1]
 - [ ] [Testable criterion 2]
+> Verify: `npm run build` or harness still green? Show output.
 
 ## 9. Open Questions
 - [ ] [Unresolved — resolve before PLAN]

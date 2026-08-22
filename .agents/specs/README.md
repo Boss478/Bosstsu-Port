@@ -16,6 +16,10 @@ flowchart LR
 
 **Flow:** SPECIFY → PLAN → TASKS → IMPLEMENT. Each arrow is a human approval gate. TEMPLATE (<60L) gates SPECIFY; Plan gates PLAN; Tasks gate IMPLEMENT.
 
+- Interview gate: for ambiguous/>30min features, manager interviews human via AskUserQuestion (technical, UI/UX, edge cases, tradeoffs) until assumptions concrete — block PLAN until corrected.
+- Success Criteria must be verifiable: test/build/eval/screenshot + expected signal (e.g. `npm run eval -- <feature> green`, `LCP <2.5s`), not vague faster/better.
+- Context: explore via subagents (explore/researcher/docs-lookup) to keep main context clean.
+
 ## Spec Index
 
 | Spec | Status | Spec File | ADR / Plan | Purpose |
