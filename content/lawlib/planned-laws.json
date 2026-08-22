@@ -32,7 +32,7 @@
   {
     "code": "พ.ร.บ.ระเบียบข้าราชการครูและบุคลากรทางการศึกษา 2547",
     "slug": "teachers-educational-personnel-civil-service-act-2547",
-    "built": false
+    "built": true
   },
   {
     "code": "พ.ร.บ.ระเบียบบริหารราชการกระทรวงศึกษาธิการ 2546",
@@ -42,7 +42,7 @@
   {
     "code": "พ.ร.บ.สภาครูและบุคลากรทางการศึกษา 2546",
     "slug": "teachers-council-educational-personnel-act-2546",
-    "built": false
+    "built": true
   },
   {
     "code": "พ.ร.บ.ส่งเสริมการเรียนรู้ 2566",
