@@ -93,5 +93,7 @@ report/
 !.agents/specs/*.md
 !.agents/plans/
 !.agents/plans/adr-*.md
+!.agents/rules/
+!.agents/rules/*.md
 !.agents/plans/commit-convention.md
 !scripts/harness-audit.js
