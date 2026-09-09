@@ -617,82 +617,15 @@ body.python-fullscreen footer {
   display: none;
 }
 
-body:has(.phonics-standalone-root) #site-header,
-body:has(.phonics-standalone-root) footer {
+body:has(.phonics-game) #site-header,
+body:has(.phonics-game) footer {
   display: none;
 }
 
-body:has(.phonics-standalone-root) {
-  overflow: hidden;
-}
-
-body:has(.phonics-standalone-root) main#main-content {
+body:has(.phonics-game) #main-content {
   height: 100dvh;
   min-height: 100dvh;
   overflow: hidden;
-}
-
-.phonics-standalone-root,
-.phonics-standalone-root > div,
-.phonics-standalone-root .phonics-game,
-.phonics-standalone-root .phonics-game > div {
-  min-height: 0;
-}
-
-.phonics-orientation-prompt {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: grid;
-  place-items: center;
-  padding: 1.5rem;
-  background: #0a1128;
-  color: #fff;
-  text-align: center;
-}
-
-.phonics-orientation-card {
-  width: min(100%, 28rem);
-  padding: 2rem 1.5rem;
-  border: 1px solid rgb(255 255 255 / 18%);
-  border-radius: 1.5rem;
-  background: linear-gradient(145deg, rgb(39 196 182 / 18%), rgb(200 164 78 / 16%));
-  box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 30%);
-}
-
-.phonics-orientation-icon {
-  display: grid;
-  place-items: center;
-  width: 4rem;
-  height: 4rem;
-  margin: 0 auto 1rem;
-  border: 2px solid #2ec4b6;
-  border-radius: 1rem;
-  color: #2ec4b6;
-  font-size: 2.25rem;
-  line-height: 1;
-}
-
-.phonics-orientation-kicker {
-  margin: 0 0 0.5rem;
-  color: #c8a44e;
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-}
-
-.phonics-orientation-card h1 {
-  margin: 0;
-  font-size: clamp(1.5rem, 6vw, 2rem);
-  font-weight: 800;
-  line-height: 1.25;
-}
-
-.phonics-orientation-card p:last-child {
-  margin: 0.75rem 0 0;
-  color: rgb(255 255 255 / 78%);
-  font-size: 1rem;
-  line-height: 1.5;
 }
 
 /* ─── Phonics Game ──────────────────────────────────────────────────────────── */
