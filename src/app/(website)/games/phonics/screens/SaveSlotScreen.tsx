@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { getSlotPreview, deleteSave } from '../save';
 import type { SlotPreview, CompanionId, CefrLevel } from '../types';
 import { COMPANIONS, CEFR_LEVEL_ORDER } from '../constants';
@@ -60,21 +59,6 @@ export default function SaveSlotScreen({ onSelectSlot }: SaveSlotScreenProps) {
   const [onboardingSlot, setOnboardingSlot] = useState<number | 'guest' | null>(null);
   const [newName, setNewName] = useState('');
   const [selectedLevel, setSelectedLevel] = useState<CefrLevel>('b1');
-  const onboardingDialogRef = useFocusTrap(onboardingSlot !== null);
-  const deleteDialogRef = useFocusTrap(confirmDelete !== null);
-  const modalOpen = onboardingSlot !== null || confirmDelete !== null;
-
-  useEffect(() => {
-    if (!modalOpen) return;
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setOnboardingSlot(null);
-        setConfirmDelete(null);
-      }
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [modalOpen]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -91,11 +75,7 @@ export default function SaveSlotScreen({ onSelectSlot }: SaveSlotScreenProps) {
 
   return (
     <div className="flex-1 overflow-y-auto overscroll-contain bg-gradient-to-b from-[#E0F2FE] via-[#F0FDFA] to-[#FEF3C7] dark:from-[#0B132B] dark:via-[#1B254B] dark:to-[#3E1B5D] min-h-full flex flex-col justify-between">
-      <div
-        data-testid="phonics-screen-content"
-        inert={modalOpen || undefined}
-        className="flex-1 flex flex-col items-center justify-center px-6 py-10 max-w-md mx-auto w-full"
-      >
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 max-w-md mx-auto w-full">
         {/* Title */}
         <div className="mb-10 text-center">
           <div className="inline-block px-3 py-1 rounded-full bg-[#C8A44E]/10 border border-[#C8A44E]/30 text-xs font-bold text-[#C8A44E] dark:text-[#F7E1A0] mb-3 uppercase tracking-widest animate-pulse flex items-center gap-1.5 justify-center">
@@ -135,17 +115,14 @@ export default function SaveSlotScreen({ onSelectSlot }: SaveSlotScreenProps) {
                 tabIndex={0}
                 id={`save-slot-${slot.slot}`}
                 aria-label={slot.empty ? `Empty slot ${slot.slot}` : `Load ${slot.name}`}
-                onKeyDown={(e) => {
-                  if (e.key !== 'Enter' && e.key !== ' ') return;
-                  e.preventDefault();
-                  if (slot.empty) {
-                    setOnboardingSlot(slot.slot);
-                    setNewName(`Slot ${slot.slot}`);
-                    setSelectedLevel('b1');
-                  } else {
-                    onSelectSlot(slot.slot);
-                  }
-                }}
+                onKeyDown={(e) =>
+                  e.key === 'Enter' &&
+                  (slot.empty
+                    ? (setOnboardingSlot(slot.slot),
+                      setNewName(`Slot ${slot.slot}`),
+                      setSelectedLevel('b1'))
+                    : onSelectSlot(slot.slot))
+                }
               >
                 {slot.empty ? (
                   <div className="flex items-center gap-4 py-2">
@@ -221,7 +198,7 @@ export default function SaveSlotScreen({ onSelectSlot }: SaveSlotScreenProps) {
         {/* Play as Guest Button */}
         <button
           id="guest-mode-btn"
-          className="mt-10 min-h-11 px-6 py-2.5 rounded-full text-xs font-extrabold tracking-widest text-slate-500 dark:text-slate-400 hover:text-[#C8A44E] dark:hover:text-[#F7E1A0] border border-slate-300 dark:border-slate-700 bg-white/20 dark:bg-slate-900/10 hover:bg-white/40 dark:hover:bg-slate-800/20 active:scale-95 transition-all cursor-pointer uppercase shadow-xs"
+          className="mt-10 px-6 py-2.5 rounded-full text-xs font-extrabold tracking-widest text-slate-500 dark:text-slate-400 hover:text-[#C8A44E] dark:hover:text-[#F7E1A0] border border-slate-300 dark:border-slate-700 bg-white/20 dark:bg-slate-900/10 hover:bg-white/40 dark:hover:bg-slate-800/20 active:scale-95 transition-all cursor-pointer uppercase shadow-xs"
           onClick={() => {
             setOnboardingSlot('guest');
             setNewName('Guest');
@@ -235,18 +212,11 @@ export default function SaveSlotScreen({ onSelectSlot }: SaveSlotScreenProps) {
       {/* Modern Deletion Confirmation Overlay Dialog */}
       {confirmDelete !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/10 animate-fade-in">
-          <div
-            ref={deleteDialogRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={`delete-dialog-title-${confirmDelete}`}
-            className="bg-white dark:bg-slate-900 max-w-sm w-full p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl animate-scale-up text-center"
-          >
+          <div className="bg-white dark:bg-slate-900 max-w-sm w-full p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl animate-scale-up text-center">
             <div className="w-16 h-16 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center text-2xl mx-auto mb-4 animate-bounce">
               <i className="fi fi-sr-exclamation" />
             </div>
             <h2
-              id={`delete-dialog-title-${confirmDelete}`}
               className="text-xl font-extrabold text-slate-800 dark:text-white"
               style={{ fontFamily: 'var(--font-mali)' }}
             >
@@ -284,10 +254,6 @@ export default function SaveSlotScreen({ onSelectSlot }: SaveSlotScreenProps) {
           onClick={() => setOnboardingSlot(null)}
         >
           <div
-            ref={onboardingDialogRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="onboarding-dialog-title"
             className="bg-white dark:bg-slate-900 max-w-sm w-full p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl animate-scale-up text-center"
             onClick={(e) => e.stopPropagation()}
           >
@@ -295,7 +261,6 @@ export default function SaveSlotScreen({ onSelectSlot }: SaveSlotScreenProps) {
               <i className="fi fi-sr-island-tropical" />
             </div>
             <h2
-              id="onboarding-dialog-title"
               className="text-xl font-extrabold text-slate-800 dark:text-white"
               style={{ fontFamily: 'var(--font-mali)' }}
             >
@@ -346,8 +311,7 @@ export default function SaveSlotScreen({ onSelectSlot }: SaveSlotScreenProps) {
                   ))}
                 </div>
                 <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                  Affects challenge mode and sound path difficulty. You can change this later in
-                  Settings.
+                  Affects challenge mode and sound path difficulty. You can change this later in Settings.
                 </p>
               </div>
             </div>

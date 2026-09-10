@@ -847,13 +847,7 @@ export default function PhonicsClient() {
 
   if (!mounted) {
     return (
-      <div
-        data-testid="phonics-loading"
-        role="status"
-        aria-live="polite"
-        aria-busy="true"
-        className="h-full min-h-0 flex flex-col items-center justify-center bg-[#A2D2FF] dark:bg-[#0A1128]"
-      >
+      <div className="h-full flex flex-col items-center justify-center bg-[#A2D2FF] dark:bg-[#0A1128]">
         <div className="skeleton w-64 h-10 rounded mb-4" />
         <div className="skeleton w-48 h-6 rounded" />
       </div>
@@ -864,13 +858,7 @@ export default function PhonicsClient() {
     const pct = firstJoinTotal > 0 ? Math.round((firstJoinLoaded / firstJoinTotal) * 100) : 0;
     const isDone = firstJoinLoaded >= firstJoinTotal && firstJoinTotal > 0;
     return (
-      <div
-        data-testid="phonics-loading"
-        role="status"
-        aria-live="polite"
-        aria-busy={!isDone}
-        className="h-full min-h-0 flex flex-col items-center justify-center bg-gradient-to-b from-[#E8F2FF] via-[#E8EFFF] to-[#FAE8FF] dark:from-[#090D1A] dark:via-[#131B35] dark:to-[#2A1242] px-6 text-center"
-      >
+      <div className="h-full flex flex-col items-center justify-center bg-gradient-to-b from-[#E8F2FF] via-[#E8EFFF] to-[#FAE8FF] dark:from-[#090D1A] dark:via-[#131B35] dark:to-[#2A1242] px-6 text-center">
         <div className="glass-panel p-8 rounded-3xl border border-white/20 shadow-xl max-w-sm w-full flex flex-col items-center gap-6">
           <MascotCanvas
             companionId={companion}
@@ -894,11 +882,6 @@ export default function PhonicsClient() {
           <div className="w-full space-y-2">
             <div className="h-4 bg-slate-300/30 dark:bg-slate-900/40 rounded-full border border-white/20 overflow-hidden p-0.5 shadow-inner relative">
               <div
-                role="progressbar"
-                aria-label="Audio download progress"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={pct}
                 className={`h-full rounded-full bg-gradient-to-r ${isDone ? 'from-emerald-400 to-teal-500' : 'from-[#2EC4B6] to-[#C8A44E]'} transition-all duration-300`}
                 style={{ width: `${pct}%` }}
               />
@@ -921,7 +904,7 @@ export default function PhonicsClient() {
     <GameContext.Provider value={ctx}>
       <AchievementToast ids={newAchievements} onDismiss={dismissAchievements} />
       <div
-        className="phonics-game relative h-full min-h-0 flex flex-col bg-gradient-to-b from-[#E8F2FF] via-[#E8EFFF] to-[#FAE8FF] dark:from-[#090D1A] dark:via-[#131B35] dark:to-[#2A1242] transition-colors duration-500 motion-reduce:transition-none"
+        className="phonics-game relative h-full flex flex-col bg-gradient-to-b from-[#E8F2FF] via-[#E8EFFF] to-[#FAE8FF] dark:from-[#090D1A] dark:via-[#131B35] dark:to-[#2A1242] transition-colors duration-500 motion-reduce:transition-none"
         style={{ '--glass-level': glassValue } as React.CSSProperties}
       >
         <div
@@ -935,7 +918,7 @@ export default function PhonicsClient() {
             screen === 'word-quiz' ||
             screen === 'challenge-list' ||
             screen === 'challenge-quiz'
-              ? 'animate-screen-enter h-full flex-1 flex flex-col overflow-y-auto min-h-0'
+              ? 'animate-screen-enter flex-1 flex flex-col overflow-y-auto min-h-0'
               : ''
           }
         >
