@@ -628,6 +628,12 @@ body:has(.phonics-game) #main-content {
   overflow: hidden;
 }
 
+.phonics-standalone-root,
+.phonics-standalone-root > [data-testid='phonics-guard-host'] {
+  height: 100%;
+  min-height: 0;
+}
+
 /* ─── Phonics Game ──────────────────────────────────────────────────────────── */
 
 /* Phonics Island feedback animations */
